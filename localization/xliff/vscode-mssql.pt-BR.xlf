@@ -5850,7 +5850,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.enableQueryHistoryCapture">
         <source xml:lang="en">Enable Query History Capture</source>
-        <target state="translated">Habilitar a Captura do Histórico de Consultas</target>
+        <target state="translated">Habilitar a Captura de Histórico de Consultas</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiDefaults">
         <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
@@ -6362,7 +6362,7 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
-        <target state="translated">Iniciar a Captura do Histórico de Consultas</target>
+        <target state="translated">Iniciar a Captura de Histórico de Consultas</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop Container</source>
