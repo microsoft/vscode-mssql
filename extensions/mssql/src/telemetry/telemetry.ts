@@ -186,6 +186,7 @@ export function startActivity(
         additionalProps?: TelemetryEventProperties,
         additionalMeasurements?: TelemetryEventMeasures,
     ) {
+        includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
         sendErrorEvent(
             telemetryView,
             telemetryAction,

@@ -58,7 +58,7 @@ import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import { getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -86,6 +86,8 @@ export const editorEol =
     vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
         ? os.EOL
         : vscode.workspace.getConfiguration("files").get<string>("eol");
+
+const CANCELLATION_TIMEOUT_MS = 5000;
 
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
@@ -230,30 +232,40 @@ export default class QueryRunner {
     /**
      * Cancels the currently running query.
      * @returns A promise that resolves to the result of the cancel operation.
+     * @throws An error if the cancellation fails or times out.
      */
     public async cancel(): Promise<QueryCancelResult> {
-        // Make the request to cancel the query
-        let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-        let queryCancelResult: QueryCancelResult;
-        const cancelQueryActivity = startActivity(
-            TelemetryViews.QueryEditor,
-            TelemetryActions.CancelQuery,
-        );
-        try {
-            queryCancelResult = await this._client.sendRequest(
-                QueryCancelRequest.type,
-                cancelParams,
+        const cancellationInternal = async () => {
+            // Make the request to cancel the query
+            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+            let queryCancelResult: QueryCancelResult;
+            const cancelQueryActivity = startActivity(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.CancelQuery,
             );
-            cancelQueryActivity?.end(ActivityStatus.Succeeded)
-        } catch (error) {
-            this._handleQueryCleanup(
-                LocalizedConstants.QueryEditor.queryCancelFailed(error),
-                error,
-            );
-            cancelQueryActivity?.endFailed(error, false);
-            return;
-        }
-        return queryCancelResult;
+            try {
+                queryCancelResult = await this._client.sendRequest(
+                    QueryCancelRequest.type,
+                    cancelParams,
+                );
+                cancelQueryActivity?.end(ActivityStatus.Succeeded);
+            } catch (error) {
+                this._handleQueryCleanup(
+                    LocalizedConstants.QueryEditor.queryCancelFailed(error),
+                    error,
+                );
+                cancelQueryActivity?.endFailed(error, false);
+                return;
+            }
+            return queryCancelResult;
+        };
+
+        const timeoutPromise = new Promise<QueryCancelResult>((_resolve, reject) => {
+            setTimeout(() => {
+                reject(new Error(LocalizedConstants.QueryEditor.queryCancelFailed("timeout")));
+            }, CANCELLATION_TIMEOUT_MS);
+        });
+        return Promise.race([cancellationInternal(), timeoutPromise]);
     }
 
     /**
@@ -571,12 +583,22 @@ export default class QueryRunner {
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
         queryDetails.batchIndex = batchIndex;
+        const rowsFetchActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.GetResultRowsSubset,
+            undefined,
+            undefined,
+            {
+                rowCount: bucketizeRowCount(numberOfRows),
+            },
+        );
         try {
             const queryExecuteSubsetResult = await this._client.sendRequest(
                 QueryExecuteSubsetRequest.type,
                 queryDetails,
             );
             if (queryExecuteSubsetResult) {
+                rowsFetchActivity?.end(ActivityStatus.Succeeded);
                 return queryExecuteSubsetResult;
             }
         } catch (error) {
@@ -585,6 +607,7 @@ export default class QueryRunner {
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             void Promise.reject(error);
+            rowsFetchActivity?.endFailed(error, false);
         }
     }
 
