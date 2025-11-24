@@ -719,15 +719,11 @@ export class SqlOutputContentProvider {
 
         for (let [key, _value] of this._queryResultsMap.entries()) {
             if (closedDocumentUri === key) {
-                /**
-                 * If the result is in a webview view, immediately dispose the runner
-                 * For panel results, we just let the query run. The users can cancel it by closing
-                 * the panel.
-                 */
                 if (this.queryResultWebviewController.hasPanel(key)) {
+                    await _value.queryRunner.cancel();
                     continue;
                 } else {
-                    await this.cleanupRunner(key);
+                    await _value.queryRunner.dispose();
                 }
             }
         }
