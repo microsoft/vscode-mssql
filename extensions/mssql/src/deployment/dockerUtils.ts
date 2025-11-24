@@ -157,7 +157,7 @@ export const COMMANDS = {
             "-p",
             `\'${port}:${defaultPortNumber}\'`,
             "--name",
-            sanitizeContainerInput(name),
+            `\'${sanitizeContainerInput(name)}\'`,
         ];
 
         if (hostname) {
