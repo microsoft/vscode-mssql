@@ -758,14 +758,15 @@ export class SqlOutputContentProvider {
                 clearTimeout(timer);
                 this._stateUpdateTimers.delete(uri);
             }
+            await this.cancelQuery(queryRunnerState.queryRunner);
+            /**
+             * If there is panel open for this query, don't dispose the runner so the user can
+             * still interact with it and see the results.
+             */
             if (queryRunnerState.queryRunner.isExecutingQuery) {
-                // We need to cancel it, which will dispose it
-                await this.cancelQuery(queryRunnerState.queryRunner);
-            } else {
-                // We need to explicitly dispose the query
-                void queryRunnerState.queryRunner.dispose();
-                queryRunnerState.listeners?.forEach((listener) => listener.dispose());
+                return;
             }
+            await this.cleanupRunner(uri);
             this._queryResultsMap.delete(uri);
         }
     }
