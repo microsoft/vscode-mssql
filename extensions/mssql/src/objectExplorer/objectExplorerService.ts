@@ -710,13 +710,10 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        // Check if connection is a Docker container
-        const serverName = connectionProfile.connectionString
-            ? connectionProfile.connectionString.match(/^Server=([^;]+)/)?.[1]
-            : connectionProfile.server;
-
-        if (serverName && !connectionProfile.containerName) {
-            const containerName = await checkIfConnectionIsDockerContainer(serverName);
+        if (!connectionProfile.containerName) {
+            const serverInfo = this._connectionManager.getServerInfo(connectionInfo);
+            const machineName = (serverInfo as any)["machineName"] ?? "";
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
             if (containerName) {
                 connectionProfile.containerName = containerName;
             }
