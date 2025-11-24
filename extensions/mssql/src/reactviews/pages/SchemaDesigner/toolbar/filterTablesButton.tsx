@@ -31,7 +31,7 @@ export function FilterTablesButton() {
 
     const [filterText, setFilterText] = useState("");
 
-    const [selectedTables, setSelectedTables] = useState<string[]>([]);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
 
@@ -43,20 +43,21 @@ export function FilterTablesButton() {
 
         if (allVisible === nodes.length) {
             // All tables are visible, clear the selection
-            setSelectedTables([]);
+            setSelectedItems([]);
         } else {
             const visibleTables = nodes
                 .filter((node) => !node.hidden && node.data.dimmed !== true)
                 .map((node) => `${node.data.schema}.${node.data.name}`);
-            setSelectedTables(visibleTables);
+            setSelectedItems(visibleTables);
         }
         setFilterText("");
     }
 
-    function getRelatedTables(selectedTables: string[]): string[] {
-        if (!showTableRelationships || selectedTables.length === 0) {
+    function getRelatedTables(selectedItems: string[]): string[] {
+        if (!showTableRelationships || selectedItems.length === 0) {
             return [];
         }
+        const selectedTables = selectedItems.filter((item) => item.includes("."));
 
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
@@ -88,7 +89,7 @@ export function FilterTablesButton() {
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
 
-        if (selectedTables.length === 0) {
+        if (selectedItems.length === 0) {
             nodes.forEach((node) => {
                 reactFlow.updateNode(node.id, {
                     ...node,
@@ -107,6 +108,7 @@ export function FilterTablesButton() {
                 });
             });
         } else {
+            const selectedTables = selectedItems.filter((item) => item.includes("."));
             const relatedTables = getRelatedTables(selectedTables);
             const tablesToShow = [...selectedTables, ...relatedTables];
 
@@ -156,7 +158,7 @@ export function FilterTablesButton() {
                 }
             });
         }
-    }, [selectedTables, showTableRelationships]);
+    }, [selectedItems, showTableRelationships]);
 
     useEffect(() => {
         eventBus.on("getScript", () =>
@@ -202,37 +204,81 @@ export function FilterTablesButton() {
 
     function renderListItems() {
         const nodes = reactFlow.getNodes();
-        const tableNames = nodes.map((node) => `${node.data.schema}.${node.data.name}`);
-        tableNames.sort();
+        // make a data structure that for each schema has a list of tables in sorted order
+        const schemaTables = nodes.reduce(
+            (acc, node) => {
+                const schema = `${node.data.schema}`;
+                const table = `${node.data.name}`;
+
+                if (!acc[schema]) acc[schema] = [];
+
+                acc[schema].push(table);
+                return acc;
+            },
+            {} as Record<string, string[]>,
+        );
+
+        // sort tables inside each schema
+        Object.keys(schemaTables).forEach((schema) => {
+            schemaTables[schema].sort();
+        });
 
         const items: JSX.Element[] = [];
-        tableNames.forEach((tableName) => {
-            const tableItem = (
-                <ListItem
-                    style={{
-                        lineHeight: "30px",
-                        alignItems: "center",
-                        padding: "2px",
-                        overflow: "hidden",
-                    }}
-                    value={tableName}
-                    key={tableName}>
-                    <Text
-                        title={tableName}
+
+        Object.keys(schemaTables)
+            .sort()
+            .forEach((schema) => {
+                // Render schema as a top-level item
+                const schemaItem = (
+                    <ListItem
                         style={{
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                        }}>
-                        {highlightText(tableName, filterText)}
-                    </Text>
-                </ListItem>
-            );
-            if (!filterText) {
-                items.push(tableItem);
-            } else if (tableName.toLowerCase().includes(filterText.toLowerCase())) {
-                items.push(tableItem);
-            }
-        });
+                            fontWeight: 600,
+                            padding: "2px",
+                            lineHeight: "30px",
+                        }}
+                        value={schema}
+                        key={schema}>
+                        <Text>{schema}</Text>
+                    </ListItem>
+                );
+
+                // Filter: schemas only shown if filter matches OR filter is empty
+                if (!filterText || schema.toLowerCase().includes(filterText.toLowerCase())) {
+                    items.push(schemaItem);
+                }
+
+                // Render each table under the schema (indented)
+                schemaTables[schema].forEach((table) => {
+                    const fullName = `${schema}.${table}`;
+
+                    const matchesFilter =
+                        !filterText || table.toLowerCase().includes(filterText.toLowerCase());
+
+                    if (!matchesFilter) return;
+
+                    items.push(
+                        <ListItem
+                            style={{
+                                lineHeight: "30px",
+                                padding: "2px",
+                                paddingLeft: "20px", // <-- INDENT CHILD TABLES
+                                overflow: "hidden",
+                            }}
+                            value={fullName}
+                            key={fullName}>
+                            <Text
+                                title={table}
+                                style={{
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                }}>
+                                {highlightText(table, filterText)}
+                            </Text>
+                        </ListItem>,
+                    );
+                });
+            });
+
         return items;
     }
 
@@ -247,7 +293,7 @@ export function FilterTablesButton() {
                         loadTables();
                         setIsFilterMenuOpen(!isFilterMenuOpen);
                     }}>
-                    {locConstants.schemaDesigner.filter(selectedTables.length)}
+                    {locConstants.schemaDesigner.filter(selectedItems.length)}
                 </Button>
             </MenuTrigger>
 
@@ -283,9 +329,69 @@ export function FilterTablesButton() {
                         overflowY: "auto",
                         padding: "5px",
                     }}
-                    selectedItems={selectedTables}
+                    selectedItems={selectedItems}
                     onSelectionChange={(_e, data) => {
-                        setSelectedTables(data.selectedItems as string[]);
+                        const isSelection = data.selectedItems.length > selectedItems.length;
+                        const currentSelectedItems = data.selectedItems.map(String);
+                        const changedItem = [
+                            ...currentSelectedItems.filter((item) => !selectedItems.includes(item)),
+                            ...selectedItems.filter((item) => !currentSelectedItems.includes(item)),
+                        ][0];
+
+                        const tableNames = reactFlow
+                            .getNodes()
+                            .map((node) => `${node.data.schema}.${node.data.name}`);
+                        // If the changed item is a schema, select/deselect all its tables
+                        let updatedSelectedItems = currentSelectedItems;
+                        if (!changedItem.includes(".")) {
+                            if (isSelection) {
+                                // Selecting a schema: add all its tables
+                                updatedSelectedItems = [
+                                    ...tableNames.filter((tableName) =>
+                                        tableName.startsWith(`${changedItem}.`),
+                                    ),
+                                    ...updatedSelectedItems,
+                                ];
+                            } else {
+                                // Deselecting a schema: remove all its tables
+                                updatedSelectedItems = currentSelectedItems.filter(
+                                    (tableName) => !tableName.startsWith(`${changedItem}.`),
+                                );
+                            }
+                        } else {
+                            const schema = changedItem.split(".")[0];
+
+                            if (isSelection) {
+                                // if all tables in the schema are selected, add the overall schema
+                                const allTablesInSchema = tableNames.filter((tableName) =>
+                                    tableName.startsWith(`${schema}.`),
+                                );
+                                console.log("All tables in schema:", allTablesInSchema);
+                                const currentSelectedTablesInSchema = updatedSelectedItems.filter(
+                                    (item) => item.startsWith(`${schema}.`),
+                                );
+                                console.log(
+                                    "Current selected tables in schema:",
+                                    currentSelectedTablesInSchema,
+                                );
+                                if (
+                                    allTablesInSchema.length ===
+                                    currentSelectedTablesInSchema.length
+                                ) {
+                                    updatedSelectedItems.push(schema);
+                                }
+                            } else {
+                                // remove schema from current selected items
+                                updatedSelectedItems = currentSelectedItems.filter(
+                                    (item) => item !== schema,
+                                );
+                            }
+                        }
+                        console.log(
+                            "Updated selected items before setting state:",
+                            updatedSelectedItems,
+                        );
+                        setSelectedItems(updatedSelectedItems);
                         if (context) {
                             context.resetView();
                         }
@@ -306,7 +412,7 @@ export function FilterTablesButton() {
                         size="small"
                         style={{}}
                         onClick={async () => {
-                            setSelectedTables([]);
+                            setSelectedItems([]);
                             if (context) {
                                 context.resetView();
                             }
