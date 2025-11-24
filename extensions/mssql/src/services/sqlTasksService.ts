@@ -10,6 +10,7 @@ import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -127,6 +128,7 @@ export class SqlTasksService {
     constructor(
         private _client: SqlToolsServiceClient,
         private _sqlDocumentService: SqlDocumentService,
+        private _vscodeWrapper: VscodeWrapper,
     ) {
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
@@ -231,7 +233,7 @@ export class SqlTasksService {
 
                 if (actionButtonText && handler.getActionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
-                    void vscode.window
+                    void this._vscodeWrapper
                         .showInformationMessage(successMessage, actionButtonText)
                         .then((selection) => {
                             if (selection === actionButtonText) {
@@ -240,20 +242,20 @@ export class SqlTasksService {
                                     taskInfo.taskInfo,
                                     targetLocation,
                                 );
-                                void vscode.commands.executeCommand(command, ...args);
+                                void this._vscodeWrapper.executeCommand(command, ...args);
                             }
                         });
                 } else {
                     // Show notification without action button
-                    void vscode.window.showInformationMessage(successMessage);
+                    void this._vscodeWrapper.showInformationMessage(successMessage);
                 }
             } else {
                 // Show generic completion message for tasks without custom handlers
                 const lastMessage =
-                    (taskProgressInfo.message &&
-                        taskProgressInfo.message.toLowerCase() !==
-                            taskStatusString.toLowerCase()) ??
-                    taskInfo.lastMessage;
+                    taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
+                        ? taskProgressInfo.message
+                        : taskInfo.lastMessage;
+
                 const taskMessage = lastMessage
                     ? localizedConstants.taskStatusWithNameAndMessage(
                           taskInfo.taskInfo.name,
@@ -264,7 +266,7 @@ export class SqlTasksService {
                           taskInfo.taskInfo.name,
                           taskStatusString,
                       );
-                showCompletionMessage(taskProgressInfo.status, taskMessage);
+                this.showCompletionMessage(taskProgressInfo.status, taskMessage);
             }
             if (
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
@@ -293,6 +295,28 @@ export class SqlTasksService {
             taskInfo.progressCallback({ message: taskMessage });
         }
     }
+
+    /**
+     * Shows a message for a task with a different type of toast notification being used for
+     * different status types.
+     *  Failed - Error notification
+     *  Canceled or SucceededWithWarning - Warning notification
+     *  All others - Information notification
+     * @param taskStatus The status of the task we're showing the message for
+     * @param message The message to show
+     */
+    private showCompletionMessage(taskStatus: TaskStatus, message: string): void {
+        if (taskStatus === TaskStatus.Failed) {
+            void this._vscodeWrapper.showErrorMessage(message);
+        } else if (
+            taskStatus === TaskStatus.Canceled ||
+            taskStatus === TaskStatus.SucceededWithWarning
+        ) {
+            void this._vscodeWrapper.showWarningMessage(message);
+        } else {
+            void this._vscodeWrapper.showInformationMessage(message);
+        }
+    }
 }
 
 /**
@@ -307,28 +331,6 @@ function isTaskCompleted(taskStatus: TaskStatus): boolean {
         taskStatus === TaskStatus.Succeeded ||
         taskStatus === TaskStatus.SucceededWithWarning
     );
-}
-
-/**
- * Shows a message for a task with a different type of toast notification being used for
- * different status types.
- *  Failed - Error notification
- *  Canceled or SucceededWithWarning - Warning notification
- *  All others - Information notification
- * @param taskStatus The status of the task we're showing the message for
- * @param message The message to show
- */
-function showCompletionMessage(taskStatus: TaskStatus, message: string): void {
-    if (taskStatus === TaskStatus.Failed) {
-        vscode.window.showErrorMessage(message);
-    } else if (
-        taskStatus === TaskStatus.Canceled ||
-        taskStatus === TaskStatus.SucceededWithWarning
-    ) {
-        vscode.window.showWarningMessage(message);
-    } else {
-        vscode.window.showInformationMessage(message);
-    }
 }
 
 /**

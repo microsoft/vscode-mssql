@@ -59,7 +59,6 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
-import { PlatformInformation } from "../models/platform";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -565,8 +564,12 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
+                this._vscodeWrapper,
             );
-            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.dacFxService = new DacFxService(
+                SqlToolsServerClient.instance,
+                this.sqlTasksService,
+            );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
@@ -629,74 +632,9 @@ export default class MainController implements vscode.Disposable {
             );
 
             this.registerLanguageModelTools();
-            this.registerTaskCompletionHandlers();
 
             return true;
         }
-    }
-
-    /**
-     * Helper method to register task completion handlers for DacPac operations
-     */
-    private registerTaskCompletionHandlers(): void {
-        const platformInfo = new PlatformInformation(process.platform, process.arch, undefined);
-
-        // Determine the OS-specific reveal button text
-        let revealButtonText: string;
-        if (platformInfo.isMacOS) {
-            revealButtonText = LocalizedConstants.DacpacDialog.RevealInFinder;
-        } else if (platformInfo.isLinux) {
-            revealButtonText = LocalizedConstants.DacpacDialog.OpenContainingFolder;
-        } else {
-            // Windows or any other platform
-            revealButtonText = LocalizedConstants.DacpacDialog.RevealInExplorer;
-        }
-
-        // Register handler for Export BACPAC operation
-        this.sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameExportBacpac,
-            getTargetLocation: (taskInfo) => taskInfo.targetLocation,
-            getSuccessMessage: (_taskInfo, targetLocation) => {
-                const fileName = path.basename(targetLocation);
-                return LocalizedConstants.DacpacDialog.ExportSuccessWithFile(fileName);
-            },
-            getActionButtonText: () => revealButtonText,
-            getActionCommand: () => "revealFileInOS",
-            getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
-        });
-
-        // Register handler for Extract DACPAC operation
-        this.sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameExtractDacpac,
-            getTargetLocation: (taskInfo) => taskInfo.targetLocation,
-            getSuccessMessage: (_taskInfo, targetLocation) => {
-                const fileName = path.basename(targetLocation);
-                return LocalizedConstants.DacpacDialog.ExtractSuccessWithFile(fileName);
-            },
-            getActionButtonText: () => revealButtonText,
-            getActionCommand: () => "revealFileInOS",
-            getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
-        });
-
-        // Register handler for Import BACPAC operation
-        this.sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameImportBacpac,
-            getTargetLocation: (taskInfo) => taskInfo.databaseName,
-            getSuccessMessage: (_taskInfo, databaseName) => {
-                return LocalizedConstants.DacpacDialog.ImportSuccessWithDatabase(databaseName);
-            },
-            // No action button for database operations
-        });
-
-        // Register handler for Deploy DACPAC operation
-        this.sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameDeployDacpac,
-            getTargetLocation: (taskInfo) => taskInfo.databaseName,
-            getSuccessMessage: (_taskInfo, databaseName) => {
-                return LocalizedConstants.DacpacDialog.DeploySuccessWithDatabase(databaseName);
-            },
-            // No action button for database operations
-        });
     }
 
     /**

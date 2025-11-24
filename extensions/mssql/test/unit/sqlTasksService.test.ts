@@ -15,6 +15,7 @@ import {
 } from "../../src/services/sqlTasksService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
 
 suite("SqlTasksService Tests", () => {
@@ -22,64 +23,27 @@ suite("SqlTasksService Tests", () => {
     let sqlTasksService: SqlTasksService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let showInformationMessageStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
     let showWarningMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
-    let withProgressStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
+        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
-        // Stub vscode.window methods - check if already stubbed
-        if (!(vscode.window.showInformationMessage as unknown as sinon.SinonStub).restore) {
-            showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        } else {
-            showInformationMessageStub = vscode.window.showInformationMessage as sinon.SinonStub;
-            showInformationMessageStub.reset();
-        }
-
-        if (!(vscode.window.showErrorMessage as unknown as sinon.SinonStub).restore) {
-            showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
-        } else {
-            showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
-            showErrorMessageStub.reset();
-        }
-
-        if (!(vscode.window.showWarningMessage as unknown as sinon.SinonStub).restore) {
-            showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
-        } else {
-            showWarningMessageStub = vscode.window.showWarningMessage as sinon.SinonStub;
-            showWarningMessageStub.reset();
-        }
-
-        if (!(vscode.commands.executeCommand as unknown as sinon.SinonStub).restore) {
-            executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
-        } else {
-            executeCommandStub = vscode.commands.executeCommand as sinon.SinonStub;
-            executeCommandStub.reset();
-        }
-
-        if (!(vscode.window.withProgress as unknown as sinon.SinonStub).restore) {
-            withProgressStub = sandbox.stub(vscode.window, "withProgress");
-        } else {
-            withProgressStub = vscode.window.withProgress as sinon.SinonStub;
-            withProgressStub.reset();
-        }
-
-        // Make withProgress resolve immediately
-        withProgressStub.callsFake(async (_options, task) => {
-            const progress = { report: sandbox.stub() };
-            const token = {
-                isCancellationRequested: false,
-                onCancellationRequested: sandbox.stub(),
-            };
-            await task(progress, token);
-        });
-
-        sqlTasksService = new SqlTasksService(sqlToolsClientStub, sqlDocumentServiceStub);
+        showInformationMessageStub = vscodeWrapperStub.showInformationMessage;
+        showErrorMessageStub = vscodeWrapperStub.showErrorMessage;
+        showWarningMessageStub = vscodeWrapperStub.showWarningMessage;
+        executeCommandStub = vscodeWrapperStub.executeCommand;
+        sqlTasksService = new SqlTasksService(
+            sqlToolsClientStub,
+            sqlDocumentServiceStub,
+            vscodeWrapperStub,
+        );
     });
 
     teardown(() => {

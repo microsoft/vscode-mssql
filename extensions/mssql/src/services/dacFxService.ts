@@ -7,9 +7,84 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as dacFxContracts from "../models/contracts/dacFx/dacFxContracts";
 import * as mssql from "vscode-mssql";
 import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import { SqlTasksService } from "./sqlTasksService";
+import * as path from "path";
+import * as vscode from "vscode";
+import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
+import { PlatformInformation } from "../models/platform";
 
 export class DacFxService implements mssql.IDacFxService {
-    constructor(private _client: SqlToolsServiceClient) {}
+    constructor(
+        private _client: SqlToolsServiceClient,
+        sqlTasksService: SqlTasksService,
+    ) {
+        this.registerTaskCompletionHandlers(sqlTasksService);
+    }
+
+    /**
+     * Register task completion handlers for dacpac operations
+     */
+    private registerTaskCompletionHandlers(sqlTasksService: SqlTasksService): void {
+        const platformInfo = new PlatformInformation(process.platform, process.arch, undefined);
+
+        // Determine the OS-specific reveal button text
+        let revealButtonText: string;
+        if (platformInfo.isMacOS) {
+            revealButtonText = LocalizedConstants.DacpacDialog.RevealInFinder;
+        } else if (platformInfo.isLinux) {
+            revealButtonText = LocalizedConstants.DacpacDialog.OpenContainingFolder;
+        } else {
+            // Windows or any other platform
+            revealButtonText = LocalizedConstants.DacpacDialog.RevealInExplorer;
+        }
+
+        // Register handler for Export BACPAC operation
+        sqlTasksService.registerCompletionHandler({
+            taskName: Constants.taskNameExportBacpac,
+            getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+            getSuccessMessage: (_taskInfo, targetLocation) => {
+                const fileName = path.basename(targetLocation);
+                return LocalizedConstants.DacpacDialog.ExportSuccessWithFile(fileName);
+            },
+            getActionButtonText: () => revealButtonText,
+            getActionCommand: () => "revealFileInOS",
+            getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
+        });
+
+        // Register handler for Extract DACPAC operation
+        sqlTasksService.registerCompletionHandler({
+            taskName: Constants.taskNameExtractDacpac,
+            getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+            getSuccessMessage: (_taskInfo, targetLocation) => {
+                const fileName = path.basename(targetLocation);
+                return LocalizedConstants.DacpacDialog.ExtractSuccessWithFile(fileName);
+            },
+            getActionButtonText: () => revealButtonText,
+            getActionCommand: () => "revealFileInOS",
+            getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
+        });
+
+        // Register handler for Import BACPAC operation
+        sqlTasksService.registerCompletionHandler({
+            taskName: Constants.taskNameImportBacpac,
+            getTargetLocation: (taskInfo) => taskInfo.databaseName,
+            getSuccessMessage: (_taskInfo, databaseName) => {
+                return LocalizedConstants.DacpacDialog.ImportSuccessWithDatabase(databaseName);
+            },
+            // No action button for database operations
+        });
+
+        // Register handler for Deploy DACPAC operation
+        sqlTasksService.registerCompletionHandler({
+            taskName: Constants.taskNameDeployDacpac,
+            getTargetLocation: (taskInfo) => taskInfo.databaseName,
+            getSuccessMessage: (_taskInfo, databaseName) => {
+                return LocalizedConstants.DacpacDialog.DeploySuccessWithDatabase(databaseName);
+            },
+            // No action button for database operations
+        });
+    }
 
     public exportBacpac(
         databaseName: string,
