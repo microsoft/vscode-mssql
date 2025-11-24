@@ -593,7 +593,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         isNull: originalCell.isNull,
                         invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
                     });
-                    this.logger.info(
+                    this.logger.verbose(
                         `Cached original value for cell ${cacheKey}: ${originalCell.displayValue}`,
                     );
                 }
