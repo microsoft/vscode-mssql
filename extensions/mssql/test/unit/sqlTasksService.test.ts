@@ -53,7 +53,7 @@ suite("SqlTasksService Tests", () => {
     suite("registerCompletionHandler", () => {
         test("should register a completion handler", () => {
             const handler: TaskCompletionHandler = {
-                taskName: "Test task",
+                operationName: "TestOperation",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Success: ${targetLocation}`,
             };
@@ -72,6 +72,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: "/path/to/file.bacpac",
+                operationName: "TestOperation",
             };
 
             // Simulate task created notification
@@ -94,15 +95,15 @@ suite("SqlTasksService Tests", () => {
             );
         });
 
-        test("should support multiple handlers for different task names", async () => {
+        test("should support multiple handlers for different operation IDs", async () => {
             const handler1: TaskCompletionHandler = {
-                taskName: "Export bacpac",
+                operationName: "ExportBacpac",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported: ${targetLocation}`,
             };
 
             const handler2: TaskCompletionHandler = {
-                taskName: "Deploy dacpac",
+                operationName: "DeployDacpac",
                 getTargetLocation: (taskInfo) => taskInfo.databaseName,
                 getSuccessMessage: (_taskInfo, databaseName) => `Deployed to: ${databaseName}`,
             };
@@ -126,6 +127,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: "/path/to/export.bacpac",
+                operationName: "ExportBacpac",
             };
 
             taskCreatedHandler(exportTask);
@@ -157,6 +159,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: "/path/to/deploy.dacpac",
+                operationName: "DeployDacpac",
             };
 
             taskCreatedHandler(deployTask);
@@ -181,7 +184,7 @@ suite("SqlTasksService Tests", () => {
             const targetFile = "/path/to/file.bacpac";
 
             const handler: TaskCompletionHandler = {
-                taskName: "Export bacpac",
+                operationName: "ExportBacpac",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
                 getActionButtonText: () => "Reveal in Explorer",
@@ -204,6 +207,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: targetFile,
+                operationName: "ExportBacpac",
             };
 
             // Simulate task created and completed
@@ -234,7 +238,7 @@ suite("SqlTasksService Tests", () => {
             const targetFile = "/path/to/file.bacpac";
 
             const handler: TaskCompletionHandler = {
-                taskName: "Export bacpac",
+                operationName: "ExportBacpac",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
                 getActionButtonText: () => actionButtonText,
@@ -257,6 +261,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: targetFile,
+                operationName: "ExportBacpac",
             };
 
             const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
@@ -291,7 +296,7 @@ suite("SqlTasksService Tests", () => {
     suite("Task completion without action button", () => {
         test("should show notification without action button when handler doesn't provide it", async () => {
             const handler: TaskCompletionHandler = {
-                taskName: "Deploy dacpac",
+                operationName: "DeployDacpac",
                 getTargetLocation: (taskInfo) => taskInfo.databaseName,
                 getSuccessMessage: (_taskInfo, databaseName) => `Deployed to ${databaseName}`,
                 // No action button methods
@@ -310,6 +315,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: "",
+                operationName: "DeployDacpac",
             };
 
             const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
@@ -435,7 +441,7 @@ suite("SqlTasksService Tests", () => {
     suite("Task with undefined target location", () => {
         test("should show generic message when handler returns undefined target location", async () => {
             const handler: TaskCompletionHandler = {
-                taskName: "Export bacpac",
+                operationName: "ExportBacpac",
                 getTargetLocation: (_taskInfo) => undefined,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
             };
@@ -453,6 +459,7 @@ suite("SqlTasksService Tests", () => {
                 providerName: "MSSQL",
                 isCancelable: false,
                 targetLocation: "",
+                operationName: "ExportBacpac",
             };
 
             const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;

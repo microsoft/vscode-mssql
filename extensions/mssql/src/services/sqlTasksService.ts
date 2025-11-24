@@ -41,6 +41,7 @@ export interface TaskInfo {
     providerName: string;
     isCancelable: boolean;
     targetLocation: string;
+    operationName?: string;
 }
 
 namespace TaskStatusChangedNotification {
@@ -72,9 +73,9 @@ type ProgressCallback = (value: { message?: string; increment?: number }) => voi
  */
 export interface TaskCompletionHandler {
     /**
-     * The name of the task to handle (must match taskInfo.name from SQL Tools Service)
+     * The operation ID to handle (must match taskInfo.taskOperation from SQL Tools Service)
      */
-    taskName: string;
+    operationName: string;
 
     /**
      * Resolves the target location from the task info.
@@ -140,12 +141,12 @@ export class SqlTasksService {
 
     /**
      * Registers a custom completion handler for a specific task type.
-     * When a task with the specified name completes successfully, the handler will be invoked
+     * When a task with the specified operation ID completes successfully, the handler will be invoked
      * to show a custom notification with an action button.
      * @param handler The task completion handler configuration
      */
     public registerCompletionHandler(handler: TaskCompletionHandler): void {
-        this._completionHandlers.set(handler.taskName, handler);
+        this._completionHandlers.set(handler.operationName, handler);
     }
 
     private cancelTask(taskId: string): Thenable<boolean> {
@@ -212,7 +213,9 @@ export class SqlTasksService {
 
         if (isTaskCompleted(taskProgressInfo.status)) {
             // Check if there's a custom completion handler registered for this task
-            const handler = this._completionHandlers.get(taskInfo.taskInfo.name);
+            const handler = taskInfo.taskInfo.operationName
+                ? this._completionHandlers.get(taskInfo.taskInfo.operationName)
+                : undefined;
 
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.

@@ -25,7 +25,7 @@ suite("DacFxService Tests", () => {
         // Capture registered handlers
         sqlTasksServiceStub.registerCompletionHandler.callsFake(
             (handler: TaskCompletionHandler) => {
-                registeredHandlers.set(handler.taskName, handler);
+                registeredHandlers.set(handler.operationName, handler);
             },
         );
     });
@@ -44,44 +44,44 @@ suite("DacFxService Tests", () => {
             expect(registeredHandlers.size).to.equal(4);
         });
 
-        test("should register Export BACPAC handler with correct task name", () => {
+        test("should register Export BACPAC handler with correct operation ID", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Assert
-            expect(registeredHandlers.has(Constants.taskNameExportBacpac)).to.be.true;
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
-            expect(handler.taskName).to.equal(Constants.taskNameExportBacpac);
+            expect(registeredHandlers.has(Constants.operationIdExportBacpac)).to.be.true;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
+            expect(handler.operationName).to.equal(Constants.operationIdExportBacpac);
         });
 
-        test("should register Extract DACPAC handler with correct task name", () => {
+        test("should register Extract DACPAC handler with correct operation ID", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Assert
-            expect(registeredHandlers.has(Constants.taskNameExtractDacpac)).to.be.true;
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
-            expect(handler.taskName).to.equal(Constants.taskNameExtractDacpac);
+            expect(registeredHandlers.has(Constants.operationIdExtractDacpac)).to.be.true;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
+            expect(handler.operationName).to.equal(Constants.operationIdExtractDacpac);
         });
 
-        test("should register Import BACPAC handler with correct task name", () => {
+        test("should register Import BACPAC handler with correct operation ID", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Assert
-            expect(registeredHandlers.has(Constants.taskNameImportBacpac)).to.be.true;
-            const handler = registeredHandlers.get(Constants.taskNameImportBacpac)!;
-            expect(handler.taskName).to.equal(Constants.taskNameImportBacpac);
+            expect(registeredHandlers.has(Constants.operationIdImportBacpac)).to.be.true;
+            const handler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
+            expect(handler.operationName).to.equal(Constants.operationIdImportBacpac);
         });
 
-        test("should register Deploy DACPAC handler with correct task name", () => {
+        test("should register Deploy DACPAC handler with correct operation ID", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Assert
-            expect(registeredHandlers.has(Constants.taskNameDeployDacpac)).to.be.true;
-            const handler = registeredHandlers.get(Constants.taskNameDeployDacpac)!;
-            expect(handler.taskName).to.equal(Constants.taskNameDeployDacpac);
+            expect(registeredHandlers.has(Constants.operationIdDeployDacpac)).to.be.true;
+            const handler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
+            expect(handler.operationName).to.equal(Constants.operationIdDeployDacpac);
         });
     });
 
@@ -89,7 +89,7 @@ suite("DacFxService Tests", () => {
         test("should configure handler to get target location from taskInfo.targetLocation", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
             const mockTaskInfo: any = {
                 targetLocation: "/path/to/export.bacpac",
                 databaseName: "testDb",
@@ -105,7 +105,7 @@ suite("DacFxService Tests", () => {
         test("should provide success message with file name for Export BACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
             const message = handler.getSuccessMessage({} as any, "C:\\exports\\database.bacpac");
@@ -117,7 +117,7 @@ suite("DacFxService Tests", () => {
         test("should provide action button text for Export BACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
             const buttonText = handler.getActionButtonText?.();
@@ -130,7 +130,7 @@ suite("DacFxService Tests", () => {
         test("should provide action command for Export BACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
             const command = handler.getActionCommand?.();
@@ -142,7 +142,7 @@ suite("DacFxService Tests", () => {
         test("should provide action command args with file URI for Export BACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
             const args = handler.getActionCommandArgs?.({} as any, "C:\\exports\\test.bacpac");
@@ -158,7 +158,7 @@ suite("DacFxService Tests", () => {
         test("should configure handler to get target location from taskInfo.targetLocation", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
             const mockTaskInfo: any = {
                 targetLocation: "/path/to/extract.dacpac",
                 databaseName: "testDb",
@@ -174,7 +174,7 @@ suite("DacFxService Tests", () => {
         test("should provide success message with file name for Extract DACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
             const message = handler.getSuccessMessage({} as any, "C:\\extracts\\database.dacpac");
@@ -186,7 +186,7 @@ suite("DacFxService Tests", () => {
         test("should provide action button text for Extract DACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
             const buttonText = handler.getActionButtonText?.();
@@ -199,7 +199,7 @@ suite("DacFxService Tests", () => {
         test("should provide action command for Extract DACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
             const command = handler.getActionCommand?.();
@@ -211,7 +211,7 @@ suite("DacFxService Tests", () => {
         test("should provide action command args with file URI for Extract DACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
             const args = handler.getActionCommandArgs?.({} as any, "C:\\extracts\\test.dacpac");
@@ -227,7 +227,7 @@ suite("DacFxService Tests", () => {
         test("should configure handler to get target location from taskInfo.databaseName", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameImportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
             const mockTaskInfo: any = {
                 targetLocation: "/path/to/import.bacpac",
                 databaseName: "ImportedDatabase",
@@ -243,7 +243,7 @@ suite("DacFxService Tests", () => {
         test("should provide success message with database name for Import BACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameImportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
 
             // Act
             const message = handler.getSuccessMessage({} as any, "MyDatabase");
@@ -255,7 +255,7 @@ suite("DacFxService Tests", () => {
         test("should not provide action button for Import BACPAC (database operation)", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameImportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
 
             // Act & Assert
             expect(handler.getActionButtonText).to.be.undefined;
@@ -268,7 +268,7 @@ suite("DacFxService Tests", () => {
         test("should configure handler to get target location from taskInfo.databaseName", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameDeployDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
             const mockTaskInfo: any = {
                 targetLocation: "/path/to/deploy.dacpac",
                 databaseName: "DeployedDatabase",
@@ -284,7 +284,7 @@ suite("DacFxService Tests", () => {
         test("should provide success message with database name for Deploy DACPAC", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameDeployDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
 
             // Act
             const message = handler.getSuccessMessage({} as any, "ProductionDB");
@@ -296,7 +296,7 @@ suite("DacFxService Tests", () => {
         test("should not provide action button for Deploy DACPAC (database operation)", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameDeployDacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
 
             // Act & Assert
             expect(handler.getActionButtonText).to.be.undefined;
@@ -327,7 +327,7 @@ suite("DacFxService Tests", () => {
 
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
             const buttonText = handler.getActionButtonText?.();
 
             // Assert - on Windows, should contain "Explorer"
@@ -342,7 +342,7 @@ suite("DacFxService Tests", () => {
 
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
             const buttonText = handler.getActionButtonText?.();
 
             // Assert - on macOS, should contain "Finder"
@@ -357,7 +357,7 @@ suite("DacFxService Tests", () => {
 
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const handler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
+            const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
             const buttonText = handler.getActionButtonText?.();
 
             // Assert - on Linux, should contain "Folder"
@@ -369,8 +369,8 @@ suite("DacFxService Tests", () => {
         test("file operation handlers should all have action buttons", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const exportHandler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
-            const extractHandler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const exportHandler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
+            const extractHandler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Assert
             expect(exportHandler.getActionButtonText).to.exist;
@@ -385,8 +385,8 @@ suite("DacFxService Tests", () => {
         test("database operation handlers should not have action buttons", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const importHandler = registeredHandlers.get(Constants.taskNameImportBacpac)!;
-            const deployHandler = registeredHandlers.get(Constants.taskNameDeployDacpac)!;
+            const importHandler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
+            const deployHandler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
 
             // Assert
             expect(importHandler.getActionButtonText).to.be.undefined;
@@ -401,8 +401,8 @@ suite("DacFxService Tests", () => {
         test("all file operation handlers should use same action command", () => {
             // Arrange
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
-            const exportHandler = registeredHandlers.get(Constants.taskNameExportBacpac)!;
-            const extractHandler = registeredHandlers.get(Constants.taskNameExtractDacpac)!;
+            const exportHandler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
+            const extractHandler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
             const exportCommand = exportHandler.getActionCommand?.();

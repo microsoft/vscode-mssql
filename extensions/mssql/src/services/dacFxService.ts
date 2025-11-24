@@ -41,7 +41,7 @@ export class DacFxService implements mssql.IDacFxService {
 
         // Register handler for Export BACPAC operation
         sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameExportBacpac,
+            operationName: Constants.operationIdExportBacpac,
             getTargetLocation: (taskInfo) => taskInfo.targetLocation,
             getSuccessMessage: (_taskInfo, targetLocation) => {
                 const fileName = path.basename(targetLocation);
@@ -54,7 +54,7 @@ export class DacFxService implements mssql.IDacFxService {
 
         // Register handler for Extract DACPAC operation
         sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameExtractDacpac,
+            operationName: Constants.operationIdExtractDacpac,
             getTargetLocation: (taskInfo) => taskInfo.targetLocation,
             getSuccessMessage: (_taskInfo, targetLocation) => {
                 const fileName = path.basename(targetLocation);
@@ -67,7 +67,7 @@ export class DacFxService implements mssql.IDacFxService {
 
         // Register handler for Import BACPAC operation
         sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameImportBacpac,
+            operationName: Constants.operationIdImportBacpac,
             getTargetLocation: (taskInfo) => taskInfo.databaseName,
             getSuccessMessage: (_taskInfo, databaseName) => {
                 return LocalizedConstants.DacpacDialog.ImportSuccessWithDatabase(databaseName);
@@ -77,7 +77,7 @@ export class DacFxService implements mssql.IDacFxService {
 
         // Register handler for Deploy DACPAC operation
         sqlTasksService.registerCompletionHandler({
-            taskName: Constants.taskNameDeployDacpac,
+            operationName: Constants.operationIdDeployDacpac,
             getTargetLocation: (taskInfo) => taskInfo.databaseName,
             getSuccessMessage: (_taskInfo, databaseName) => {
                 return LocalizedConstants.DacpacDialog.DeploySuccessWithDatabase(databaseName);
