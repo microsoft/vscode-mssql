@@ -185,6 +185,7 @@ export enum TelemetryActions {
     ChangelogDontShowAgain = "ChangelogDontShowAgain",
     CloseChangelog = "CloseChangelog",
     RequestHandler = "RequestHandler",
+    CancelQuery = "CancelQuery",
 }
 
 /**

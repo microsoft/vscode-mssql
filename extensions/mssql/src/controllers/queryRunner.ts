@@ -55,8 +55,8 @@ import * as Utils from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
 
@@ -235,16 +235,22 @@ export default class QueryRunner {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let queryCancelResult: QueryCancelResult;
+        const cancelQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.CancelQuery,
+        );
         try {
             queryCancelResult = await this._client.sendRequest(
                 QueryCancelRequest.type,
                 cancelParams,
             );
+            cancelQueryActivity?.end(ActivityStatus.Succeeded)
         } catch (error) {
             this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
             );
+            cancelQueryActivity?.endFailed(error, false);
             return;
         }
         return queryCancelResult;
@@ -255,8 +261,7 @@ export default class QueryRunner {
      */
     public async resetQueryRunner(): Promise<void> {
         try {
-            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-            await this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+            await this.cancel();
         } catch {
             // Suppress any errors
         }
