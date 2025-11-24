@@ -115,18 +115,27 @@ export function startActivity(
     telemetryView: TelemetryViews,
     telemetryAction: TelemetryActions,
     correlationId?: string,
-    additionalProps: TelemetryEventProperties = {},
-    additionalMeasurements: TelemetryEventMeasures = {},
+    startActivityAdditionalProps: TelemetryEventProperties = {},
+    startActivityAdditionalMeasurements: TelemetryEventMeasures = {},
 ): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
         correlationId = uuidv4();
     }
 
-    sendActionEvent(telemetryView, telemetryAction, additionalProps, {
-        ...additionalMeasurements,
+    sendActionEvent(telemetryView, telemetryAction, startActivityAdditionalProps, {
+        ...startActivityAdditionalMeasurements,
         startTime: Math.round(startTime),
     });
+
+    const activityUpdateAdditionalPropsBase: TelemetryEventProperties = {
+        correlationId,
+        ...startActivityAdditionalProps,
+    };
+
+    const activityUpdateAdditionalMeasurementsBase: TelemetryEventMeasures = {
+        ...startActivityAdditionalMeasurements,
+    };
 
     function update(
         additionalProps: TelemetryEventProperties,
@@ -136,10 +145,12 @@ export function startActivity(
             telemetryView,
             telemetryAction,
             {
+                ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: ActivityStatus.Pending,
             },
             {
+                ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 timeElapsedMs: Math.round(performance.now() - startTime),
             },
@@ -155,10 +166,12 @@ export function startActivity(
             telemetryView,
             telemetryAction,
             {
+                ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: activityStatus,
             },
             {
+                ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
@@ -181,10 +194,12 @@ export function startActivity(
             errorCode,
             errorType,
             {
+                ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: ActivityStatus.Failed,
             },
             {
+                ...activityUpdateAdditionalMeasurementsBase,
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },

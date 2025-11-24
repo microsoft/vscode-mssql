@@ -70,18 +70,8 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
-                const { method, error } = event as any;
+                const { method } = event as any;
                 this.logger.verbose(`Message received from webview: ${method}`);
-                sendActionEvent(
-                    TelemetryViews.WebviewController,
-                    TelemetryActions.ReceivedFromWebview,
-                    {
-                        messageType: method ? "request" : "response",
-                        type: method,
-                        isError: error ? "true" : "false",
-                    },
-                );
-
                 this._onData.fire(event);
             });
             this._disposables.push(disposable);
@@ -374,6 +364,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 undefined,
                 {
                     type: action.type as string,
+                    webviewId: this._sourceFile,
                 },
             );
             const reducer = this._reducerHandlers.get(action.type);
@@ -428,7 +419,42 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
-        this.connection.onRequest(type, handler);
+        const handlerWrap: RequestHandler<TParam, TResult, TError> = (
+            params: TParam,
+            token: CancellationToken,
+        ) => {
+            const handlerActivity = startActivity(
+                TelemetryViews.WebviewController,
+                TelemetryActions.RequestHandler,
+                undefined,
+                {
+                    type: type.method,
+                    webviewId: this._sourceFile,
+                },
+            );
+            try {
+                const result = handler(params, token);
+                if (result instanceof Promise) {
+                    return result.then(
+                        (res) => {
+                            handlerActivity.end(ActivityStatus.Succeeded);
+                            return res;
+                        },
+                        (error) => {
+                            handlerActivity.endFailed(error, false);
+                            throw error;
+                        },
+                    );
+                } else {
+                    handlerActivity.end(ActivityStatus.Succeeded);
+                    return result;
+                }
+            } catch (error) {
+                handlerActivity.endFailed(error, false);
+                throw error;
+            }
+        };
+        this.connection.onRequest(type, handlerWrap);
     }
 
     /**
