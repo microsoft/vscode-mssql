@@ -30,7 +30,7 @@ import {
 } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
-import { getEditorEOL, getNonce } from "../utils/utils";
+import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
@@ -71,7 +71,6 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
                 const { method } = event as any;
-                this.logger.verbose(`Message received from webview: ${method}`);
                 this._onData.fire(event);
             });
             this._disposables.push(disposable);
@@ -94,7 +93,6 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
     write(msg: Message): Promise<void> {
         if (this._webview) {
             const { method, error } = msg as any;
-            this.logger.verbose(`Sending message to webview: ${method}`);
             this._webview.postMessage(msg);
             sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SentToWebview, {
                 messageType: method ? "request" : "response",
@@ -423,6 +421,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             params: TParam,
             token: CancellationToken,
         ) => {
+            this.logger.verbose(`Request received from webview: ${type.method}`);
             const handlerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.RequestHandler,
@@ -437,19 +436,25 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 if (result instanceof Promise) {
                     return result.then(
                         (res) => {
+                            this.logger.verbose(`Request succeeded: ${type.method}`);
                             handlerActivity.end(ActivityStatus.Succeeded);
                             return res;
                         },
                         (error) => {
+                            this.logger.error(
+                                `Request failed: ${type.method} - ${getErrorMessage(error)}`,
+                            );
                             handlerActivity.endFailed(error, false);
                             throw error;
                         },
                     );
                 } else {
+                    this.logger.verbose(`Request succeeded: ${type.method}`);
                     handlerActivity.end(ActivityStatus.Succeeded);
                     return result;
                 }
             } catch (error) {
+                this.logger.error(`Request failed: ${type.method} - ${getErrorMessage(error)}`);
                 handlerActivity.endFailed(error, false);
                 throw error;
             }
