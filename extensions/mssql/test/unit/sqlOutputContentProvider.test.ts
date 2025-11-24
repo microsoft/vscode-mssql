@@ -408,7 +408,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(testQueryRunner).to.not.be.undefined;
     });
 
-    test.only("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
+    test("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
         const uri = "test_uri";
         const title = "test_title";
         const selection: ISelectionData = {
@@ -436,7 +436,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         );
     });
 
-    test.only("runCurrentStatement calls runStatement with correct options when actual plan is disabled", async () => {
+    test("runCurrentStatement calls runStatement with correct options when actual plan is disabled", async () => {
         const uri = "test_uri";
         const title = "test_title";
         const selection: ISelectionData = {

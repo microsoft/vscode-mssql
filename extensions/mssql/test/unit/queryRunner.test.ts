@@ -505,7 +505,7 @@ suite("Query Runner tests", () => {
         expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
     });
 
-    test.only("runStatement sends correct request with execution plan options", async () => {
+    test("runStatement sends correct request with execution plan options", async () => {
         const queryRunner = createQueryRunner();
         const line = 1;
         const column = 1;
