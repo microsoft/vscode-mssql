@@ -634,11 +634,12 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Change Password</source>
         <target state="translated">Cambia password</target>
       </trans-unit>
-      <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
-        <source xml:lang="en">Change database to '{1}' for connection '{0}'?</source>
-        <note>{0} is the connection ID
-{1} is the database name</note>
-        <target state="translated">Modificare il database in '{1}' per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01">
+        <source xml:lang="en">Change database to '{2}' for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID
+{2} is the database name</note>
+        <target state="new">Change database to '{2}' for connection '{0}' (ID: {1})?</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -672,11 +673,12 @@ Seleziona "{0}" per stabilire una connessione.</target>
 {2} is the document name</note>
         <target state="translated">Modifica del contesto del database in "{0}" nel server "{1}" nel documento "{2}".</target>
       </trans-unit>
-      <trans-unit id="++CODE++5cca02706714579b1ebf65a02aa3db359c9533120430137485af41e5ec1ab285">
-        <source xml:lang="en">Changing database to '{1}' for connection '{0}'</source>
-        <note>{0} is the connection ID
-{1} is the database name</note>
-        <target state="translated">Modifica del database in '{1}' per la connessione '{0}'</target>
+      <trans-unit id="++CODE++05f3d402836232769e679102361ab60a576dc268c9a53003baac88f0b742157d">
+        <source xml:lang="en">Changing database to '{2}' for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID
+{2} is the database name</note>
+        <target state="new">Changing database to '{2}' for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
@@ -1589,10 +1591,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Disconnect</source>
         <target state="translated">Disconnetti</target>
       </trans-unit>
-      <trans-unit id="++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89">
-        <source xml:lang="en">Disconnect from connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Disconnettersi dalla connessione '{0}'?</target>
+      <trans-unit id="++CODE++60e53a3c0e015fb417236c455fedf4985a7cddfc2721329be1e11ac9e284626d">
+        <source xml:lang="en">Disconnect from connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Disconnect from connection '{0}' (ID: {1})?</target>
       </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
@@ -1603,10 +1606,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Disconnected successfully</source>
         <target state="translated">Disconnessione completata</target>
       </trans-unit>
-      <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
-        <source xml:lang="en">Disconnecting from connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Disconnessione dalla connessione '{0}'</target>
+      <trans-unit id="++CODE++b9d150a1c239a564e634666c8cebbaad8712f8f67c6fdf37c97d17643b3af579">
+        <source xml:lang="en">Disconnecting from connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Disconnecting from connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -2494,10 +2498,11 @@ Errore:
         <source xml:lang="en">Get Started</source>
         <target state="translated">Attività iniziali</target>
       </trans-unit>
-      <trans-unit id="++CODE++833b64c15a94f939c4123ec646882d4b8943eb80c95ce91fffb06a7e95a82b61">
-        <source xml:lang="en">Get connection details for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Ottenere i dettagli per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++8d931bb4019cd9ff4b45813baec027a9d80f9e353afc37d6643cc9ff6737997e">
+        <source xml:lang="en">Get connection details for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Get connection details for connection '{0}' (ID: {1})?</target>
       </trans-unit>
       <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
         <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
@@ -2521,10 +2526,11 @@ Errore:
         <source xml:lang="en">Getting Started</source>
         <target state="new">Getting Started</target>
       </trans-unit>
-      <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
-        <source xml:lang="en">Getting connection details for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Acquisizione dei dettagli per la connessione '{0}'</target>
+      <trans-unit id="++CODE++c486fe9fb4a7835ef55e4e3a8ef2f6443e3c9af800f24d301e95267065573dc1">
+        <source xml:lang="en">Getting connection details for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Getting connection details for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
         <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
@@ -2850,30 +2856,35 @@ Errore:
         <source xml:lang="en">List all connections registered with the mssql extension?</source>
         <target state="translated">Elencare tutte le connessioni registrate con l'estensione mssql?</target>
       </trans-unit>
-      <trans-unit id="++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d">
-        <source xml:lang="en">List databases for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elencare i database per la connessione '{0}'</target>
+      <trans-unit id="++CODE++0228867ee113d27a7377e81352a399252a73a53fcda8c7eeb55366e272692d90">
+        <source xml:lang="en">List databases for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">List databases for connection '{0}' (ID: {1})?</target>
       </trans-unit>
-      <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
-        <source xml:lang="en">List functions for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elencare le funzioni per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++a0d0c5314184e531a57ada941f98fd3d3d6a0a0815296c08c514d2885672c998">
+        <source xml:lang="en">List functions for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">List functions for connection '{0}' (ID: {1})?</target>
       </trans-unit>
-      <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
-        <source xml:lang="en">List schemas for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elencare gli schemi per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51">
+        <source xml:lang="en">List schemas for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">List schemas for connection '{0}' (ID: {1})?</target>
       </trans-unit>
-      <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
-        <source xml:lang="en">List tables for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elencare le tabelle per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++bd24852e1bccb2d3a2353ce971a9b8d5166a6e4be8011bff6ca03e8fd24b51a1">
+        <source xml:lang="en">List tables for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">List tables for connection '{0}' (ID: {1})?</target>
       </trans-unit>
-      <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
-        <source xml:lang="en">List views for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elencare le visualizzazioni per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++743c7de4570af673cd265fa7de1e6fd699d92cf80d54a530f4ac79c7bd3f0794">
+        <source xml:lang="en">List views for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">List views for connection '{0}' (ID: {1})?</target>
       </trans-unit>
       <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
         <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
@@ -2895,39 +2906,44 @@ Errore:
         <note>{0} is the tenant ID</note>
         <target state="translated">Elenco delle aree di lavoro di Fabric per il tenant '{0}'</target>
       </trans-unit>
-      <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
-        <source xml:lang="en">Listing databases for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elenco dei database per la connessione '{0}'</target>
+      <trans-unit id="++CODE++4fa92e64c6fd59eb8e10f81f9bb32b19b6f5b292ba4d10e5892fc815fe7046a9">
+        <source xml:lang="en">Listing databases for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Listing databases for connection '{0}' (ID: {1})</target>
       </trans-unit>
-      <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
-        <source xml:lang="en">Listing functions for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elenco delle funzioni per la connessione '{0}'</target>
+      <trans-unit id="++CODE++e3540b429caa98528f0ed33c61c828ab32b5c66e3012740be4150a6b944e9e9b">
+        <source xml:lang="en">Listing functions for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Listing functions for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
         <source xml:lang="en">Listing role assignments for workspace '${workspaceId}'</source>
         <note>{0} is the workspace ID</note>
         <target state="translated">Elenco delle assegnazioni di ruolo per l'area di lavoro '${workspaceId}'</target>
       </trans-unit>
-      <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
-        <source xml:lang="en">Listing schemas for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elenco schemi per la connessione '{0}'</target>
+      <trans-unit id="++CODE++7b6b5b260600f82e5603a11e04c3a2ebca15d51407c9e0e505eee43a3b909aa1">
+        <source xml:lang="en">Listing schemas for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Listing schemas for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
         <target state="translated">Elenco delle connessioni server</target>
       </trans-unit>
-      <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
-        <source xml:lang="en">Listing tables for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elenco tabelle per la connessione '{0}'</target>
+      <trans-unit id="++CODE++44299d86125e08480228ddec1cca64ab01428cf64e8310f8bbfbc5642713a766">
+        <source xml:lang="en">Listing tables for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Listing tables for connection '{0}' (ID: {1})</target>
       </trans-unit>
-      <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
-        <source xml:lang="en">Listing views for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Elenco delle visualizzazioni per la connessione '{0}'</target>
+      <trans-unit id="++CODE++4115b66e355171d93bf284e1d2fd019eb40839a8ef6ee46dda787e0430c3c2cc">
+        <source xml:lang="en">Listing views for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Listing views for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -4102,24 +4118,26 @@ Errore:
         <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
         <target state="translated">Esegui una query nell'editor corrente o passa a un editor che ha risultati.</target>
       </trans-unit>
-      <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
-        <source xml:lang="en">Run query on connection '{0}'?
+      <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
+        <source xml:lang="en">Run query on connection '{0}' (ID: {1})?
 
-Query: {1}</source>
-        <note>{0} is the connection ID
-{1} is the SQL query</note>
-        <target state="translated">Eseguire la query sulla connessione "{0}"?
+Query: {2}</source>
+        <note>{0} is the connection display name
+{1} is the connection ID
+{2} is the SQL query</note>
+        <target state="new">Run query on connection '{0}' (ID: {1})?
 
-Query: {1}</target>
+Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">L'esecuzione di query non è supportata quando l'editor è in modalità di selezione multipla.</target>
       </trans-unit>
-      <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
-        <source xml:lang="en">Running query on connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Esecuzione della query sulla connessione "{0}"</target>
+      <trans-unit id="++CODE++73aecbc2e3e136472dcf00378839efb802b36e46ee45efd2d0a79aa40e756409">
+        <source xml:lang="en">Running query on connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Running query on connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
@@ -4616,19 +4634,21 @@ Query: {1}</target>
         <source xml:lang="en">Show password</source>
         <target state="translated">Mostra password</target>
       </trans-unit>
-      <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
-        <source xml:lang="en">Show schema for connection '{0}'?</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Visualizzare lo schema per la connessione '{0}'?</target>
+      <trans-unit id="++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3">
+        <source xml:lang="en">Show schema for connection '{0}' (ID: {1})?</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Show schema for connection '{0}' (ID: {1})?</target>
       </trans-unit>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
         <target state="translated">Mostra relazioni tra tabelle</target>
       </trans-unit>
-      <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
-        <source xml:lang="en">Showing schema for connection '{0}'</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">Visualizzazione dello schema per la connessione '{0}'</target>
+      <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
+        <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Showing schema for connection '{0}' (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -5138,6 +5158,10 @@ Query: {1}</target>
       <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
         <source xml:lang="en">Undo</source>
         <target state="translated">Annulla</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
+        <source xml:lang="en">Unknown Connection</source>
+        <target state="new">Unknown Connection</target>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
