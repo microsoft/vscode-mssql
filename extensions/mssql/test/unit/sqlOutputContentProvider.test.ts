@@ -407,4 +407,60 @@ suite("SqlOutputProvider Tests using mocks", () => {
         testQueryRunner = contentProvider.getQueryRunner("test_uri");
         expect(testQueryRunner).to.not.be.undefined;
     });
+
+    test.only("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const selection: ISelectionData = {
+            startLine: 1,
+            startColumn: 1,
+            endLine: 1,
+            endColumn: 1,
+        };
+
+        const mockQueryRunner = {
+            runStatement: sandbox.stub().resolves(),
+        };
+
+        sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .resolves(mockQueryRunner);
+        (contentProvider as any)._actualPlanStatuses = [uri];
+
+        await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+
+        expect(mockQueryRunner.runStatement).to.have.been.calledWith(
+            selection.startLine,
+            selection.startColumn,
+            { includeActualExecutionPlanXml: true },
+        );
+    });
+
+    test.only("runCurrentStatement calls runStatement with correct options when actual plan is disabled", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const selection: ISelectionData = {
+            startLine: 1,
+            startColumn: 1,
+            endLine: 1,
+            endColumn: 1,
+        };
+
+        const mockQueryRunner = {
+            runStatement: sandbox.stub().resolves(),
+        };
+
+        sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .resolves(mockQueryRunner);
+        (contentProvider as any)._actualPlanStatuses = [];
+
+        await contentProvider.runCurrentStatement(statusViewInstance, uri, selection, title);
+
+        expect(mockQueryRunner.runStatement).to.have.been.calledWith(
+            selection.startLine,
+            selection.startColumn,
+            { includeActualExecutionPlanXml: false },
+        );
+    });
 });

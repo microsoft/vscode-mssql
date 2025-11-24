@@ -505,6 +505,31 @@ suite("Query Runner tests", () => {
         expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
     });
 
+    test.only("runStatement sends correct request with execution plan options", async () => {
+        const queryRunner = createQueryRunner();
+        const line = 1;
+        const column = 1;
+        const executionPlanOptions: QueryExecuteContracts.ExecutionPlanOptions = {
+            includeActualExecutionPlanXml: true,
+        };
+
+        testSqlToolsServerClient.sendRequest.resolves();
+
+        await queryRunner.runStatement(line, column, executionPlanOptions);
+
+        const expectedParams: QueryExecuteContracts.QueryExecuteStatementParams = {
+            ownerUri: standardUri,
+            line: line,
+            column: column,
+            executionPlanOptions: executionPlanOptions,
+        };
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteStatementRequest.type,
+            expectedParams,
+        );
+    });
+
     function setupWorkspaceConfig(configResult: { [key: string]: any }): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
