@@ -119,7 +119,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
-                reactGridRef.current.slickGrid.render();
             }
 
             // Notify parent of change count update
@@ -289,7 +288,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     // Force grid to re-render with new metadata
                     if (reactGridRef.current?.slickGrid) {
                         reactGridRef.current.slickGrid.invalidate();
-                        reactGridRef.current.slickGrid.render();
                     }
                 }
             }
