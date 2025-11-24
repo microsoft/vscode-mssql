@@ -13,8 +13,6 @@ import {
     defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
-    localhost,
-    localhostIP,
     Platform,
     windowsDockerDesktopExecutable,
     x64,
@@ -920,15 +918,11 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
 }
 
 /**
- * Checks if a connection is a Docker container by inspecting the server name and machine name.
+ * Checks if a connection is a Docker container by inspecting the machine name.
+ * In docker containers, the machine name corresponds to the container ID.
  * If it is a Docker container, returns the container name; otherwise, returns undefined.
  */
-export async function checkIfConnectionIsDockerContainer(
-    serverName: string,
-    machineName: string,
-): Promise<string> {
-    if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return undefined;
-
+export async function checkIfConnectionIsDockerContainer(machineName: string): Promise<string> {
     try {
         const stdout = await execDockerCommand(COMMANDS.GET_CONTAINER_NAME_FROM_ID(machineName));
         return stdout.trim();
