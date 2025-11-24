@@ -760,7 +760,7 @@ export class SqlOutputContentProvider {
             }
             await this.cancelQuery(queryRunnerState.queryRunner);
             /**
-             * If there is panel open for this query, don't dispose the runner so the user can
+             * If there is panel open for this query, don't cleanup the runner so the user can
              * still interact with it and see the results.
              */
             if (queryRunnerState.queryRunner.isExecutingQuery) {
