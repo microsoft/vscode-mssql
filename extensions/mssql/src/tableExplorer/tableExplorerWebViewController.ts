@@ -9,6 +9,7 @@ import {
     TableExplorerWebViewState,
     TableExplorerReducers,
     EditSessionReadyParams,
+    DbCellValue,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -63,6 +64,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 showScriptPane: false, // Script pane hidden by default
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
+                originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
             },
             {
                 title: LocConstants.TableExplorer.title(qualifiedTableName),
@@ -271,10 +273,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Clear tracking state after successful commit
                 state.newRows = [];
                 state.failedCells = [];
+                state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.info(
-                    `Cleared new rows and failed cells after successful commit - OperationId: ${this.operationId}`,
+                    `Cleared new rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
@@ -492,6 +495,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
                 }
 
+                // Clear all cached original values for this row
+                if (state.originalCellValues) {
+                    const keysToDelete: string[] = [];
+                    state.originalCellValues.forEach((_, key) => {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            keysToDelete.push(key);
+                        }
+                    });
+                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                    this.logger.info(
+                        `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
+                    );
+                }
+
                 this.showRestorePromptAfterClose = true;
 
                 // Update result set
@@ -558,6 +575,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Cache the original cell value BEFORE attempting the update
+            // This ensures we can revert even if the update fails
+            const cacheKey = `${payload.rowId}-${payload.columnId}`;
+            if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
+                const rowIndex = state.resultSet.subset.findIndex(
+                    (row) => row.id === payload.rowId,
+                );
+                if (rowIndex !== -1) {
+                    const originalCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
+                    if (!state.originalCellValues) {
+                        state.originalCellValues = new Map<string, DbCellValue>();
+                    }
+                    // Deep copy to ensure we have all properties
+                    state.originalCellValues.set(cacheKey, {
+                        displayValue: originalCell.displayValue,
+                        isNull: originalCell.isNull,
+                        invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
+                    });
+                    this.logger.verbose(
+                        `Cached original value for cell ${cacheKey}: ${originalCell.displayValue}`,
+                    );
+                }
+            }
+
             try {
                 const updateCellResult = await this._tableExplorerService.updateCell(
                     state.ownerUri,
@@ -617,6 +658,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     state.failedCells = [...state.failedCells, failedKey];
                 }
 
+                // Update the cell in the result set to show the attempted value with isDirty flag
+                // This ensures the UI shows what the user typed even though the update failed
+                if (state.resultSet) {
+                    const rowIndex = state.resultSet.subset.findIndex(
+                        (row) => row.id === payload.rowId,
+                    );
+
+                    if (rowIndex !== -1) {
+                        const currentCell =
+                            state.resultSet.subset[rowIndex].cells[payload.columnId];
+                        const failedCell = {
+                            ...currentCell,
+                            displayValue: payload.newValue,
+                            isDirty: true,
+                        };
+
+                        state.resultSet.subset[rowIndex].cells[payload.columnId] = failedCell;
+
+                        this.logger.info(
+                            `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
+                        );
+                    }
+                }
+
                 this.updateState();
 
                 endActivity.endFailed(
@@ -654,12 +719,45 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            const cacheKey = `${payload.rowId}-${payload.columnId}`;
+
             try {
+                // Always call the service to revert to ensure backend state is properly cleaned up
+                this.logger.info(`Calling service to revert cell ${cacheKey}`);
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
                     payload.rowId,
                     payload.columnId,
                 );
+
+                // Check if we have a cached original value
+                const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
+
+                // Use cached value if available to ensure correct display, otherwise use service result
+                // Creating a new object ensures React detects the change
+                const revertedCell = cachedOriginalValue
+                    ? {
+                          ...cachedOriginalValue,
+                          isDirty: false,
+                      }
+                    : {
+                          ...revertCellResult.cell,
+                          isDirty: false,
+                      };
+
+                if (cachedOriginalValue) {
+                    this.logger.info(
+                        `Using cached original value for display: ${cachedOriginalValue.displayValue}`,
+                    );
+                }
+
+                // Remove from cache after successful revert
+                if (state.originalCellValues?.has(cacheKey)) {
+                    state.originalCellValues.delete(cacheKey);
+                    this.logger.info(
+                        `Removed cached value for cell ${cacheKey} after successful revert`,
+                    );
+                }
 
                 // Remove from failed cells tracking
                 if (state.failedCells) {
@@ -668,38 +766,40 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 // Update the cell value in the result set
-                if (state.resultSet && revertCellResult.cell) {
+                if (state.resultSet && revertedCell) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
 
                     if (rowIndex !== -1) {
+                        // Create a completely new subset array with new row objects
+                        const newSubset = state.resultSet.subset.map((row, idx) => {
+                            if (idx === rowIndex) {
+                                // Create new cells array with the reverted cell
+                                const newCells = [...row.cells];
+                                newCells[payload.columnId] = revertedCell;
+
+                                return {
+                                    ...row,
+                                    cells: newCells,
+                                };
+                            }
+                            return { ...row }; // Create new row objects to ensure change detection
+                        });
+
+                        // Create completely new resultSet object
                         state.resultSet = {
                             ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, idx) => {
-                                if (idx === rowIndex) {
-                                    return {
-                                        ...row,
-                                        cells: row.cells.map((cell, cellIdx) => {
-                                            if (cellIdx === payload.columnId) {
-                                                return revertCellResult.cell;
-                                            }
-                                            return cell;
-                                        }),
-                                    };
-                                }
-                                return row;
-                            }),
+                            subset: newSubset,
                         };
-
-                        this.updateState();
 
                         this.logger.info(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
+
+                        this.updateState();
                     }
                 }
-
                 this.logger.info(`Cell reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
@@ -756,6 +856,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
                         (key) => !key.startsWith(`${payload.rowId}-`),
+                    );
+                }
+
+                // Clear all cached original values for this row
+                if (state.originalCellValues) {
+                    const keysToDelete: string[] = [];
+                    state.originalCellValues.forEach((_, key) => {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            keysToDelete.push(key);
+                        }
+                    });
+                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                    this.logger.info(
+                        `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
                     );
                 }
 
