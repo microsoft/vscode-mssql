@@ -273,7 +273,11 @@ export default class QueryRunner {
     /**
      * Runs a query against the database for the current statement based on the cursor position.
      */
-    public async runStatement(line: number, column: number): Promise<void> {
+    public async runStatement(
+        line: number,
+        column: number,
+        executionPlanOptions?: ExecutionPlanOptions,
+    ): Promise<void> {
         await this.setupQueryExecution({
             startLine: line,
             startColumn: column,
@@ -285,6 +289,7 @@ export default class QueryRunner {
             ownerUri: this._ownerUri,
             line: line,
             column: column,
+            executionPlanOptions: executionPlanOptions,
         };
 
         try {
