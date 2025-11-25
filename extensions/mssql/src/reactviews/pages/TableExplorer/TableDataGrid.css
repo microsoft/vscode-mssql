@@ -235,3 +235,237 @@
     color: var(--vscode-disabledForeground) !important;
     opacity: 0.7;
 }
+
+/* Search bar styles */
+.table-explorer-search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background-color: var(--vscode-editor-background);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    gap: 8px;
+}
+
+.search-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-icon {
+    color: var(--vscode-foreground);
+    opacity: 0.7;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 150px;
+}
+
+.search-match-count,
+.search-no-results {
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.search-nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Search highlight styles */
+.table-cell-search-highlight {
+    background-color: var(--vscode-editor-findMatchHighlightBackground, rgba(255, 234, 0, 0.4)) !important;
+}
+
+.table-cell-search-highlight.table-cell-modified {
+    background-color: var(--vscode-editor-findMatchHighlightBackground, rgba(255, 234, 0, 0.4)) !important;
+}
+
+/* Row number column styles */
+.row-number-column {
+    background-color: var(--vscode-editor-lineHighlightBackground, rgba(128, 128, 128, 0.1)) !important;
+    text-align: center !important;
+    cursor: pointer;
+}
+
+.row-number-column:hover {
+    background-color: var(--vscode-list-hoverBackground) !important;
+}
+
+.row-number-cell {
+    text-align: center;
+    color: var(--vscode-editorLineNumber-foreground, #858585);
+    font-size: 11px;
+    width: 100%;
+    display: block;
+}
+
+/* Checkbox selector column */
+#tableExplorerGrid .checkbox-selector-column {
+    text-align: center;
+}
+
+#tableExplorerGrid .slick-cell.checkbox-selector-column {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Row selection styling */
+#tableExplorerGrid .slick-row.selected {
+    background-color: var(--vscode-list-activeSelectionBackground) !important;
+}
+
+#tableExplorerGrid .slick-row.selected .slick-cell {
+    color: var(--vscode-list-activeSelectionForeground) !important;
+}
+
+/* Header menu styling */
+.slick-header-menu {
+    background-color: var(--vscode-menu-background) !important;
+    border: 1px solid var(--vscode-menu-border) !important;
+    border-radius: 5px !important;
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
+    padding: 4px 0 !important;
+    min-width: 180px !important;
+}
+
+.slick-header-menu .slick-menu-item {
+    background-color: transparent !important;
+    color: var(--vscode-menu-foreground) !important;
+    padding: 4px 20px 4px 30px !important;
+    line-height: 22px !important;
+    font-size: 13px !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+.slick-header-menu .slick-menu-item:hover {
+    background-color: var(--vscode-menu-selectionBackground) !important;
+    color: var(--vscode-menu-selectionForeground) !important;
+}
+
+.slick-header-menu .slick-menu-item.slick-menu-item-disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+/* Column picker styling */
+.slick-column-picker {
+    background-color: var(--vscode-menu-background) !important;
+    border: 1px solid var(--vscode-menu-border) !important;
+    border-radius: 5px !important;
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
+    padding: 8px !important;
+    min-width: 200px !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+.slick-column-picker .slick-column-picker-list li {
+    color: var(--vscode-menu-foreground) !important;
+    padding: 4px 8px !important;
+    cursor: pointer !important;
+}
+
+.slick-column-picker .slick-column-picker-list li:hover {
+    background-color: var(--vscode-menu-selectionBackground) !important;
+}
+
+/* Filter row styling */
+#tableExplorerGrid .slick-headerrow {
+    background-color: var(--vscode-editor-background) !important;
+    border-bottom: 1px solid var(--vscode-panel-border) !important;
+}
+
+#tableExplorerGrid .slick-headerrow-column {
+    background-color: var(--vscode-editor-background) !important;
+    border-right: 1px solid var(--vscode-panel-border) !important;
+    padding: 2px 4px !important;
+}
+
+#tableExplorerGrid .slick-headerrow-column input {
+    width: 100% !important;
+    background-color: var(--vscode-input-background) !important;
+    color: var(--vscode-input-foreground) !important;
+    border: 1px solid var(--vscode-input-border) !important;
+    border-radius: 2px !important;
+    padding: 2px 4px !important;
+    font-size: 12px !important;
+}
+
+#tableExplorerGrid .slick-headerrow-column input:focus {
+    border-color: var(--vscode-focusBorder) !important;
+    outline: none !important;
+}
+
+#tableExplorerGrid .slick-headerrow-column select {
+    width: 100% !important;
+    background-color: var(--vscode-input-background) !important;
+    color: var(--vscode-input-foreground) !important;
+    border: 1px solid var(--vscode-input-border) !important;
+    border-radius: 2px !important;
+    padding: 2px 4px !important;
+    font-size: 12px !important;
+}
+
+/* Sort indicator styling */
+#tableExplorerGrid .slick-header-column.slick-header-column-sorted {
+    font-style: italic;
+}
+
+#tableExplorerGrid .slick-sort-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+}
+
+#tableExplorerGrid .slick-sort-indicator-asc {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 0L0 6h8z'/%3E%3C/svg%3E") no-repeat center;
+}
+
+#tableExplorerGrid .slick-sort-indicator-desc {
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23888' d='M4 8L0 2h8z'/%3E%3C/svg%3E") no-repeat center;
+}
+
+/* Header menu button */
+#tableExplorerGrid .slick-header-menu-button {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+#tableExplorerGrid .slick-header-column:hover .slick-header-menu-button {
+    opacity: 1;
+}
+
+/* Compound filter input styling */
+#tableExplorerGrid .compound-input-filter {
+    display: flex;
+    gap: 2px;
+}
+
+#tableExplorerGrid .compound-input-filter .form-control {
+    flex: 1;
+}
+
+#tableExplorerGrid .compound-input-filter .input-group-addon {
+    padding: 2px 4px;
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+    font-size: 11px;
+}

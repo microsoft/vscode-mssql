@@ -10,6 +10,7 @@ import React, {
     useImperativeHandle,
     forwardRef,
     useMemo,
+    useCallback,
 } from "react";
 import {
     SlickgridReactInstance,
@@ -18,11 +19,26 @@ import {
     SlickgridReact,
     Editors,
     ContextMenu,
+    Filters,
+    FieldType,
+    Formatter,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
+import {
+    Input,
+    Button,
+    Tooltip,
+    Badge,
+} from "@fluentui/react-components";
+import {
+    SearchRegular,
+    DismissRegular,
+    ChevronUpRegular,
+    ChevronDownRegular,
+} from "@fluentui/react-icons";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./TableDataGrid.css";
 
@@ -40,6 +56,14 @@ interface TableDataGridProps {
     onLoadSubset?: (rowCount: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
+    onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
+}
+
+// Search match interface
+interface SearchMatch {
+    rowIndex: number;
+    colIndex: number;
+    rowId: number;
 }
 
 export interface TableDataGridRef {
@@ -47,7 +71,16 @@ export interface TableDataGridRef {
     getCellChangeCount: () => number;
     goToLastPage: () => void;
     goToFirstPage: () => void;
+    getSelectedRowIds: () => number[];
+    clearSelection: () => void;
+    toggleSearchBar: () => void;
 }
+
+// Row number formatter
+const rowNumberFormatter: Formatter = (_row, _cell, _value, _columnDef, dataContext) => {
+    const rowNum = dataContext._rowNumber || "";
+    return `<span class="row-number-cell">${rowNum}</span>`;
+};
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
     (
@@ -63,6 +96,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onRevertRow,
             onCellChangeCountChanged,
             onDeletionCountChanged,
+            onSelectedRowsChanged,
         },
         ref,
     ) => {
@@ -78,6 +112,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
+
+        // Search state
+        const [showSearchBar, setShowSearchBar] = useState(false);
+        const [searchTerm, setSearchTerm] = useState("");
+        const [searchMatches, setSearchMatches] = useState<SearchMatch[]>([]);
+        const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
+        const searchHighlightRef = useRef<Set<string>>(new Set());
+        const searchInputRef = useRef<HTMLInputElement>(null);
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -130,12 +172,44 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     void reactGridRef.current.paginationService.goToPageNumber(1);
                 }
             },
+            getSelectedRowIds: () => {
+                if (reactGridRef.current?.slickGrid) {
+                    const selectedRows = reactGridRef.current.slickGrid.getSelectedRows();
+                    const dataView = reactGridRef.current.dataView;
+                    if (dataView) {
+                        return selectedRows.map((rowIdx: number) => {
+                            const item = dataView.getItem(rowIdx);
+                            return item?.id;
+                        }).filter((id: number | undefined) => id !== undefined);
+                    }
+                }
+                return [];
+            },
+            clearSelection: () => {
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.setSelectedRows([]);
+                }
+            },
+            toggleSearchBar: () => {
+                setShowSearchBar((prev) => {
+                    const newValue = !prev;
+                    if (newValue) {
+                        // Focus search input when opening
+                        setTimeout(() => searchInputRef.current?.focus(), 100);
+                    } else {
+                        // Clear search when closing
+                        clearSearch();
+                    }
+                    return newValue;
+                });
+            },
         }));
 
         // Convert a single row to grid format
-        function convertRowToDataRow(row: any, columnInfo?: any[]): any {
+        function convertRowToDataRow(row: any, columnInfo?: any[], rowIndex?: number): any {
             const dataRow: any = {
                 id: row.id,
+                _rowNumber: rowIndex !== undefined ? rowIndex + 1 : row.id + 1, // 1-based row numbers
             };
             row.cells.forEach((cell: any, cellIndex: number) => {
                 let cellValue: string;
@@ -154,25 +228,57 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
+            // Row number column (first column, non-selectable for checkbox)
+            const rowNumberColumn: Column = {
+                id: "_rowNumber",
+                name: "#",
+                field: "_rowNumber",
+                width: 50,
+                minWidth: 50,
+                maxWidth: 80,
+                resizable: false,
+                sortable: false,
+                filterable: false,
+                selectable: false,
+                focusable: false,
+                cssClass: "row-number-column",
+                formatter: rowNumberFormatter,
+                excludeFromHeaderMenu: true,
+                excludeFromColumnPicker: true,
+            };
+
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
+                // Actual column index in grid (accounting for row number column)
+                const gridColumnIndex = index + 1;
+
                 const column: Column = {
                     id: `col${index}`,
                     name: colInfo.name,
                     field: `col${index}`,
-                    sortable: false,
-                    minWidth: 98, // Reduced by 2px to account for border alignment
+                    sortable: true,
+                    filterable: true,
+                    resizable: true,
+                    minWidth: 98,
+                    type: FieldType.string,
+                    filter: {
+                        model: Filters.compoundInputText,
+                    },
                     formatter: (
                         _row: number,
-                        cell: number,
+                        _cell: number,
                         value: any,
                         _columnDef: any,
                         dataContext: any,
                     ) => {
                         const rowId = dataContext.id;
-                        const changeKey = `${rowId}-${cell}`;
+                        // Use the data column index (not grid cell index) for change tracking
+                        const changeKey = `${rowId}-${index}`;
                         const isModified = cellChangesRef.current.has(changeKey);
                         const hasFailed = failedCellsRef.current.has(changeKey);
+                        const isSearchHighlighted = searchHighlightRef.current.has(
+                            `${rowId}-${gridColumnIndex}`,
+                        );
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
 
@@ -201,6 +307,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             cellClasses.push("table-cell-null");
                         }
 
+                        if (isSearchHighlighted) {
+                            cellClasses.push("table-cell-search-highlight");
+                        }
+
                         const classAttr =
                             cellClasses.length > 0 ? ` class="${cellClasses.join(" ")}"` : "";
 
@@ -226,7 +336,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return dataColumns;
+            return [rowNumberColumn, ...dataColumns];
         }
 
         // Handle page size changes from props
@@ -317,8 +427,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const newColumns = createColumns(resultSet.columnInfo);
                 setColumns(newColumns);
 
-                const convertedDataset = resultSet.subset.map((row) =>
-                    convertRowToDataRow(row, resultSet.columnInfo),
+                const convertedDataset = resultSet.subset.map((row, index) =>
+                    convertRowToDataRow(row, resultSet.columnInfo, index),
                 );
                 setDataset(convertedDataset);
 
@@ -326,11 +436,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (!options) {
                     // Set row height to 26px for optimal display
                     const ROW_HEIGHT = 26;
+                    const FILTER_ROW_HEIGHT = 30;
 
                     setOptions({
                         alwaysShowVerticalScroll: false,
-                        enableColumnPicker: false,
-                        enableGridMenu: false,
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
@@ -341,22 +450,70 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             minHeight: 250, // Minimum height to prevent unnecessary scrollbar
                         },
                         forceFitColumns: false, // Allow horizontal scrolling for many columns
-                        enableColumnReorder: false,
-                        enableHeaderMenu: false,
+
+                        // Column operations
+                        enableColumnReorder: true, // Allow column reordering via drag-and-drop
+                        enableColumnPicker: true, // Allow hide/show columns from column picker
+                        columnPicker: {
+                            hideForceFitButton: true,
+                            hideSyncResizeButton: true,
+                        },
+                        enableHeaderMenu: true, // Enable header menu for column operations
+                        headerMenu: {
+                            hideColumnHideCommand: false, // Show "Hide Column" command
+                            hideSortCommands: false, // Show sort commands
+                            hideClearSortCommand: false, // Show "Clear Sort" command
+                            hideClearFilterCommand: false, // Show "Clear Filter" command
+                            hideFilterCommand: false, // Show "Filter" command
+                            hideFreezeColumnsCommand: true, // Hide freeze columns (not needed)
+                        },
+
+                        // Row selection
+                        enableRowSelection: true,
+                        enableCheckboxSelector: true,
+                        checkboxSelector: {
+                            hideSelectAllCheckbox: false,
+                            columnIndexPosition: 0, // After row number column
+                            width: 40,
+                            cssClass: "checkbox-selector-column",
+                        },
+                        rowSelectionOptions: {
+                            selectActiveRow: false, // Don't auto-select on cell click
+                        },
+
+                        // Sorting
+                        enableSorting: true,
+                        multiColumnSort: true, // Allow multi-column sorting
+
+                        // Filtering
+                        enableFiltering: true,
+                        showHeaderRow: true, // Show filter row
+                        headerRowHeight: FILTER_ROW_HEIGHT,
+
+                        // Cell navigation
                         enableCellNavigation: true,
-                        enableSorting: false,
+
+                        // Context menu
                         enableContextMenu: true,
                         contextMenu: getContextMenuOptions(),
+
+                        // Pagination
                         customPaginationComponent: BoundCustomPager,
                         enablePagination: true,
                         pagination: {
                             pageSize: pageSize,
                             pageSizes: [10, 50, 100, 1000],
                         },
+
+                        // Edit handler
                         editCommandHandler: (_item, _column, editCommand) => {
                             editCommand.execute();
                         },
+
+                        // Row height
                         rowHeight: ROW_HEIGHT,
+
+                        // Theme
                         darkMode:
                             themeKind === ColorThemeKind.Dark ||
                             themeKind === ColorThemeKind.HighContrast,
@@ -378,8 +535,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 // Add new rows (rows in current but not in previous)
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
-                for (const newRow of rowsToAdd) {
-                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
+                const currentLength = reactGridRef.current.dataView.getLength();
+                for (let i = 0; i < rowsToAdd.length; i++) {
+                    const newRow = rowsToAdd[i];
+                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, currentLength + i);
                     // Use gridService.addItem with position 'bottom' and scrollRowIntoView
                     // gridService automatically handles pagination updates
                     reactGridRef.current.gridService.addItem(dataRow, {
@@ -412,7 +571,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     // Compare row data
                     if (!oldRow || JSON.stringify(newRow) !== JSON.stringify(oldRow)) {
-                        const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
+                        const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, i);
                         const existingItem = reactGridRef.current.dataView.getItemById(dataRow.id);
 
                         if (existingItem) {
@@ -467,17 +626,24 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
 
             const cellIndex = args.cell;
-            const columnIndex = cellIndex;
+            // Account for checkbox column (index 0) and row number column (index 1)
+            // Data columns start at index 2
+            const dataColumnIndex = cellIndex - 2;
             const column = columns[cellIndex];
             const rowId = args.item.id;
 
-            console.log(`Cell Changed - Row ID: ${rowId}, Column Index: ${columnIndex}`);
+            // Skip if this is the checkbox or row number column
+            if (dataColumnIndex < 0) {
+                return;
+            }
 
-            // Track the change
-            const changeKey = `${rowId}-${columnIndex}`;
+            console.log(`Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}`);
+
+            // Track the change using data column index (not grid cell index)
+            const changeKey = `${rowId}-${dataColumnIndex}`;
             cellChangesRef.current.set(changeKey, {
                 rowId,
-                columnIndex,
+                columnIndex: dataColumnIndex,
                 columnId: column?.id,
                 field: column?.field,
                 newValue: args.item[column?.field],
@@ -493,7 +659,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                onUpdateCell(rowId, columnIndex, newValue);
+                onUpdateCell(rowId, dataColumnIndex, newValue);
             }
 
             // Update the display without full re-render
@@ -545,16 +711,20 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    const columnIndex = cellIndex;
-                    const changeKey = `${rowId}-${columnIndex}`;
+                    // Account for checkbox and row number columns
+                    const dataColumnIndex = cellIndex - 2;
+                    if (dataColumnIndex < 0) {
+                        return;
+                    }
+                    const changeKey = `${rowId}-${dataColumnIndex}`;
 
                     if (onRevertCell) {
-                        onRevertCell(rowId, columnIndex);
+                        onRevertCell(rowId, dataColumnIndex);
                     }
 
                     cellChangesRef.current.delete(changeKey);
                     failedCellsRef.current.delete(changeKey);
-                    console.log(`Reverted cell for row ID ${rowId}, column ${columnIndex}`);
+                    console.log(`Reverted cell for row ID ${rowId}, column ${dataColumnIndex}`);
 
                     // Notify parent of change count update
                     if (onCellChangeCountChanged) {
@@ -593,6 +763,149 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
             }
         }
+
+        // Handle row selection changes
+        function handleSelectedRowsChanged(_e: any, args: any) {
+            if (onSelectedRowsChanged && reactGridRef.current?.dataView) {
+                const selectedRowIndices = args.rows || [];
+                const selectedRowIds = selectedRowIndices.map((rowIdx: number) => {
+                    const item = reactGridRef.current?.dataView?.getItem(rowIdx);
+                    return item?.id;
+                }).filter((id: number | undefined) => id !== undefined);
+                onSelectedRowsChanged(selectedRowIds);
+            }
+        }
+
+        // Search functions
+        const performSearch = useCallback((term: string) => {
+            if (!term || !reactGridRef.current?.dataView) {
+                setSearchMatches([]);
+                setCurrentMatchIndex(-1);
+                searchHighlightRef.current.clear();
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
+                }
+                return;
+            }
+
+            const matches: SearchMatch[] = [];
+            const dataView = reactGridRef.current.dataView;
+            const totalRows = dataView.getLength();
+            const lowerTerm = term.toLowerCase();
+
+            // Search through all rows and columns
+            for (let rowIdx = 0; rowIdx < totalRows; rowIdx++) {
+                const item = dataView.getItem(rowIdx);
+                if (!item) continue;
+
+                // Search through data columns (skip _rowNumber and id)
+                Object.keys(item).forEach((key) => {
+                    if (key.startsWith("col")) {
+                        const value = String(item[key] || "").toLowerCase();
+                        if (value.includes(lowerTerm)) {
+                            const colIndex = parseInt(key.replace("col", ""), 10);
+                            // Grid column index = data column index + 2 (checkbox + row number)
+                            const gridColIndex = colIndex + 2;
+                            matches.push({
+                                rowIndex: rowIdx,
+                                colIndex: gridColIndex,
+                                rowId: item.id,
+                            });
+                        }
+                    }
+                });
+            }
+
+            setSearchMatches(matches);
+
+            // Update highlight ref for all matches
+            searchHighlightRef.current.clear();
+            matches.forEach((match) => {
+                searchHighlightRef.current.add(`${match.rowId}-${match.colIndex}`);
+            });
+
+            // Set current match to first result
+            if (matches.length > 0) {
+                setCurrentMatchIndex(0);
+                navigateToMatch(matches[0]);
+            } else {
+                setCurrentMatchIndex(-1);
+            }
+
+            // Refresh grid to show highlights
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+            }
+        }, []);
+
+        const navigateToMatch = useCallback((match: SearchMatch) => {
+            if (!reactGridRef.current?.slickGrid || !reactGridRef.current?.paginationService) {
+                return;
+            }
+
+            const grid = reactGridRef.current.slickGrid;
+            const paginationService = reactGridRef.current.paginationService;
+
+            // Calculate which page the match is on
+            const itemsPerPage = paginationService.itemsPerPage;
+            const targetPage = Math.floor(match.rowIndex / itemsPerPage) + 1;
+            const currentPage = paginationService.pageNumber;
+
+            // Navigate to the correct page if needed
+            if (targetPage !== currentPage) {
+                void paginationService.goToPageNumber(targetPage);
+            }
+
+            // Scroll to the cell and select it
+            setTimeout(() => {
+                const rowInPage = match.rowIndex % itemsPerPage;
+                grid.scrollRowIntoView(rowInPage, false);
+                grid.setActiveCell(rowInPage, match.colIndex);
+            }, 100);
+        }, []);
+
+        const goToNextMatch = useCallback(() => {
+            if (searchMatches.length === 0) return;
+            const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
+            setCurrentMatchIndex(nextIndex);
+            navigateToMatch(searchMatches[nextIndex]);
+        }, [searchMatches, currentMatchIndex, navigateToMatch]);
+
+        const goToPreviousMatch = useCallback(() => {
+            if (searchMatches.length === 0) return;
+            const prevIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+            setCurrentMatchIndex(prevIndex);
+            navigateToMatch(searchMatches[prevIndex]);
+        }, [searchMatches, currentMatchIndex, navigateToMatch]);
+
+        const clearSearch = useCallback(() => {
+            setSearchTerm("");
+            setSearchMatches([]);
+            setCurrentMatchIndex(-1);
+            searchHighlightRef.current.clear();
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+            }
+        }, []);
+
+        const handleSearchInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            setSearchTerm(value);
+            performSearch(value);
+        }, [performSearch]);
+
+        const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Enter") {
+                if (e.shiftKey) {
+                    goToPreviousMatch();
+                } else {
+                    goToNextMatch();
+                }
+            } else if (e.key === "Escape") {
+                setShowSearchBar(false);
+                clearSearch();
+            }
+        }, [goToNextMatch, goToPreviousMatch, clearSearch]);
 
         function getContextMenuOptions(): ContextMenu {
             return {
@@ -640,6 +953,80 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <div
                 id="grid-container"
                 className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
+                {/* Search Bar */}
+                {showSearchBar && (
+                    <div className="table-explorer-search-bar">
+                        <div className="search-input-container">
+                            <SearchRegular className="search-icon" />
+                            <Input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearchInputChange}
+                                onKeyDown={handleSearchKeyDown}
+                                placeholder={loc.common.find}
+                                size="small"
+                                className="search-input"
+                                aria-label={loc.common.find}
+                            />
+                            {searchMatches.length > 0 && (
+                                <Badge
+                                    appearance="filled"
+                                    color="informative"
+                                    size="small"
+                                    className="search-match-count">
+                                    {loc.common.searchResultSummary(
+                                        currentMatchIndex + 1,
+                                        searchMatches.length,
+                                    )}
+                                </Badge>
+                            )}
+                            {searchTerm && searchMatches.length === 0 && (
+                                <Badge
+                                    appearance="ghost"
+                                    color="subtle"
+                                    size="small"
+                                    className="search-no-results">
+                                    {loc.common.noResults}
+                                </Badge>
+                            )}
+                        </div>
+                        <div className="search-nav-buttons">
+                            <Tooltip content={loc.common.findPrevious} relationship="label">
+                                <Button
+                                    icon={<ChevronUpRegular />}
+                                    appearance="subtle"
+                                    size="small"
+                                    onClick={goToPreviousMatch}
+                                    disabled={searchMatches.length === 0}
+                                    aria-label={loc.common.findPrevious}
+                                />
+                            </Tooltip>
+                            <Tooltip content={loc.common.findNext} relationship="label">
+                                <Button
+                                    icon={<ChevronDownRegular />}
+                                    appearance="subtle"
+                                    size="small"
+                                    onClick={goToNextMatch}
+                                    disabled={searchMatches.length === 0}
+                                    aria-label={loc.common.findNext}
+                                />
+                            </Tooltip>
+                            <Tooltip content={loc.common.closeFind} relationship="label">
+                                <Button
+                                    icon={<DismissRegular />}
+                                    appearance="subtle"
+                                    size="small"
+                                    onClick={() => {
+                                        setShowSearchBar(false);
+                                        clearSearch();
+                                    }}
+                                    aria-label={loc.common.closeFind}
+                                />
+                            </Tooltip>
+                        </div>
+                    </div>
+                )}
                 <SlickgridReact
                     gridId="tableExplorerGrid"
                     columns={columns}
@@ -647,6 +1034,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataset={dataset}
                     onReactGridCreated={($event) => reactGridReady($event.detail)}
                     onCellChange={($event) => handleCellChange($event, $event.detail.args)}
+                    onSelectedRowsChanged={($event) =>
+                        handleSelectedRowsChanged($event, $event.detail.args)
+                    }
                 />
             </div>
         );
