@@ -21,6 +21,7 @@
     --slick-cell-border-left: 0;
     --slick-cell-box-shadow: none;
     --slick-grid-border-color: var(--vscode-editorWidget-border);
+    --slick-header-column-height: 26px;
     flex: 1;
     min-height: 0;
 }
