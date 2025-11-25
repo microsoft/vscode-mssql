@@ -39,6 +39,12 @@ export enum QueryResultViewMode {
     Text = "text",
 }
 
+export enum ResultsGridAutoSizeStyle {
+    HeadersAndData = "headersAndData",
+    DataOnly = "dataOnly",
+    Off = "off",
+}
+
 export enum QueryResultWebviewLocation {
     Panel = "panel", // VSCode panel area (Terminal, Debug Console, etc.), it's not related to the webview panel.
     Document = "document", // VSCode document area (editor area)
@@ -64,7 +70,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
-    autoSizeColumns?: boolean;
+    autoSizeColumnsMode?: ResultsGridAutoSizeStyle;
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
     selectionSummary?: SelectionSummary;

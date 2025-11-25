@@ -217,7 +217,7 @@ Configure the MSSQL extension using these settings. Set them in user preferences
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
   "mssql.showBatchTime": false,                            // Show batch execution time in results pane
-  "mssql.resultsGrid.autoSizeColumns": true,               // Auto-size result grid columns to fit content
+  "mssql.resultsGrid.autoSizeColumns": "headersAndData", // Auto-size result grid columns using headers + sample rows
   "mssql.resultsGrid.inMemoryDataProcessingThreshold": 5000, // Rows threshold for in-memory processing
   "mssql.splitPaneSelection": "next",                      // Focus after split pane: "next" | "current" | "end"
   "mssql.persistQueryResultTabs": false,                   // Keep result tabs open after closing query file

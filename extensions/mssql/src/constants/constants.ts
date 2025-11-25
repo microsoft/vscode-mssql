@@ -244,7 +244,7 @@ export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
-export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
 export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
