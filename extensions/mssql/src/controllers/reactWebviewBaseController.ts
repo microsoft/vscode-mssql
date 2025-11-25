@@ -56,7 +56,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
     private _webview: vscode.Webview;
-    constructor(private logger: Logger) {
+    constructor() {
         super();
         this._onData = new Emitter<Message>();
     }
@@ -161,7 +161,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 
         this.logger = Logger.create(vscodeWrapper.outputChannel, viewId);
 
-        this._connectionReader = new WebviewControllerMessageReader(this.logger);
+        this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
         this.connection = createMessageConnection(this._connectionReader, this._connectionWriter);
         this.connection.listen();
