@@ -68,7 +68,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             (state) => state.inMemoryDataProcessingThreshold,
         ) ?? 5000;
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
-    const autoSizeColumns = useQueryResultSelector((state) => state.autoSizeColumns);
+    const autoSizeColumnsMode =
+        useQueryResultSelector((state) => state.autoSizeColumnsMode) ??
+        qr.ResultsGridAutoSizeStyle.HeadersAndData;
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
@@ -242,7 +244,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 keyBindings,
                 tableOptions,
                 props.gridParentRef,
-                autoSizeColumns,
+                autoSizeColumnsMode,
                 themeKind,
             );
 

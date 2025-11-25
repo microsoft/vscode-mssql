@@ -18,6 +18,7 @@ import {
     GetFiltersRequest,
     GetGridScrollPositionRequest,
     ResultSetSummary,
+    ResultsGridAutoSizeStyle,
     SetColumnWidthsRequest,
     SetGridScrollPositionNotification,
     SortProperties,
@@ -37,7 +38,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 }
 
 export const MAX_COLUMN_WIDTH_PX = 400;
-export const MIN_COLUMN_WIDTH_PX = 30;
+export const MIN_COLUMN_WIDTH_PX = 50;
 export const ACTIONBAR_WIDTH_PX = 30;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
@@ -77,7 +78,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         keyBindings: WebviewKeyBindings,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
-        autoSizeColumns: boolean = false,
+        autoSizeColumnsMode: ResultsGridAutoSizeStyle = ResultsGridAutoSizeStyle.HeadersAndData,
         themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
         this.linkHandler = linkHandler;
@@ -164,10 +165,15 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
         this.registerPlugin(this._copyKeybindPlugin);
 
+        const autoSizeOnRender = autoSizeColumnsMode !== ResultsGridAutoSizeStyle.Off;
+        const includeHeadersInCalculation =
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.Off;
         this._autoColumnSizePlugin = new AutoColumnSize(
             {
                 maxWidth: MAX_COLUMN_WIDTH_PX,
-                autoSizeOnRender: autoSizeColumns,
+                autoSizeOnRender: autoSizeOnRender,
+                includeHeaderWidthInCalculation: includeHeadersInCalculation,
             },
             this.context,
         );
