@@ -88,6 +88,7 @@ export interface EditSubsetParams extends IEditSessionOperationParams {
 export interface EditColumnInfo {
     name: string;
     isEditable: boolean;
+    isNullable?: boolean;
 }
 
 export interface EditSubsetResult {
