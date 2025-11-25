@@ -130,13 +130,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     void reactGridRef.current.paginationService.goToPageNumber(1);
                 }
             },
-        })); // Convert a single row to grid format
-        function convertRowToDataRow(row: any): any {
+        }));
+
+        // Convert a single row to grid format
+        function convertRowToDataRow(row: any, columnInfo?: any[]): any {
             const dataRow: any = {
                 id: row.id,
             };
             row.cells.forEach((cell: any, cellIndex: number) => {
-                const cellValue = cell.isNull || !cell.displayValue ? "NULL" : cell.displayValue;
+                let cellValue: string;
+                if (cell.isNull) {
+                    cellValue = "NULL";
+                } else if (!cell.displayValue) {
+                    const isNullable = columnInfo?.[cellIndex]?.isNullable !== false;
+                    cellValue = isNullable ? "NULL" : "";
+                } else {
+                    cellValue = cell.displayValue;
+                }
                 dataRow[`col${cellIndex}`] = cellValue;
             });
             return dataRow;
@@ -307,7 +317,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const newColumns = createColumns(resultSet.columnInfo);
                 setColumns(newColumns);
 
-                const convertedDataset = resultSet.subset.map(convertRowToDataRow);
+                const convertedDataset = resultSet.subset.map((row) =>
+                    convertRowToDataRow(row, resultSet.columnInfo),
+                );
                 setDataset(convertedDataset);
 
                 // Set grid options only on initial load
@@ -316,6 +328,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const ROW_HEIGHT = 26;
 
                     setOptions({
+                        alwaysShowVerticalScroll: false,
                         enableColumnPicker: false,
                         enableGridMenu: false,
                         autoEdit: false,
@@ -325,6 +338,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         autoResize: {
                             container: "#grid-container",
                             bottomPadding: 50, // Reserve space for custom pagination
+                            minHeight: 250, // Minimum height to prevent unnecessary scrollbar
                         },
                         forceFitColumns: false, // Allow horizontal scrolling for many columns
                         enableColumnReorder: false,
@@ -365,7 +379,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
                 for (const newRow of rowsToAdd) {
-                    const dataRow = convertRowToDataRow(newRow);
+                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
                     // Use gridService.addItem with position 'bottom' and scrollRowIntoView
                     // gridService automatically handles pagination updates
                     reactGridRef.current.gridService.addItem(dataRow, {
@@ -398,7 +412,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     // Compare row data
                     if (!oldRow || JSON.stringify(newRow) !== JSON.stringify(oldRow)) {
-                        const dataRow = convertRowToDataRow(newRow);
+                        const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
                         const existingItem = reactGridRef.current.dataView.getItemById(dataRow.id);
 
                         if (existingItem) {

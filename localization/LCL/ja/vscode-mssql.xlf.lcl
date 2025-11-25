@@ -12737,7 +12737,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Enable Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Query History キャプチャを有効にする]]></Val>
+            <Val><![CDATA[クエリ履歴キャプチャを有効にする]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13253,7 +13253,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Pause Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Query History キャプチャの一時停止]]></Val>
+            <Val><![CDATA[クエリ履歴キャプチャの一時停止]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13850,7 +13850,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Start Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Query History キャプチャの開始]]></Val>
+            <Val><![CDATA[クエリ履歴キャプチャの開始]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
