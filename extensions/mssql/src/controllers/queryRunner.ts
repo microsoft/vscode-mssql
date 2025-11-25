@@ -235,14 +235,14 @@ export default class QueryRunner {
      * @throws An error if the cancellation fails or times out.
      */
     public async cancel(): Promise<QueryCancelResult> {
+        const cancelQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.CancelQuery,
+        );
         const cancellationInternal = async () => {
             // Make the request to cancel the query
             let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
             let queryCancelResult: QueryCancelResult;
-            const cancelQueryActivity = startActivity(
-                TelemetryViews.QueryEditor,
-                TelemetryActions.CancelQuery,
-            );
             try {
                 queryCancelResult = await this._client.sendRequest(
                     QueryCancelRequest.type,
@@ -262,7 +262,11 @@ export default class QueryRunner {
 
         const timeoutPromise = new Promise<QueryCancelResult>((_resolve, reject) => {
             setTimeout(() => {
-                reject(new Error(LocalizedConstants.QueryEditor.queryCancelFailed("timeout")));
+                const error = new Error(
+                    LocalizedConstants.QueryEditor.queryCancelFailed("timeout"),
+                );
+                cancelQueryActivity?.endFailed(error, false);
+                reject(error);
             }, CANCELLATION_TIMEOUT_MS);
         });
         return Promise.race([cancellationInternal(), timeoutPromise]);

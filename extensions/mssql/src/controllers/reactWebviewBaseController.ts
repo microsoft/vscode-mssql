@@ -70,7 +70,6 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
-                const { method } = event as any;
                 this._onData.fire(event);
             });
             this._disposables.push(disposable);
@@ -356,6 +355,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         });
 
         this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
+            this.logger.verbose(`Reducer action received from webview: ${action.type as string}`);
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
@@ -369,12 +369,17 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             if (reducer) {
                 try {
                     this.state = await reducer(this.state, action.payload);
+                    this.logger.verbose(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
+                    this.logger.error(
+                        `Reducer action failed: ${action.type as string} - ${getErrorMessage(error)}`,
+                    );
                     reducerActivity.endFailed(error, false);
                     throw error;
                 }
             } else {
+                this.logger.error(`No reducer registered for action ${action.type as string}`);
                 reducerActivity.endFailed(
                     new Error(`No reducer registered for action ${action.type as string}`),
                     false,
