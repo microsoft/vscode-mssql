@@ -187,6 +187,7 @@ export interface TableExplorerWebViewState {
     resultSet: EditSubsetResult | undefined;
     currentRowCount: number; // Track the user's selected row count for data loading
     newRows: EditRow[]; // Track newly created rows that haven't been committed yet
+    deletedRows: number[]; // Track row IDs marked for deletion (not yet committed)
     updateScript?: string; // SQL script generated from pending changes
     showScriptPane: boolean; // Whether to show the script pane
     currentPage?: number; // Track the current page number in the data grid
