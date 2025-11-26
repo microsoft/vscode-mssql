@@ -13,6 +13,7 @@ import {
     ListItem,
     List,
     Switch,
+    makeStyles,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -22,8 +23,65 @@ import { Edge, Node, useReactFlow } from "@xyflow/react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
+const useStyles = makeStyles({
+    menu: {
+        width: "250px",
+        padding: "10px",
+    },
+    searchBox: {
+        marginBottom: "10px",
+        width: "100%",
+    },
+    list: {
+        maxHeight: "150px",
+        overflowY: "auto",
+        padding: "5px",
+    },
+    highlightedText: {
+        backgroundColor: "var(--vscode-editor-findMatchBackground)",
+        color: "var(--vscode-editor-background)",
+        padding: "0 2px",
+        borderRadius: "3px",
+    },
+    schemaItem: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        padding: "5px",
+    },
+    tableItem: {
+        padding: "5px",
+        marginLeft: "30px",
+    },
+    chevronButton: {
+        padding: 0,
+        height: "auto",
+        minWidth: "auto",
+        border: "none",
+        backgroundColor: "transparent",
+        boxShadow: "none",
+    },
+    clearAll: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "5px",
+        justifyContent: "flex-end",
+        padding: "5px",
+        borderTop: "1px solid var(--vscode-editorWidget-border)",
+        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+    },
+    showTableRelationships: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "5px",
+        alignItems: "center",
+        paddingTop: "5px",
+    },
+});
+
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
+    const classes = useStyles();
     const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
@@ -32,6 +90,7 @@ export function FilterTablesButton() {
     const [filterText, setFilterText] = useState("");
 
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [collapsedSchemas, setCollapsedSchemas] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
 
@@ -83,6 +142,14 @@ export function FilterTablesButton() {
         });
 
         return Array.from(relatedTables);
+    }
+
+    function handleSchemaToggle(schema: string) {
+        if (collapsedSchemas.includes(schema)) {
+            setCollapsedSchemas(collapsedSchemas.filter((s) => s !== schema));
+        } else {
+            setCollapsedSchemas([...collapsedSchemas, schema]);
+        }
     }
 
     useEffect(() => {
@@ -184,14 +251,7 @@ export function FilterTablesButton() {
                     // Check if this part matches the search text (case insensitive)
                     const isMatch = part.toLowerCase() === searchText.toLowerCase();
                     return isMatch ? (
-                        <span
-                            key={index}
-                            style={{
-                                backgroundColor: "var(--vscode-editor-findMatchBackground)",
-                                color: "var(--vscode-editor-background)",
-                                padding: "0 2px",
-                                borderRadius: "3px",
-                            }}>
+                        <span key={index} className={classes.highlightedText}>
                             {part}
                         </span>
                     ) : (
@@ -228,22 +288,41 @@ export function FilterTablesButton() {
         Object.keys(schemaTables)
             .sort()
             .forEach((schema) => {
+                // Check if any table in this schema matches the filter to
+                // decide whether to show the schema when collapsed
+                const tableInSchemaIncludesFilter =
+                    filterText &&
+                    schemaTables[schema].some((table) =>
+                        table.toLowerCase().includes(filterText.toLowerCase()),
+                    );
+
                 // Render schema as a top-level item
                 const schemaItem = (
-                    <ListItem
-                        style={{
-                            fontWeight: 600,
-                            padding: "2px",
-                            lineHeight: "30px",
-                        }}
-                        value={schema}
-                        key={schema}>
-                        <Text>{schema}</Text>
-                    </ListItem>
+                    <div className={classes.schemaItem}>
+                        <Button
+                            className={classes.chevronButton}
+                            icon={
+                                collapsedSchemas.includes(schema) &&
+                                !tableInSchemaIncludesFilter ? (
+                                    <FluentIcons.ChevronRight20Regular />
+                                ) : (
+                                    <FluentIcons.ChevronDown20Regular />
+                                )
+                            }
+                            onClick={() => handleSchemaToggle(schema)}
+                        />
+                        <ListItem value={schema} key={schema}>
+                            <Text>{schema}</Text>
+                        </ListItem>
+                    </div>
                 );
 
-                // Filter: schemas only shown if filter matches OR filter is empty
-                if (!filterText || schema.toLowerCase().includes(filterText.toLowerCase())) {
+                // Decide whether to render the schema item based on filters
+                if (
+                    !filterText ||
+                    schema.toLowerCase().includes(filterText.toLowerCase()) ||
+                    tableInSchemaIncludesFilter
+                ) {
                     items.push(schemaItem);
                 }
 
@@ -255,25 +334,11 @@ export function FilterTablesButton() {
                         !filterText || table.toLowerCase().includes(filterText.toLowerCase());
 
                     if (!matchesFilter) return;
+                    if (collapsedSchemas.includes(schema) && !tableInSchemaIncludesFilter) return;
 
                     items.push(
-                        <ListItem
-                            style={{
-                                lineHeight: "30px",
-                                padding: "2px",
-                                paddingLeft: "20px", // <-- INDENT CHILD TABLES
-                                overflow: "hidden",
-                            }}
-                            value={fullName}
-                            key={fullName}>
-                            <Text
-                                title={table}
-                                style={{
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                }}>
-                                {highlightText(table, filterText)}
-                            </Text>
+                        <ListItem className={classes.tableItem} value={fullName} key={fullName}>
+                            <Text title={table}>{highlightText(table, filterText)}</Text>
                         </ListItem>,
                     );
                 });
@@ -298,10 +363,7 @@ export function FilterTablesButton() {
             </MenuTrigger>
 
             <MenuPopover
-                style={{
-                    width: "250px",
-                    padding: "10px",
-                }}
+                className={classes.menu}
                 onKeyDown={(e) => {
                     if (e.key === "Escape") {
                         setIsFilterMenuOpen(false);
@@ -310,10 +372,6 @@ export function FilterTablesButton() {
                 <SearchBox
                     size="small"
                     placeholder={locConstants.schemaDesigner.searchTables}
-                    style={{
-                        marginBottom: "10px",
-                        width: "100%",
-                    }}
                     value={filterText}
                     onChange={(_e, data) => {
                         setFilterText(data.value);
@@ -324,11 +382,7 @@ export function FilterTablesButton() {
                 />
                 <List
                     selectionMode="multiselect"
-                    style={{
-                        maxHeight: "150px",
-                        overflowY: "auto",
-                        padding: "5px",
-                    }}
+                    className={classes.list}
                     selectedItems={selectedItems}
                     onSelectionChange={(_e, data) => {
                         const isSelection = data.selectedItems.length > selectedItems.length;
@@ -366,13 +420,8 @@ export function FilterTablesButton() {
                                 const allTablesInSchema = tableNames.filter((tableName) =>
                                     tableName.startsWith(`${schema}.`),
                                 );
-                                console.log("All tables in schema:", allTablesInSchema);
                                 const currentSelectedTablesInSchema = updatedSelectedItems.filter(
                                     (item) => item.startsWith(`${schema}.`),
-                                );
-                                console.log(
-                                    "Current selected tables in schema:",
-                                    currentSelectedTablesInSchema,
                                 );
                                 if (
                                     allTablesInSchema.length ===
@@ -387,10 +436,6 @@ export function FilterTablesButton() {
                                 );
                             }
                         }
-                        console.log(
-                            "Updated selected items before setting state:",
-                            updatedSelectedItems,
-                        );
                         setSelectedItems(updatedSelectedItems);
                         if (context) {
                             context.resetView();
@@ -398,19 +443,9 @@ export function FilterTablesButton() {
                     }}>
                     {renderListItems()}
                 </List>
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        gap: "5px",
-                        justifyContent: "flex-end",
-                        padding: "5px",
-                        borderTop: "1px solid var(--vscode-editorWidget-border)",
-                        borderBottom: "1px solid var(--vscode-editorWidget-border)",
-                    }}>
+                <div className={classes.clearAll}>
                     <Button
                         size="small"
-                        style={{}}
                         onClick={async () => {
                             setSelectedItems([]);
                             if (context) {
@@ -422,14 +457,7 @@ export function FilterTablesButton() {
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
                 </div>
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        gap: "5px",
-                        alignItems: "center",
-                        paddingTop: "5px",
-                    }}>
+                <div className={classes.showTableRelationships}>
                     <Switch
                         checked={showTableRelationships}
                         label={locConstants.schemaDesigner.showTableRelationships}
