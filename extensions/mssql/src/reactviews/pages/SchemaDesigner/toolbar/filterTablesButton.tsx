@@ -264,7 +264,6 @@ export function FilterTablesButton() {
 
     function renderListItems() {
         const nodes = reactFlow.getNodes();
-        // make a data structure that for each schema has a list of tables in sorted order
         const schemaTables = nodes.reduce(
             (acc, node) => {
                 const schema = `${node.data.schema}`;
@@ -326,7 +325,7 @@ export function FilterTablesButton() {
                     items.push(schemaItem);
                 }
 
-                // Render each table under the schema (indented)
+                // Render each table under the schema
                 schemaTables[schema].forEach((table) => {
                     const fullName = `${schema}.${table}`;
 
@@ -399,7 +398,7 @@ export function FilterTablesButton() {
                         let updatedSelectedItems = currentSelectedItems;
                         if (!changedItem.includes(".")) {
                             if (isSelection) {
-                                // Selecting a schema: add all its tables
+                                // Add all tables in the schema
                                 updatedSelectedItems = [
                                     ...tableNames.filter((tableName) =>
                                         tableName.startsWith(`${changedItem}.`),
@@ -407,7 +406,7 @@ export function FilterTablesButton() {
                                     ...updatedSelectedItems,
                                 ];
                             } else {
-                                // Deselecting a schema: remove all its tables
+                                // Remove all tables in the schema
                                 updatedSelectedItems = currentSelectedItems.filter(
                                     (tableName) => !tableName.startsWith(`${changedItem}.`),
                                 );
