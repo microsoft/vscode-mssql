@@ -44,22 +44,27 @@ const fixSetImmediate = (() => {
         const ral = RAL();
 
         const callbacks = new Map<number, () => void>();
-        const channel = new MessageChannel();
-        // Generate unique ids for each scheduled callback.
-        let handleId = 0;
-        channel.port1.onmessage = (event) => {
-            const id = event.data as number;
+        const runCallback = (id: number) => {
             const callback = callbacks.get(id);
             callbacks.delete(id);
             callback?.();
         };
-        channel.port1.start?.();
+        const schedule = (() => {
+            if (typeof queueMicrotask === "function") {
+                return (id: number) => queueMicrotask(() => runCallback(id));
+            }
+            return undefined;
+        })();
+        if (!schedule) {
+            return;
+        }
+        let handleId = 0;
         const patchedTimer = {
             ...ral.timer, // Keep existing timer methods.
             setImmediate: (callback: (...args: unknown[]) => void, ...args: unknown[]) => {
                 const id = ++handleId;
                 callbacks.set(id, () => callback(...args));
-                channel.port2.postMessage(id);
+                schedule(id);
                 return {
                     dispose: () => callbacks.delete(id),
                 };
