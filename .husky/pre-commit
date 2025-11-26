@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+node scripts/ensure-crlf.js || exit 1
+yarn localization
