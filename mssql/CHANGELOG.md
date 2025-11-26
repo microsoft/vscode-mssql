@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.37.1
+
+-   Release date: December 1, 2025
+-   Release status: GA
+
+### What’s new in 1.37.1
+
+-   Fixed flickering scrollbars issue happening in query results grid.
+
 ## Version 1.37.0
 
 -   Release date: November 18, 2025
