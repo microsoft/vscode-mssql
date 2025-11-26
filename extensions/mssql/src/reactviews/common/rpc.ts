@@ -31,10 +31,13 @@ import {
     RequestType,
 } from "vscode-jsonrpc/browser";
 
-// Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
-// vscode-jsonrpc's internal queue. Replace the runtime's setImmediate shim with
-// a MessageChannel based microtask so responses resolve immediately regardless
-// of visibility.
+/**
+ * Chromium throttles setTimeout(0) when a webview is hidden which in turn stalls
+ * vscode-jsonrpc's internal queue. Replace the runtime's setImmediate shim with
+ * a MessageChannel based microtask so responses resolve immediately regardless
+ * of visibility.
+ * Upstream vscode-jsonrpc issue: https://github.com/microsoft/vscode-languageserver-node/issues/1692
+ */
 const fixSetImmediate = (() => {
     let patched = false;
     return () => {
