@@ -12,6 +12,8 @@ import React, {
     useMemo,
 } from "react";
 import {
+    createDomElement,
+    htmlEncode,
     SlickgridReactInstance,
     Column,
     GridOption,
@@ -175,19 +177,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const hasFailed = failedCellsRef.current.has(changeKey);
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
-
-                        // Safely escape HTML entities (with null/undefined check)
-                        const escapedDisplayValue =
-                            displayValue && typeof displayValue === "string"
-                                ? displayValue
-                                      .replace(/&/g, "&amp;")
-                                      .replace(/</g, "&lt;")
-                                      .replace(/>/g, "&gt;")
-                                      .replace(/"/g, "&quot;")
-                                      .replace(/'/g, "&#039;")
-                                : String(displayValue || "");
-
-                        const escapedTooltip = escapedDisplayValue;
+                        const escapedTooltip = htmlEncode(displayValue);
 
                         // Build CSS classes based on cell state
                         const cellClasses = [];
@@ -201,19 +191,28 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             cellClasses.push("table-cell-null");
                         }
 
-                        const classAttr =
-                            cellClasses.length > 0 ? ` class="${cellClasses.join(" ")}"` : "";
-
                         // Failed cells get error styling
                         if (hasFailed) {
-                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
+                            return createDomElement("div", {
+                                className: cellClasses.join(" "),
+                                title: escapedTooltip,
+                                textContent: displayValue,
+                            });
                         }
                         // Modified cells get warning styling
                         if (isModified) {
-                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
+                            return createDomElement("div", {
+                                className: cellClasses.join(" "),
+                                title: escapedTooltip,
+                                textContent: displayValue,
+                            });
                         }
                         // Normal cells
-                        return `<span title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</span>`;
+                        return createDomElement("span", {
+                            className: cellClasses.join(" "),
+                            title: escapedTooltip,
+                            textContent: displayValue,
+                        });
                     },
                 };
 
