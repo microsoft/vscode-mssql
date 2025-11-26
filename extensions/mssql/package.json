@@ -154,7 +154,7 @@
     },
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^9.0.0",
+        "@azure/arm-sql": "^10.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
