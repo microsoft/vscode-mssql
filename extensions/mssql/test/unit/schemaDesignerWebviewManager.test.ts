@@ -554,7 +554,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
         test("should call disposeSession and clean cache even if it fails", async () => {
             // Reset the stub from previous tests
             mockSchemaDesignerService.disposeSession.reset();
-            
+
             const designer = await manager.getSchemaDesigner(
                 mockContext,
                 mockVscodeWrapper,
