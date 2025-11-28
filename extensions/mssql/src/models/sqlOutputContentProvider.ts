@@ -727,6 +727,10 @@ export class SqlOutputContentProvider {
                  * If the result is in a webview view, immediately dispose the runner
                  * For panel results, we wait until the panel is closed to dispose the runner
                  */
+                if (this._queryResultWebviewController.hasPanel(key)) {
+                    await _value.queryRunner.cancel();
+                    continue;
+                }
                 await this.cleanupRunner(key);
             }
         }

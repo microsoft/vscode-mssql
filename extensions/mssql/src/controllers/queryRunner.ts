@@ -55,10 +55,10 @@ import * as Utils from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import { getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -86,6 +86,8 @@ export const editorEol =
     vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
         ? os.EOL
         : vscode.workspace.getConfiguration("files").get<string>("eol");
+
+const CANCELLATION_TIMEOUT_MS = 5000;
 
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
@@ -230,24 +232,44 @@ export default class QueryRunner {
     /**
      * Cancels the currently running query.
      * @returns A promise that resolves to the result of the cancel operation.
+     * @throws An error if the cancellation fails or times out.
      */
     public async cancel(): Promise<QueryCancelResult> {
-        // Make the request to cancel the query
-        let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-        let queryCancelResult: QueryCancelResult;
-        try {
-            queryCancelResult = await this._client.sendRequest(
-                QueryCancelRequest.type,
-                cancelParams,
-            );
-        } catch (error) {
-            this._handleQueryCleanup(
-                LocalizedConstants.QueryEditor.queryCancelFailed(error),
-                error,
-            );
-            return;
-        }
-        return queryCancelResult;
+        const cancelQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.CancelQuery,
+        );
+        const cancellationInternal = async () => {
+            // Make the request to cancel the query
+            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+            let queryCancelResult: QueryCancelResult;
+            try {
+                queryCancelResult = await this._client.sendRequest(
+                    QueryCancelRequest.type,
+                    cancelParams,
+                );
+                cancelQueryActivity?.end(ActivityStatus.Succeeded);
+            } catch (error) {
+                this._handleQueryCleanup(
+                    LocalizedConstants.QueryEditor.queryCancelFailed(error),
+                    error,
+                );
+                cancelQueryActivity?.endFailed(error, false);
+                return;
+            }
+            return queryCancelResult;
+        };
+
+        const timeoutPromise = new Promise<QueryCancelResult>((_resolve, reject) => {
+            setTimeout(() => {
+                const error = new Error(
+                    LocalizedConstants.QueryEditor.queryCancelFailed("timeout"),
+                );
+                cancelQueryActivity?.endFailed(error, false);
+                reject(error);
+            }, CANCELLATION_TIMEOUT_MS);
+        });
+        return Promise.race([cancellationInternal(), timeoutPromise]);
     }
 
     /**
@@ -255,8 +277,7 @@ export default class QueryRunner {
      */
     public async resetQueryRunner(): Promise<void> {
         try {
-            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-            await this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+            await this.cancel();
         } catch {
             // Suppress any errors
         }
@@ -571,12 +592,22 @@ export default class QueryRunner {
         queryDetails.rowsCount = numberOfRows;
         queryDetails.rowsStartIndex = rowStart;
         queryDetails.batchIndex = batchIndex;
+        const rowsFetchActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.GetResultRowsSubset,
+            undefined,
+            undefined,
+            {
+                rowCount: bucketizeRowCount(numberOfRows),
+            },
+        );
         try {
             const queryExecuteSubsetResult = await this._client.sendRequest(
                 QueryExecuteSubsetRequest.type,
                 queryDetails,
             );
             if (queryExecuteSubsetResult) {
+                rowsFetchActivity?.end(ActivityStatus.Succeeded);
                 return queryExecuteSubsetResult;
             }
         } catch (error) {
@@ -585,6 +616,7 @@ export default class QueryRunner {
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             void Promise.reject(error);
+            rowsFetchActivity?.endFailed(error, false);
         }
     }
 
