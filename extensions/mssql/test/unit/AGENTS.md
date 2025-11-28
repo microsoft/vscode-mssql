@@ -6,6 +6,7 @@
 -   Use Sinon, not TypeMoq. If easily possible, replace TypeMoq mocks/stubs/helpers with Sinon equivalents.
 -   Use a Sinon sandbox (setup/teardown with sinon.createSandbox()); keep helper closures (e.g., createServer) inside setup where the
     sandbox is created.
+- Use sandbox.restore() in teardown() to handle ALL cleanup. Don't use conditional stub checks (e.g., checking `.restore` before creating stubs) or manual restore calls. The sandbox handles everything automatically.
 -   Use chai's `expect` for assertions; when checking Sinon interactions, use sinon-chai. Avoid `sinon.assert` and Node's `assert` in favor of `expect(...).to.have.been...` helpers.
 -   Avoid Object.defineProperty hacks and (if possible) fake/partial plain objects; use sandbox.createStubInstance(type) and sandbox.stub(obj, 'prop').value(...).
 -   Add shared Sinon helpers to test/unit/utils.ts when they’ll be reused.
