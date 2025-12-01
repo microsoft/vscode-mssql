@@ -26,7 +26,6 @@ import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
-
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./TableDataGrid.css";
 
