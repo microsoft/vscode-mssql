@@ -278,9 +278,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const changeKey = `${rowId}-${index}`;
                         const isModified = cellChangesRef.current.has(changeKey);
                         const hasFailed = failedCellsRef.current.has(changeKey);
-                        const isSearchHighlighted = searchHighlightRef.current.has(
-                            `${rowId}-${gridColumnIndex}`,
-                        );
+                        // const isSearchHighlighted = searchHighlightRef.current.has(
+                        //     `${rowId}-${gridColumnIndex}`,
+                        // );
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
                         const escapedTooltip = htmlEncode(displayValue);
