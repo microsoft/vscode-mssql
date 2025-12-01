@@ -258,6 +258,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     id: `col${index}`,
                     name: colInfo.name,
                     field: `col${index}`,
+                    originalIndex: index, // Store original data column index for tracking edits
                     sortable: true,
                     filterable: true,
                     resizable: true,
@@ -610,14 +611,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
 
             const cellIndex = args.cell;
-            // Data columns start at index 0 (no row number column)
-            const dataColumnIndex = cellIndex;
-            const column = columns[cellIndex];
+            // Get the actual column from the grid (accounts for hidden columns)
+            const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+            const column = gridColumns[cellIndex];
+            // Use the original column index stored in column metadata (handles hidden columns)
+            const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
             const rowId = args.item.id;
 
-            console.log(`Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}`);
+            console.log(`Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}, Cell Index: ${cellIndex}, Column ID: ${column?.id}`);
 
-            // Track the change using data column index (not grid cell index)
+            // Track the change using original data column index (not visible cell index)
             const changeKey = `${rowId}-${dataColumnIndex}`;
             cellChangesRef.current.set(changeKey, {
                 rowId,
@@ -689,8 +692,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    // Data columns start at index 0 (no row number column)
-                    const dataColumnIndex = cellIndex;
+                    // Get the actual column from the grid (accounts for hidden columns)
+                    const gridColumns = reactGridRef.current?.slickGrid?.getColumns() || [];
+                    const column = gridColumns[cellIndex];
+                    // Use the original column index stored in column metadata (handles hidden columns)
+                    const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
                     const changeKey = `${rowId}-${dataColumnIndex}`;
 
                     if (onRevertCell) {
