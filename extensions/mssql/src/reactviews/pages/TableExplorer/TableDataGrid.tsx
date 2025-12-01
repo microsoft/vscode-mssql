@@ -22,7 +22,6 @@ import {
     Editors,
     ContextMenu,
     Filters,
-    FieldType,
     // Formatter,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
@@ -262,7 +261,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     filterable: true,
                     resizable: true,
                     minWidth: 98,
-                    type: FieldType.string,
+                    type: "string",
                     filter: {
                         model: Filters.compoundInputText,
                     },
