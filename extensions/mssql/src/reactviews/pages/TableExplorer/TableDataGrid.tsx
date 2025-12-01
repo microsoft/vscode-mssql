@@ -22,7 +22,6 @@ import {
     Editors,
     ContextMenu,
     Filters,
-    // Formatter,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
@@ -76,12 +75,6 @@ export interface TableDataGridRef {
     clearSelection: () => void;
     toggleSearchBar: () => void;
 }
-
-// Row number formatter
-// const rowNumberFormatter: Formatter = (_row, _cell, _value, _columnDef, dataContext) => {
-//     const rowNum = dataContext._rowNumber || "";
-//     return `<span class="row-number-cell">${rowNum}</span>`;
-// };
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
     (
@@ -229,30 +222,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
-            // Row number column (first column)
-            // const rowNumberColumn: Column = {
-            //     id: "_rowNumber",
-            //     name: "#",
-            //     field: "_rowNumber",
-            //     width: 50,
-            //     minWidth: 50,
-            //     maxWidth: 80,
-            //     resizable: false,
-            //     sortable: false,
-            //     filterable: false,
-            //     selectable: false,
-            //     focusable: false,
-            //     cssClass: "row-number-column",
-            //     formatter: rowNumberFormatter,
-            //     excludeFromHeaderMenu: true,
-            //     excludeFromColumnPicker: true,
-            // };
-
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
-                // Actual column index in grid
-                // const gridColumnIndex = index;
-
                 const column: Column = {
                     id: `col${index}`,
                     name: colInfo.name,
@@ -277,9 +248,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const changeKey = `${rowId}-${index}`;
                         const isModified = cellChangesRef.current.has(changeKey);
                         const hasFailed = failedCellsRef.current.has(changeKey);
-                        // const isSearchHighlighted = searchHighlightRef.current.has(
-                        //     `${rowId}-${gridColumnIndex}`,
-                        // );
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
                         const escapedTooltip = htmlEncode(displayValue);
@@ -322,7 +290,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return [/* rowNumberColumn, */ ...dataColumns];
+            return dataColumns;
         }
 
         // Handle page size changes from props
@@ -456,13 +424,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                         // Row selection
                         enableRowSelection: true,
-                        // enableCheckboxSelector: true,
-                        // checkboxSelector: {
-                        //     hideSelectAllCheckbox: false,
-                        //     columnIndexPosition: 0, // After row number column
-                        //     width: 40,
-                        //     cssClass: "checkbox-selector-column",
-                        // },
                         rowSelectionOptions: {
                             selectActiveRow: false, // Don't auto-select on cell click
                         },
