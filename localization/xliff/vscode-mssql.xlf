@@ -144,6 +144,9 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4bfebd7a4cc91f1c224234b29702b5df46cc7cd142e61641e0535dcb99d20c2">
+      <source xml:lang="en">All Selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
     </trans-unit>
@@ -612,6 +615,15 @@
     <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
       <source xml:lang="en">Clear Sort</source>
     </trans-unit>
+    <trans-unit id="++CODE++f8e054de57007bb32a2e1d51056f2e80c9313ac56927b5a7047e6e2a042760ba">
+      <source xml:lang="en">Clear all Filters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f939c51b21ed96230023ba11665c18edb49e672d10836524361b7bc7b7eb284">
+      <source xml:lang="en">Clear all Grouping</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a1bf3123dafb90f89c64f84f77a1fbeffb4046becc5e279263cecb180e674256">
+      <source xml:lang="en">Clear all Sorting</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
       <source xml:lang="en">Clear cache and refresh token</source>
     </trans-unit>
@@ -663,6 +675,9 @@
     <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
       <source xml:lang="en">Collapse Workspace Explorer</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f028236a6720c5ce4a3c0c6e7769666d233a4bb80a30ee9f9e157c4b5ac7fa8">
+      <source xml:lang="en">Collapse all Groups</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -695,6 +710,9 @@
     </trans-unit>
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++51de0811b1c6cc726b84abf3bcee735ab5253979ae5d462941c75bc6d0890944">
+      <source xml:lang="en">Column Resize by Content</source>
     </trans-unit>
     <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
       <source xml:lang="en">Column max length cannot be empty</source>
@@ -1375,6 +1393,9 @@
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
+      <source xml:lang="en">Equal to</source>
+    </trans-unit>
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
     </trans-unit>
@@ -1514,6 +1535,9 @@
     <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
       <source xml:lang="en">Expand Workspace Explorer</source>
     </trans-unit>
+    <trans-unit id="++CODE++22e402801be4965bee3de00bdf9d16586d6304d78af33d5b0e330c949425969f">
+      <source xml:lang="en">Expand all Groups</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
@@ -1531,6 +1555,18 @@
     </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++73194761249a0ab480df4f1fa38f32ed5b3adcd3a41c304c9aae9cd4e8661a05">
+      <source xml:lang="en">Export to CSV</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b4b9f7cd9a3ba50b51932300eb1556cac2635bca03b77058950aa0345d66bbf">
+      <source xml:lang="en">Export to Excel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c200cb5386b9cc30a776daf42a19be4441e72a813eb4ea43b5cb5ca50a408953">
+      <source xml:lang="en">Export to Tab Delimited</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5717d1971f40c554a8533651343f526fa1f6d1acd69210a5cb062dd4d24d095a">
+      <source xml:lang="en">Export to Text Format</source>
     </trans-unit>
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
@@ -1786,6 +1822,9 @@
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++d47c848161edab5bae2f3daab3e82abc04df8cd59ccd66b07e25f619dbe0fc66">
+      <source xml:lang="en">Filter Shortcuts</source>
+    </trans-unit>
     <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
       <source xml:lang="en">Filter by keyword</source>
     </trans-unit>
@@ -1844,6 +1883,9 @@
     <trans-unit id="++CODE++20b04b0eb9264d54736120dae88c712700ee14a95803823187961e630998a7fc">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cc42068f20e0b36582765b918a13b5119471ce345e7c55e4be1447c6828d10a3">
+      <source xml:lang="en">Force Fit Columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++2390e8502ba64cd13706dd2af52d9983efe51a28984739601b0b86fbf7c65904">
       <source xml:lang="en">Foreign Column</source>
     </trans-unit>
@@ -1878,6 +1920,9 @@
     <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
       <source xml:lang="en">Found {0} saved connection profile(s).</source>
       <note>{0} is the number of connection profiles</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dbd091c2ab55bb03b5d99cac290dd29a0d3ebc1b0b4ff377cf03b4531e013718">
+      <source xml:lang="en">Freeze Columns</source>
     </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
@@ -1958,11 +2003,23 @@
     <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
       <source xml:lang="en">Greater Than or Equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++1fbcaddaa36260ff8a3c55cb7b0f95813cba07fbe56173e8a47a7099dcae75b6">
+      <source xml:lang="en">Greater than</source>
+    </trans-unit>
+    <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
+      <source xml:lang="en">Greater than or equal to</source>
+    </trans-unit>
     <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
       <source xml:lang="en">Grid View</source>
     </trans-unit>
+    <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
+      <source xml:lang="en">Group by</source>
+    </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4aed3b17a37236779a9d2394e439654e11a0fcc3350a666c197a4110c9f679e7">
+      <source xml:lang="en">Hide Column</source>
     </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
@@ -2156,6 +2213,12 @@
     </trans-unit>
     <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
       <source xml:lang="en">Less Than or Equals</source>
+    </trans-unit>
+    <trans-unit id="++CODE++23105bdfc3d62ed123bff7dd685f40015ddf25b49f2b9a895014acb9d8d40763">
+      <source xml:lang="en">Less than</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae1564a79ff31afebb08eb05fd9d31bcf9b616516c2a9deff4288695cf2c5240">
+      <source xml:lang="en">Less than or equal to</source>
     </trans-unit>
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
@@ -2583,8 +2646,14 @@
       <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
       <note>{0} is the name of the workspace</note>
     </trans-unit>
+    <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
+      <source xml:lang="en">No elements found</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
+      <source xml:lang="en">No matches found</source>
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
@@ -2650,6 +2719,12 @@
     </trans-unit>
     <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
       <source xml:lang="en">Not Starts With</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
+      <source xml:lang="en">Not contains</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
+      <source xml:lang="en">Not equal to</source>
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
@@ -2775,6 +2850,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f739807a9884bf6669e1185bac07658249fc43288b25fc4319a683d18b36a188">
       <source xml:lang="en">Package file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
+      <source xml:lang="en">Page</source>
     </trans-unit>
     <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
       <source xml:lang="en">Parameters</source>
@@ -3012,6 +3090,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++260d6e46e2c959de63eb701cf469be8f7bd5de8b6c8452fe024410b32633ccb7">
+      <source xml:lang="en">Records Selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
     </trans-unit>
@@ -3029,6 +3110,9 @@
     <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
       <source xml:lang="en">Refresh Credentials</source>
     </trans-unit>
+    <trans-unit id="++CODE++3ab2dcce0b47dd18f461eb89e0e5ecc4bfa4d09e0093797c0309a6603299b82e">
+      <source xml:lang="en">Refresh Dataset</source>
+    </trans-unit>
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
@@ -3037,6 +3121,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71f1e5b7225df6933b2ebef4088a3d5fe5d1499e29c9fdfae558d66009f7563f">
+      <source xml:lang="en">Remove Filter</source>
     </trans-unit>
     <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
       <source xml:lang="en">Remove Sort</source>
@@ -3729,6 +3816,9 @@
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1c52a65b91873a12e3ff04c1ea89640166634b079447a137c8744742c7296046">
+      <source xml:lang="en">Synchronous Resize</source>
+    </trans-unit>
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
@@ -3901,6 +3991,15 @@
     <trans-unit id="++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4">
       <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ace13689a037196d8bdaaff025962e9af42c798babf7765e1760fbd186d0abc">
+      <source xml:lang="en">Toggle Dark Mode</source>
+    </trans-unit>
+    <trans-unit id="++CODE++542cbfec4f0a74e40242d81191409a0def781a158d90045b698d390ad962f4c0">
+      <source xml:lang="en">Toggle Filter Row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++089f8d89df07cad0cc97806675de134a11e73bbc75eb5b5d5214cb3a6480bbfe">
+      <source xml:lang="en">Toggle Pre-Header Row</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
       <source xml:lang="en">Toggle Tooltips</source>
     </trans-unit>
@@ -3939,6 +4038,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b6e19ac396e1bd68bfd6bde047bdb73a9c89d2d763ea6cebce38e2db7af654f">
+      <source xml:lang="en">Unfreeze Columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd98e082623e0f0d4a1bdf3ca92c1bd491f2cb701652aee79df0a067e39b1a6d">
+      <source xml:lang="en">Unfreeze Columns/Rows</source>
     </trans-unit>
     <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
       <source xml:lang="en">Unknown Connection</source>
@@ -4161,11 +4266,20 @@
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
     </trans-unit>
+    <trans-unit id="++CODE++5f3c4f8580d392e422e7c2f6802674ac27966c98d95c39696e4b2490168e5488">
+      <source xml:lang="en">items</source>
+    </trans-unit>
+    <trans-unit id="++CODE++adabe6ca43999091b4cfc23c5eabb9f829e4cef26a5a4d0fd95674a97b948b4f">
+      <source xml:lang="en">items per page</source>
+    </trans-unit>
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
     </trans-unit>
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
+      <source xml:lang="en">of</source>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
@@ -4184,6 +4298,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
+      <source xml:lang="en">x of y selected</source>
     </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>
