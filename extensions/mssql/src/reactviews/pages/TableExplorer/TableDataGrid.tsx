@@ -23,7 +23,7 @@ import {
     ContextMenu,
     Filters,
     FieldType,
-    Formatter,
+    // Formatter,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
@@ -79,10 +79,10 @@ export interface TableDataGridRef {
 }
 
 // Row number formatter
-const rowNumberFormatter: Formatter = (_row, _cell, _value, _columnDef, dataContext) => {
-    const rowNum = dataContext._rowNumber || "";
-    return `<span class="row-number-cell">${rowNum}</span>`;
-};
+// const rowNumberFormatter: Formatter = (_row, _cell, _value, _columnDef, dataContext) => {
+//     const rowNum = dataContext._rowNumber || "";
+//     return `<span class="row-number-cell">${rowNum}</span>`;
+// };
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
     (
@@ -252,13 +252,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 // Actual column index in grid
-                const gridColumnIndex = index;
+                // const gridColumnIndex = index;
 
                 const column: Column = {
                     id: `col${index}`,
                     name: colInfo.name,
                     field: `col${index}`,
-                    originalIndex: index, // Store original data column index for tracking edits
                     sortable: true,
                     filterable: true,
                     resizable: true,
@@ -317,6 +316,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         model: Editors.text,
                     };
                 }
+
+                // Add originalIndex as a custom property for tracking edits with hidden columns
+                (column as any).originalIndex = index;
 
                 return column;
             });
