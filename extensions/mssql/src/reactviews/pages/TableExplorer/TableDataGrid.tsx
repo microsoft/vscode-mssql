@@ -10,7 +10,6 @@ import React, {
     useImperativeHandle,
     forwardRef,
     useMemo,
-    useCallback,
 } from "react";
 import {
     createDomElement,
@@ -27,18 +26,7 @@ import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
-import {
-    Input,
-    Button,
-    Tooltip,
-    Badge,
-} from "@fluentui/react-components";
-import {
-    SearchRegular,
-    DismissRegular,
-    ChevronUpRegular,
-    ChevronDownRegular,
-} from "@fluentui/react-icons";
+
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./TableDataGrid.css";
 
@@ -59,13 +47,6 @@ interface TableDataGridProps {
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
 }
 
-// Search match interface
-interface SearchMatch {
-    rowIndex: number;
-    colIndex: number;
-    rowId: number;
-}
-
 export interface TableDataGridRef {
     clearAllChangeTracking: () => void;
     getCellChangeCount: () => number;
@@ -73,7 +54,6 @@ export interface TableDataGridRef {
     goToFirstPage: () => void;
     getSelectedRowIds: () => number[];
     clearSelection: () => void;
-    toggleSearchBar: () => void;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -106,14 +86,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
-
-        // Search state
-        const [showSearchBar, setShowSearchBar] = useState(false);
-        const [searchTerm, setSearchTerm] = useState("");
-        const [searchMatches, setSearchMatches] = useState<SearchMatch[]>([]);
-        const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
-        const searchHighlightRef = useRef<Set<string>>(new Set());
-        const searchInputRef = useRef<HTMLInputElement>(null);
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -171,10 +143,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const selectedRows = reactGridRef.current.slickGrid.getSelectedRows();
                     const dataView = reactGridRef.current.dataView;
                     if (dataView) {
-                        return selectedRows.map((rowIdx: number) => {
-                            const item = dataView.getItem(rowIdx);
-                            return item?.id;
-                        }).filter((id: number | undefined) => id !== undefined);
+                        return selectedRows
+                            .map((rowIdx: number) => {
+                                const item = dataView.getItem(rowIdx);
+                                return item?.id;
+                            })
+                            .filter((id: number | undefined) => id !== undefined);
                     }
                 }
                 return [];
@@ -183,19 +157,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (reactGridRef.current?.slickGrid) {
                     reactGridRef.current.slickGrid.setSelectedRows([]);
                 }
-            },
-            toggleSearchBar: () => {
-                setShowSearchBar((prev) => {
-                    const newValue = !prev;
-                    if (newValue) {
-                        // Focus search input when opening
-                        setTimeout(() => searchInputRef.current?.focus(), 100);
-                    } else {
-                        // Clear search when closing
-                        clearSearch();
-                    }
-                    return newValue;
-                });
             },
         }));
 
@@ -544,7 +505,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const currentLength = reactGridRef.current.dataView.getLength();
                 for (let i = 0; i < rowsToAdd.length; i++) {
                     const newRow = rowsToAdd[i];
-                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo, currentLength + i);
+                    const dataRow = convertRowToDataRow(
+                        newRow,
+                        resultSet.columnInfo,
+                        currentLength + i,
+                    );
                     // Use gridService.addItem with position 'bottom' and scrollRowIntoView
                     // gridService automatically handles pagination updates
                     reactGridRef.current.gridService.addItem(dataRow, {
@@ -639,7 +604,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
             const rowId = args.item.id;
 
-            console.log(`Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}, Cell Index: ${cellIndex}, Column ID: ${column?.id}`);
+            console.log(
+                `Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}, Cell Index: ${cellIndex}, Column ID: ${column?.id}`,
+            );
 
             // Track the change using original data column index (not visible cell index)
             const changeKey = `${rowId}-${dataColumnIndex}`;
@@ -770,144 +737,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function handleSelectedRowsChanged(_e: any, args: any) {
             if (onSelectedRowsChanged && reactGridRef.current?.dataView) {
                 const selectedRowIndices = args.rows || [];
-                const selectedRowIds = selectedRowIndices.map((rowIdx: number) => {
-                    const item = reactGridRef.current?.dataView?.getItem(rowIdx);
-                    return item?.id;
-                }).filter((id: number | undefined) => id !== undefined);
+                const selectedRowIds = selectedRowIndices
+                    .map((rowIdx: number) => {
+                        const item = reactGridRef.current?.dataView?.getItem(rowIdx);
+                        return item?.id;
+                    })
+                    .filter((id: number | undefined) => id !== undefined);
                 onSelectedRowsChanged(selectedRowIds);
             }
         }
-
-        // Search functions
-        const performSearch = useCallback((term: string) => {
-            if (!term || !reactGridRef.current?.dataView) {
-                setSearchMatches([]);
-                setCurrentMatchIndex(-1);
-                searchHighlightRef.current.clear();
-                if (reactGridRef.current?.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
-                }
-                return;
-            }
-
-            const matches: SearchMatch[] = [];
-            const dataView = reactGridRef.current.dataView;
-            const totalRows = dataView.getLength();
-            const lowerTerm = term.toLowerCase();
-
-            // Search through all rows and columns
-            for (let rowIdx = 0; rowIdx < totalRows; rowIdx++) {
-                const item = dataView.getItem(rowIdx);
-                if (!item) continue;
-
-                // Search through data columns (skip _rowNumber and id)
-                Object.keys(item).forEach((key) => {
-                    if (key.startsWith("col")) {
-                        const value = String(item[key] || "").toLowerCase();
-                        if (value.includes(lowerTerm)) {
-                            const colIndex = parseInt(key.replace("col", ""), 10);
-                            // Grid column index = data column index (no row number column)
-                            const gridColIndex = colIndex;
-                            matches.push({
-                                rowIndex: rowIdx,
-                                colIndex: gridColIndex,
-                                rowId: item.id,
-                            });
-                        }
-                    }
-                });
-            }
-
-            setSearchMatches(matches);
-
-            // Update highlight ref for all matches
-            searchHighlightRef.current.clear();
-            matches.forEach((match) => {
-                searchHighlightRef.current.add(`${match.rowId}-${match.colIndex}`);
-            });
-
-            // Set current match to first result
-            if (matches.length > 0) {
-                setCurrentMatchIndex(0);
-                navigateToMatch(matches[0]);
-            } else {
-                setCurrentMatchIndex(-1);
-            }
-
-            // Refresh grid to show highlights
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
-            }
-        }, []);
-
-        const navigateToMatch = useCallback((match: SearchMatch) => {
-            if (!reactGridRef.current?.slickGrid || !reactGridRef.current?.paginationService) {
-                return;
-            }
-
-            const grid = reactGridRef.current.slickGrid;
-            const paginationService = reactGridRef.current.paginationService;
-
-            // Calculate which page the match is on
-            const itemsPerPage = paginationService.itemsPerPage;
-            const targetPage = Math.floor(match.rowIndex / itemsPerPage) + 1;
-            const currentPage = paginationService.pageNumber;
-
-            // Navigate to the correct page if needed
-            if (targetPage !== currentPage) {
-                void paginationService.goToPageNumber(targetPage);
-            }
-
-            // Scroll to the cell and select it
-            setTimeout(() => {
-                const rowInPage = match.rowIndex % itemsPerPage;
-                grid.scrollRowIntoView(rowInPage, false);
-                grid.setActiveCell(rowInPage, match.colIndex);
-            }, 100);
-        }, []);
-
-        const goToNextMatch = useCallback(() => {
-            if (searchMatches.length === 0) return;
-            const nextIndex = (currentMatchIndex + 1) % searchMatches.length;
-            setCurrentMatchIndex(nextIndex);
-            navigateToMatch(searchMatches[nextIndex]);
-        }, [searchMatches, currentMatchIndex, navigateToMatch]);
-
-        const goToPreviousMatch = useCallback(() => {
-            if (searchMatches.length === 0) return;
-            const prevIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
-            setCurrentMatchIndex(prevIndex);
-            navigateToMatch(searchMatches[prevIndex]);
-        }, [searchMatches, currentMatchIndex, navigateToMatch]);
-
-        const clearSearch = useCallback(() => {
-            setSearchTerm("");
-            setSearchMatches([]);
-            setCurrentMatchIndex(-1);
-            searchHighlightRef.current.clear();
-            if (reactGridRef.current?.slickGrid) {
-                reactGridRef.current.slickGrid.invalidate();
-            }
-        }, []);
-
-        const handleSearchInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setSearchTerm(value);
-            performSearch(value);
-        }, [performSearch]);
-
-        const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") {
-                if (e.shiftKey) {
-                    goToPreviousMatch();
-                } else {
-                    goToNextMatch();
-                }
-            } else if (e.key === "Escape") {
-                setShowSearchBar(false);
-                clearSearch();
-            }
-        }, [goToNextMatch, goToPreviousMatch, clearSearch]);
 
         function getContextMenuOptions(): ContextMenu {
             return {
@@ -955,80 +793,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <div
                 id="grid-container"
                 className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                {/* Search Bar */}
-                {showSearchBar && (
-                    <div className="table-explorer-search-bar">
-                        <div className="search-input-container">
-                            <SearchRegular className="search-icon" />
-                            <Input
-                                ref={searchInputRef}
-                                type="text"
-                                value={searchTerm}
-                                onChange={handleSearchInputChange}
-                                onKeyDown={handleSearchKeyDown}
-                                placeholder={loc.common.find}
-                                size="small"
-                                className="search-input"
-                                aria-label={loc.common.find}
-                            />
-                            {searchMatches.length > 0 && (
-                                <Badge
-                                    appearance="filled"
-                                    color="informative"
-                                    size="small"
-                                    className="search-match-count">
-                                    {loc.common.searchResultSummary(
-                                        currentMatchIndex + 1,
-                                        searchMatches.length,
-                                    )}
-                                </Badge>
-                            )}
-                            {searchTerm && searchMatches.length === 0 && (
-                                <Badge
-                                    appearance="ghost"
-                                    color="subtle"
-                                    size="small"
-                                    className="search-no-results">
-                                    {loc.common.noResults}
-                                </Badge>
-                            )}
-                        </div>
-                        <div className="search-nav-buttons">
-                            <Tooltip content={loc.common.findPrevious} relationship="label">
-                                <Button
-                                    icon={<ChevronUpRegular />}
-                                    appearance="subtle"
-                                    size="small"
-                                    onClick={goToPreviousMatch}
-                                    disabled={searchMatches.length === 0}
-                                    aria-label={loc.common.findPrevious}
-                                />
-                            </Tooltip>
-                            <Tooltip content={loc.common.findNext} relationship="label">
-                                <Button
-                                    icon={<ChevronDownRegular />}
-                                    appearance="subtle"
-                                    size="small"
-                                    onClick={goToNextMatch}
-                                    disabled={searchMatches.length === 0}
-                                    aria-label={loc.common.findNext}
-                                />
-                            </Tooltip>
-                            <Tooltip content={loc.common.closeFind} relationship="label">
-                                <Button
-                                    icon={<DismissRegular />}
-                                    appearance="subtle"
-                                    size="small"
-                                    onClick={() => {
-                                        setShowSearchBar(false);
-                                        clearSearch();
-                                    }}
-                                    aria-label={loc.common.closeFind}
-                                />
-                            </Tooltip>
-                        </div>
-                    </div>
-                )}
                 <SlickgridReact
                     gridId="tableExplorerGrid"
                     columns={columns}
