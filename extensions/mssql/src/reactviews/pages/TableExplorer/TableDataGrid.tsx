@@ -231,28 +231,28 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
             // Row number column (first column)
-            const rowNumberColumn: Column = {
-                id: "_rowNumber",
-                name: "#",
-                field: "_rowNumber",
-                width: 50,
-                minWidth: 50,
-                maxWidth: 80,
-                resizable: false,
-                sortable: false,
-                filterable: false,
-                selectable: false,
-                focusable: false,
-                cssClass: "row-number-column",
-                formatter: rowNumberFormatter,
-                excludeFromHeaderMenu: true,
-                excludeFromColumnPicker: true,
-            };
+            // const rowNumberColumn: Column = {
+            //     id: "_rowNumber",
+            //     name: "#",
+            //     field: "_rowNumber",
+            //     width: 50,
+            //     minWidth: 50,
+            //     maxWidth: 80,
+            //     resizable: false,
+            //     sortable: false,
+            //     filterable: false,
+            //     selectable: false,
+            //     focusable: false,
+            //     cssClass: "row-number-column",
+            //     formatter: rowNumberFormatter,
+            //     excludeFromHeaderMenu: true,
+            //     excludeFromColumnPicker: true,
+            // };
 
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
-                // Actual column index in grid (accounting for row number column)
-                const gridColumnIndex = index + 1;
+                // Actual column index in grid
+                const gridColumnIndex = index;
 
                 const column: Column = {
                     id: `col${index}`,
@@ -320,7 +320,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return [rowNumberColumn, ...dataColumns];
+            return [/* rowNumberColumn, */ ...dataColumns];
         }
 
         // Handle page size changes from props
@@ -610,16 +610,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
 
             const cellIndex = args.cell;
-            // Account for row number column (index 0)
-            // Data columns start at index 1
-            const dataColumnIndex = cellIndex - 1;
+            // Data columns start at index 0 (no row number column)
+            const dataColumnIndex = cellIndex;
             const column = columns[cellIndex];
             const rowId = args.item.id;
-
-            // Skip if this is the row number column
-            if (dataColumnIndex < 0) {
-                return;
-            }
 
             console.log(`Cell Changed - Row ID: ${rowId}, Data Column Index: ${dataColumnIndex}`);
 
@@ -695,11 +689,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    // Account for row number column
-                    const dataColumnIndex = cellIndex - 1;
-                    if (dataColumnIndex < 0) {
-                        return;
-                    }
+                    // Data columns start at index 0 (no row number column)
+                    const dataColumnIndex = cellIndex;
                     const changeKey = `${rowId}-${dataColumnIndex}`;
 
                     if (onRevertCell) {
@@ -788,8 +779,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const value = String(item[key] || "").toLowerCase();
                         if (value.includes(lowerTerm)) {
                             const colIndex = parseInt(key.replace("col", ""), 10);
-                            // Grid column index = data column index + 1 (row number)
-                            const gridColIndex = colIndex + 1;
+                            // Grid column index = data column index (no row number column)
+                            const gridColIndex = colIndex;
                             matches.push({
                                 rowIndex: rowIdx,
                                 colIndex: gridColIndex,
