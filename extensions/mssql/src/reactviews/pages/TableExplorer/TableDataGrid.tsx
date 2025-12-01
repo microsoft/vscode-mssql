@@ -230,7 +230,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
-            // Row number column (first column, non-selectable for checkbox)
+            // Row number column (first column)
             const rowNumberColumn: Column = {
                 id: "_rowNumber",
                 name: "#",
@@ -454,13 +454,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                         // Row selection
                         enableRowSelection: true,
-                        enableCheckboxSelector: true,
-                        checkboxSelector: {
-                            hideSelectAllCheckbox: false,
-                            columnIndexPosition: 0, // After row number column
-                            width: 40,
-                            cssClass: "checkbox-selector-column",
-                        },
+                        // enableCheckboxSelector: true,
+                        // checkboxSelector: {
+                        //     hideSelectAllCheckbox: false,
+                        //     columnIndexPosition: 0, // After row number column
+                        //     width: 40,
+                        //     cssClass: "checkbox-selector-column",
+                        // },
                         rowSelectionOptions: {
                             selectActiveRow: false, // Don't auto-select on cell click
                         },
@@ -610,13 +610,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
 
             const cellIndex = args.cell;
-            // Account for checkbox column (index 0) and row number column (index 1)
-            // Data columns start at index 2
-            const dataColumnIndex = cellIndex - 2;
+            // Account for row number column (index 0)
+            // Data columns start at index 1
+            const dataColumnIndex = cellIndex - 1;
             const column = columns[cellIndex];
             const rowId = args.item.id;
 
-            // Skip if this is the checkbox or row number column
+            // Skip if this is the row number column
             if (dataColumnIndex < 0) {
                 return;
             }
@@ -695,8 +695,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    // Account for checkbox and row number columns
-                    const dataColumnIndex = cellIndex - 2;
+                    // Account for row number column
+                    const dataColumnIndex = cellIndex - 1;
                     if (dataColumnIndex < 0) {
                         return;
                     }
@@ -788,8 +788,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const value = String(item[key] || "").toLowerCase();
                         if (value.includes(lowerTerm)) {
                             const colIndex = parseInt(key.replace("col", ""), 10);
-                            // Grid column index = data column index + 2 (checkbox + row number)
-                            const gridColIndex = colIndex + 2;
+                            // Grid column index = data column index + 1 (row number)
+                            const gridColIndex = colIndex + 1;
                             matches.push({
                                 rowIndex: rowIdx,
                                 colIndex: gridColIndex,
