@@ -12,6 +12,8 @@ import React, {
     useMemo,
 } from "react";
 import {
+    createDomElement,
+    htmlEncode,
     SlickgridReactInstance,
     Column,
     GridOption,
@@ -32,6 +34,7 @@ interface TableDataGridProps {
     pageSize?: number;
     currentRowCount?: number;
     failedCells?: string[];
+    deletedRows?: number[];
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -55,6 +58,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             themeKind,
             pageSize = 100,
             failedCells,
+            deletedRows,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -89,23 +93,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
             isInitializedRef.current = true;
-
-            // Commit any active edits when the grid loses focus
-            if (reactGrid.slickGrid) {
-                const gridElement = reactGrid.slickGrid.getContainerNode();
-                if (gridElement) {
-                    gridElement.addEventListener("focusout", (event: FocusEvent) => {
-                        // Check if focus is leaving the grid container entirely
-                        const relatedTarget = event.relatedTarget as HTMLElement;
-                        if (!relatedTarget || !gridElement.contains(relatedTarget)) {
-                            // Commit the current edit if any
-                            if (reactGrid.slickGrid?.getEditorLock().isActive()) {
-                                reactGrid.slickGrid.getEditorLock().commitCurrentEdit();
-                            }
-                        }
-                    });
-                }
-            }
         }
 
         // Clear all change tracking (called after successful save)
@@ -113,6 +100,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             cellChangesRef.current.clear();
             deletedRowsRef.current.clear();
             failedCellsRef.current.clear();
+
             // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
@@ -144,13 +132,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     void reactGridRef.current.paginationService.goToPageNumber(1);
                 }
             },
-        })); // Convert a single row to grid format
-        function convertRowToDataRow(row: any): any {
+        }));
+
+        // Convert a single row to grid format
+        function convertRowToDataRow(row: any, columnInfo?: any[]): any {
             const dataRow: any = {
                 id: row.id,
             };
             row.cells.forEach((cell: any, cellIndex: number) => {
-                const cellValue = cell.isNull || !cell.displayValue ? "NULL" : cell.displayValue;
+                let cellValue: string;
+                if (cell.isNull) {
+                    cellValue = "NULL";
+                } else if (!cell.displayValue) {
+                    const isNullable = columnInfo?.[cellIndex]?.isNullable !== false;
+                    cellValue = isNullable ? "NULL" : "";
+                } else {
+                    cellValue = cell.displayValue;
+                }
                 dataRow[`col${cellIndex}`] = cellValue;
             });
             return dataRow;
@@ -179,45 +177,31 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const hasFailed = failedCellsRef.current.has(changeKey);
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
-
-                        // Safely escape HTML entities (with null/undefined check)
-                        const escapedDisplayValue =
-                            displayValue && typeof displayValue === "string"
-                                ? displayValue
-                                      .replace(/&/g, "&amp;")
-                                      .replace(/</g, "&lt;")
-                                      .replace(/>/g, "&gt;")
-                                      .replace(/"/g, "&quot;")
-                                      .replace(/'/g, "&#039;")
-                                : String(displayValue || "");
-
-                        const escapedTooltip = escapedDisplayValue;
+                        const escapedTooltip = htmlEncode(displayValue);
 
                         // Build CSS classes based on cell state
                         const cellClasses = [];
+
+                        // Failed cells get error styling
                         if (hasFailed) {
                             cellClasses.push("table-cell-error");
-                        } else if (isModified) {
+                        }
+                        // Modified cells get warning styling
+                        else if (isModified) {
                             cellClasses.push("table-cell-modified");
                         }
 
+                        // NULL cells get different styling
                         if (isNullValue) {
                             cellClasses.push("table-cell-null");
                         }
 
-                        const classAttr =
-                            cellClasses.length > 0 ? ` class="${cellClasses.join(" ")}"` : "";
-
-                        // Failed cells get error styling
-                        if (hasFailed) {
-                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
-                        }
-                        // Modified cells get warning styling
-                        if (isModified) {
-                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
-                        }
-                        // Normal cells
-                        return `<span title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</span>`;
+                        const elmType = hasFailed || isModified ? "div" : "span";
+                        return createDomElement(elmType, {
+                            className: cellClasses.join(" "),
+                            title: escapedTooltip,
+                            textContent: displayValue,
+                        });
                     },
                 };
 
@@ -251,6 +235,45 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [failedCells]);
 
+        // Sync deleted rows from props to ref and apply CSS classes
+        useEffect(() => {
+            if (deletedRows !== undefined) {
+                deletedRowsRef.current = new Set(deletedRows);
+
+                // Set up row metadata to apply CSS class to deleted rows
+                if (reactGridRef.current?.dataView) {
+                    const dataView = reactGridRef.current.dataView;
+
+                    // Store the original getItemMetadata if it exists
+                    const originalGetItemMetadata = dataView.getItemMetadata;
+
+                    // Override getItemMetadata to add CSS class for deleted rows
+                    dataView.getItemMetadata = function (row: number) {
+                        // Call original metadata function if it exists
+                        const item = dataView.getItem(row);
+                        let metadata = originalGetItemMetadata
+                            ? originalGetItemMetadata.call(this, row)
+                            : null;
+
+                        // Check if this row is deleted
+                        if (item && deletedRowsRef.current.has(item.id)) {
+                            metadata = metadata || {};
+                            metadata.cssClasses = metadata.cssClasses
+                                ? `${metadata.cssClasses} deleted-row`
+                                : "deleted-row";
+                        }
+
+                        return metadata;
+                    };
+
+                    // Force grid to re-render with new metadata
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                    }
+                }
+            }
+        }, [deletedRows]);
+
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
             if (themeKind !== currentTheme) {
@@ -282,7 +305,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const newColumns = createColumns(resultSet.columnInfo);
                 setColumns(newColumns);
 
-                const convertedDataset = resultSet.subset.map(convertRowToDataRow);
+                const convertedDataset = resultSet.subset.map((row) =>
+                    convertRowToDataRow(row, resultSet.columnInfo),
+                );
                 setDataset(convertedDataset);
 
                 // Set grid options only on initial load
@@ -295,7 +320,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableColumnPicker: false,
                         enableGridMenu: false,
                         autoEdit: false,
-                        autoCommitEdit: false,
+                        autoCommitEdit: true,
                         editable: true,
                         enableAutoResize: true,
                         autoResize: {
@@ -342,7 +367,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
                 for (const newRow of rowsToAdd) {
-                    const dataRow = convertRowToDataRow(newRow);
+                    const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
                     // Use gridService.addItem with position 'bottom' and scrollRowIntoView
                     // gridService automatically handles pagination updates
                     reactGridRef.current.gridService.addItem(dataRow, {
@@ -375,7 +400,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     // Compare row data
                     if (!oldRow || JSON.stringify(newRow) !== JSON.stringify(oldRow)) {
-                        const dataRow = convertRowToDataRow(newRow);
+                        const dataRow = convertRowToDataRow(newRow, resultSet.columnInfo);
                         const existingItem = reactGridRef.current.dataView.getItemById(dataRow.id);
 
                         if (existingItem) {
@@ -530,6 +555,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onRevertRow(rowId);
                     }
 
+                    // Remove from deletion tracking if it was deleted
+                    deletedRowsRef.current.delete(rowId);
+
                     // Remove tracked changes and failed cells for this row
                     const keysToDeleteForRevert: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -547,6 +575,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
                     }
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
+                    }
                     break;
             }
         }
@@ -563,6 +594,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         cssClass: "red",
                         textCssClass: "bold",
                         positionOrder: 1,
+                        itemVisibilityOverride: (args: any) => {
+                            // Hide "Delete Row" if row is already deleted
+                            const rowId = args.dataContext?.id;
+                            return !deletedRowsRef.current.has(rowId);
+                        },
                     },
                     {
                         command: "revert-cell",

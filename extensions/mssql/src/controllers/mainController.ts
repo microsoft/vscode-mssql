@@ -100,6 +100,8 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { HttpHelper } from "../http/httpHelper";
+import { Logger } from "../models/logger";
 
 /**
  * The main controller class that initializes the extension
@@ -119,6 +121,8 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
+    private _logger: Logger;
+
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -148,8 +152,11 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
+        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
         this.configuration = vscode.workspace.getConfiguration();
+
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
+        new HttpHelper(this._logger).warnOnInvalidProxySettings();
     }
 
     /**

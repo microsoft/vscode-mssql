@@ -245,7 +245,9 @@ export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTab
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
-export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
+export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configInMemoryDataProcessingThreshold =
+    "mssql.resultsGrid.inMemoryDataProcessingThreshold";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";

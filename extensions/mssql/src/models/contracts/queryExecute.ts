@@ -128,6 +128,7 @@ export class QueryExecuteStatementParams {
     ownerUri: string;
     line: number;
     column: number;
+    executionPlanOptions?: ExecutionPlanOptions;
 }
 
 export class QueryExecuteResult {}
