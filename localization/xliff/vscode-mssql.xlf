@@ -4927,6 +4927,9 @@
     <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
       <source xml:lang="en">Use column headers and data to size columns automatically</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
+      <source xml:lang="en">Use only column headers to size columns automatically</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
       <source xml:lang="en">Use only row data to size columns automatically</source>
     </trans-unit>
