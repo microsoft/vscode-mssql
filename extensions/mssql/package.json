@@ -363,6 +363,11 @@
                 "path": "./snippets/mssql.json"
             }
         ],
+        "configurationDefaults": {
+            "[sql]": {
+                "editor.wordSeparators": "~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+            }
+        },
         "submenus": [
             {
                 "id": "mssql.copilot.editorSubmenu",
