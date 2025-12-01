@@ -1947,11 +1947,13 @@
                     "enum": [
                         "headersAndData",
                         "dataOnly",
+                        "headerOnly",
                         "off"
                     ],
                     "enumDescriptions": [
                         "%mssql.resultsGrid.useHeaderAndDataEnumDescription%",
                         "%mssql.resultsGrid.useDataOnlyEnumDescription%",
+                        "%mssql.resultsGrid.useHeaderOnlyEnumDescription%",
                         "%mssql.resultsGrid.disableAutoSizingEnumDescription%"
                     ],
                     "description": "%mssql.resultsGrid.autoSizeColumnsMode%"

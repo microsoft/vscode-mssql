@@ -42,6 +42,7 @@ export enum QueryResultViewMode {
 export enum ResultsGridAutoSizeStyle {
     HeadersAndData = "headersAndData",
     DataOnly = "dataOnly",
+    HeaderOnly = "headerOnly",
     Off = "off",
 }
 

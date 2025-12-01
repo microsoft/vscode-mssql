@@ -130,6 +130,7 @@
     "mssql.resultsGrid.autoSizeColumnsMode": "Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).",
     "mssql.resultsGrid.useHeaderAndDataEnumDescription": "Use column headers and data to size columns automatically",
     "mssql.resultsGrid.useDataOnlyEnumDescription": "Use only row data to size columns automatically",
+    "mssql.resultsGrid.useHeaderOnlyEnumDescription": "Use only column headers to size columns automatically",
     "mssql.resultsGrid.disableAutoSizingEnumDescription": "Disable automatic column sizing",
     "mssql.resultsGrid.inMemoryDataProcessingThreshold": "Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.",
     "mssql.query.displayBitAsNumber": "Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as 'true' or 'false'",

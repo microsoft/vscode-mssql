@@ -168,12 +168,16 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         const autoSizeOnRender = autoSizeColumnsMode !== ResultsGridAutoSizeStyle.Off;
         const includeHeadersInCalculation =
             autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
-            autoSizeColumnsMode === ResultsGridAutoSizeStyle.Off;
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeaderOnly;
+        const includeDataInCalculation =
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.HeadersAndData ||
+            autoSizeColumnsMode === ResultsGridAutoSizeStyle.DataOnly;
         this._autoColumnSizePlugin = new AutoColumnSize(
             {
                 maxWidth: MAX_COLUMN_WIDTH_PX,
                 autoSizeOnRender: autoSizeOnRender,
                 includeHeaderWidthInCalculation: includeHeadersInCalculation,
+                includeDataWidthInCalculation: includeDataInCalculation,
             },
             this.context,
         );
