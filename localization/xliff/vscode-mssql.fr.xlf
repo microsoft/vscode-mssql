@@ -5677,10 +5677,6 @@ Requête : {2}</target>
         <source xml:lang="en">Application Intent</source>
         <target state="translated">Intention de l’application</target>
       </trans-unit>
-      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
-        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
-        <target state="translated">Ajustez automatiquement la largeur des colonnes en fonction des lignes visibles dans le jeu de résultats. Peut avoir des problèmes de performances avec un grand nombre de colonnes ou de cellules volumineuses</target>
-      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">Afficher automatiquement les résultats de la requête dans un nouvel onglet au lieu du volet de requête. Cette option prend effet uniquement si « mssql.enableRichExperiences » est activé.</target>
@@ -5708,6 +5704,10 @@ Requête : {2}</target>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">Choisir le gestionnaire SQL pour ce fichier</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
+        <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
+        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5822,6 +5822,10 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
         <target state="translated">Désactiver Grouper par schéma</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
+        <source xml:lang="en">Disable automatic column sizing</source>
+        <target state="new">Disable automatic column sizing</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6476,6 +6480,18 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Utiliser la base de données</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
+        <source xml:lang="en">Use column headers and data to size columns automatically</source>
+        <target state="new">Use column headers and data to size columns automatically</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
+        <source xml:lang="en">Use only column headers to size columns automatically</source>
+        <target state="new">Use only column headers to size columns automatically</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
+        <source xml:lang="en">Use only row data to size columns automatically</source>
+        <target state="new">Use only row data to size columns automatically</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

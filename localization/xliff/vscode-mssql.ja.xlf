@@ -5677,10 +5677,6 @@ Query: {2}</source>
         <source xml:lang="en">Application Intent</source>
         <target state="translated">アプリケーションの意図</target>
       </trans-unit>
-      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
-        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
-        <target state="translated">結果セット内の表示されている行に基づいて列の幅を自動的に調整します。多数の列または大きなセルでパフォーマンスの問題が発生する可能性があります</target>
-      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">クエリ ウィンドウではなく新しいタブにクエリ結果を自動的に表示します。このオプションは、'mssql.enableRichExperiences' が有効になっている場合にのみ有効になります。</target>
@@ -5708,6 +5704,10 @@ Query: {2}</source>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">このファイルに使用する SQL ハンドラーの選択</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
+        <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
+        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5822,6 +5822,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
         <target state="translated">スキーマによるグループ化を無効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
+        <source xml:lang="en">Disable automatic column sizing</source>
+        <target state="new">Disable automatic column sizing</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6476,6 +6480,18 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
+        <source xml:lang="en">Use column headers and data to size columns automatically</source>
+        <target state="new">Use column headers and data to size columns automatically</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
+        <source xml:lang="en">Use only column headers to size columns automatically</source>
+        <target state="new">Use only column headers to size columns automatically</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
+        <source xml:lang="en">Use only row data to size columns automatically</source>
+        <target state="new">Use only row data to size columns automatically</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
