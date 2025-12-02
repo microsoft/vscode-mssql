@@ -140,6 +140,8 @@ export function startActivity(
     function update(
         additionalProps: TelemetryEventProperties,
         additionalMeasurements: TelemetryEventMeasures,
+        connectionInfo?: vscodeMssql.IConnectionInfo,
+        serverInfo?: vscodeMssql.IServerInfo,
     ): void {
         sendActionEvent(
             telemetryView,
@@ -154,6 +156,8 @@ export function startActivity(
                 ...additionalMeasurements,
                 timeElapsedMs: Math.round(performance.now() - startTime),
             },
+            connectionInfo as IConnectionProfile,
+            serverInfo,
         );
     }
 
@@ -161,6 +165,8 @@ export function startActivity(
         activityStatus: ActivityStatus,
         additionalProps: TelemetryEventProperties,
         additionalMeasurements: TelemetryEventMeasures,
+        connectionInfo?: vscodeMssql.IConnectionInfo,
+        serverInfo?: vscodeMssql.IServerInfo,
     ) {
         sendActionEvent(
             telemetryView,
@@ -175,6 +181,8 @@ export function startActivity(
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
+            connectionInfo as IConnectionProfile,
+            serverInfo,
         );
     }
 
@@ -185,6 +193,8 @@ export function startActivity(
         errorType?: string,
         additionalProps?: TelemetryEventProperties,
         additionalMeasurements?: TelemetryEventMeasures,
+        connectionInfo?: vscodeMssql.IConnectionInfo,
+        serverInfo?: vscodeMssql.IServerInfo,
     ) {
         includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
         sendErrorEvent(
@@ -204,6 +214,8 @@ export function startActivity(
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
+            connectionInfo as IConnectionProfile,
+            serverInfo,
         );
     }
 

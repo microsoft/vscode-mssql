@@ -68,4 +68,27 @@ suite("QueryResult Utils Tests", () => {
             expect(result).to.equal(5000);
         });
     });
+
+    suite("bucketizeRowCount", () => {
+        const testCases: { value: number; expected: number }[] = [
+            { value: 0, expected: 50 },
+            { value: 49, expected: 50 },
+            { value: 50, expected: 100 },
+            { value: 99, expected: 100 },
+            { value: 100, expected: 500 },
+            { value: 499, expected: 500 },
+            { value: 500, expected: 1000 },
+            { value: 999, expected: 1000 },
+            { value: 1000, expected: 5000 },
+            { value: 4999, expected: 5000 },
+            { value: 5000, expected: 10000 },
+            { value: 12000, expected: 10000 },
+        ];
+
+        for (const { value, expected } of testCases) {
+            test(`returns ${expected} for row count ${value}`, () => {
+                expect(queryResultUtils.bucketizeRowCount(value)).to.equal(expected);
+            });
+        }
+    });
 });
