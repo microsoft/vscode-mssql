@@ -52,7 +52,7 @@ import {
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, TimeoutError, withTimeout } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -239,37 +239,23 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
         );
-        const cancellationInternal = async () => {
-            // Make the request to cancel the query
-            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-            let queryCancelResult: QueryCancelResult;
-            try {
-                queryCancelResult = await this._client.sendRequest(
-                    QueryCancelRequest.type,
-                    cancelParams,
-                );
-                cancelQueryActivity?.end(ActivityStatus.Succeeded);
-            } catch (error) {
-                this._handleQueryCleanup(
-                    LocalizedConstants.QueryEditor.queryCancelFailed(error),
-                    error,
-                );
-                cancelQueryActivity?.endFailed(error, false);
-                return;
-            }
+        const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+        try {
+            const cancelPromise = this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+            const queryCancelResult = await withTimeout(
+                Promise.resolve(cancelPromise),
+                CANCELLATION_TIMEOUT_MS,
+            );
+            cancelQueryActivity?.end(ActivityStatus.Succeeded);
             return queryCancelResult;
-        };
-
-        const timeoutPromise = new Promise<QueryCancelResult>((_resolve, reject) => {
-            setTimeout(() => {
-                const error = new Error(
-                    LocalizedConstants.QueryEditor.queryCancelFailed("timeout"),
-                );
-                cancelQueryActivity?.endFailed(error, false);
-                reject(error);
-            }, CANCELLATION_TIMEOUT_MS);
-        });
-        return Promise.race([cancellationInternal(), timeoutPromise]);
+        } catch (error) {
+            this._handleQueryCleanup(
+                LocalizedConstants.QueryEditor.queryCancelFailed(error),
+                error,
+            );
+            cancelQueryActivity?.endFailed(error, error instanceof TimeoutError);
+            throw error;
+        }
     }
 
     /**
@@ -313,12 +299,30 @@ export default class QueryRunner {
             executionPlanOptions: executionPlanOptions,
         };
 
+        const runStatementActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.RunQuery,
+            undefined,
+            {
+                executionType: "statement",
+                hasExecutionPlan: executionPlanOptions ? "true" : "false",
+            },
+        );
         try {
-            await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
-            this._startEmitter.fire(this.uri);
+            await withTimeout(
+                (async () => {
+                    await this._client.sendRequest(
+                        QueryExecuteStatementRequest.type,
+                        optionsParams,
+                    );
+                    this._startEmitter.fire(this.uri);
+                })(),
+            );
+            runStatementActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
+            runStatementActivity?.endFailed(error, error instanceof TimeoutError);
             throw error;
         }
     }
@@ -359,12 +363,29 @@ export default class QueryRunner {
             this._uriToQueryPromiseMap.set(this._ownerUri, promise);
         }
 
+        const queryType = selection ? "selection" : "document";
+        const runQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.RunQuery,
+            undefined,
+            {
+                executionType: queryType,
+                hasExecutionPlan: executionPlanOptions ? "true" : "false",
+            },
+        );
+
         try {
-            await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
-            this._startEmitter.fire(this.uri);
+            await withTimeout(
+                (async () => {
+                    await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
+                    this._startEmitter.fire(this.uri);
+                })(),
+            );
+            runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
+            runQueryActivity?.endFailed(error, error instanceof TimeoutError);
             throw error;
         }
     }

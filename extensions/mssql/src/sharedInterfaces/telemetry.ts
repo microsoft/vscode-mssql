@@ -187,6 +187,7 @@ export enum TelemetryActions {
     RequestHandler = "RequestHandler",
     CancelQuery = "CancelQuery",
     GetResultRowsSubset = "GetResultRowsSubset",
+    CancelConnection = "CancelConnection",
 }
 
 /**

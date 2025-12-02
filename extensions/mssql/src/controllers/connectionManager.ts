@@ -36,13 +36,13 @@ import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, TimeoutError, withTimeout } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
@@ -1163,6 +1163,8 @@ export default class ConnectionManager {
         connectionInfo.credentials = credentials;
         connectionInfo.connecting = true;
 
+        this._connections[fileUri] = connectionInfo;
+
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
             this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
@@ -1188,30 +1190,54 @@ export default class ConnectionManager {
         );
 
         let initRequest: boolean;
+        const telemetryProperties = {
+            serverTypes: getServerTypes(credentials).join(","),
+            cloudType: getCloudId(),
+            connectionSource: connectionSource,
+        };
+        const connectionRequest = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.Connect,
+            undefined,
+            telemetryProperties,
+        );
         try {
-            initRequest = await this.client.sendRequest(
-                ConnectionContracts.ConnectionRequest.type,
-                connectParams,
-            );
+            const connectionInternal = async () => {
+                initRequest = await this.client.sendRequest(
+                    ConnectionContracts.ConnectionRequest.type,
+                    connectParams,
+                );
+                if (initRequest) {
+                    connectionRequest.end(ActivityStatus.Succeeded);
+                } else {
+                    connectionRequest.endFailed(new Error("Failed to initiate connection"), true);
+                }
+            };
+            await withTimeout(connectionInternal());
         } catch (error) {
+            this.removeActiveConnection(fileUri);
             /**
              * If the initial connection attempt fails, log the error and return false.
              * We don’t invoke error callbacks here because the failure happens before
              * the SQL client even starts connecting. At this stage there’s nothing to
              * retry or recover from.
              */
+            const includeErrorMessage = error instanceof TimeoutError;
             sendErrorEvent(
                 TelemetryViews.ConnectionManager,
                 TelemetryActions.Connect,
                 error,
-                true, // includeErrorMessage,
+                includeErrorMessage, // includeErrorMessage,
                 undefined, // errorCode
                 undefined, // errorType
-                {
-                    serverTypes: getServerTypes(credentials).join(","),
-                    cloudType: getCloudId(),
-                    connectionSource: connectionSource,
-                },
+                telemetryProperties,
+            );
+            connectionRequest.endFailed(
+                error,
+                includeErrorMessage,
+                undefined,
+                undefined,
+                telemetryProperties,
             );
             return false;
         }
@@ -1581,13 +1607,39 @@ export default class ConnectionManager {
             new ConnectionContracts.CancelConnectParams();
         cancelParams.ownerUri = fileUri;
 
-        const result = await this.client.sendRequest(
-            ConnectionContracts.CancelConnectRequest.type,
-            cancelParams,
+        const cancelActivity = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.CancelConnection,
         );
-        if (result) {
+
+        const cancelConnectionInternal = async () => {
+            const result = await this.client.sendRequest(
+                ConnectionContracts.CancelConnectRequest.type,
+                cancelParams,
+            );
+            if (result) {
+                this.statusView.setNotConnected(fileUri);
+                cancelActivity.end(ActivityStatus.Succeeded);
+            } else {
+                cancelActivity.endFailed(new Error("Failed to cancel connection"), false);
+            }
+        };
+
+        try {
+            await withTimeout(cancelConnectionInternal());
+        } catch (error) {
             this.statusView.setNotConnected(fileUri);
+            cancelActivity.endFailed(error, error instanceof TimeoutError);
         }
+
+        // Force cleanup of promises and state
+        const completionPromise = this._uriToConnectionCompleteParamsMap.get(fileUri);
+        if (completionPromise) {
+            completionPromise.reject(new Error("Connection cancelled"));
+            this._uriToConnectionCompleteParamsMap.delete(fileUri);
+        }
+
+        this.removeActiveConnection(fileUri);
     }
 
     /**
