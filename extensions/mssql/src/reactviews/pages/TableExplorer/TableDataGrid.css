@@ -216,3 +216,22 @@
     color: var(--vscode-foreground);
     padding-left: 8px;
 }
+
+/* Deleted row styles - uses VS Code theme variables for automatic light/dark theme support */
+#tableExplorerGrid .slick-row.deleted-row {
+    background-color: var(--vscode-diffEditor-removedLineBackground) !important;
+}
+
+#tableExplorerGrid .slick-row.deleted-row:hover {
+    background-color: var(--vscode-diffEditor-removedTextBackground) !important;
+}
+
+#tableExplorerGrid .slick-row.deleted-row.selected {
+    background-color: var(--vscode-diffEditor-removedTextBackground) !important;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell {
+    text-decoration: line-through;
+    color: var(--vscode-disabledForeground) !important;
+    opacity: 0.7;
+}

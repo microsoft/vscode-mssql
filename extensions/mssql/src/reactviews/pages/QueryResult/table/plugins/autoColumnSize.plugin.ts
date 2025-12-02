@@ -10,22 +10,25 @@ import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/web
 import { deepClone } from "../../../../common/utils";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { mixin } from "../objects";
-import { MAX_COLUMN_WIDTH_PX } from "../table";
+import { MAX_COLUMN_WIDTH_PX, MIN_COLUMN_WIDTH_PX } from "../table";
 
 export interface IAutoColumnSizeOptions extends Slick.PluginOptions {
     maxWidth?: number;
     autoSizeOnRender?: boolean;
     extraColumnHeaderWidth?: number;
+    includeHeaderWidthInCalculation?: boolean;
+    includeDataWidthInCalculation?: boolean;
 }
 
 const defaultOptions: IAutoColumnSizeOptions = {
     maxWidth: MAX_COLUMN_WIDTH_PX,
     autoSizeOnRender: false,
-    extraColumnHeaderWidth: 0,
+    extraColumnHeaderWidth: 20,
+    includeHeaderWidthInCalculation: true,
+    includeDataWidthInCalculation: true,
 };
 
 const NUM_ROWS_TO_SCAN = 50;
-const MAX_HEADER_WIDTH = 100;
 
 export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private _grid!: Slick.Grid<T>;
@@ -70,12 +73,20 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
      * Prioritizes content width but ensures headers are readable.
      */
     private calculateOptimalColumnWidth(headerWidth: number, contentWidth: number): number {
-        headerWidth = Math.min(headerWidth, MAX_HEADER_WIDTH);
+        if (!this._options.includeHeaderWidthInCalculation) {
+            headerWidth = 0;
+        }
+        if (!this._options.includeDataWidthInCalculation) {
+            contentWidth = 0;
+        }
         // Default to max of header and content, but cap at maxWidth
         return (
-            Math.min(
-                Math.max(headerWidth, contentWidth),
-                this._options.maxWidth || MAX_COLUMN_WIDTH_PX,
+            Math.max(
+                Math.min(
+                    Math.max(headerWidth, contentWidth),
+                    this._options.maxWidth || MAX_COLUMN_WIDTH_PX,
+                ),
+                MIN_COLUMN_WIDTH_PX,
             ) + 1
         );
     }
@@ -132,11 +143,20 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
             }
         }
 
-        let headerWidths: number[] = this.getElementWidths(headerElements);
-        headerWidths = headerWidths.map((width) => {
-            return width + this._options.extraColumnHeaderWidth!;
-        });
-        let maxColumnTextWidths: number[] = this.getMaxColumnTextWidths(columnDefs, colIndices);
+        let headerWidths: number[];
+        if (this._options.includeHeaderWidthInCalculation) {
+            headerWidths = this.getElementWidths(headerElements).map((width) => {
+                return width + this._options.extraColumnHeaderWidth!;
+            });
+        } else {
+            headerWidths = new Array(columnDefs.length).fill(0);
+        }
+        let maxColumnTextWidths: number[];
+        if (this._options.includeDataWidthInCalculation) {
+            maxColumnTextWidths = this.getMaxColumnTextWidths(columnDefs, colIndices);
+        } else {
+            maxColumnTextWidths = new Array(columnDefs.length).fill(0);
+        }
 
         for (let i = 0; i < columnDefs.length; i++) {
             let colIndex: number = colIndices[i];
@@ -173,8 +193,9 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     }
 
     private resizeColumn(headerEl: JQuery, columnDef: Slick.Column<T>) {
-        let headerWidth =
-            this.getElementWidths([headerEl[0]])[0] + this._options.extraColumnHeaderWidth!;
+        let headerWidth = this._options.includeHeaderWidthInCalculation
+            ? this.getElementWidths([headerEl[0]])[0] + this._options.extraColumnHeaderWidth!
+            : 0;
         let colIndex = this._grid.getColumnIndex(columnDef.id!);
         let origCols = this._grid.getColumns();
         let allColumns = deepClone(origCols);
@@ -184,7 +205,9 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         });
         let column = allColumns[colIndex];
 
-        let contentWidth = this.getMaxColumnTextWidth(columnDef, colIndex);
+        let contentWidth = this._options.includeDataWidthInCalculation
+            ? this.getMaxColumnTextWidth(columnDef, colIndex)
+            : 0;
         let autoSizeWidth = this.calculateOptimalColumnWidth(headerWidth, contentWidth);
 
         // Only resize if the current width is smaller than the new width.
