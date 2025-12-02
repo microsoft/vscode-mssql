@@ -400,7 +400,9 @@ export class FabricHelper {
             );
         }
 
-        fabricLogger.verbose(`Long-running operation completed successfully. Fetching final result...`);
+        fabricLogger.verbose(
+            `Long-running operation completed successfully. Fetching final result...`,
+        );
 
         return await httpHelper.makeGetRequest<TResponse>(
             longRunningResponse.headers["location"],
