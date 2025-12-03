@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscodeMssql from "vscode-mssql";
+
 export enum TelemetryViews {
     ObjectExplorer = "ObjectExplorer",
     CommandPalette = "CommandPalette",
@@ -187,6 +189,7 @@ export enum TelemetryActions {
     RequestHandler = "RequestHandler",
     CancelQuery = "CancelQuery",
     GetResultRowsSubset = "GetResultRowsSubset",
+    CancelConnection = "CancelConnection",
 }
 
 /**
@@ -206,6 +209,8 @@ export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**
@@ -218,6 +223,8 @@ export type FinishActivityFailed = (
     errorType?: string,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**
@@ -226,6 +233,8 @@ export type FinishActivityFailed = (
 export type UpdateActivity = (
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**

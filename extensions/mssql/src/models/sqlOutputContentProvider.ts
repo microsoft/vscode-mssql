@@ -723,12 +723,15 @@ export class SqlOutputContentProvider {
 
         for (let [key, _value] of this._queryResultsMap.entries()) {
             if (closedDocumentUri === key) {
-                if (this.queryResultWebviewController.hasPanel(key)) {
+                /**
+                 * If the result is in a webview view, immediately dispose the runner
+                 * For panel results, we wait until the panel is closed to dispose the runner
+                 */
+                if (this._queryResultWebviewController.hasPanel(key)) {
                     await _value.queryRunner.cancel();
                     continue;
-                } else {
-                    await _value.queryRunner.dispose();
                 }
+                await this.cleanupRunner(key);
             }
         }
 
@@ -762,15 +765,14 @@ export class SqlOutputContentProvider {
                 clearTimeout(timer);
                 this._stateUpdateTimers.delete(uri);
             }
-            await this.cancelQuery(queryRunnerState.queryRunner);
-            /**
-             * If there is panel open for this query, don't cleanup the runner so the user can
-             * still interact with it and see the results.
-             */
             if (queryRunnerState.queryRunner.isExecutingQuery) {
-                return;
+                // We need to cancel it, which will dispose it
+                await this.cancelQuery(queryRunnerState.queryRunner);
+            } else {
+                // We need to explicitly dispose the query
+                void queryRunnerState.queryRunner.dispose();
+                queryRunnerState.listeners?.forEach((listener) => listener.dispose());
             }
-            await this.cleanupRunner(uri);
             this._queryResultsMap.delete(uri);
         }
     }
