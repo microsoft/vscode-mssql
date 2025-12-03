@@ -779,6 +779,20 @@ export class ObjectExplorerService {
             return;
         }
 
+        if (!connectionProfile.containerName) {
+            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
+            if (containerName) {
+                connectionProfile.containerName = containerName;
+                // if the connection is a docker container, make sure to set the container name for future use
+                await this._connectionManager.connectionStore.saveProfile(connectionProfile);
+            }
+        }
+
         let connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
 
         let isNewConnection = false;
