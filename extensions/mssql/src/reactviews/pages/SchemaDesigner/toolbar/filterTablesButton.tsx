@@ -8,12 +8,15 @@ import {
     MenuTrigger,
     MenuPopover,
     SearchBox,
-    Text,
     Button,
-    ListItem,
-    List,
     Switch,
     makeStyles,
+    TreeItemLayout,
+    HeadlessFlatTreeItemProps,
+    useHeadlessFlatTree_unstable,
+    Text,
+    FlatTree,
+    FlatTreeItem,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -90,9 +93,10 @@ export function FilterTablesButton() {
     const [filterText, setFilterText] = useState("");
 
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const [collapsedSchemas, setCollapsedSchemas] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
+
+    type CustomTreeItem = HeadlessFlatTreeItemProps & { content: string };
 
     function loadTables() {
         // When loading tables (e.g., when filter button is clicked), we should maintain
@@ -142,14 +146,6 @@ export function FilterTablesButton() {
         });
 
         return Array.from(relatedTables);
-    }
-
-    function handleSchemaToggle(schema: string) {
-        if (collapsedSchemas.includes(schema)) {
-            setCollapsedSchemas(collapsedSchemas.filter((s) => s !== schema));
-        } else {
-            setCollapsedSchemas([...collapsedSchemas, schema]);
-        }
     }
 
     useEffect(() => {
@@ -262,7 +258,7 @@ export function FilterTablesButton() {
         );
     };
 
-    function renderListItems() {
+    function renderTreeItems() {
         const nodes = reactFlow.getNodes();
         const schemaTables = nodes.reduce(
             (acc, node) => {
@@ -282,68 +278,48 @@ export function FilterTablesButton() {
             schemaTables[schema].sort();
         });
 
-        const items: JSX.Element[] = [];
+        console.log(JSON.stringify(schemaTables, null, 2));
+
+        const items: CustomTreeItem[] = [];
+        const defaultOpenSchemas: string[] = [];
 
         Object.keys(schemaTables)
             .sort()
             .forEach((schema) => {
-                // Check if any table in this schema matches the filter to
-                // decide whether to show the schema when collapsed
                 const tableInSchemaIncludesFilter =
                     filterText &&
                     schemaTables[schema].some((table) =>
                         table.toLowerCase().includes(filterText.toLowerCase()),
                     );
 
-                // Render schema as a top-level item
-                const schemaItem = (
-                    <div className={classes.schemaItem}>
-                        <Button
-                            className={classes.chevronButton}
-                            icon={
-                                collapsedSchemas.includes(schema) &&
-                                !tableInSchemaIncludesFilter ? (
-                                    <FluentIcons.ChevronRight20Regular />
-                                ) : (
-                                    <FluentIcons.ChevronDown20Regular />
-                                )
-                            }
-                            onClick={() => handleSchemaToggle(schema)}
-                        />
-                        <ListItem value={schema} key={schema}>
-                            <Text>{schema}</Text>
-                        </ListItem>
-                    </div>
-                );
-
-                // Decide whether to render the schema item based on filters
+                // Only show schema if its name or children match filter
                 if (
                     !filterText ||
                     schema.toLowerCase().includes(filterText.toLowerCase()) ||
                     tableInSchemaIncludesFilter
                 ) {
-                    items.push(schemaItem);
+                    items.push({ value: schema, content: schema });
+                    defaultOpenSchemas.push(schema);
                 }
 
-                // Render each table under the schema
                 schemaTables[schema].forEach((table) => {
-                    const fullName = `${schema}.${table}`;
-
-                    const matchesFilter =
-                        !filterText || table.toLowerCase().includes(filterText.toLowerCase());
-
-                    if (!matchesFilter) return;
-                    if (collapsedSchemas.includes(schema) && !tableInSchemaIncludesFilter) return;
-
-                    items.push(
-                        <ListItem className={classes.tableItem} value={fullName} key={fullName}>
-                            <Text title={table}>{highlightText(table, filterText)}</Text>
-                        </ListItem>,
-                    );
+                    // Only show table if its name matches filter
+                    if (!filterText || table.toLowerCase().includes(filterText.toLowerCase())) {
+                        items.push({
+                            value: `${schema}.${table}`,
+                            parentValue: schema,
+                            content: table, // add highlight text here
+                        });
+                    }
                 });
             });
 
-        return items;
+        const flatTree = useHeadlessFlatTree_unstable(items, {
+            defaultOpenItems: defaultOpenSchemas,
+            selectionMode: "multiselect",
+        });
+
+        return flatTree;
     }
 
     return (
@@ -379,69 +355,99 @@ export function FilterTablesButton() {
                         setFilterText("");
                     }}
                 />
-                <List
-                    selectionMode="multiselect"
-                    className={classes.list}
-                    selectedItems={selectedItems}
-                    onSelectionChange={(_e, data) => {
-                        const isSelection = data.selectedItems.length > selectedItems.length;
-                        const currentSelectedItems = data.selectedItems.map(String);
-                        const changedItem = [
-                            ...currentSelectedItems.filter((item) => !selectedItems.includes(item)),
-                            ...selectedItems.filter((item) => !currentSelectedItems.includes(item)),
-                        ][0];
+                {(() => {
+                    const flatTree = renderTreeItems();
+                    return (
+                        <FlatTree
+                            {...flatTree.getTreeProps()}
+                            checkedItems={selectedItems}
+                            onCheckedChange={(_e, data) => {
+                                const { value, checked } = data;
+                                const itemValue = value.toString();
 
-                        const tableNames = reactFlow
-                            .getNodes()
-                            .map((node) => `${node.data.schema}.${node.data.name}`);
-                        // If the changed item is a schema, select/deselect all its tables
-                        let updatedSelectedItems = currentSelectedItems;
-                        if (!changedItem.includes(".")) {
-                            if (isSelection) {
-                                // Add all tables in the schema
-                                updatedSelectedItems = [
-                                    ...tableNames.filter((tableName) =>
-                                        tableName.startsWith(`${changedItem}.`),
-                                    ),
-                                    ...updatedSelectedItems,
-                                ];
-                            } else {
-                                // Remove all tables in the schema
-                                updatedSelectedItems = currentSelectedItems.filter(
-                                    (tableName) => !tableName.startsWith(`${changedItem}.`),
-                                );
-                            }
-                        } else {
-                            const schema = changedItem.split(".")[0];
+                                const isSelection = checked;
+                                const changedItem = itemValue;
 
-                            if (isSelection) {
-                                // if all tables in the schema are selected, add the overall schema
-                                const allTablesInSchema = tableNames.filter((tableName) =>
-                                    tableName.startsWith(`${schema}.`),
-                                );
-                                const currentSelectedTablesInSchema = updatedSelectedItems.filter(
-                                    (item) => item.startsWith(`${schema}.`),
-                                );
-                                if (
-                                    allTablesInSchema.length ===
-                                    currentSelectedTablesInSchema.length
-                                ) {
-                                    updatedSelectedItems.push(schema);
+                                const tableNames = reactFlow
+                                    .getNodes()
+                                    .map((node) => `${node.data.schema}.${node.data.name}`);
+
+                                let updatedSelectedItems = [...selectedItems];
+
+                                if (isSelection) {
+                                    updatedSelectedItems.push(changedItem);
+                                } else {
+                                    updatedSelectedItems = updatedSelectedItems.filter(
+                                        (item) => item !== changedItem,
+                                    );
                                 }
-                            } else {
-                                // remove schema from current selected items
-                                updatedSelectedItems = currentSelectedItems.filter(
-                                    (item) => item !== schema,
+
+                                // Schema is toggled
+                                if (!changedItem.includes(".")) {
+                                    if (isSelection) {
+                                        // Add all tables under schema
+                                        const schemaTables = tableNames.filter((t) =>
+                                            t.startsWith(`${changedItem}.`),
+                                        );
+                                        updatedSelectedItems = Array.from(
+                                            new Set([...updatedSelectedItems, ...schemaTables]),
+                                        );
+                                    } else {
+                                        // Remove schema + all tables
+                                        updatedSelectedItems = updatedSelectedItems.filter(
+                                            (t) =>
+                                                !t.startsWith(`${changedItem}.`) &&
+                                                t !== changedItem,
+                                        );
+                                    }
+                                }
+
+                                // Table is toggled
+                                else {
+                                    const schema = changedItem.split(".")[0];
+
+                                    if (isSelection) {
+                                        // If ALL tables in schema are selected → automatically select schema
+                                        const allTablesInSchema = tableNames.filter((t) =>
+                                            t.startsWith(`${schema}.`),
+                                        );
+                                        const selectedTables = updatedSelectedItems.filter((t) =>
+                                            t.startsWith(`${schema}.`),
+                                        );
+
+                                        if (allTablesInSchema.length === selectedTables.length) {
+                                            if (!updatedSelectedItems.includes(schema)) {
+                                                updatedSelectedItems.push(schema);
+                                            }
+                                        }
+                                    } else {
+                                        // If table is deselected, remove schema selection
+                                        updatedSelectedItems = updatedSelectedItems.filter(
+                                            (item) => item !== schema,
+                                        );
+                                    }
+                                }
+
+                                setSelectedItems(updatedSelectedItems);
+
+                                if (context) {
+                                    context.resetView();
+                                }
+                            }}>
+                            {Array.from(flatTree.items(), (flatTreeItem) => {
+                                const { content, ...treeItemProps } =
+                                    flatTreeItem.getTreeItemProps();
+                                return (
+                                    <FlatTreeItem {...treeItemProps} key={flatTreeItem.value}>
+                                        <TreeItemLayout>
+                                            <Text>{highlightText(content, filterText)}</Text>
+                                        </TreeItemLayout>
+                                    </FlatTreeItem>
                                 );
-                            }
-                        }
-                        setSelectedItems(updatedSelectedItems);
-                        if (context) {
-                            context.resetView();
-                        }
-                    }}>
-                    {renderListItems()}
-                </List>
+                            })}
+                        </FlatTree>
+                    );
+                })()}
                 <div className={classes.clearAll}>
                     <Button
                         size="small"
