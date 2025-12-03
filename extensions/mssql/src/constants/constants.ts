@@ -159,7 +159,6 @@ export const outputContentTypeShowError = "showError";
 export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
-export const localhostIP = "127.0.0.1";
 export const defaultContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
@@ -245,8 +244,9 @@ export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
-export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
-export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
+export const configAutoColumnSizingMode = "resultsGrid.autoSizeColumnsMode";
+export const configInMemoryDataProcessingThreshold =
+    "mssql.resultsGrid.inMemoryDataProcessingThreshold";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";

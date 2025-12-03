@@ -1792,54 +1792,63 @@
         "message": "Connecting using profile {0}",
         "comment": ["{0} is the profile ID"]
     },
-    "Disconnect from connection '{0}'?/{0} is the connection ID": {
-        "message": "Disconnect from connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Disconnect from connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Disconnect from connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Disconnecting from connection '{0}'/{0} is the connection ID": {
-        "message": "Disconnecting from connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Disconnecting from connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Disconnecting from connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Show Schema": "Show Schema",
-    "Show schema for connection '{0}'?/{0} is the connection ID": {
-        "message": "Show schema for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Show schema for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Show schema for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Showing schema for connection '{0}'/{0} is the connection ID": {
-        "message": "Showing schema for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Showing schema for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Showing schema for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "No connection found for connectionId: {0}/{0} is the connection ID": {
         "message": "No connection found for connectionId: {0}",
         "comment": ["{0} is the connection ID"]
     },
+    "Unknown Connection": "Unknown Connection",
     "Schema visualization opened.": "Schema visualization opened.",
     "Get Connection Details": "Get Connection Details",
-    "Get connection details for connection '{0}'?/{0} is the connection ID": {
-        "message": "Get connection details for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Get connection details for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Get connection details for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Getting connection details for connection '{0}'/{0} is the connection ID": {
-        "message": "Getting connection details for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Getting connection details for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Getting connection details for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Databases": "List Databases",
-    "List databases for connection '{0}'?/{0} is the connection ID": {
-        "message": "List databases for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List databases for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List databases for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing databases for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing databases for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing databases for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing databases for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Change Database": "Change Database",
-    "Change database to '{1}' for connection '{0}'?/{0} is the connection ID{1} is the database name": {
-        "message": "Change database to '{1}' for connection '{0}'?",
-        "comment": ["{0} is the connection ID", "{1} is the database name"]
+    "Change database to '{2}' for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID{2} is the database name": {
+        "message": "Change database to '{2}' for connection '{0}' (ID: {1})?",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the database name"
+        ]
     },
-    "Changing database to '{1}' for connection '{0}'/{0} is the connection ID{1} is the database name": {
-        "message": "Changing database to '{1}' for connection '{0}'",
-        "comment": ["{0} is the connection ID", "{1} is the database name"]
+    "Changing database to '{2}' for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID{2} is the database name": {
+        "message": "Changing database to '{2}' for connection '{0}' (ID: {1})",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the database name"
+        ]
     },
     "Successfully changed to database: {0}/{0} is the database name": {
         "message": "Successfully changed to database: {0}",
@@ -1850,49 +1859,53 @@
         "comment": ["{0} is the database name"]
     },
     "List Tables": "List Tables",
-    "List tables for connection '{0}'?/{0} is the connection ID": {
-        "message": "List tables for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List tables for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List tables for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing tables for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing tables for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing tables for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing tables for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Schemas": "List Schemas",
-    "List schemas for connection '{0}'?/{0} is the connection ID": {
-        "message": "List schemas for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List schemas for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List schemas for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing schemas for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing schemas for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing schemas for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing schemas for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Views": "List Views",
-    "List views for connection '{0}'?/{0} is the connection ID": {
-        "message": "List views for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List views for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List views for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing views for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing views for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing views for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing views for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Functions": "List Functions",
-    "List functions for connection '{0}'?/{0} is the connection ID": {
-        "message": "List functions for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List functions for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List functions for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing functions for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing functions for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing functions for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing functions for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Run Query": "Run Query",
-    "Run query on connection '{0}'?\n\nQuery: {1}/{0} is the connection ID{1} is the SQL query": {
-        "message": "Run query on connection '{0}'?\n\nQuery: {1}",
-        "comment": ["{0} is the connection ID", "{1} is the SQL query"]
+    "Run query on connection '{0}' (ID: {1})?\n\nQuery: {2}/{0} is the connection display name{1} is the connection ID{2} is the SQL query": {
+        "message": "Run query on connection '{0}' (ID: {1})?\n\nQuery: {2}",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the SQL query"
+        ]
     },
-    "Running query on connection '{0}'/{0} is the connection ID": {
-        "message": "Running query on connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Running query on connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Running query on connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Connected successfully": "Connected successfully",
     "Failed to connect": "Failed to connect",
@@ -2080,6 +2093,14 @@
     "Read the documentation": "Read the documentation",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+        "comment": ["{0} is the proxy URL"]
+    },
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+        "comment": ["{0} is the proxy URL", "{1} is the error message"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

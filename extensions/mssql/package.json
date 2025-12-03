@@ -363,6 +363,11 @@
                 "path": "./snippets/mssql.json"
             }
         ],
+        "configurationDefaults": {
+            "[sql]": {
+                "editor.wordSeparators": "~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+            }
+        },
         "submenus": [
             {
                 "id": "mssql.copilot.editorSubmenu",
@@ -1941,10 +1946,22 @@
                     "default": 100,
                     "description": "%mssql.logFilesRemovalLimit%"
                 },
-                "mssql.resultsGrid.autoSizeColumns": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.resultsGrid.autoSizeColumns%"
+                "mssql.resultsGrid.autoSizeColumnsMode": {
+                    "type": "string",
+                    "default": "headersAndData",
+                    "enum": [
+                        "headersAndData",
+                        "dataOnly",
+                        "headerOnly",
+                        "off"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.resultsGrid.useHeaderAndDataEnumDescription%",
+                        "%mssql.resultsGrid.useDataOnlyEnumDescription%",
+                        "%mssql.resultsGrid.useHeaderOnlyEnumDescription%",
+                        "%mssql.resultsGrid.disableAutoSizingEnumDescription%"
+                    ],
+                    "description": "%mssql.resultsGrid.autoSizeColumnsMode%"
                 },
                 "mssql.resultsGrid.inMemoryDataProcessingThreshold": {
                     "type": "number",

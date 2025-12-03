@@ -331,7 +331,11 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        await runner.runStatement(selection.startLine, selection.startColumn);
+        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+        await runner.runStatement(selection.startLine, selection.startColumn, {
+            includeActualExecutionPlanXml: includeExecutionPlanXml,
+        });
     }
 
     private async initializeRunnerAndWebviewState(
