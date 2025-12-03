@@ -499,6 +499,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 TelemetryActions.LoadFromConnectionString,
             );
 
+            // Helper function to set error message in the appropriate place
+            const setConnectionStringError = (errorMessage: string) => {
+                if (state.dialog?.type === "loadFromConnectionString") {
+                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
+                        errorMessage;
+                } else {
+                    state.formMessage = { message: errorMessage };
+                }
+            };
+
             try {
                 const connDetails =
                     await this._mainController.connectionManager.parseConnectionString(
@@ -509,6 +519,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     connDetails,
                     state.connectionProfile,
                 );
+
+                // trying to parse an unsupported authentication type will result in a undefined authenticationType
+                if (!state.connectionProfile.authenticationType) {
+                    // Show error for unsupported authentication type
+                    const errorMessage = l10n.t(
+                        "Unsupported authentication type in connection string. Only SQL Login, Integrated, and Azure MFA authentication types are supported.",
+                    );
+
+                    setConnectionStringError(errorMessage);
+
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.LoadFromConnectionString,
+                        new Error("Unsupported authentication type"),
+                        false, // includeErrorMessage
+                        undefined, // errorCode
+                        "unsupportedAuthType", // errorType
+                    );
+
+                    return state;
+                }
 
                 state.dialog = undefined; // Close the dialog
 
@@ -528,12 +559,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     getErrorMessage(error),
                 );
 
-                if (state.dialog?.type === "loadFromConnectionString") {
-                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
-                        errorMessage;
-                } else {
-                    state.formMessage = { message: errorMessage };
-                }
+                setConnectionStringError(errorMessage);
 
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,

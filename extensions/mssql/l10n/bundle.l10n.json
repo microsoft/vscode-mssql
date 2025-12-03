@@ -2104,6 +2104,7 @@
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
+    "Unsupported authentication type in connection string. Only SQL Login, Integrated, and Azure MFA authentication types are supported.": "Unsupported authentication type in connection string. Only SQL Login, Integrated, and Azure MFA authentication types are supported.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
     "Error loading Azure databases.": "Error loading Azure databases."
