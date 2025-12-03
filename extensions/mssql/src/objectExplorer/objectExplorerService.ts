@@ -712,7 +712,10 @@ export class ObjectExplorerService {
 
         if (!connectionProfile.containerName) {
             const serverInfo = this._connectionManager.getServerInfo(connectionInfo);
-            const machineName = (serverInfo as any)["machineName"] ?? "";
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
             const containerName = await checkIfConnectionIsDockerContainer(machineName);
             if (containerName) {
                 connectionProfile.containerName = containerName;
