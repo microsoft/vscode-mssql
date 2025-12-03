@@ -1894,6 +1894,9 @@
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
+      <source xml:lang="en">Generate sqlpackage command</source>
+    </trans-unit>
     <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
       <source xml:lang="en">Generating Report. This may take a while...</source>
     </trans-unit>
@@ -3620,6 +3623,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
       <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
+      <source xml:lang="en">SqlPackage Command</source>
     </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
