@@ -14,7 +14,7 @@ import {
     IHttpClient,
     IDecompressProvider,
 } from "./interfaces";
-import { ILogger } from "../models/interfaces";
+import { Logger } from "../models/logger";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 
@@ -24,7 +24,7 @@ import * as fs from "fs/promises";
 export default class ServiceDownloadProvider {
     constructor(
         private _config: IConfigUtils,
-        private _logger: ILogger,
+        private _logger: Logger,
         private _statusView: IStatusView,
         private _httpClient: IHttpClient,
         private _decompressProvider: IDecompressProvider,
@@ -103,15 +103,19 @@ export default class ServiceDownloadProvider {
 
         const isZipFile: boolean = path.extname(fileName) === ".zip";
 
-        this._logger.appendLine(`${Constants.serviceDownloading} ${urlString}`);
         let pkg: IPackage = {
             installPath: installDirectory,
             url: urlString,
             tmpFile: undefined,
             isZipFile: isZipFile,
         };
+
         const tmpResult = await this.createTempFile(pkg);
         pkg.tmpFile = tmpResult;
+
+        this._logger.appendLine(
+            `${Constants.serviceDownloading} ${urlString} to ${tmpResult.name}`,
+        );
 
         try {
             await this._httpClient.downloadFile(pkg.url, pkg, this._logger, this._statusView);
@@ -142,7 +146,7 @@ export default class ServiceDownloadProvider {
     }
 
     private install(pkg: IPackage): Promise<void> {
-        this._logger.appendLine("Installing ...");
+        this._logger.appendLine("Installing...");
         this._statusView.installingService();
 
         return new Promise<void>((resolve, reject) => {

@@ -6,6 +6,7 @@
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
+import * as os from "os";
 import { parse as parseUrl, Url } from "url";
 import { ILogger } from "../models/interfaces";
 import { IHttpClient, IPackage, IStatusView, PackageError } from "./interfaces";
@@ -133,10 +134,12 @@ export default class HttpClient implements IHttpClient {
             });
             let tmpFile = fs.createWriteStream("", { fd: pkg.tmpFile.fd });
             response.on("end", () => {
+                logger.append(os.EOL);
                 resolve();
             });
 
             response.on("error", (err: any) => {
+                logger.append(os.EOL);
                 reject(new PackageError(`Response error: ${err.code || "NONE"}`, pkg, err));
             });
 

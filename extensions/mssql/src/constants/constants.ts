@@ -280,8 +280,8 @@ export const sqlToolsServiceCrashMessage = "SQL Tools Service component could no
 export const sqlToolsServiceCrashButton = "View Known Issues";
 export const serviceInitializingOutputChannelName = "SqlToolsService Initialization";
 export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
-export const commandsNotAvailableWhileInstallingTheService =
-    "Note: mssql commands will be available after installing the service.";
+export const commandsWillBeAvailableAfterServiceInitialization =
+    "Note: mssql commands will be available after the service has finished initializing.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";

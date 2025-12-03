@@ -192,12 +192,11 @@ export default class SqlToolsServiceClient {
 
     // initialize the SQL Tools Service Client instance by launching
     // out-of-proc server through the LanguageClient
-    public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
+    public async initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         this._logger.appendLine(Constants.serviceInitializing);
         this._logPath = context.logUri.fsPath;
-        return PlatformInformation.getCurrent().then((platformInfo) => {
-            return this.initializeForPlatform(platformInfo, context);
-        });
+        const platformInfo = await PlatformInformation.getCurrent();
+        return await this.initializeForPlatform(platformInfo, context);
     }
 
     public initializeForPlatform(
@@ -205,17 +204,14 @@ export default class SqlToolsServiceClient {
         context: vscode.ExtensionContext,
     ): Promise<ServerInitializationResult> {
         return new Promise<ServerInitializationResult>((resolve, reject) => {
-            this._logger.appendLine(Constants.commandsNotAvailableWhileInstallingTheService);
-            this._logger.appendLine();
-            this._logger.append(`Platform: ${platformInfo.toString()}`);
+            this._logger.appendLine(Constants.commandsWillBeAvailableAfterServiceInitialization);
+            this._logger.info(`Platform: ${platformInfo.toString()}`);
             if (!platformInfo.isValidRuntime) {
                 Utils.showErrorMsg(Constants.unsupportedPlatformErrorMessage);
                 reject("Invalid Platform");
             } else {
                 if (platformInfo.runtimeId) {
-                    this._logger.appendLine(` (${platformInfo.getRuntimeDisplayName()})`);
-                } else {
-                    this._logger.appendLine();
+                    this._logger.info(` (${platformInfo.getRuntimeDisplayName()})`);
                 }
                 this._logger.appendLine();
 

@@ -92,7 +92,7 @@ export class Logger implements ILogger {
 
     /**
      * Prints at the `verbose` level.
-     * If `mssql.logDebug` is enabled, prints the message to the developer console.
+     * If `mssql.logDebug` is enabled, also prints the message to the developer console.
      **/
     public logDebug(message: string): void {
         Utils.logDebug(message);

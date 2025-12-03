@@ -4,25 +4,29 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { assert } from "chai";
-import {
-    StubStatusView,
-    StubLogger,
-    getServiceInstallDirectoryRoot,
-    installService,
-} from "../../src/languageservice/serviceInstallerUtil";
 import * as sinon from "sinon";
+import { PlatformInformation, Runtime } from "../../src/models/platform";
+import ServerProvider from "../../src/languageservice/server";
+import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
+import DecompressProvider from "../../src/languageservice/decompressProvider";
+import HttpClient from "../../src/languageservice/httpClient";
+import ConfigUtils from "../../src/configurations/configUtils";
+import { ServerStatusView } from "../../src/languageservice/serverStatus";
+import { Logger, LogLevel } from "../../src/models/logger";
 
-suite("Stub Status View tests", function (): void {
-    let stubStatusView: StubStatusView;
+suite("Stub Status View tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let stubStatusView: sinon.SinonStubbedInstance<ServerStatusView>;
     let logStub: sinon.SinonSpy;
 
-    this.beforeAll(function (): void {
-        logStub = sinon.stub();
-        stubStatusView = new StubStatusView(logStub);
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        logStub = sandbox.stub();
+        stubStatusView = sandbox.createStubInstance(ServerStatusView);
     });
 
-    this.afterAll(function (): void {
-        sinon.restore();
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Test installing service method", () => {
@@ -52,17 +56,19 @@ suite("Stub Status View tests", function (): void {
     });
 });
 
-suite("Stub Logger tests", function (): void {
-    let stubLogger: StubLogger;
+suite("Logger tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let stubLogger: Logger;
     let logStub: sinon.SinonSpy;
 
-    this.beforeEach(function (): void {
-        logStub = sinon.stub();
-        stubLogger = new StubLogger(logStub);
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        logStub = sandbox.stub();
+        stubLogger = new Logger(logStub, LogLevel.All, false /** PII logging */);
     });
 
-    this.afterEach(function (): void {
-        sinon.restore();
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Test logdebug method", () => {
@@ -92,7 +98,42 @@ suite("Stub Logger tests", function (): void {
 });
 
 suite("Test Service Installer Util functions", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    let downloadProvider: ServiceDownloadProvider;
+    let config: ConfigUtils;
+    let statusView: sinon.SinonStubbedInstance<ServerStatusView>;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+
+        config = new ConfigUtils();
+        statusView = sandbox.createStubInstance(ServerStatusView);
+        const logger = sandbox.createStubInstance(Logger);
+        const httpClient = new HttpClient();
+        const decompressProvider = new DecompressProvider();
+
+        downloadProvider = new ServiceDownloadProvider(
+            config,
+            logger,
+            statusView,
+            httpClient,
+            decompressProvider,
+        );
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
     test("Test getServiceInstallDirectoryRoot function", () => {
+        function getServiceInstallDirectoryRoot(): string {
+            let directoryPath: string = downloadProvider.getInstallDirectoryRoot();
+            directoryPath = directoryPath.replace("\\{#version#}\\{#platform#}", "");
+            directoryPath = directoryPath.replace("/{#version#}/{#platform#}", "");
+            return directoryPath;
+        }
+
         let path = getServiceInstallDirectoryRoot();
         assert.isNotNull(path, "Service install directory root should not be null");
     });
@@ -103,6 +144,21 @@ suite("Test Service Installer Util functions", () => {
     // });
 
     test("Test installService function", async () => {
+        let serverProvider = new ServerProvider(downloadProvider, config, statusView);
+
+        async function installService(runtime: Runtime): Promise<String> {
+            if (runtime === undefined) {
+                const platformInfo = await PlatformInformation.getCurrent();
+                if (platformInfo.isValidRuntime) {
+                    return serverProvider.getOrDownloadServer(platformInfo.runtimeId);
+                } else {
+                    throw new Error("unsupported runtime");
+                }
+            } else {
+                return serverProvider.getOrDownloadServer(runtime);
+            }
+        }
+
         let installedPath = await installService(undefined);
         assert.isNotNull(installedPath, "Service installed path should not be null");
     });
