@@ -34,9 +34,6 @@ const telemetryReporter = new AdsTelemetryReporter<
     TelemetryActions | string
 >(packageInfo.name, packageInfo.version, packageInfo.aiKey);
 
-// Reusable error object for stack capture - avoids allocation overhead
-const stackCaptureError = { stack: "" };
-
 // Function names to skip in call stack (telemetry internals)
 const SKIP_FUNCTIONS = new Set([
     "captureCallStack",
@@ -54,49 +51,26 @@ const SKIP_FUNCTIONS = new Set([
  * Filters out telemetry internal functions.
  */
 function captureCallStack(): string {
-    // V8 optimization: reuse object, skip this function in trace
-    Error.captureStackTrace(stackCaptureError, captureCallStack);
-    const raw = stackCaptureError.stack;
+    const err = { stack: "" };
+    Error.captureStackTrace(err, captureCallStack);
 
-    // Fast extraction using indexOf/slice - avoids regex overhead
-    let result = "";
-    let count = 0;
-    let pos = 0;
+    const frames: string[] = [];
+    for (const line of err.stack.split("\n")) {
+        if (frames.length >= 8) break;
 
-    while (count < 8 && pos < raw.length) {
-        // Find "at "
-        const atPos = raw.indexOf("at ", pos);
-        if (atPos === -1) break;
+        const match = line.match(/at (\S+)/);
+        if (!match) continue;
 
-        // Find end of line
-        let lineEnd = raw.indexOf("\n", atPos);
-        if (lineEnd === -1) lineEnd = raw.length;
+        const name = match[1];
 
-        // Find opening paren (if exists) to know where function name ends
-        let nameEnd = raw.indexOf(" (", atPos + 3);
-        if (nameEnd === -1 || nameEnd > lineEnd) {
-            nameEnd = lineEnd;
-        }
+        // Extract the last part of the name for filtering (e.g., "Foo.bar" -> "bar")
+        const funcName = name.split(".").pop() || name;
+        if (SKIP_FUNCTIONS.has(funcName)) continue;
 
-        const name = raw.slice(atPos + 3, nameEnd).trim();
-
-        // Skip empty, anonymous, Object. prefixed, and telemetry internal functions
-        if (name && name !== "<anonymous>" && !name.startsWith("Object.")) {
-            // Extract base function name for filtering (handle "new ClassName", "async funcName", etc.)
-            const baseName = name.split(" ").pop() || name;
-            const funcName = baseName.split(".").pop() || baseName;
-
-            if (!SKIP_FUNCTIONS.has(funcName)) {
-                if (result) result += " < ";
-                result += name;
-                count++;
-            }
-        }
-
-        pos = lineEnd + 1;
+        frames.push(name);
     }
 
-    return result;
+    return frames.join(" < ");
 }
 
 /**
