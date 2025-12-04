@@ -1711,6 +1711,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
@@ -1724,10 +1727,10 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyConnectionString,
                 async (node: TreeNodeInfo) => {
-                    if (!node && this.objectExplorerTree.selection.length === 1) {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
                         node = this.objectExplorerTree.selection[0];
                     }
-                    if (!node || !node.connectionProfile) {
+                    if (!node?.connectionProfile) {
                         return;
                     }
                     if (
