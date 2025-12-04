@@ -1297,7 +1297,7 @@ export default class ConnectionManager {
                     retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
                 });
                 if (errorHandlingResult.isHandled) {
-                    connectionActivity.end(ActivityStatus.Pending);
+                    connectionActivity.end(ActivityStatus.Retrying);
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });

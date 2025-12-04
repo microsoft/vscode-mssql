@@ -202,6 +202,7 @@ export enum ActivityStatus {
     Pending = "Pending",
     Failed = "Failed",
     Canceled = "Canceled",
+    Retrying = "Retrying",
 }
 
 /**
