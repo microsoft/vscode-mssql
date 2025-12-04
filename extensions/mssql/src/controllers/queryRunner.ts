@@ -242,10 +242,10 @@ export default class QueryRunner {
             true, // Include call stack
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-        let isCanceled = false;
+        let cancelRequestCompleted = false;
         try {
             setTimeout(() => {
-                if (!isCanceled) {
+                if (!cancelRequestCompleted) {
                     cancelQueryActivity?.endFailed(
                         new Error("Cancellation timed out"),
                         true, // include error message
@@ -256,11 +256,11 @@ export default class QueryRunner {
                 QueryCancelRequest.type,
                 cancelParams,
             );
-            isCanceled = true;
+            cancelRequestCompleted = true;
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
             return cancelationResult;
         } catch (error) {
-            isCanceled = true;
+            cancelRequestCompleted = true;
             this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
@@ -322,10 +322,10 @@ export default class QueryRunner {
             undefined,
             true, // Include call stack
         );
-        let isCompleted = false;
+        let runStatementRequestCompleted = false;
         try {
             setTimeout(() => {
-                if (!isCompleted) {
+                if (!runStatementRequestCompleted) {
                     runStatementActivity?.endFailed(
                         new Error("Run statement initialization timed out"),
                         true, // include error message
@@ -334,10 +334,10 @@ export default class QueryRunner {
             }, Constants.stsImmediateActivityTimeout);
             await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
             this._startEmitter.fire(this.uri);
-            isCompleted = true;
+            runStatementRequestCompleted = true;
             runStatementActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
-            isCompleted = true;
+            runStatementRequestCompleted = true;
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runStatementActivity?.endFailed(error, false);
@@ -394,10 +394,10 @@ export default class QueryRunner {
             true, // Include call stack
         );
 
-        let isCompleted = false;
+        let runQueryRequestCompleted = false;
         try {
             setTimeout(() => {
-                if (!isCompleted) {
+                if (!runQueryRequestCompleted) {
                     runQueryActivity?.endFailed(
                         new Error("Run query initialization timed out"),
                         true, // include error message
@@ -406,10 +406,10 @@ export default class QueryRunner {
             }, Constants.stsImmediateActivityTimeout);
             await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
             this._startEmitter.fire(this.uri);
-            isCompleted = true;
+            runQueryRequestCompleted = true;
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
-            isCompleted = true;
+            runQueryRequestCompleted = true;
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runQueryActivity?.endFailed(error, false);

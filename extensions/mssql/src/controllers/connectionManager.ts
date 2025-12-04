@@ -1208,10 +1208,10 @@ export default class ConnectionManager {
         );
 
         let initResponse: boolean;
-        let isIntialized = false;
+        let initRequestCompleted = false;
         try {
             setTimeout(() => {
-                if (!isIntialized) {
+                if (!initRequestCompleted) {
                     connectionActivity.update({
                         longRunningIntialization: "true",
                     });
@@ -1221,9 +1221,9 @@ export default class ConnectionManager {
                 ConnectionContracts.ConnectionRequest.type,
                 connectParams,
             );
-            isIntialized = true;
+            initRequestCompleted = true;
         } catch (error) {
-            isIntialized = true;
+            initRequestCompleted = true;
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
@@ -1650,9 +1650,9 @@ export default class ConnectionManager {
             TelemetryViews.ConnectionManager,
             TelemetryActions.CancelConnection,
         );
-        let isCompleted = false;
+        let cancelRequestCompleted = false;
         setTimeout(() => {
-            if (!isCompleted) {
+            if (!cancelRequestCompleted) {
                 cancelActivity.endFailed(
                     new Error("Cancellation timed out"),
                     true, // include error message
@@ -1665,7 +1665,7 @@ export default class ConnectionManager {
                 ConnectionContracts.CancelConnectRequest.type,
                 cancelParams,
             );
-            isCompleted = true;
+            cancelRequestCompleted = true;
             if (result) {
                 this.statusView.setNotConnected(fileUri);
                 cancelActivity.end(ActivityStatus.Succeeded);
@@ -1685,7 +1685,7 @@ export default class ConnectionManager {
                 );
             }
         } catch (error) {
-            isCompleted = true;
+            cancelRequestCompleted = true;
             cancelActivity.endFailed(
                 error,
                 false, // do not include error message
