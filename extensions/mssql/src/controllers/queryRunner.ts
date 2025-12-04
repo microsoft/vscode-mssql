@@ -659,6 +659,7 @@ export default class QueryRunner {
     /**
      * Copy the result range using the query/copy2 contract
      */
+    private _copyOperationCancellation: vscode.CancellationTokenSource | undefined;
     private async copyResults2(
         selection: ISlickRange[],
         batchId: number,
@@ -672,6 +673,15 @@ export default class QueryRunner {
             encoding?: string;
         },
     ): Promise<void> {
+        // Cancel any in-progress copy operation
+        if (this._copyOperationCancellation) {
+            this._copyOperationCancellation.cancel();
+            await this._client.sendNotification(CancelCopy2Notification.type);
+            this._copyOperationCancellation.dispose();
+        }
+        this._copyOperationCancellation = new vscode.CancellationTokenSource();
+        const copyToken = this._copyOperationCancellation.token;
+
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -681,11 +691,23 @@ export default class QueryRunner {
             async (_progress, token) => {
                 return new Promise<void>(async (resolve, reject) => {
                     try {
+                        // Handle cancellation from the progress dialog (user clicked cancel)
                         token.onCancellationRequested(async () => {
                             await this._client.sendNotification(CancelCopy2Notification.type);
                             vscode.window.showInformationMessage("Copying results cancelled");
                             resolve();
                         });
+
+                        // Handle internal cancellation (new copy operation started) - no notification
+                        copyToken.onCancellationRequested(async () => {
+                            resolve();
+                        });
+
+                        // Check if already cancelled before starting
+                        if (copyToken.isCancellationRequested) {
+                            resolve();
+                            return;
+                        }
 
                         const selections: TableSelectionRange[] = selection.map((range) => ({
                             fromRow: range.fromRow,
@@ -707,12 +729,31 @@ export default class QueryRunner {
                             encoding: options?.encoding,
                         };
 
-                        await this._client.sendRequest(CopyResults2Request.type, params);
+                        const result = await this._client.sendRequest(
+                            CopyResults2Request.type,
+                            params,
+                        );
+
+                        // Check if cancelled while waiting for the request
+                        if (copyToken.isCancellationRequested) {
+                            resolve();
+                            return;
+                        }
+
+                        if (result?.content) {
+                            await this.writeStringToClipboard(result.content);
+                        }
+
                         vscode.window.showInformationMessage(
                             LocalizedConstants.resultsCopiedToClipboard,
                         );
                         resolve();
                     } catch (error) {
+                        // Don't show error if cancelled
+                        if (copyToken.isCancellationRequested) {
+                            resolve();
+                            return;
+                        }
                         vscode.window.showErrorMessage(
                             LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
                         );

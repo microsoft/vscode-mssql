@@ -278,7 +278,9 @@ export class CopyResults2RequestParams {
     encoding?: string;
 }
 
-export class CopyResults2RequestResult {}
+export class CopyResults2RequestResult {
+    content?: string;
+}
 
 export namespace CancelCopy2Notification {
     export const type = new NotificationType<void, void>("query/cancelCopy2");
