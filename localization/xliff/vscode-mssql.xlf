@@ -887,6 +887,9 @@
       <source xml:lang="en">Connection sharing permission is required for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+      <source xml:lang="en">Connection string copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
     </trans-unit>
@@ -4410,6 +4413,9 @@
     </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy as Connection String</source>
     </trans-unit>
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
