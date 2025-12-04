@@ -242,8 +242,8 @@ export default class QueryRunner {
             true, // Include call stack
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+        let isCanceled = false;
         try {
-            let isCanceled = false;
             setTimeout(() => {
                 if (!isCanceled) {
                     cancelQueryActivity?.endFailed(
@@ -260,6 +260,7 @@ export default class QueryRunner {
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
             return cancelationResult;
         } catch (error) {
+            isCanceled = true;
             this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
@@ -321,8 +322,8 @@ export default class QueryRunner {
             undefined,
             true, // Include call stack
         );
+        let isCompleted = false;
         try {
-            let isCompleted = false;
             setTimeout(() => {
                 if (!isCompleted) {
                     runStatementActivity?.endFailed(
@@ -336,6 +337,7 @@ export default class QueryRunner {
             isCompleted = true;
             runStatementActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
+            isCompleted = true;
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runStatementActivity?.endFailed(error, false);
@@ -392,8 +394,8 @@ export default class QueryRunner {
             true, // Include call stack
         );
 
+        let isCompleted = false;
         try {
-            let isCompleted = false;
             setTimeout(() => {
                 if (!isCompleted) {
                     runQueryActivity?.endFailed(
@@ -407,6 +409,7 @@ export default class QueryRunner {
             isCompleted = true;
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
+            isCompleted = true;
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
             runQueryActivity?.endFailed(error, false);

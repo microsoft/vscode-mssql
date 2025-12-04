@@ -1208,8 +1208,8 @@ export default class ConnectionManager {
         );
 
         let initResponse: boolean;
+        let isIntialized = false;
         try {
-            let isIntialized = false;
             setTimeout(() => {
                 if (!isIntialized) {
                     connectionActivity.update({
@@ -1221,7 +1221,9 @@ export default class ConnectionManager {
                 ConnectionContracts.ConnectionRequest.type,
                 connectParams,
             );
+            isIntialized = true;
         } catch (error) {
+            isIntialized = true;
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
