@@ -4411,11 +4411,11 @@
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
     </trans-unit>
-    <trans-unit id="mssql.copyConnectionString">
-      <source xml:lang="en">Copy As Connection String</source>
-    </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy as Connection String</source>
     </trans-unit>
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
