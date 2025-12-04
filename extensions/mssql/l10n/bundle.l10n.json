@@ -909,6 +909,8 @@
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Accept": "Accept",
+    "Public": "Public",
+    "Private": "Private",
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
     "Started query execution for document \"{0}\"/{0} is the document name": {
