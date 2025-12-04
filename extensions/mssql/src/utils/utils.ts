@@ -204,34 +204,3 @@ export function formatXml(xml: string): string {
         }
     }
 }
-
-export class TimeoutError extends Error {
-    constructor() {
-        super("timeout");
-        this.name = "TimeoutError";
-    }
-}
-/**
- * Wraps a promise with a timeout. If the promise does not resolve or reject within the specified timeout,
- * the returned promise will reject with a timeout error.
- * @param promise the promise to wrap
- * @param timeoutMs the timeout in milliseconds. Defaults to 5000ms.
- * @returns a promise that resolves or rejects with the original promise, or rejects with a timeout error
- */
-export async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-        const timer = setTimeout(() => {
-            reject(new TimeoutError());
-        }, timeoutMs);
-
-        promise
-            .then((result) => {
-                clearTimeout(timer);
-                resolve(result);
-            })
-            .catch((err) => {
-                clearTimeout(timer);
-                reject(err);
-            });
-    });
-}

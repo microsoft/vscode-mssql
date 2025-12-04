@@ -621,6 +621,7 @@ export default class QueryRunner {
             {
                 rowCount: bucketizeRowCount(numberOfRows),
             },
+            true, // Include call stack
         );
         try {
             const queryExecuteSubsetResult = await this._client.sendRequest(

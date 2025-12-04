@@ -208,41 +208,6 @@ suite("removeUndefinedProperties", () => {
     });
 });
 
-suite("withTimeout", () => {
-    test("resolves when the wrapped promise completes before the timeout", async () => {
-        const result = await utilUtils.withTimeout(Promise.resolve("done"), 50);
-
-        expect(result).to.equal("done");
-    });
-
-    test("rejects with TimeoutError when the promise does not settle in time", async () => {
-        let capturedError: Error;
-        try {
-            await utilUtils.withTimeout(
-                new Promise<void>(() => {
-                    // Intentionally never resolve to trigger the timeout
-                }),
-                5,
-            );
-        } catch (error) {
-            capturedError = error as Error;
-        }
-
-        expect(capturedError).to.be.instanceOf(utilUtils.TimeoutError);
-    });
-
-    test("propagates the original rejection if the wrapped promise rejects", async () => {
-        const originalError = new Error("boom");
-
-        try {
-            await utilUtils.withTimeout(Promise.reject(originalError), 50);
-            assert.fail("withTimeout should have rejected");
-        } catch (error) {
-            expect(error).to.equal(originalError);
-        }
-    });
-});
-
 suite("ConnectionMatcher", () => {
     test("Should match connections correctly", () => {
         const testCases: {

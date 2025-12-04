@@ -186,10 +186,12 @@ export enum TelemetryActions {
     ExecuteCommand = "ExecuteCommand",
     ChangelogDontShowAgain = "ChangelogDontShowAgain",
     CloseChangelog = "CloseChangelog",
-    RequestHandler = "RequestHandler",
+    OnRequest = "OnRequest",
     CancelQuery = "CancelQuery",
     GetResultRowsSubset = "GetResultRowsSubset",
     CancelConnection = "CancelConnection",
+    SendNotification = "SendNotification",
+    onNotification = "onNotification",
 }
 
 /**
