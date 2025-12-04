@@ -634,7 +634,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
-        function handleKeyDown(e: KeyboardEvent, args: any) {
+        function handleKeyDown(e: KeyboardEvent, _: any) {
             // Only handle Enter key
             if (e.key !== "Enter") {
                 return;
