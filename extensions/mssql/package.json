@@ -652,11 +652,6 @@
                     "group": "5_MSSQL_tree@4"
                 },
                 {
-                    "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/ && viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
-                    "group": "5_MSSQL_tree@4"
-                },
-                {
                     "command": "mssql.copyConnectionString",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
                     "group": "5_MSSQL_tree@5"
