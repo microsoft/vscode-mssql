@@ -97,7 +97,7 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
         }
         return Promise.resolve();
     }
-    end(): void { }
+    end(): void {}
 }
 
 /**
