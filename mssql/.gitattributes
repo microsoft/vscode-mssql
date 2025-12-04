@@ -1,5 +1,0 @@
-# Force CRLF for .xlf files
-*.xlf text eol=crlf
-
-# Enforce LF line endings for all other text files
-* text=auto eol=lf

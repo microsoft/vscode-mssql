@@ -1,36 +1,29 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Run MSSQL extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}/mssql"
-			],
-			"outFiles": [
-				"${workspaceFolder}/mssql/out/**/*.js"
-			]
-		},
-		{
-			"name": "Run SQL Database Projects extension",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}/sql-database-projects"
-			],
-			"outFiles": [
-				"${workspaceFolder}/sql-database-projects/out/**/*.js"
-			]
-		}
-	],
-	"compounds": [
-		{
-			"name": "Run Both Extensions",
-			"configurations": [
-				"Run MSSQL extension",
-				"Run SQL Database Projects extension"
-			]
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run All Extensions",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/mssql",
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/sql-database-projects"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extensions/mssql/out/**/*.js",
+        "${workspaceFolder}/extensions/sql-database-projects/out/**/*.js"
+      ],
+      "sourceMaps": true,
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/extensions/mssql/dist/**",
+        "${workspaceFolder}/extensions/sql-database-projects/out/**"
+      ],
+      "env": {
+        // Uncomment this to use a specified version of STS, see
+        // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
+        // for more details
+        // "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
+      }
+    }
+  ]
 }

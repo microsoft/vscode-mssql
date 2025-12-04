@@ -1,0 +1,1694 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="bundle" source-language="en" datatype="plaintext" target-language="zh-Hans">
+    <body>
+      <trans-unit id="++CODE++b6150deb2f6fbd58d8d773babb81385687dd07fa7bff331642c627602dadc43a">
+        <source xml:lang="en">	&gt;&gt;&gt; {0}   … errored out: {1}</source>
+        <target state="translated">	&gt;&gt;&gt; {0}   … 出错: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++404525727cc5161e10c68d7c452f34a1309a498dde9c33e92780b6e8ac980cc7">
+        <source xml:lang="en">    &gt;&gt;&gt; {0}    … exited with code: {1}</source>
+        <target state="translated">    &gt;&gt;&gt; {0}    … 已退出，代码为: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b89f5d086e6f231b9f58dd7c03e6c7f3a5d40ded1244a41c0d587b0b9987334">
+        <source xml:lang="en">    &gt;&gt;&gt; {0}   … exited with signal: {1}</source>
+        <target state="translated">    &gt;&gt;&gt; {0}   … 已退出，信号: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d90dcbc6710593588577b43588965db3e8def4432c67f5bbd8f7766d7c7dfc8">
+        <source xml:lang="en">    stderr: </source>
+        <target state="translated">    stderr:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29aed6b71c67904f0cba9f811e0b1fac36b9bab9dd2cef5e4474f939ae307f7a">
+        <source xml:lang="en">    stdout: </source>
+        <target state="translated">    stdout:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e2d59c066568f43ffe7a751eee191d989fc7704e637847e5e502382ade01dfb">
+        <source xml:lang="en">A SQLCMD Variable with the same name already exists in this project</source>
+        <target state="translated">此项目中已存在同名的 SQLCMD 变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d09a02fc809c2684eee47d1e31b72c4db6fb8ef813212d1fc053febb54f42f7">
+        <source xml:lang="en">A database name is required. The database variable is optional.</source>
+        <target state="translated">数据库名是必需的。数据库变量是可选的。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++36d7afb89223e63652cf932c1a71c572ad545a15294fe25694b6e20ba412fb6a">
+        <source xml:lang="en">A database name, server name, and server variable are required. The database variable is optional</source>
+        <target state="translated">需要数据库名、服务器名和服务器变量。数据库变量是可选的。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3925bd4e16335cea144d3d4f89e88d641db6ab9997bba3a05c6980a4105305c2">
+        <source xml:lang="en">A file with the name '{0}' already exists on disk at this location. Please choose another name.</source>
+        <target state="translated">此位置的磁盘上已经存在名为“{0}”的文件。请选择其他名称。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1e892f50635fd6443e2118bc1de59d5deeede54e7f6e93f2275b353879e41385">
+        <source xml:lang="en">A folder with the name '{0}' already exists on disk at this location. Please choose another location.</source>
+        <target state="translated">此位置的磁盘上已经存在名为 "{0}" 的文件夹。请选择其他名称。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++228153baa9f76de67fc4c204040b276a83c8f599e241c07f32851bf19d62a856">
+        <source xml:lang="en">A folder with the name '{0}' already exists on disk at this location. Please choose another name.</source>
+        <target state="translated">此位置的磁盘上已经存在名为“{0}”的文件夹。请选择其他名称。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0bcc8b8fd3d910e4ca789cdce9eddbf777d0a67ff9e2cf984eef9a150f9ae11a">
+        <source xml:lang="en">A project named {0} already exists in {1}.</source>
+        <target state="translated">在 {1} 中已存在名为 {0} 的项目。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ba6d4c88eed6255ebb24c6eea8abfd48b7810d52674911c2ff27e1ef3fbbb3c">
+        <source xml:lang="en">A reference to project '{0}' cannot be added. Adding this project as a reference would cause a circular dependency</source>
+        <target state="translated">无法添加对项目“{0}”的引用。将此项目添加为引用将导致循环依赖。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51c6f6f7088acc0dd08061a0d7a08e200653d1fbdc6f47315aa2e99eb3ca1920">
+        <source xml:lang="en">A reference to this database already exists in this project</source>
+        <target state="translated">此项目中已存在对此数据库的引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
+        <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
+        <target state="translated">已存在 {0} 脚本。新脚本不会包含在生成中。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
+        <source xml:lang="en">Action</source>
+        <target state="translated">操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++054bcbbe578e1d875fd280d9db9c1fb4caad413b6f5b46dbef7a68f3a3636cd5">
+        <source xml:lang="en">Add Item</source>
+        <target state="translated">添加项</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7287537df41bee4b40e151d7c5f2f345d70fdcf9b16a48ec51a07013cd23a6ac">
+        <source xml:lang="en">Add SQLCMD variable '{0}' to project without default value?</source>
+        <target state="translated">是否将 SQLCMD 变量 "{0}" 添加到没有默认值的项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ada503b3fe7404cadebe8c4d4d3935999a8086f7ae361022caa032a873ec429">
+        <source xml:lang="en">Add an Account...</source>
+        <target state="translated">添加帐户...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3e8a6f2e0196277382490540b9c793184e26a9bf59da62f2b07df7da9d89f0d4">
+        <source xml:lang="en">Add database reference</source>
+        <target state="translated">添加数据库引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e891f9e2ee7ea16cb59e0300e28e862e02117c23fab36f0eefe9cbec2520e74f">
+        <source xml:lang="en">Add reference</source>
+        <target state="translated">添加引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
+        <source xml:lang="en">Advanced Publish Options</source>
+        <target state="translated">高级发布选项</target>
+      </trans-unit>
+      <trans-unit id="++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1">
+        <source xml:lang="en">Advanced...</source>
+        <target state="translated">高级...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d8757c29802445bd83ad33b632ae470f236093f001d04920250bf1d2a37024b0">
+        <source xml:lang="en">Apply all changes</source>
+        <target state="translated">应用所有更改</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92dd4b160c0e1d2312170c4f922f7719a0bf2abe3302c3f4f985c84dacf4b69d">
+        <source xml:lang="en">Are you sure you want to delete the SQLCMD Variable '{0}'?</source>
+        <target state="translated">是否确实要删除 SQLCMD 变量“{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5df09b814dae9393d995edb3376855cccc1def59961ddbeddf000ad7441f86f8">
+        <source xml:lang="en">Are you sure you want to delete the reference to {0}?</source>
+        <target state="translated">是否确定要删除对 {0} 的引用?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d1b92f8d6493162f202d0ba2bd423a4ec916eabcfa7dd8d2801a38304992e461">
+        <source xml:lang="en">Are you sure you want to delete {0} and all of its contents?</source>
+        <target state="translated">是否确实要删除 {0} 及其所有内容?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bc61f6641d8272cccb406225c95728a05c80d7bd1eafa70398009275516c8b36">
+        <source xml:lang="en">Are you sure you want to delete {0}?</source>
+        <target state="translated">是否确定要删除 {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bdb0467c901b55085cc1de3ed35d6a5ed566b3273eb01cc5cd62750a52f8319d">
+        <source xml:lang="en">Are you sure you want to move {0} to {1}?</source>
+        <target state="translated">是否确定要将 {0} 移到 {1}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++54dd83b89b19ff1a854e3c1380094cc007b0891803ee66610c8b3eaba01ac3f8">
+        <source xml:lang="en">Are you sure you want to update the target project?</source>
+        <target state="translated">是否确定要更新目标项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6d3499bade193af1b850a84b41566e6476eb9cd227c6e62297017d7f2aabc87">
+        <source xml:lang="en">Artifact Reference</source>
+        <target state="translated">项目引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4fa5980f3277436a189597dad4082bd5c63766bb49272d1c44bc873ab5b9ce64">
+        <source xml:lang="en">Autorest is not installed. To proceed, choose whether to run Autorest from a temporary location via 'npx' or install Autorest globally then run.</source>
+        <target state="translated">未安装 Autorest。若要继续，请选择是通过 “npx” 从临时位置运行 Autorest，还是全局安装 Autorest，然后运行。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d80929a1211d26226a7f7c02586075784c0a0ef8effc98e3d46645baaff3338">
+        <source xml:lang="en">Autorest tool not found in system path, but found Node.js.  Prompting user for how to proceed.  Execute 'npm install autorest -g' to install permanently and avoid this message.</source>
+        <target state="translated">在系统路径中找不到 Autorest 工具，但发现Node.js。提示用户如何继续。执行“npm install autorest -g”，永久安装并避免此消息。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bbe331f8e32243066afbce22f5a989fac4ccc48b7f8902da20c35b50117276af">
+        <source xml:lang="en">Azure SQL Database</source>
+        <target state="translated">Azure SQL 数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f5bf59593444df08cbcb8fe025bd9501510c159b7054a602f7944108c8381a49">
+        <source xml:lang="en">Azure SQL Edge Database</source>
+        <target state="translated">Azure SQL Edge 数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e0dd33d2e306b3a2e3d273d07d40614368bcd8d15f64bc7b9156720b6a04f8d9">
+        <source xml:lang="en">Azure SQL Server '{0}' created</source>
+        <target state="translated">Azure SQL Server “{0}” 已创建</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd4ff34ed3d53481b84140f6780419aed8c407fcbcecb7067666e6f6aa359d10">
+        <source xml:lang="en">Azure SQL server name</source>
+        <target state="translated">Azure SQL Server 名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f5949834fcca4b4870ac2de5cecfbfd3c085b28d1e82dae8a216dc127f7f19c">
+        <source xml:lang="en">Azure accounts</source>
+        <target state="translated">Azure 帐户</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5f6ad576c4f8a4c338e4c53c0ecbc8e7d4c4391c39e3244c42bbdabb69cf711">
+        <source xml:lang="en">Azure subscription</source>
+        <target state="translated">Azure 订阅</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1746d72f0bc218df5b7bd33b119c93c6b3302fc6d68bb66e7286b93c42c09b20">
+        <source xml:lang="en">Base {0} Docker image</source>
+        <target state="translated">基础 {0} Docker 映像</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a06957fcc715d602f999320581c943bdf57d5773107c22e71de68da88949b120">
+        <source xml:lang="en">Browse folder</source>
+        <target state="translated">浏览文件夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e979b2d2ccb53d65d381ccf0ab6daae3556dd5c5e747b3c03fa314020652733a">
+        <source xml:lang="en">Browse for profile</source>
+        <target state="translated">浏览配置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
+        <source xml:lang="en">Browse...</source>
+        <target state="translated">浏览...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bdd254b65baac169f6ac50e8175ce6d930c1fcb086dec59808d3e0170ae2291d">
+        <source xml:lang="en">Build</source>
+        <target state="translated">生成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++566ea12984a4e3c41f444143aa587ddc245400b46fd8225ff9719cf7904e193d">
+        <source xml:lang="en">Build Elements</source>
+        <target state="translated">生成元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5f33398fd058c49bcbe7d8a66910102a22546719983c1ef4e8710f8323aab90c">
+        <source xml:lang="en">Build History</source>
+        <target state="translated">生成历史记录</target>
+      </trans-unit>
+      <trans-unit id="++CODE++826d02f44b0b73307289256833824e9adbe8e6be6379095d214e84d814b95183">
+        <source xml:lang="en">Build failed. Check output pane for more details. {0}</source>
+        <target state="translated">生成已失败。有关更多详细信息，请查看输出窗格。{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++167a9f61c87101ded76d9d8e39680662a12b6ac2aa063cc9442060968683c079">
+        <source xml:lang="en">Build with Code Analysis</source>
+        <target state="translated">使用 Code Analysis 生成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
+        <source xml:lang="en">Cancel</source>
+        <target state="translated">取消</target>
+      </trans-unit>
+      <trans-unit id="++CODE++86e5686d8209e4271ae22b1c2545b88f4681d12cc9e6c6839c1f1a4344c10166">
+        <source xml:lang="en">Cannot access parent of provided tree item</source>
+        <target state="translated">无法访问所提供树项的父级</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ad5458c3d48f4de651b15ff3ded0cad194cb698218034665f465e81795dd467a">
+        <source xml:lang="en">Cannot access provided database project. Only valid, open database projects can be reloaded.</source>
+        <target state="translated">无法访问提供的数据库项目。只有有效的开放式数据库项目才可以重新加载。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e5e2cfceacf1ed2e20004a3ffd1467fdc8a79e6bd1b2d92e0b8e54ddd0c1a54d">
+        <source xml:lang="en">Cannot resolve path {0}</source>
+        <target state="translated">无法解析路径 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9905a59b62bd9e50dfbe9cd5f2e9e6bd7da1a01a26938bf680f1944475558e0f">
+        <source xml:lang="en">Change Target Platform</source>
+        <target state="translated">更新目标平台</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
+        <source xml:lang="en">Check output pane for more details</source>
+        <target state="translated">有关更多详细信息，请查看输出窗格。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d4b455dc8237ce7460f9bde4850dc92b735297b2b498b06b350dca028b33a936">
+        <source xml:lang="en">Choose SQLCMD variables to modify</source>
+        <target state="translated">选择要修改的 SQLCMD 变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3956a838e80d6589ffb2515779206fd46cbde3db1bc77306fd155273fe9836cc">
+        <source xml:lang="en">Choose action</source>
+        <target state="translated">选择操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c7a8b036403ce2f163af46818ab619f6fdb6da9e16e6eb28bc547ecebcd7ad0b">
+        <source xml:lang="en">Circular reference from project {0} to project {1}</source>
+        <target state="translated">从项目 {0} 到项目 {1} 的循环引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46716000ac0f29f9cf999c93ddfe42050a83c4cf46acbe61a9f8ca908d54e34f">
+        <source xml:lang="en">Cleaning existing deployments...</source>
+        <target state="translated">正在清理现有部署...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2038796cc82692ba0c9cbbe3a19c54c677bff6216a35fb3345ca939957ced9a">
+        <source xml:lang="en">Click "Learn More" button for more information about SDK-style projects</source>
+        <target state="translated">单击“了解详细信息”按钮了解有关 SDK 样式项目的详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fdddb3fc9c10aaa4b8141c97822d7d311f66b3d4403bc0980314eb3d9430c0ad">
+        <source xml:lang="en">Confirm {0} admin password</source>
+        <target state="translated">确认 {0} 管理员密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ebcc3e4d3b5886d9ef6d81e6884d8fab0c7df8e9a141f2dd71f4e5b100a29eb">
+        <source xml:lang="en">Connecting to SQL Server</source>
+        <target state="translated">正在连接到 SQL Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++639a40e82b9a96f0cbeed5f006cf5634c8d1b990b3c83753c00a910fc268d2a6">
+        <source xml:lang="en">Connection</source>
+        <target state="translated">连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5fa51340fc2658f4ed21548c3033ff642b7ac041f7ffbba9114bf072f3c4e614">
+        <source xml:lang="en">Connection failed error: '{0}'</source>
+        <target state="translated">连接失败错误: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dc273117482b4429ada500ecd2e0c75532454194892cb901ca64cc7df369fdf6">
+        <source xml:lang="en">Connections</source>
+        <target state="translated">连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8240cad2a39d48b9715b3495af3ea690041ba120c08641a43f72a5d2a5c5c5d1">
+        <source xml:lang="en">Containers already exist for this project. Do you want to delete them before deploying a new one?</source>
+        <target state="translated">此项目的容器已存在。是否要在部署新文件之前删除它们?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ad6fe65e4341a2297371f3f36b2b9cf12241c8bd2fb0e6b35f96cf60b50a291">
+        <source xml:lang="en">Converting the project {0} to SDK-style was unsuccessful. Changes to the .sqlproj have been rolled back.</source>
+        <target state="translated">未能将项目 {0} 转换为 SDK 样式失败。对 .sqlproj 的更改已回滚。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca12a489ee27330e29481a6063c5aca387cf6eca3843f7731f588826b61b0d85">
+        <source xml:lang="en">Could not build project. Error retrieving files needed to build.</source>
+        <target state="translated">无法生成项目。检索生成所需的文件时出错。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
+        <source xml:lang="en">Create</source>
+        <target state="translated">创建</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7b9e9c24d91045f8c962555a202142d52b17612a92c38abec3c987b8d6f8540">
+        <source xml:lang="en">Create New</source>
+        <target state="translated">新建</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df71f4b96b979f9c3e85500de3a22246aeeebfa03664d2f7ea8db2b79e01f222">
+        <source xml:lang="en">Create project from database</source>
+        <target state="translated">根据数据库创建项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c77ce3d4777080be04581a95398a960a5c415789a41ba16d6b37316a797b659f">
+        <source xml:lang="en">Creating Azure SQL Server '{0}' ...</source>
+        <target state="translated">正在创建 Azure SQL Server “{0}”...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8bf44bbc1748c3142ded9857fe30bc11ab49aefd7ae8afa66bb872c0a054704">
+        <source xml:lang="en">Creating deployment settings ...</source>
+        <target state="translated">正在创建部署设置...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00d386663f5a96480863a4c5115be637b95fb86b62b4be715a17a2a6cad93f1e">
+        <source xml:lang="en">Current target platform: {0}. Select new target platform</source>
+        <target state="translated">当前目标平台: {0}。请选择新目标平台</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eb96c8ccab66317b9e66e799cd49364663e4f0665e5112341e19a249f9c15e46">
+        <source xml:lang="en">Currently installed .NET SDK version is {0}, which is not supported. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK supported version location in settings if already installed.</source>
+        <target state="translated">当前安装的 .NET SDK 版本为 {0}，这是不受支持的。项目生成将不起作用。请安装 .NET 8 SDK 或更高版本，或在设置中更新 .NET SDK 支持的版本位置(如果已安装)。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dff41df6845df014f789fdf462d4169cdd2b60e6ae980273a3509536465abe7d">
+        <source xml:lang="en">Dacpac file location is required for adding a reference to a database</source>
+        <target state="translated">添加对数据库的引用时需要 Dacpac 文件位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++54efc2380b435697f2f4aef4e3230d3d46fcafd5337fa5f1729a6cfe66afcea9">
+        <source xml:lang="en">Dacpac reference</source>
+        <target state="translated">Dacpac 引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e0a06981f6dd0d4ca2c5e3a808122ea107adc5980c505dcf2ca09d231a129fd7">
+        <source xml:lang="en">Dacpac references need to be located on the same drive as the project file.</source>
+        <target state="translated">Dacpac 引用需要位于项目文件所在的同一驱动器上。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d120da6b2603d99a15d9a1c24e83a447c8dde3855ad567879b75953a0665f66">
+        <source xml:lang="en">Dacpac references need to be located on the same drive as the project file. The project file is located at {0}</source>
+        <target state="translated">Dacpac 引用需要位于项目文件所在的同一驱动器上。项目文件位于 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e136aee7826b55f91d1b030832bc4be35b9ee07563c09627052aeecb9335a039">
+        <source xml:lang="en">Data Source</source>
+        <target state="translated">数据源</target>
+      </trans-unit>
+      <trans-unit id="++CODE++548c5b4d99727c76519438c8f3ae4cdd9fce1c53f1e12fdc4705bfedc47a7a8b">
+        <source xml:lang="en">Data source</source>
+        <target state="translated">数据源</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a22bd608ff67405e99b1f334c2bd3748916a74c0cc6d11b06d712e0eec54fe9d">
+        <source xml:lang="en">Data sources</source>
+        <target state="translated">数据源</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b75cbec4821e3ad5a44a3d6a0292a4022948acfa229d78824be15bf5e81aca87">
+        <source xml:lang="en">Data-tier application (.dacpac)</source>
+        <target state="translated">数据层应用程序(.dacpac)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
+        <source xml:lang="en">Database</source>
+        <target state="translated">数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd6eeef18c74835f328b0500b7210d29b7cff8f5f0191c83742eb64013440af4">
+        <source xml:lang="en">Database Projects</source>
+        <target state="translated">数据库项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82894a5a07867575dd9f6d0b2acb4a56840d90151d262694bbeab305ef6b5cd0">
+        <source xml:lang="en">Database References</source>
+        <target state="translated">数据库引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3bdfa565ae34efdec777d66c17a38f2265fd8694c27c4b9f5156f787750a143b">
+        <source xml:lang="en">Database location is required for adding a reference to a database</source>
+        <target state="translated">添加对数据库的引用时需要数据库位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
+        <source xml:lang="en">Database name</source>
+        <target state="translated">数据库名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d2f491f85cd3c9bef3e56d39e8026fa30e30997b597ebfdafb8615cbb4cbe34">
+        <source xml:lang="en">Database name is required for adding a reference to a different database</source>
+        <target state="translated">添加对不同数据库的引用时需要数据库名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1b90d53e491d43b20f0db878d6dc9132abfd6fdb3c75bcd51edc0442889f45c0">
+        <source xml:lang="en">Database project</source>
+        <target state="translated">数据库项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f8b2553d1b34526d5b153aeb237abecb375fc6f98a33fc19acbdd329b14151f9">
+        <source xml:lang="en">Database project published successfully</source>
+        <target state="translated">已成功发布数据库项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a45dc017898401fd1544ef64b1e930accd45e3f4058eec1e6d9671c47f4e374">
+        <source xml:lang="en">Database reference type is required for adding a reference to a database</source>
+        <target state="translated">添加对数据库的引用时需要数据库引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ec3b586d6b276b427e0476177366f85a5f0f7c8e58e7e8a6d6b44f64a8c0867">
+        <source xml:lang="en">Database selection is required to create a project from a database</source>
+        <target state="translated">必须选择数据库才能根据数据库创建项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++45a5bf9ffbdf878b81a327b0686a367e4649276dc25f1028bb4522d04072642f">
+        <source xml:lang="en">Database variable</source>
+        <target state="translated">数据库变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b387433c2578a3f7370d165966a0e7f9c00b58cbdce9b504fd8e42626c934937">
+        <source xml:lang="en">DatabaseProject</source>
+        <target state="translated">DatabaseProject</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99c40ab405926cb5ad1def9cff4d7ce624f8f8abfff4e85f655347fcb949d08e">
+        <source xml:lang="en">Date</source>
+        <target state="translated">日期</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ec6d97365fad3a2cf4d9bc75d4ada86a223b51f3519142126ad2235851cfa29">
+        <source xml:lang="en">Default - image defined as default in the container registry</source>
+        <target state="translated">默认 - 在容器注册表中定义为默认值的映像</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
+        <source xml:lang="en">Delete</source>
+        <target state="translated">删除</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb1155dfad92d5187cd64da5c3155ca4c6126d5377ff03d1334c93a6618d379b">
+        <source xml:lang="en">Deploying SQL Db Project Locally</source>
+        <target state="translated">正在本地部署 SQL DB 项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++183abd42381aa5566abd25bce8a093cc92cf2a39e0faf2130df23ccb00c5dad0">
+        <source xml:lang="en">Develop and publish schemas for Azure SQL Database starting from an empty project</source>
+        <target state="translated">从空项目开始开发和发布 Azure SQL 数据库架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c6c22198e16fe1729ddfa62d91bb2ca09f408cfd2cfb73a59517d566acd07a08">
+        <source xml:lang="en">Develop and publish schemas for SQL Server databases starting from an empty project</source>
+        <target state="translated">从空项目开始开发和发布 SQL Server 数据库架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de22640fe46bae870e0f45d7b5a0c675144dad64d07b04cda6c123b5b1fe7fc2">
+        <source xml:lang="en">Develop and publish schemas for SQL databases with Microsoft.Build.Sql, starting from an empty SDK-style project.</source>
+        <target state="translated">从空的 SDK 样式项目开始，使用 Microsoft.Build.Sql 为 SQL 数据库开发和发布架构。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++babe24f1687d8f696f010c9dab1cdc17cea284045f0cef8dab2ed2c4cd5eac9e">
+        <source xml:lang="en">Different database, different server</source>
+        <target state="translated">不同数据库，不同服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef02d22081eab5e1d6b0e0d90ecdb8cf59eeba072d5b2d001be0a493554d4bfa">
+        <source xml:lang="en">Different database, same server</source>
+        <target state="translated">不同数据库，同一服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cb997dad2c497f2da09a062a52ab0e4a22bc9372cafb01a7bbfd2b3942628e63">
+        <source xml:lang="en">Do you want to configure SQL project build as the default build configuration for this folder?</source>
+        <target state="translated">是否要将 SQL 项目生成配置为此文件夹的默认生成配置?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d036997932f3e33b68797157342457def5f5d6cafbce707e9c494dd59695fa89">
+        <source xml:lang="en">Docker Image:</source>
+        <target state="translated">Docker 映像:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++da788bf7dff5f609a543a7b6247726273b1f48b9f4dafc9ed08bd4a55d96a6ea">
+        <source xml:lang="en">Docker container is not running</source>
+        <target state="translated">Docker 容器未运行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1da7383926fa600607913cc37ec9e7f2776ae615f7a41ab9b07d7308336b0832">
+        <source xml:lang="en">Docker created id: '{0}'</source>
+        <target state="translated">Docker 创建的 ID: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0317f21e82566433416231ac72a287956e7e1c3514b5c2f8f25f89a9c4651a96">
+        <source xml:lang="en">Docker logs: '{0}'</source>
+        <target state="translated">Docker 日志: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33adc66daa87a2ef80e7811a4454c1574b6db68d8f42d1a48e074593535cb48b">
+        <source xml:lang="en">Don't Ask Again</source>
+        <target state="translated">不再询问</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35f2b8772b10a3e2e31870ce1b84a03f3a46dd70d84a4cc43e64f350e55165c6">
+        <source xml:lang="en">Don't use profile</source>
+        <target state="translated">不使用配置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11a6767d5674c7e45f7e00dc525762275b3a48491ad6045427d2609cc496c516">
+        <source xml:lang="en">Done</source>
+        <target state="translated">完成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dd297f5abefced5f3b11ca9cf19f37a1c3f7b5a8269b873ee6014836ed5f8414">
+        <source xml:lang="en">Download error</source>
+        <target state="translated">下载错误</target>
+      </trans-unit>
+      <trans-unit id="++CODE++984b84c29bb8365875e901210c10874efefe9bb4e751e19c78be4f47b4125142">
+        <source xml:lang="en">Download progress</source>
+        <target state="translated">下载进度</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37b345555d7ea6c1724d28076ce47b956d202574c211fefa36afba778f335373">
+        <source xml:lang="en">Downloading</source>
+        <target state="translated">正在下载</target>
+      </trans-unit>
+      <trans-unit id="++CODE++adbcc35e97d53bc1acdeb5a1bf4ea403d362f3fb6074a2edc4206716cafb4191">
+        <source xml:lang="en">Downloading from {0} to {1}</source>
+        <target state="translated">正在从 {0} 下载到 {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9aa9596598183825edf15cd681c8eeadd1076877c3160c7e065458325e3ff6fa">
+        <source xml:lang="en">Downloading {0} nuget to get build DLLs </source>
+        <target state="translated">下载 {0} nuget 以获取生成 DLL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d7f87fe086633fd289af91d57366580fe05bbb49d442b0b59ce9885a528e352">
+        <source xml:lang="en">Enter a database name for this system database</source>
+        <target state="translated">输入此系统数据库的数据库名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92c2f61fcafa6511d86972b9ea0af93ff2fa53d679839988770c0ab60f9bd285">
+        <source xml:lang="en">Enter a template for SQL connection string</source>
+        <target state="translated">输入 SQL 连接字符串的模板</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c23287a220a47e0d74d3f537afb7355e6a8edcc864780a67a946d98e667949d">
+        <source xml:lang="en">Enter connection string environment variable name</source>
+        <target state="translated">输入连接字符串环境变量名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23ef46cfbca7e1590d725a457d5ce359d987837872f4848b53e0da4fc434ee67">
+        <source xml:lang="en">Enter connection string template</source>
+        <target state="translated">输入连接字符串模板</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0a5c146ef8b826a302ee88747026c213d56d4ec611da91be9cba8f1149ff718">
+        <source xml:lang="en">Enter default value for SQLCMD variable '{0}'</source>
+        <target state="translated">为 SQLCMD 变量“{0}”输入默认值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73273ddcb07844adcaafbd3667d9a58d85e049dda5f505f67c47149cfaa73d31">
+        <source xml:lang="en">Enter environment variable for SQL connection string</source>
+        <target state="translated">输入 SQL 连接字符串的环境变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6f9a90522b9bece2bb48355674aedfe8d6fe61c8cd03eededb55e97ffaf98127">
+        <source xml:lang="en">Enter new SQLCMD Variable name</source>
+        <target state="translated">输入新的 SQLCMD 变量名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5812bf46901002496e2c4f090515599cfccbf65c585b1d4ca4346971d4eb504">
+        <source xml:lang="en">Enter new database name</source>
+        <target state="translated">输入新数据库名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6cb3dca39ad52025ee137c36426bc3f1924c5899b7182ba173a8a9b8b5b881fd">
+        <source xml:lang="en">Enter new default value for variable '{0}'</source>
+        <target state="translated">输入变量“{0}”的新默认值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++18e5807509ae4a401651a502262b00d7736cca19a5e97579ca89c17fee3385da">
+        <source xml:lang="en">Enter new name</source>
+        <target state="translated">输入新名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d7caaddcb1559a9c6e14134143691acc8adabe992567bed4226ff812667142b2">
+        <source xml:lang="en">Enter project name</source>
+        <target state="translated">输入项目名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c9185ede7216d22cdc2130c68006298a107070b8f5b3a10ec7bc2e3d8bca4a42">
+        <source xml:lang="en">Enter {0} admin password</source>
+        <target state="translated">输入 {0} 管理员密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++af1d4c772bc7ab9eafd9b3ab38efe0eb6b4f0234bf05c0ab9c3f648bc8c5c55a">
+        <source xml:lang="en">Enter {0} admin user name</source>
+        <target state="translated">输入 {0} 管理员用户名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99d66b1bf580a4072a61a13952fca8cd3c9bcff5dad4a5e25c148f46d053cfde">
+        <source xml:lang="en">Enter {0} port number or press enter to use the default value</source>
+        <target state="translated">输入 {0} 端口号或按 Enter 以使用默认值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e0bae86bdfb080a21f5931b75cc441576b072107cd2d7c85f85645ad75df114a">
+        <source xml:lang="en">Error adding database reference to {0}. Error: {1}</source>
+        <target state="translated">添加对 {0} 的数据库引用时出错。错误: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++12dcf1f81c7fae94fb5082a598bf61252d998db5ec50c81de9691eb7f796cfa3">
+        <source xml:lang="en">Error downloading {0}. Error: {1}</source>
+        <target state="translated">下载 {0} 时出错。错误: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5724db21756ce9913cd865a6ee16467d2f4a297733e3024ef079c97972be981c">
+        <source xml:lang="en">Error extracting files from {0}. Error: {1}</source>
+        <target state="translated">从 {0} 中提取文件时出错。错误: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fd7a3888589d46de552e4f15eb56703fb9529d52f818824b68e21c2b685496b">
+        <source xml:lang="en">Error finding build files location: {0}</source>
+        <target state="translated">查找生成文件位置时出错: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c950f32c438757c4ee58e584a749f665431e67cb70b1a238493458833622a97">
+        <source xml:lang="en">Error loading the publish profile. {0}</source>
+        <target state="translated">加载发布配置文件时出错。{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0c1f3bff3971003bf37f019f870b062fe71b8466ee73218a14849dd306ba4e32">
+        <source xml:lang="en">Error trying to read {0} of project '{1}'. {2}</source>
+        <target state="translated">尝试读取项目“{0}”的 {1} 时出错。{2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++169717657881b0e97115c2aae940a802fe1189d93441b13296718be44f617882">
+        <source xml:lang="en">Error when moving file from {0} to {1}. Error: {2}</source>
+        <target state="translated">从 {0} 到 {1} 移动文件时出错。错误: {2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++89696709172a2874e84f847c0b9fe8b3e5b51eded61cbaa00c689046db40fc07">
+        <source xml:lang="en">Error when renaming file from {0} to {1}. Error: {2}</source>
+        <target state="translated">从 {0} 到 {1} 重命名文件时出错。错误: {2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43f78154e1d78fbb2fc864851db88cba828e5febe89d3f910aa3e10587cc377d">
+        <source xml:lang="en">Error: {0}</source>
+        <target state="translated">错误: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e66cbde37d81cb835c33efcc90e32d034660a076090ed57ea23ec12c472704cf">
+        <source xml:lang="en">Error: {0} is not currently supported in SQL Database Projects for VS Code.</source>
+        <target state="translated">错误: VS Code的 SQL 数据库项目当前不支持 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1790bf42184d8cda0a6ac3894681870256c1b29f23fbe95ff39b2d84de7490a">
+        <source xml:lang="en">Example Usage</source>
+        <target state="translated">示例用法</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5b76f62e1ba0401f8f18752e4bfd03c076de0a21eefcf26422725ffa28f6b4cd">
+        <source xml:lang="en">Exclude</source>
+        <target state="translated">排除</target>
+      </trans-unit>
+      <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
+        <source xml:lang="en">Exclude Object Types</source>
+        <target state="translated">排除对象类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5f6395cfa3be1b2b7783b923ebc2736c923aeda2142cc740137eb871f8ec0e1f">
+        <source xml:lang="en">Excluding folders is not yet supported</source>
+        <target state="translated">尚不支持排除文件夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c4b242e69817acabbd4c7f375e27946e25ca808d9c53291284555f940653d74">
+        <source xml:lang="en">External Stream</source>
+        <target state="translated">外部 Stream</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c2598c4eff93f92ad64b8b20edf4a58bf6fa0001d4725b6833595690c531bbd8">
+        <source xml:lang="en">External Streaming Job</source>
+        <target state="translated">外部流式处理作业</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc4b44b84ebd06cfca038d1fceec247ca639a746d2b675570f373283ab9e2c4f">
+        <source xml:lang="en">Extracting DacFx build DLLs to {0}</source>
+        <target state="translated">将 DacFx 版本 DLL 提取到 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
+        <source xml:lang="en">Failed</source>
+        <target state="translated">失败</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c9b9af732450f209b50a9fa060fc6054e66ecf81ca03d6e771c2e61b18f9bf8">
+        <source xml:lang="en">Failed to complete task '{0}'. Error: {1}</source>
+        <target state="translated">无法完成任务“{0}”。错误: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++155ddbd1014dadf2c353483d9c755a34b23609f962edfcf96fd55a7807861a77">
+        <source xml:lang="en">Failed to open a connection to the deployed database'</source>
+        <target state="translated">无法打开与已部署数据库的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2df59def744cb81ab8c20092ec3a6bffea96378e0ce318d81b8db83b7753374f">
+        <source xml:lang="en">Failed to publish to container. {0}</source>
+        <target state="translated">未能发布到容器。{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3100bcac939af097acdf17a9c0bed8277980a700f17e8375cae98f1156148c2c">
+        <source xml:lang="en">Failed to publish to new Azure SQL server. {0}</source>
+        <target state="translated">无法发布到新 Azure SQL 服务器。{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3bc3e651842509c44a10d1d692d2f85e29ecd74980ee1b78a7f438813085b53">
+        <source xml:lang="en">Failed to run the docker container</source>
+        <target state="translated">无法运行 Docker 容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa5a1deac70dfdea417444e00c1e5144f466c1bad015697c3c83d6298276d92f">
+        <source xml:lang="en">Failed to update app setting '{0}'</source>
+        <target state="translated">无法更新应用设置 "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f044b1a6df4b4fdf3da1b993ba6ba4a96568143a66fc51ea60f5a1774f7bcd">
+        <source xml:lang="en">Failed to verify docker. Please make sure docker is installed and running. Error: '{0}'</source>
+        <target state="translated">验证 docker 失败。请确保 docker 已安装并正在运行。错误:“{0}”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
+        <source xml:lang="en">File</source>
+        <target state="translated">文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ee49824c34ea5caf1b53e7245ddf4bbbd1bd4093bfd8203c89eef5803546b95">
+        <source xml:lang="en">File Format</source>
+        <target state="translated">文件格式</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46484d457b91deaf27cb5ad7300699fcf6f68109f4218424a6411bea346a7ac0">
+        <source xml:lang="en">File or directory '{0}' doesn't exist</source>
+        <target state="translated">文件或目录“{0}”不存在</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f3e50b3312045dcb5003ea46052c539c22c50c4d811aabf997ac36d1c3b9d665">
+        <source xml:lang="en">File {0} doesn't exist</source>
+        <target state="translated">文件 {0} 不存在</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
+        <source xml:lang="en">Flat</source>
+        <target state="translated">平面</target>
+      </trans-unit>
+      <trans-unit id="++CODE++74ccd43303847f2655300641a934959cdb11689ce171aa0f00faa92917fbd340">
+        <source xml:lang="en">Folder</source>
+        <target state="translated">文件夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++628cf6a24bca5af30b531d234bdd0eb8da3e5bcb988ca0607388087178f0fb75">
+        <source xml:lang="en">Folder Elements</source>
+        <target state="translated">文件夹元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dee0b3f5cf474cbedf84d1aca0c4c6232058c78aca9ace0a598ef7fa658a93b">
+        <source xml:lang="en">Folder structure</source>
+        <target state="translated">文件夹结构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
+        <source xml:lang="en">Generate Script</source>
+        <target state="translated">生成脚本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a76ed378462a07646dbca3fbacf6097b26d2eb689a0a145c5305b0d9c19d8613">
+        <source xml:lang="en">Generating new SQL project from {0}...  Check output window for details.</source>
+        <target state="translated">正在从 {0} 生成新的 SQL 项目...  检查输出窗口以了解详细信息。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c62b1e4d310e129e88e6543457c18ebd2fcf5f51adeb147e8caf70573a29965">
+        <source xml:lang="en">Generating project via AutoRest failed.  Check output pane for more details. Error: {0}</source>
+        <target state="translated">通过 AutoRest 生成项目失败。有关更多详细信息，请查看输出窗格。错误: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d0b0bb8956065a330d34de70938bb1e61d236532f7f5e3b3ea15be42249433a">
+        <source xml:lang="en">I accept the {0}.</source>
+        <note>The placeholders are contents of the line and should not be translated.</note>
+        <target state="translated">我接受 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
+        <source xml:lang="en">Image tag</source>
+        <target state="translated">映像标记</target>
+      </trans-unit>
+      <trans-unit id="++CODE++459f619c9ccfe5e3fa7210a22a69e5a512c7c7c7c0ee12e38b2ff119582bc322">
+        <source xml:lang="en">Import Elements</source>
+        <target state="translated">导入元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
+        <source xml:lang="en">In progress</source>
+        <target state="translated">正在进行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
+        <source xml:lang="en">Include</source>
+        <target state="translated">包括</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3f763b9cd0ea6431ca045177a0ef88702e20d566b4634c7efad944d1a4b1ef4d">
+        <source xml:lang="en">Include permissions</source>
+        <target state="translated">包括权限</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7dc845e477a5399b83a72140956e6da831ac0886fc280d45019d982ed862ff15">
+        <source xml:lang="en">Include permissions in project</source>
+        <target state="translated">在项目中包括权限</target>
+      </trans-unit>
+      <trans-unit id="++CODE++569ca49f4aaf7846e952c1d4aeca72febd0b79fa1c4f9db08fd3127551218572">
+        <source xml:lang="en">Install</source>
+        <target state="translated">安装</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ab5b5e2e38fbf1f70fdbe2c82a3a5d4e4a83e200a25312ad2e32f28e70eac8a">
+        <source xml:lang="en">Install globally</source>
+        <target state="translated">全局安装</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d59b6e89d0bb69378dc30cfc172f685e81c2f66c35f77bdc65b25e99c0a3896c">
+        <source xml:lang="en">Invalid DSP in .sqlproj file</source>
+        <target state="translated">.Sqlproj 文件中的 DSP 无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++be759ac049ae65292d4234f25f6ac2ee943a42ca44fa6cad06ef9394201c8f4d">
+        <source xml:lang="en">Invalid SQL connection string</source>
+        <target state="translated">SQL 连接字符串无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ce3b50d9c5e5441b3acdf8741944081d3d78f2436fbe961f6b9a83f133654bb1">
+        <source xml:lang="en">Invalid database reference in .sqlproj file</source>
+        <target state="translated">.Sqlproj 文件中的数据库引用无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de5c107673bc91c5c4e4e372cb8ba05666c30c9f83b8087ffbaac76cecce6432">
+        <source xml:lang="en">Invalid input: {0}</source>
+        <target state="translated">无效的输入: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9ada562d7895a60b03063ef6bbd6310bf69a0a4131e5371a88f6ef1acf19d18">
+        <source xml:lang="en">Invalid target platform: {0}. Supported target platforms: {1}</source>
+        <target state="translated">目标平台 {0} 无效。支持的目标平台: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f399d833937791f72fd7e0e073ecaf2850a4f91d4a1a73c535f27ca1b142c997">
+        <source xml:lang="en">Invalid value specified for the property '{0}' in .sqlproj file</source>
+        <target state="translated">.sqlproj 文件中为属性“{0}”指定的值无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4066c897b4290a769a8446512662e9fbb8b9e8c60cf66c56c96b355b74ae5d8d">
+        <source xml:lang="en">Items with absolute path outside project folder are not supported. Please make sure the paths in the project file are relative to project folder.</source>
+        <target state="translated">不支持具有项目文件夹外绝对路径的项。请确保项目文件中的路径与项目文件夹相关。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
+        <source xml:lang="en">Learn More</source>
+        <target state="translated">了解详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c17d6896f3b05d4d38ca3f0ee27584b76b1f4af6c4fb8ad8c32c7b82378226bd">
+        <source xml:lang="en">License Agreement:</source>
+        <target state="translated">许可协议:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+        <source xml:lang="en">Load profile...</source>
+        <target state="translated">加载配置文件...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
+        <source xml:lang="en">Location</source>
+        <target state="translated">位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+        <source xml:lang="en">Microsoft SQL Server License Agreement</source>
+        <target state="translated">Microsoft SQL Server 许可协议</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c02d79e56f113063c85842818c6c44fef7133c8a9a68e6f6adf23c9d9d52c195">
+        <source xml:lang="en">Missing 'version' entry in {0}</source>
+        <target state="translated">在 {0} 中缺少 “version” 条目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ecc3df6bffdd06c58cd4f6e276929e119c8f653c53f5a6a5a5e66dfa1c3fc93">
+        <source xml:lang="en">Move</source>
+        <target state="translated">移动</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bdca81178f26fc6566491a559d571433c23d437fd99057dc0e0c0eb3d67cbcf">
+        <source xml:lang="en">Moving files between projects is not supported</source>
+        <target state="translated">不支持在项目之间移动文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++77f2b4ab4beeb3e937f570a8c2c3e5f87792beb72c90a66d2845af92e977c1d6">
+        <source xml:lang="en">Multiple .sqlproj files selected; please select only one.</source>
+        <target state="translated">已选择多个 .sqlproj 文件；请仅选择一个。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
+        <source xml:lang="en">Name</source>
+        <target state="translated">名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1743930588be919ac27ab28e0bbcd85cffe715f69aedcfefe0a66b79f58464a">
+        <source xml:lang="en">Name must not be empty</source>
+        <target state="translated">名称不得为空</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1676e5f50d1d87a99f45228e12f39c8fb3efb26b18a0dcfa3077ccfc0963e47">
+        <source xml:lang="en">Neither Autorest nor Node.js (npx) found in system path.  Please install Node.js for Autorest generation to work.</source>
+        <target state="translated">在系统路径中找不到 autorest 和 Node.js (npx)。请安装 Node.js 以使 Autorest 生成正常工作。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++18fdd549b2ed367ac0c74cbec1214644728515b30edbcb78e7d322757a7c8359">
+        <source xml:lang="en">New</source>
+        <target state="translated">新</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80072a8f865870a414d28b946e37df3c8a579ee173d9d086b5bfeee2227e1804">
+        <source xml:lang="en">New SQL project name</source>
+        <target state="translated">新 SQL 项目名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aec6326c0bb66b39024ab339ed5e37127b38cb27b0483212893b761124e3d604">
+        <source xml:lang="en">New {0} name:</source>
+        <target state="translated">新 {0} 名称:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
+        <source xml:lang="en">No</source>
+        <target state="translated">否</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec6464b2feeed0b33e9708ee331e698c5fd334fc406c62fd856681d6bd292b2a">
+        <source xml:lang="en">No (default)</source>
+        <target state="translated">无(默认)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d8370c05d52e5072f7cce975a2079f75c465d29babb35aea61f47d855706190e">
+        <source xml:lang="en">No .sql files were generated by Autorest. Please confirm that your spec contains model definitions, or check the output log for details.</source>
+        <target state="translated">Autorest 未生成任何 .sql 文件。请确认规范包含模型定义，或查看输出日志以了解详细信息。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++af62d5c5fc57bafe879cd3a63346b4135adb2042b15590584cd6fdd26f4cd0ab">
+        <source xml:lang="en">No .sqlproj file selected; please select one.</source>
+        <target state="translated">未选择任何 .sqlproj 文件；请选择一个。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3579208a7b43a25bc936763f617afcbd477eca466e85cc62c381423149058572">
+        <source xml:lang="en">No data sources in this project</source>
+        <target state="translated">此项目中没有数据源</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9594558be6542faa968aced22d890827c17bb8f852db18c8642093756b72da2">
+        <source xml:lang="en">No {0} found</source>
+        <target state="translated">找不到 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5c4a4e3057742899d6bfe3e991b97054fab12d7eccea9e8a8beb17ebc7e9fb4">
+        <source xml:lang="en">None Elements</source>
+        <target state="translated">无元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0189979f9ff2ab168a6384edc3999c64d4d39ede61b323ca66de7fc2157a610a">
+        <source xml:lang="en">NuGet package name</source>
+        <target state="translated">NuGet 包名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc0a967c601de5407e6d0ebdd7ff5f52aa09b2094cf8e65508c2afd1320a6496">
+        <source xml:lang="en">NuGet package version</source>
+        <target state="translated">NuGet 包版本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
+        <source xml:lang="en">Object Type</source>
+        <target state="translated">对象类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++843ac01149cced785dfebd0028d3b03ba78e286e1c6f9517ebfcdb609d97af4c">
+        <source xml:lang="en">Ok</source>
+        <target state="translated">确定</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46c0e2d94b6989f19eb6cc2ae1d2418d69dc81cfb7d9b9e35c5e5f13345be8ee">
+        <source xml:lang="en">Only moving files and folders are supported</source>
+        <target state="translated">仅支持移动文件和文件夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++48e14153027233f6e54dc79e65b53aee173c9fb483db51acbd55140694502620">
+        <source xml:lang="en">Open License Agreement</source>
+        <target state="translated">打开许可协议</target>
+      </trans-unit>
+      <trans-unit id="++CODE++320792798b0c8a396285b88b5a3cdd21bec7af6e418aef59c79fe12633f04e9e">
+        <source xml:lang="en">OpenAPI/Swagger spec</source>
+        <target state="translated">OpenAPI/Swagger 规范</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d2b0ac7a6b60f3256c7c5cbcbcf838904e389985d6604c94816517457a468c8">
+        <source xml:lang="en">Operation '{0}' completed successfully. Result: {1}</source>
+        <target state="translated">操作 "{0}" 已成功完成。结果: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++86e2ab1470a17cd4f665115490260eddf6eed9ba11c177a0b06e673e80cb8090">
+        <source xml:lang="en">Operation '{0}' failed. Re-trying... Current Result: {1}. Error: '{2}'</source>
+        <target state="translated">操作 "{0}" 失败。正在重试...当前结果: {1}。错误: "{2}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++25f9d8164617e51020aabb66edbaae8083a19e80799c598ddc09191c079d8d01">
+        <source xml:lang="en">Operation '{0}' failed. Re-trying... Error: '{1}' </source>
+        <target state="translated">操作 “{0}” 失败。正在重试...错误: “{1}” </target>
+      </trans-unit>
+      <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
+        <source xml:lang="en">Option Description</source>
+        <target state="translated">选项说明</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d61cf0d0a028f8efb43946f57214e6a58daf084a15b7538310db794de155eaa5">
+        <source xml:lang="en">Option Name</source>
+        <target state="translated">选项名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++248d6fc3eeeea8a859f0b50d51cff03616d0d0a52c7ab563d7a2046e33849837">
+        <source xml:lang="en">Package Reference</source>
+        <target state="translated">包引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8260a92239ac78e7e8b34921f34231f2a42c33e2d155a83a006cd631dd959849">
+        <source xml:lang="en">Port must a be number</source>
+        <target state="translated">端口必须是数字</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a37a2142ebde04c1b6e14939040584bba21a84f5a0028999e960e6d6fb9c21d3">
+        <source xml:lang="en">PostDeploy Elements</source>
+        <target state="translated">PostDeploy 元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03456e4003fc53cc3045f2a6373a863f1981602e69f5da1d7fd7062f85981d1e">
+        <source xml:lang="en">PreDeploy Elements</source>
+        <target state="translated">PreDeploy 元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d696a35bdd1883da07a8d6c41bb7a3153381b23aa197629ee273479a6eaa5a9c">
+        <source xml:lang="en">Profile</source>
+        <target state="translated">个人资料</target>
+      </trans-unit>
+      <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
+        <source xml:lang="en">Project</source>
+        <target state="translated">项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1c4e927c1250569dd8129c93e41fd1c39ede59048b2df1d88d2d4071d258c4d6">
+        <source xml:lang="en">Project '{0}' is already opened.</source>
+        <target state="translated">已打开项目“{0}”。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++598020cc5bef4d8e71624bce32a6ff261c0c68f3c58e433381e2babc192b0909">
+        <source xml:lang="en">Project property value '{0} is invalid</source>
+        <target state="translated">项目属性值 '{0} 无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ef52f34c50cd098af6423fbad0a7536009ac70643124bae1d69ec8aef47b1d4">
+        <source xml:lang="en">Project reference</source>
+        <target state="translated">项目引用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f402dfa684908bb15f9967353ca74506f2b99f28d73567e03f280f0332f355">
+        <source xml:lang="en">Project reference name element</source>
+        <target state="translated">项目引用名称元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49b20f5a4dbb9f8d013340404a75fde2c85b132dbff19ba95fc3b4857862bef0">
+        <source xml:lang="en">Project was successfully updated.</source>
+        <target state="translated">已成功更新项目。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
+        <source xml:lang="en">Publish</source>
+        <target state="translated">发布</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca42fb13501c1dbd43c4a7646d85db2540c043e759fffc0daf97919b353638f8">
+        <source xml:lang="en">Publish History</source>
+        <target state="translated">发布历史记录</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b399d74cf003095e0a46c41f5d222919847887d4504569f88583c838c328829c">
+        <source xml:lang="en">Publish Options</source>
+        <target state="translated">发布选项</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
+        <source xml:lang="en">Publish Profile</source>
+        <target state="translated">发布配置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
+        <source xml:lang="en">Publish Settings File</source>
+        <target state="translated">发布设置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
+        <source xml:lang="en">Publish Target</source>
+        <target state="translated">发布目标</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f71637b1d9044efd441c1e9e5eb4a908ea922edcd8160eabf4cf12bbfcea3840">
+        <source xml:lang="en">Publish profile elements</source>
+        <target state="translated">发布配置文件元素</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fddb5cf809a901d15c96ac7b984fa0c181fa71c11e0ec8036d08f5549e33049e">
+        <source xml:lang="en">Publish project</source>
+        <target state="translated">发布项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5ff81b1f819c737cbc85a30773a298b92a7f4dd7fc7defa6047aa16a27139ede">
+        <source xml:lang="en">Publish to an existing {0}</source>
+        <target state="translated">发布到现有 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2f14bd4fa8209db1b9fdd84a46b16251fbc1a2469d6d39a8f0bcc429fb5ac6b">
+        <source xml:lang="en">Publish to new Azure SQL logical server (Preview)</source>
+        <target state="translated">发布到新的 Azure SQL 逻辑服务器(预览)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0401861224dd2795c8d944358a94b0a54a800c0f2f0b4b7a594b7e2254583ea">
+        <source xml:lang="en">Publish to new SQL Server local development container</source>
+        <target state="translated">发布到新的 SQL Server 本地开发容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca140652980c2c4b0970c25c36b751fd6d4b88d8199faa6a138434c0c29ae5eb">
+        <source xml:lang="en">Publish to new {0} local development container</source>
+        <target state="translated">发布到新 {0} 本地开发容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ce2922954d0ba334ed4971b9aeb711c1bedfdeaceeffb63dedd349034b29d746">
+        <source xml:lang="en">Publish to new {0} local development container (Preview)</source>
+        <target state="translated">发布到新 {0} 本地开发容器(预览)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++860e9c668ed0758139bbed082a63e9ca462e6c08c622923e2d8e298237ce9aa4">
+        <source xml:lang="en">Published data-tier application (.nupkg)</source>
+        <target state="translated">已发布的数据层应用程序 (.nupkg)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2737effe0f7def0b2a7ffb02ba716b1f1abfc35fc71c5fba4c09e2b0d93625f1">
+        <source xml:lang="en">Publishing project in a container...</source>
+        <target state="translated">正在容器中发布项目...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20a7ecd141b81567b5df17dd4e13c22c9119e50e387685734002ec73c3ba509e">
+        <source xml:lang="en">Reference Type</source>
+        <target state="translated">引用类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1541bbc4a0af94bf311f683c1cdac360bcf4032a09159f1f6f849a6c354343d">
+        <source xml:lang="en">Referenced Database Type</source>
+        <target state="translated">引用的数据库类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++965851929ffd4b90734d2bf7d6d01704b63e70f2b059c95b57264a105ed597bb">
+        <source xml:lang="en">Referenced Database type</source>
+        <target state="translated">引用的数据库类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
+        <source xml:lang="en">Reset</source>
+        <target state="translated">重置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
+        <source xml:lang="en">Reset all variables</source>
+        <target state="translated">重置所有变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11b0ae8e2634e65c2bb62781cfdb9a384c55e85a0f5ed17a56cf1af11d340cc4">
+        <source xml:lang="en">Resource group</source>
+        <target state="translated">资源组</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
+        <source xml:lang="en">Revert values to project defaults</source>
+        <target state="translated">将值还原为项目默认值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3d5a16c9d23ac52584e85fb75c804eb9bb25af61fd490caed052e4e0c6a71215">
+        <source xml:lang="en">Run via npx</source>
+        <target state="translated">通过 npx 运行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2dcd924c33423699a1475d6eaa32289c60ba9f8f8431bbd7bbfc29f9a1d9c9e">
+        <source xml:lang="en">Running operation '{2}' Attempt {0} of {1}</source>
+        <target state="translated">正在运行操作 "{2}"，第 {0} 次尝试(共 {1} 次)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f2781c675078b12472e0a7013cde3e49a2c0883f66a617839f0f71298c8434d5">
+        <source xml:lang="en">Running the docker container ...</source>
+        <target state="translated">正在运行 docker 容器...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4870950395d377ccb78a99509d402224e9dde215522464fe53d7423a5e6ac8b2">
+        <source xml:lang="en">SDK-style project</source>
+        <target state="translated">SDK 样式项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++17e5f8bbe60af67dfba436bee05fcd31b88281f0c4968a9bc281ae86ea54da2c">
+        <source xml:lang="en">SQL Database (SDK)</source>
+        <target state="translated">SQL 数据库(SDK)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca89f677c84cc6740f726a8ee22b9e458ed2a43dbb8b0e1fe99e6132c6acab6b">
+        <source xml:lang="en">SQL Server Database</source>
+        <target state="translated">SQL Server 数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f82bf397fbecb2b80b5ae141ab451c140c4635d090b66f828705d7ac5e31f98f">
+        <source xml:lang="en">SQL connection string</source>
+        <target state="translated">SQL 连接字符串</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
+        <source xml:lang="en">SQLCMD Variables</source>
+        <target state="translated">SQLCMD 变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++81524c3e53e66232a0a66edd288e36f4d200d32f8512973e382855a3d6dff724">
+        <source xml:lang="en">SQLCMD variable name '{0}' cannot contain any of the following characters: {1}</source>
+        <target state="translated">SQLCMD 变量名称 "{0}" 不能包含以下任何字符: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a7e5c26c01b7c6e199165e627138d104755d24adb0ac611e42bc8b6787b7216c">
+        <source xml:lang="en">SQLCMD variable name '{0}' cannot contain whitespace</source>
+        <target state="translated">SQLCMD 变量名称 "{0}" 不能包含空格</target>
+      </trans-unit>
+      <trans-unit id="++CODE++63bd75ed5678f58b4971e060437e117233755c5d3ba3b35cfc74bb64a80c5bef">
+        <source xml:lang="en">Same database</source>
+        <target state="translated">同一数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
+        <source xml:lang="en">Save</source>
+        <target state="translated">保存</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a3dca5ad8733bf29762c2315ae7e89e4f9a30c2ad082e4b01a93cc96e7d442e">
+        <source xml:lang="en">Save As...</source>
+        <target state="translated">另存为...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
+        <source xml:lang="en">Schema</source>
+        <target state="translated">架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="translated">架构比较</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a02dd1e9db0fbe4268ecc26c5d908d72358d5a9696dab790d7a9aab401c9875d">
+        <source xml:lang="en">Schema Compare failed: {0}</source>
+        <target state="translated">架构比较失败: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bbe07ca4baf11ff83f1c4302b5e18d62b2366d997a62a1a5b6da653a3ea77ecd">
+        <source xml:lang="en">Schema compare could not start because build failed</source>
+        <target state="translated">架构比较无法启动，因为生成失败</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23671d64b25eaa818fbcd21bf8eef0b3d8f256518d15ae3e1928f2fd94138035">
+        <source xml:lang="en">Schema compare extension installation is required to run schema compare</source>
+        <target state="translated">需要安装架构比较扩展才能运行架构比较</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
+        <source xml:lang="en">Schema/Object Type</source>
+        <target state="translated">架构/对象类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
+        <source xml:lang="en">Script</source>
+        <target state="translated">脚本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++41412c01bfcdcf81ad59ad1e92a62eef54f7fa7b9a6609c87ad3ce49c5927b4f">
+        <source xml:lang="en">Script.PostDeployment</source>
+        <target state="translated">Script.PostDeployment</target>
+      </trans-unit>
+      <trans-unit id="++CODE++36dd2a82c1cf2db5f8b72cbfec8b79e93211e6700e6ce7311f083bd86a626137">
+        <source xml:lang="en">Script.PreDeployment</source>
+        <target state="translated">Script.PreDeployment</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
+        <source xml:lang="en">Select</source>
+        <target state="translated">选择</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c26e2aab0772235c4a441bf7627254ab3b56ac37a8b64fece822107c7a4aa64b">
+        <source xml:lang="en">Select .dacpac</source>
+        <target state="translated">选择 .dacpac</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79f376f90b59c3bc990ce225ac8c8fdd6093ae81003f60c53bc6aa3939e47988">
+        <source xml:lang="en">Select File</source>
+        <target state="translated">选择文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a231fe96024f95e8eda0010e2b4e482324cd6b43d333a3bc30db359e5fd98ed3">
+        <source xml:lang="en">Select OpenAPI/Swagger spec file</source>
+        <target state="translated">选择 OpenAPI/Swagger 规范文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
+        <source xml:lang="en">Select Profile</source>
+        <target state="translated">选择配置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1cec5699e7692b9c87f33c31cd33e97c6e688dbab008b2645c92aea0af8ba1c6">
+        <source xml:lang="en">Select connection</source>
+        <target state="translated">选择连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++97d87b988c8caba24834e6c1f2efce830651e02b7d5e507c313bacd9e50a2cd0">
+        <source xml:lang="en">Select database</source>
+        <target state="translated">选择数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc97d9bb75505ceb8446988fb905c3607186b9a08f13c8036d39586cadaae90f">
+        <source xml:lang="en">Select folder structure</source>
+        <target state="translated">选择文件夹结构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd5457462a525b84645a21f9405208b152ef6428ed5a46e093bb9d66c12034b2">
+        <source xml:lang="en">Select location to create project</source>
+        <target state="translated">选择要创建项目的位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++04783dd07ecff6e5427ee1c5a910ac2a86339fb73039dd9dc63dbf1e780099b5">
+        <source xml:lang="en">Select project file</source>
+        <target state="translated">选择项目文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1cca62dfe797128d872da26655c932ca5c53e11a3fcd3cb84cd494f46953242b">
+        <source xml:lang="en">Select project location</source>
+        <target state="translated">选择项目位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcbb07681ecbda0981acaed1a1f795745434d511e8714f8004500e5d0802b5bb">
+        <source xml:lang="en">Select publish profile to load</source>
+        <target state="translated">选择要加载的发布配置文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f290a87fc5ed38e7479f99d7505a44f49832251ef20d58aaa90ffd8de6f1dc0e">
+        <source xml:lang="en">Select the base {0} docker image</source>
+        <target state="translated">选择基础 {0} docker 映像</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f3b0510fe642a9d1f9fe5430ffa3582842b55277b3c53f1df12088e42b02ac7">
+        <source xml:lang="en">Select the image tag or press enter to use the default value</source>
+        <target state="translated">选择图像标记或按 Enter 以使用默认值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d66c11ffe9d849ccb39c04ce5d102192c452fc9c89d376887dd576170ac2793">
+        <source xml:lang="en">Select where to publish the project to</source>
+        <target state="translated">选择要将项目发布到的位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
+        <source xml:lang="en">Server</source>
+        <target state="translated">服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64103f0c79d44c0b348d11c0b8a1274959e0e9e761bdff5f519f7e34e37041c2">
+        <source xml:lang="en">Server created</source>
+        <target state="translated">已创建服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21babfed6c3829985b43ce0de25b2d582154b45a779a71da5ea204c9d8a3cd20">
+        <source xml:lang="en">Server name</source>
+        <target state="translated">服务器名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc01283cce208f77ad6623104ad4e6b8f82db0c6141aca95a4cffc70a9d3f5b5">
+        <source xml:lang="en">Server variable</source>
+        <target state="translated">服务器变量</target>
+      </trans-unit>
+      <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
+        <source xml:lang="en">Settings</source>
+        <target state="translated">设置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f757ef1e62a52c257451f92fbdd24174fc804cebd5eeb040763d5875feae7864">
+        <source xml:lang="en">Source database</source>
+        <target state="translated">源数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++300a6fea7e27e277c0c31a7efb59b467a32f2dc0e1620bcac852e655727936bb">
+        <source xml:lang="en">Specified GUID is invalid: {0}</source>
+        <target state="translated">指定的 GUID 无效: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f98d8beeeedee01c720a55b91742e6560515ae435c07a7fbfb8151f445e428ec">
+        <source xml:lang="en">Start with the core pieces to develop and publish schemas for Azure SQL Edge Database</source>
+        <target state="translated">从核心部分开始开发和发布 Azure SQL Edge 数据库的架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
+        <source xml:lang="en">Status</source>
+        <target state="translated">状态</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
+        <source xml:lang="en">Stored Procedure</source>
+        <target state="translated">存储过程</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c88a0b907419a70c27ab7c1f8e5fb54441a4d9c3567e4c928fa7b2091194aecf">
+        <source xml:lang="en">Success</source>
+        <target state="translated">成功</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80ee14639029361a0df6f0a7dc915add2263a133778342ff214f336b388633a4">
+        <source xml:lang="en">Suppress errors caused by unresolved references in the referenced project</source>
+        <target state="translated">禁止显示由引用对象中的未解析引用导致的错误</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2e6fd6384b452938306d46d37b20fbce453cce4becd1bf436a7f472db1c8a42">
+        <source xml:lang="en">System database</source>
+        <target state="translated">系统数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec2cbae54b410fb2ad35b8f8ab34b1cb9ba1d7969dfb921f24e008cac1fae0d4">
+        <source xml:lang="en">System database selection is required for adding a reference to a system database</source>
+        <target state="translated">添加对系统数据库的引用时需要系统数据库选择</target>
+      </trans-unit>
+      <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
+        <source xml:lang="en">Table</source>
+        <target state="translated">表</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5b02abaa1e421efb6c10a960e3f128b0a641ea7cc47df22947c3f695cf1cb505">
+        <source xml:lang="en">Target Database</source>
+        <target state="translated">目标数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a02c7e318355e7b0f54fa18f348b0da15dd4d5b5d37faaa01bb76e6d2c0726f5">
+        <source xml:lang="en">Target Platform</source>
+        <target state="translated">目标平台</target>
+      </trans-unit>
+      <trans-unit id="++CODE++573be5f6ae7984546f35b61a448a9c9b486b111d82439332d2eee42ab6be94e1">
+        <source xml:lang="en">Target Server</source>
+        <target state="translated">目标服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6962f3daaf2cd4dfd928b74183cce462d18a2f986969cfcc28ef9ae51fafc449">
+        <source xml:lang="en">Target information for extract is required to create database project.</source>
+        <target state="translated">必须提供用于提取的目标信息才能创建数据库项目。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0cfae20666e1f0546294b7386f8f852963b8dd14ef54b40a4b05bc352f211560">
+        <source xml:lang="en">Target platform of the project {0} is now {1}</source>
+        <target state="translated">项目 {0} 的目标平台现已 {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++01f0f44442a7b6fb15b59859e12a9bf878141574b8b1099fb2fbda9bdd355410">
+        <source xml:lang="en">Target project</source>
+        <target state="translated">目标项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4a94738ed855d32205cf5b98d8a302c2f3a82b35b8d0ff2003c2595bde8c557">
+        <source xml:lang="en">Tasks.json</source>
+        <target state="new">Tasks.json</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ad21b866cd78c8e2444ffe9593f592e88ed2fa82e200191a85e10725a0e321a7">
+        <source xml:lang="en">The .NET SDK cannot be located. Project build will not work. Please install .NET 8 SDK or higher or update the .NET SDK location in settings if already installed.</source>
+        <target state="translated">找不到 .NET SDK。项目生成将不起作用。请安装 .NET 8 SDK 或更高版本，或在设置中更新 .Net SDK 位置(如果已安装)。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72c65e70a4db945f4b9dccbbdda3aaeade2926ad368b312dd0d820995250e9f8">
+        <source xml:lang="en">The Schema Compare extension must be installed to a update a project from a database.</source>
+        <target state="translated">架构比较扩展必须从数据库安装到更新项目。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1541ca54eaafab6eaf10bd1051af6f50394e0b8f11aad6012045ce761a8ff683">
+        <source xml:lang="en">The project '{0}' will not be fully compatible with SSDT after conversion. A backup copy of the project file will be created in the project folder prior to conversion. More information is available at https://aka.ms/sqlprojsdk. Continue with converting to SDK-style project?</source>
+        <target state="translated">转换后，项目 \"{0}\" 将不与 SSDT 完全兼容。转换前，将在项目文件夹中创建项目文件的备份副本。有关详细信息，请参阅 https://aka.ms/sqlprojsdk。继续转换为 SDK 样式项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f656c17f0a00fbe06f91f21351711a07926dc1e3d1506f9e2e4d3d81610346b9">
+        <source xml:lang="en">The project is already up to date with the database.</source>
+        <target state="translated">项目已与数据库保持最新。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++044da47086134e9a85176a52a9b6c7e8f89f587210c49b06b1232fda151e0932">
+        <source xml:lang="en">The project {0} has been updated to be an SDK-style project. Click 'Learn More' for details on the Microsoft.Build.Sql SDK and ways to simplify the project file.</source>
+        <target state="translated">项目 {0} 已更新为 SDK 样式项目。单击“了解详细信息”，了解有关 Microsoft.Build.Sql SDK 的详细信息以及简化项目文件的方法。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59edb6069dcd0bdbc944017215d9969692924388f348624e326ea99876551653">
+        <source xml:lang="en">The selected project file does not exist</source>
+        <target state="translated">所选项目文件不存在</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f5c77dbf7dd2b64ae0c90a6d971c1482713147f48a6e43c10f9f30fa63f51bdb">
+        <source xml:lang="en">The selected project location '{0}' does not exist or is not a directory.</source>
+        <target state="translated">所选项目位置“{0}”不存在或不是目录。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13c88dccbc0c16d34702d4b664c78552a13156f154731119eaaa1dfc41be428d">
+        <source xml:lang="en">The system database references need to be updated to build the project '{0}'. If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
+        <target state="translated">需要更新系统数据库引用才能生成此项目“{0}”。如果项目是在 SSDT 中创建的，它将继续在这两个工具中工作。是否要更新项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e8ebb0393782bd6e0f47dec44e67c3d00c0302fef8ffa257b9fc1c81b165f1c3">
+        <source xml:lang="en">The targets, references, and system database references need to be updated to build the project '{0}'.</source>
+        <target state="translated">需要更新目标、引用和系统数据库引用，以生成项目 '{0}'。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++733d73b219fd9a1e4009ee7a3bc2e771e41099d295ccf8c230e04f68ba8606ee">
+        <source xml:lang="en">There is already a directory named '{0}' in the selected location: '{1}'.</source>
+        <target state="translated">所选位置“{1}”中已存在名为“{0}”的目录。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++61294a599c4ab1debbddc1cb4688c8843d5a58e74ae7b9352d0eeb95dd9497c2">
+        <source xml:lang="en">There was an error updating the project: {0}</source>
+        <target state="translated">更新项目时出错: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
+        <source xml:lang="en">Time</source>
+        <target state="translated">时间</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
+        <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
+        <target state="translated">要成功生成，请更新项目以具有一个预先部署脚本和/或一个后期部署脚本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
+        <source xml:lang="en">Unable to construct connection: {0}</source>
+        <target state="translated">无法构造连接: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1f35c8ba729687aca729291ff1d98b18e4c7b7b7857006e521e8b9420b774111">
+        <source xml:lang="en">Unable to establish project context.  Command invoked from unexpected location: {0}</source>
+        <target state="translated">无法建立项目上下文。从意外位置调用了命令: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b474fc22f1618dc88dad0f863f6c96d4ffee6b9bdf2cdb2df795f88454205991">
+        <source xml:lang="en">Unable to find SQLCMD variable '{0}'</source>
+        <target state="translated">找不到 SQLCMD 变量“{0}”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bc75a205c0a3c7535306f442efb269b3357c0f0a48f77179e0bed082d1aac9e">
+        <source xml:lang="en">Unable to find database reference {0}</source>
+        <target state="translated">找不到数据库引用 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9683c728c926f31658bc71e09ac8de0d80123107ea5fef52315430ecebfe0c13">
+        <source xml:lang="en">Unable to find {1} with path '{0}'</source>
+        <target state="translated">找不到路径为“{0}”的 {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46b5a7c346e9d00be41ca0356c4761a49755124bab2845df72aa9377b4b53be0">
+        <source xml:lang="en">Unable to locate '{0}' target: '{1}'. {2}</source>
+        <target state="translated">无法定位“{0}”目标:“{1}”。{2}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6">
+        <source xml:lang="en">Unexpected number of {0} files: {1}</source>
+        <target state="translated">{0} 文件数异常: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++768599fd8afd8acd64dffa68e96ad5970f54933220398e5b545b222719c8b353">
+        <source xml:lang="en">Unhandled item type during delete: '{0}</source>
+        <target state="translated">删除过程中未处理的项目类型: "{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++08fa4dd7a3b09e89b820b556f041e27adc616246a74cca411fcbb26199b2053e">
+        <source xml:lang="en">Unhandled item type during exclude: '{0}</source>
+        <target state="translated">删除过程中未处理的项目类型: "{0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f27702398b91414fe27129f2fea7af0d7edb6e658d58c70a0c786633390aacf7">
+        <source xml:lang="en">Unhandled node type for move</source>
+        <target state="translated">移动的未处理节点类型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98a2edd8ece1e8c17c93a67d5556a7c86cadc90fa3f4549a4b824cf43919bd3e">
+        <source xml:lang="en">Unknown data source type: </source>
+        <target state="translated">未知的数据源类型: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++691ab9a143e44a45a618260ed9e0f32368c68b9ddcceed04e4b2c2a893326742">
+        <source xml:lang="en">Unrecognized version: </source>
+        <target state="translated">无法识别的版本:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
+        <source xml:lang="en">Update</source>
+        <target state="translated">更新</target>
+      </trans-unit>
+      <trans-unit id="++CODE++227f0c79fe0b61bb5172198e35d4a242e62ce3c4a99875fe9d08a9f83a672c4e">
+        <source xml:lang="en">Update Location</source>
+        <target state="translated">更新位置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++da0eda30c429c4292ccde4655c4d2fb2e64d66753cd153cf81585d27a634a19d">
+        <source xml:lang="en">Update action</source>
+        <target state="translated">更新操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++81b0538c480bf2f63a2346db5fa0618f5aa96be47c6039c1fc7d877c1c2dd120">
+        <source xml:lang="en">Update project from database</source>
+        <target state="translated">从数据库更新项目</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8671756ce1f486e98ffd9b8be6825b3f751e4bd700c84b0585a449f494aff99f">
+        <source xml:lang="en">Update {0} for cross-platform support?</source>
+        <target state="translated">是否更新{0}以获得跨平台支持?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ee240bfa30c4113a8c8bb5b527a90f1408c949edd788c8254ca675c9977564a">
+        <source xml:lang="en">Updating app setting: '{0}'</source>
+        <target state="translated">正在更新应用设置: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9a6565ec4e8fda62572630799ef7a2581b04afa9e96adf8cc413237611337e62">
+        <source xml:lang="en">Updating {0} from {1}...</source>
+        <target state="translated">正在从 {1} 更新 {0}...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e82b1c1823ceb2298da0a21e1f78b26478770748ce60081471ae63a0dd1ce4ca">
+        <source xml:lang="en">User has cancelled selection for how to run autorest.</source>
+        <target state="translated">用户已取消选择的 autorest 运行方式。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de554ddaf72fbc2e0ad0e75fc128d75b3422ebc13af1eea553bf73baa62f6eda">
+        <source xml:lang="en">User selected to install autorest gloablly.  Installing now...</source>
+        <target state="translated">用户已选择全局安装 autorest。正在安装...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++db5b6b4a22933d3ab59428635443e86de89e8eb88223b917e2348634d33f2665">
+        <source xml:lang="en">User selected to run via npx.</source>
+        <target state="translated">用户已选择通过 npx 运行。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++865e5c3f2fa53737682b267dac4c8de18416009fd8d7af469d7b6afff4637b68">
+        <source xml:lang="en">Validation of external streaming job passed.</source>
+        <target state="translated">已通过外部流式作业验证。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
+        <source xml:lang="en">Value</source>
+        <target state="translated">值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8f73adcb45d0984043f93f35be4a8f03a943e8fc30e430b8b47ed6e6004424eb">
+        <source xml:lang="en">Value cannot be empty</source>
+        <target state="translated">值不能为空</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dd167905de0defcaf72de673ee44c07431770d129ccffab286bd2edfdaf62396">
+        <source xml:lang="en">Version</source>
+        <target state="translated">版本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e509726379509070e45ef82e21ca793ccbf057370bfda716fc16727246a30094">
+        <source xml:lang="en">Version must not be empty</source>
+        <target state="translated">版本不得为空</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
+        <source xml:lang="en">View</source>
+        <target state="translated">查看</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1759988fd95773a6e5fffcc896143f0bb8b7798322561aa8ea5ddbf79da0e9d1">
+        <source xml:lang="en">View changes in Schema Compare</source>
+        <target state="translated">查看架构比较中的更改</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c2c07c87e14eba28c8bad35f750ec480ef306481fa641471dd22ad775643aa9">
+        <source xml:lang="en">Waiting for {0} seconds before another attempt for operation '{1}'</source>
+        <target state="translated">正在等待 {0} 秒，然后再次尝试执行操作 "{1}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++687f18249c3d167aac61254957df3d2cd669ee30d31548e228ae611f932b2b9e">
+        <source xml:lang="en">Would you like to reload your database project?</source>
+        <target state="translated">是否希望重新加载数据库项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++811599ca6b99044df79bb12bb6442b01044bcbee3958779a25f9d6c16ae683e3">
+        <source xml:lang="en">Would you like to save the settings in a profile (.publish.xml)?</source>
+        <target state="translated">是否要将设置保存在配置文件 (.publish.xml) 中?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43ef5bb1b921e9d7373f8ee73d6691747356ac92e63ac2286ec62fc39df2f954">
+        <source xml:lang="en">Would you like to update Azure Function local.settings.json with the new connection string?</source>
+        <target state="translated">是否要使用新的连接字符串更新 Azure 函数 local.settings.json?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
+        <source xml:lang="en">Yes</source>
+        <target state="translated">是</target>
+      </trans-unit>
+      <trans-unit id="++CODE++09fcc635009af0dd74b8ac70ac160e92cdd8bb5dc609c8be5f4e2a1f5ae82cdf">
+        <source xml:lang="en">Yes (Recommended)</source>
+        <target state="translated">是(推荐)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1d6b91b67c2afa5e322988d9462638d354ddf8a1ef79dba987f815c22b4baee">
+        <source xml:lang="en">at</source>
+        <target state="translated">在</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d47e636a4b383a2f7c545dc630a55ae2ba8ff9a849d71b09aae2ec437e5550e5">
+        <source xml:lang="en">dacpac Files</source>
+        <target state="translated">dacpac 文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
+        <source xml:lang="en">default</source>
+        <target state="translated">默认</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3b9c358f36f0a31b6ad3e14f309c7cf198ac9246e8316f9ce543d5b19ac02b80">
+        <source xml:lang="en">file</source>
+        <target state="translated">文件</target>
+      </trans-unit>
+      <trans-unit id="++CODE++034a0062488256f14c8b14d025ec3988b148938f7f9db94ca0ac73f4b3614d8a">
+        <source xml:lang="en">folder</source>
+        <target state="translated">文件夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1b52f3a2e15148731314bf167145c54565ed2385a862b5eb7771eaf719e4f82e">
+        <source xml:lang="en">hr</source>
+        <target state="translated">小时</target>
+      </trans-unit>
+      <trans-unit id="++CODE++44eaba29486899334009b57f2ba4ef6c871017792c74e6e829958164087f3ea0">
+        <source xml:lang="en">label: {0} does not exist in the options value name lookup</source>
+        <target state="translated">标签: 选项值名称查找中不存在 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1f6fa6f69d185e6086d04e7330361bf9001a3b8d0ce511171055dc34eb90c1c5">
+        <source xml:lang="en">min</source>
+        <target state="translated">分钟</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2c1822878838eb52770e9845b4582d503d975b484897b83048ea841e0c5c6b6">
+        <source xml:lang="en">msec</source>
+        <target state="translated">毫秒</target>
+      </trans-unit>
+      <trans-unit id="++CODE++add93534eeb463800fe0ed0946048d33636dd2a014fab92e8a37f77ce98c740b">
+        <source xml:lang="en">sec</source>
+        <target state="translated">秒</target>
+      </trans-unit>
+      <trans-unit id="++CODE++08fefe04a78a12b9e4ac61ac107a5237d5d6993e0dc8c6706949b4c9fe54ca6f">
+        <source xml:lang="en">{0} If the project was created in SSDT, it will continue to work in both tools. Do you want to update the project?</source>
+        <target state="translated">{0} 如果项目是在 SSDT 中创建的，它将继续在这两个工具中工作。是否要更新项目?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22127281dfef4fc4fe2b99c5332e45a9fdf79971ffb2ada09eb8fd89f5847d95">
+        <source xml:lang="en">{0} admin password</source>
+        <target state="translated">{0} 管理员密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+        <source xml:lang="en">{0} password doesn't match the confirmation password</source>
+        <target state="translated">{0} 密码与确认密码不匹配</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dd67465d5f08a1151583a1469fdd6af82d51267a1d949758a963f9bb5a48ba07">
+        <source xml:lang="en">{0} password doesn't meet the password complexity requirement. For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
+        <target state="translated">{0} 密码不符合密码复杂性要求。有关详细信息，请参阅 https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab1191cc9aaf61f200528e66e69548d04d5baf1076772851089dc2bb8964d57c">
+        <source xml:lang="en">{0} port number</source>
+        <target state="translated">{0} 端口号</target>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="package" source-language="en" datatype="plaintext" target-language="zh-Hans">
+    <body>
+      <trans-unit id="sqlDatabaseProjects.addDatabaseReference">
+        <source xml:lang="en">Add Database Reference</source>
+        <target state="translated">添加数据库引用</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.addExistingItem">
+        <source xml:lang="en">Add Existing Item...</source>
+        <target state="translated">添加现有项...</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newExternalStreamingJob">
+        <source xml:lang="en">Add External Streaming Job</source>
+        <target state="translated">添加外部流式处理作业</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newFolder">
+        <source xml:lang="en">Add Folder</source>
+        <target state="translated">添加文件夹</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newItem">
+        <source xml:lang="en">Add Item...</source>
+        <target state="translated">添加项...</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newPostDeploymentScript">
+        <source xml:lang="en">Add Post-Deployment Script</source>
+        <target state="translated">添加后期部署脚本</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newPreDeploymentScript">
+        <source xml:lang="en">Add Pre-Deployment Script</source>
+        <target state="translated">添加预先部署脚本</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newPublishProfile">
+        <source xml:lang="en">Add Publish Profile</source>
+        <target state="translated">新建发布配置文件</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.addSqlCmdVariable">
+        <source xml:lang="en">Add SQLCMD Variable</source>
+        <target state="translated">添加 SQLCMD 变量</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newScript">
+        <source xml:lang="en">Add Script</source>
+        <target state="translated">添加脚本</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newStoredProcedure">
+        <source xml:lang="en">Add Stored Procedure</source>
+        <target state="translated">添加存储过程</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newTable">
+        <source xml:lang="en">Add Table</source>
+        <target state="translated">添加表</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.newView">
+        <source xml:lang="en">Add View</source>
+        <target state="translated">添加视图</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.build">
+        <source xml:lang="en">Build</source>
+        <target state="translated">生成</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.buildWithCodeAnalysis">
+        <source xml:lang="en">Build With Code Analysis</source>
+        <target state="translated">使用 Code Analysis 生成</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.changeTargetPlatform">
+        <source xml:lang="en">Change Target Platform</source>
+        <target state="translated">更新目标平台</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.close">
+        <source xml:lang="en">Close Database Project</source>
+        <target state="translated">关闭数据库项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.convertToSdkStyleProject">
+        <source xml:lang="en">Convert to SDK-style project</source>
+        <target state="translated">转换为 SDK 样式项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.createProjectFromDatabase">
+        <source xml:lang="en">Create Project From Database</source>
+        <target state="translated">根据数据库创建项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.Settings">
+        <source xml:lang="en">Database Projects</source>
+        <target state="translated">数据库项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.displayName">
+        <source xml:lang="en">Database Projects</source>
+        <target state="translated">数据库项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.delete">
+        <source xml:lang="en">Delete</source>
+        <target state="translated">删除</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.description">
+        <source xml:lang="en">Design and publish SQL database schemas</source>
+        <target state="translated">设计和发布 SQL 数据库架构</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.edit">
+        <source xml:lang="en">Edit</source>
+        <target state="translated">编辑</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.editProjectFile">
+        <source xml:lang="en">Edit .sqlproj File</source>
+        <target state="translated">编辑 .sqlproj 文件</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.enablePreviewFeatures">
+        <source xml:lang="en">Enable preview SQL Database Projects features</source>
+        <target state="translated">启用预览版 SQL 数据库项目功能</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.exclude">
+        <source xml:lang="en">Exclude from project</source>
+        <target state="translated">从项目中排除</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.dotnetInstallLocation">
+        <source xml:lang="en">Full path to .NET SDK on the machine. For example, if dotnet.exe is located at C:\folder1\dotnet\dotnet.exe, set the path for this setting to C:\folder1\dotnet</source>
+        <target state="translated">计算机上 .NET SDK 的完整路径。例如，如果 dotnet.exe 位于 C: \folder1\dotnet\dotnet.exe，则将此设置的路径设置为 C: \folder1\dotnet</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.generateProjectFromOpenApiSpec">
+        <source xml:lang="en">Generate SQL Project from OpenAPI/Swagger spec (Preview)</source>
+        <target state="translated">从 OpenAPI/Swagger 规范生成 SQL 项目(预览)</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.new">
+        <source xml:lang="en">New Database Project</source>
+        <target state="translated">新建数据库项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.welcome">
+        <source xml:lang="en">No database projects currently open.
+[New Project](command:sqlDatabaseProjects.new)
+[Open Project](command:sqlDatabaseProjects.open)
+[Create Project From Database](command:sqlDatabaseProjects.importDatabase)</source>
+        <target state="translated">当前没有打开数据项目。
+[新建项目](command:sqlDatabaseProjects.new)
+[打开项目](command:sqlDatabaseProjects.open)
+[根据数据库创建项目](command:sqlDatabaseProjects.importDatabase)</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openContainingFolder">
+        <source xml:lang="en">Open Containing Folder</source>
+        <target state="translated">打开包含文件夹</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.open">
+        <source xml:lang="en">Open Database Project</source>
+        <target state="translated">打开数据库项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openInDesigner">
+        <source xml:lang="en">Open in Designer</source>
+        <target state="translated">在设计器中打开</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.openReferencedSqlProject">
+        <source xml:lang="en">Open project</source>
+        <target state="translated">打开项目</target>
+      </trans-unit>
+      <trans-unit id="title.projectsView">
+        <source xml:lang="en">Projects</source>
+        <target state="translated">项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.properties">
+        <source xml:lang="en">Properties</source>
+        <target state="translated">属性</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.publish">
+        <source xml:lang="en">Publish</source>
+        <target state="translated">发布</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.publishDialog">
+        <source xml:lang="en">Publish (Preview)</source>
+        <target state="translated">发布(预览版)</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.rename">
+        <source xml:lang="en">Rename</source>
+        <target state="translated">重命名</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.schemaCompare">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="translated">架构比较</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.updateProjectFromDatabase">
+        <source xml:lang="en">Update Project From Database</source>
+        <target state="translated">从数据库更新项目</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.validateExternalStreamingJob">
+        <source xml:lang="en">Validate External Streaming Job</source>
+        <target state="translated">验证外部流式处理作业</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.collapseProjectNodes">
+        <source xml:lang="en">Whether project nodes start collapsed</source>
+        <target state="translated">项目节点是否启动已折叠</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.netCoreDoNotAsk">
+        <source xml:lang="en">Whether to prompt the user to install .NET SDK when not detected.</source>
+        <target state="translated">未检测到时是否提示用户安装 .NET SDK。</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.nodejsDoNotAsk">
+        <source xml:lang="en">Whether to prompt the user to install Node.js when not detected.</source>
+        <target state="translated">是否在未检测到时提示用户安装 Node.js。</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.autorestSqlVersion">
+        <source xml:lang="en">Which version of Autorest.Sql to use from NPM.  Latest will be used if not set.</source>
+        <target state="translated">要从 NPM 使用哪个版本的 Autorest.Sql。如果未设置，则将使用最新版本。</target>
+      </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.microsoftBuildSqlVersion">
+        <source xml:lang="en">Which version of Microsoft.Build.Sql SDK to use for building legacy sql projects. Example: 0.1.7-preview</source>
+        <target state="translated">用于生成旧版 SQL 项目的 Microsoft.Build.Sql SDK 版本。示例: 0.1.7-preview</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
