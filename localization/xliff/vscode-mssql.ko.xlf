@@ -1160,6 +1160,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the extension ID</note>
         <target state="translated">확장 '{0}'에는 연결 공유 권한이 필요합니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+        <source xml:lang="en">Connection string copied to clipboard</source>
+        <target state="new">Connection string copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">연결 문자열이 필요합니다.</target>
@@ -5784,6 +5788,10 @@ Query: {2}</source>
       <trans-unit id="mssql.copyObjectName">
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">개체 이름 복사</target>
+      </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy as Connection String</source>
+        <target state="new">Copy as Connection String</target>
       </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
