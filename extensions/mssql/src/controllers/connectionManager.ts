@@ -47,7 +47,7 @@ import { DatabaseObjectSearchService } from "../services/databaseObjectSearchSer
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { getErrorMessage, TimeoutError, withTimeout } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
@@ -1166,6 +1166,8 @@ export default class ConnectionManager {
                 cloudType: getCloudId(),
                 connectionSource: connectionSource,
             },
+            undefined,
+            true, // include call stack
         );
 
         if (!fileUri) {
@@ -1205,27 +1207,35 @@ export default class ConnectionManager {
             connectionCompletePromise,
         );
 
-        let initRequest: boolean;
+        let initResponse: boolean;
         try {
-            const initializeConnection = async () => {
-                initRequest = await this.client.sendRequest(
-                    ConnectionContracts.ConnectionRequest.type,
-                    connectParams,
-                );
-            };
-            await withTimeout(initializeConnection());
+            let isIntialized = false;
+            setTimeout(() => {
+                if (!isIntialized) {
+                    connectionActivity.update({
+                        longRunningIntialization: "true",
+                    });
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            initResponse = await this.client.sendRequest(
+                ConnectionContracts.ConnectionRequest.type,
+                connectParams,
+            );
         } catch (error) {
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(error);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
+            delete this._connections[fileUri];
             /**
              * If the initial connection attempt fails, log the error and return false.
              * We don’t invoke error callbacks here because the failure happens before
              * the SQL client even starts connecting. At this stage there’s nothing to
              * retry or recover from.
              */
-            const includeErrorMessage = error instanceof TimeoutError;
-            connectionActivity.endFailed(error, includeErrorMessage);
+            connectionActivity.endFailed(
+                error,
+                false, // Do not include error message as it might contain sensitive info
+            );
             return false;
         }
 
@@ -1235,12 +1245,16 @@ export default class ConnectionManager {
          * the SQL client even starts connecting. At this stage there’s nothing to
          * retry or recover from.
          */
-        if (!initRequest) {
+        if (!initResponse) {
             const initialConnectionError = new Error("Failed to initiate connection");
             this.removeActiveConnection(fileUri);
             connectionCompletePromise.reject(initialConnectionError);
             this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
-            connectionActivity.endFailed(initialConnectionError, false);
+            delete this._connections[fileUri];
+            connectionActivity.endFailed(
+                initialConnectionError,
+                true, // include error message
+            );
             return false;
         }
 
@@ -1269,7 +1283,10 @@ export default class ConnectionManager {
                     connectionInfo.credentials,
                 );
 
-                errorType = errorHandlingResult.errorHandled;
+                errorType = errorHandlingResult?.errorHandled;
+                connectionActivity.update({
+                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                });
                 if (errorHandlingResult.isHandled) {
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
@@ -1342,6 +1359,7 @@ export default class ConnectionManager {
                     telemetryActivityErrorType,
                     undefined,
                 );
+                throw error;
             }
         }
 
@@ -1622,35 +1640,39 @@ export default class ConnectionManager {
             TelemetryViews.ConnectionManager,
             TelemetryActions.CancelConnection,
         );
-
-        const cancelConnectionInternal = async () => {
-            const result = await this.client.sendRequest(
-                ConnectionContracts.CancelConnectRequest.type,
-                cancelParams,
-            );
-            if (result) {
-                this.statusView.setNotConnected(fileUri);
-                cancelActivity.end(ActivityStatus.Succeeded);
-            } else {
-                cancelActivity.endFailed(new Error("Failed to cancel connection"), false);
+        let isCanceled = false;
+        setTimeout(() => {
+            if (!isCanceled) {
+                cancelActivity.endFailed(
+                    new Error("Cancellation timed out"),
+                    true, // include error message
+                );
             }
-        };
+        }, 5000);
 
-        try {
-            await withTimeout(cancelConnectionInternal());
-        } catch (error) {
+        const result = await this.client.sendRequest(
+            ConnectionContracts.CancelConnectRequest.type,
+            cancelParams,
+        );
+        isCanceled = true;
+        if (result) {
             this.statusView.setNotConnected(fileUri);
-            cancelActivity.endFailed(error, error instanceof TimeoutError);
+            cancelActivity.end(ActivityStatus.Succeeded);
+            // Force cleanup of promises and state
+            const completionPromise = this._uriToConnectionCompleteParamsMap.get(fileUri);
+            if (completionPromise) {
+                completionPromise.reject(new Error("Connection cancelled"));
+                this._uriToConnectionCompleteParamsMap.delete(fileUri);
+            }
+            this.removeActiveConnection(fileUri);
+        } else {
+            cancelActivity.endFailed(
+                new Error(
+                    "Failed to cancel connection. Most likely connection already established.",
+                ),
+                true, // include error message
+            );
         }
-
-        // Force cleanup of promises and state
-        const completionPromise = this._uriToConnectionCompleteParamsMap.get(fileUri);
-        if (completionPromise) {
-            completionPromise.reject(new Error("Connection cancelled"));
-            this._uriToConnectionCompleteParamsMap.delete(fileUri);
-        }
-
-        this.removeActiveConnection(fileUri);
     }
 
     /**
