@@ -52,7 +52,7 @@ import {
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { getErrorMessage, TimeoutError, withTimeout } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -86,8 +86,6 @@ export const editorEol =
     vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
         ? os.EOL
         : vscode.workspace.getConfiguration("files").get<string>("eol");
-
-const CANCELLATION_TIMEOUT_MS = 5000;
 
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
@@ -238,22 +236,35 @@ export default class QueryRunner {
         const cancelQueryActivity = startActivity(
             TelemetryViews.QueryEditor,
             TelemetryActions.CancelQuery,
+            undefined,
+            undefined,
+            undefined,
+            true, // Include call stack
         );
         const cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         try {
-            const cancelPromise = this._client.sendRequest(QueryCancelRequest.type, cancelParams);
-            const queryCancelResult = await withTimeout(
-                Promise.resolve(cancelPromise),
-                CANCELLATION_TIMEOUT_MS,
+            let isCanceled = false;
+            setTimeout(() => {
+                if (!isCanceled) {
+                    cancelQueryActivity?.endFailed(
+                        new Error("Cancellation timed out"),
+                        true, // include error message
+                    );
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            const cancelationResult = await this._client.sendRequest(
+                QueryCancelRequest.type,
+                cancelParams,
             );
+            isCanceled = true;
             cancelQueryActivity?.end(ActivityStatus.Succeeded);
-            return queryCancelResult;
+            return cancelationResult;
         } catch (error) {
             this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
             );
-            cancelQueryActivity?.endFailed(error, error instanceof TimeoutError);
+            cancelQueryActivity?.endFailed(error, false);
             throw error;
         }
     }
@@ -307,22 +318,27 @@ export default class QueryRunner {
                 executionType: "statement",
                 hasExecutionPlan: executionPlanOptions ? "true" : "false",
             },
+            undefined,
+            true, // Include call stack
         );
         try {
-            await withTimeout(
-                (async () => {
-                    await this._client.sendRequest(
-                        QueryExecuteStatementRequest.type,
-                        optionsParams,
+            let isCompleted = false;
+            setTimeout(() => {
+                if (!isCompleted) {
+                    runStatementActivity?.endFailed(
+                        new Error("Run statement initialization timed out"),
+                        true, // include error message
                     );
-                    this._startEmitter.fire(this.uri);
-                })(),
-            );
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
+            this._startEmitter.fire(this.uri);
+            isCompleted = true;
             runStatementActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
-            runStatementActivity?.endFailed(error, error instanceof TimeoutError);
+            runStatementActivity?.endFailed(error, false);
             throw error;
         }
     }
@@ -372,20 +388,28 @@ export default class QueryRunner {
                 executionType: queryType,
                 hasExecutionPlan: executionPlanOptions ? "true" : "false",
             },
+            undefined,
+            true, // Include call stack
         );
 
         try {
-            await withTimeout(
-                (async () => {
-                    await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
-                    this._startEmitter.fire(this.uri);
-                })(),
-            );
+            let isCompleted = false;
+            setTimeout(() => {
+                if (!isCompleted) {
+                    runQueryActivity?.endFailed(
+                        new Error("Run query initialization timed out"),
+                        true, // include error message
+                    );
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
+            this._startEmitter.fire(this.uri);
+            isCompleted = true;
             runQueryActivity?.end(ActivityStatus.Succeeded);
         } catch (error) {
             this._handleQueryCleanup(undefined, error);
             this._startFailedEmitter.fire(getErrorMessage(error));
-            runQueryActivity?.endFailed(error, error instanceof TimeoutError);
+            runQueryActivity?.endFailed(error, false);
             throw error;
         }
     }
