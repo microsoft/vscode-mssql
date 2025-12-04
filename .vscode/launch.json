@@ -22,7 +22,7 @@
         // Uncomment this to use a specified version of STS, see
         // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
         // for more details
-        // "MSSQL_SQLTOOLSSERVICE": "/Users/aasim/src/sqltoolsservice/src/Microsoft.SqlTools.ServiceLayer/bin/Release/net8.0/osx-arm64/publish/"
+        // "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
       }
     }
   ]
