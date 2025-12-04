@@ -639,7 +639,7 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the database name</note>
-        <target state="new">Change database to '{2}' for connection '{0}' (ID: {1})?</target>
+        <target state="translated">将连接 ‘{0}’ (ID: {1})的数据库更改为 ‘{2}’?</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -678,7 +678,7 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the database name</note>
-        <target state="new">Changing database to '{2}' for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在将连接 ‘{0}’ (ID: {1})的数据库更改为 ‘{2}’</target>
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
@@ -1595,7 +1595,7 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Disconnect from connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Disconnect from connection '{0}' (ID: {1})?</target>
+        <target state="translated">是否与连接 ‘{0}’ (ID: {1})断开连接?</target>
       </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
@@ -1610,7 +1610,7 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Disconnecting from connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Disconnecting from connection '{0}' (ID: {1})</target>
+        <target state="translated">正在断开与连接 ‘{0}’ (ID: {1})的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -2502,7 +2502,7 @@ Error:
         <source xml:lang="en">Get connection details for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Get connection details for connection '{0}' (ID: {1})?</target>
+        <target state="translated">获取连接 ‘{0}’ (ID: {1})的连接详细信息?</target>
       </trans-unit>
       <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
         <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
@@ -2530,7 +2530,7 @@ Error:
         <source xml:lang="en">Getting connection details for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Getting connection details for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在获取连接 ‘{0}’ (ID: {1})的连接详细信息</target>
       </trans-unit>
       <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
         <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
@@ -2860,31 +2860,31 @@ Error:
         <source xml:lang="en">List databases for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List databases for connection '{0}' (ID: {1})?</target>
+        <target state="translated">列出连接 ‘{0}’ (ID: {1})的数据库?</target>
       </trans-unit>
       <trans-unit id="++CODE++a0d0c5314184e531a57ada941f98fd3d3d6a0a0815296c08c514d2885672c998">
         <source xml:lang="en">List functions for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List functions for connection '{0}' (ID: {1})?</target>
+        <target state="translated">列出连接 ‘{0}’ (ID: {1})的函数?</target>
       </trans-unit>
       <trans-unit id="++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51">
         <source xml:lang="en">List schemas for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List schemas for connection '{0}' (ID: {1})?</target>
+        <target state="translated">列出连接 ‘{0}’ (ID: {1})的架构?</target>
       </trans-unit>
       <trans-unit id="++CODE++bd24852e1bccb2d3a2353ce971a9b8d5166a6e4be8011bff6ca03e8fd24b51a1">
         <source xml:lang="en">List tables for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List tables for connection '{0}' (ID: {1})?</target>
+        <target state="translated">列出连接 ‘{0}’ (ID: {1})的表?</target>
       </trans-unit>
       <trans-unit id="++CODE++743c7de4570af673cd265fa7de1e6fd699d92cf80d54a530f4ac79c7bd3f0794">
         <source xml:lang="en">List views for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List views for connection '{0}' (ID: {1})?</target>
+        <target state="translated">列出连接 ‘{0}’ (ID: {1})的视图?</target>
       </trans-unit>
       <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
         <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
@@ -2910,13 +2910,13 @@ Error:
         <source xml:lang="en">Listing databases for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing databases for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在列出连接 ‘{0}’ (ID: {1})的数据库</target>
       </trans-unit>
       <trans-unit id="++CODE++e3540b429caa98528f0ed33c61c828ab32b5c66e3012740be4150a6b944e9e9b">
         <source xml:lang="en">Listing functions for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing functions for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在列出连接 ‘{0}’ (ID: {1})的函数</target>
       </trans-unit>
       <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
         <source xml:lang="en">Listing role assignments for workspace '${workspaceId}'</source>
@@ -2927,7 +2927,7 @@ Error:
         <source xml:lang="en">Listing schemas for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing schemas for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在列出连接 ‘{0}’ (ID: {1})的架构</target>
       </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
@@ -2937,13 +2937,13 @@ Error:
         <source xml:lang="en">Listing tables for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing tables for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在列出连接 ‘{0}’ (ID: {1})的表</target>
       </trans-unit>
       <trans-unit id="++CODE++4115b66e355171d93bf284e1d2fd019eb40839a8ef6ee46dda787e0430c3c2cc">
         <source xml:lang="en">Listing views for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing views for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在列出连接 ‘{0}’ (ID: {1})的视图</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -3829,12 +3829,12 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">找到代理设置，但在分析 URL 时遇到错误: ‘{0}’。 使用 MSSQL 扩展时可能会遇到连接问题。 错误: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">找到代理设置，但没有协议(例如 http://): ‘{0}’。 使用 MSSQL 扩展时可能会遇到连接问题。</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -4144,9 +4144,9 @@ Query: {2}</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
-        <target state="new">Run query on connection '{0}' (ID: {1})?
+        <target state="translated">在连接 ‘{0}’ (ID: {1})上运行查询?
 
-Query: {2}</target>
+查询: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -4156,7 +4156,7 @@ Query: {2}</target>
         <source xml:lang="en">Running query on connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Running query on connection '{0}' (ID: {1})</target>
+        <target state="translated">正在连接 ‘{0}’ (ID: {1})上运行查询</target>
       </trans-unit>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
@@ -4657,7 +4657,7 @@ Query: {2}</target>
         <source xml:lang="en">Show schema for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Show schema for connection '{0}' (ID: {1})?</target>
+        <target state="translated">显示连接 ‘{0}’ (ID: {1})的架构?</target>
       </trans-unit>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
@@ -4667,7 +4667,7 @@ Query: {2}</target>
         <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Showing schema for connection '{0}' (ID: {1})</target>
+        <target state="translated">正在显示连接 ‘{0}’ (ID: {1})的架构</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -5180,7 +5180,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
-        <target state="new">Unknown Connection</target>
+        <target state="translated">未知的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
@@ -5715,7 +5715,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
-        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
+        <target state="translated">选择结果网格列的自动调整大小的方式(标题 + 数据、仅数据或禁用自动调整大小)。</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5833,7 +5833,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
         <source xml:lang="en">Disable automatic column sizing</source>
-        <target state="new">Disable automatic column sizing</target>
+        <target state="translated">禁用自动列大小调整</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6491,15 +6491,15 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
         <source xml:lang="en">Use column headers and data to size columns automatically</source>
-        <target state="new">Use column headers and data to size columns automatically</target>
+        <target state="translated">使用列标题和数据自动调整列大小</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
         <source xml:lang="en">Use only column headers to size columns automatically</source>
-        <target state="new">Use only column headers to size columns automatically</target>
+        <target state="translated">仅使用列标题自动调整列大小</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
-        <target state="new">Use only row data to size columns automatically</target>
+        <target state="translated">仅使用行数据自动调整列大小</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

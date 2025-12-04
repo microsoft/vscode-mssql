@@ -3829,12 +3829,12 @@ Erro:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">Configurações de proxy encontradas, mas houve um erro ao analisar a URL: "{0}".  Você pode ter problemas de conexão ao usar a extensão MSSQL.  Erro: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">Configurações de proxy encontradas, mas sem um protocolo (por exemplo, http://): "{0}".  Você pode ter problemas de conexão ao usar a extensão MSSQL.</target>
       </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
@@ -5715,7 +5715,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
-        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
+        <target state="translated">Escolha como as colunas da grade de resultados são dimensionadas automaticamente (cabeçalhos + dados, somente dados ou desabilite o dimensionamento automático).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5833,7 +5833,7 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
         <source xml:lang="en">Disable automatic column sizing</source>
-        <target state="new">Disable automatic column sizing</target>
+        <target state="translated">Desabilitar o dimensionamento automático de coluna</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6491,15 +6491,15 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
         <source xml:lang="en">Use column headers and data to size columns automatically</source>
-        <target state="new">Use column headers and data to size columns automatically</target>
+        <target state="translated">Usar cabeçalhos de coluna e dados para dimensionar colunas automaticamente</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
         <source xml:lang="en">Use only column headers to size columns automatically</source>
-        <target state="new">Use only column headers to size columns automatically</target>
+        <target state="translated">Usar somente cabeçalhos de coluna para dimensionar colunas automaticamente</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
-        <target state="new">Use only row data to size columns automatically</target>
+        <target state="translated">Usar somente dados de linha para dimensionar colunas automaticamente</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
