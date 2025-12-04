@@ -1673,7 +1673,7 @@ export default class MainController implements vscode.Disposable {
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
                     const profileId = connectionProfile
                         ? connectionProfile.id ||
-                        `${connectionProfile.server}_${connectionProfile.database || ""}`
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
                     const initialState: DacpacDialogWebviewState = {
@@ -1819,11 +1819,11 @@ export default class MainController implements vscode.Disposable {
                         vscode.window.showInformationMessage(
                             stoppedSuccessfully
                                 ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
-                                    containerName,
-                                )
+                                      containerName,
+                                  )
                                 : LocalizedConstants.LocalContainers.failStopContainer(
-                                    containerName,
-                                ),
+                                      containerName,
+                                  ),
                         );
                     });
                 },
@@ -1861,11 +1861,11 @@ export default class MainController implements vscode.Disposable {
                         vscode.window.showInformationMessage(
                             deletedSuccessfully
                                 ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
-                                    containerName,
-                                )
+                                      containerName,
+                                  )
                                 : LocalizedConstants.LocalContainers.failDeleteContainer(
-                                    containerName,
-                                ),
+                                      containerName,
+                                  ),
                         );
                         node.loadingLabel =
                             LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
