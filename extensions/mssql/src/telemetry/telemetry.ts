@@ -220,7 +220,6 @@ export function startActivity(
     const activityUpdateAdditionalPropsBase: TelemetryEventProperties = {
         correlationId,
         ...startActivityAdditionalProps,
-        ...(callStack && { callStack }),
     };
 
     const activityUpdateAdditionalMeasurementsBase: TelemetryEventMeasures = {
@@ -233,6 +232,7 @@ export function startActivity(
         connectionInfo?: vscodeMssql.IConnectionInfo,
         serverInfo?: vscodeMssql.IServerInfo,
     ): void {
+        const updateCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(
             telemetryView,
             telemetryAction,
@@ -240,6 +240,7 @@ export function startActivity(
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: ActivityStatus.Pending,
+                ...(updateCallStack && { callStack: updateCallStack }),
             },
             {
                 ...activityUpdateAdditionalMeasurementsBase,
@@ -258,6 +259,7 @@ export function startActivity(
         connectionInfo?: vscodeMssql.IConnectionInfo,
         serverInfo?: vscodeMssql.IServerInfo,
     ) {
+        const endCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(
             telemetryView,
             telemetryAction,
@@ -265,6 +267,7 @@ export function startActivity(
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: activityStatus,
+                ...(endCallStack && { callStack: endCallStack }),
             },
             {
                 ...activityUpdateAdditionalMeasurementsBase,
@@ -287,6 +290,7 @@ export function startActivity(
         serverInfo?: vscodeMssql.IServerInfo,
     ) {
         includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
+        const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;
         sendErrorEvent(
             telemetryView,
             telemetryAction,
@@ -298,6 +302,7 @@ export function startActivity(
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
                 activityStatus: ActivityStatus.Failed,
+                ...(endFailedCallStack && { callStack: endFailedCallStack }),
             },
             {
                 ...activityUpdateAdditionalMeasurementsBase,
