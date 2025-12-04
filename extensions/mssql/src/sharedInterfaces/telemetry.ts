@@ -192,6 +192,7 @@ export enum TelemetryActions {
     CancelConnection = "CancelConnection",
     SendNotification = "SendNotification",
     onNotification = "onNotification",
+    RefreshEntraToken = "RefreshEntraToken",
 }
 
 /**
