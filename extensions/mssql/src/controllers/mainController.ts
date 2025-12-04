@@ -1724,9 +1724,19 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyConnectionString,
                 async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree.selection.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
                     if (!node || !node.connectionProfile) {
                         return;
                     }
+                    if (
+                        node.context.type !== Constants.disconnectedServerNodeType &&
+                        node.context.type !== Constants.serverLabel
+                    ) {
+                        return;
+                    }
+
                     const connectionDetails = this.connectionManager.createConnectionDetails(
                         node.connectionProfile,
                     );
