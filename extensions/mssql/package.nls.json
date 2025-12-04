@@ -53,7 +53,7 @@
     "mssql.tableExplorer": "Edit Data (Preview)",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
-    "mssql.copyConnectionString": "Copy As Connection String",
+    "mssql.copyConnectionString": "Copy as Connection String",
     "mssql.addAadAccount": "Add Microsoft Entra Account",
     "mssql.removeAadAccount": "Remove Microsoft Entra Account",
     "mssql.clearAzureAccountTokenCache": "Clear Microsoft Entra account token cache",
