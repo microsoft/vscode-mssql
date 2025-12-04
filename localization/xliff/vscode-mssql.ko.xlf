@@ -3780,6 +3780,10 @@ Error:
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">개인정보처리방침</target>
       </trans-unit>
+      <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
+        <source xml:lang="en">Private</source>
+        <target state="new">Private</target>
+      </trans-unit>
       <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
         <source xml:lang="en">Processing include or exclude all differences operation.</source>
         <target state="translated">처리에는 모든 차이점 작업이 포함되거나 제외됩니다.</target>
@@ -3825,12 +3829,16 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}').  MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.  오류: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}').  MSSQL 확장을 사용할 때 연결 문제가 발생할 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
+        <source xml:lang="en">Public</source>
+        <target state="new">Public</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -5707,7 +5715,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
-        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
+        <target state="translated">결과 표 열의 크기를 자동으로 조정하는 방법을 선택합니다(헤더 + 데이터, 데이터만 또는 자동 크기 조정 사용 안 함).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5825,7 +5833,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
         <source xml:lang="en">Disable automatic column sizing</source>
-        <target state="new">Disable automatic column sizing</target>
+        <target state="translated">자동 열 크기 조정 사용 안 함</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6483,15 +6491,15 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
         <source xml:lang="en">Use column headers and data to size columns automatically</source>
-        <target state="new">Use column headers and data to size columns automatically</target>
+        <target state="translated">열 머리글 및 데이터를 사용하여 자동으로 열 크기 조정</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
         <source xml:lang="en">Use only column headers to size columns automatically</source>
-        <target state="new">Use only column headers to size columns automatically</target>
+        <target state="translated">열 머리글만 사용하여 자동으로 열 크기 조정</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
-        <target state="new">Use only row data to size columns automatically</target>
+        <target state="translated">행 데이터만 사용하여 자동으로 열 크기 조정</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
