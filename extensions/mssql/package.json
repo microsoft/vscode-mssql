@@ -806,15 +806,11 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/ && viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/"
-                },
-                {
-                    "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server)\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.copyConnectionString",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
                 },
                 {
                     "command": "mssql.runQueryHistory",
