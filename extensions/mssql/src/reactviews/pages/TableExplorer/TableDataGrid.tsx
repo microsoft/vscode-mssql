@@ -156,6 +156,64 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
+            // Action columns (delete and undo)
+            const actionColumns: Column[] = [
+                {
+                    id: "delete",
+                    field: "id",
+                    name: "",
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
+                    formatter: (
+                        _row: number,
+                        _cell: number,
+                        _value: any,
+                        _columnDef: any,
+                        dataContext: any,
+                    ) => {
+                        const rowId = dataContext.id;
+                        const isDeleted = deletedRowsRef.current.has(rowId);
+                        const iconClass = isDeleted
+                            ? "mdi mdi-trash-can action-icon disabled"
+                            : "mdi mdi-trash-can action-icon pointer";
+                        return createDomElement("i", {
+                            className: iconClass,
+                            title: isDeleted ? "" : loc.tableExplorer.deleteRow,
+                        });
+                    },
+                    minWidth: 30,
+                    maxWidth: 30,
+                },
+                {
+                    id: "undo",
+                    field: "id",
+                    name: "",
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
+                    formatter: (
+                        _row: number,
+                        _cell: number,
+                        _value: any,
+                        _columnDef: any,
+                        dataContext: any,
+                    ) => {
+                        const rowId = dataContext.id;
+                        const isDeleted = deletedRowsRef.current.has(rowId);
+                        const iconClass = isDeleted
+                            ? "mdi mdi-undo action-icon pointer"
+                            : "mdi mdi-undo action-icon disabled";
+                        return createDomElement("i", {
+                            className: iconClass,
+                            title: isDeleted ? loc.tableExplorer.revertRow : "",
+                        });
+                    },
+                    minWidth: 30,
+                    maxWidth: 30,
+                },
+            ];
+
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 const column: Column = {
@@ -214,7 +272,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return dataColumns;
+            return [...actionColumns, ...dataColumns];
         }
 
         // Handle page size changes from props
@@ -490,6 +548,82 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        function handleCellClick(_e: Event, args: any) {
+            const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
+            const rowId = metadata?.dataContext?.id;
+
+            if (metadata?.columnDef.id === "delete") {
+                // Only handle if row is not already deleted
+                if (!deletedRowsRef.current.has(rowId)) {
+                    // Capture pagination state
+                    if (reactGridRef.current?.paginationService) {
+                        lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                        lastItemsPerPageRef.current =
+                            reactGridRef.current.paginationService.itemsPerPage;
+                    }
+
+                    if (onDeleteRow) {
+                        onDeleteRow(rowId);
+                    }
+
+                    // Track the deletion
+                    deletedRowsRef.current.add(rowId);
+
+                    // Remove tracked changes and failed cells for this row
+                    const keysToDelete: string[] = [];
+                    cellChangesRef.current.forEach((_, key) => {
+                        if (key.startsWith(`${rowId}-`)) {
+                            keysToDelete.push(key);
+                        }
+                    });
+                    keysToDelete.forEach((key) => {
+                        cellChangesRef.current.delete(key);
+                        failedCellsRef.current.delete(key);
+                    });
+
+                    // Notify parent of change count update
+                    if (onCellChangeCountChanged) {
+                        onCellChangeCountChanged(cellChangesRef.current.size);
+                    }
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
+                    }
+
+                    // Refresh the grid to update button states
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                    }
+                }
+            } else if (metadata?.columnDef.id === "undo") {
+                // Only handle if row is deleted
+                if (deletedRowsRef.current.has(rowId)) {
+                    // Capture pagination state
+                    if (reactGridRef.current?.paginationService) {
+                        lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                        lastItemsPerPageRef.current =
+                            reactGridRef.current.paginationService.itemsPerPage;
+                    }
+
+                    if (onRevertRow) {
+                        onRevertRow(rowId);
+                    }
+
+                    // Remove from deletion tracking
+                    deletedRowsRef.current.delete(rowId);
+
+                    // Notify parent of deletion count update
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
+                    }
+
+                    // Refresh the grid to update button states
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                    }
+                }
+            }
+        }
+
         function handleContextMenuCommand(_e: any, args: any) {
             // Capture pagination state
             if (reactGridRef.current?.paginationService) {
@@ -635,6 +769,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataset={dataset}
                     onReactGridCreated={($event) => reactGridReady($event.detail)}
                     onCellChange={($event) => handleCellChange($event, $event.detail.args)}
+                    onClick={($event) =>
+                        handleCellClick($event.detail.eventData, $event.detail.args)
+                    }
                 />
             </div>
         );
