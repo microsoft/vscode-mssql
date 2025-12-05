@@ -464,6 +464,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public updateRowCount() {
         this.withRenderPreservingSelection(() => {
             this._grid.updateRowCount();
+            this._grid.render();
             if (this._autoscroll) {
                 this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
             }
