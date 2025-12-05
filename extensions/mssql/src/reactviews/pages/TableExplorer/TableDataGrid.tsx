@@ -345,7 +345,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const FILTER_ROW_HEIGHT = 30;
 
                     setOptions({
-                        alwaysShowVerticalScroll: false,
+                        alwaysShowVerticalScroll: true,
                         autoEdit: false,
                         autoCommitEdit: true,
                         editable: true,
