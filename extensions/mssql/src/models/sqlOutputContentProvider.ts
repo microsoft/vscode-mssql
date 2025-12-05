@@ -23,6 +23,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -352,6 +353,10 @@ export class SqlOutputContentProvider {
         if (!queryRunner) {
             return;
         }
+
+        // Clear previous grid state (filters, sorts, column widths) for this URI
+        store.deleteUriState(uri);
+
         this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
