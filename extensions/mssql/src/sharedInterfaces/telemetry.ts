@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
+import { IConnectionDialogProfile } from "./connectionDialog";
 
 export enum TelemetryViews {
     ObjectExplorer = "ObjectExplorer",
@@ -227,7 +228,7 @@ export type FinishActivityFailed = (
     errorType?: string,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
-    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    connectionProfile?: IConnectionDialogProfile,
     serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
