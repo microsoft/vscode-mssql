@@ -17,7 +17,7 @@
     --slick-border-color: var(--vscode-editorWidget-border);
     --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-bottom: 0;
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-left: 0;
     --slick-cell-box-shadow: none;
     --slick-grid-border-color: var(--vscode-editorWidget-border);
