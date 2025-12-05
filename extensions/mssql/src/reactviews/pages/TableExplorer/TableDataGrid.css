@@ -121,7 +121,7 @@
 }
 
 /* VS Code-style context menu */
-.slick-context-menu {
+#tableExplorerGrid .slick-context-menu {
     background-color: var(--vscode-menu-background) !important;
     border: 1px solid var(--vscode-menu-border) !important;
     border-radius: 5px !important;
@@ -130,7 +130,7 @@
     min-width: 180px !important;
 }
 
-.slick-context-menu .slick-menu-item {
+#tableExplorerGrid .slick-context-menu .slick-menu-item {
     background-color: transparent !important;
     color: var(--vscode-menu-foreground) !important;
     padding: 4px 20px 4px 30px !important;
@@ -144,12 +144,12 @@
     white-space: nowrap !important;
 }
 
-.slick-context-menu .slick-menu-item:hover {
+#tableExplorerGrid .slick-context-menu .slick-menu-item:hover {
     background-color: var(--vscode-menu-selectionBackground) !important;
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-.slick-context-menu .slick-menu-item .slick-menu-icon {
+#tableExplorerGrid .slick-context-menu .slick-menu-item .slick-menu-icon {
     position: absolute !important;
     left: 8px !important;
     width: 16px !important;
@@ -159,31 +159,31 @@
     justify-content: center !important;
 }
 
-.slick-context-menu .slick-menu-item .slick-menu-content {
+#tableExplorerGrid .slick-context-menu .slick-menu-item .slick-menu-content {
     flex: 1 !important;
     padding: 0 !important;
     margin: 0 !important;
 }
 
-.slick-context-menu .slick-menu-item.red {
+#tableExplorerGrid .slick-context-menu .slick-menu-item.red {
     color: var(--vscode-menu-foreground) !important;
 }
 
-.slick-context-menu .slick-menu-item.red:hover {
+#tableExplorerGrid .slick-context-menu .slick-menu-item.red:hover {
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-.slick-context-menu .slick-menu-item .mdi {
+#tableExplorerGrid .slick-context-menu .slick-menu-item .mdi {
     color: var(--vscode-menu-foreground) !important;
     font-size: 16px !important;
 }
 
-.slick-context-menu .slick-menu-item:hover .mdi {
+#tableExplorerGrid .slick-context-menu .slick-menu-item:hover .mdi {
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-.slick-context-menu .slick-menu-item.bold,
-.slick-context-menu .slick-menu-item .bold {
+#tableExplorerGrid .slick-context-menu .slick-menu-item.bold,
+#tableExplorerGrid .slick-context-menu .slick-menu-item .bold {
     font-weight: normal !important;
 }
 
@@ -278,7 +278,7 @@
 }
 
 /* Header menu styling */
-.slick-header-menu {
+#tableExplorerGrid .slick-header-menu {
     background-color: var(--vscode-menu-background) !important;
     border: 1px solid var(--vscode-menu-border) !important;
     border-radius: 5px !important;
@@ -287,7 +287,7 @@
     min-width: 180px !important;
 }
 
-.slick-header-menu .slick-menu-item {
+#tableExplorerGrid .slick-header-menu .slick-menu-item {
     background-color: transparent !important;
     color: var(--vscode-menu-foreground) !important;
     padding: 4px 20px 4px 30px !important;
@@ -297,18 +297,18 @@
     cursor: pointer !important;
 }
 
-.slick-header-menu .slick-menu-item:hover {
+#tableExplorerGrid .slick-header-menu .slick-menu-item:hover {
     background-color: var(--vscode-menu-selectionBackground) !important;
     color: var(--vscode-menu-selectionForeground) !important;
 }
 
-.slick-header-menu .slick-menu-item.slick-menu-item-disabled {
+#tableExplorerGrid .slick-header-menu .slick-menu-item.slick-menu-item-disabled {
     opacity: 0.5;
     cursor: not-allowed !important;
 }
 
 /* Column picker styling */
-.slick-column-picker {
+#tableExplorerGrid .slick-column-picker {
     background-color: var(--vscode-menu-background) !important;
     border: 1px solid var(--vscode-menu-border) !important;
     border-radius: 5px !important;
@@ -319,13 +319,13 @@
     overflow-y: auto !important;
 }
 
-.slick-column-picker .slick-column-picker-list li {
+#tableExplorerGrid .slick-column-picker .slick-column-picker-list li {
     color: var(--vscode-menu-foreground) !important;
     padding: 4px 8px !important;
     cursor: pointer !important;
 }
 
-.slick-column-picker .slick-column-picker-list li:hover {
+#tableExplorerGrid .slick-column-picker .slick-column-picker-list li:hover {
     background-color: var(--vscode-menu-selectionBackground) !important;
 }
 
