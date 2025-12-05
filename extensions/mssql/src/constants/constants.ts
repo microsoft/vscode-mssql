@@ -134,6 +134,7 @@ export const sqlDbSuffix = ".database.windows.net";
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
+export const stsImmediateActivityTimeout = 5000; // 5 seconds
 export const azureDatabase = "Azure";
 export const azureMfa = "AzureMFA";
 export const defaultPortNumber = 1433;
