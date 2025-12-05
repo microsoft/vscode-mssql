@@ -407,11 +407,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             pageSizes: [10, 50, 100, 1000],
                         },
 
-                        // Edit handler
-                        editCommandHandler: (_item, _column, editCommand) => {
-                            editCommand.execute();
-                        },
-
                         // Row height
                         rowHeight: ROW_HEIGHT,
 
