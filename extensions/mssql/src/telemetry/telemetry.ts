@@ -46,17 +46,14 @@ const SKIP_FUNCTIONS = new Set([
 ]);
 
 /**
- * Captures a call stack with minimal overhead.
- * Uses V8's captureStackTrace for fastest possible capture.
- * Filters out telemetry internal functions.
+ * Filters a stack trace string to remove internal telemetry functions
+ * and limit the number of frames.
+ * @param stack The stack trace string to filter
  */
-function captureCallStack(): string {
-    const err = { stack: "" };
-    Error.captureStackTrace(err, captureCallStack);
-
+export function filterStack(stack: string): string {
     const frames: string[] = [];
-    for (const line of err.stack.split("\n")) {
-        if (frames.length >= 8) break;
+    for (const line of stack.split("\n")) {
+        if (frames.length >= 20) break;
 
         const match = line.match(/at (\S+)/);
         if (!match) continue;
@@ -65,12 +62,28 @@ function captureCallStack(): string {
 
         // Extract the last part of the name for filtering (e.g., "Foo.bar" -> "bar")
         const funcName = name.split(".").pop() || name;
-        if (SKIP_FUNCTIONS.has(funcName)) continue;
+        if (SKIP_FUNCTIONS.has(funcName)) {
+            // Only skip if the function is global
+            // This prevents skipping user methods that happen to share names with internal functions (e.g. 'update')
+            if (name === funcName) {
+                continue;
+            }
+        }
 
         frames.push(name);
     }
 
     return frames.join(" < ");
+}
+
+/**
+ * Captures a call stack and filters out internal telemetry functions
+ * and user file paths.
+ */
+export function captureCallStack(): string {
+    const err = { stack: "" };
+    Error.captureStackTrace(err, captureCallStack);
+    return filterStack(err.stack || "");
 }
 
 /**
