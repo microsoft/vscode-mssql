@@ -11,23 +11,14 @@ import {
     Input,
     InputOnChangeData,
     Text,
-    Toolbar,
     makeStyles,
     mergeClasses,
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import {
-    Dismiss16Regular,
-    DismissCircle16Regular,
-    Search16Regular,
-    TableResizeColumn16Filled,
-    TextSortAscending16Regular,
-    TextSortDescending16Regular,
-} from "@fluentui/react-icons";
+import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
-import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
 import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 
@@ -55,11 +46,6 @@ interface ColumnMenuPopupProps {
     onApply: (selected: FilterValue[]) => Promise<void> | void;
     onClear: () => Promise<void> | void;
     onDismiss: () => void;
-    onSortAscending: () => Promise<void> | void;
-    onSortDescending: () => Promise<void> | void;
-    onClearSort: () => Promise<void> | void;
-    onResize: () => void;
-    currentSort: SortProperties;
 }
 
 const POPUP_WIDTH = 200;
@@ -116,20 +102,6 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         columnGap: tokens.spacingHorizontalXS,
-    },
-    sortButtons: {
-        width: "100%",
-        padding: 0,
-        "> button": {
-            width: "100%",
-            justifyContent: "flex-start",
-        },
-    },
-    sortButton: {
-        minWidth: "20px",
-        minHeight: "20px",
-        width: "20px",
-        height: "20px",
     },
     searchInput: {
         flex: 1,
@@ -243,19 +215,13 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     onApply,
     onClear,
     onDismiss,
-    onSortAscending,
-    onSortDescending,
-    onClearSort,
-    onResize,
-    currentSort = SortProperties.NONE,
 }) => {
     const styles = useStyles();
     const containerRef = useRef<HTMLDivElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
-    const sortAscendingButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const closeButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
-    const firstFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
+    const firstFocusableRef = useRef<HTMLElement | null>(null);
     const lastFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const [search, setSearch] = useState<string>("");
     const [selectedValues, setSelectedValues] = useState<Set<FilterValue>>(
@@ -369,10 +335,10 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
         }
     }, [filteredItems.length, popupHeight]);
 
-    // Auto-focus sort button when opened
+    // Auto-focus search input when opened
     useEffect(() => {
-        if (sortAscendingButtonRef.current) {
-            sortAscendingButtonRef.current.focus();
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
         }
     }, [anchorRect]);
 
@@ -502,27 +468,6 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
         onDismiss();
     }, [onDismiss]);
 
-    const handleSortAscending = useCallback(async () => {
-        if (onSortAscending) {
-            await onSortAscending();
-            onDismiss();
-        }
-    }, [onSortAscending, onDismiss]);
-
-    const handleSortDescending = useCallback(async () => {
-        if (onSortDescending) {
-            await onSortDescending();
-            onDismiss();
-        }
-    }, [onSortDescending, onDismiss]);
-
-    const handleClearSort = useCallback(async () => {
-        if (onClearSort) {
-            await onClearSort();
-            onDismiss();
-        }
-    }, [onClearSort, onDismiss]);
-
     const handleRootKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === "Tab") {
             const target = e.target as HTMLElement;
@@ -571,17 +516,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
             <div className={styles.titleBar}>
-                <Text className={styles.sectionHeading}>
-                    {locConstants.queryResult.sort}
-                    <span
-                        style={{
-                            fontSize: "8px",
-                            fontWeight: "100",
-                            marginLeft: "6px",
-                        }}>
-                        {keyBindings[WebviewAction.ResultGridToggleSort]?.label}
-                    </span>
-                </Text>
+                <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>
                 <Button
                     ref={closeButtonRef}
                     appearance="subtle"
@@ -596,70 +531,11 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             <div className={styles.divider} />
             <div className={styles.header}>
                 <div className={styles.section}>
-                    <Toolbar className={styles.sortButtons}>
-                        <Button
-                            ref={(el) => {
-                                sortAscendingButtonRef.current = el;
-                                firstFocusableRef.current = el;
-                            }}
-                            appearance={currentSort === SortProperties.ASC ? "primary" : "subtle"}
-                            size="small"
-                            icon={<TextSortAscending16Regular />}
-                            onClick={handleSortAscending}
-                            title={locConstants.queryResult.sortAscending}
-                            aria-label={locConstants.queryResult.sortAscending}
-                        />
-
-                        <Button
-                            appearance={currentSort === SortProperties.DESC ? "primary" : "subtle"}
-                            size="small"
-                            icon={<TextSortDescending16Regular />}
-                            onClick={handleSortDescending}
-                            title={locConstants.queryResult.sortDescending}
-                            aria-label={locConstants.queryResult.sortDescending}
-                        />
-                        <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={<DismissCircle16Regular />}
-                            title={locConstants.queryResult.clearSort}
-                            onClick={handleClearSort}
-                            aria-label={locConstants.queryResult.clearSort}
-                            disabled={currentSort === SortProperties.NONE}
-                        />
-                    </Toolbar>
-                </div>
-                <div className={styles.divider} />
-                <Toolbar vertical className={styles.sortButtons}>
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<TableResizeColumn16Filled />}
-                        title={locConstants.queryResult.resize}
-                        onClick={() => {
-                            if (onResize) {
-                                onResize();
-                            }
-                        }}
-                        aria-label={locConstants.queryResult.resize}>
-                        {locConstants.queryResult.resize}
-                        <span
-                            style={{
-                                fontWeight: "100",
-                                marginLeft: "auto",
-                                paddingLeft: "6px",
-                            }}>
-                            {keyBindings[WebviewAction.ResultGridChangeColumnWidth].label}
-                        </span>
-                    </Button>
-                </Toolbar>
-                <div className={styles.divider} />
-                <div className={styles.section}>
-                    <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>
                     <div className={styles.topRow}>
                         <Input
                             ref={(el) => {
                                 searchInputRef.current = el;
+                                firstFocusableRef.current = el;
                             }}
                             className={styles.searchInput}
                             appearance="outline"

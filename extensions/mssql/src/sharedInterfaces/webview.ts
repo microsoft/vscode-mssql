@@ -327,6 +327,7 @@ export enum WebviewAction {
     ResultGridExpandSelectionUp = "event.resultGrid.expandSelectionUp",
     ResultGridExpandSelectionDown = "event.resultGrid.expandSelectionDown",
     ResultGridOpenColumnMenu = "event.resultGrid.openColumnMenu",
+    ResultGridOpenFilterMenu = "event.resultGrid.openFilterMenu",
     ResultGridMoveToRowStart = "event.resultGrid.moveToRowStart",
     ResultGridMoveToRowEnd = "event.resultGrid.moveToRowEnd",
     ResultGridSelectColumn = "event.resultGrid.selectColumn",
