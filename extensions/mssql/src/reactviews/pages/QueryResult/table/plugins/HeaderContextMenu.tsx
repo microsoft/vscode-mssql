@@ -17,8 +17,7 @@ import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 import { useContextMenuStyles } from "../../../../common/styles";
 
 export enum HeaderContextMenuAction {
-    SortAscending = "sortAscending",
-    SortDescending = "sortDescending",
+    ToggleSort = "toggleSort",
     Filter = "filter",
     Resize = "resize",
 }
@@ -81,16 +80,8 @@ export const HeaderContextMenu: React.FC<HeaderContextMenuProps> = ({
                             secondaryContent={
                                 keyBindings[WebviewAction.ResultGridToggleSort]?.label
                             }
-                            onClick={() => onAction(HeaderContextMenuAction.SortAscending)}>
-                            {locConstants.queryResult.sortAscending}
-                        </MenuItem>
-                        <MenuItem
-                            className={styles.menuItem}
-                            secondaryContent={
-                                keyBindings[WebviewAction.ResultGridToggleSort]?.label
-                            }
-                            onClick={() => onAction(HeaderContextMenuAction.SortDescending)}>
-                            {locConstants.queryResult.sortDescending}
+                            onClick={() => onAction(HeaderContextMenuAction.ToggleSort)}>
+                            {locConstants.queryResult.toggleSort}
                         </MenuItem>
                         <MenuItem
                             className={styles.menuItem}

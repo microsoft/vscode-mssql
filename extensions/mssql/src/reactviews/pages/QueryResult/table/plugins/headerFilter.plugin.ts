@@ -145,11 +145,11 @@ export class HeaderMenu<T extends Slick.SlickData> {
         column: FilterableColumn<T>,
     ): Promise<void> {
         switch (action) {
-            case HeaderContextMenuAction.SortAscending:
-                await this.applySort(column, SortProperties.ASC, true);
-                break;
-            case HeaderContextMenuAction.SortDescending:
-                await this.applySort(column, SortProperties.DESC, true);
+            case HeaderContextMenuAction.ToggleSort:
+                const columnIndex = this._grid
+                    .getColumns()
+                    .findIndex((col) => col.id === column.id);
+                await this.toggleSortForColumn(columnIndex);
                 break;
             case HeaderContextMenuAction.Filter:
                 const filterButton = this._columnFilterButtonMapping.get(column.id!);
