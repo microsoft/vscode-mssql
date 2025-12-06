@@ -494,20 +494,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("loadFromConnectionString", async (state, payload) => {
-            sendActionEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadFromConnectionString,
-            );
-
             // Helper function to set error message in the appropriate place
-            const setConnectionStringError = (errorMessage: string) => {
+            function setConnectionStringError(errorMessage: string) {
                 if (state.dialog?.type === "loadFromConnectionString") {
                     (state.dialog as ConnectionStringDialogProps).connectionStringError =
                         errorMessage;
                 } else {
                     state.formMessage = { message: errorMessage };
                 }
-            };
+            }
 
             try {
                 const connDetails =
@@ -515,31 +510,35 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         payload.connectionString,
                     );
 
-                state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
-                    connDetails,
-                    state.connectionProfile,
-                );
+                const supportedAuthenticationTypes = [
+                    AuthenticationType.SqlLogin,
+                    AuthenticationType.Integrated,
+                    AuthenticationType.AzureMFA,
+                ];
 
-                // trying to parse an unsupported authentication type will result in a undefined authenticationType
-                if (!state.connectionProfile.authenticationType) {
-                    // Show error for unsupported authentication type
-                    const errorMessage = l10n.t(
-                        "Unsupported authentication type in connection string. Only SQL Login, Integrated, and Azure MFA authentication types are supported.",
+                if (
+                    !supportedAuthenticationTypes.includes(connDetails.options.authenticationType)
+                ) {
+                    setConnectionStringError(
+                        Loc.unsupportedAuthType(connDetails.options.authenticationType),
                     );
 
-                    setConnectionStringError(errorMessage);
-
-                    sendErrorEvent(
+                    sendActionEvent(
                         TelemetryViews.ConnectionDialog,
                         TelemetryActions.LoadFromConnectionString,
-                        new Error("Unsupported authentication type"),
-                        false, // includeErrorMessage
-                        undefined, // errorCode
-                        "unsupportedAuthType", // errorType
+                        {
+                            result: "unsupportedAuthType",
+                            details: connDetails.options.authenticationType,
+                        },
                     );
 
                     return state;
                 }
+
+                state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
+                    connDetails,
+                    state.connectionProfile,
+                );
 
                 state.dialog = undefined; // Close the dialog
 
@@ -548,6 +547,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
 
                 await this.updateItemVisibility();
+
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadFromConnectionString,
+                    {
+                        result: "success",
+                    },
+                );
 
                 return state;
             } catch (error) {

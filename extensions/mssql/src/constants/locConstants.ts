@@ -746,6 +746,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
