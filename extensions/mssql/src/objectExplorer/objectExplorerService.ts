@@ -710,21 +710,6 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        // Check if connection is a Docker container
-        const serverName = connectionProfile.connectionString
-            ? connectionProfile.connectionString.match(/^Server=([^;]+)/)?.[1]
-            : connectionProfile.server;
-
-        if (serverName && !connectionProfile.containerName) {
-            const containerName = await checkIfConnectionIsDockerContainer(serverName);
-            if (containerName) {
-                connectionProfile.containerName = containerName;
-            }
-
-            // if the connnection is a docker container, make sure to set the container name for future use
-            await this._connectionManager.connectionStore.saveProfile(connectionProfile);
-        }
-
         if (!connectionProfile.id) {
             connectionProfile.id = Utils.generateGuid();
         }
@@ -777,6 +762,20 @@ export class ObjectExplorerService {
     ) {
         if (!successResponse.success) {
             return;
+        }
+
+        if (!connectionProfile.containerName) {
+            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
+            if (containerName) {
+                connectionProfile.containerName = containerName;
+                // if the connection is a docker container, make sure to set the container name for future use
+                await this._connectionManager.connectionStore.saveProfile(connectionProfile);
+            }
         }
 
         let connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
