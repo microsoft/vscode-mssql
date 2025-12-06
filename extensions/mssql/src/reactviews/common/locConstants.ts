@@ -1297,7 +1297,6 @@ export class LocConstants {
             maximizePanelSize: l10n.t("Maximize Panel Size"),
             restorePanelSize: l10n.t("Restore Panel Size"),
             updateScript: l10n.t("Update Script"),
-            commands: l10n.t("Commands"),
             deleteRow: l10n.t("Delete Row"),
             revertCell: l10n.t("Revert Cell"),
             revertRow: l10n.t("Revert Row"),
@@ -1312,6 +1311,12 @@ export class LocConstants {
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
+        };
+    }
+
+    // SlickGrid-specific localization strings
+    public get slickGrid() {
+        return {
             filterContains: l10n.t("Contains"),
             filterNotContains: l10n.t("Not contains"),
             filterEquals: l10n.t("Equals"),
@@ -1327,6 +1332,7 @@ export class LocConstants {
             collapseAllGroups: l10n.t("Collapse all groups"),
             columns: l10n.t("Columns"),
             columnResizeByContent: l10n.t("Column resize by content"),
+            commands: l10n.t("Commands"),
             copy: l10n.t("Copy"),
             expandAllGroups: l10n.t("Expand all groups"),
             exportToCsv: l10n.t("Export to CSV"),
