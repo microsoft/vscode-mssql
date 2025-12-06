@@ -3953,8 +3953,9 @@
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
       <note>{0} is the architecture name of the machine</note>
     </trans-unit>
-    <trans-unit id="++CODE++f408871a5b62b420c415ca29290466644f4198721c51506ebba9bca1bf755070">
-      <source xml:lang="en">Unsupported authentication type in connection string. Only SQL Login, Integrated, and Azure MFA authentication types are supported.</source>
+    <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
+      <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
+      <note>{0} is the authentication type</note>
     </trans-unit>
     <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>
