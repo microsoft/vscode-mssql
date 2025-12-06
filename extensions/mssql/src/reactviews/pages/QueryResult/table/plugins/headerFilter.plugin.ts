@@ -24,7 +24,11 @@ import {
     ShowFilterDisabledMessageRequest,
     SortProperties,
 } from "../../../../../sharedInterfaces/queryResult";
-import { ColorThemeKind, WebviewKeyBindings } from "../../../../../sharedInterfaces/webview";
+import {
+    ColorThemeKind,
+    WebviewAction,
+    WebviewKeyBindings,
+} from "../../../../../sharedInterfaces/webview";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 
 export interface CommandEventArgs<T extends Slick.SlickData> {
@@ -220,12 +224,45 @@ export class HeaderMenu<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
 
-        // Add filter button (after column name)
+        const sortShortcut = this.keyBindings[WebviewAction.ResultGridToggleSort]?.label;
+        const sortTooltip = sortShortcut
+            ? `${locConstants.queryResult.sort} (${sortShortcut})`
+            : locConstants.queryResult.sort;
+        const $sortButton = jQuery(
+            `
+            <button id="sort-btn"
+                    aria-label="${sortTooltip}"
+                    title="${sortTooltip}"  />
+            `,
+        )
+            .addClass("slick-header-sortbutton")
+            .data("column", column);
+
+        const sortButtonEl = $sortButton.get(0);
+        if (sortButtonEl) {
+            sortButtonEl.tabIndex = -1; // Make button focusable but not in tab order
+            this._eventManager.addEventListener(sortButtonEl, "click", async (e: Event) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const columnIndex = this._grid
+                    .getColumns()
+                    .findIndex((col) => col.id === column.id);
+                await this.toggleSortForColumn(columnIndex);
+            });
+        }
+        $sortButton.appendTo(args.node);
+
+        this._columnSortButtonMapping.set(column.id!, sortButtonEl!);
+
+        const filterShortcut = this.keyBindings[WebviewAction.ResultGridOpenFilterMenu]?.label;
+        const filterTooltip = filterShortcut
+            ? `${locConstants.queryResult.filter} (${filterShortcut})`
+            : locConstants.queryResult.filter;
         const $filterButton = jQuery(
             `
             <button id="filter-btn"
-                    aria-label="${locConstants.queryResult.filter}"
-                    title="${locConstants.queryResult.filter}"  />
+                    aria-label="${filterTooltip}"
+                    title="${filterTooltip}"  />
             `,
         )
             .addClass("slick-header-filterbutton")
@@ -247,33 +284,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
         $filterButton.appendTo(args.node);
 
         this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
-
-        // Add sort button (on the right)
-        const $sortButton = jQuery(
-            `
-            <button id="sort-btn"
-                    aria-label="${locConstants.queryResult.sort}"
-                    title="${locConstants.queryResult.sort}"  />
-            `,
-        )
-            .addClass("slick-header-sortbutton")
-            .data("column", column);
-
-        const sortButtonEl = $sortButton.get(0);
-        if (sortButtonEl) {
-            sortButtonEl.tabIndex = -1; // Make button focusable but not in tab order
-            this._eventManager.addEventListener(sortButtonEl, "click", async (e: Event) => {
-                e.stopPropagation();
-                e.preventDefault();
-                const columnIndex = this._grid
-                    .getColumns()
-                    .findIndex((col) => col.id === column.id);
-                await this.toggleSortForColumn(columnIndex);
-            });
-        }
-        $sortButton.appendTo(args.node);
-
-        this._columnSortButtonMapping.set(column.id!, sortButtonEl!);
 
         let existingSort = this._columnSortStateMapping.get(column.id!);
         if (existingSort === undefined) {

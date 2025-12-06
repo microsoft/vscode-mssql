@@ -516,7 +516,17 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
             <div className={styles.titleBar}>
-                <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>
+                <Text className={styles.sectionHeading}>
+                    {locConstants.queryResult.filter}
+                    <span
+                        style={{
+                            fontSize: "8px",
+                            fontWeight: "100",
+                            marginLeft: "6px",
+                        }}>
+                        {keyBindings[WebviewAction.ResultGridOpenFilterMenu]?.label}
+                    </span>
+                </Text>
                 <Button
                     ref={closeButtonRef}
                     appearance="subtle"
