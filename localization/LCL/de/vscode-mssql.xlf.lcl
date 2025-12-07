@@ -6193,6 +6193,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection string copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Verbindungzeichenfolge wurde in die Zwischenablage kopiert.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Don't show this again]]></Val>
@@ -12630,6 +12639,15 @@
           <Val><![CDATA[Copy All]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Alles kopieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.copyConnectionString" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy as Connection String]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Als Verbindungszeichenfolge kopieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
