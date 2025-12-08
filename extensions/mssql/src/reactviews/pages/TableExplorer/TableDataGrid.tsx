@@ -345,7 +345,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (!options) {
                     // Set row height to 26px for optimal display
                     const ROW_HEIGHT = 26;
-                    const FILTER_ROW_HEIGHT = 30;
+                    const FILTER_ROW_HEIGHT = 34;
 
                     setOptions({
                         alwaysShowVerticalScroll: true,

@@ -43,13 +43,19 @@
 
 /* Force theme colors on SlickGrid elements */
 #tableExplorerGrid .slick-header,
-#tableExplorerGrid .slick-headerrow,
 #tableExplorerGrid .slick-footerrow,
 #tableExplorerGrid .slick-top-panel {
     background-color: var(--vscode-editor-background) !important;
     color: var(--vscode-foreground) !important;
     border-bottom: 1px solid var(--vscode-panel-border) !important;
     height: 26px !important; /* Match data row height for uniform appearance */
+}
+
+#tableExplorerGrid .slick-headerrow {
+    background-color: var(--vscode-editor-background) !important;
+    color: var(--vscode-foreground) !important;
+    border-bottom: 1px solid var(--vscode-panel-border) !important;
+    /* Height controlled by grid's headerRowHeight option */
 }
 
 #tableExplorerGrid .slick-header-column {
@@ -330,15 +336,10 @@
 }
 
 /* Filter row styling */
-#tableExplorerGrid .slick-headerrow {
-    background-color: var(--vscode-editor-background) !important;
-    border-bottom: 1px solid var(--vscode-panel-border) !important;
-}
-
 #tableExplorerGrid .slick-headerrow-column {
     background-color: var(--vscode-editor-background) !important;
     border-right: 1px solid var(--vscode-panel-border) !important;
-    padding: 2px 4px !important;
+    padding: 5px 4px !important;
 }
 
 #tableExplorerGrid .slick-headerrow-column input {
