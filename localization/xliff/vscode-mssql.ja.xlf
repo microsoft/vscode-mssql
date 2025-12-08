@@ -639,7 +639,7 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the database name</note>
-        <target state="new">Change database to '{2}' for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のデータベースを '{2}' に変更しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -678,7 +678,7 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the database name</note>
-        <target state="new">Changing database to '{2}' for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のデータベースを '{2}' に変更しています</target>
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
@@ -1160,6 +1160,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the extension ID</note>
         <target state="translated">次の拡張機能には接続共有のアクセス許可が必要です: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+        <source xml:lang="en">Connection string copied to clipboard</source>
+        <target state="translated">接続文字列がクリップボードにコピーされました</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">接続文字列が必要です</target>
@@ -1327,7 +1331,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
-        <target state="new">Create as Script</target>
+        <target state="translated">スクリプトとして作成</target>
       </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
@@ -1370,7 +1374,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
         <source xml:lang="en">Customize keyboard shortcuts</source>
-        <target state="new">Customize keyboard shortcuts</target>
+        <target state="translated">キーボード ショートカットをカスタマイズする</target>
       </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
@@ -1416,7 +1420,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
         <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="new">Data-tier Application (Preview)</target>
+        <target state="translated">データ層アプリケーション (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -1595,7 +1599,7 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Disconnect from connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Disconnect from connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) から切断しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
@@ -1610,7 +1614,7 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Disconnecting from connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Disconnecting from connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) から切断しています</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -1663,7 +1667,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
         <source xml:lang="en">Don't show this again</source>
-        <target state="new">Don't show this again</target>
+        <target state="translated">今後このメッセージを表示しない</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2067,7 +2071,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
         <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
-        <target state="new">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</target>
+        <target state="translated">現在、このプレビューでは Fabric ターゲットはサポートされていません。エクスペリエンスの向上に取り組んでいます。</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -2502,7 +2506,7 @@ Error:
         <source xml:lang="en">Get connection details for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Get connection details for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) の接続の詳細を取得しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
         <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
@@ -2524,13 +2528,13 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d00eca1bae6742803906ab42a831e8b5396d15b6573ea13c139ec31631208ec1">
         <source xml:lang="en">Getting Started</source>
-        <target state="new">Getting Started</target>
+        <target state="translated">はじめに</target>
       </trans-unit>
       <trans-unit id="++CODE++c486fe9fb4a7835ef55e4e3a8ef2f6443e3c9af800f24d301e95267065573dc1">
         <source xml:lang="en">Getting connection details for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Getting connection details for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) の接続の詳細を取得しています</target>
       </trans-unit>
       <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
         <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
@@ -2777,7 +2781,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
         <source xml:lang="en">Join the discussions</source>
-        <target state="new">Join the discussions</target>
+        <target state="translated">ディスカッションに参加する</target>
       </trans-unit>
       <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
         <source xml:lang="en">Keep in query pane</source>
@@ -2801,7 +2805,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
         <source xml:lang="en">Learn more about this issue.</source>
-        <target state="new">Learn more about this issue.</target>
+        <target state="translated">この問題の詳細をご確認ください。</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -2860,31 +2864,31 @@ Error:
         <source xml:lang="en">List databases for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List databases for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のデータベースを一覧表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++a0d0c5314184e531a57ada941f98fd3d3d6a0a0815296c08c514d2885672c998">
         <source xml:lang="en">List functions for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List functions for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) の関数を一覧表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51">
         <source xml:lang="en">List schemas for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List schemas for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のスキーマを一覧表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++bd24852e1bccb2d3a2353ce971a9b8d5166a6e4be8011bff6ca03e8fd24b51a1">
         <source xml:lang="en">List tables for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List tables for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のテーブルを一覧表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++743c7de4570af673cd265fa7de1e6fd699d92cf80d54a530f4ac79c7bd3f0794">
         <source xml:lang="en">List views for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">List views for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のビューを一覧表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
         <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
@@ -2910,13 +2914,13 @@ Error:
         <source xml:lang="en">Listing databases for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing databases for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のデータベースの一覧を作成しています</target>
       </trans-unit>
       <trans-unit id="++CODE++e3540b429caa98528f0ed33c61c828ab32b5c66e3012740be4150a6b944e9e9b">
         <source xml:lang="en">Listing functions for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing functions for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) の関数の一覧を作成しています</target>
       </trans-unit>
       <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
         <source xml:lang="en">Listing role assignments for workspace '${workspaceId}'</source>
@@ -2927,7 +2931,7 @@ Error:
         <source xml:lang="en">Listing schemas for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing schemas for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のスキーマの一覧を作成しています</target>
       </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
@@ -2937,13 +2941,13 @@ Error:
         <source xml:lang="en">Listing tables for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing tables for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のテーブルの一覧を作成しています</target>
       </trans-unit>
       <trans-unit id="++CODE++4115b66e355171d93bf284e1d2fd019eb40839a8ef6ee46dda787e0430c3c2cc">
         <source xml:lang="en">Listing views for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Listing views for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のビューの一覧を作成しています</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -3073,7 +3077,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
         <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
-        <target state="new">MSSQL: Welcome &amp; What's New</target>
+        <target state="translated">MSSQL: イントロダクションと最新情報</target>
       </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
@@ -3194,7 +3198,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
-        <target state="new">More Query Actions</target>
+        <target state="translated">その他のクエリ アクション</target>
       </trans-unit>
       <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
         <source xml:lang="en">Move Down</source>
@@ -3278,7 +3282,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
         <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
-        <target state="new">New to MSSQL extension? Check out our quick-start guide.</target>
+        <target state="translated">MSSQL 拡張機能を初めてご利用ですか?クイック スタート ガイドをご覧ください。</target>
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
@@ -3780,6 +3784,10 @@ Error:
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">プライバシーに関する声明</target>
       </trans-unit>
+      <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
+        <source xml:lang="en">Private</source>
+        <target state="translated">プライベート</target>
+      </trans-unit>
       <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
         <source xml:lang="en">Processing include or exclude all differences operation.</source>
         <target state="translated">すべての相違点を含めるか除外する操作を処理しています。</target>
@@ -3825,12 +3833,16 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">プロキシ設定が見つかりましたが、URL の解析中にエラーが発生しました: '{0}'。 MSSQL 拡張機能の使用中に接続の問題が発生する場合があります。 エラー: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">プロキシ設定が見つかりましたが、プロトコルがありません (例: http://): '{0}'。 MSSQL 拡張機能の使用中に接続の問題が発生する場合があります。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
+        <source xml:lang="en">Public</source>
+        <target state="translated">パブリック</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -3850,7 +3862,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
         <source xml:lang="en">Publish Project (Preview)</source>
-        <target state="new">Publish Project (Preview)</target>
+        <target state="translated">プロジェクトの公開 (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
@@ -3910,7 +3922,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
         <source xml:lang="en">Read docs</source>
-        <target state="new">Read docs</target>
+        <target state="translated">ドキュメントを読む</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -3918,7 +3930,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
         <source xml:lang="en">Read the documentation</source>
-        <target state="new">Read the documentation</target>
+        <target state="translated">ドキュメントを読む</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -4018,7 +4030,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
         <source xml:lang="en">Resources</source>
-        <target state="new">Resources</target>
+        <target state="translated">リソース</target>
       </trans-unit>
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
@@ -4045,7 +4057,7 @@ Error:
         <source xml:lang="en">Result Set Batch {0} - Query {1}</source>
         <note>{0} is the batch number
 {1} is the query number</note>
-        <target state="new">Result Set Batch {0} - Query {1}</target>
+        <target state="translated">結果セット バッチ {0} - クエリ {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -4136,9 +4148,9 @@ Query: {2}</source>
         <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
-        <target state="new">Run query on connection '{0}' (ID: {1})?
+        <target state="translated">接続 '{0}' (ID: {1}) でクエリを実行しますか?
 
-Query: {2}</target>
+クエリ: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -4148,7 +4160,7 @@ Query: {2}</target>
         <source xml:lang="en">Running query on connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Running query on connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) でクエリを実行しています</target>
       </trans-unit>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
@@ -4360,7 +4372,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
         <source xml:lang="en">Script as Create</source>
-        <target state="new">Script as Create</target>
+        <target state="translated">作成としてのスクリプト</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -4649,7 +4661,7 @@ Query: {2}</target>
         <source xml:lang="en">Show schema for connection '{0}' (ID: {1})?</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Show schema for connection '{0}' (ID: {1})?</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のスキーマを表示しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
@@ -4659,7 +4671,7 @@ Query: {2}</target>
         <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Showing schema for connection '{0}' (ID: {1})</target>
+        <target state="translated">接続 '{0}' (ID: {1}) のスキーマを表示しています</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -5140,7 +5152,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
-        <target state="new">Try it</target>
+        <target state="translated">お試しください</target>
       </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
@@ -5172,7 +5184,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
-        <target state="new">Unknown Connection</target>
+        <target state="translated">不明な接続です</target>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
@@ -5186,6 +5198,11 @@ Query: {2}</target>
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
         <target state="translated">Docker でサポートされていないアーキテクチャ: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
+        <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
+        <note>{0} is the authentication type</note>
+        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
@@ -5282,7 +5299,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
         <source xml:lang="en">View roadmap</source>
-        <target state="new">View roadmap</target>
+        <target state="translated">ロードマップを表示</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -5298,7 +5315,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
-        <target state="new">Watch demos on YouTube</target>
+        <target state="translated">YouTube でデモを見る</target>
       </trans-unit>
       <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
         <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
@@ -5318,7 +5335,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
         <source xml:lang="en">What's new in this release</source>
-        <target state="new">What's new in this release</target>
+        <target state="translated">このリリースの新機能</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -5359,7 +5376,7 @@ Query: {2}</target>
       <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
         <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
         <note>{0} is the version number of the MSSQL extension</note>
-        <target state="new">You are seeing this message because you updated the MSSQL extension to version {0}.</target>
+        <target state="translated">MSSQL 拡張機能をバージョン {0}に更新したため、このメッセージが表示されます。</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -5677,10 +5694,6 @@ Query: {2}</target>
         <source xml:lang="en">Application Intent</source>
         <target state="translated">アプリケーションの意図</target>
       </trans-unit>
-      <trans-unit id="mssql.resultsGrid.autoSizeColumns">
-        <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
-        <target state="translated">結果セット内の表示されている行に基づいて列の幅を自動的に調整します。多数の列または大きなセルでパフォーマンスの問題が発生する可能性があります</target>
-      </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">クエリ ウィンドウではなく新しいタブにクエリ結果を自動的に表示します。このオプションは、'mssql.enableRichExperiences' が有効になっている場合にのみ有効になります。</target>
@@ -5708,6 +5721,10 @@ Query: {2}</target>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">このファイルに使用する SQL ハンドラーの選択</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
+        <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
+        <target state="translated">結果グリッドの列を自動的にサイズ調整する方法を選択します（ヘッダーとデータ、データのみ、または自動サイズ設定を無効にする）。</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5777,6 +5794,10 @@ Query: {2}</target>
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">オブジェクト名のコピー</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy as Connection String</source>
+        <target state="translated">接続文字列としてコピー</target>
+      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">SQL バインドを使用して Azure 関数を作成する</target>
@@ -5793,7 +5814,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
         <source xml:lang="en">Data-tier Application (Preview)</source>
-        <target state="new">Data-tier Application (Preview)</target>
+        <target state="translated">データ層アプリケーション (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -5822,6 +5843,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
         <target state="translated">スキーマによるグループ化を無効にする</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
+        <source xml:lang="en">Disable automatic column sizing</source>
+        <target state="translated">列の自動サイズ調整を無効にする</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6129,7 +6154,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.openChangelog">
         <source xml:lang="en">Open Changelog</source>
-        <target state="new">Open Changelog</target>
+        <target state="translated">変更ログを開く</target>
       </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
@@ -6337,7 +6362,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.showChangelogOnUpdate">
         <source xml:lang="en">Show changelog after extension updates</source>
-        <target state="new">Show changelog after extension updates</target>
+        <target state="translated">拡張機能の更新後に変更ログを表示する</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
@@ -6476,6 +6501,18 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
+        <source xml:lang="en">Use column headers and data to size columns automatically</source>
+        <target state="translated">列ヘッダーとデータを使用して列のサイズを自動的に調整する</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
+        <source xml:lang="en">Use only column headers to size columns automatically</source>
+        <target state="translated">列ヘッダーのみを使用して列のサイズを自動的に調整する</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
+        <source xml:lang="en">Use only row data to size columns automatically</source>
+        <target state="translated">行データのみを使用して列のサイズを自動的に調整する</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

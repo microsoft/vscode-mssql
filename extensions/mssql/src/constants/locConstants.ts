@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static publicString = l10n.t("Public");
+    public static privateString = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");
@@ -682,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {
@@ -746,6 +749,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
