@@ -5199,6 +5199,11 @@ Query: {2}</source>
         <note>{0} is the architecture name of the machine</note>
         <target state="translated">Docker 的体系结构不受支持: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
+        <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
+        <note>{0} is the authentication type</note>
+        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
         <note>{0} is the platform name of the machine</note>
