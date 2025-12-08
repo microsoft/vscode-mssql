@@ -23,15 +23,16 @@ import type {
     SearchTerm,
     SlickGrid,
 } from "slickgrid-react";
+import { locConstants } from "../../common/locConstants";
 
 // String operators for text columns
 const STRING_OPERATORS: FilterOperator[] = [
-    { operator: "", desc: "Contains" },
-    { operator: "<>", desc: "Not Contains" },
-    { operator: "=", desc: "Equals" },
-    { operator: "!=", desc: "Not Equal" },
-    { operator: "a*", desc: "Starts With" },
-    { operator: "*z", desc: "Ends With" },
+    { operator: "", desc: locConstants.slickGrid.filterContains },
+    { operator: "<>", desc: locConstants.slickGrid.filterNotContains },
+    { operator: "=", desc: locConstants.slickGrid.filterEquals },
+    { operator: "!=", desc: locConstants.slickGrid.filterNotEqualTo },
+    { operator: "a*", desc: locConstants.slickGrid.filterStartsWith },
+    { operator: "*z", desc: locConstants.slickGrid.filterEndsWith },
 ];
 
 export interface FluentCompoundFilterParams {
