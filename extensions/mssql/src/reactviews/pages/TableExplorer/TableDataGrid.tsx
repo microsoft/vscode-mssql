@@ -673,12 +673,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 onDeleteRow(rowId);
             }
 
-            // Note: We don't clear cellChangesRef or track deletion here anymore.
-            // The parent component will update deletedRows prop only if deletion succeeds,
-            // and the backend controller will clear the cell changes in that case.
-            // This ensures that if deletion fails (e.g., row has pending changes),
-            // the cell highlighting is preserved.
-
             // Refresh the grid to update button states
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
@@ -784,12 +778,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     if (onDeleteRow) {
                         onDeleteRow(rowId);
                     }
-
-                    // Note: We don't clear cellChangesRef or track deletion here anymore.
-                    // The parent component will update deletedRows prop only if deletion succeeds,
-                    // and the backend controller will clear the cell changes in that case.
-                    // This ensures that if deletion fails (e.g., row has pending changes),
-                    // the cell highlighting is preserved.
                     break;
 
                 case "revert-cell":
