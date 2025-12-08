@@ -20,8 +20,8 @@ import {
     SlickgridReact,
     Editors,
     ContextMenu,
-    Filters,
 } from "slickgrid-react";
+import { FluentCompoundFilter } from "./fluentCompoundFilter";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
@@ -173,7 +173,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         // Create columns from columnInfo
-        function createColumns(columnInfo: any[]): Column[] {
+        function createColumns(columnInfo: any[], currentThemeKind?: ColorThemeKind): Column[] {
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 const column: Column = {
@@ -186,7 +186,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     minWidth: 98,
                     type: "string",
                     filter: {
-                        model: Filters.compoundInputText,
+                        model: FluentCompoundFilter,
+                        params: {
+                            themeKind: currentThemeKind,
+                        },
                     },
                     formatter: (
                         _row: number,
@@ -330,7 +333,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (isInitialLoad || columnCountChanged) {
                 console.log("Full grid initialization");
 
-                const newColumns = createColumns(resultSet.columnInfo);
+                const newColumns = createColumns(resultSet.columnInfo, currentTheme);
                 setColumns(newColumns);
 
                 const convertedDataset = resultSet.subset.map((row, index) =>
