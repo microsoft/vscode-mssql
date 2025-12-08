@@ -390,7 +390,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                 }
             }
-        }, [deletedRows, onCellChangeCountChanged, onDeletionCountChanged]);
+        }, [deletedRows]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
