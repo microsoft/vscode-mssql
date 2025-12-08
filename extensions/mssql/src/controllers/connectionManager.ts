@@ -36,8 +36,13 @@ import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
@@ -1152,16 +1157,31 @@ export default class ConnectionManager {
     ): Promise<boolean> {
         const { shouldHandleErrors = true, connectionSource = "" } = options;
 
+        const connectionActivity = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.Connect,
+            undefined, // Default correlation id
+            {
+                serverTypes: getServerTypes(credentials).join(","),
+                cloudType: getCloudId(),
+                connectionSource: connectionSource,
+            },
+            undefined,
+            true, // include call stack
+        );
+
         if (!fileUri) {
             fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
         }
 
-        credentials = await this.prepareConnectionInfo(credentials);
+        credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
 
         // Add the connection to the active connections list
         let connectionInfo: ConnectionInfo = new ConnectionInfo();
         connectionInfo.credentials = credentials;
         connectionInfo.connecting = true;
+
+        this._connections[fileUri] = connectionInfo;
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
@@ -1187,31 +1207,36 @@ export default class ConnectionManager {
             connectionCompletePromise,
         );
 
-        let initRequest: boolean;
+        let initResponse: boolean;
+        let initRequestCompleted = false;
         try {
-            initRequest = await this.client.sendRequest(
+            setTimeout(() => {
+                if (!initRequestCompleted) {
+                    connectionActivity.update({
+                        longRunningIntialization: "true",
+                    });
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            initResponse = await this.client.sendRequest(
                 ConnectionContracts.ConnectionRequest.type,
                 connectParams,
             );
+            initRequestCompleted = true;
         } catch (error) {
+            initRequestCompleted = true;
+            this.removeActiveConnection(fileUri);
+            connectionCompletePromise.reject(error);
+            this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
+            delete this._connections[fileUri];
             /**
              * If the initial connection attempt fails, log the error and return false.
              * We don’t invoke error callbacks here because the failure happens before
              * the SQL client even starts connecting. At this stage there’s nothing to
              * retry or recover from.
              */
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
+            connectionActivity.endFailed(
                 error,
-                true, // includeErrorMessage,
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    serverTypes: getServerTypes(credentials).join(","),
-                    cloudType: getCloudId(),
-                    connectionSource: connectionSource,
-                },
+                false, // Do not include error message as it might contain sensitive info
             );
             return false;
         }
@@ -1222,28 +1247,21 @@ export default class ConnectionManager {
          * the SQL client even starts connecting. At this stage there’s nothing to
          * retry or recover from.
          */
-        if (!initRequest) {
-            sendErrorEvent(
-                TelemetryViews.ConnectionManager,
-                TelemetryActions.Connect,
-                new Error("Failed to initiate connection"),
-                true, // includeErrorMessage,
-                undefined, // errorCode
-                undefined, // errorType
-                {
-                    serverTypes: getServerTypes(credentials).join(","),
-                    cloudType: getCloudId(),
-                    connectionSource: connectionSource,
-                },
+        if (!initResponse) {
+            const initialConnectionError = new Error("Failed to initiate connection");
+            this.removeActiveConnection(fileUri);
+            connectionCompletePromise.reject(initialConnectionError);
+            this._uriToConnectionCompleteParamsMap.delete(connectParams.ownerUri);
+            delete this._connections[fileUri];
+            connectionActivity.endFailed(
+                initialConnectionError,
+                true, // include error message
             );
             return false;
         }
 
-        // Connection was initiated successfully.
-        sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
-            serverTypes: getServerTypes(credentials).join(","),
-            cloudType: getCloudId(),
-            connectionSource: connectionSource,
+        connectionActivity.update({
+            connectionInitiated: "true",
         });
 
         const result = await connectionCompletePromise.promise;
@@ -1258,15 +1276,28 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
+            connectionActivity.end(
+                ActivityStatus.Succeeded,
+                undefined,
+                undefined,
+                connectionInfo?.credentials,
+                result?.serverInfo,
+            );
             return true;
         } else {
+            let errorType = "";
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
                     result,
                     connectionInfo.credentials,
                 );
 
+                errorType = errorHandlingResult?.errorHandled;
+                connectionActivity.update({
+                    retryConnection: errorHandlingResult?.isHandled ? "true" : "false",
+                });
                 if (errorHandlingResult.isHandled) {
+                    connectionActivity.end(ActivityStatus.Retrying);
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                     });
@@ -1286,18 +1317,17 @@ export default class ConnectionManager {
                 ),
             );
             this._onConnectionsChangedEmitter.fire();
-            sendErrorEvent(
-                TelemetryViews.ConnectionPrompt,
-                TelemetryActions.CreateConnectionResult,
+            connectionActivity.endFailed(
                 new Error(result.errorMessage),
-                false,
-                result.errorNumber?.toString(),
+                false, // Do not include error message
+                result.errorNumber?.toString() ?? errorType,
                 undefined,
                 {
                     containsError: "true",
+                    errorType,
                 },
                 undefined,
-                connectionInfo.credentials as IConnectionProfile,
+                connectionInfo.credentials,
                 result.serverInfo,
             );
             return false;
@@ -1309,21 +1339,52 @@ export default class ConnectionManager {
      * @param credentials The connection info to prepare
      * @returns The prepared connection info
      */
-    public async prepareConnectionInfo(credentials: IConnectionInfo): Promise<IConnectionInfo> {
+    public async prepareConnectionInfo(
+        credentials: IConnectionInfo,
+        telemetryActivity?: ActivityObject,
+    ): Promise<IConnectionInfo> {
+        const telemetryActivityErrorType = "ConnectionPreparationError";
         // Verify that the connection info has server or connection string
         if (!credentials.server && !credentials.connectionString) {
+            const error = new Error(LocalizedConstants.serverNameMissing);
+            telemetryActivity?.endFailed(
+                error,
+                true, // includeErrorMessage
+                "MissingServerName",
+                telemetryActivityErrorType,
+                undefined,
+            );
             throw new Error(LocalizedConstants.serverNameMissing);
         }
 
         // Handle Entra token validity
         if (credentials.authenticationType === Constants.azureMfa) {
-            await this.confirmEntraTokenValidity(credentials);
+            try {
+                await this.confirmEntraTokenValidity(credentials);
+            } catch (error) {
+                telemetryActivity?.endFailed(
+                    error,
+                    false, // do not include error message
+                    "EntraTokenValidityConfirmationFailed",
+                    telemetryActivityErrorType,
+                    undefined,
+                );
+                throw error;
+            }
         }
 
         // Handle password-based credentials
         const passwordResult = await this.handlePasswordBasedCredentials(credentials);
         if (!passwordResult) {
-            throw new Error(LocalizedConstants.cannotConnect);
+            const passwordError = new Error(LocalizedConstants.cannotConnect);
+            telemetryActivity?.endFailed(
+                passwordError,
+                true, // includeErrorMessage
+                "PasswordHandlingFailed",
+                telemetryActivityErrorType,
+                undefined,
+            );
+            throw passwordError;
         }
 
         // Handle connection string-based credentials
@@ -1341,6 +1402,10 @@ export default class ConnectionManager {
         ) {
             credentials.azureAccountToken = undefined;
         }
+
+        telemetryActivity?.update({
+            connectionPrepared: "true",
+        });
         return credentials;
     }
 
@@ -1581,12 +1646,50 @@ export default class ConnectionManager {
             new ConnectionContracts.CancelConnectParams();
         cancelParams.ownerUri = fileUri;
 
-        const result = await this.client.sendRequest(
-            ConnectionContracts.CancelConnectRequest.type,
-            cancelParams,
+        const cancelActivity = startActivity(
+            TelemetryViews.ConnectionManager,
+            TelemetryActions.CancelConnection,
         );
-        if (result) {
-            this.statusView.setNotConnected(fileUri);
+        let cancelRequestCompleted = false;
+        setTimeout(() => {
+            if (!cancelRequestCompleted) {
+                cancelActivity.endFailed(
+                    new Error("Cancellation timed out"),
+                    true, // include error message
+                );
+            }
+        }, Constants.stsImmediateActivityTimeout);
+
+        try {
+            const result = await this.client.sendRequest(
+                ConnectionContracts.CancelConnectRequest.type,
+                cancelParams,
+            );
+            cancelRequestCompleted = true;
+            if (result) {
+                this.statusView.setNotConnected(fileUri);
+                cancelActivity.end(ActivityStatus.Succeeded);
+                // Force cleanup of promises and state
+                const completionPromise = this._uriToConnectionCompleteParamsMap.get(fileUri);
+                if (completionPromise) {
+                    completionPromise.reject(new Error("Connection cancelled"));
+                    this._uriToConnectionCompleteParamsMap.delete(fileUri);
+                }
+                this.removeActiveConnection(fileUri);
+            } else {
+                cancelActivity.endFailed(
+                    new Error(
+                        "Failed to cancel connection. Most likely connection already established.",
+                    ),
+                    true, // include error message
+                );
+            }
+        } catch (error) {
+            cancelRequestCompleted = true;
+            cancelActivity.endFailed(
+                error,
+                false, // do not include error message
+            );
         }
     }
 

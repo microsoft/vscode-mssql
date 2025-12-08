@@ -56,6 +56,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             executionPlanState: {},
             fontSettings: {},
+            autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
         });
 
         void this.initialize();
@@ -121,7 +122,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 }
                 if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
                     for (const [uri, state] of this._queryResultStateMap) {
-                        state.autoSizeColumns = this.getAutoSizeColumnsConfig();
+                        state.autoSizeColumnsMode = this.getAutoSizeColumnsConfig();
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
@@ -241,7 +242,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
                 fontFamily: this.getFontFamilyConfig(),
             },
-            autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
         };
@@ -292,16 +293,32 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontSize: this.getFontSizeConfig(),
                 fontFamily: this.getFontFamilyConfig(),
             },
-            autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            autoSizeColumnsMode: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
         } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
 
-    public getAutoSizeColumnsConfig(): boolean {
-        return this.vscodeWrapper
+    public getAutoSizeColumnsConfig(): qr.ResultsGridAutoSizeStyle {
+        const configValue = this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
-            .get(Constants.configAutoColumnSizing);
+            .get(Constants.configAutoColumnSizingMode) as
+            | qr.ResultsGridAutoSizeStyle
+            | boolean
+            | undefined;
+
+        if (typeof configValue === "string") {
+            const validModes = Object.values(qr.ResultsGridAutoSizeStyle);
+            if (validModes.includes(configValue as qr.ResultsGridAutoSizeStyle)) {
+                return configValue as qr.ResultsGridAutoSizeStyle;
+            }
+        }
+
+        if (configValue === false) {
+            return qr.ResultsGridAutoSizeStyle.Off;
+        }
+
+        return qr.ResultsGridAutoSizeStyle.HeadersAndData;
     }
 
     public getFontSizeConfig(): number {
@@ -346,11 +363,27 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     public async removePanel(uri: string): Promise<void> {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.delete(uri);
-            this._queryResultStateMap.delete(uri);
-            /**
-             * Remove the corresponding query runner on panel closed
-             */
-            await this._sqlOutputContentProvider.cleanupRunner(uri);
+
+            // Check if we should keep the state instead of cleaning up
+            const documentStillOpen = this.vscodeWrapper.textDocuments.some(
+                (doc) => doc.uri.toString(true) === uri,
+            );
+            const shouldKeepState =
+                documentStillOpen && !this.isOpenQueryResultsInTabByDefaultEnabled;
+
+            if (shouldKeepState) {
+                // Keep the state - only show in webview view if the document is active
+                const activeDocumentUri =
+                    this.vscodeWrapper.activeTextEditor?.document?.uri?.toString(true);
+                if (activeDocumentUri === uri && this.isVisible()) {
+                    this.state = this.getQueryResultState(uri);
+                }
+                // Otherwise just keep the state in the map for when the user switches back
+            } else {
+                // Clean up the state and query runner
+                this._queryResultStateMap.delete(uri);
+                await this._sqlOutputContentProvider.cleanupRunner(uri);
+            }
         }
     }
 

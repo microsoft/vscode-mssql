@@ -4213,6 +4213,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Public]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[공개]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show table relationships]]></Val>
@@ -6180,6 +6189,15 @@
           <Val><![CDATA[An unknown error occurred. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[알 수 없는 오류가 발생했습니다. 다시 시도하세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection string copied to clipboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결 문자열이 클립보드에 복사됨]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9177,6 +9195,15 @@
           <Val><![CDATA[Connect to server {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[서버 {0}에 연결하시겠습니까?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Private]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프라이빗]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12616,6 +12643,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.copyConnectionString" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy as Connection String]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결 문자열로 복사]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.copyIncludeHeaders" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Configuration options for copying results from the Results View]]></Val>
@@ -13783,11 +13819,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.resultsGrid.autoSizeColumns" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";package.mssql.resultsGrid.autoSizeColumnsMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells]]></Val>
+          <Val><![CDATA[Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[결과 집합에서 보이는 행에 따라 열 너비를 자동으로 조정합니다. 많은 수의 열 또는 큰 셀에 성능 문제가 있을 수 있습니다.]]></Val>
+            <Val><![CDATA[결과 표 열의 크기를 자동으로 조정하는 방법을 선택합니다(헤더 + 데이터, 데이터만 또는 자동 크기 조정 사용 안 함).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.disableAutoSizingEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disable automatic column sizing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[자동 열 크기 조정 사용 안 함]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13797,6 +13842,33 @@
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[메모리에서 필터링 및 정렬할 수 있는 최대 행 수를 제어합니다. 숫자를 초과하는 경우 정렬과 필터링이 비활성화됩니다. 경고: 이 항목을 늘리면 성능에 영향을 미칠 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useDataOnlyEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use only row data to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[행 데이터만 사용하여 자동으로 열 크기 조정]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useHeaderAndDataEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use column headers and data to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[열 머리글 및 데이터를 사용하여 자동으로 열 크기 조정]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useHeaderOnlyEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use only column headers to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[열 머리글만 사용하여 자동으로 열 크기 조정]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

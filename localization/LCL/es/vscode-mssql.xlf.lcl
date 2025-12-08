@@ -148,6 +148,9 @@
       <Item ItemId=";bundle.++CODE++0228867ee113d27a7377e81352a399252a73a53fcda8c7eeb55366e272692d90" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List databases for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea enumerar las bases de datos de la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -325,6 +328,9 @@
       <Item ItemId=";bundle.++CODE++05f3d402836232769e679102361ab60a576dc268c9a53003baac88f0b742157d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Changing database to '{2}' for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cambiando la base de datos a "{2}" para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2149,6 +2155,9 @@
       <Item ItemId=";bundle.++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run query on connection '{0}' (ID: {1})?]A;]A;Query: {2}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Ejecutar consulta en la conexión "{0}" (Id.: {1})?]A;]A;Consulta: {2}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2722,6 +2731,9 @@
       <Item ItemId=";bundle.++CODE++3a9a8d46a1ea0067cbcb2a7f0f2d4e8c8d9c974f5e8cc08b3089f8d8a696fec3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show schema for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea mostrar el esquema de la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3025,6 +3037,9 @@
       <Item ItemId=";bundle.++CODE++4115b66e355171d93bf284e1d2fd019eb40839a8ef6ee46dda787e0430c3c2cc" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing views for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enumeración de vistas para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3148,6 +3163,9 @@
       <Item ItemId=";bundle.++CODE++44299d86125e08480228ddec1cca64ab01428cf64e8310f8bbfbc5642713a766" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing tables for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enumeración de tablas para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3820,12 +3838,18 @@
       <Item ItemId=";bundle.++CODE++4fa92e64c6fd59eb8e10f81f9bb32b19b6f5b292ba4d10e5892fc815fe7046a9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing databases for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enumeración de bases de datos para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Showing schema for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mostrando esquema para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4189,6 +4213,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Public]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Público]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show table relationships]]></Val>
@@ -4525,6 +4558,9 @@
       <Item ItemId=";bundle.++CODE++60e53a3c0e015fb417236c455fedf4985a7cddfc2721329be1e11ac9e284626d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnect from connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desconectarse de la conexión "{0}" (Id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4621,6 +4657,9 @@
       <Item ItemId=";bundle.++CODE++6369f67786ac3f6d5ed439f3eea6ab7cf1f8acfa25ba69c73b658225f5e7ce51" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List schemas for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea enumerar los esquemas de la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5392,6 +5431,9 @@
       <Item ItemId=";bundle.++CODE++73aecbc2e3e136472dcf00378839efb802b36e46ee45efd2d0a79aa40e756409" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Running query on connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ejecutando consulta en la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5470,6 +5512,9 @@
       <Item ItemId=";bundle.++CODE++743c7de4570af673cd265fa7de1e6fd699d92cf80d54a530f4ac79c7bd3f0794" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List views for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea mostrar vistas para la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5791,6 +5836,15 @@
       <Item ItemId=";bundle.++CODE++7b6b5b260600f82e5603a11e04c3a2ebca15d51407c9e0e505eee43a3b909aa1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing schemas for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enumeración de esquemas para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7b6b5b260600f82e5603a11e04c3a2ebca15d51407c9e0e505eee43a3b909aa1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing schemas for connection '{0}' (ID: {1})]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5878,6 +5932,9 @@
       <Item ItemId=";bundle.++CODE++7cd8625322b19db450bf5b5df61bd30ef4b1905e112753ea458faf1881b2ff01" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Change database to '{2}' for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea cambiar la base de datos a "{2}" para la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6622,6 +6679,9 @@
       <Item ItemId=";bundle.++CODE++8d931bb4019cd9ff4b45813baec027a9d80f9e353afc37d6643cc9ff6737997e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Get connection details for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea obtener los detalles de conexión para la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7384,6 +7444,9 @@
       <Item ItemId=";bundle.++CODE++a0d0c5314184e531a57ada941f98fd3d3d6a0a0815296c08c514d2885672c998" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List functions for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea enumerar las funciones de la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8524,6 +8587,9 @@
       <Item ItemId=";bundle.++CODE++b9d150a1c239a564e634666c8cebbaad8712f8f67c6fdf37c97d17643b3af579" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnecting from connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Desconectando de la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8620,6 +8686,9 @@
       <Item ItemId=";bundle.++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unknown Connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conexión desconocida]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8662,6 +8731,9 @@
       <Item ItemId=";bundle.++CODE++bd24852e1bccb2d3a2353ce971a9b8d5166a6e4be8011bff6ca03e8fd24b51a1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List tables for connection '{0}' (ID: {1})?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[¿Desea enumerar las tablas de la conexión "{0}" (id.: {1})?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9010,6 +9082,9 @@
       <Item ItemId=";bundle.++CODE++c486fe9fb4a7835ef55e4e3a8ef2f6443e3c9af800f24d301e95267065573dc1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting connection details for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obteniendo detalles de conexión para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9117,6 +9192,15 @@
           <Val><![CDATA[Connect to server {0}?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[¿Conectar al servidor {0}?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Private]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Privado]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10483,6 +10567,9 @@
       <Item ItemId=";bundle.++CODE++e3540b429caa98528f0ed33c61c828ab32b5c66e3012740be4150a6b944e9e9b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing functions for connection '{0}' (ID: {1})]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enumeración de funciones para la conexión "{0}" (Id.: {1})]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13720,11 +13807,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.resultsGrid.autoSizeColumns" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";package.mssql.resultsGrid.autoSizeColumnsMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells]]></Val>
+          <Val><![CDATA[Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Ajustar automáticamente el ancho de columna en función de las filas visibles del conjunto de resultados. Podría tener problemas de rendimiento con un gran número de columnas o celdas grandes]]></Val>
+            <Val><![CDATA[Elija cómo se ajusta el tamaño automático de las columnas de la cuadrícula de resultados (encabezados + datos, solo datos o deshabilitar el ajuste de tamaño automático).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.disableAutoSizingEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disable automatic column sizing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Deshabilitar el ajuste automático de tamaño de columna]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13734,6 +13830,33 @@
           <Val><![CDATA[Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Controla el número máximo de filas permitidas para filtrar y ordenar en memoria. Si se supera el número, se deshabilitará la ordenación y el filtrado. Advertencia: El incremento de este número puede afectar al rendimiento.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useDataOnlyEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use only row data to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Usar solo datos de fila para ajustar el tamaño de las columnas automáticamente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useHeaderAndDataEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use column headers and data to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Usar encabezados y datos de columna para ajustar el tamaño de las columnas automáticamente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.resultsGrid.useHeaderOnlyEnumDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use only column headers to size columns automatically]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Usar solo encabezados de columna para ajustar el tamaño de las columnas automáticamente]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

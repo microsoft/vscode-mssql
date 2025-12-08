@@ -181,34 +181,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                         // Build CSS classes based on cell state
                         const cellClasses = [];
+
+                        // Failed cells get error styling
                         if (hasFailed) {
                             cellClasses.push("table-cell-error");
-                        } else if (isModified) {
+                        }
+                        // Modified cells get warning styling
+                        else if (isModified) {
                             cellClasses.push("table-cell-modified");
                         }
 
+                        // NULL cells get different styling
                         if (isNullValue) {
                             cellClasses.push("table-cell-null");
                         }
 
-                        // Failed cells get error styling
-                        if (hasFailed) {
-                            return createDomElement("div", {
-                                className: cellClasses.join(" "),
-                                title: escapedTooltip,
-                                textContent: displayValue,
-                            });
-                        }
-                        // Modified cells get warning styling
-                        if (isModified) {
-                            return createDomElement("div", {
-                                className: cellClasses.join(" "),
-                                title: escapedTooltip,
-                                textContent: displayValue,
-                            });
-                        }
-                        // Normal cells
-                        return createDomElement("span", {
+                        const elmType = hasFailed || isModified ? "div" : "span";
+                        return createDomElement(elmType, {
                             className: cellClasses.join(" "),
                             title: escapedTooltip,
                             textContent: displayValue,

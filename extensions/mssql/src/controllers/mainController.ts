@@ -1711,9 +1711,51 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node) {
+                        return;
+                    }
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
+                    }
+                },
+            ),
+        );
+
+        // Copy connection string command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyConnectionString,
+                async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node?.connectionProfile) {
+                        return;
+                    }
+                    if (
+                        node.context.type !== Constants.disconnectedServerNodeType &&
+                        node.context.type !== Constants.serverLabel
+                    ) {
+                        return;
+                    }
+
+                    const connectionDetails = this.connectionManager.createConnectionDetails(
+                        node.connectionProfile,
+                    );
+                    const connectionString = await this.connectionManager.getConnectionString(
+                        connectionDetails,
+                        true, // include password
+                        false, // Do not include application name
+                    );
+                    if (connectionString) {
+                        await vscode.env.clipboard.writeText(connectionString);
+                        await vscode.window.showInformationMessage(
+                            LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+                        );
                     }
                 },
             ),

@@ -494,16 +494,46 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("loadFromConnectionString", async (state, payload) => {
-            sendActionEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadFromConnectionString,
-            );
+            // Helper function to set error message in the appropriate place
+            function setConnectionStringError(errorMessage: string) {
+                if (state.dialog?.type === "loadFromConnectionString") {
+                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
+                        errorMessage;
+                } else {
+                    state.formMessage = { message: errorMessage };
+                }
+            }
 
             try {
                 const connDetails =
                     await this._mainController.connectionManager.parseConnectionString(
                         payload.connectionString,
                     );
+
+                const supportedAuthenticationTypes = [
+                    AuthenticationType.SqlLogin,
+                    AuthenticationType.Integrated,
+                    AuthenticationType.AzureMFA,
+                ];
+
+                if (
+                    !supportedAuthenticationTypes.includes(connDetails.options.authenticationType)
+                ) {
+                    setConnectionStringError(
+                        Loc.unsupportedAuthType(connDetails.options.authenticationType),
+                    );
+
+                    sendActionEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.LoadFromConnectionString,
+                        {
+                            result: "unsupportedAuthType",
+                            details: connDetails.options.authenticationType,
+                        },
+                    );
+
+                    return state;
+                }
 
                 state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
                     connDetails,
@@ -518,6 +548,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 await this.updateItemVisibility();
 
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadFromConnectionString,
+                    {
+                        result: "success",
+                    },
+                );
+
                 return state;
             } catch (error) {
                 // If there's an error parsing the connection string, show an error and keep dialog open
@@ -528,12 +566,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     getErrorMessage(error),
                 );
 
-                if (state.dialog?.type === "loadFromConnectionString") {
-                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
-                        errorMessage;
-                } else {
-                    state.formMessage = { message: errorMessage };
-                }
+                setConnectionStringError(errorMessage);
 
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
