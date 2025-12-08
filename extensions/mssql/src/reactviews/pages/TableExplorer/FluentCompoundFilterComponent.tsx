@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-    Dropdown,
-    Option,
-    Input,
-    makeStyles,
-} from "@fluentui/react-components";
+import { Dropdown, Option, Input, makeStyles } from "@fluentui/react-components";
 import type { DropdownProps, InputProps } from "@fluentui/react-components";
 
 export interface FilterOperator {
@@ -183,14 +178,9 @@ export const FluentCompoundFilterComponent = React.forwardRef<
                     selectedOptions={[selectedOperator]}
                     onOptionSelect={handleOperatorChange}
                     aria-label={`Filter operator for ${columnId}`}
-                    listbox={{ className: styles.listbox }}
-                >
+                    listbox={{ className: styles.listbox }}>
                     {operators.map((op) => (
-                        <Option
-                            key={op.operator}
-                            value={op.operator}
-                            className={styles.option}
-                        >
+                        <Option key={op.operator} value={op.operator} className={styles.option}>
                             {op.desc}
                         </Option>
                     ))}
