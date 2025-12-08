@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Dropdown, Option, Input, makeStyles } from "@fluentui/react-components";
-import type { DropdownProps, InputProps } from "@fluentui/react-components";
+import { Dropdown, Option, Input, makeStyles, DropdownProps, InputProps } from "@fluentui/react-components";
 
 export interface FilterOperator {
     operator: string;
