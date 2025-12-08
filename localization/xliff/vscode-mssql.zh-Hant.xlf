@@ -1160,6 +1160,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the extension ID</note>
         <target state="translated">延伸模組需要連線共用權限: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+        <source xml:lang="en">Connection string copied to clipboard</source>
+        <target state="new">Connection string copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">需要有連接字串</target>
@@ -3780,6 +3784,10 @@ Error:
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">隱私權聲明</target>
       </trans-unit>
+      <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
+        <source xml:lang="en">Private</source>
+        <target state="translated">私人</target>
+      </trans-unit>
       <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
         <source xml:lang="en">Processing include or exclude all differences operation.</source>
         <target state="translated">處理包含或排除所有差異作業。</target>
@@ -3825,12 +3833,16 @@ Error:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">找到 Proxy 設定，但解析 URL 時發生錯誤: '{0}'。 您在使用 MSSQL 擴充功能時可能會遇到連線問題。 錯誤: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">找到 Proxy 設定，但缺少通訊協定 (例如 http://): '{0}'。 您在使用 MSSQL 擴充功能時可能會遇到連線問題。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
+        <source xml:lang="en">Public</source>
+        <target state="translated">公用</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -5707,7 +5719,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
-        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
+        <target state="translated">選擇結果方格欄位的自動調整大小方式 (標題與資料、僅資料，或停用自動調整大小)。</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5777,6 +5789,10 @@ Query: {2}</source>
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">複製物件名稱</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy as Connection String</source>
+        <target state="new">Copy as Connection String</target>
+      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">使用 SQL 繫結建立 Azure 函數</target>
@@ -5825,7 +5841,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
         <source xml:lang="en">Disable automatic column sizing</source>
-        <target state="new">Disable automatic column sizing</target>
+        <target state="translated">停用自動欄位調整大小</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6483,15 +6499,15 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
         <source xml:lang="en">Use column headers and data to size columns automatically</source>
-        <target state="new">Use column headers and data to size columns automatically</target>
+        <target state="translated">使用欄位標題與資料自動調整欄位大小</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
         <source xml:lang="en">Use only column headers to size columns automatically</source>
-        <target state="new">Use only column headers to size columns automatically</target>
+        <target state="translated">僅使用欄位標題自動調整欄位大小</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
-        <target state="new">Use only row data to size columns automatically</target>
+        <target state="translated">僅使用列資料自動調整欄位大小</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

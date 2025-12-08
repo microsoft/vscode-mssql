@@ -534,3 +534,19 @@ export function shouldIncludeHeaders(includeHeaders: boolean): boolean {
     // else get config option from vscode config
     return vscode.workspace.getConfiguration().get<boolean>(Constants.copyIncludeHeaders);
 }
+
+export function bucketizeRowCount(rowCount: number): number {
+    if (rowCount < 50) {
+        return 50;
+    } else if (rowCount < 100) {
+        return 100;
+    } else if (rowCount < 500) {
+        return 500;
+    } else if (rowCount < 1000) {
+        return 1000;
+    } else if (rowCount < 5000) {
+        return 5000;
+    } else {
+        return 10000;
+    }
+}

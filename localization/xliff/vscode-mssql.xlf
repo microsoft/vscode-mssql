@@ -887,6 +887,9 @@
       <source xml:lang="en">Connection sharing permission is required for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+      <source xml:lang="en">Connection string copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
     </trans-unit>
@@ -2887,6 +2890,9 @@
     <trans-unit id="++CODE++25f4fe8cd149e57de765fa487f6e70395ed29ad8d1f2b9c116f9efa24262b420">
       <source xml:lang="en">Privacy Statement</source>
     </trans-unit>
+    <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
+      <source xml:lang="en">Private</source>
+    </trans-unit>
     <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
       <source xml:lang="en">Processing include or exclude all differences operation.</source>
     </trans-unit>
@@ -2926,6 +2932,9 @@
     <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
       <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;.  You may encounter connection issues while using the MSSQL extension.</source>
       <note>{0} is the proxy URL</note>
+    </trans-unit>
+    <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
+      <source xml:lang="en">Public</source>
     </trans-unit>
     <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
       <source xml:lang="en">Publish</source>
@@ -4408,6 +4417,9 @@
     </trans-unit>
     <trans-unit id="mssql.copyObjectName">
       <source xml:lang="en">Copy Object Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy as Connection String</source>
     </trans-unit>
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>

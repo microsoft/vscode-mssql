@@ -154,7 +154,7 @@
     },
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^9.0.0",
+        "@azure/arm-sql": "^10.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
@@ -648,8 +648,13 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
                     "group": "5_MSSQL_tree@4"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
+                    "group": "5_MSSQL_tree@5"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -801,7 +806,11 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
                 },
                 {
                     "command": "mssql.runQueryHistory",
@@ -1168,6 +1177,11 @@
             {
                 "command": "mssql.copyObjectName",
                 "title": "%mssql.copyObjectName%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copyConnectionString",
+                "title": "%mssql.copyConnectionString%",
                 "category": "MS SQL"
             },
             {

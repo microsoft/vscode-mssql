@@ -4,21 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
+import * as armSql from "@azure/arm-sql";
 import {
     mockAccounts,
-    mockAzureResourceList,
+    mockSqlDbList,
     mockAzureResources,
+    mockManagedInstanceList,
     mockSubscriptions,
     mockTenants,
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
-import { GenericResourceExpanded } from "@azure/arm-resources";
+
+chai.use(sinonChai);
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -197,38 +202,91 @@ suite("Azure Helpers", () => {
 
     test("fetchServersFromAzure", async () => {
         sandbox
-            .stub(azureHelpers.VsCodeAzureHelper, "fetchResourcesForSubscription")
-            .resolves(mockAzureResourceList);
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchSqlResourcesForSubscription")
+            .callsFake(async (sub, listServers /*, listDatabasesFactory */) => {
+                const fnText = String(listServers);
+                if (fnText.includes("managedInstances")) {
+                    return mockManagedInstanceList;
+                } else {
+                    return mockSqlDbList;
+                }
+            });
 
         const servers = await azureHelpers.VsCodeAzureHelper.fetchServersFromAzure(
             mockSubscriptions[0],
         );
 
-        expect(servers).to.have.lengthOf(2);
+        expect(servers).to.have.lengthOf(4); // 1 SQL DB servers + 1 Synapse + 2 MI servers (public and private endpoints)
         expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
         expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
         expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
+        const managedInstances = servers.filter((s) =>
+            s.server.startsWith(mockAzureResources.azureManagedInstance.name),
+        );
+
+        expect(managedInstances).to.have.lengthOf(2);
+        expect(managedInstances[0].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Private)`,
+        );
+        expect(managedInstances[0].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[0].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net`,
+        );
+
+        expect(managedInstances[1].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Public)`,
+        );
+        expect(managedInstances[1].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[1].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
+        );
     });
 
-    test("buildServerUri", () => {
-        const serverResource = {
-            name: "test-server",
-            kind: "v12",
-        } as GenericResourceExpanded;
-
-        // Case: Azure SQL DB server
-        const uri = azureHelpers.buildServerUri(serverResource);
-        expect(uri).to.equal(
-            "test-server.database.windows.net",
-            "Expected URI for Azure SQL DB is incorrect",
+    test("fetchSqlResourcesForSubscription", async () => {
+        sandbox.stub(armSql, "SqlManagementClient").callsFake(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            (credential: any, subscriptionId: string, options?: any) => {
+                return {} as armSql.SqlManagementClient;
+            },
         );
 
-        // Case: Azure Synapse server
-        serverResource.kind = "v12,analytics";
-        const analyticsUri = azureHelpers.buildServerUri(serverResource);
-        expect(analyticsUri).to.equal(
-            "test-server.sql.azuresynapse.net",
-            "Expected URI for Azure Synapse is incorrect",
+        const listServersFactory = sandbox.stub().callsFake(
+            () =>
+                async function* () {
+                    yield mockAzureResources.azureSqlDbServer;
+                } as unknown as any,
         );
+
+        const listDatabasesFactory = sandbox.stub().callsFake(
+            () =>
+                async function* (_resourceGroup?: string, _serverName?: string) {
+                    yield mockAzureResources.azureSqlDbDatabase1;
+                    yield mockAzureResources.azureSqlDbDatabase2;
+                } as unknown as any,
+        );
+
+        const result = await azureHelpers.VsCodeAzureHelper.fetchSqlResourcesForSubscription(
+            mockSubscriptions[0],
+            listServersFactory,
+            listDatabasesFactory,
+        );
+
+        const expectedResult = {
+            servers: [mockAzureResources.azureSqlDbServer],
+            databases: [
+                {
+                    ...mockAzureResources.azureSqlDbDatabase1,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+                {
+                    ...mockAzureResources.azureSqlDbDatabase2,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+            ],
+        };
+
+        expect(result).to.deep.equal(expectedResult);
+        expect(listServersFactory).to.have.been.calledOnce;
+        expect(listDatabasesFactory).to.have.been.calledOnce;
     });
 });

@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static publicString = l10n.t("Public");
+    public static privateString = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");
@@ -682,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {

@@ -145,8 +145,8 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
 
         let headerWidths: number[];
         if (this._options.includeHeaderWidthInCalculation) {
-            headerWidths = this.getElementWidths(headerElements).map((width) => {
-                return width + this._options.extraColumnHeaderWidth!;
+            headerWidths = this.getElementWidths(headerElements).map((width, index) => {
+                return width + (index === 0 ? 0 : this._options.extraColumnHeaderWidth!);
             });
         } else {
             headerWidths = new Array(columnDefs.length).fill(0);
@@ -160,6 +160,10 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
 
         for (let i = 0; i < columnDefs.length; i++) {
             let colIndex: number = colIndices[i];
+            // Skip row number column (index 0) - it has a fixed width
+            if (colIndex === 0) {
+                continue;
+            }
             let column: Slick.Column<T> = allColumns[colIndex];
             let autoSizeWidth: number = this.calculateOptimalColumnWidth(
                 headerWidths[i],
@@ -193,10 +197,14 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     }
 
     private resizeColumn(headerEl: JQuery, columnDef: Slick.Column<T>) {
+        let colIndex = this._grid.getColumnIndex(columnDef.id!);
+        // Skip row number column (index 0) - it has a fixed width
+        if (colIndex === 0) {
+            return;
+        }
         let headerWidth = this._options.includeHeaderWidthInCalculation
             ? this.getElementWidths([headerEl[0]])[0] + this._options.extraColumnHeaderWidth!
             : 0;
-        let colIndex = this._grid.getColumnIndex(columnDef.id!);
         let origCols = this._grid.getColumns();
         let allColumns = deepClone(origCols);
         allColumns.forEach((col, index) => {
