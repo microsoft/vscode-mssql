@@ -21,6 +21,7 @@ import {
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
+    ConnectionStringDialogProps,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
@@ -32,7 +33,7 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { IAccount } from "vscode-mssql";
+import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import {
     initializeIconUtils,
@@ -60,6 +61,7 @@ import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
+import { deepClone } from "../../src/models/utils";
 
 chai.use(sinonChai);
 
@@ -638,6 +640,105 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.formMessage).to.not.be.undefined;
                 expect(controller.state.formMessage.message).to.equal(errorMessage);
                 expect(controller.state.dialog).to.be.undefined;
+            });
+        });
+
+        suite("loadFromConnectionString", () => {
+            async function runConnectionStringScenario(
+                mockOutput: ConnectionDetails,
+                errorMessage?: string,
+            ) {
+                const connectionString = "doesn't actually matter for this test";
+
+                if (errorMessage) {
+                    connectionManager.parseConnectionString.throws(new Error(errorMessage));
+                } else {
+                    connectionManager.parseConnectionString.resolves(mockOutput);
+                }
+
+                controller.state.dialog = {
+                    type: "loadFromConnectionString",
+                    connectionString: connectionString,
+                } as ConnectionStringDialogProps;
+
+                await controller["_reducerHandlers"].get("loadFromConnectionString")(
+                    controller.state,
+                    {
+                        connectionString: connectionString,
+                    },
+                );
+            }
+
+            test("should load connection details from connection string with SQL Auth", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        user: "myUser",
+                        password: "myPassword",
+                        authenticationType: AuthenticationType.SqlLogin,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.user).to.equal("myUser");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.SqlLogin,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should load connection details from connection string with Azure MFA", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: AuthenticationType.AzureMFA,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.AzureMFA,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should display error message if connection string has unsupported authentication type", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: "ActiveDirectoryServicePrincipal", // unsupported
+                    },
+                } as ConnectionDetails;
+
+                const blankConnectionProfile = deepClone(controller.state.connectionProfile);
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile).to.deep.equal(
+                    blankConnectionProfile,
+                    "Connection profile should not be updated",
+                );
+                expect(
+                    (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
+                ).to.contain("ActiveDirectoryServicePrincipal");
+            });
+
+            test("should display error message if parsing connection string throws", async () => {
+                const errorMessage = "Parse error";
+                await runConnectionStringScenario(undefined, errorMessage);
+
+                expect(
+                    (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
+                ).to.contain(errorMessage);
             });
         });
     });

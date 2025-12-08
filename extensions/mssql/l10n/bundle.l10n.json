@@ -1332,6 +1332,10 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+        "comment": ["{0} is the authentication type"]
+    },
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
