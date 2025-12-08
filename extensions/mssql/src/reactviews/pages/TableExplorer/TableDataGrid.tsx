@@ -327,7 +327,36 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Sync deleted rows from props to ref and apply CSS classes
         useEffect(() => {
             if (deletedRows !== undefined) {
+                const previousDeletedRows = deletedRowsRef.current;
                 deletedRowsRef.current = new Set(deletedRows);
+
+                // When a row is successfully deleted (added to deletedRows prop),
+                // clear its cell changes and failed cells
+                deletedRows.forEach((rowId) => {
+                    if (!previousDeletedRows.has(rowId)) {
+                        // This is a newly deleted row
+                        const keysToDelete: string[] = [];
+                        cellChangesRef.current.forEach((_, key) => {
+                            if (key.startsWith(`${rowId}-`)) {
+                                keysToDelete.push(key);
+                            }
+                        });
+                        keysToDelete.forEach((key) => {
+                            cellChangesRef.current.delete(key);
+                            failedCellsRef.current.delete(key);
+                        });
+
+                        // Notify parent of change count update
+                        if (onCellChangeCountChanged) {
+                            onCellChangeCountChanged(cellChangesRef.current.size);
+                        }
+                    }
+                });
+
+                // Notify parent of deletion count update
+                if (onDeletionCountChanged) {
+                    onDeletionCountChanged(deletedRows.length);
+                }
 
                 // Set up row metadata to apply CSS class to deleted rows
                 if (reactGridRef.current?.dataView) {
@@ -361,7 +390,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                 }
             }
-        }, [deletedRows]);
+        }, [deletedRows, onCellChangeCountChanged, onDeletionCountChanged]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
@@ -644,28 +673,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 onDeleteRow(rowId);
             }
 
-            // Track the deletion
-            deletedRowsRef.current.add(rowId);
-
-            // Remove tracked changes and failed cells for this row
-            const keysToDelete: string[] = [];
-            cellChangesRef.current.forEach((_, key) => {
-                if (key.startsWith(`${rowId}-`)) {
-                    keysToDelete.push(key);
-                }
-            });
-            keysToDelete.forEach((key) => {
-                cellChangesRef.current.delete(key);
-                failedCellsRef.current.delete(key);
-            });
-
-            // Notify parent of change count update
-            if (onCellChangeCountChanged) {
-                onCellChangeCountChanged(cellChangesRef.current.size);
-            }
-            if (onDeletionCountChanged) {
-                onDeletionCountChanged(deletedRowsRef.current.size);
-            }
+            // Note: We don't clear cellChangesRef or track deletion here anymore.
+            // The parent component will update deletedRows prop only if deletion succeeds,
+            // and the backend controller will clear the cell changes in that case.
+            // This ensures that if deletion fails (e.g., row has pending changes),
+            // the cell highlighting is preserved.
 
             // Refresh the grid to update button states
             if (reactGridRef.current?.slickGrid) {
@@ -773,28 +785,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
-                    // Track the deletion
-                    deletedRowsRef.current.add(rowId);
-
-                    // Remove tracked changes and failed cells for this row
-                    const keysToDelete: string[] = [];
-                    cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${rowId}-`)) {
-                            keysToDelete.push(key);
-                        }
-                    });
-                    keysToDelete.forEach((key) => {
-                        cellChangesRef.current.delete(key);
-                        failedCellsRef.current.delete(key);
-                    });
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
-                    if (onDeletionCountChanged) {
-                        onDeletionCountChanged(deletedRowsRef.current.size);
-                    }
+                    // Note: We don't clear cellChangesRef or track deletion here anymore.
+                    // The parent component will update deletedRows prop only if deletion succeeds,
+                    // and the backend controller will clear the cell changes in that case.
+                    // This ensures that if deletion fails (e.g., row has pending changes),
+                    // the cell highlighting is preserved.
                     break;
 
                 case "revert-cell":
