@@ -55,7 +55,9 @@ suite("TableDesignerWebviewController tests", () => {
         mockConnectionManager.createConnectionDetails.returns(mockConnectionDetails as any);
         mockConnectionManager.getConnectionString.resolves(mockConnectionDetails.connectionString);
         mockConnectionManager.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
-        mockConnectionManager.confirmEntraTokenValidity.resolves();
+        mockConnectionManager.prepareConnectionInfo.callsFake((connInfo) =>
+            Promise.resolve(connInfo),
+        );
 
         treeNode = sandbox.createStubInstance(TreeNodeInfo);
         sandbox.stub(treeNode, "nodeType").get(() => "Table");
