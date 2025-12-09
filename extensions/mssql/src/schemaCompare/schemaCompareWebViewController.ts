@@ -1778,7 +1778,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             this.logger.info(
-                `Selected file: ${selectedFilePath} - OperationId: ${this.operationId}`,
+                `Selected file path length: ${selectedFilePath?.length || 0} characters - OperationId: ${this.operationId}`,
+            );
+            this.logger.info(
+                `File extension: ${selectedFilePath?.split('.').pop() || 'unknown'} - OperationId: ${this.operationId}`,
             );
 
             const startTime = Date.now();
@@ -1793,9 +1796,38 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             this.logger.verbose(
-                `Opening schema comparison from file - OperationId: ${this.operationId}`,
+                `Calling openScmp service to open schema comparison file - OperationId: ${this.operationId}`,
             );
-            const result = await openScmp(selectedFilePath, this.schemaCompareService);
+            const result = await openScmp(selectedFilePath, this.schemaCompareService, this.logger);
+
+            this.logger.info(
+                `openScmp service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
+            );
+
+            if (result) {
+                this.logger.info(
+                    `Result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+                );
+                this.logger.info(
+                    `Has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, Has targetEndpointInfo: ${!!result.targetEndpointInfo} - OperationId: ${this.operationId}`,
+                );
+                
+                if (result.sourceEndpointInfo) {
+                    this.logger.info(
+                        `Source endpoint type: ${getSchemaCompareEndpointTypeString(result.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+                    );
+                }
+                
+                if (result.targetEndpointInfo) {
+                    this.logger.info(
+                        `Target endpoint type: ${getSchemaCompareEndpointTypeString(result.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+                    );
+                }
+            } else {
+                this.logger.warn(
+                    `openScmp returned null or undefined result - OperationId: ${this.operationId}`,
+                );
+            }
 
             if (!result || !result.success) {
                 this.logger.error(
@@ -1820,33 +1852,62 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             this.logger.info(
-                `Successfully opened schema comparison file - OperationId: ${this.operationId}`,
+                `Successfully opened schema comparison file, constructing endpoint info - OperationId: ${this.operationId}`,
             );
 
             // construct source endpoint info
+            this.logger.verbose(
+                `Constructing source endpoint info - OperationId: ${this.operationId}`,
+            );
             state.sourceEndpointInfo = await this.constructEndpointInfo(
                 result.sourceEndpointInfo,
                 "source",
             );
+            
+            this.logger.info(
+                `Source endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.sourceEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
+            );
 
             // construct target endpoint info
+            this.logger.verbose(
+                `Constructing target endpoint info - OperationId: ${this.operationId}`,
+            );
             state.targetEndpointInfo = await this.constructEndpointInfo(
                 result.targetEndpointInfo,
                 "target",
             );
+            
+            this.logger.info(
+                `Target endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
+            );
 
+            this.logger.verbose(
+                `Setting deployment options from loaded file - OperationId: ${this.operationId}`,
+            );
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 result.deploymentOptions;
 
             // Update intermediaryOptionsResult to ensure UI reflects loaded options
             state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
 
+            this.logger.info(
+                `Loading excluded elements - source: ${result.excludedSourceElements?.length || 0}, target: ${result.excludedTargetElements?.length || 0} - OperationId: ${this.operationId}`,
+            );
             state.scmpSourceExcludes = result.excludedSourceElements;
             state.scmpTargetExcludes = result.excludedTargetElements;
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
+            
+            this.logger.verbose(
+                `Source/Target switched: ${state.sourceTargetSwitched} - OperationId: ${this.operationId}`,
+            );
+            
             // Reset the schema comparison result similarly to what happens in Azure Data Studio.
             state.schemaCompareResult = undefined;
+
+            this.logger.info(
+                `Successfully completed loading .scmp file - OperationId: ${this.operationId}`,
+            );
 
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
@@ -1861,6 +1922,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.schemaCompareOpenScmpResult = result;
             this.updateState(state);
+            
+            this.logger.info(
+                `openScmp reducer completed, state updated - OperationId: ${this.operationId}`,
+            );
 
             return state;
         });
@@ -2356,31 +2421,78 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         endpoint: mssql.SchemaCompareEndpointInfo,
         caller: string,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
+        this.logger.info(
+            `constructEndpointInfo called for ${caller} endpoint - OperationId: ${this.operationId}`,
+        );
+        
+        if (!endpoint) {
+            this.logger.error(
+                `Endpoint is null or undefined for ${caller} - OperationId: ${this.operationId}`,
+            );
+        } else {
+            this.logger.info(
+                `Endpoint type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} (${endpoint.endpointType}) - OperationId: ${this.operationId}`,
+            );
+        }
+        
         let ownerUri;
         let endpointInfo;
         if (endpoint && endpoint.endpointType === SchemaCompareEndpointType.Database) {
+            this.logger.info(
+                `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
+            );
+            
             const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
+            
+            this.logger.verbose(
+                `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
+            );
 
             ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
+            
+            this.logger.verbose(
+                `Got owner URI from existing connection: ${!!ownerUri} - OperationId: ${this.operationId}`,
+            );
 
             let isConnected = ownerUri ? true : false;
             if (!ownerUri) {
+                this.logger.info(
+                    `No existing connection found, creating new connection for ${caller} - OperationId: ${this.operationId}`,
+                );
                 ownerUri = utils.generateQueryUri().toString();
 
                 isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
                     connectionSource: "schemaCompare",
                 });
+                
+                this.logger.info(
+                    `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
+                );
 
                 if (!isConnected) {
+                    this.logger.warn(
+                        `Failed to connect to database for ${caller}, removing invalid connection - OperationId: ${this.operationId}`,
+                    );
                     // Invoking connect will add an active connection that isn't valid, hence removing it.
                     delete this.connectionMgr.activeConnections[ownerUri];
                 }
+            } else {
+                this.logger.info(
+                    `Using existing connection for ${caller} - OperationId: ${this.operationId}`,
+                );
             }
 
             const connection = this.connectionMgr.activeConnections[ownerUri];
             const connectionProfile = connection?.credentials as IConnectionProfile;
+            
+            this.logger.verbose(
+                `Has connection: ${!!connection}, Has connectionProfile: ${!!connectionProfile} - OperationId: ${this.operationId}`,
+            );
 
             if (isConnected && ownerUri && connectionProfile) {
+                this.logger.info(
+                    `Successfully created Database endpoint info for ${caller} - OperationId: ${this.operationId}`,
+                );
                 endpointInfo = {
                     endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: `${connInfo.server} (${connectionProfile.user || locConstants.SchemaCompare.defaultUserName})`,
@@ -2398,6 +2510,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     extractTarget: ExtractTarget.schemaObjectType,
                 };
             } else {
+                this.logger.warn(
+                    `Failed to create valid Database endpoint for ${caller}, creating empty endpoint - OperationId: ${this.operationId}`,
+                );
                 endpointInfo = {
                     endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: "",
@@ -2414,6 +2529,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 };
             }
         } else if (endpoint.endpointType === SchemaCompareEndpointType.Project) {
+            this.logger.info(
+                `Processing Project endpoint for ${caller} - OperationId: ${this.operationId}`,
+            );
+            this.logger.verbose(
+                `Project file path length: ${endpoint.projectFilePath?.length || 0} - OperationId: ${this.operationId}`,
+            );
             endpointInfo = {
                 endpointType: endpoint.endpointType,
                 packageFilePath: "",
@@ -2427,7 +2548,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 dataSchemaProvider: endpoint.dataSchemaProvider,
                 extractTarget: endpoint.extractTarget,
             };
+            this.logger.info(
+                `Successfully created Project endpoint info for ${caller} - OperationId: ${this.operationId}`,
+            );
         } else {
+            this.logger.info(
+                `Processing Dacpac/other endpoint type for ${caller} - detected type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} - OperationId: ${this.operationId}`,
+            );
+            this.logger.verbose(
+                `Package file path length: ${endpoint.packageFilePath?.length || 0} - OperationId: ${this.operationId}`,
+            );
             endpointInfo = {
                 endpointType:
                     endpoint.endpointType === SchemaCompareEndpointType.Database
@@ -2440,8 +2570,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 packageFilePath: endpoint.packageFilePath,
                 connectionDetails: undefined,
             };
+            this.logger.info(
+                `Successfully created Dacpac endpoint info for ${caller} - OperationId: ${this.operationId}`,
+            );
         }
 
+        this.logger.info(
+            `constructEndpointInfo completed for ${caller} - final type: ${getSchemaCompareEndpointTypeString(endpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+        );
         return endpointInfo;
     }
 

@@ -352,8 +352,48 @@ export async function includeExcludeAllNodes(
 export async function openScmp(
     filePath: string,
     schemaCompareService: mssql.ISchemaCompareService,
+    logger?: Logger,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
+    logger?.info(
+        `[schemaCompareUtils] openScmp called with file path length: ${filePath?.length || 0}`,
+    );
+    logger?.verbose(
+        `[schemaCompareUtils] Calling schemaCompareService.openScmp`,
+    );
+    
     const result = await schemaCompareService.openScmp(filePath);
+    
+    logger?.info(
+        `[schemaCompareUtils] openScmp service returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage}`,
+    );
+    
+    if (result) {
+        logger?.info(
+            `[schemaCompareUtils] Result has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, targetEndpointInfo: ${!!result.targetEndpointInfo}`,
+        );
+        
+        if (result.sourceEndpointInfo) {
+            logger?.info(
+                `[schemaCompareUtils] Source endpoint type: ${result.sourceEndpointInfo.endpointType}`,
+            );
+        }
+        
+        if (result.targetEndpointInfo) {
+            logger?.info(
+                `[schemaCompareUtils] Target endpoint type: ${result.targetEndpointInfo.endpointType}`,
+            );
+        }
+        
+        if (result.errorMessage) {
+            logger?.error(
+                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
+            );
+        }
+    } else {
+        logger?.warn(
+            `[schemaCompareUtils] openScmp returned null or undefined result`,
+        );
+    }
 
     return result;
 }
