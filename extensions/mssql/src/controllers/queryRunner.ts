@@ -559,13 +559,25 @@ export default class QueryRunner {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
 
-        // save the message into the batch summary so it can be restored on view refresh
-        if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
-            this._batchSetMessages[message.batchId].push(message);
-        }
+        // Check configuration to see if batch messages should be shown
+        let extConfig = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this.uri,
+        );
+        let showBatchMessages: boolean = extConfig.get(Constants.configShowBatchMessages) ?? true;
 
-        // Send the message to the results pane
-        this._messageEmitter.fire(message);
+        // Only show success messages if the configuration allows it
+        let shouldShowMessage = message.isError || showBatchMessages;
+
+        if (shouldShowMessage) {
+            // save the message into the batch summary so it can be restored on view refresh
+            if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
+                this._batchSetMessages[message.batchId].push(message);
+            }
+
+            // Send the message to the results pane
+            this._messageEmitter.fire(message);
+        }
 
         // Set row count on status bar if there are no errors
         if (!obj.message.isError) {

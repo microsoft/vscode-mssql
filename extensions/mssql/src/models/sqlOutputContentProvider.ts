@@ -481,31 +481,41 @@ export class SqlOutputContentProvider {
             );
 
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
-                let time = new Date().toLocaleTimeString();
-                if (batch.executionElapsed && batch.executionEnd) {
-                    time = new Date(batch.executionStart).toLocaleTimeString();
-                }
-
-                // Build a message for the selection and send the message
-                // from the webview
-                let message: IMessage = {
-                    message: LocalizedConstants.runQueryBatchStartMessage,
-                    selection: batch.selection,
-                    isError: false,
-                    time: time,
-                    link: {
-                        text: LocalizedConstants.runQueryBatchStartLine(
-                            batch.selection.startLine + 1,
-                        ),
-                        uri: queryRunner.uri,
-                    },
-                };
-
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    queryRunner.uri,
+                // Check configuration to see if batch messages should be shown
+                let queryUri = queryRunner.uri;
+                let extConfig = this._vscodeWrapper.getConfiguration(
+                    Constants.extensionConfigSectionName,
+                    queryUri,
                 );
-                resultWebviewState.messages.push(message);
-                this.scheduleThrottledUpdate(queryRunner.uri);
+                let showBatchMessages: boolean = extConfig.get(Constants.configShowBatchMessages) ?? true;
+                
+                if (showBatchMessages) {
+                    let time = new Date().toLocaleTimeString();
+                    if (batch.executionElapsed && batch.executionEnd) {
+                        time = new Date(batch.executionStart).toLocaleTimeString();
+                    }
+
+                    // Build a message for the selection and send the message
+                    // from the webview
+                    let message: IMessage = {
+                        message: LocalizedConstants.runQueryBatchStartMessage,
+                        selection: batch.selection,
+                        isError: false,
+                        time: time,
+                        link: {
+                            text: LocalizedConstants.runQueryBatchStartLine(
+                                batch.selection.startLine + 1,
+                            ),
+                            uri: queryRunner.uri,
+                        },
+                    };
+
+                    const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                        queryRunner.uri,
+                    );
+                    resultWebviewState.messages.push(message);
+                    this.scheduleThrottledUpdate(queryRunner.uri);
+                }
             });
 
             const onMessageListener = queryRunner.onMessage(async (message) => {
