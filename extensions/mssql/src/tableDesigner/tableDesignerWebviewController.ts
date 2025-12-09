@@ -102,12 +102,13 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         // get database name from connection string
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
-
         let connectionInfo = this._targetNode.connectionProfile;
 
         connectionInfo = (await this._connectionManager.prepareConnectionInfo(
             connectionInfo,
         )) as IConnectionProfile;
+
+        this._targetNode.updateConnectionProfile(connectionInfo);
 
         connectionInfo.database = databaseName;
 
@@ -165,8 +166,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             undefined,
             true, // include call stack
         );
-
-        this._targetNode.updateConnectionProfile(connectionInfo);
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken
             : undefined;
