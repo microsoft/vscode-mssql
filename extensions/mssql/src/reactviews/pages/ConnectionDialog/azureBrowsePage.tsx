@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Field, Link, Spinner, Tooltip, makeStyles, tokens } from "@fluentui/react-components";
+import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -28,25 +28,6 @@ export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);
 };
 
-const useAzureBrowseStyles = makeStyles({
-    warningContainer: {
-        border: `1px solid ${tokens.colorStatusWarningBorder1}`,
-        backgroundColor: tokens.colorStatusWarningBackground2,
-        borderRadius: "4px",
-        padding: "8px 12px",
-        marginBottom: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "12px",
-        flexWrap: "wrap",
-    },
-    warningText: {
-        color: tokens.colorStatusWarningForeground1,
-        flex: "1 1 auto",
-    },
-});
-
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     if (context === undefined) {
@@ -54,7 +35,6 @@ export const AzureBrowsePage = () => {
     }
 
     const formStyles = useFormStyles();
-    const browseStyles = useAzureBrowseStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
@@ -245,7 +225,29 @@ export const AzureBrowsePage = () => {
     }
 
     const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
-    const missingTenantCount = context.state.unauthenticatedAzureTenants?.length ?? 0;
+    const tenantCounts = context.state.azureTenantSignInCounts;
+    const tenantStatus = context.state.azureTenantStatus ?? [];
+    const shouldShowTenantPrompt =
+        tenantCounts !== undefined &&
+        tenantCounts.totalTenants > 0 &&
+        tenantCounts.signedInTenants < tenantCounts.totalTenants;
+    const tenantTooltipContent =
+        tenantStatus.length === 0 ? (
+            <span>{Loc.connectionDialog.noTenantsSignedIn}</span>
+        ) : (
+            <div>
+                {tenantStatus.map((status) => (
+                    <div key={status.accountId} style={{ marginBottom: "6px" }}>
+                        <strong>{status.accountName}</strong>
+                        <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                            {status.signedInTenants.map((tenant) => (
+                                <li key={`${status.accountId}-${tenant}`}>{tenant}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        );
 
     return (
         <div>
@@ -266,55 +268,66 @@ export const AzureBrowsePage = () => {
                         className={formStyles.formComponentDiv}
                         style={{ marginTop: "0", marginBottom: "12px" }}>
                         <Field orientation="horizontal">
-                            <Tooltip
-                                content={
+
+                            <span>
+                                <Tooltip
+                                    content={
+                                        <>
+                                            {context.state.azureAccounts.length === 0 && (
+                                                <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
+                                            )}
+                                            {context.state.azureAccounts.length > 0 && (
+                                                <>
+                                                    {Loc.azure.currentlySignedInAs}
+                                                    <br />
+                                                    <ul>
+                                                        {context.state.azureAccounts.map((account) => (
+                                                            <li key={account.id}>{account.name}</li>
+                                                        ))}
+                                                    </ul>
+                                                </>
+                                            )}
+                                        </>
+                                    }
+                                    relationship="description">
+                                    <Link
+                                        onClick={() => {
+                                            context.signIntoAzureForBrowse(
+                                                ConnectionInputMode.AzureBrowse,
+                                            );
+                                        }}
+                                        inline>
+                                        {getAzureAccountsText()}
+                                        {" • "}
+                                        {context.state.azureAccounts.length === 0
+                                            ? Loc.azure.signIntoAzure
+                                            : Loc.azure.addAccount}
+                                    </Link>
+                                </Tooltip>
+                                {shouldShowTenantPrompt && (
                                     <>
-                                        {context.state.azureAccounts.length === 0 && (
-                                            <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
-                                        )}
-                                        {context.state.azureAccounts.length > 0 && (
-                                            <>
-                                                {Loc.azure.currentlySignedInAs}
-                                                <br />
-                                                <ul>
-                                                    {context.state.azureAccounts.map((account) => (
-                                                        <li key={account.id}>{account.name}</li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
+                                        {" • "}
+                                        <Tooltip
+                                            content={tenantTooltipContent}
+                                            relationship="description">
+                                            <Link
+                                                onClick={() =>
+                                                    context.signIntoAzureTenantForBrowse()
+                                                }
+                                                inline>
+                                                {Loc.connectionDialog.azureTenantSignInStatus(
+                                                    tenantCounts!.signedInTenants,
+                                                    tenantCounts!.totalTenants,
+                                                )}
+                                                {" • "}
+                                                {Loc.connectionDialog.signIntoTenantLink}
+                                            </Link>
+                                        </Tooltip>
                                     </>
-                                }
-                                relationship="description">
-                                <Link
-                                    onClick={() => {
-                                        context.signIntoAzureForBrowse(
-                                            ConnectionInputMode.AzureBrowse,
-                                        );
-                                    }}
-                                    inline>
-                                    {getAzureAccountsText()}
-                                    {" • "}
-                                    {context.state.azureAccounts.length === 0
-                                        ? Loc.azure.signIntoAzure
-                                        : Loc.azure.addAccount}
-                                </Link>
-                            </Tooltip>
+                                )}
+                            </span>
                         </Field>
                     </div>
-                    {missingTenantCount > 0 && (
-                        <div className={browseStyles.warningContainer}>
-                            <span className={browseStyles.warningText}>
-                                {Loc.connectionDialog.azureTenantsMissingSignIn(missingTenantCount)}
-                            </span>
-                            <Button
-                                appearance="secondary"
-                                size="small"
-                                onClick={() => context.signIntoAzureTenantForBrowse()}>
-                                {Loc.connectionDialog.signIntoTenantButton}
-                            </Button>
-                        </div>
-                    )}
                     <AzureFilterCombobox
                         label={Loc.connectionDialog.subscriptionLabel}
                         clearable
@@ -330,7 +343,7 @@ export const AzureBrowsePage = () => {
                                     size="small"
                                 />
                                 {context.state.loadingAzureSubscriptionsStatus ===
-                                ApiStatus.Loading ? (
+                                    ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined}
                             </>
@@ -473,7 +486,7 @@ export const AzureBrowsePage = () => {
                                 .map((inputName, idx) => {
                                     const component =
                                         context.state.formComponents[
-                                            inputName as keyof IConnectionDialogProfile
+                                        inputName as keyof IConnectionDialogProfile
                                         ];
                                     if (component?.hidden !== false) {
                                         return undefined;

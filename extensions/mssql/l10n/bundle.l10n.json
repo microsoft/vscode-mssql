@@ -283,6 +283,12 @@
     "Search settings...": "Search settings...",
     "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
     "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+    "One Azure tenant is not signed in, so its subscriptions do not appear here.": "One Azure tenant is not signed in, so its subscriptions do not appear here.",
+    "{0} Azure tenants are not signed in, so their subscriptions do not appear here./{0} is the number of tenants missing sessions": {
+        "message": "{0} Azure tenants are not signed in, so their subscriptions do not appear here.",
+        "comment": ["{0} is the number of tenants missing sessions"]
+    },
+    "Sign into tenant": "Sign into tenant",
     "Loading workspaces...": "Loading workspaces...",
     "Loading databases in '{0}'.../{0} is the name of the workspace": {
         "message": "Loading databases in '{0}'...",

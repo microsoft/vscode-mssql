@@ -2778,6 +2778,9 @@
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++896cbc0624204384557522670bb3e4058171c9220c26bae7f0a86ccb448e2c80">
+      <source xml:lang="en">One Azure tenant is not signed in, so its subscriptions do not appear here.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>
@@ -3684,6 +3687,9 @@
     <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
       <source xml:lang="en">Sign into Fabric</source>
     </trans-unit>
+    <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
+      <source xml:lang="en">Sign into tenant</source>
+    </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>
     </trans-unit>
@@ -4340,6 +4346,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0593c535a8f4da91e156ec76a7098d0e2804e0abb13d28b37d2f654fafe5e4d3">
+      <source xml:lang="en">{0} Azure tenants are not signed in, so their subscriptions do not appear here.</source>
+      <note>{0} is the number of tenants missing sessions</note>
     </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>

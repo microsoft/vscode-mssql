@@ -1528,8 +1528,56 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accountId: tenant.account.id,
                 accountName: tenant.account.label,
             }));
+
+            const allTenants = await auth.getTenants();
+            const totalTenants = allTenants.length;
+            const unauthenticatedSet = new Set(
+                state.unauthenticatedAzureTenants.map(
+                    (tenant) => `${tenant.accountId}/${tenant.tenantId}`,
+                ),
+            );
+            const tenantStatusMap = new Map<
+                string,
+                {
+                    accountId: string;
+                    accountName: string;
+                    signedInTenants: string[];
+                }
+            >();
+
+            for (const tenant of allTenants) {
+                const key = tenant.account.id;
+                if (!tenantStatusMap.has(key)) {
+                    tenantStatusMap.set(key, {
+                        accountId: key,
+                        accountName: tenant.account.label,
+                        signedInTenants: [],
+                    });
+                }
+
+                if (!unauthenticatedSet.has(`${key}/${tenant.tenantId}`)) {
+                    const entry = tenantStatusMap.get(key);
+                    entry?.signedInTenants.push(tenant.displayName ?? tenant.tenantId);
+                }
+            }
+
+            state.azureTenantStatus = Array.from(tenantStatusMap.values()).filter(
+                (entry) => entry.signedInTenants.length > 0,
+            );
+
+            const signedInTenants = Math.max(
+                0,
+                totalTenants - state.unauthenticatedAzureTenants.length,
+            );
+
+            state.azureTenantSignInCounts = {
+                totalTenants,
+                signedInTenants,
+            };
         } catch (error) {
             state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
             this.logger.error(
                 "Error determining Azure tenants without active sessions: " + getErrorMessage(error),
             );
@@ -1556,6 +1604,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
             this.updateState(state);
 
             // If there are no accounts, don't proceed to load subscriptions
@@ -1629,6 +1679,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
             state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
             this.logger.error(state.formMessage + "\n" + getErrorMessage(error));
             telemActivity?.endFailed(error, false);
             return undefined;

@@ -48,6 +48,8 @@ export class ConnectionDialogWebviewState
     public azureServers: AzureSqlServerInfo[] = [];
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public unauthenticatedAzureTenants: IUnauthenticatedAzureTenant[] = [];
+    public azureTenantStatus: IAzureTenantStatus[] = [];
+    public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
@@ -87,6 +89,17 @@ export interface IUnauthenticatedAzureTenant {
     tenantName?: string;
     accountId: string;
     accountName: string;
+}
+
+export interface IAzureTenantSignInStatus {
+    totalTenants: number;
+    signedInTenants: number;
+}
+
+export interface IAzureTenantStatus {
+    accountId: string;
+    accountName: string;
+    signedInTenants: string[];
 }
 
 export interface IDialogProps {
