@@ -307,13 +307,43 @@ export async function includeExcludeNode(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
+    logger?: Logger,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
+    logger?.info(
+        `[schemaCompareUtils] includeExcludeNode called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}, diffEntry type: ${payload.diffEntry?.name}`,
+    );
+    logger?.verbose(
+        `[schemaCompareUtils] Diff entry ID: ${payload.id}, taskExecutionMode: ${taskExecutionMode}`,
+    );
+    
+    const startTime = Date.now();
     const result = await schemaCompareService.includeExcludeNode(
         operationId,
         payload.diffEntry,
         payload.includeRequest,
         taskExecutionMode,
     );
+    
+    const elapsed = Date.now() - startTime;
+    logger?.info(
+        `[schemaCompareUtils] includeExcludeNode service returned after ${elapsed}ms - success: ${result?.success}`,
+    );
+    
+    if (result) {
+        logger?.info(
+            `[schemaCompareUtils] Affected dependencies: ${result.affectedDependencies?.length || 0}, Blocking dependencies: ${result.blockingDependencies?.length || 0}`,
+        );
+        
+        if (result.errorMessage) {
+            logger?.error(
+                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
+            );
+        }
+    } else {
+        logger?.warn(
+            `[schemaCompareUtils] includeExcludeNode returned null or undefined`,
+        );
+    }
 
     return result;
 }
@@ -332,12 +362,53 @@ export async function includeExcludeAllNodes(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeAllNodes"],
     schemaCompareService: mssql.ISchemaCompareService,
+    logger?: Logger,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
+    logger?.info(
+        `[schemaCompareUtils] includeExcludeAllNodes called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}`,
+    );
+    logger?.verbose(
+        `[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`,
+    );
+    
+    const startTime = Date.now();
+    logger?.info(
+        `[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`,
+    );
+    
     const result = await schemaCompareService.includeExcludeAllNodes(
         operationId,
         payload.includeRequest,
         taskExecutionMode,
     );
+    
+    const elapsed = Date.now() - startTime;
+    logger?.info(
+        `[schemaCompareUtils] includeExcludeAllNodes service returned after ${elapsed}ms - success: ${result?.success}`,
+    );
+    
+    if (result) {
+        logger?.info(
+            `[schemaCompareUtils] Result differences count: ${result.allIncludedOrExcludedDifferences?.length || 0}`,
+        );
+        
+        if (result.errorMessage) {
+            logger?.error(
+                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
+            );
+        }
+        
+        // Check for potential recursion issues based on elapsed time
+        if (elapsed > 30000) { // More than 30 seconds
+            logger?.warn(
+                `[schemaCompareUtils] includeExcludeAllNodes took unusually long (${elapsed}ms), possible performance issue`,
+            );
+        }
+    } else {
+        logger?.warn(
+            `[schemaCompareUtils] includeExcludeAllNodes returned null or undefined`,
+        );
+    }
 
     return result;
 }

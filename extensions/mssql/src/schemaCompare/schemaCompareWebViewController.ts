@@ -1532,6 +1532,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
             );
+            this.logger.info(
+                `Diff entry type: ${payload.diffEntry.name}, update action: ${this.getSchemaUpdateActionString(payload.diffEntry.updateAction)} - OperationId: ${this.operationId}`,
+            );
+            
+            if (state.schemaCompareResult) {
+                this.logger.info(
+                    `Total differences in state: ${state.schemaCompareResult.differences?.length || 0} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `No schema compare result in state - OperationId: ${this.operationId}`,
+                );
+            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1549,33 +1562,56 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            this.logger.verbose(
+                `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
+            );
             const result = await includeExcludeNode(
                 this.operationId,
                 TaskExecutionMode.execute,
                 payload,
                 this.schemaCompareService,
+                this.logger,
+            );
+            
+            this.logger.info(
+                `includeExcludeNode service returned - success: ${result?.success}, elapsed: ${Date.now() - startTime}ms - OperationId: ${this.operationId}`,
             );
 
             if (result.success) {
                 this.logger.info(
-                    `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies.length} affected dependencies - OperationId: ${this.operationId}`,
+                    `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies?.length || 0} affected dependencies - OperationId: ${this.operationId}`,
                 );
+                
+                if (result.affectedDependencies && result.affectedDependencies.length > 0) {
+                    this.logger.info(
+                        `Affected dependencies count: ${result.affectedDependencies.length} - OperationId: ${this.operationId}`,
+                    );
+                }
 
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
+                    affectedDependenciesCount: (result.affectedDependencies?.length || 0).toString(),
                 });
 
                 state.schemaCompareIncludeExcludeResult = result;
 
                 if (state.schemaCompareResult) {
+                    this.logger.verbose(
+                        `Updating node at index ${payload.id} - OperationId: ${this.operationId}`,
+                    );
                     state.schemaCompareResult.differences[payload.id].included =
                         payload.includeRequest;
 
                     this.logger.verbose(
-                        `Updating affected dependencies in the UI state - OperationId: ${this.operationId}`,
+                        `Updating ${result.affectedDependencies?.length || 0} affected dependencies in the UI state - OperationId: ${this.operationId}`,
                     );
-                    result.affectedDependencies.forEach((difference) => {
+                    
+                    const updateStartTime = Date.now();
+                    let foundCount = 0;
+                    let notFoundCount = 0;
+                    
+                    result.affectedDependencies.forEach((difference, depIndex) => {
                         const index = state.schemaCompareResult.differences.findIndex(
                             (d) =>
                                 d.sourceValue === difference.sourceValue &&
@@ -1585,20 +1621,37 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         );
 
                         if (index !== -1) {
-                            this.logger.verbose(
-                                `Updated dependency at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
-                            );
+                            foundCount++;
+                            if (depIndex < 5) { // Log first 5 dependencies only
+                                this.logger.verbose(
+                                    `Updated dependency ${depIndex + 1}/${result.affectedDependencies.length} at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
+                                );
+                            }
                             state.schemaCompareResult.differences[index].included =
                                 payload.includeRequest;
                         } else {
-                            this.logger.warn(
-                                `Could not find dependency in schema compare results - OperationId: ${this.operationId}`,
-                            );
+                            notFoundCount++;
+                            if (notFoundCount <= 3) { // Log first 3 not found only
+                                this.logger.warn(
+                                    `Could not find dependency ${depIndex + 1} in schema compare results - OperationId: ${this.operationId}`,
+                                );
+                            }
                         }
                     });
+                    
+                    const updateElapsed = Date.now() - updateStartTime;
+                    this.logger.info(
+                        `Updated ${foundCount} dependencies, ${notFoundCount} not found, took ${updateElapsed}ms - OperationId: ${this.operationId}`,
+                    );
                 }
 
+                this.logger.verbose(
+                    `Calling updateState to refresh UI - OperationId: ${this.operationId}`,
+                );
                 this.updateState(state);
+                this.logger.info(
+                    `includeExcludeNode completed successfully - OperationId: ${this.operationId}`,
+                );
             } else {
                 this.logger.warn(
                     `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
@@ -1685,8 +1738,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
+            
+            if (state.schemaCompareResult) {
+                const totalDiffs = state.schemaCompareResult.differences?.length || 0;
+                const includedCount = state.schemaCompareResult.differences?.filter(d => d.included).length || 0;
+                this.logger.info(
+                    `Current state - Total differences: ${totalDiffs}, Currently included: ${includedCount} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `No schema compare result in state - OperationId: ${this.operationId}`,
+                );
+            }
 
             state.isIncludeExcludeAllOperationInProgress = true;
+            this.logger.verbose(
+                `Set operation in progress flag, updating UI - OperationId: ${this.operationId}`,
+            );
             this.updateState(state);
 
             const startTime = Date.now();
@@ -1698,30 +1766,56 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     requestType: payload.includeRequest ? "Include all" : "Exclude all",
+                    totalDifferences: (state.schemaCompareResult?.differences?.length || 0).toString(),
                 },
             );
 
             try {
+                this.logger.info(
+                    `Calling includeExcludeAllNodes service - OperationId: ${this.operationId}`,
+                );
                 const result = await includeExcludeAllNodes(
                     this.operationId,
                     TaskExecutionMode.execute,
                     payload,
                     this.schemaCompareService,
+                    this.logger,
+                );
+                
+                const serviceElapsed = Date.now() - startTime;
+                this.logger.info(
+                    `includeExcludeAllNodes service returned after ${serviceElapsed}ms - success: ${result?.success} - OperationId: ${this.operationId}`,
                 );
 
                 this.state.isIncludeExcludeAllOperationInProgress = false;
 
                 if (result.success) {
-                    const count = result.allIncludedOrExcludedDifferences.length;
+                    const count = result.allIncludedOrExcludedDifferences?.length || 0;
                     this.logger.info(
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
+                    );
+                    
+                    if (result.allIncludedOrExcludedDifferences) {
+                        const includedAfter = result.allIncludedOrExcludedDifferences.filter(d => d.included).length;
+                        this.logger.info(
+                            `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
+                        );
+                    }
+                    
+                    this.logger.verbose(
+                        `Replacing state differences with result - OperationId: ${this.operationId}`,
                     );
                     state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
 
                     endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        differenceCount: count.toString(),
                     });
+                    
+                    this.logger.info(
+                        `includeExcludeAllNodes completed successfully - OperationId: ${this.operationId}`,
+                    );
                 } else {
                     this.logger.error(
                         `Failed to ${payload.includeRequest ? "include" : "exclude"} all nodes: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
@@ -1737,13 +1831,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         {
                             elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
+                            errorMessage: result.errorMessage,
                         },
                     );
                 }
             } catch (error) {
+                const errorElapsed = Date.now() - startTime;
                 this.logger.error(
-                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation after ${errorElapsed}ms: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
+                
+                // Check if error message contains stack overflow indicators
+                const errorMsg = getErrorMessage(error);
+                if (errorMsg.toLowerCase().includes('stack') || errorMsg.toLowerCase().includes('overflow')) {
+                    this.logger.error(
+                        `STACK OVERFLOW DETECTED in includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
+                    );
+                }
 
                 endActivity.endFailed(
                     new Error(getErrorMessage(error)),
@@ -1753,12 +1857,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        errorMessage: getErrorMessage(error),
                     },
                 );
 
                 this.state.isIncludeExcludeAllOperationInProgress = false;
             }
 
+            this.logger.verbose(
+                `Updating state after includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
+            );
             this.updateState(state);
             return state;
         });
