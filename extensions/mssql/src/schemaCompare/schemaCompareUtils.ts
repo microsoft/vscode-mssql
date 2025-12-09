@@ -315,7 +315,7 @@ export async function includeExcludeNode(
     logger?.verbose(
         `[schemaCompareUtils] Diff entry ID: ${payload.id}, taskExecutionMode: ${taskExecutionMode}`,
     );
-    
+
     const startTime = Date.now();
     const result = await schemaCompareService.includeExcludeNode(
         operationId,
@@ -323,26 +323,22 @@ export async function includeExcludeNode(
         payload.includeRequest,
         taskExecutionMode,
     );
-    
+
     const elapsed = Date.now() - startTime;
     logger?.info(
         `[schemaCompareUtils] includeExcludeNode service returned after ${elapsed}ms - success: ${result?.success}`,
     );
-    
+
     if (result) {
         logger?.info(
             `[schemaCompareUtils] Affected dependencies: ${result.affectedDependencies?.length || 0}, Blocking dependencies: ${result.blockingDependencies?.length || 0}`,
         );
-        
+
         if (result.errorMessage) {
-            logger?.error(
-                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
-            );
+            logger?.error(`[schemaCompareUtils] Error message: ${result.errorMessage}`);
         }
     } else {
-        logger?.warn(
-            `[schemaCompareUtils] includeExcludeNode returned null or undefined`,
-        );
+        logger?.warn(`[schemaCompareUtils] includeExcludeNode returned null or undefined`);
     }
 
     return result;
@@ -367,47 +363,40 @@ export async function includeExcludeAllNodes(
     logger?.info(
         `[schemaCompareUtils] includeExcludeAllNodes called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}`,
     );
-    logger?.verbose(
-        `[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`,
-    );
-    
+    logger?.verbose(`[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`);
+
     const startTime = Date.now();
-    logger?.info(
-        `[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`,
-    );
-    
+    logger?.info(`[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`);
+
     const result = await schemaCompareService.includeExcludeAllNodes(
         operationId,
         payload.includeRequest,
         taskExecutionMode,
     );
-    
+
     const elapsed = Date.now() - startTime;
     logger?.info(
         `[schemaCompareUtils] includeExcludeAllNodes service returned after ${elapsed}ms - success: ${result?.success}`,
     );
-    
+
     if (result) {
         logger?.info(
             `[schemaCompareUtils] Result differences count: ${result.allIncludedOrExcludedDifferences?.length || 0}`,
         );
-        
+
         if (result.errorMessage) {
-            logger?.error(
-                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
-            );
+            logger?.error(`[schemaCompareUtils] Error message: ${result.errorMessage}`);
         }
-        
+
         // Check for potential recursion issues based on elapsed time
-        if (elapsed > 30000) { // More than 30 seconds
+        if (elapsed > 30000) {
+            // More than 30 seconds
             logger?.warn(
                 `[schemaCompareUtils] includeExcludeAllNodes took unusually long (${elapsed}ms), possible performance issue`,
             );
         }
     } else {
-        logger?.warn(
-            `[schemaCompareUtils] includeExcludeAllNodes returned null or undefined`,
-        );
+        logger?.warn(`[schemaCompareUtils] includeExcludeAllNodes returned null or undefined`);
     }
 
     return result;
@@ -428,42 +417,36 @@ export async function openScmp(
     logger?.info(
         `[schemaCompareUtils] openScmp called with file path length: ${filePath?.length || 0}`,
     );
-    logger?.verbose(
-        `[schemaCompareUtils] Calling schemaCompareService.openScmp`,
-    );
-    
+    logger?.verbose(`[schemaCompareUtils] Calling schemaCompareService.openScmp`);
+
     const result = await schemaCompareService.openScmp(filePath);
-    
+
     logger?.info(
         `[schemaCompareUtils] openScmp service returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage}`,
     );
-    
+
     if (result) {
         logger?.info(
             `[schemaCompareUtils] Result has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, targetEndpointInfo: ${!!result.targetEndpointInfo}`,
         );
-        
+
         if (result.sourceEndpointInfo) {
             logger?.info(
                 `[schemaCompareUtils] Source endpoint type: ${result.sourceEndpointInfo.endpointType}`,
             );
         }
-        
+
         if (result.targetEndpointInfo) {
             logger?.info(
                 `[schemaCompareUtils] Target endpoint type: ${result.targetEndpointInfo.endpointType}`,
             );
         }
-        
+
         if (result.errorMessage) {
-            logger?.error(
-                `[schemaCompareUtils] Error message: ${result.errorMessage}`,
-            );
+            logger?.error(`[schemaCompareUtils] Error message: ${result.errorMessage}`);
         }
     } else {
-        logger?.warn(
-            `[schemaCompareUtils] openScmp returned null or undefined result`,
-        );
+        logger?.warn(`[schemaCompareUtils] openScmp returned null or undefined result`);
     }
 
     return result;
