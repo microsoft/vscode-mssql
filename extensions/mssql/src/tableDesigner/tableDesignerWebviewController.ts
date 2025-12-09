@@ -18,6 +18,7 @@ import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { IConnectionProfile } from "../models/interfaces";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -102,7 +103,12 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
 
-        const connectionInfo = this._targetNode.connectionProfile;
+        let connectionInfo = this._targetNode.connectionProfile;
+
+        connectionInfo = (await this._connectionManager.prepareConnectionInfo(
+            connectionInfo,
+        )) as IConnectionProfile;
+
         connectionInfo.database = databaseName;
 
         let connectionString;
@@ -156,9 +162,10 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 correlationId: this._correlationId,
                 isEdit: this._isEdit.toString(),
             },
+            undefined,
+            true, // include call stack
         );
 
-        await this._connectionManager.confirmEntraTokenValidity(connectionInfo);
         this._targetNode.updateConnectionProfile(connectionInfo);
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken

@@ -12,6 +12,7 @@ import MainController from "../controllers/mainController";
 import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { IConnectionProfile } from "../models/interfaces";
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -57,7 +58,10 @@ export class SchemaDesignerWebviewManager {
         let connectionString: string | undefined;
         let azureAccountToken: string | undefined;
         if (treeNode) {
-            const connectionInfo = treeNode.connectionProfile;
+            let connectionInfo = treeNode.connectionProfile;
+            connectionInfo = (await mainController.connectionManager.prepareConnectionInfo(
+                connectionInfo,
+            )) as IConnectionProfile;
             connectionInfo.database = databaseName;
 
             const connectionDetails =
