@@ -40,6 +40,19 @@ const createDisconnectedNodeContextValue = (
     };
 };
 
+const createConnectedNodeContextValue = (
+    connectionProfile: ConnectionProfile,
+): vscodeMssql.TreeNodeContextValue => {
+    let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
+    if (connectionProfile.containerName) nodeSubType = dockerContainer;
+    return {
+        type: SERVER_NODE_CONNECTED,
+        filterable: false,
+        hasFilters: false,
+        subType: nodeSubType,
+    };
+};
+
 export class ConnectionNode extends TreeNodeInfo {
     constructor(connectionProfile: ConnectionProfile, parentNode?: TreeNodeInfo) {
         const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
@@ -252,20 +265,7 @@ export class ConnectionNode extends TreeNodeInfo {
         connectionProfile: ConnectionProfile;
     }) {
         const { nodeInfo, sessionId, parentNode, connectionProfile } = options;
-        let subType;
-        if (connectionProfile.containerName && connectionProfile.database) {
-            subType = `${Constants.dockerContainerDatabase}`;
-        } else if (connectionProfile.containerName) {
-            subType = dockerContainer;
-        } else if (connectionProfile.database) {
-            subType = DATABASE_SUBTYPE;
-        }
-        this.context = {
-            type: SERVER_NODE_CONNECTED,
-            filterable: nodeInfo.filterableProperties?.length > 0,
-            hasFilters: false,
-            subType: subType ?? "",
-        };
+        this.context = createConnectedNodeContextValue(connectionProfile);
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         this.nodePath = nodeInfo.nodePath;
         this.nodeStatus = nodeInfo.nodeStatus;
@@ -318,15 +318,18 @@ export class ConnectionNode extends TreeNodeInfo {
 
     public updateToDockerConnection(containerName: string): ConnectionNode {
         this.connectionProfile.containerName = containerName;
-        if (this.connectionProfile.database) {
-            this.context.subType = `${Constants.dockerContainerDatabase}`;
-        } else {
-            this.context.subType = dockerContainer;
-        }
         if (this.nodeType === SERVER_NODE_DISCONNECTED) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_DISCONNECTED);
+            this.context = createDisconnectedNodeContextValue(this.connectionProfile);
+            this.nodeSubType = disconnectedDockerContainer;
         } else if (this.nodeType === SERVER_NODE_CONNECTED) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_CONNECTED);
+            this.context = createConnectedNodeContextValue(this.connectionProfile);
+            if (this.connectionProfile.database) {
+                this.nodeSubType = `${Constants.dockerContainerDatabase}`;
+            } else {
+                this.nodeSubType = dockerContainer;
+            }
         }
         return this;
     }
