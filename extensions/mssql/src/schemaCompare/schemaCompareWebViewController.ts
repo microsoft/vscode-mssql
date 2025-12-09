@@ -1816,10 +1816,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     );
                     state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
 
+                    const includedCount = result.allIncludedOrExcludedDifferences?.filter(
+                        (d) => d.included,
+                    ).length || 0;
+                    const excludedCount = count - includedCount;
+
                     endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
                         differenceCount: count.toString(),
+                        includedCount: includedCount.toString(),
+                        excludedCount: excludedCount.toString(),
                     });
 
                     this.logger.info(
