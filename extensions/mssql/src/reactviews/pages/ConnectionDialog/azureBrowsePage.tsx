@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
+import { Button, Field, Link, Spinner, Tooltip, makeStyles, tokens } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -28,6 +28,25 @@ export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);
 };
 
+const useAzureBrowseStyles = makeStyles({
+    warningContainer: {
+        border: `1px solid ${tokens.colorStatusWarningBorder1}`,
+        backgroundColor: tokens.colorStatusWarningBackground2,
+        borderRadius: "4px",
+        padding: "8px 12px",
+        marginBottom: "12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px",
+        flexWrap: "wrap",
+    },
+    warningText: {
+        color: tokens.colorStatusWarningForeground1,
+        flex: "1 1 auto",
+    },
+});
+
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     if (context === undefined) {
@@ -35,6 +54,7 @@ export const AzureBrowsePage = () => {
     }
 
     const formStyles = useFormStyles();
+    const browseStyles = useAzureBrowseStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
@@ -225,6 +245,7 @@ export const AzureBrowsePage = () => {
     }
 
     const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
+    const missingTenantCount = context.state.unauthenticatedAzureTenants?.length ?? 0;
 
     return (
         <div>
@@ -281,6 +302,19 @@ export const AzureBrowsePage = () => {
                             </Tooltip>
                         </Field>
                     </div>
+                    {missingTenantCount > 0 && (
+                        <div className={browseStyles.warningContainer}>
+                            <span className={browseStyles.warningText}>
+                                {Loc.connectionDialog.azureTenantsMissingSignIn(missingTenantCount)}
+                            </span>
+                            <Button
+                                appearance="secondary"
+                                size="small"
+                                onClick={() => context.signIntoAzureTenantForBrowse()}>
+                                {Loc.connectionDialog.signIntoTenantButton}
+                            </Button>
+                        </div>
+                    )}
                     <AzureFilterCombobox
                         label={Loc.connectionDialog.subscriptionLabel}
                         clearable

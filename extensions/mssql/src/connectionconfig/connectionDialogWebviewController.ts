@@ -48,7 +48,11 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
-import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
+import {
+    AzureSubscription,
+    getUnauthenticatedTenants,
+    signInToTenant,
+} from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -706,6 +710,34 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
+            return state;
+        });
+
+        this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
+            let auth: MssqlVSCodeAzureSubscriptionProvider;
+            try {
+                auth = await VsCodeAzureHelper.signIn();
+            } catch (error) {
+                this.logger.error("Error signing into Azure: " + getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
+
+                return state;
+            }
+
+            try {
+                await signInToTenant(auth);
+            } catch (error) {
+                this.logger.error("Error signing into Azure tenant: " + getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
+
+                return state;
+            }
+
+            await this.loadAllAzureServers(state);
             return state;
         });
 
@@ -1483,6 +1515,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    private async refreshUnauthenticatedTenants(
+        state: ConnectionDialogWebviewState,
+        auth: MssqlVSCodeAzureSubscriptionProvider,
+    ): Promise<void> {
+        try {
+            const unauthenticatedTenants = await getUnauthenticatedTenants(auth);
+
+            state.unauthenticatedAzureTenants = unauthenticatedTenants.map((tenant) => ({
+                tenantId: tenant.tenantId,
+                tenantName: tenant.displayName ?? tenant.tenantId,
+                accountId: tenant.account.id,
+                accountName: tenant.account.label,
+            }));
+        } catch (error) {
+            state.unauthenticatedAzureTenants = [];
+            this.logger.error(
+                "Error determining Azure tenants without active sessions: " + getErrorMessage(error),
+            );
+        }
+    }
+
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
@@ -1502,6 +1555,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 } as IAzureAccount;
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            state.unauthenticatedAzureTenants = [];
             this.updateState(state);
 
             // If there are no accounts, don't proceed to load subscriptions
@@ -1522,6 +1576,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
+
+            await this.refreshUnauthenticatedTenants(state, auth);
+            this.updateState(state);
 
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
             // The specific vscode config setting it uses is hardcoded into the VS Code Azure SDK, so we need to use the same value here.
@@ -1571,6 +1628,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch (error) {
             state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
+            state.unauthenticatedAzureTenants = [];
             this.logger.error(state.formMessage + "\n" + getErrorMessage(error));
             telemActivity?.endFailed(error, false);
             return undefined;
