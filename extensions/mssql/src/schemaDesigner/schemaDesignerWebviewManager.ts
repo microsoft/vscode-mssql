@@ -67,7 +67,6 @@ export class SchemaDesignerWebviewManager {
             const connectionDetails =
                 await mainController.connectionManager.createConnectionDetails(connectionInfo);
 
-            await mainController.connectionManager.confirmEntraTokenValidity(connectionInfo);
             treeNode.updateConnectionProfile(connectionInfo);
 
             connectionString = await mainController.connectionManager.getConnectionString(
