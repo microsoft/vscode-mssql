@@ -918,8 +918,12 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
 }
 
 /**
- * Checks if a connection is a Docker container by inspecting the machine name of the connections' server info.
- * @param machineName The machine name hosting the connection according to it's server info.
+ * Determines whether a connection is running inside a Docker container.
+ *
+ * Inspects the `machineName` from the connection's server info. For Docker connections,
+ * the machine name is set to the UUID corresponding to the container's ID.
+ *
+ * @param machineName The machine name hosting the connection, as reported in its server info.
  */
 export async function checkIfConnectionIsDockerContainer(machineName: string): Promise<string> {
     try {
