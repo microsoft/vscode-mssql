@@ -315,4 +315,19 @@ export class ConnectionNode extends TreeNodeInfo {
             this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }
+
+    public updateToDockerConnection(containerName: string): ConnectionNode {
+        this.connectionProfile.containerName = containerName;
+        if (this.connectionProfile.database) {
+            this.context.subType = `${Constants.dockerContainerDatabase}`;
+        } else {
+            this.context.subType = dockerContainer;
+        }
+        if (this.nodeType === SERVER_NODE_DISCONNECTED) {
+            this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_DISCONNECTED);
+        } else if (this.nodeType === SERVER_NODE_CONNECTED) {
+            this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_CONNECTED);
+        }
+        return this;
+    }
 }

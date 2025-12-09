@@ -49,7 +49,7 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { checkIfConnectionIsDockerContainer, restartContainer } from "../deployment/dockerUtils";
+import { restartContainer } from "../deployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
@@ -764,20 +764,6 @@ export class ObjectExplorerService {
             return;
         }
 
-        if (!connectionProfile.containerName) {
-            const serverInfo = this._connectionManager.getServerInfo(connectionProfile);
-            let machineName = "";
-            if (serverInfo) {
-                machineName = (serverInfo as any)["machineName"];
-            }
-            const containerName = await checkIfConnectionIsDockerContainer(machineName);
-            if (containerName) {
-                connectionProfile.containerName = containerName;
-                // if the connection is a docker container, make sure to set the container name for future use
-                await this._connectionManager.connectionStore.saveProfile(connectionProfile);
-            }
-        }
-
         let connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
 
         let isNewConnection = false;
@@ -804,7 +790,12 @@ export class ObjectExplorerService {
         ) {
             await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
         }
-        if (isNewConnection) {
+        const dockerConnectionContainerName =
+            await this._connectionManager.checkForDockerConnection(connectionProfile);
+        if (dockerConnectionContainerName) {
+            connectionNode = connectionNode.updateToDockerConnection(dockerConnectionContainerName);
+        }
+        if (isNewConnection || dockerConnectionContainerName) {
             this.addConnectionNode(connectionNode);
         }
 
