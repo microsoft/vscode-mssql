@@ -95,8 +95,14 @@ export function FilterTablesButton() {
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
     const [showTableRelationships, setShowTableRelationships] = useState(false);
+    const [openItems, setOpenItems] = useState<string[]>(context.schemaNames);
 
     type CustomTreeItem = HeadlessFlatTreeItemProps & { content: string };
+
+    // Sync with context when it changes
+    useEffect(() => {
+        setOpenItems(context.schemaNames);
+    }, [context.schemaNames]);
 
     function loadTables() {
         // When loading tables (e.g., when filter button is clicked), we should maintain
@@ -278,8 +284,6 @@ export function FilterTablesButton() {
             schemaTables[schema].sort();
         });
 
-        console.log(JSON.stringify(schemaTables, null, 2));
-
         const items: CustomTreeItem[] = [];
         const defaultOpenSchemas: string[] = [];
 
@@ -315,7 +319,11 @@ export function FilterTablesButton() {
             });
 
         const flatTree = useHeadlessFlatTree_unstable(items, {
-            defaultOpenItems: defaultOpenSchemas,
+            openItems,
+            onOpenChange: (_e, data) => {
+                const currentOpenItems = Array.from(data.openItems).map((item) => item.toString());
+                setOpenItems(currentOpenItems);
+            },
             selectionMode: "multiselect",
         });
 
