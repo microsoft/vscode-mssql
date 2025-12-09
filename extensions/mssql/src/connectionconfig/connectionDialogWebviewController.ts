@@ -1515,11 +1515,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    /**
+     * Refreshes the data used to generate the tenant sign-in count sumary and tooltip
+     */
     private async refreshUnauthenticatedTenants(
         state: ConnectionDialogWebviewState,
         auth: MssqlVSCodeAzureSubscriptionProvider,
     ): Promise<void> {
         try {
+            // Capture the tenants that aren't signed in
             const unauthenticatedTenants = await getUnauthenticatedTenants(auth);
 
             state.unauthenticatedAzureTenants = unauthenticatedTenants.map((tenant) => ({
@@ -1529,6 +1533,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accountName: tenant.account.label,
             }));
 
+            // Capture all the tenants
             const allTenants = await auth.getTenants();
             const totalTenants = allTenants.length;
             const unauthenticatedSet = new Set(
@@ -1545,6 +1550,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
             >();
 
+            // Use those to get the authenticated tenants per account
             for (const tenant of allTenants) {
                 const key = tenant.account.id;
                 if (!tenantStatusMap.has(key)) {
@@ -1561,10 +1567,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
             }
 
+            // Clean up info so it only includes accounts with at least one tenant signed in
             state.azureTenantStatus = Array.from(tenantStatusMap.values()).filter(
                 (entry) => entry.signedInTenants.length > 0,
             );
 
+            // Calculate the summary counts
             const signedInTenants = Math.max(
                 0,
                 totalTenants - state.unauthenticatedAzureTenants.length,
