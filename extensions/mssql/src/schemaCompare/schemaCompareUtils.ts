@@ -15,6 +15,7 @@ import {
 } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
 import * as locConstants from "../constants/locConstants";
+import { Logger } from "../models/logger";
 /**
  * A constant string representing the command to publish schema compare changes
  * for SQL database projects.
@@ -173,6 +174,7 @@ export async function compare(
  * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing parameters for generating the script.
  * @param schemaCompareService - The service used to perform schema comparison operations.
+ * @param logger - Logger instance for diagnostic logging.
  * @returns A promise that resolves to the result status of the script generation operation.
  */
 export async function generateScript(
@@ -180,7 +182,18 @@ export async function generateScript(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
+    logger?: Logger,
 ): Promise<mssql.ResultStatus> {
+    logger?.info(
+        `[schemaCompareUtils] generateScript called - operationId: ${operationId}, taskExecutionMode: ${taskExecutionMode} - OperationId: ${operationId}`,
+    );
+    logger?.info(
+        `[schemaCompareUtils] Payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${operationId}`,
+    );
+    logger?.verbose(
+        `[schemaCompareUtils] Calling schemaCompareService.generateScript - OperationId: ${operationId}`,
+    );
+
     const result = await schemaCompareService.generateScript(
         operationId,
         payload.targetServerName,
@@ -188,6 +201,30 @@ export async function generateScript(
         taskExecutionMode,
     );
 
+    logger?.info(
+        `[schemaCompareUtils] schemaCompareService.generateScript returned - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${operationId}`,
+    );
+
+    if (result) {
+        logger?.info(
+            `[schemaCompareUtils] Result object type: ${typeof result}, keys: ${Object.keys(result).join(", ")} - OperationId: ${operationId}`,
+        );
+        logger?.verbose(
+            `[schemaCompareUtils] Full result JSON: ${JSON.stringify(result)} - OperationId: ${operationId}`,
+        );
+    } else {
+        logger?.warn(
+            `[schemaCompareUtils] Result is null or undefined - OperationId: ${operationId}`,
+        );
+    }
+
+    if (result?.errorMessage) {
+        logger?.error(
+            `[schemaCompareUtils] Result contains error: ${result.errorMessage} - OperationId: ${operationId}`,
+        );
+    }
+
+    logger?.info(`[schemaCompareUtils] Returning result - OperationId: ${operationId}`);
     return result;
 }
 

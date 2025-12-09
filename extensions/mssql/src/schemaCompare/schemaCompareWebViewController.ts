@@ -1005,6 +1005,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
+            this.logger.info(
+                `Generate script reducer invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
+            );
+            this.logger.info(
+                `Current state - sourceEndpoint: ${state.sourceEndpointInfo?.endpointType || "undefined"}, targetEndpoint: ${state.targetEndpointInfo?.endpointType || "undefined"}, hasCompareResult: ${!!state.schemaCompareResult} - OperationId: ${this.operationId}`,
+            );
+            
+            if (state.schemaCompareResult) {
+                this.logger.info(
+                    `Schema compare result has ${state.schemaCompareResult.differences?.length || 0} differences - OperationId: ${this.operationId}`,
+                );
+            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1020,16 +1032,46 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     targetType: getSchemaCompareEndpointTypeString(
                         state.targetEndpointInfo?.endpointType,
                     ),
+                    hasTargetServerName: (!!payload?.targetServerName).toString(),
+                    hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
                 },
             );
 
             this.logger.verbose(`Starting script generation - OperationId: ${this.operationId}`);
+            this.logger.verbose(
+                `Calling generateScript with TaskExecutionMode.script - OperationId: ${this.operationId}`,
+            );
+            
             const result = await generateScript(
                 this.operationId,
                 TaskExecutionMode.script,
                 payload,
                 this.schemaCompareService,
+                this.logger,
             );
+
+            this.logger.info(
+                `Generate script service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
+            );
+            
+            if (result) {
+                this.logger.info(
+                    `Generate script result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+                );
+                this.logger.info(
+                    `Generate script result details: ${JSON.stringify(result)} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `Generate script returned null or undefined result - OperationId: ${this.operationId}`,
+                );
+            }
+
+            if (result && result.errorMessage) {
+                this.logger.warn(
+                    `Generate script result contains error message: ${result.errorMessage} - OperationId: ${this.operationId}`,
+                );
+            }
 
             if (!result || !result.success) {
                 this.logger.error(
@@ -1055,6 +1097,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `Successfully generated script - OperationId: ${this.operationId}`,
                 );
+                this.logger.info(
+                    `Script generation completed, updating state with result - OperationId: ${this.operationId}`,
+                );
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -1062,7 +1107,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 operationId: this.operationId,
             });
 
+            this.logger.verbose(
+                `Setting state.generateScriptResultStatus with result - OperationId: ${this.operationId}`,
+            );
             state.generateScriptResultStatus = result;
+            
+            this.logger.info(
+                `Generate script reducer completed, returning updated state - OperationId: ${this.operationId}`,
+            );
             return state;
         });
 
