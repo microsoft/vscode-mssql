@@ -1186,7 +1186,7 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       </trans-unit>
       <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
         <source xml:lang="en">Connection string copied to clipboard</source>
-        <target state="new">Connection string copied to clipboard</target>
+        <target state="translated">Cadeia de conexão copiada para a área de transferência</target>
       </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
@@ -5267,6 +5267,10 @@ Consulta: {2}</target>
         <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
         <target state="translated">Para usar este comando, você deve definir a linguagem para "SQL". Confirme para alterar o modo de linguagem.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
+        <source xml:lang="en">Toggle Sort</source>
+        <target state="new">Toggle Sort</target>
+      </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">Ativar/Desativar Dicas de Ferramentas</target>
@@ -5972,7 +5976,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.copyConnectionString">
         <source xml:lang="en">Copy as Connection String</source>
-        <target state="new">Copy as Connection String</target>
+        <target state="translated">Copiar como Cadeia de Conexão</target>
       </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
