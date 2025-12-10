@@ -325,6 +325,17 @@ export class LocConstants {
             signIntoFabricToBrowse: l10n.t(
                 "You must be signed into Fabric in order to browse SQL databases.",
             ),
+            azureTenantSignInStatus: (signedIn: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} tenants",
+                    args: [signedIn, total],
+                    comment: [
+                        "{0} is the number of tenants with active sessions",
+                        "{1} is the total number of tenants",
+                    ],
+                }),
+            signIntoTenantLink: l10n.t("Sign into tenant"),
+            noTenantsSignedIn: l10n.t("No tenants are currently signed in."),
             loadingWorkspaces: l10n.t("Loading workspaces..."),
             loadingDatabasesInWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {

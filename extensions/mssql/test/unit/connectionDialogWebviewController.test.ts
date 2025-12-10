@@ -35,6 +35,7 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
@@ -49,7 +50,9 @@ import {
     stubVscodeAzureHelperGetAccounts,
     mockServerName,
     mockUserName,
+    mockTenants,
 } from "./azureHelperStubs";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
@@ -739,6 +742,62 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(
                     (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
                 ).to.contain(errorMessage);
+            });
+        });
+
+        test("signIntoAzureTenantForBrowse", async () => {
+            const fakeAuth = {} as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            const signInStub = sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "signIn")
+                .resolves(fakeAuth);
+            const signInToTenantStub = sandbox
+                .stub(AzureHelpers.VsCodeAzureAuth, "signInToTenant")
+                .resolves();
+            const loadAllAzureServersStub = sandbox
+                .stub(controller as any, "loadAllAzureServers")
+                .resolves();
+
+            await controller["_reducerHandlers"].get("signIntoAzureTenantForBrowse")(
+                controller.state,
+                {},
+            );
+
+            expect(signInStub).to.have.been.calledOnce;
+            expect(signInToTenantStub).to.have.been.calledOnceWithExactly(fakeAuth);
+            expect(loadAllAzureServersStub).to.have.been.calledOnceWithExactly(controller.state);
+        });
+
+        test("refreshUnauthenticatedTenants", async () => {
+            const unauthenticated = mockTenants[1];
+
+            const fakeAuth = {
+                getTenants: sandbox.stub().resolves([mockTenants[0], mockTenants[1]]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureAuth, "getUnauthenticatedTenants")
+                .resolves([unauthenticated]);
+
+            await controller["refreshUnauthenticatedTenants"](controller.state, fakeAuth);
+
+            expect(controller.state.unauthenticatedAzureTenants).to.have.lengthOf(1);
+            expect(controller.state.unauthenticatedAzureTenants[0]).to.include({
+                tenantId: unauthenticated.tenantId,
+                accountId: unauthenticated.account.id,
+            });
+
+            expect(controller.state.azureTenantStatus).to.deep.equal([
+                {
+                    accountId: mockTenants[0].account.id,
+                    accountName: mockTenants[0].account.label,
+                    signedInTenants: [mockTenants[0].displayName],
+                },
+            ]);
+
+            expect(controller.state.azureTenantSignInCounts).to.deep.equal({
+                totalTenants: 2,
+                signedInTenants: 1,
             });
         });
     });
