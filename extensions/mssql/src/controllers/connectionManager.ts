@@ -52,7 +52,6 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
-import { connection } from "azdata";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
