@@ -154,7 +154,9 @@ export const TableDesigner = () => {
                 <div className={classes.pageContext}>
                     <ErrorCircleRegular className={classes.errorIcon} />
                     <div>{locConstants.tableDesigner.errorLoadingDesigner}</div>
-                    <Button className={classes.retryButton}>
+                    <Button
+                        className={classes.retryButton}
+                        onClick={() => context.initializeTableDesigner()}>
                         {locConstants.tableDesigner.retry}
                     </Button>
                 </div>

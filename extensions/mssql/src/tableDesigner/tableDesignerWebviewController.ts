@@ -71,6 +71,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 showRestorePromptAfterClose: false,
             },
         );
+        this.registerRpcHandlers();
         void this.initialize();
     }
 
@@ -102,6 +103,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         // get database name from connection string
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
+
+        this.state = {
+            ...this.state,
+            apiState: {
+                ...this.state.apiState,
+                initializeState: designer.LoadState.Loading,
+            },
+        };
 
         let connectionInfo = this._targetNode.connectionProfile;
 
@@ -231,8 +240,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             this.state.apiState.initializeState = designer.LoadState.Error;
             this.state = this.state;
         }
-
-        this.registerRpcHandlers();
     }
 
     private getDatabaseNameForNode(node: TreeNodeInfo): string {
