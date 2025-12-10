@@ -12,7 +12,7 @@ import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./designerResultPane";
 import { locConstants } from "../../common/locConstants";
-import { InitializationErrorDialog } from "../../common/InitializationErrorDialog";
+import { ErrorDialog } from "../../common/errorDialog";
 import {
     ImperativePanelHandle,
     Panel,
@@ -145,7 +145,7 @@ export const TableDesigner = () => {
                     />
                 </div>
             )}
-            <InitializationErrorDialog
+            <ErrorDialog
                 open={isErrorState}
                 title={locConstants.tableDesigner.errorLoadingDesigner}
                 message={locConstants.tableDesigner.errorLoadingDesigner}

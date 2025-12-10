@@ -35,7 +35,7 @@ const useStyles = makeStyles({
     },
 });
 
-export interface InitializationErrorDialogProps {
+export interface ErrorDialogProps {
     open: boolean;
     title: string;
     message: string;
@@ -43,7 +43,7 @@ export interface InitializationErrorDialogProps {
     onRetry: () => void;
 }
 
-export const InitializationErrorDialog: React.FC<InitializationErrorDialogProps> = ({
+export const ErrorDialog: React.FC<ErrorDialogProps> = ({
     open,
     title,
     message,

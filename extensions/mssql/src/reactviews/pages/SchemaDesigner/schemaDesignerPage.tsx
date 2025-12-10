@@ -14,7 +14,7 @@ import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
 import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { InitializationErrorDialog } from "../../common/InitializationErrorDialog";
+import { ErrorDialog } from "../../common/errorDialog";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -45,7 +45,7 @@ export const SchemaDesignerPage = () => {
                     <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
-                <InitializationErrorDialog
+                <ErrorDialog
                     open={!!context.initializationError}
                     title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
                     message={context.initializationError ?? ""}
