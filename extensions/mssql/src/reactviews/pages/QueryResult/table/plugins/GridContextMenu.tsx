@@ -9,6 +9,7 @@ import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
 import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
+import { useContextMenuStyles } from "../../../../common/styles";
 
 export interface GridContextMenuProps {
     x: number;
@@ -32,6 +33,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
     onAction,
     onClose,
 }) => {
+    const styles = useContextMenuStyles();
     const virtualTarget = useMemo(() => createVirtualElement(x, y), [x, y]);
     const popoverRef = useRef<HTMLDivElement | null>(null);
     const { keyBindings } = useVscodeWebview2();
@@ -62,11 +64,13 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
                         <MenuItem
+                            className={styles.menuItem}
                             secondaryContent={keyBindings[WebviewAction.ResultGridSelectAll].label}
                             onClick={() => onAction(GridContextMenuAction.SelectAll)}>
                             {locConstants.queryResult.selectAll}
                         </MenuItem>
                         <MenuItem
+                            className={styles.menuItem}
                             secondaryContent={
                                 keyBindings[WebviewAction.ResultGridCopySelection].label
                             }
@@ -74,6 +78,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                             {locConstants.queryResult.copy}
                         </MenuItem>
                         <MenuItem
+                            className={styles.menuItem}
                             secondaryContent={
                                 keyBindings[WebviewAction.ResultGridCopyWithHeaders].label
                             }
@@ -81,6 +86,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                             {locConstants.queryResult.copyWithHeaders}
                         </MenuItem>
                         <MenuItem
+                            className={styles.menuItem}
                             secondaryContent={
                                 keyBindings[WebviewAction.ResultGridCopyAllHeaders].label
                             }
@@ -89,11 +95,14 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                         </MenuItem>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
-                                <MenuItem>{locConstants.queryResult.copyAs}</MenuItem>
+                                <MenuItem className={styles.menuItem}>
+                                    {locConstants.queryResult.copyAs}
+                                </MenuItem>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
                                     <MenuItem
+                                        className={styles.menuItem}
                                         secondaryContent={
                                             keyBindings[WebviewAction.ResultGridCopyAsCsv].label
                                         }
@@ -101,6 +110,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                         {locConstants.queryResult.copyAsCsv}
                                     </MenuItem>
                                     <MenuItem
+                                        className={styles.menuItem}
                                         secondaryContent={
                                             keyBindings[WebviewAction.ResultGridCopyAsJson].label
                                         }
@@ -108,6 +118,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                         {locConstants.queryResult.copyAsJson}
                                     </MenuItem>
                                     <MenuItem
+                                        className={styles.menuItem}
                                         secondaryContent={
                                             keyBindings[WebviewAction.ResultGridCopyAsInsert].label
                                         }
@@ -117,6 +128,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                         {locConstants.queryResult.copyAsInsertInto}
                                     </MenuItem>
                                     <MenuItem
+                                        className={styles.menuItem}
                                         secondaryContent={
                                             keyBindings[WebviewAction.ResultGridCopyAsInClause]
                                                 ?.label
