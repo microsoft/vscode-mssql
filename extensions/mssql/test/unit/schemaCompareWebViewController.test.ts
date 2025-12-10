@@ -565,9 +565,15 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(generateScriptStub, "generateScript should be called once").to.have.been.calledOnce;
 
         expect(
-            generateScriptStub.firstCall.args,
+            generateScriptStub,
             "generateScript should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.script, payload, schemaCompareService]);
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.script,
+            payload,
+            schemaCompareService,
+            sinon.match.any,
+        );
 
         expect(
             result.generateScriptResultStatus,
@@ -719,9 +725,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            publishProjectChangesStub.firstCall.args,
+            publishProjectChangesStub,
             "includeExcludeNode should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.execute,
+            payload,
+            schemaCompareService,
+            sinon.match.any,
+        );
 
         expect(
             actualResult.schemaCompareIncludeExcludeResult,
@@ -767,9 +779,9 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(openScmpStub, "openScmp should be called once").to.have.been.calledOnce;
 
         expect(
-            openScmpStub.firstCall.args,
+            openScmpStub,
             "openScmp should be called with correct arguments",
-        ).to.deep.equal([filePath, schemaCompareService]);
+        ).to.have.been.calledWith(filePath, schemaCompareService, sinon.match.any);
 
         expect(
             actualResult.schemaCompareOpenScmpResult,

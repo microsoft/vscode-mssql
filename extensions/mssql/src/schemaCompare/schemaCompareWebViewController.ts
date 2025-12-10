@@ -1007,6 +1007,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
+            this.logger.info(
+                `Generate script reducer invoked with payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${this.operationId}`,
+            );
+            this.logger.info(
+                `Current state - sourceEndpoint: ${state.sourceEndpointInfo?.endpointType || "undefined"}, targetEndpoint: ${state.targetEndpointInfo?.endpointType || "undefined"}, hasCompareResult: ${!!state.schemaCompareResult} - OperationId: ${this.operationId}`,
+            );
+
+            if (state.schemaCompareResult) {
+                this.logger.info(
+                    `Schema compare result has ${state.schemaCompareResult.differences?.length || 0} differences - OperationId: ${this.operationId}`,
+                );
+            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1022,16 +1034,46 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     targetType: getSchemaCompareEndpointTypeString(
                         state.targetEndpointInfo?.endpointType,
                     ),
+                    hasTargetServerName: (!!payload?.targetServerName).toString(),
+                    hasTargetDatabaseName: (!!payload?.targetDatabaseName).toString(),
                 },
             );
 
             this.logger.verbose(`Starting script generation - OperationId: ${this.operationId}`);
+            this.logger.verbose(
+                `Calling generateScript with TaskExecutionMode.script - OperationId: ${this.operationId}`,
+            );
+
             const result = await generateScript(
                 this.operationId,
                 TaskExecutionMode.script,
                 payload,
                 this.schemaCompareService,
+                this.logger,
             );
+
+            this.logger.info(
+                `Generate script service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
+            );
+
+            if (result) {
+                this.logger.info(
+                    `Generate script result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+                );
+                this.logger.info(
+                    `Generate script result details: ${JSON.stringify(result)} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `Generate script returned null or undefined result - OperationId: ${this.operationId}`,
+                );
+            }
+
+            if (result && result.errorMessage) {
+                this.logger.warn(
+                    `Generate script result contains error message: ${result.errorMessage} - OperationId: ${this.operationId}`,
+                );
+            }
 
             if (!result || !result.success) {
                 this.logger.error(
@@ -1057,6 +1099,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `Successfully generated script - OperationId: ${this.operationId}`,
                 );
+                this.logger.info(
+                    `Script generation completed, updating state with result - OperationId: ${this.operationId}`,
+                );
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -1064,7 +1109,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 operationId: this.operationId,
             });
 
+            this.logger.verbose(
+                `Setting state.generateScriptResultStatus with result - OperationId: ${this.operationId}`,
+            );
             state.generateScriptResultStatus = result;
+
+            this.logger.info(
+                `Generate script reducer completed, returning updated state - OperationId: ${this.operationId}`,
+            );
             return state;
         });
 
@@ -1482,6 +1534,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
             );
+            this.logger.info(
+                `Diff entry type: ${payload.diffEntry.name}, update action: ${this.getSchemaUpdateActionString(payload.diffEntry.updateAction)} - OperationId: ${this.operationId}`,
+            );
+
+            if (state.schemaCompareResult) {
+                this.logger.info(
+                    `Total differences in state: ${state.schemaCompareResult.differences?.length || 0} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `No schema compare result in state - OperationId: ${this.operationId}`,
+                );
+            }
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -1499,33 +1564,58 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            this.logger.verbose(
+                `Calling includeExcludeNode service - OperationId: ${this.operationId}`,
+            );
             const result = await includeExcludeNode(
                 this.operationId,
                 TaskExecutionMode.execute,
                 payload,
                 this.schemaCompareService,
+                this.logger,
+            );
+
+            this.logger.info(
+                `includeExcludeNode service returned - success: ${result?.success}, elapsed: ${Date.now() - startTime}ms - OperationId: ${this.operationId}`,
             );
 
             if (result.success) {
                 this.logger.info(
-                    `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies.length} affected dependencies - OperationId: ${this.operationId}`,
+                    `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies?.length || 0} affected dependencies - OperationId: ${this.operationId}`,
                 );
+
+                if (result.affectedDependencies && result.affectedDependencies.length > 0) {
+                    this.logger.info(
+                        `Affected dependencies count: ${result.affectedDependencies.length} - OperationId: ${this.operationId}`,
+                    );
+                }
 
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
+                    affectedDependenciesCount: (
+                        result.affectedDependencies?.length || 0
+                    ).toString(),
                 });
 
                 state.schemaCompareIncludeExcludeResult = result;
 
                 if (state.schemaCompareResult) {
+                    this.logger.verbose(
+                        `Updating node at index ${payload.id} - OperationId: ${this.operationId}`,
+                    );
                     state.schemaCompareResult.differences[payload.id].included =
                         payload.includeRequest;
 
                     this.logger.verbose(
-                        `Updating affected dependencies in the UI state - OperationId: ${this.operationId}`,
+                        `Updating ${result.affectedDependencies?.length || 0} affected dependencies in the UI state - OperationId: ${this.operationId}`,
                     );
-                    result.affectedDependencies.forEach((difference) => {
+
+                    const updateStartTime = Date.now();
+                    let foundCount = 0;
+                    let notFoundCount = 0;
+
+                    result.affectedDependencies.forEach((difference, depIndex) => {
                         const index = state.schemaCompareResult.differences.findIndex(
                             (d) =>
                                 d.sourceValue === difference.sourceValue &&
@@ -1535,20 +1625,39 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         );
 
                         if (index !== -1) {
-                            this.logger.verbose(
-                                `Updated dependency at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
-                            );
+                            foundCount++;
+                            if (depIndex < 5) {
+                                // Log first 5 dependencies only
+                                this.logger.verbose(
+                                    `Updated dependency ${depIndex + 1}/${result.affectedDependencies.length} at index ${index} to included=${payload.includeRequest} - OperationId: ${this.operationId}`,
+                                );
+                            }
                             state.schemaCompareResult.differences[index].included =
                                 payload.includeRequest;
                         } else {
-                            this.logger.warn(
-                                `Could not find dependency in schema compare results - OperationId: ${this.operationId}`,
-                            );
+                            notFoundCount++;
+                            if (notFoundCount <= 3) {
+                                // Log first 3 not found only
+                                this.logger.warn(
+                                    `Could not find dependency ${depIndex + 1} in schema compare results - OperationId: ${this.operationId}`,
+                                );
+                            }
                         }
                     });
+
+                    const updateElapsed = Date.now() - updateStartTime;
+                    this.logger.info(
+                        `Updated ${foundCount} dependencies, ${notFoundCount} not found, took ${updateElapsed}ms - OperationId: ${this.operationId}`,
+                    );
                 }
 
+                this.logger.verbose(
+                    `Calling updateState to refresh UI - OperationId: ${this.operationId}`,
+                );
                 this.updateState(state);
+                this.logger.info(
+                    `includeExcludeNode completed successfully - OperationId: ${this.operationId}`,
+                );
             } else {
                 this.logger.warn(
                     `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
@@ -1636,7 +1745,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `${payload.includeRequest ? "Including" : "Excluding"} all nodes - OperationId: ${this.operationId}`,
             );
 
+            if (state.schemaCompareResult) {
+                const totalDiffs = state.schemaCompareResult.differences?.length || 0;
+                const includedCount =
+                    state.schemaCompareResult.differences?.filter((d) => d.included).length || 0;
+                this.logger.info(
+                    `Current state - Total differences: ${totalDiffs}, Currently included: ${includedCount} - OperationId: ${this.operationId}`,
+                );
+            } else {
+                this.logger.warn(
+                    `No schema compare result in state - OperationId: ${this.operationId}`,
+                );
+            }
+
             state.isIncludeExcludeAllOperationInProgress = true;
+            this.logger.verbose(
+                `Set operation in progress flag, updating UI - OperationId: ${this.operationId}`,
+            );
             this.updateState(state);
 
             const startTime = Date.now();
@@ -1648,30 +1773,67 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     requestType: payload.includeRequest ? "Include all" : "Exclude all",
+                    totalDifferences: (
+                        state.schemaCompareResult?.differences?.length || 0
+                    ).toString(),
                 },
             );
 
             try {
+                this.logger.info(
+                    `Calling includeExcludeAllNodes service - OperationId: ${this.operationId}`,
+                );
                 const result = await includeExcludeAllNodes(
                     this.operationId,
                     TaskExecutionMode.execute,
                     payload,
                     this.schemaCompareService,
+                    this.logger,
+                );
+
+                const serviceElapsed = Date.now() - startTime;
+                this.logger.info(
+                    `includeExcludeAllNodes service returned after ${serviceElapsed}ms - success: ${result?.success} - OperationId: ${this.operationId}`,
                 );
 
                 this.state.isIncludeExcludeAllOperationInProgress = false;
 
                 if (result.success) {
-                    const count = result.allIncludedOrExcludedDifferences.length;
+                    const count = result.allIncludedOrExcludedDifferences?.length || 0;
                     this.logger.info(
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
                     );
+
+                    if (result.allIncludedOrExcludedDifferences) {
+                        const includedAfter = result.allIncludedOrExcludedDifferences.filter(
+                            (d) => d.included,
+                        ).length;
+                        this.logger.info(
+                            `Result includes ${includedAfter} included differences out of ${count} total - OperationId: ${this.operationId}`,
+                        );
+                    }
+
+                    this.logger.verbose(
+                        `Replacing state differences with result - OperationId: ${this.operationId}`,
+                    );
                     state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+
+                    const includedCount =
+                        result.allIncludedOrExcludedDifferences?.filter((d) => d.included).length ||
+                        0;
+                    const excludedCount = count - includedCount;
 
                     endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        differenceCount: count.toString(),
+                        includedCount: includedCount.toString(),
+                        excludedCount: excludedCount.toString(),
                     });
+
+                    this.logger.info(
+                        `includeExcludeAllNodes completed successfully - OperationId: ${this.operationId}`,
+                    );
                 } else {
                     this.logger.error(
                         `Failed to ${payload.includeRequest ? "include" : "exclude"} all nodes: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
@@ -1687,13 +1849,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         {
                             elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
+                            errorMessage: result.errorMessage,
                         },
                     );
                 }
             } catch (error) {
+                const errorElapsed = Date.now() - startTime;
                 this.logger.error(
-                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation after ${errorElapsed}ms: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
+
+                // Check if error message contains stack overflow indicators
+                const errorMsg = getErrorMessage(error);
+                if (
+                    errorMsg.toLowerCase().includes("stack") ||
+                    errorMsg.toLowerCase().includes("overflow")
+                ) {
+                    this.logger.error(
+                        `STACK OVERFLOW DETECTED in includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
+                    );
+                }
 
                 endActivity.endFailed(
                     new Error(getErrorMessage(error)),
@@ -1703,12 +1878,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
+                        errorMessage: getErrorMessage(error),
                     },
                 );
 
                 this.state.isIncludeExcludeAllOperationInProgress = false;
             }
 
+            this.logger.verbose(
+                `Updating state after includeExcludeAllNodes operation - OperationId: ${this.operationId}`,
+            );
             this.updateState(state);
             return state;
         });
@@ -1728,7 +1907,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             this.logger.info(
-                `Selected file: ${selectedFilePath} - OperationId: ${this.operationId}`,
+                `Selected file path length: ${selectedFilePath?.length || 0} characters - OperationId: ${this.operationId}`,
+            );
+            this.logger.info(
+                `File extension: ${selectedFilePath?.split(".").pop() || "unknown"} - OperationId: ${this.operationId}`,
             );
 
             const startTime = Date.now();
@@ -1743,9 +1925,38 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             this.logger.verbose(
-                `Opening schema comparison from file - OperationId: ${this.operationId}`,
+                `Calling openScmp service to open schema comparison file - OperationId: ${this.operationId}`,
             );
-            const result = await openScmp(selectedFilePath, this.schemaCompareService);
+            const result = await openScmp(selectedFilePath, this.schemaCompareService, this.logger);
+
+            this.logger.info(
+                `openScmp service call completed - success: ${result?.success}, hasErrorMessage: ${!!result?.errorMessage} - OperationId: ${this.operationId}`,
+            );
+
+            if (result) {
+                this.logger.info(
+                    `Result object keys: ${Object.keys(result).join(", ")} - OperationId: ${this.operationId}`,
+                );
+                this.logger.info(
+                    `Has sourceEndpointInfo: ${!!result.sourceEndpointInfo}, Has targetEndpointInfo: ${!!result.targetEndpointInfo} - OperationId: ${this.operationId}`,
+                );
+
+                if (result.sourceEndpointInfo) {
+                    this.logger.info(
+                        `Source endpoint type: ${getSchemaCompareEndpointTypeString(result.sourceEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+                    );
+                }
+
+                if (result.targetEndpointInfo) {
+                    this.logger.info(
+                        `Target endpoint type: ${getSchemaCompareEndpointTypeString(result.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+                    );
+                }
+            } else {
+                this.logger.warn(
+                    `openScmp returned null or undefined result - OperationId: ${this.operationId}`,
+                );
+            }
 
             if (!result || !result.success) {
                 this.logger.error(
@@ -1770,33 +1981,62 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             this.logger.info(
-                `Successfully opened schema comparison file - OperationId: ${this.operationId}`,
+                `Successfully opened schema comparison file, constructing endpoint info - OperationId: ${this.operationId}`,
             );
 
             // construct source endpoint info
+            this.logger.verbose(
+                `Constructing source endpoint info - OperationId: ${this.operationId}`,
+            );
             state.sourceEndpointInfo = await this.constructEndpointInfo(
                 result.sourceEndpointInfo,
                 "source",
             );
 
+            this.logger.info(
+                `Source endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.sourceEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
+            );
+
             // construct target endpoint info
+            this.logger.verbose(
+                `Constructing target endpoint info - OperationId: ${this.operationId}`,
+            );
             state.targetEndpointInfo = await this.constructEndpointInfo(
                 result.targetEndpointInfo,
                 "target",
             );
 
+            this.logger.info(
+                `Target endpoint constructed - type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo?.endpointType)} - OperationId: ${this.operationId}`,
+            );
+
+            this.logger.verbose(
+                `Setting deployment options from loaded file - OperationId: ${this.operationId}`,
+            );
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 result.deploymentOptions;
 
             // Update intermediaryOptionsResult to ensure UI reflects loaded options
             state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
 
+            this.logger.info(
+                `Loading excluded elements - source: ${result.excludedSourceElements?.length || 0}, target: ${result.excludedTargetElements?.length || 0} - OperationId: ${this.operationId}`,
+            );
             state.scmpSourceExcludes = result.excludedSourceElements;
             state.scmpTargetExcludes = result.excludedTargetElements;
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
+
+            this.logger.verbose(
+                `Source/Target switched: ${state.sourceTargetSwitched} - OperationId: ${this.operationId}`,
+            );
+
             // Reset the schema comparison result similarly to what happens in Azure Data Studio.
             state.schemaCompareResult = undefined;
+
+            this.logger.info(
+                `Successfully completed loading .scmp file - OperationId: ${this.operationId}`,
+            );
 
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
@@ -1811,6 +2051,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.schemaCompareOpenScmpResult = result;
             this.updateState(state);
+
+            this.logger.info(
+                `openScmp reducer completed, state updated - OperationId: ${this.operationId}`,
+            );
 
             return state;
         });
@@ -2306,15 +2550,44 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         endpoint: mssql.SchemaCompareEndpointInfo,
         caller: string,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
+        this.logger.info(
+            `constructEndpointInfo called for ${caller} endpoint - OperationId: ${this.operationId}`,
+        );
+
+        if (!endpoint) {
+            this.logger.error(
+                `Endpoint is null or undefined for ${caller} - OperationId: ${this.operationId}`,
+            );
+        } else {
+            this.logger.info(
+                `Endpoint type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} (${endpoint.endpointType}) - OperationId: ${this.operationId}`,
+            );
+        }
+
         let ownerUri;
         let endpointInfo;
         if (endpoint && endpoint.endpointType === SchemaCompareEndpointType.Database) {
-            let connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
+            this.logger.info(
+                `Processing Database endpoint for ${caller} - OperationId: ${this.operationId}`,
+            );
+
+            const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
+
+            this.logger.verbose(
+                `Has connectionDetails: ${!!endpoint.connectionDetails}, Has options: ${!!endpoint.connectionDetails?.options} - OperationId: ${this.operationId}`,
+            );
 
             ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
 
+            this.logger.verbose(
+                `Got owner URI from existing connection: ${!!ownerUri} - OperationId: ${this.operationId}`,
+            );
+
             let isConnected = ownerUri ? true : false;
             if (!ownerUri) {
+                this.logger.info(
+                    `No existing connection found, creating new connection for ${caller} - OperationId: ${this.operationId}`,
+                );
                 ownerUri = utils.generateQueryUri().toString();
 
                 // For Azure MFA connections, attempt to populate missing accountId from saved connection profiles
@@ -2347,16 +2620,34 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     connectionSource: "schemaCompare",
                 });
 
+                this.logger.info(
+                    `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
+                );
+
                 if (!isConnected) {
+                    this.logger.warn(
+                        `Failed to connect to database for ${caller}, removing invalid connection - OperationId: ${this.operationId}`,
+                    );
                     // Invoking connect will add an active connection that isn't valid, hence removing it.
                     delete this.connectionMgr.activeConnections[ownerUri];
                 }
+            } else {
+                this.logger.info(
+                    `Using existing connection for ${caller} - OperationId: ${this.operationId}`,
+                );
             }
 
             const connection = this.connectionMgr.activeConnections[ownerUri];
             const connectionProfile = connection?.credentials as IConnectionProfile;
 
+            this.logger.verbose(
+                `Has connection: ${!!connection}, Has connectionProfile: ${!!connectionProfile} - OperationId: ${this.operationId}`,
+            );
+
             if (isConnected && ownerUri && connectionProfile) {
+                this.logger.info(
+                    `Successfully created Database endpoint info for ${caller} - OperationId: ${this.operationId}`,
+                );
                 endpointInfo = {
                     endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: `${connInfo.server} (${connectionProfile.user || locConstants.SchemaCompare.defaultUserName})`,
@@ -2374,6 +2665,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     extractTarget: ExtractTarget.schemaObjectType,
                 };
             } else {
+                this.logger.warn(
+                    `Failed to create valid Database endpoint for ${caller}, creating empty endpoint - OperationId: ${this.operationId}`,
+                );
                 endpointInfo = {
                     endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: "",
@@ -2390,6 +2684,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 };
             }
         } else if (endpoint.endpointType === SchemaCompareEndpointType.Project) {
+            this.logger.info(
+                `Processing Project endpoint for ${caller} - OperationId: ${this.operationId}`,
+            );
+            this.logger.verbose(
+                `Project file path length: ${endpoint.projectFilePath?.length || 0} - OperationId: ${this.operationId}`,
+            );
             endpointInfo = {
                 endpointType: endpoint.endpointType,
                 packageFilePath: "",
@@ -2403,7 +2703,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 dataSchemaProvider: endpoint.dataSchemaProvider,
                 extractTarget: endpoint.extractTarget,
             };
+            this.logger.info(
+                `Successfully created Project endpoint info for ${caller} - OperationId: ${this.operationId}`,
+            );
         } else {
+            this.logger.info(
+                `Processing Dacpac/other endpoint type for ${caller} - detected type: ${getSchemaCompareEndpointTypeString(endpoint.endpointType)} - OperationId: ${this.operationId}`,
+            );
+            this.logger.verbose(
+                `Package file path length: ${endpoint.packageFilePath?.length || 0} - OperationId: ${this.operationId}`,
+            );
             endpointInfo = {
                 endpointType:
                     endpoint.endpointType === SchemaCompareEndpointType.Database
@@ -2416,8 +2725,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 packageFilePath: endpoint.packageFilePath,
                 connectionDetails: undefined,
             };
+            this.logger.info(
+                `Successfully created Dacpac endpoint info for ${caller} - OperationId: ${this.operationId}`,
+            );
         }
 
+        this.logger.info(
+            `constructEndpointInfo completed for ${caller} - final type: ${getSchemaCompareEndpointTypeString(endpointInfo.endpointType)} - OperationId: ${this.operationId}`,
+        );
         return endpointInfo;
     }
 
