@@ -3,13 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, tokens } from "@fluentui/react-components";
 
 export const useAccordionStyles = makeStyles({
     accordionItem: {
         border: "0.5px solid var(--vscode-editorWidget-border)",
         borderRadius: "2px",
         margin: "10px",
+    },
+});
+
+/**
+ * Compact menu item styles for context menus.
+ */
+export const useContextMenuStyles = makeStyles({
+    menuItem: {
+        minHeight: "24px",
+        height: "24px",
+        padding: "0 8px",
+        fontSize: tokens.fontSizeBase200,
+        display: "flex",
+        alignItems: "center",
+        lineHeight: "24px",
     },
 });
 

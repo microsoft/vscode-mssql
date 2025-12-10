@@ -282,6 +282,7 @@ Customize keyboard shortcuts for query results, grid operations, and other actio
     "event.resultGrid.expandSelectionUp": "shift+up",
     "event.resultGrid.expandSelectionDown": "shift+down",
     "event.resultGrid.openColumnMenu": "f3",
+    "event.resultGrid.openFilterMenu": "",
     "event.resultGrid.moveToRowStart": "ctrlcmd+left",
     "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
     "event.resultGrid.selectColumn": "ctrl+space",

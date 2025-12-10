@@ -480,6 +480,7 @@ export class LocConstants {
             },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
+            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
