@@ -52,6 +52,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
+import { connection } from "azdata";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1014,6 +1015,18 @@ export default class ConnectionManager {
 
         let account: IAccount;
         let profile: ConnectionProfile;
+
+        // For Azure MFA connections, the accountId may not be present in the connection info
+        // (e.g., when opening from stored profiles like .scmp and publish.xml). Try to find it from saved connection profiles.
+        if (!connectionInfo.accountId) {
+            const matchResult = await this.findMatchingProfile(
+                new ConnectionProfile(connectionInfo),
+            );
+
+            if (matchResult && matchResult.profile && matchResult.profile.accountId) {
+                connectionInfo.accountId = matchResult.profile.accountId;
+            }
+        }
 
         if (connectionInfo.accountId) {
             account = await this.accountStore.getAccount(connectionInfo.accountId);

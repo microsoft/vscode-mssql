@@ -2590,32 +2590,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
                 ownerUri = utils.generateQueryUri().toString();
 
-                // For Azure MFA connections, attempt to populate missing accountId from saved connection profiles
-                // SCMP files do not store accountId, but it is required for Azure MFA authentication
-                if (connInfo.authenticationType === Constants.azureMfa && !connInfo.accountId) {
-                    this.logger.verbose(
-                        `Azure MFA connection from SCMP file missing accountId, searching for matching saved profile for ${caller} endpoint - OperationId: ${this.operationId}`,
-                    );
-
-                    // Create a profile object from connection info for matching
-                    const matchResult = await this.connectionMgr.findMatchingProfile(
-                        new ConnectionProfile(connInfo),
-                    );
-
-                    if (matchResult && matchResult.profile && matchResult.profile.accountId) {
-                        this.logger.info(
-                            `Found matching saved profile with accountId for ${caller} endpoint - OperationId: ${this.operationId}`,
-                        );
-
-                        // Copy Azure auth accountId from the matched profile
-                        connInfo.accountId = matchResult.profile.accountId;
-                    } else {
-                        this.logger.warn(
-                            `No matching saved profile found with accountId for Azure connection - User may need to save connection profile first - OperationId: ${this.operationId}`,
-                        );
-                    }
-                }
-
                 isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
                     connectionSource: "schemaCompare",
                 });
