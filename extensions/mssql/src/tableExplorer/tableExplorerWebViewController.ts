@@ -187,7 +187,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.updateState();
 
             endActivity.endFailed(
-                new Error(`Failed to initialize table explorer - OperationId: ${this.operationId}`),
+                new Error("Failed to initialize table explorer"),
                 true,
                 undefined,
                 undefined,
@@ -292,7 +292,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to commit changes - OperationId: ${this.operationId}`),
+                    new Error("Failed to commit changes"),
                     true,
                     undefined,
                     undefined,
@@ -372,7 +372,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to load subset - OperationId: ${this.operationId}`),
+                    new Error("Failed to load subset"),
                     true,
                     undefined,
                     undefined,
@@ -449,7 +449,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to create row - OperationId: ${this.operationId}`),
+                    new Error("Failed to create row"),
                     true,
                     undefined,
                     undefined,
@@ -537,7 +537,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to delete row - OperationId: ${this.operationId}`),
+                    new Error("Failed to delete row"),
                     true,
                     undefined,
                     undefined,
@@ -681,7 +681,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.updateState();
 
                 endActivity.endFailed(
-                    new Error(`Failed to update cell - OperationId: ${this.operationId}`),
+                    new Error("Failed to update cell"),
                     true,
                     undefined,
                     undefined,
@@ -810,7 +810,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert cell - OperationId: ${this.operationId}`),
+                    new Error("Failed to revert cell"),
                     true,
                     undefined,
                     undefined,
@@ -912,7 +912,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert row - OperationId: ${this.operationId}`),
+                    new Error("Failed to revert row"),
                     true,
                     undefined,
                     undefined,
@@ -984,7 +984,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to generate script - OperationId: ${this.operationId}`),
+                    new Error("Failed to generate script"),
                     true,
                     undefined,
                     undefined,
