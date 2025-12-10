@@ -139,7 +139,7 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            errorLoadingDesigner: l10n.t("Error loading designer"),
+            errorLoadingDesigner: l10n.t("Error loading Table Designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
             scriptAsCreate: l10n.t("Script as Create"),

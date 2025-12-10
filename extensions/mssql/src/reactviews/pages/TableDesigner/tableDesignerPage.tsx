@@ -148,7 +148,7 @@ export const TableDesigner = () => {
             <ErrorDialog
                 open={isErrorState}
                 title={locConstants.tableDesigner.errorLoadingDesigner}
-                message={locConstants.tableDesigner.errorLoadingDesigner}
+                message={tableDesignerState?.initializationError ?? ""}
                 retryLabel={locConstants.tableDesigner.retry}
                 onRetry={() => context.initializeTableDesigner()}
             />

@@ -125,6 +125,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     ...this.state.apiState,
                     initializeState: designer.LoadState.Error,
                 },
+                initializationError: getErrorMessage(e),
             };
             await vscode.window.showErrorMessage(getErrorMessage(e));
             return;
@@ -157,6 +158,15 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     "unableToFindConnectionString",
                 );
 
+                this.state = {
+                    ...this.state,
+                    apiState: {
+                        ...this.state.apiState,
+                        initializeState: designer.LoadState.Error,
+                    },
+                    initializationError: errorMessage,
+                };
+
                 return;
             }
         } catch (e) {
@@ -173,6 +183,15 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             await vscode.window.showErrorMessage(
                 "Unable to find connection string for the connection: " + getErrorMessage(e),
             );
+
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: getErrorMessage(e),
+            };
             return;
         }
 
@@ -234,11 +253,18 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     ...this.state.apiState,
                     initializeState: designer.LoadState.Loaded,
                 },
+                initializationError: undefined,
             };
         } catch (e) {
             endActivity.endFailed(e, false);
-            this.state.apiState.initializeState = designer.LoadState.Error;
-            this.state = this.state;
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: getErrorMessage(e),
+            };
         }
     }
 
