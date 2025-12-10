@@ -18,29 +18,39 @@
     height: 100%;
 }
 
-.slick-header-menubutton {
+/* Filter button styling */
+.slick-header-filterbutton {
     background-position: center center;
     background-repeat: no-repeat;
     cursor: pointer;
     display: inline-block;
-    width: 12px;
-    background-image: url("menu.svg");
-    background-size: 16px;
+    width: 16px;
+    height: 16px;
+    background-image: url("filter.svg");
+    background-size: 14px;
     flex: 0 0 auto;
-    margin-right: 2px;
+    margin-left: 4px;
     background-color: transparent;
     border: 0px;
     padding: 0px;
 }
 
-.slick-header-menubutton:hover {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
-}
-
-.slick-header-menubutton:focus {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
+/* Sort button styling */
+.slick-header-sortbutton {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("sort.svg");
+    background-size: 14px;
+    flex: 0 0 auto;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: transparent;
+    border: 0px;
+    padding: 0px;
 }
 
 .slick-header-menu-image-button-container {
@@ -103,62 +113,62 @@
 }
 
 /* Icons */
-/* Icon for menu button */
-.vscode-dark .slick-header-menubutton,
-.vscode-high-contrast .slick-header-menubutton {
-    background-image: url("menu_inverse.svg");
+/* Icon for filter button - dark theme */
+.vscode-dark .slick-header-filterbutton,
+.vscode-high-contrast .slick-header-filterbutton {
+    background-image: url("filter_inverse.svg");
 }
 
-.vscode-light .slick-header-menubutton,
-.vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton {
-    background-image: url("menu.svg");
+/* Icon for filter button - light theme */
+.vscode-light .slick-header-filterbutton,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-filterbutton {
+    background-image: url("filter.svg");
 }
 
-/* Icon for menu button when filter is applied */
-.vscode-dark .slick-header-menubutton.filtered,
-.vscode-high-contrast .slick-header-menubutton.filtered {
+/* Icon for filter button when filter is applied - dark theme */
+.vscode-dark .slick-header-filterbutton.filtered,
+.vscode-high-contrast .slick-header-filterbutton.filtered {
     background-image: url("filterFilled_inverse.svg");
 }
 
-.vscode-light .slick-header-menubutton.filtered,
-.vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton.filtered {
+/* Icon for filter button when filter is applied - light theme */
+.vscode-light .slick-header-filterbutton.filtered,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-filterbutton.filtered {
     background-image: url("filterFilled.svg");
 }
 
-/* Sort indicator icon styling */
-.slick-sort-indicator-icon {
-    display: inline-block;
-    width: 12px;
-    margin-left: 4px;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 14px;
-    flex: 0 0 auto;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+/* Icon for sort button - dark theme */
+.vscode-dark .slick-header-sortbutton,
+.vscode-high-contrast .slick-header-sortbutton {
+    background-image: url("sort_inverse.svg");
 }
 
-.slick-sort-indicator-icon.sorted-asc,
-.slick-sort-indicator-icon.sorted-desc {
-    opacity: 1;
+/* Icon for sort button - light theme */
+.vscode-light .slick-header-sortbutton,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton {
+    background-image: url("sort.svg");
 }
 
-.vscode-dark .slick-sort-indicator-icon.sorted-asc,
-.vscode-high-contrast .slick-sort-indicator-icon.sorted-asc {
+/* Icon for sort button ascending - dark theme */
+.vscode-dark .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast .slick-header-sortbutton.sorted-asc {
     background-image: url("sort_asc_inverse.svg");
 }
 
-.vscode-light .slick-sort-indicator-icon.sorted-asc,
-.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-asc {
+/* Icon for sort button ascending - light theme */
+.vscode-light .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton.sorted-asc {
     background-image: url("sort_asc.svg");
 }
 
-.vscode-dark .slick-sort-indicator-icon.sorted-desc,
-.vscode-high-contrast .slick-sort-indicator-icon.sorted-desc {
+/* Icon for sort button descending - dark theme */
+.vscode-dark .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast .slick-header-sortbutton.sorted-desc {
     background-image: url("sort_desc_inverse.svg");
 }
 
-.vscode-light .slick-sort-indicator-icon.sorted-desc,
-.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-desc {
+/* Icon for sort button descending - light theme */
+.vscode-light .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton.sorted-desc {
     background-image: url("sort_desc.svg");
 }

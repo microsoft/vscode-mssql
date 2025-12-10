@@ -653,6 +653,15 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 keyBindings[WebviewAction.ResultGridOpenColumnMenu].keyCombination,
             )
         ) {
+            await this.headerFilter?.openHeaderContextMenuForActiveColumn();
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridOpenFilterMenu].keyCombination,
+            )
+        ) {
             await this.headerFilter?.openMenuForActiveColumn();
             isHandled = true;
         } else if (

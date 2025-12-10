@@ -13,6 +13,7 @@ import { locConstants } from "../../../../common/locConstants";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { EventManager } from "../../../../common/eventManager";
 import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
+import { HeaderContextMenuAction } from "./HeaderContextMenu";
 
 import {
     ColumnFilterMap,
@@ -116,14 +117,63 @@ export class HeaderMenu<T extends Slick.SlickData> {
         // Prevent the default vscode context menu from showing on right-clicking the header
         e.preventDefault();
         e.stopPropagation();
-        const column = args.column;
-        if (!column) {
+        const column = args.column as FilterableColumn<T>;
+        if (!column || column.filterable === false) {
             return;
         }
-        try {
-            await this.showColumnMenuForColumn(column);
-        } catch (err) {
-            console.error("Error showing column menu:", err);
+
+        const mouseEvent = e as MouseEvent;
+        // Calculate adjusted x/y so the menu fits within viewport
+        const margin = 8;
+        const estimatedWidth = 180;
+        const estimatedHeight = 150;
+        const maxX = Math.max(margin, window.innerWidth - estimatedWidth - margin);
+        const maxY = Math.max(margin, window.innerHeight - estimatedHeight - margin);
+        const adjustedX = Math.min(Math.max(mouseEvent.pageX, margin), maxX);
+        const adjustedY = Math.min(Math.max(mouseEvent.pageY, margin), maxY);
+
+        this._columnDef = column;
+
+        this.queryResultContext.showHeaderContextMenu(
+            adjustedX,
+            adjustedY,
+            async (action: HeaderContextMenuAction) => {
+                await this.handleHeaderContextMenuAction(action, column);
+                this.queryResultContext.hideHeaderContextMenu();
+            },
+        );
+    }
+
+    private async handleHeaderContextMenuAction(
+        action: HeaderContextMenuAction,
+        column: FilterableColumn<T>,
+    ): Promise<void> {
+        switch (action) {
+            case HeaderContextMenuAction.ToggleSort:
+                const columnIndex = this._grid
+                    .getColumns()
+                    .findIndex((col) => col.id === column.id);
+                await this.toggleSortForColumn(columnIndex);
+                break;
+            case HeaderContextMenuAction.Filter:
+                const filterButton = this._columnFilterButtonMapping.get(column.id!);
+                if (filterButton) {
+                    await this.showColumnMenu(filterButton);
+                }
+                break;
+            case HeaderContextMenuAction.Resize:
+                await this.queryResultContext.openResizeDialog({
+                    open: true,
+                    columnId: column.id!,
+                    columnName: column.name ?? "",
+                    initialWidth: column.width ?? 0,
+                    gridId: this.gridId,
+                    onDismiss: () => {
+                        this.resizeCancel();
+                    },
+                    onSubmit: (newWidth: number) => this.resizeColumn(column.id!, newWidth),
+                });
+                break;
         }
     }
 
@@ -135,6 +185,29 @@ export class HeaderMenu<T extends Slick.SlickData> {
         const column = this._grid.getColumns()[activeCell.cell] as FilterableColumn<T>;
         await this.showColumnMenuForColumn(column);
     }
+
+    public async openHeaderContextMenuForActiveColumn(): Promise<void> {
+        const activeCell = this._grid.getActiveCell();
+        if (!activeCell) {
+            return;
+        }
+        const column = this._grid.getColumns()[activeCell.cell] as FilterableColumn<T>;
+        // Get header element for the column to position the context menu
+        const headerElement = this.getHeaderNode(column.id!);
+        if (headerElement) {
+            const rect = headerElement.getBoundingClientRect();
+            this.queryResultContext.showHeaderContextMenu(
+                rect.left,
+                rect.bottom,
+                async (action: HeaderContextMenuAction) => {
+                    await this.handleHeaderContextMenuAction(action, column);
+                    this.queryResultContext.hideHeaderContextMenu();
+                },
+            );
+        }
+    }
+
+    private _columnSortButtonMapping: Map<string, HTMLElement> = new Map<string, HTMLElement>();
 
     private onHeaderCellRendered(_e: Event, args: Slick.OnHeaderCellRenderedEventArgs<T>) {
         const column = args.column as FilterableColumn<T>;
@@ -151,39 +224,66 @@ export class HeaderMenu<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
 
-        // Add sort indicator
-        jQuery('<span class="slick-sort-indicator-icon"></span>').appendTo(args.node);
-
-        const $menuButton = jQuery(
+        const sortShortcut = this.keyBindings[WebviewAction.ResultGridToggleSort]?.label;
+        const sortTooltip = sortShortcut
+            ? `${locConstants.queryResult.sort} (${sortShortcut})`
+            : locConstants.queryResult.sort;
+        const $sortButton = jQuery(
             `
-            <button id="anchor-btn"
-                    aria-label="${locConstants.queryResult.showMenu(
-                        this.keyBindings[WebviewAction.ResultGridOpenColumnMenu].label,
-                    )}"
-                    title="${locConstants.queryResult.showMenu(
-                        this.keyBindings[WebviewAction.ResultGridOpenColumnMenu].label,
-                    )}"  />
+            <button id="sort-btn"
+                    aria-label="${sortTooltip}"
+                    title="${sortTooltip}"  />
             `,
         )
-            .addClass("slick-header-menubutton")
+            .addClass("slick-header-sortbutton")
+            .data("column", column);
+
+        const sortButtonEl = $sortButton.get(0);
+        if (sortButtonEl) {
+            sortButtonEl.tabIndex = -1; // Make button focusable but not in tab order
+            this._eventManager.addEventListener(sortButtonEl, "click", async (e: Event) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const columnIndex = this._grid
+                    .getColumns()
+                    .findIndex((col) => col.id === column.id);
+                await this.toggleSortForColumn(columnIndex);
+            });
+        }
+        $sortButton.appendTo(args.node);
+
+        this._columnSortButtonMapping.set(column.id!, sortButtonEl!);
+
+        const filterShortcut = this.keyBindings[WebviewAction.ResultGridOpenFilterMenu]?.label;
+        const filterTooltip = filterShortcut
+            ? `${locConstants.queryResult.filter} (${filterShortcut})`
+            : locConstants.queryResult.filter;
+        const $filterButton = jQuery(
+            `
+            <button id="filter-btn"
+                    aria-label="${filterTooltip}"
+                    title="${filterTooltip}"  />
+            `,
+        )
+            .addClass("slick-header-filterbutton")
             .data("column", column);
 
         if (column.filterValues?.length) {
-            this.updateMenuButtonImage($menuButton, column.filterValues?.length > 0);
+            this.updateMenuButtonImage($filterButton, column.filterValues?.length > 0);
         }
-        const buttonEl = $menuButton.get(0);
-        if (buttonEl) {
-            buttonEl.tabIndex = -1; // Make button focusable but not in tab order
-            this._eventManager.addEventListener(buttonEl, "click", async (e: Event) => {
+        const filterButtonEl = $filterButton.get(0);
+        if (filterButtonEl) {
+            filterButtonEl.tabIndex = -1; // Make button focusable but not in tab order
+            this._eventManager.addEventListener(filterButtonEl, "click", async (e: Event) => {
                 e.stopPropagation();
                 e.preventDefault();
-                await this.showColumnMenu(buttonEl);
+                await this.showColumnMenu(filterButtonEl);
                 this._grid.onHeaderClick.notify();
             });
         }
-        $menuButton.appendTo(args.node);
+        $filterButton.appendTo(args.node);
 
-        this._columnFilterButtonMapping.set(column.id!, buttonEl);
+        this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
 
         let existingSort = this._columnSortStateMapping.get(column.id!);
         if (existingSort === undefined) {
@@ -195,7 +295,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
         if (existingSort && existingSort !== SortProperties.NONE) {
             this._currentSortColumn = column.id!;
-            this.updateSortIndicator(args.node, existingSort);
+            this.updateSortButtonIcon(column.id!, existingSort);
         }
     }
 
@@ -247,9 +347,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
             await this.applyFilters(this._columnDef, true);
         };
 
-        // Get current sort state for this column
-        const currentSort = this._columnSortStateMapping.get(columnId) ?? SortProperties.NONE;
-
         this.queryResultContext.showColumnFilterPopup({
             columnId,
             anchorRect,
@@ -265,29 +362,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 this._activeColumnId = null;
                 this._grid.focus();
             },
-            onSortAscending: async () => {
-                await this.applySort(this._columnDef, SortProperties.ASC, true);
-            },
-            onSortDescending: async () => {
-                await this.applySort(this._columnDef, SortProperties.DESC, true);
-            },
-            onClearSort: async () => {
-                await this.handleClearSort(this._columnDef, true);
-            },
-            onResize: async () => {
-                await this.queryResultContext.openResizeDialog({
-                    open: true,
-                    columnId: columnId,
-                    columnName: this._columnDef.name ?? "",
-                    initialWidth: this._columnDef.width ?? 0,
-                    gridId: this.gridId,
-                    onDismiss: () => {
-                        this.resizeCancel();
-                    },
-                    onSubmit: (newWidth: number) => this.resizeColumn(columnId, newWidth),
-                });
-            },
-            currentSort,
         });
 
         this._activeColumnId = columnId;
@@ -315,10 +389,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 };
                 await this.updateState(prevFilterState, prevColumn.id!);
                 // Clear sort indicator on previous column
-                const prevHeaderNode = this.getHeaderNode(prevColumn.id!);
-                if (prevHeaderNode) {
-                    this.updateSortIndicator(prevHeaderNode, SortProperties.NONE);
-                }
+                this.updateSortButtonIcon(prevColumn.id!, SortProperties.NONE);
             }
         }
 
@@ -340,11 +411,8 @@ export class HeaderMenu<T extends Slick.SlickData> {
         };
         await this.updateState(columnFilterState, column.id!);
 
-        // Update sort indicator on current column
-        const headerNode = this.getHeaderNode(columnId);
-        if (headerNode) {
-            this.updateSortIndicator(headerNode, command);
-        }
+        // Update sort button icon on current column
+        this.updateSortButtonIcon(columnId, command);
 
         this.onSortChanged.notify(command);
         this._grid.focus();
@@ -362,46 +430,15 @@ export class HeaderMenu<T extends Slick.SlickData> {
         return null;
     }
 
-    private updateSortIndicator(headerNode: HTMLElement, sortState: SortProperties): void {
-        const indicator = headerNode.querySelector(".slick-sort-indicator-icon");
-        if (indicator) {
-            indicator.classList.remove("sorted-asc", "sorted-desc");
+    private updateSortButtonIcon(columnId: string, sortState: SortProperties): void {
+        const sortButton = this._columnSortButtonMapping.get(columnId);
+        if (sortButton) {
+            sortButton.classList.remove("sorted-asc", "sorted-desc");
             if (sortState === SortProperties.ASC) {
-                indicator.classList.add("sorted-asc");
+                sortButton.classList.add("sorted-asc");
             } else if (sortState === SortProperties.DESC) {
-                indicator.classList.add("sorted-desc");
+                sortButton.classList.add("sorted-desc");
             }
-        }
-    }
-
-    private async handleClearSort(column: FilterableColumn<T>, skipFocusReset: boolean = false) {
-        const columnId = column.id!;
-
-        // Only clear if this column is currently sorted
-        const currentSortState = this._columnSortStateMapping.get(columnId);
-        if (currentSortState === SortProperties.NONE || currentSortState === undefined) {
-            return;
-        }
-
-        // Clear current sort state
-        this._columnSortStateMapping.set(columnId, SortProperties.NONE);
-        this._currentSortColumn = "";
-
-        // Clear sort in grid
-        await this.handleMenuItemClick(SortProperties.NONE, column, skipFocusReset);
-
-        // Update state
-        const columnFilterState: ColumnFilterState = {
-            columnDef: column.id!,
-            filterValues: column.filterValues ?? [],
-            sorted: SortProperties.NONE,
-        };
-        await this.updateState(columnFilterState, column.id!);
-
-        // Clear sort indicator
-        const headerNode = this.getHeaderNode(columnId);
-        if (headerNode) {
-            this.updateSortIndicator(headerNode, SortProperties.NONE);
         }
     }
 
@@ -443,10 +480,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
 
         if (previousSortColumn && previousSortColumn !== columnId) {
             this._columnSortStateMapping.set(previousSortColumn, SortProperties.NONE);
-            const previousHeader = this.getHeaderNode(previousSortColumn);
-            if (previousHeader) {
-                this.updateSortIndicator(previousHeader, SortProperties.NONE);
-            }
+            this.updateSortButtonIcon(previousSortColumn, SortProperties.NONE);
             const previousColumn = columns.find((col) => col.id === previousSortColumn);
             if (previousColumn) {
                 previousColumn.sorted = undefined;
@@ -470,10 +504,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
             this._grid.setSortColumn(columnId, sort === SortProperties.ASC);
         }
 
-        const headerNode = this.getHeaderNode(columnId);
-        if (headerNode) {
-            this.updateSortIndicator(headerNode, sort);
-        }
+        this.updateSortButtonIcon(columnId, sort);
     }
 
     public clearSortState(): void {
@@ -738,7 +769,8 @@ export class HeaderMenu<T extends Slick.SlickData> {
         _e: Event,
         args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>,
     ) {
-        jQuery(args.node).find(".slick-header-menubutton").remove();
+        jQuery(args.node).find(".slick-header-filterbutton").remove();
+        jQuery(args.node).find(".slick-header-sortbutton").remove();
     }
 
     private setFocusToColumn(columnDef: Slick.Column<T>): void {
