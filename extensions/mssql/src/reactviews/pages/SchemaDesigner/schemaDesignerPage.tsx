@@ -11,9 +11,10 @@ import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer"
 import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
-import { Button, makeStyles, Spinner } from "@fluentui/react-components";
+import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { InitializationErrorDialog } from "../../common/InitializationErrorDialog";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -44,12 +45,13 @@ export const SchemaDesignerPage = () => {
                     <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
-                {context.initializationError && (
-                    <ErrorOverlay
-                        message={context.initializationError}
-                        onRetry={context.triggerInitialization}
-                    />
-                )}
+                <InitializationErrorDialog
+                    open={!!context.initializationError}
+                    title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
+                    message={context.initializationError ?? ""}
+                    retryLabel={locConstants.schemaDesigner.retry}
+                    onRetry={context.triggerInitialization}
+                />
             </MainLayout>
         </>
     );
@@ -104,38 +106,5 @@ const LoadingOverlay = () => (
             justifyContent: "center",
         }}>
         <Spinner label={locConstants.schemaDesigner.loadingSchemaDesigner} labelPosition="below" />
-    </div>
-);
-
-const ErrorOverlay = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
-    <div
-        style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            zIndex: 1000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-        }}>
-        <div
-            style={{
-                backgroundColor: "var(--vscode-editor-background)",
-                padding: "24px",
-                borderRadius: "8px",
-                maxWidth: "480px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-            }}>
-            <div style={{ marginBottom: "12px", fontWeight: 600 }}>
-                {locConstants.schemaDesigner.errorLoadingSchemaDesigner}
-            </div>
-            <div style={{ marginBottom: "16px", whiteSpace: "pre-wrap" }}>{message}</div>
-            <Button appearance="primary" onClick={onRetry}>
-                {locConstants.schemaDesigner.retry}
-            </Button>
-        </div>
     </div>
 );
