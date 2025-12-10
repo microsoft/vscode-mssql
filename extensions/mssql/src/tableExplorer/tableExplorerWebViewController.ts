@@ -188,7 +188,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             endActivity.endFailed(
                 new Error(`Failed to initialize table explorer: ${getErrorMessage(error)}`),
-                true,
+                false,
                 undefined,
                 undefined,
                 {
@@ -293,7 +293,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to commit changes: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -373,7 +373,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to load subset: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -450,7 +450,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to create row: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -538,7 +538,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to delete row: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -682,7 +682,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to update cell: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -811,7 +811,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to revert cell: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -913,7 +913,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to revert row: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
@@ -985,7 +985,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error(`Failed to generate script: ${getErrorMessage(error)}`),
-                    true,
+                    false,
                     undefined,
                     undefined,
                     {
