@@ -864,6 +864,8 @@ export class LocConstants {
                     comment: ["{0} is the max length"],
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            errorLoadingSchemaDesigner: l10n.t("Error loading Schema Designer"),
+            retry: l10n.t("Retry"),
             generatingReport: l10n.t("Generating report, this might take a while..."),
             nWarnings: (warningCount: number) =>
                 l10n.t({

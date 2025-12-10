@@ -11,6 +11,7 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../models/interfaces";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
@@ -18,7 +19,6 @@ import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { IConnectionProfile } from "../models/interfaces";
 
 const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
 
@@ -102,14 +102,26 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         // get database name from connection string
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
+
         let connectionInfo = this._targetNode.connectionProfile;
 
-        connectionInfo = (await this._connectionManager.prepareConnectionInfo(
-            connectionInfo,
-        )) as IConnectionProfile;
+        try {
+            connectionInfo = (await this._connectionManager.prepareConnectionInfo(
+                connectionInfo,
+            )) as IConnectionProfile;
+        } catch (e) {
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+            };
+            await vscode.window.showErrorMessage(getErrorMessage(e));
+            return;
+        }
 
         this._targetNode.updateConnectionProfile(connectionInfo);
-
         connectionInfo.database = databaseName;
 
         let connectionString;
@@ -163,8 +175,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 correlationId: this._correlationId,
                 isEdit: this._isEdit.toString(),
             },
-            undefined,
-            true, // include call stack
         );
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken
