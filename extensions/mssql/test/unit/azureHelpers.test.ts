@@ -42,17 +42,13 @@ suite("Azure Helpers", () => {
 
     suite("VsCodeAzureHelpers", () => {
         test("getAccounts", async () => {
-            sandbox.stub(vscode.authentication, "getAccounts").resolves([
-                ...mockAccounts,
-                {
-                    id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
-                    label: "notSignedIn@notSignedInDomain.com",
-                },
-            ]);
+            sandbox
+                .stub(vscode.authentication, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
 
             sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
                 getTenants: (account) => {
-                    if (account.id === mockAccounts[0].id) {
+                    if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(mockTenants);
                     }
                     return Promise.reject("Not signed in");
@@ -64,7 +60,7 @@ suite("Azure Helpers", () => {
             );
 
             expect(accounts, "Only signed-in accounts should be returned").to.deep.equal(
-                mockAccounts,
+                [mockAccounts.signedInAccount],
             );
         });
 
@@ -112,12 +108,12 @@ suite("Azure Helpers", () => {
         });
 
         test("getTenantsForAccount", async () => {
-            const account = mockAccounts[0];
+            const account = mockAccounts.signedInAccount;
 
             sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
                 getTenants: (account) => {
                     // only the first account is signed in for this mock
-                    if (account.id === mockAccounts[0].id) {
+                    if (account.id === mockAccounts.signedInAccount.id) {
                         return Promise.resolve(
                             mockTenants.filter((t) => t.account.id === account.id),
                         );

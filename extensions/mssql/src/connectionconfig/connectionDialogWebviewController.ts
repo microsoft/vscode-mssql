@@ -43,16 +43,13 @@ import {
     getTenants,
     promptForAzureSubscriptionFilter,
     VsCodeAzureHelper,
+    VsCodeAzureAuth,
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
-import {
-    AzureSubscription,
-    getUnauthenticatedTenants,
-    signInToTenant,
-} from "@microsoft/vscode-azext-azureauth";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -727,7 +724,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             try {
-                await signInToTenant(auth);
+                await VsCodeAzureAuth.signInToTenant(auth);
             } catch (error) {
                 this.logger.error("Error signing into Azure tenant: " + getErrorMessage(error));
                 state.formMessage = {
@@ -1524,7 +1521,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<void> {
         try {
             // Capture the tenants that aren't signed in
-            const unauthenticatedTenants = await getUnauthenticatedTenants(auth);
+            const unauthenticatedTenants = await VsCodeAzureAuth.getUnauthenticatedTenants(auth);
 
             state.unauthenticatedAzureTenants = unauthenticatedTenants.map((tenant) => ({
                 tenantId: tenant.tenantId,
@@ -1587,7 +1584,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureTenantStatus = [];
             state.azureTenantSignInCounts = undefined;
             this.logger.error(
-                "Error determining Azure tenants without active sessions: " + getErrorMessage(error),
+                "Error determining Azure tenants without active sessions: " +
+                    getErrorMessage(error),
             );
         }
     }
