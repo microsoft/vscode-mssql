@@ -3529,6 +3529,10 @@ Error:
         <source xml:lang="en">No tenant selected</source>
         <target state="translated">未選取任何租用戶</target>
       </trans-unit>
+      <trans-unit id="++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4">
+        <source xml:lang="en">No tenants are currently signed in.</source>
+        <target state="new">No tenants are currently signed in.</target>
+      </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">沒有可處理的工具。</target>
@@ -4833,6 +4837,10 @@ Query: {2}</source>
         <source xml:lang="en">Sign into Fabric</source>
         <target state="translated">登入 Fabric</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
+        <source xml:lang="en">Sign into tenant</source>
+        <target state="new">Sign into tenant</target>
+      </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
         <target state="translated">正在登入 Azure...</target>
@@ -5748,6 +5756,12 @@ Query: {2}</source>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
         <target state="translated">{0}/{1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
+        <source xml:lang="en">{0} of {1} tenants</source>
+        <note>{0} is the number of tenants with active sessions
+{1} is the total number of tenants</note>
+        <target state="new">{0} of {1} tenants</target>
       </trans-unit>
       <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
         <source xml:lang="en">{0} password doesn't match the confirmation password</source>
