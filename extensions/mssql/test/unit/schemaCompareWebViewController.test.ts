@@ -28,7 +28,6 @@ import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;

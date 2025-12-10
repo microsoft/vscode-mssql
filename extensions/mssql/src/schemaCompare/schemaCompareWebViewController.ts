@@ -48,11 +48,9 @@ import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
-import * as Constants from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
-import { ConnectionProfile } from "../models/connectionProfile";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
