@@ -45,13 +45,15 @@ export const SchemaDesignerPage = () => {
                     <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
-                <ErrorDialog
-                    open={!!context.initializationError}
-                    title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
-                    message={context.initializationError ?? ""}
-                    retryLabel={locConstants.schemaDesigner.retry}
-                    onRetry={context.triggerInitialization}
-                />
+                {context?.initializationError && (
+                    <ErrorDialog
+                        open={!!context?.initializationError}
+                        title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
+                        message={context?.initializationError ?? ""}
+                        retryLabel={locConstants.schemaDesigner.retry}
+                        onRetry={context?.triggerInitialization}
+                    />
+                )}
             </MainLayout>
         </>
     );

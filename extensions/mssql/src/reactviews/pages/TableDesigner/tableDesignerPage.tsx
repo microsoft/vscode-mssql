@@ -145,13 +145,15 @@ export const TableDesigner = () => {
                     />
                 </div>
             )}
-            <ErrorDialog
-                open={isErrorState}
-                title={locConstants.tableDesigner.errorLoadingDesigner}
-                message={tableDesignerState?.initializationError ?? ""}
-                retryLabel={locConstants.tableDesigner.retry}
-                onRetry={() => context.initializeTableDesigner()}
-            />
+            {isErrorState && (
+                <ErrorDialog
+                    open={isErrorState}
+                    title={locConstants.tableDesigner.errorLoadingDesigner}
+                    message={tableDesignerState?.initializationError ?? ""}
+                    retryLabel={locConstants.tableDesigner.retry}
+                    onRetry={() => context.initializeTableDesigner()}
+                />
+            )}
             {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
                     <PanelGroup direction="vertical">
