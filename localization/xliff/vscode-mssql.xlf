@@ -1445,6 +1445,9 @@
     <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
       <source xml:lang="en">Error loading Azure subscriptions.</source>
     </trans-unit>
+    <trans-unit id="++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7">
+      <source xml:lang="en">Error loading Schema Designer</source>
+    </trans-unit>
     <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
       <source xml:lang="en">Error loading databases</source>
     </trans-unit>

@@ -602,6 +602,7 @@
         "comment": ["{0} is the max length"]
     },
     "Loading Schema Designer": "Loading Schema Designer",
+    "Error loading Schema Designer": "Error loading Schema Designer",
     "Generating report, this might take a while...": "Generating report, this might take a while...",
     "{0} warnings/{0} is the number of warnings": {
         "message": "{0} warnings",
