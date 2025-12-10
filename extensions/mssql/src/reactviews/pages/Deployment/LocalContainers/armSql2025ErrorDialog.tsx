@@ -71,9 +71,8 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                             {Loc.localContainers.armErrorDescription}
                         </Text>
                         <Text className={classes.contentItem}>
-                            {Loc.localContainers.toContinueCheck}{" "}
+                            {Loc.localContainers.toContinueCheck}
                             <Link href={armReferenceLink}>
-                                {" "}
                                 {Loc.localContainers.theDocumentation}
                             </Link>
                             {Loc.localContainers.forMoreInformation}
