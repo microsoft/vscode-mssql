@@ -1123,14 +1123,14 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorHeader: l10n.t(
-                "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
-            ),
             armErrorDescription: l10n.t(
-                "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
             ),
-            see: l10n.t("See"),
-            forMoreDetails: l10n.t("for more details"),
+            toContinueCheck: l10n.t(
+                "To continue, run SQL Server on a machine with a supported processor. Check ",
+            ),
+            theDocumentation: l10n.t("the documentation "),
+            forMoreInformation: l10n.t("for more information."),
         };
     }
 
