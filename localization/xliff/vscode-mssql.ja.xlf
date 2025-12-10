@@ -5267,6 +5267,10 @@ Query: {2}</source>
         <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
         <target state="translated">このコマンドを使用するには、"SQL" に言語を設定する必要があります。言語モードの変更を確認してください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
+        <source xml:lang="en">Toggle Sort</source>
+        <target state="new">Toggle Sort</target>
+      </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">ツールヒントの切り替え</target>
