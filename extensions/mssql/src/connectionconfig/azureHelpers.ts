@@ -359,7 +359,7 @@ export class VsCodeAzureHelper {
 export const VsCodeAzureAuth = {
     getUnauthenticatedTenants: getUnauthenticatedTenants,
     signInToTenant: signInToTenant,
-}
+};
 
 /**
  *  * @returns true if the user selected subscriptions, false if they canceled the selection quickpick

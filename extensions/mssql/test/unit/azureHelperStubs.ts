@@ -61,8 +61,6 @@ export const mockTenants = [
     },
 ] as AzureTenant[];
 
-
-
 export const mockServerName = "testServer";
 export const mockManagedInstanceName = "testManagedInstance";
 export const mockUserName = "testUser";
@@ -143,12 +141,16 @@ export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
         getTenants: () =>
-            Promise.resolve(mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id)),
+            Promise.resolve(
+                mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
+            ),
     } as unknown as MssqlVSCodeAzureSubscriptionProvider);
 }
 
 export function stubVscodeAzureHelperGetAccounts(sandbox: sinon.SinonSandbox) {
-    return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves([mockAccounts.signedInAccount]);
+    return sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+        .resolves([mockAccounts.signedInAccount]);
 }
 
 export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {

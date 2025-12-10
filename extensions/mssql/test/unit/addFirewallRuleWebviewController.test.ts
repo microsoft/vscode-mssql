@@ -82,7 +82,10 @@ suite("AddFirewallRuleWebviewController Tests", () => {
                 }),
                 tenants: {
                     [azureHelperStubs.mockAccounts.signedInAccount.id]: azureHelperStubs.mockTenants
-                        .filter((t) => t.account.id === azureHelperStubs.mockAccounts.signedInAccount.id)
+                        .filter(
+                            (t) =>
+                                t.account.id === azureHelperStubs.mockAccounts.signedInAccount.id,
+                        )
                         .map((t) => {
                             return {
                                 displayName: t.displayName,

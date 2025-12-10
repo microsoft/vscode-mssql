@@ -59,9 +59,9 @@ suite("Azure Helpers", () => {
                 true /* onlyAllowedForExtension */,
             );
 
-            expect(accounts, "Only signed-in accounts should be returned").to.deep.equal(
-                [mockAccounts.signedInAccount],
-            );
+            expect(accounts, "Only signed-in accounts should be returned").to.deep.equal([
+                mockAccounts.signedInAccount,
+            ]);
         });
 
         test("signIn", async () => {

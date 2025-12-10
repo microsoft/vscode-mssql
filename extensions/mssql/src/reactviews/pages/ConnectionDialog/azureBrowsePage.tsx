@@ -268,22 +268,27 @@ export const AzureBrowsePage = () => {
                         className={formStyles.formComponentDiv}
                         style={{ marginTop: "0", marginBottom: "12px" }}>
                         <Field orientation="horizontal">
-
                             <span>
                                 <Tooltip
                                     content={
                                         <>
                                             {context.state.azureAccounts.length === 0 && (
-                                                <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
+                                                <span>
+                                                    {Loc.azure.clickToSignIntoAnAzureAccount}
+                                                </span>
                                             )}
                                             {context.state.azureAccounts.length > 0 && (
                                                 <>
                                                     {Loc.azure.currentlySignedInAs}
                                                     <br />
                                                     <ul>
-                                                        {context.state.azureAccounts.map((account) => (
-                                                            <li key={account.id}>{account.name}</li>
-                                                        ))}
+                                                        {context.state.azureAccounts.map(
+                                                            (account) => (
+                                                                <li key={account.id}>
+                                                                    {account.name}
+                                                                </li>
+                                                            ),
+                                                        )}
                                                     </ul>
                                                 </>
                                             )}
@@ -343,7 +348,7 @@ export const AzureBrowsePage = () => {
                                     size="small"
                                 />
                                 {context.state.loadingAzureSubscriptionsStatus ===
-                                    ApiStatus.Loading ? (
+                                ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined}
                             </>
@@ -486,7 +491,7 @@ export const AzureBrowsePage = () => {
                                 .map((inputName, idx) => {
                                     const component =
                                         context.state.formComponents[
-                                        inputName as keyof IConnectionDialogProfile
+                                            inputName as keyof IConnectionDialogProfile
                                         ];
                                     if (component?.hidden !== false) {
                                         return undefined;
