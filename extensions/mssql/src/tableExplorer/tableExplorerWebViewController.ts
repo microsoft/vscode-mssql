@@ -187,8 +187,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.updateState();
 
             endActivity.endFailed(
-                new Error(`Failed to initialize table explorer: ${getErrorMessage(error)}`),
-                false,
+                new Error(`Failed to initialize table explorer - OperationId: ${this.operationId}`),
+                true,
                 undefined,
                 undefined,
                 {
@@ -292,8 +292,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to commit changes: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to commit changes - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -372,8 +372,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to load subset: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to load subset - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -449,8 +449,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to create row: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to create row - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -537,8 +537,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to delete row: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to delete row - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -681,8 +681,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.updateState();
 
                 endActivity.endFailed(
-                    new Error(`Failed to update cell: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to update cell - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -810,8 +810,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert cell: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to revert cell - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -912,8 +912,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert row: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to revert row - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
@@ -984,8 +984,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to generate script: ${getErrorMessage(error)}`),
-                    false,
+                    new Error(`Failed to generate script - OperationId: ${this.operationId}`),
+                    true,
                     undefined,
                     undefined,
                     {
