@@ -385,6 +385,7 @@
     "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
+    "Toggle Sort": "Toggle Sort",
     "Clear Sort": "Clear Sort",
     "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
         "message": "Save as CSV ({0})",
