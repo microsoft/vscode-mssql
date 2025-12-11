@@ -225,6 +225,29 @@ export const AzureBrowsePage = () => {
     }
 
     const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
+    const tenantCounts = context.state.azureTenantSignInCounts;
+    const tenantStatus = context.state.azureTenantStatus ?? [];
+    const shouldShowTenantPrompt =
+        tenantCounts !== undefined &&
+        tenantCounts.totalTenants > 0 &&
+        tenantCounts.signedInTenants < tenantCounts.totalTenants;
+    const tenantTooltipContent =
+        tenantStatus.length === 0 ? (
+            <span>{Loc.connectionDialog.noTenantsSignedIn}</span>
+        ) : (
+            <div>
+                {tenantStatus.map((status) => (
+                    <div key={status.accountId} style={{ marginBottom: "6px" }}>
+                        <strong>{status.accountName}</strong>
+                        <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                            {status.signedInTenants.map((tenant) => (
+                                <li key={`${status.accountId}-${tenant}`}>{tenant}</li>
+                            ))}
+                        </ul>
+                    </div>
+                ))}
+            </div>
+        );
 
     return (
         <div>
@@ -245,40 +268,69 @@ export const AzureBrowsePage = () => {
                         className={formStyles.formComponentDiv}
                         style={{ marginTop: "0", marginBottom: "12px" }}>
                         <Field orientation="horizontal">
-                            <Tooltip
-                                content={
+                            <span>
+                                <Tooltip
+                                    content={
+                                        <>
+                                            {context.state.azureAccounts.length === 0 && (
+                                                <span>
+                                                    {Loc.azure.clickToSignIntoAnAzureAccount}
+                                                </span>
+                                            )}
+                                            {context.state.azureAccounts.length > 0 && (
+                                                <>
+                                                    {Loc.azure.currentlySignedInAs}
+                                                    <br />
+                                                    <ul>
+                                                        {context.state.azureAccounts.map(
+                                                            (account) => (
+                                                                <li key={account.id}>
+                                                                    {account.name}
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ul>
+                                                </>
+                                            )}
+                                        </>
+                                    }
+                                    relationship="description">
+                                    <Link
+                                        onClick={() => {
+                                            context.signIntoAzureForBrowse(
+                                                ConnectionInputMode.AzureBrowse,
+                                            );
+                                        }}
+                                        inline>
+                                        {getAzureAccountsText()}
+                                        {" • "}
+                                        {context.state.azureAccounts.length === 0
+                                            ? Loc.azure.signIntoAzure
+                                            : Loc.azure.addAccount}
+                                    </Link>
+                                </Tooltip>
+                                {shouldShowTenantPrompt && (
                                     <>
-                                        {context.state.azureAccounts.length === 0 && (
-                                            <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
-                                        )}
-                                        {context.state.azureAccounts.length > 0 && (
-                                            <>
-                                                {Loc.azure.currentlySignedInAs}
-                                                <br />
-                                                <ul>
-                                                    {context.state.azureAccounts.map((account) => (
-                                                        <li key={account.id}>{account.name}</li>
-                                                    ))}
-                                                </ul>
-                                            </>
-                                        )}
+                                        {" • "}
+                                        <Tooltip
+                                            content={tenantTooltipContent}
+                                            relationship="description">
+                                            <Link
+                                                onClick={() =>
+                                                    context.signIntoAzureTenantForBrowse()
+                                                }
+                                                inline>
+                                                {Loc.connectionDialog.azureTenantSignInStatus(
+                                                    tenantCounts!.signedInTenants,
+                                                    tenantCounts!.totalTenants,
+                                                )}
+                                                {" • "}
+                                                {Loc.connectionDialog.signIntoTenantLink}
+                                            </Link>
+                                        </Tooltip>
                                     </>
-                                }
-                                relationship="description">
-                                <Link
-                                    onClick={() => {
-                                        context.signIntoAzureForBrowse(
-                                            ConnectionInputMode.AzureBrowse,
-                                        );
-                                    }}
-                                    inline>
-                                    {getAzureAccountsText()}
-                                    {" • "}
-                                    {context.state.azureAccounts.length === 0
-                                        ? Loc.azure.signIntoAzure
-                                        : Loc.azure.addAccount}
-                                </Link>
-                            </Tooltip>
+                                )}
+                            </span>
                         </Field>
                     </div>
                     <AzureFilterCombobox

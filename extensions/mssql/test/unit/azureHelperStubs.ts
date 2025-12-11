@@ -26,36 +26,40 @@ export const mockSubscriptions = [
     },
 ] as AzureSubscription[];
 
+export const mockAccounts = {
+    signedInAccount: {
+        id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+        label: "testAccount@testDomain.com",
+    } as vscode.AuthenticationSessionAccountInformation,
+    notSignedInAccount: {
+        id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
+        label: "notSignedInAccount@testDomain.com",
+    } as vscode.AuthenticationSessionAccountInformation,
+};
+
 export const mockTenants = [
     {
         displayName: "Tenant Zero",
         tenantId: "00000000-0000-0000-0000-000000000000",
         account: {
-            id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+            id: mockAccounts.signedInAccount.id,
         },
     },
     {
         displayName: "Tenant One",
         tenantId: "11111111-1111-1111-1111-111111111111",
         account: {
-            id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+            id: mockAccounts.signedInAccount.id,
         },
     },
     {
         displayName: "NotSignedInAccount Tenant A",
         tenantId: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
         account: {
-            id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
+            id: mockAccounts.notSignedInAccount.id,
         },
     },
 ] as AzureTenant[];
-
-export const mockAccounts = [
-    {
-        id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
-        label: "testAccount@testDomain.com",
-    },
-] as vscode.AuthenticationSessionAccountInformation[];
 
 export const mockServerName = "testServer";
 export const mockManagedInstanceName = "testManagedInstance";
@@ -137,12 +141,16 @@ export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
         getTenants: () =>
-            Promise.resolve(mockTenants.filter((t) => t.account.id === mockAccounts[0].id)),
+            Promise.resolve(
+                mockTenants.filter((t) => t.account.id === mockAccounts.signedInAccount.id),
+            ),
     } as unknown as MssqlVSCodeAzureSubscriptionProvider);
 }
 
 export function stubVscodeAzureHelperGetAccounts(sandbox: sinon.SinonSandbox) {
-    return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves(mockAccounts);
+    return sandbox
+        .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+        .resolves([mockAccounts.signedInAccount]);
 }
 
 export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
