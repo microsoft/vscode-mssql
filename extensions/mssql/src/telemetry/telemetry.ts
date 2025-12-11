@@ -135,7 +135,7 @@ export function sendActionEvent(
  * @param additionalMeasurements Additional measurements to include in the telemetry event
  * @param connectionInfo connectionInfo for the error
  * @param serverInfo serverInfo for the error
- * @param includeCallStack Whether to capture and include the call stack. Defaults to false
+ * @param includeCallStack Whether to capture and include the call stack. Defaults to true
  */
 export function sendErrorEvent(
     telemetryView: TelemetryViews,
