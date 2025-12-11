@@ -2590,7 +2590,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 // Ensure accountId is present for Azure MFA connections before connecting
                 if (connInfo.authenticationType === azureMfa && !connInfo.accountId) {
-                    await this.connectionMgr.ensureAccountIdForAzureMfa(connInfo);
+                    const profileMatched =
+                        await this.connectionMgr.ensureAccountIdForAzureMfa(connInfo);
+                    if (!profileMatched) {
+                        this.logger.warn(
+                            `Could not find accountId for Azure MFA connection for ${caller} - OperationId: ${this.operationId}`,
+                        );
+
+                        // Show the error message as matched profile is found
+                        vscode.window.showErrorMessage(
+                            locConstants.SchemaCompare.profileLoadedConnectionFailedForAzureMfa,
+                        );
+                    }
                 }
 
                 try {
@@ -2604,6 +2615,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     isConnected = false;
 
                     // Show the error message from the exception
+                    // Error could be similar to "Cannot connect due to expired tokens. Please re-authenticate and try again."
+                    // database doesn't exists or user doens't have permission to access, will get "login failed <token credential> error"
                     vscode.window.showErrorMessage(
                         locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
                     );

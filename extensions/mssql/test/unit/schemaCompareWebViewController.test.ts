@@ -853,6 +853,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         ensureAccountIdStub.callsFake(async (connInfo) => {
             // Simulate what the real method does - populate accountId from saved profile
             connInfo.accountId = "test-account-id-12345";
+            return true;
         });
 
         const payload = {};

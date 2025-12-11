@@ -1408,7 +1408,7 @@ export class PublishProject {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
     public static ProfileLoadedConnectionFailed = l10n.t(
-        "Profile loaded but connection failed. Please connect to the server manually.",
+        "Profile loaded, but the server connection could not be established. Manual intervention is required to connect to the server.",
     );
 }
 
@@ -1503,6 +1503,9 @@ export class SchemaCompare {
             args: [errorMessage],
             comment: ["{0} is the error message from the connection attempt"],
         });
+    public static profileLoadedConnectionFailedForAzureMfa = l10n.t(
+        "Profile loaded, but the server connection could not be established. Manual intervention is required to connect to the server.",
+    );
 }
 
 export class SchemaDesigner {

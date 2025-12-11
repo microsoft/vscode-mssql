@@ -407,8 +407,9 @@ export default class ConnectionManager {
      * If accountId is missing, attempts to find it from saved connection profiles.
      * Ex: This is needed when opening connections from stored profiles like .scmp and publish.xml files.
      * @param connectionInfo The connection info to populate with accountId if missing (modified in place)
+     * @returns true if accountId was found and populated, false otherwise
      */
-    public async ensureAccountIdForAzureMfa(connectionInfo: IConnectionInfo): Promise<void> {
+    public async ensureAccountIdForAzureMfa(connectionInfo: IConnectionInfo): Promise<boolean> {
         const matchResult = await this.findMatchingProfile(new ConnectionProfile(connectionInfo));
 
         // Only use the accountId if we have a strong match (at least server-level match)
@@ -420,7 +421,9 @@ export default class ConnectionManager {
             matchResult.score >= Utils.MatchScore.Server
         ) {
             connectionInfo.accountId = matchResult.profile.accountId;
+            return true;
         }
+        return false;
     }
 
     /**

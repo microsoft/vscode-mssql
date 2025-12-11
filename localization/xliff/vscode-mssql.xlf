@@ -2990,8 +2990,8 @@
     <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
       <source xml:lang="en">Profile created successfully</source>
     </trans-unit>
-    <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
-      <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
+    <trans-unit id="++CODE++a4e72d3266dfd432b4ca091179f5fee8b472e45b4b876e1acd32692d0503a1dd">
+      <source xml:lang="en">Profile loaded, but the server connection could not be established. Manual intervention is required to connect to the server.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>

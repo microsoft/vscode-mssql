@@ -971,8 +971,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
             const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
 
             // Ensure accountId is present for Azure MFA connections before connecting
+            let profileMatched = true;
             if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
-                await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
+                profileMatched =
+                    await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
+                if (!profileMatched) {
+                    this.logger.warn(
+                        `Could not find accountId for Azure MFA connection when loading publish profile`,
+                    );
+                    throw new Error(Loc.ProfileLoadedConnectionFailed);
+                }
             }
 
             await this._connectionManager.connect(fileUri, connectionInfo, {

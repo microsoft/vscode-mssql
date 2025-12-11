@@ -57,7 +57,7 @@ suite("PublishProjectWebViewController Tests", () => {
             parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
             connect: sandbox.stub().resolves(true),
             findMatchingProfile: sandbox.stub().resolves({}),
-            ensureAccountIdForAzureMfa: sandbox.stub().resolves(),
+            ensureAccountIdForAzureMfa: sandbox.stub().resolves(true),
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
@@ -518,6 +518,7 @@ suite("PublishProjectWebViewController Tests", () => {
         ensureAccountIdStub.callsFake(async (connInfo) => {
             // Simulate what the real method does - populate accountId from saved profile
             connInfo.accountId = "test-account-id-67890";
+            return true;
         });
 
         // Configure connect stub to succeed
