@@ -1902,12 +1902,6 @@
                     "description": "%mssql.intelliSense.enableQuickInfo%",
                     "scope": "window"
                 },
-                "mssql.intelliSense.lowerCaseSuggestions": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.intelliSense.lowerCaseSuggestions%",
-                    "scope": "window"
-                },
                 "mssql.persistQueryResultTabs": {
                     "type": "boolean",
                     "default": false,
