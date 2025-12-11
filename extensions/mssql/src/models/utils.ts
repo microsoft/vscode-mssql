@@ -13,6 +13,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as fs from "fs";
 import { AzureAuthType } from "./contracts/azure";
 import { IConnectionInfo } from "vscode-mssql";
+import { ConnectionProfile } from "./connectionProfile";
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const msInH = 3.6e6;
@@ -554,7 +555,7 @@ export async function ensureAccountIdForAzureMfa(
     ) => Promise<{ profile: IConnectionProfile; score: MatchScore }>,
 ): Promise<void> {
     // Try to find accountId from saved connection profiles
-    const matchResult = await findMatchingProfileFn(connectionInfo as IConnectionProfile);
+    const matchResult = await findMatchingProfileFn(new ConnectionProfile(connectionInfo));
 
     if (matchResult && matchResult.profile && matchResult.profile.accountId) {
         connectionInfo.accountId = matchResult.profile.accountId;
