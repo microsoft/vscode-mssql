@@ -11,6 +11,7 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../models/interfaces";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
@@ -70,14 +71,13 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 showRestorePromptAfterClose: false,
             },
         );
+        this.registerRpcHandlers();
         void this.initialize();
     }
 
     private async initialize() {
         if (!this._targetNode) {
             const errorMessage = "Unable to find object explorer node";
-            await vscode.window.showErrorMessage(errorMessage);
-
             sendErrorEvent(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Initialize,
@@ -86,7 +86,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 undefined, // errorCode
                 "unableToFindObjectExplorerNode",
             );
-
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: errorMessage,
+            };
             return;
         }
 
@@ -102,10 +109,45 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
 
-        const connectionInfo = this._targetNode.connectionProfile;
+        this.state = {
+            ...this.state,
+            apiState: {
+                ...this.state.apiState,
+                initializeState: designer.LoadState.Loading,
+            },
+        };
+
+        let connectionInfo = this._targetNode.connectionProfile;
+
+        try {
+            connectionInfo = (await this._connectionManager.prepareConnectionInfo(
+                connectionInfo,
+            )) as IConnectionProfile;
+        } catch (e) {
+            const error = e instanceof Error ? e : new Error(getErrorMessage(e));
+            sendErrorEvent(
+                TelemetryViews.TableDesigner,
+                TelemetryActions.Initialize,
+                error,
+                true, //includeErrorMessage
+                undefined, // errorCode
+                "prepareConnectionInfoFailed",
+            );
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: getErrorMessage(e),
+            };
+            return;
+        }
+
+        this._targetNode.updateConnectionProfile(connectionInfo);
         connectionInfo.database = databaseName;
 
-        let connectionString;
+        let connectionString: string | undefined;
         try {
             const connectionDetails =
                 await this._connectionManager.createConnectionDetails(connectionInfo);
@@ -117,9 +159,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
             if (!connectionString || connectionString === "") {
                 const errorMessage = "Unable to find connection string for the connection";
-
-                await vscode.window.showErrorMessage(errorMessage);
-
                 sendErrorEvent(
                     TelemetryViews.TableDesigner,
                     TelemetryActions.Initialize,
@@ -129,11 +168,19 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     "unableToFindConnectionString",
                 );
 
+                this.state = {
+                    ...this.state,
+                    apiState: {
+                        ...this.state.apiState,
+                        initializeState: designer.LoadState.Error,
+                    },
+                    initializationError: errorMessage,
+                };
+
                 return;
             }
         } catch (e) {
             const error = e instanceof Error ? e : new Error(getErrorMessage(e));
-
             sendErrorEvent(
                 TelemetryViews.TableDesigner,
                 TelemetryActions.Initialize,
@@ -142,9 +189,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 undefined, // errorCode
                 "unableToFindConnectionString",
             );
-            await vscode.window.showErrorMessage(
-                "Unable to find connection string for the connection: " + getErrorMessage(e),
-            );
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: getErrorMessage(e),
+            };
             return;
         }
 
@@ -157,9 +209,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 isEdit: this._isEdit.toString(),
             },
         );
-
-        await this._connectionManager.confirmEntraTokenValidity(connectionInfo);
-        this._targetNode.updateConnectionProfile(connectionInfo);
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken
             : undefined;
@@ -209,14 +258,19 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     ...this.state.apiState,
                     initializeState: designer.LoadState.Loaded,
                 },
+                initializationError: undefined,
             };
         } catch (e) {
             endActivity.endFailed(e, false);
-            this.state.apiState.initializeState = designer.LoadState.Error;
-            this.state = this.state;
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    initializeState: designer.LoadState.Error,
+                },
+                initializationError: getErrorMessage(e),
+            };
         }
-
-        this.registerRpcHandlers();
     }
 
     private getDatabaseNameForNode(node: TreeNodeInfo): string {

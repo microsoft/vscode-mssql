@@ -23,6 +23,7 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import store from "../queryResult/singletonStore";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -331,7 +332,11 @@ export class SqlOutputContentProvider {
             return;
         }
 
-        await runner.runStatement(selection.startLine, selection.startColumn);
+        const includeExecutionPlanXml = this._actualPlanStatuses.includes(uri);
+
+        await runner.runStatement(selection.startLine, selection.startColumn, {
+            includeActualExecutionPlanXml: includeExecutionPlanXml,
+        });
     }
 
     private async initializeRunnerAndWebviewState(
@@ -348,6 +353,10 @@ export class SqlOutputContentProvider {
         if (!queryRunner) {
             return;
         }
+
+        // Clear previous grid state (filters, sorts, column widths) for this URI
+        store.deleteUriState(uri);
+
         this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
@@ -721,8 +730,13 @@ export class SqlOutputContentProvider {
             if (closedDocumentUri === key) {
                 /**
                  * If the result is in a webview view, immediately dispose the runner
-                 * For panel results, we wait until the panel is closed to dispose the runner
+                 * For panel based results, we just cancel the query but keep the results
+                 * available until the user closes the panel
                  */
+                if (this._queryResultWebviewController.hasPanel(key)) {
+                    await _value.queryRunner.cancel();
+                    continue;
+                }
                 await this.cleanupRunner(key);
             }
         }

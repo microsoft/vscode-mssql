@@ -220,3 +220,82 @@ yarn package --online      # Ensure extension can be packaged
 -   Extension can be debugged by installing VSIX in VS Code
 
 **Remember**: NEVER CANCEL long-running build or test commands. Always set appropriate timeouts and wait for completion.
+
+## PR Review Guidelines
+
+### Webview Code Review Checklist
+
+When reviewing PRs that touch webview code (especially in `src/reactviews/`), pay close attention to the following patterns:
+
+#### Avoid `setTimeout()` in Webviews
+
+**Critical**: Avoid using `setTimeout(...)` in webview code, especially during webview startup.
+
+-   **Why**: Chrome throttles `setTimeout` to a minimum of 1 second when the webview tab is hidden or backgrounded
+-   **Impact**: This causes significant delays and unpredictable behavior during webview initialization
+-   **Review Action**: Flag any `setTimeout` usage in webview code and suggest alternatives below
+
+#### Replace `setTimeout` with Better Alternatives
+
+##### For UI Synchronization (React Components)
+
+Use `requestAnimationFrame` instead of `setTimeout(cb, 0)` or short delays:
+
+```typescript
+// ❌ BAD: Throttled when webview is hidden
+setTimeout(() => {
+    updateUIState();
+}, 0);
+
+// ✅ GOOD: Syncs with browser paint loop (~60 FPS / ~16ms)
+requestAnimationFrame(() => {
+    updateUIState();
+});
+```
+
+**Benefits of `requestAnimationFrame`**:
+
+-   Syncs with the browser's paint loop (~60 FPS / ~16ms intervals)
+-   Smoother and more predictable rendering
+-   Batches visual updates efficiently
+
+##### For Non-Visual or RPC Work
+
+Use `queueMicrotask` for immediate execution after the current call stack:
+
+```typescript
+// ❌ BAD: Unnecessary Promise allocation and potential throttling
+setTimeout(() => {
+    sendRpcMessage();
+}, 0);
+
+// ✅ GOOD: Runs immediately after current call stack
+queueMicrotask(() => {
+    sendRpcMessage();
+});
+```
+
+**Benefits of `queueMicrotask`**:
+
+-   Runs immediately after the current call stack completes
+-   No extra Promise allocation overhead
+-   **Not throttled** when the webview is hidden/backgrounded
+-   Ideal for "run ASAP" scenarios like RPC calls, state updates, or event dispatching
+
+#### Quick Reference Table
+
+| Use Case                  | Recommended API         | Why                                     |
+| ------------------------- | ----------------------- | --------------------------------------- |
+| UI updates / animations   | `requestAnimationFrame` | Syncs with paint loop, smooth rendering |
+| RPC calls / state updates | `queueMicrotask`        | Immediate, not throttled, no overhead   |
+| Actual intentional delays | `setTimeout`            | Only when you truly need a timed delay  |
+
+#### PR Review Checklist
+
+When reviewing webview-related PRs, verify:
+
+- [ ] No `setTimeout(..., 0)` or short timeout patterns in UI code
+- [ ] `requestAnimationFrame` used for visual/rendering synchronization
+- [ ] `queueMicrotask` used for non-visual immediate execution
+- [ ] No `setTimeout` during webview initialization/startup
+- [ ] Consider hidden/backgrounded webview behavior for any timing-sensitive code

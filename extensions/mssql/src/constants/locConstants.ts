@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static publicString = l10n.t("Public");
+    public static privateString = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");
@@ -682,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {
@@ -746,6 +749,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
@@ -2359,4 +2371,22 @@ export class Changelog {
     public static readTheDocumentation = l10n.t("Read the documentation");
     public static joinTheDiscussions = l10n.t("Join the discussions");
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
+}
+
+export class Proxy {
+    public static missingProtocolWarning = (proxy: string) =>
+        l10n.t({
+            message:
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+            args: [proxy],
+            comment: ["{0} is the proxy URL"],
+        });
+
+    public static unparseableWarning = (proxy: string, errorMessage: string) =>
+        l10n.t({
+            message:
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+            args: [proxy, errorMessage],
+            comment: ["{0} is the proxy URL", "{1} is the error message"],
+        });
 }

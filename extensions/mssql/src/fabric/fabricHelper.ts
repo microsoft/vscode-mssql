@@ -20,6 +20,8 @@ import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
+import { Logger } from "../models/logger";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class FabricHelper {
     static getFabricApiUriBase(): vscode.Uri {
@@ -56,6 +58,11 @@ export class FabricHelper {
     static readonly defaultRetryInMs = 30;
     static readonly defaultScope = ".default";
     constructor() {}
+
+    static getFabricLogger(): Logger {
+        const vscodeWrapper = new VscodeWrapper();
+        return Logger.create(vscodeWrapper.outputChannel, "Fabric Requests");
+    }
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
         const response = await this.fetchFromFabric<{ value: ICapacity[] }>(
@@ -298,7 +305,8 @@ export class FabricHelper {
         tenantId: string | undefined,
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
-        const httpHelper = new HttpHelper();
+        const fabricLogger = FabricHelper.getFabricLogger();
+        const httpHelper = new HttpHelper(fabricLogger);
 
         const session = await this.createScopedFabricSession(tenantId, reason);
         let token = session?.accessToken;
@@ -307,8 +315,10 @@ export class FabricHelper {
         const result = response.data;
 
         if (isFabricError(result)) {
+            fabricLogger.verbose(`Fabric API error: ${result.errorCode} - ${result.message}`);
             throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
+        fabricLogger.verbose(`Fabric fetch API call successful: ${api}`);
 
         return result;
     }
@@ -321,7 +331,8 @@ export class FabricHelper {
         scopes?: string[],
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
-        const httpHelper = new HttpHelper();
+        const fabricLogger = FabricHelper.getFabricLogger();
+        const httpHelper = new HttpHelper(fabricLogger);
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
@@ -333,19 +344,23 @@ export class FabricHelper {
         );
 
         if (response.status === this.longRunningOperationCode) {
+            fabricLogger.verbose(`Handling long-running Fabric operation for API: ${api}`);
             response = await this.handleLongRunningOperation(
                 response.headers["retry-after"] as string,
                 response.headers["location"],
                 httpHelper,
+                fabricLogger,
                 token,
             );
         }
 
         const result = response.data;
         if (isFabricError(result)) {
+            fabricLogger.verbose(`Fabric API error: ${result.errorCode} - ${result.message}`);
             throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
 
+        fabricLogger.verbose(`Fabric post API call successful: ${api}`);
         return result;
     }
 
@@ -356,6 +371,7 @@ export class FabricHelper {
         retryAfter: string,
         location: string,
         httpHelper: HttpHelper,
+        fabricLogger: Logger,
         token?: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<AxiosResponse<TResponse, any>> {
@@ -367,11 +383,15 @@ export class FabricHelper {
             longRunningResponse.data.status === IOperationStatus.Running ||
             longRunningResponse.data.status === IOperationStatus.NotStarted
         ) {
+            fabricLogger.verbose(
+                `Long-running operation in progress. Waiting ${retryAfterInMs} seconds before next poll...`,
+            );
             await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
             longRunningResponse = await httpHelper.makeGetRequest<IOperationState>(location, token);
         }
 
         if (longRunningResponse.data.status === IOperationStatus.Failed) {
+            fabricLogger.verbose(`Long-running operation failed`);
             throw new Error(
                 Loc.fabricLongRunningApiError(
                     longRunningResponse.status.toString(),
@@ -379,6 +399,10 @@ export class FabricHelper {
                 ),
             );
         }
+
+        fabricLogger.verbose(
+            `Long-running operation completed successfully. Fetching final result...`,
+        );
 
         return await httpHelper.makeGetRequest<TResponse>(
             longRunningResponse.headers["location"],
