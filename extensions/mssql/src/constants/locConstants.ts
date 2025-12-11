@@ -1497,6 +1497,12 @@ export class SchemaCompare {
             args: [diffEntryName],
             comment: ["{0} is the name of the entry"],
         });
+    public static connectionFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Connection failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message from the connection attempt"],
+        });
 }
 
 export class SchemaDesigner {

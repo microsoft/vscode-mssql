@@ -25,6 +25,7 @@ import {
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";
+import * as Utils from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
@@ -794,6 +795,88 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResultMock.deploymentOptions);
 
         openScmpStub.restore();
+    });
+
+    test("openScmp reducer - with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
+        // Setup Azure MFA endpoint info without accountId
+        const azureMfaTargetEndpointInfo = {
+            endpointType: 0,
+            packageFilePath: "",
+            serverDisplayName: "azure-server.database.windows.net (user@domain.com)",
+            serverName: "azure-server.database.windows.net",
+            databaseName: "testdb",
+            ownerUri: "",
+            connectionDetails: {
+                options: {
+                    server: "azure-server.database.windows.net",
+                    database: "testdb",
+                    authenticationType: "AzureMFA",
+                    accountId: undefined, // Missing accountId - this is what we're testing
+                    user: "user@domain.com",
+                    email: "user@domain.com",
+                },
+            },
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            extractTarget: 5,
+            dataSchemaProvider: "",
+        };
+
+        const expectedResultMock = {
+            success: true,
+            errorMessage: "",
+            sourceEndpointInfo,
+            targetEndpointInfo: azureMfaTargetEndpointInfo,
+            originalTargetName: "testdb",
+            originalTargetServerName: "azure-server.database.windows.net",
+            originalConnectionString: "",
+            deploymentOptions,
+            excludedSourceElements: [],
+            excludedTargetElements: [],
+        };
+
+        const filePath = "c:\\test_azure.scmp";
+
+        const showOpenDialogForScmpStub = sandbox
+            .stub(scUtils, "showOpenDialogForScmp")
+            .resolves(filePath);
+
+        const openScmpStub = sandbox.stub(scUtils, "openScmp").resolves(expectedResultMock);
+
+        // Stub connectionManager methods
+        connectionManagerStub.getUriForScmpConnection.returns(undefined); // No existing connection
+        connectionManagerStub.connect.resolves(true);
+
+        // Stub the ensureAccountIdForAzureMfa helper function
+        const ensureAccountIdStub = sandbox
+            .stub(Utils, "ensureAccountIdForAzureMfa")
+            .callsFake(async (connInfo) => {
+                // Simulate what the real helper does - populate accountId from saved profile
+                connInfo.accountId = "test-account-id-12345";
+            });
+
+        const payload = {};
+
+        const actualResult = await controller["_reducerHandlers"].get("openScmp")(
+            mockInitialState,
+            payload,
+        );
+
+        expect(showOpenDialogForScmpStub).to.have.been.calledOnce;
+        expect(openScmpStub).to.have.been.calledOnce;
+
+        // Verify the helper was called to populate missing accountId
+        expect(ensureAccountIdStub).to.have.been.calledOnce;
+
+        // Verify connect was called with accountId populated
+        const connectCallArgs = connectionManagerStub.connect.firstCall.args;
+        expect(connectCallArgs[1].accountId).to.equal("test-account-id-12345");
+
+        expect(actualResult.schemaCompareOpenScmpResult).to.deep.equal(expectedResultMock);
+
+        openScmpStub.restore();
+        ensureAccountIdStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {

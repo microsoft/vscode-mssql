@@ -42,7 +42,7 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { localhost, sa, sqlAuthentication } from "../constants/constants";
+import { localhost, sa, sqlAuthentication, azureMfa } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -969,6 +969,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             const connectionDetails =
                 await this._connectionManager.parseConnectionString(connectionString);
             const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
+
+            // Ensure accountId is present for Azure MFA connections before connecting
+            if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
+                await Utils.ensureAccountIdForAzureMfa(
+                    connectionInfo,
+                    this._connectionManager.findMatchingProfile.bind(this._connectionManager),
+                );
+            }
 
             await this._connectionManager.connect(fileUri, connectionInfo, {
                 shouldHandleErrors: false,

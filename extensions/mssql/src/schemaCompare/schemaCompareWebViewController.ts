@@ -47,7 +47,7 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { cmdAddObjectExplorer } from "../constants/constants";
+import { cmdAddObjectExplorer, azureMfa } from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
@@ -2588,9 +2588,29 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
                 ownerUri = utils.generateQueryUri().toString();
 
-                isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
-                    connectionSource: "schemaCompare",
-                });
+                // Ensure accountId is present for Azure MFA connections before connecting
+                if (connInfo.authenticationType === azureMfa && !connInfo.accountId) {
+                    await utils.ensureAccountIdForAzureMfa(
+                        connInfo,
+                        this.connectionMgr.findMatchingProfile.bind(this.connectionMgr),
+                    );
+                }
+
+                try {
+                    isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
+                        connectionSource: "schemaCompare",
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Exception during connection attempt for ${caller}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
+                    isConnected = false;
+
+                    // Show the error message from the exception
+                    vscode.window.showErrorMessage(
+                        locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
+                    );
+                }
 
                 this.logger.info(
                     `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,

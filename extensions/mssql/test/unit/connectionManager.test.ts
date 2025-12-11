@@ -350,38 +350,6 @@ suite("ConnectionManager Tests", () => {
                 connectionManager["_keyVaultTokenCache"].get(JSON.stringify(params)),
             ).to.deep.equal(token, "New token should be cached");
         });
-
-        test("confirmEntraTokenValidity should call findMatchingProfile when accountId is undefined", async () => {
-            const mockAccountStore = sandbox.createStubInstance(AccountStore);
-            const mockAzureController = sandbox.createStubInstance(MsalAzureController);
-
-            connectionManager["_accountStore"] = mockAccountStore;
-            connectionManager.azureController = mockAzureController;
-
-            sandbox.stub(AzureController, "isTokenValid").returns(false);
-
-            const mockConnectionInfo = {
-                server: "testServer",
-                database: "testDB",
-                authenticationType: "AzureMFA",
-                accountId: undefined,
-                azureAccountToken: "expired-token",
-                expiresOn: Date.now() - 3600000,
-            } as unknown as IConnectionInfo;
-
-            mockConnectionStore.findMatchingProfile.resolves({
-                profile: undefined,
-                score: 0,
-            });
-
-            try {
-                await connectionManager.confirmEntraTokenValidity(mockConnectionInfo);
-            } catch {
-                // Expected to throw since no profile found
-            }
-
-            expect(mockConnectionStore.findMatchingProfile).to.have.been.calledOnce;
-        });
     });
 
     suite("prepareConnectionInfo", () => {

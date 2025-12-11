@@ -1015,22 +1015,17 @@ export default class ConnectionManager {
         let account: IAccount;
         let profile: ConnectionProfile;
 
-        // For Azure MFA connections, the accountId may not be present in the connection info
-        // (e.g., when opening from stored profiles like .scmp and publish.xml). Try to find it from saved connection profiles.
-        if (!connectionInfo.accountId) {
-            const matchResult = await this.findMatchingProfile(
-                new ConnectionProfile(connectionInfo),
-            );
-
-            if (matchResult && matchResult.profile && matchResult.profile.accountId) {
-                connectionInfo.accountId = matchResult.profile.accountId;
-            }
-        }
-
         if (connectionInfo.accountId) {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
+            // Send telemetry to identify code paths where accountId is missing
+            sendErrorEvent(
+                TelemetryViews.ConnectionManager,
+                TelemetryActions.Connect,
+                new Error("Azure MFA connection missing accountId in confirmEntraTokenValidity"),
+                false, // includeErrorMessage
+            );
             throw new Error(LocalizedConstants.cannotConnect);
         }
 

@@ -541,6 +541,27 @@ export function isSameScmpConnection(
 }
 
 /**
+ * For Azure MFA connections, ensures the accountId is present in the connection info.
+ * If accountId is missing, attempts to find it from saved connection profiles.
+ * This is needed when opening connections from stored profiles like .scmp and publish.xml files.
+ * @param connectionInfo The connection info to populate with accountId if missing (modified in place)
+ * @param findMatchingProfileFn Function to find matching profile from saved profiles
+ */
+export async function ensureAccountIdForAzureMfa(
+    connectionInfo: IConnectionInfo,
+    findMatchingProfileFn: (
+        profile: IConnectionProfile,
+    ) => Promise<{ profile: IConnectionProfile; score: MatchScore }>,
+): Promise<void> {
+    // Try to find accountId from saved connection profiles
+    const matchResult = await findMatchingProfileFn(connectionInfo as IConnectionProfile);
+
+    if (matchResult && matchResult.profile && matchResult.profile.accountId) {
+        connectionInfo.accountId = matchResult.profile.accountId;
+    }
+}
+
+/**
  * Check if a file exists on disk
  */
 export function isFileExisting(filePath: string): boolean {
