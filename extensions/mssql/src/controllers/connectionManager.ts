@@ -1024,7 +1024,7 @@ export default class ConnectionManager {
                 TelemetryViews.ConnectionManager,
                 TelemetryActions.Connect,
                 new Error("Azure MFA connection missing accountId in confirmEntraTokenValidity"),
-                false, // includeErrorMessage
+                true, // includeErrorMessage
             );
             throw new Error(LocalizedConstants.cannotConnect);
         }
