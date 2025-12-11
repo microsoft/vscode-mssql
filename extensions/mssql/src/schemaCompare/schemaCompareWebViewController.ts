@@ -47,7 +47,7 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { cmdAddObjectExplorer } from "../constants/constants";
+import { cmdAddObjectExplorer, azureMfa } from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
@@ -2588,9 +2588,41 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
                 ownerUri = utils.generateQueryUri().toString();
 
-                isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
-                    connectionSource: "schemaCompare",
-                });
+                // Ensure accountId is present for Azure MFA connections before connecting
+                if (connInfo.authenticationType === azureMfa && !connInfo.accountId) {
+                    const profileMatched =
+                        await this.connectionMgr.ensureAccountIdForAzureMfa(connInfo);
+                    if (!profileMatched) {
+                        this.logger.warn(
+                            `Could not find accountId for Azure MFA connection for ${caller} - OperationId: ${this.operationId}`,
+                        );
+
+                        // Show the error message as no matched profile is found
+                        vscode.window.showErrorMessage(
+                            locConstants.PublishProject.ProfileLoadedConnectionFailed(
+                                connInfo.server,
+                            ),
+                        );
+                    }
+                }
+
+                try {
+                    isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
+                        connectionSource: "schemaCompare",
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Exception during connection attempt for ${caller}: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
+                    isConnected = false;
+
+                    // Show the error message from the exception
+                    // Error could be similar to "Cannot connect due to expired tokens. Please re-authenticate and try again."
+                    // database doesn't exists or user doens't have permission to access, will get "login failed <token credential> error"
+                    vscode.window.showErrorMessage(
+                        locConstants.SchemaCompare.connectionFailed(getErrorMessage(error)),
+                    );
+                }
 
                 this.logger.info(
                     `Connection attempt result for ${caller}: ${isConnected} - OperationId: ${this.operationId}`,
