@@ -4943,9 +4943,6 @@
     <trans-unit id="mssql.intelliSense.enableSuggestions">
       <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
     </trans-unit>
-    <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
-      <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
-    </trans-unit>
     <trans-unit id="mssql.piiLogging">
       <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
     </trans-unit>
