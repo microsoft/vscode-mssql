@@ -1700,7 +1700,10 @@
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
-    "Profile loaded, but the server connection could not be established. Manual intervention is required to connect to the server.": "Profile loaded, but the server connection could not be established. Manual intervention is required to connect to the server.",
+    "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
+        "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+        "comment": ["{0} is the server name"]
+    },
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

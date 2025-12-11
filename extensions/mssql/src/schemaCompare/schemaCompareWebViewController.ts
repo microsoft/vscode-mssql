@@ -2597,9 +2597,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             `Could not find accountId for Azure MFA connection for ${caller} - OperationId: ${this.operationId}`,
                         );
 
-                        // Show the error message as matched profile is found
+                        // Show the error message as no matched profile is found
                         vscode.window.showErrorMessage(
-                            locConstants.SchemaCompare.profileLoadedConnectionFailedForAzureMfa,
+                            locConstants.SchemaCompare.profileLoadedConnectionFailedForAzureMfa(
+                                connInfo.server,
+                            ),
                         );
                     }
                 }

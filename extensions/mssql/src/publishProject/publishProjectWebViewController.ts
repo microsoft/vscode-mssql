@@ -809,7 +809,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                     connectionResult.connectionUri || this._connectionUri;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
-                                        message: Loc.ProfileLoadedConnectionFailed,
+                                        message: Loc.ProfileLoadedConnectionFailed(
+                                            this.state.formState.serverName,
+                                        ),
                                         intent: "error",
                                     };
                                 }
@@ -979,7 +981,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.logger.warn(
                         `Could not find accountId for Azure MFA connection when loading publish profile`,
                     );
-                    throw new Error(Loc.ProfileLoadedConnectionFailed);
+                    throw new Error(Loc.ProfileLoadedConnectionFailed(connectionInfo.server));
                 }
             }
 
