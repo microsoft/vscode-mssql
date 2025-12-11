@@ -1421,11 +1421,14 @@
     <trans-unit id="++CODE++5b149b9da8f7cd0bdae05ad12cd9e4f650db61436fb31c868a6568695dce21f2">
       <source xml:lang="en">Error loading Azure subscriptions.</source>
     </trans-unit>
+    <trans-unit id="++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7">
+      <source xml:lang="en">Error loading Schema Designer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0">
+      <source xml:lang="en">Error loading Table Designer</source>
+    </trans-unit>
     <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
       <source xml:lang="en">Error loading databases</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
-      <source xml:lang="en">Error loading designer</source>
     </trans-unit>
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>

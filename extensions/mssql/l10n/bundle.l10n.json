@@ -159,7 +159,7 @@
     "Generate Script": "Generate Script",
     "Publish": "Publish",
     "Preview Database Updates": "Preview Database Updates",
-    "Error loading designer": "Error loading designer",
+    "Error loading Table Designer": "Error loading Table Designer",
     "Severity": "Severity",
     "Script as Create": "Script as Create",
     "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
@@ -612,6 +612,7 @@
         "comment": ["{0} is the max length"]
     },
     "Loading Schema Designer": "Loading Schema Designer",
+    "Error loading Schema Designer": "Error loading Schema Designer",
     "Generating report, this might take a while...": "Generating report, this might take a while...",
     "{0} warnings/{0} is the number of warnings": {
         "message": "{0} warnings",

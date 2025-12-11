@@ -139,7 +139,7 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            errorLoadingDesigner: l10n.t("Error loading designer"),
+            errorLoadingDesigner: l10n.t("Error loading Table Designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
             scriptAsCreate: l10n.t("Script as Create"),
@@ -876,6 +876,8 @@ export class LocConstants {
                     comment: ["{0} is the max length"],
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            errorLoadingSchemaDesigner: l10n.t("Error loading Schema Designer"),
+            retry: l10n.t("Retry"),
             generatingReport: l10n.t("Generating report, this might take a while..."),
             nWarnings: (warningCount: number) =>
                 l10n.t({
