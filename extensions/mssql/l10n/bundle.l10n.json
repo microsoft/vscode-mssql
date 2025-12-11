@@ -1715,6 +1715,10 @@
         "message": "Schema Compare failed: '{0}'",
         "comment": ["{0} is the error message returned from the compare operation"]
     },
+    "Connection failed: {0}/{0} is the error message from the connection attempt": {
+        "message": "Connection failed: {0}",
+        "comment": ["{0} is the error message from the connection attempt"]
+    },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
     "Schema Designer": "Schema Designer",

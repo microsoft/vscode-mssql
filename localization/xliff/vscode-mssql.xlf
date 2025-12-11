@@ -886,6 +886,10 @@
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
+    <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
+      <source xml:lang="en">Connection failed: {0}</source>
+      <note>{0} is the error message from the connection attempt</note>
+    </trans-unit>
     <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
       <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
     </trans-unit>
