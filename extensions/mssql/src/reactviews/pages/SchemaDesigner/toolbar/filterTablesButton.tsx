@@ -31,10 +31,6 @@ const useStyles = makeStyles({
         width: "250px",
         padding: "10px",
     },
-    searchBox: {
-        marginBottom: "10px",
-        width: "100%",
-    },
     list: {
         maxHeight: "150px",
         overflowY: "auto",
@@ -45,24 +41,6 @@ const useStyles = makeStyles({
         color: "var(--vscode-editor-background)",
         padding: "0 2px",
         borderRadius: "3px",
-    },
-    schemaItem: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        padding: "5px",
-    },
-    tableItem: {
-        padding: "5px",
-        marginLeft: "30px",
-    },
-    chevronButton: {
-        padding: 0,
-        height: "auto",
-        minWidth: "auto",
-        border: "none",
-        backgroundColor: "transparent",
-        boxShadow: "none",
     },
     clearAll: {
         display: "flex",
@@ -84,7 +62,7 @@ const useStyles = makeStyles({
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
-    const classes = useStyles();
+    const styles = useStyles();
     const reactFlow = useReactFlow();
     if (!context) {
         return undefined;
@@ -126,7 +104,7 @@ export function FilterTablesButton() {
         if (!showTableRelationships || selectedItems.length === 0) {
             return [];
         }
-        const selectedTables = selectedItems.filter((item) => item.includes("."));
+        const selectedTables = selectedItems.filter((item) => !context.schemaNames.includes(item));
 
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
@@ -177,7 +155,9 @@ export function FilterTablesButton() {
                 });
             });
         } else {
-            const selectedTables = selectedItems.filter((item) => item.includes("."));
+            const selectedTables = selectedItems.filter(
+                (item) => !context.schemaNames.includes(item),
+            );
             const relatedTables = getRelatedTables(selectedTables);
             const tablesToShow = [...selectedTables, ...relatedTables];
 
@@ -253,7 +233,7 @@ export function FilterTablesButton() {
                     // Check if this part matches the search text (case insensitive)
                     const isMatch = part.toLowerCase() === searchText.toLowerCase();
                     return isMatch ? (
-                        <span key={index} className={classes.highlightedText}>
+                        <span key={index} className={styles.highlightedText}>
                             {part}
                         </span>
                     ) : (
@@ -346,7 +326,7 @@ export function FilterTablesButton() {
             </MenuTrigger>
 
             <MenuPopover
-                className={classes.menu}
+                className={styles.menu}
                 onKeyDown={(e) => {
                     if (e.key === "Escape") {
                         setIsFilterMenuOpen(false);
@@ -391,7 +371,7 @@ export function FilterTablesButton() {
                                 }
 
                                 // Schema is toggled
-                                if (!changedItem.includes(".")) {
+                                if (context.schemaNames.includes(changedItem)) {
                                     if (isSelection) {
                                         // Add all tables under schema
                                         const schemaTables = tableNames.filter((t) =>
@@ -412,8 +392,8 @@ export function FilterTablesButton() {
 
                                 // Table is toggled
                                 else {
-                                    const schema = changedItem.split(".")[0];
-
+                                    const lastDot = changedItem.lastIndexOf(".");
+                                    const schema = changedItem.substring(0, lastDot);
                                     if (isSelection) {
                                         // If ALL tables in schema are selected → automatically select schema
                                         const allTablesInSchema = tableNames.filter((t) =>
@@ -456,7 +436,7 @@ export function FilterTablesButton() {
                         </FlatTree>
                     );
                 })()}
-                <div className={classes.clearAll}>
+                <div className={styles.clearAll}>
                     <Button
                         size="small"
                         onClick={async () => {
@@ -470,7 +450,7 @@ export function FilterTablesButton() {
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
                 </div>
-                <div className={classes.showTableRelationships}>
+                <div className={styles.showTableRelationships}>
                     <Switch
                         checked={showTableRelationships}
                         label={locConstants.schemaDesigner.showTableRelationships}
