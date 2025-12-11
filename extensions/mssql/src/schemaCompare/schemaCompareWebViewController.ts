@@ -2599,7 +2599,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                         // Show the error message as no matched profile is found
                         vscode.window.showErrorMessage(
-                            locConstants.SchemaCompare.profileLoadedConnectionFailedForAzureMfa(
+                            locConstants.PublishProject.ProfileLoadedConnectionFailed(
                                 connInfo.server,
                             ),
                         );

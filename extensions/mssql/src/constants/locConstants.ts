@@ -1507,13 +1507,6 @@ export class SchemaCompare {
             args: [errorMessage],
             comment: ["{0} is the error message from the connection attempt"],
         });
-    public static profileLoadedConnectionFailedForAzureMfa = (serverName: string) =>
-        l10n.t({
-            message:
-                "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
-            args: [serverName],
-            comment: ["{0} is the server name"],
-        });
 }
 
 export class SchemaDesigner {
