@@ -148,14 +148,14 @@ export function sendErrorEvent(
     additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
     connectionInfo?: IConnectionProfile,
     serverInfo?: vscodeMssql.IServerInfo,
-    includeCallStack: boolean = false,
+    includeCallStack: boolean = true,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
     let errorEvent = telemetryReporter
         .createErrorEvent2(
             telemetryView,
             telemetryAction,
-            error,
+            includeErrorMessage ? error : new Error("Event generated error"),
             includeErrorMessage,
             errorCode,
             errorType,
