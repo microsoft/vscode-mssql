@@ -403,6 +403,30 @@ export default class ConnectionManager {
     }
 
     /**
+     * For Azure MFA connections, ensures the accountId is present in the connection info.
+     * If accountId is missing, attempts to find it from saved connection profiles.
+     * Ex: This is needed when opening connections from stored profiles like .scmp and publish.xml files.
+     * @param connectionInfo The connection info to populate with accountId if missing (modified in place)
+     * @returns true if accountId was found and populated, false otherwise
+     */
+    public async ensureAccountIdForAzureMfa(connectionInfo: IConnectionInfo): Promise<boolean> {
+        const matchResult = await this.findMatchingProfile(new ConnectionProfile(connectionInfo));
+
+        // Only use the accountId if we have a strong match (at least server-level match)
+        // to avoid using the wrong account for connections to the same server
+        if (
+            matchResult &&
+            matchResult.profile &&
+            matchResult.profile.accountId &&
+            matchResult.score >= Utils.MatchScore.Server
+        ) {
+            connectionInfo.accountId = matchResult.profile.accountId;
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get the connection string for the provided connection Uri or ConnectionDetails.
      * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
      * @param includePassword (optional) if password should be included in connection string; default is false
@@ -1019,6 +1043,13 @@ export default class ConnectionManager {
             account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
+            // Send telemetry to identify code paths where accountId is missing
+            sendErrorEvent(
+                TelemetryViews.ConnectionManager,
+                TelemetryActions.Connect,
+                new Error("Azure MFA connection missing accountId in confirmEntraTokenValidity"),
+                true, // includeErrorMessage
+            );
             throw new Error(LocalizedConstants.cannotConnect);
         }
 

@@ -42,7 +42,7 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { localhost, sa, sqlAuthentication } from "../constants/constants";
+import { localhost, sa, sqlAuthentication, azureMfa } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -809,7 +809,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                     connectionResult.connectionUri || this._connectionUri;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
-                                        message: Loc.ProfileLoadedConnectionFailed,
+                                        message: Loc.ProfileLoadedConnectionFailed(
+                                            this.state.formState.serverName,
+                                        ),
                                         intent: "error",
                                     };
                                 }
@@ -969,6 +971,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
             const connectionDetails =
                 await this._connectionManager.parseConnectionString(connectionString);
             const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
+
+            // Ensure accountId is present for Azure MFA connections before connecting
+            let profileMatched = true;
+            if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
+                profileMatched =
+                    await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
+                if (!profileMatched) {
+                    this.logger.warn(
+                        `Could not find accountId for Azure MFA connection when loading publish profile`,
+                    );
+                    throw new Error(Loc.ProfileLoadedConnectionFailed(connectionInfo.server));
+                }
+            }
 
             await this._connectionManager.connect(fileUri, connectionInfo, {
                 shouldHandleErrors: false,

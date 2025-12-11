@@ -886,6 +886,10 @@
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
+    <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
+      <source xml:lang="en">Connection failed: {0}</source>
+      <note>{0} is the error message from the connection attempt</note>
+    </trans-unit>
     <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
       <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
     </trans-unit>
@@ -2989,8 +2993,9 @@
     <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
       <source xml:lang="en">Profile created successfully</source>
     </trans-unit>
-    <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
-      <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
+    <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
+      <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
+      <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
