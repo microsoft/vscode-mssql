@@ -197,7 +197,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
         <source xml:lang="en">All selected</source>
-        <target state="new">All selected</target>
+        <target state="translated">已全部選取</target>
       </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
@@ -808,15 +808,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
         <source xml:lang="en">Clear all filters</source>
-        <target state="new">Clear all filters</target>
+        <target state="translated">清除所有篩選條件</target>
       </trans-unit>
       <trans-unit id="++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1">
         <source xml:lang="en">Clear all grouping</source>
-        <target state="new">Clear all grouping</target>
+        <target state="translated">清除所有群組</target>
       </trans-unit>
       <trans-unit id="++CODE++64b1f96ecb4f24b2df07eb570a31246b394e2b09d4d19d942ed0f815c1c5c6be">
         <source xml:lang="en">Clear all sorting</source>
-        <target state="new">Clear all sorting</target>
+        <target state="translated">清除所有排序</target>
       </trans-unit>
       <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
         <source xml:lang="en">Clear cache and refresh token</source>
@@ -888,7 +888,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++bbeecf3d3d08d6b405f2fce7ea90dd90c7d438d7a926329a86bffb5c8de96c55">
         <source xml:lang="en">Collapse all groups</source>
-        <target state="new">Collapse all groups</target>
+        <target state="translated">摺疊所有群組</target>
       </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
@@ -942,7 +942,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
         <source xml:lang="en">Column resize by content</source>
-        <target state="new">Column resize by content</target>
+        <target state="translated">依據內容調整資料行大小</target>
       </trans-unit>
       <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
         <source xml:lang="en">Column width must be at least {0} pixels.</source>
@@ -1159,6 +1159,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
         <target state="translated">連線錯誤</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
+        <source xml:lang="en">Connection failed: {0}</source>
+        <note>{0} is the error message from the connection attempt</note>
+        <target state="new">Connection failed: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
@@ -1761,7 +1766,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++fc203569fa858e0ef3d2644e417247d162f933f5e91db77c913471844e2f3ced">
         <source xml:lang="en">Ends with</source>
-        <target state="new">Ends with</target>
+        <target state="translated">結束值</target>
       </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
@@ -1833,7 +1838,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
         <source xml:lang="en">Equal to</source>
-        <target state="new">Equal to</target>
+        <target state="translated">等於</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -2025,7 +2030,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d2fc073e6098215896ebf6c1a31f09b47f966e3c1280eec921d00fb2fbdea336">
         <source xml:lang="en">Expand all groups</source>
-        <target state="new">Expand all groups</target>
+        <target state="translated">展開所有群組</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
@@ -2053,19 +2058,19 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++73194761249a0ab480df4f1fa38f32ed5b3adcd3a41c304c9aae9cd4e8661a05">
         <source xml:lang="en">Export to CSV</source>
-        <target state="new">Export to CSV</target>
+        <target state="translated">匯出為 CSV</target>
       </trans-unit>
       <trans-unit id="++CODE++8b4b9f7cd9a3ba50b51932300eb1556cac2635bca03b77058950aa0345d66bbf">
         <source xml:lang="en">Export to Excel</source>
-        <target state="new">Export to Excel</target>
+        <target state="translated">匯出至 Excel</target>
       </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
-        <target state="new">Export to tab delimited</target>
+        <target state="translated">匯出至定位字元分隔</target>
       </trans-unit>
       <trans-unit id="++CODE++afcbbda58db9bb6a697a0d5558541c82d1f956426fcad621e37feb68d3b35fbb">
         <source xml:lang="en">Export to text format</source>
-        <target state="new">Export to text format</target>
+        <target state="translated">匯出至文字格式</target>
       </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
@@ -2406,7 +2411,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
         <source xml:lang="en">Filter shortcuts</source>
-        <target state="new">Filter shortcuts</target>
+        <target state="translated">篩選捷徑</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -2475,7 +2480,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++647da5cac1ce93e913f21be22e9dcb571b96b96a9d7aa7eaa2bac2f2d0ccd5b8">
         <source xml:lang="en">Force fit columns</source>
-        <target state="new">Force fit columns</target>
+        <target state="translated">強制調整資料行大小以符合內容</target>
       </trans-unit>
       <trans-unit id="++CODE++2390e8502ba64cd13706dd2af52d9983efe51a28984739601b0b86fbf7c65904">
         <source xml:lang="en">Foreign Column</source>
@@ -2524,7 +2529,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
         <source xml:lang="en">Freeze columns</source>
-        <target state="new">Freeze columns</target>
+        <target state="translated">凍結資料行</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -2630,11 +2635,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1fbcaddaa36260ff8a3c55cb7b0f95813cba07fbe56173e8a47a7099dcae75b6">
         <source xml:lang="en">Greater than</source>
-        <target state="new">Greater than</target>
+        <target state="translated">大於</target>
       </trans-unit>
       <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
         <source xml:lang="en">Greater than or equal to</source>
-        <target state="new">Greater than or equal to</target>
+        <target state="translated">大於或等於</target>
       </trans-unit>
       <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
         <source xml:lang="en">Grid View</source>
@@ -2642,7 +2647,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
         <source xml:lang="en">Group by</source>
-        <target state="new">Group by</target>
+        <target state="translated">分組依據</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -2662,7 +2667,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
         <source xml:lang="en">Hide column</source>
-        <target state="new">Hide column</target>
+        <target state="translated">隱藏資料行</target>
       </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
@@ -2909,11 +2914,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++23105bdfc3d62ed123bff7dd685f40015ddf25b49f2b9a895014acb9d8d40763">
         <source xml:lang="en">Less than</source>
-        <target state="new">Less than</target>
+        <target state="translated">小於</target>
       </trans-unit>
       <trans-unit id="++CODE++ae1564a79ff31afebb08eb05fd9d31bcf9b616516c2a9deff4288695cf2c5240">
         <source xml:lang="en">Less than or equal to</source>
-        <target state="new">Less than or equal to</target>
+        <target state="translated">小於或等於</target>
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
@@ -3473,7 +3478,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
-        <target state="new">No elements found</target>
+        <target state="translated">找不到任何元素</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -3481,7 +3486,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
         <source xml:lang="en">No matches found</source>
-        <target state="new">No matches found</target>
+        <target state="translated">找不到任何相符項目</target>
       </trans-unit>
       <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
         <source xml:lang="en">No model found.</source>
@@ -3575,11 +3580,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
         <source xml:lang="en">Not contains</source>
-        <target state="new">Not contains</target>
+        <target state="translated">不包含</target>
       </trans-unit>
       <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
         <source xml:lang="en">Not equal to</source>
-        <target state="new">Not equal to</target>
+        <target state="translated">不等於</target>
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
@@ -3749,7 +3754,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
         <source xml:lang="en">Page</source>
-        <target state="new">Page</target>
+        <target state="translated">頁面</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -3916,9 +3921,10 @@ Error:
         <source xml:lang="en">Profile created successfully</source>
         <target state="translated">設定檔已成功建立</target>
       </trans-unit>
-      <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
-        <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
-        <target state="translated">已載入設定檔，但連線失敗。請手動連線到伺服器。</target>
+      <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
+        <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
+        <note>{0} is the server name</note>
+        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4092,7 +4098,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
         <source xml:lang="en">Refresh dataset</source>
-        <target state="new">Refresh dataset</target>
+        <target state="translated">重新整理資料集</target>
       </trans-unit>
       <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
         <source xml:lang="en">Reload Visual Studio Code</source>
@@ -4112,7 +4118,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
         <source xml:lang="en">Remove filter</source>
-        <target state="new">Remove filter</target>
+        <target state="translated">移除篩選條件</target>
       </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
@@ -4120,7 +4126,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
         <source xml:lang="en">Remove sort</source>
-        <target state="new">Remove sort</target>
+        <target state="translated">移除排序</target>
       </trans-unit>
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
@@ -4867,11 +4873,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea">
         <source xml:lang="en">Sort ascending</source>
-        <target state="new">Sort ascending</target>
+        <target state="translated">遞增排序</target>
       </trans-unit>
       <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
         <source xml:lang="en">Sort descending</source>
-        <target state="new">Sort descending</target>
+        <target state="translated">遞減排序</target>
       </trans-unit>
       <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
         <source xml:lang="en">Source</source>
@@ -4941,7 +4947,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
         <source xml:lang="en">Starts with</source>
-        <target state="new">Starts with</target>
+        <target state="translated">始於</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -5044,7 +5050,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
         <source xml:lang="en">Synchronous resize</source>
-        <target state="new">Synchronous resize</target>
+        <target state="translated">同步調整大小</target>
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
@@ -5285,15 +5291,15 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
         <source xml:lang="en">Toggle dark mode</source>
-        <target state="new">Toggle dark mode</target>
+        <target state="translated">切換深色模式</target>
       </trans-unit>
       <trans-unit id="++CODE++0205dc96a474c1b5b12fadd44fb599a3d78af60d697f6136e7e21a51d9f29579">
         <source xml:lang="en">Toggle filter row</source>
-        <target state="new">Toggle filter row</target>
+        <target state="translated">切換篩選資料列</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c86447a74a9d36167b90e7c4359908771623e1bb592636feb58962bdee02f1">
         <source xml:lang="en">Toggle pre-header row</source>
-        <target state="new">Toggle pre-header row</target>
+        <target state="translated">切換預標頭資料列</target>
       </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
@@ -5344,11 +5350,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
         <source xml:lang="en">Unfreeze columns</source>
-        <target state="new">Unfreeze columns</target>
+        <target state="translated">取消凍結資料行</target>
       </trans-unit>
       <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
         <source xml:lang="en">Unfreeze columns/rows</source>
-        <target state="new">Unfreeze columns/rows</target>
+        <target state="translated">取消凍結資料行/資料列</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -5370,7 +5376,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
         <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
         <note>{0} is the authentication type</note>
-        <target state="new">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</target>
+        <target state="translated">連接字串中不支援的認證類型: {0}。僅支援 SQL 登入、整合式認證及 Azure 多重驗證。</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
@@ -5647,15 +5653,15 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++5f3c4f8580d392e422e7c2f6802674ac27966c98d95c39696e4b2490168e5488">
         <source xml:lang="en">items</source>
-        <target state="new">items</target>
+        <target state="translated">項目</target>
       </trans-unit>
       <trans-unit id="++CODE++adabe6ca43999091b4cfc23c5eabb9f829e4cef26a5a4d0fd95674a97b948b4f">
         <source xml:lang="en">items per page</source>
-        <target state="new">items per page</target>
+        <target state="translated">每頁的項目數</target>
       </trans-unit>
       <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
         <source xml:lang="en">items selected</source>
-        <target state="new">items selected</target>
+        <target state="translated">項目已選取</target>
       </trans-unit>
       <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
         <source xml:lang="en">location</source>
@@ -5667,7 +5673,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
         <source xml:lang="en">of</source>
-        <target state="new">of</target>
+        <target state="translated">/</target>
       </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
@@ -5699,7 +5705,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
         <source xml:lang="en">x of y selected</source>
-        <target state="new">x of y selected</target>
+        <target state="translated">已選取 x/y 項</target>
       </trans-unit>
       <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
         <source xml:lang="en">{0} (Current Account)</source>
@@ -6521,10 +6527,6 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.intelliSense.enableSuggestions">
         <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
         <target state="translated">是否啟用 IntelliSense 建議</target>
-      </trans-unit>
-      <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
-        <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
-        <target state="translated">是否將 IntelliSense 建議設定為小寫</target>
       </trans-unit>
       <trans-unit id="mssql.piiLogging">
         <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
