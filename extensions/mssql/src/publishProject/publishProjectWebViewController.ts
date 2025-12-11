@@ -972,10 +972,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Ensure accountId is present for Azure MFA connections before connecting
             if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
-                await Utils.ensureAccountIdForAzureMfa(
-                    connectionInfo,
-                    this._connectionManager.findMatchingProfile.bind(this._connectionManager),
-                );
+                await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
             }
 
             await this._connectionManager.connect(fileUri, connectionInfo, {

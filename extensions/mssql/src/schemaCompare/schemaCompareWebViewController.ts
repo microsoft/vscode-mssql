@@ -2590,10 +2590,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 // Ensure accountId is present for Azure MFA connections before connecting
                 if (connInfo.authenticationType === azureMfa && !connInfo.accountId) {
-                    await utils.ensureAccountIdForAzureMfa(
-                        connInfo,
-                        this.connectionMgr.findMatchingProfile.bind(this.connectionMgr),
-                    );
+                    await this.connectionMgr.ensureAccountIdForAzureMfa(connInfo);
                 }
 
                 try {

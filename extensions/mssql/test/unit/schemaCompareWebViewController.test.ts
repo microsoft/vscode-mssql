@@ -25,7 +25,6 @@ import {
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";
-import * as Utils from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
@@ -848,13 +847,13 @@ suite("SchemaCompareWebViewController Tests", () => {
         connectionManagerStub.getUriForScmpConnection.returns(undefined); // No existing connection
         connectionManagerStub.connect.resolves(true);
 
-        // Stub the ensureAccountIdForAzureMfa helper function
-        const ensureAccountIdStub = sandbox
-            .stub(Utils, "ensureAccountIdForAzureMfa")
-            .callsFake(async (connInfo) => {
-                // Simulate what the real helper does - populate accountId from saved profile
-                connInfo.accountId = "test-account-id-12345";
-            });
+        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
+        const ensureAccountIdStub =
+            connectionManagerStub.ensureAccountIdForAzureMfa as sinon.SinonStub;
+        ensureAccountIdStub.callsFake(async (connInfo) => {
+            // Simulate what the real method does - populate accountId from saved profile
+            connInfo.accountId = "test-account-id-12345";
+        });
 
         const payload = {};
 

@@ -22,7 +22,6 @@ import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
 import { generateUUID } from "../e2e/baseFixtures";
-import * as Utils from "../../src/models/utils";
 import { ConnectionDetails } from "vscode-mssql";
 
 chai.use(sinonChai);
@@ -58,6 +57,7 @@ suite("PublishProjectWebViewController Tests", () => {
             parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
             connect: sandbox.stub().resolves(true),
             findMatchingProfile: sandbox.stub().resolves({}),
+            ensureAccountIdForAzureMfa: sandbox.stub().resolves(),
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
@@ -512,13 +512,13 @@ suite("PublishProjectWebViewController Tests", () => {
             mockConnectionDetails as ConnectionDetails,
         );
 
-        // Stub the ensureAccountIdForAzureMfa helper function
-        const ensureAccountIdStub = sandbox
-            .stub(Utils, "ensureAccountIdForAzureMfa")
-            .callsFake(async (connInfo) => {
-                // Simulate what the real helper does - populate accountId from saved profile
-                connInfo.accountId = "test-account-id-67890";
-            });
+        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
+        const ensureAccountIdStub =
+            mockConnectionManager.ensureAccountIdForAzureMfa as sinon.SinonStub;
+        ensureAccountIdStub.callsFake(async (connInfo) => {
+            // Simulate what the real method does - populate accountId from saved profile
+            connInfo.accountId = "test-account-id-67890";
+        });
 
         // Configure connect stub to succeed
         (mockConnectionManager.connect as sinon.SinonStub).resolves(true);
