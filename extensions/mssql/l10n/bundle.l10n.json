@@ -2089,6 +2089,7 @@
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
+    "Row deleted.": "Row deleted.",
     "{0} (Preview)/{0} is the table name": {
         "message": "{0} (Preview)",
         "comment": ["{0} is the table name"]
