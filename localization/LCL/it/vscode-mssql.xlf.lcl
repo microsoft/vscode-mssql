@@ -148,6 +148,9 @@
       <Item ItemId=";bundle.++CODE++0205dc96a474c1b5b12fadd44fb599a3d78af60d697f6136e7e21a51d9f29579" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle filter row]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Attiva/disattiva riga filtro]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -316,6 +319,9 @@
       <Item ItemId=";bundle.++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[items selected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[elementi selezionati]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -472,6 +478,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[for more information.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Restore Panel Size]]></Val>
@@ -601,6 +613,9 @@
       <Item ItemId=";bundle.++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Page]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pagina]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -715,6 +730,15 @@
       <Item ItemId=";bundle.++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unfreeze columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sblocca colonne]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[the documentation ]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -865,6 +889,9 @@
       <Item ItemId=";bundle.++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tipo di autenticazione non supportato nella stringa di connessione: {0}. Sono supportati solo account di accesso SQL e di autenticazione integrata o a più fattori di Azure.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1573,6 +1600,9 @@
       <Item ItemId=";bundle.++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unfreeze columns/rows]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sblocca colonne/righe]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1849,6 +1879,9 @@
       <Item ItemId=";bundle.++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove filter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rimuovi filtro]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1891,6 +1924,9 @@
       <Item ItemId=";bundle.++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Synchronous resize]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ridimensionamento sincrono]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2005,6 +2041,9 @@
       <Item ItemId=";bundle.++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[of]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[di]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2077,6 +2116,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Non è stato possibile elaborare il messaggio. Se il problema persiste, controllare i log e aprire un ticket su GitHub.]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading Schema Designer]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2236,6 +2281,9 @@
       <Item ItemId=";bundle.++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all grouping]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cancella tutti i raggruppamenti]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3655,6 +3703,9 @@
       <Item ItemId=";bundle.++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No matches found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessuna corrispondenza trovata]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3690,15 +3741,6 @@
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Per usare questo comando, aprire un file con estensione sql oppure impostare il linguaggio dell'editor su "SQL" o selezionare il testo T-SQL nell'editor SQL attivo.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[for more details]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[per altri dettagli]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3952,6 +3994,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Elenca connessioni]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++500066c85e5ad619476a8235df0b22c1d1cb23a1104f6d78c0353a03f797a18d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[To continue, run SQL Server on a machine with a supported processor. Check ]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4498,6 +4546,9 @@
       <Item ItemId=";bundle.++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Column resize by content]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ridimensiona colonna in base al contenuto]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4585,6 +4636,9 @@
       <Item ItemId=";bundle.++CODE++5f3c4f8580d392e422e7c2f6802674ac27966c98d95c39696e4b2490168e5488" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[items]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[elementi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4834,6 +4888,9 @@
       <Item ItemId=";bundle.++CODE++647da5cac1ce93e913f21be22e9dcb571b96b96a9d7aa7eaa2bac2f2d0ccd5b8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Force fit columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Imponi adattamento colonne]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4858,6 +4915,9 @@
       <Item ItemId=";bundle.++CODE++64b1f96ecb4f24b2df07eb570a31246b394e2b09d4d19d942ed0f815c1c5c6be" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all sorting]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cancella tutti gli ordinamenti]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5028,15 +5088,6 @@
           <Val><![CDATA[{0} column data]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Dati della colonna {0}]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[See]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vedere]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5287,6 +5338,9 @@
       <Item ItemId=";bundle.++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export to tab delimited]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esporta in una file con valori delimitati da tabulazioni]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5545,6 +5599,9 @@
       <Item ItemId=";bundle.++CODE++73194761249a0ab480df4f1fa38f32ed5b3adcd3a41c304c9aae9cd4e8661a05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export to CSV]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esporta in CSV]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6187,6 +6244,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Toggle Sort]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
@@ -6280,6 +6343,9 @@
       <Item ItemId=";bundle.++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Refresh dataset]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aggiorna set di dati]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6288,15 +6354,6 @@
           <Val><![CDATA[Run Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Esegui query]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[L'immagine del contenitore SQL Server 2025 RTM non è compatibile con i sistemi basati su ARM (inclusi Windows ARM e Apple Silicon).]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6451,6 +6508,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sì]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No tenants are currently signed in.]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6637,6 +6700,9 @@
       <Item ItemId=";bundle.++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sort descending]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ordinamento decrescente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6742,6 +6808,9 @@
       <Item ItemId=";bundle.++CODE++8b4b9f7cd9a3ba50b51932300eb1556cac2635bca03b77058950aa0345d66bbf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export to Excel]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esporta in Excel]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6955,6 +7024,9 @@
       <Item ItemId=";bundle.++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter shortcuts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tasti di scelta rapida filtro]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7195,6 +7267,9 @@
       <Item ItemId=";bundle.++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Group by]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Raggruppa per]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7381,6 +7456,9 @@
       <Item ItemId=";bundle.++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No elements found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non sono stati trovati elementi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7663,6 +7741,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading Table Designer]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a1519957e8b397de6037c8e8a9a1af37009bf6d89fa0f388b1e4b3dc76179e64" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Result Set Batch {0} - Query {1}]]></Val>
@@ -7810,6 +7894,9 @@
       <Item ItemId=";bundle.++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[x of y selected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[x di y selezionati]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8164,15 +8251,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[La creazione di contenitori non è supportata sul sistema. Il supporto ARM sarà disponibile a partire dall'immagine del contenitore SQL Server 2025 CU1.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No results to display]]></Val>
@@ -8284,6 +8362,9 @@
       <Item ItemId=";bundle.++CODE++adabe6ca43999091b4cfc23c5eabb9f829e4cef26a5a4d0fd95674a97b948b4f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[items per page]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Elementi per pagina]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8344,6 +8425,9 @@
       <Item ItemId=";bundle.++CODE++afcbbda58db9bb6a697a0d5558541c82d1f956426fcad621e37feb68d3b35fbb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Export to text format]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Esporta in formato testo]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8467,6 +8551,9 @@
       <Item ItemId=";bundle.++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All selected]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tutti selezionati]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8860,6 +8947,9 @@
       <Item ItemId=";bundle.++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Freeze columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Blocca colonne]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8911,6 +9001,9 @@
       <Item ItemId=";bundle.++CODE++bbeecf3d3d08d6b405f2fce7ea90dd90c7d438d7a926329a86bffb5c8de96c55" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse all groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Comprimi tutti i gruppi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9292,6 +9385,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign into tenant]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a connection group]]></Val>
@@ -9439,6 +9538,9 @@
       <Item ItemId=";bundle.++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide column]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nascondi colonna]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9526,6 +9628,9 @@
       <Item ItemId=";bundle.++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not contains]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non contiene]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9568,6 +9673,9 @@
       <Item ItemId=";bundle.++CODE++c8c86447a74a9d36167b90e7c4359908771623e1bb592636feb58962bdee02f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle pre-header row]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Attiva/disattiva riga pre-intestazione]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10042,6 +10150,9 @@
       <Item ItemId=";bundle.++CODE++d2fc073e6098215896ebf6c1a31f09b47f966e3c1280eec921d00fb2fbdea336" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Expand all groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Espandi tutti i gruppi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10120,6 +10231,9 @@
       <Item ItemId=";bundle.++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Remove sort]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rimuovi ordinamento]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10621,6 +10735,9 @@
       <Item ItemId=";bundle.++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all filters]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cancella tutti i filtri]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11320,6 +11437,9 @@
       <Item ItemId=";bundle.++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sort ascending]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ordinamento crescente]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11728,15 +11848,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Error loading designer]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Errore durante il caricamento della finestra di progettazione]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Simple Container Management]]></Val>
@@ -11908,6 +12019,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fa9d43d3408d2b926cc81a65d48ab465911dbeecf89755eb0bb46c4a4ad61e04" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fab99ae162d8056598a1ab43c81a2a5a296873c0868800c4f092697d8470720a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enable Experiences & Reload]]></Val>
@@ -12049,6 +12166,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ è obbligatorio.]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} of {1} tenants]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12226,6 +12349,9 @@
       <Item ItemId=";bundle.++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle dark mode]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Attiva/disattiva modalità scura]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
