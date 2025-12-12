@@ -69,7 +69,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
 
                 if (hasWebviewViewState && !hasPanel) {
-                    this.state = this.getQueryResultState(uri);
+                    const state = this.getQueryResultState(uri);
+                    if (state) {
+                        this.state = state;
+                    } else {
+                        this.showSplashScreen();
+                    }
                 } else if (hasPanel) {
                     const editorViewColumn = editor?.viewColumn;
                     const panelViewColumn =
@@ -255,15 +260,21 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             return;
         }
 
+        const state = this.getQueryResultState(uri);
+        if (!state) {
+            // Avoid sending undefined state to a webview.
+            return;
+        }
+
         const controller = new QueryResultWebviewPanelController(
             this._context,
             this.vscodeWrapper,
             viewColumn,
             uri,
-            this._queryResultStateMap.get(uri).title,
+            state.title,
             this,
         );
-        controller.state = this.getQueryResultState(uri);
+        controller.state = state;
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
@@ -354,9 +365,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public updatePanelState(uri: string): void {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
-            this._queryResultWebviewPanelControllerMap
-                .get(uri)
-                .updateState(this.getQueryResultState(uri));
+            const state = this.getQueryResultState(uri);
+            if (!state) {
+                return;
+            }
+            this._queryResultWebviewPanelControllerMap.get(uri).updateState(state);
         }
     }
 
@@ -376,7 +389,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 const activeDocumentUri =
                     this.vscodeWrapper.activeTextEditor?.document?.uri?.toString(true);
                 if (activeDocumentUri === uri && this.isVisible()) {
-                    this.state = this.getQueryResultState(uri);
+                    const state = this.getQueryResultState(uri);
+                    if (state) {
+                        this.state = state;
+                    } else {
+                        this.showSplashScreen();
+                    }
                 }
                 // Otherwise just keep the state in the map for when the user switches back
             } else {
@@ -457,6 +475,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
+    }
+
+    public override set state(state: qr.QueryResultWebviewState) {
+        if (this.isOpenQueryResultsInTabByDefaultEnabled) {
+            return;
+        }
+        super.state = state;
     }
 
     public updateSelectionSummary() {

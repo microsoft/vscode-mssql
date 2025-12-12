@@ -92,12 +92,13 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
     const [EOL, setEOL] = useState<string>(getEOL());
 
     const stateRef = useRef<State | undefined>(undefined);
+    const emptyStateRef = useRef({} as State);
     const listenersRef = useRef(new Set<() => void>());
     const [isInitialized, setIsInitialized] = useState(false);
 
     const getSnapshot = useCallback(() => {
         // Return a safe default while not initialized to prevent useSyncExternalStore from erroring
-        return stateRef.current ?? ({} as State);
+        return stateRef.current ?? emptyStateRef.current;
     }, []);
 
     const subscribe = useCallback((listener: () => void) => {
