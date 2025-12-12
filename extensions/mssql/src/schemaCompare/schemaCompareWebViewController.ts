@@ -1001,6 +1001,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("resetEndpointsSwitched", async (state) => {
+            state.endpointsSwitched = false;
+            this.updateState(state);
+            return state;
+        });
+
         this.registerReducer("compare", async (state, payload) => {
             return await this.schemaCompare(payload, state);
         });
