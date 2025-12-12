@@ -397,22 +397,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         }
     }
 
-    public getQueryResultState(uri: string): qr.QueryResultWebviewState {
-        var res = this._queryResultStateMap.get(uri);
-        if (!res) {
-            // This should never happen
-
-            const error = new Error(`No query result state found for uri ${uri}`);
-            sendErrorEvent(
-                TelemetryViews.QueryResult,
-                TelemetryActions.GetQueryResultState,
-                new Error(`No query result state found for uri`),
-                false, // includeErrorMessage
-            );
-
-            throw error;
-        }
-        return res;
+    public getQueryResultState(uri: string): qr.QueryResultWebviewState | undefined {
+        return this._queryResultStateMap.get(uri);
     }
 
     public getSqlOutputContentProvider(): SqlOutputContentProvider {

@@ -423,6 +423,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                if (!resultWebviewState) {
+                    return;
+                }
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
@@ -437,6 +440,9 @@ export class SqlOutputContentProvider {
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    if (!resultWebviewState) {
+                        return;
+                    }
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -455,6 +461,9 @@ export class SqlOutputContentProvider {
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    if (!resultWebviewState) {
+                        return;
+                    }
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -469,6 +478,9 @@ export class SqlOutputContentProvider {
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    if (!resultWebviewState) {
+                        return;
+                    }
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -504,6 +516,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                if (!resultWebviewState) {
+                    return;
+                }
                 resultWebviewState.messages.push(message);
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
@@ -512,6 +527,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                if (!resultWebviewState) {
+                    return;
+                }
 
                 resultWebviewState.messages.push(message);
 
@@ -532,6 +550,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                if (!resultWebviewState) {
+                    return;
+                }
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
@@ -564,6 +585,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     e.uri,
                 );
+                if (!resultWebviewState) {
+                    return;
+                }
 
                 const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
                 existingGraphs.push(...planGraphs.graphs);
@@ -663,6 +687,9 @@ export class SqlOutputContentProvider {
         const timer = setTimeout(() => {
             try {
                 const state = this._queryResultWebviewController.getQueryResultState(uri);
+                if (!state) {
+                    return;
+                }
                 this.updateWebviewState(uri, state);
             } finally {
                 this._stateUpdateTimers.delete(uri);
