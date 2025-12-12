@@ -55,7 +55,7 @@ export function filterStack(stack: string): string {
     for (const line of stack.split("\n")) {
         if (frames.length >= 20) break;
 
-        const match = line.match(/at (\S+)/);
+        const match = line.match(/at ((?:async )?\S+)/);
         if (!match) continue;
 
         const name = match[1];

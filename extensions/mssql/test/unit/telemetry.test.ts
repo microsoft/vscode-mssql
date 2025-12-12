@@ -90,4 +90,15 @@ suite("Telemetry Tests", () => {
         const filtered = Telemetry.filterStack(stack);
         expect(filtered).to.equal("Object.update < UserCode.run");
     });
+
+    test("filterStack should handle async functions correctly", () => {
+        const stack = `Error: 
+    at ConnectionManager.connect (/path/to/file.ts:10:10)
+    at async ObjectExplorerService.createSessionAndExpandNode (/path/to/file.ts:20:20)`;
+
+        const filtered = Telemetry.filterStack(stack);
+        expect(filtered).to.equal(
+            "ConnectionManager.connect < async ObjectExplorerService.createSessionAndExpandNode",
+        );
+    });
 });
