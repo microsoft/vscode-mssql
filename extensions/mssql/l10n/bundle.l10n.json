@@ -159,7 +159,7 @@
     "Generate Script": "Generate Script",
     "Publish": "Publish",
     "Preview Database Updates": "Preview Database Updates",
-    "Error loading designer": "Error loading designer",
+    "Error loading Table Designer": "Error loading Table Designer",
     "Severity": "Severity",
     "Script as Create": "Script as Create",
     "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
@@ -283,6 +283,15 @@
     "Search settings...": "Search settings...",
     "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
     "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+    "{0} of {1} tenants/{0} is the number of tenants with active sessions{1} is the total number of tenants": {
+        "message": "{0} of {1} tenants",
+        "comment": [
+            "{0} is the number of tenants with active sessions",
+            "{1} is the total number of tenants"
+        ]
+    },
+    "Sign into tenant": "Sign into tenant",
+    "No tenants are currently signed in.": "No tenants are currently signed in.",
     "Loading workspaces...": "Loading workspaces...",
     "Loading databases in '{0}'.../{0} is the name of the workspace": {
         "message": "Loading databases in '{0}'...",
@@ -376,6 +385,7 @@
     "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
+    "Toggle Sort": "Toggle Sort",
     "Clear Sort": "Clear Sort",
     "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
         "message": "Save as CSV ({0})",
@@ -602,6 +612,7 @@
         "comment": ["{0} is the max length"]
     },
     "Loading Schema Designer": "Loading Schema Designer",
+    "Error loading Schema Designer": "Error loading Schema Designer",
     "Generating report, this might take a while...": "Generating report, this might take a while...",
     "{0} warnings/{0} is the number of warnings": {
         "message": "{0} warnings",
@@ -753,10 +764,10 @@
     "Hide full error message": "Hide full error message",
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
-    "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).": "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
-    "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.": "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
-    "See": "See",
-    "for more details": "for more details",
+    "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.": "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
+    "To continue, run SQL Server on a machine with a supported processor. Check ": "To continue, run SQL Server on a machine with a supported processor. Check ",
+    "the documentation ": "the documentation ",
+    "for more information.": "for more information.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading fabric provisioning...": "Loading fabric provisioning...",
     "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
@@ -1699,7 +1710,10 @@
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
-    "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
+    "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
+        "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+        "comment": ["{0} is the server name"]
+    },
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1713,6 +1727,10 @@
     "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
         "message": "Schema Compare failed: '{0}'",
         "comment": ["{0} is the error message returned from the compare operation"]
+    },
+    "Connection failed: {0}/{0} is the error message from the connection attempt": {
+        "message": "Connection failed: {0}",
+        "comment": ["{0} is the error message from the connection attempt"]
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",

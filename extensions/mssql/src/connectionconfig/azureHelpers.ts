@@ -9,6 +9,8 @@ import {
     AzureSubscription,
     AzureTenant,
     getConfiguredAuthProviderId,
+    getUnauthenticatedTenants,
+    signInToTenant,
 } from "@microsoft/vscode-azext-azureauth";
 
 import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
@@ -349,6 +351,15 @@ export class VsCodeAzureHelper {
         return serverMap;
     }
 }
+
+/**
+ * Re-exported Azure auth helpers from vscode-azext-azureauth.
+ * Allows for stubbing in unit tests.
+ */
+export const VsCodeAzureAuth = {
+    getUnauthenticatedTenants: getUnauthenticatedTenants,
+    signInToTenant: signInToTenant,
+};
 
 /**
  *  * @returns true if the user selected subscriptions, false if they canceled the selection quickpick

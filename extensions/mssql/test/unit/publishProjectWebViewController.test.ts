@@ -22,6 +22,7 @@ import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
 import { generateUUID } from "../e2e/baseFixtures";
+import { ConnectionDetails } from "vscode-mssql";
 
 chai.use(sinonChai);
 
@@ -53,6 +54,10 @@ suite("PublishProjectWebViewController Tests", () => {
         mockConnectionManager = {
             listDatabases: sandbox.stub().resolves([]),
             getConnectionString: sandbox.stub().resolves(""),
+            parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
+            connect: sandbox.stub().resolves(true),
+            findMatchingProfile: sandbox.stub().resolves({}),
+            ensureAccountIdForAzureMfa: sandbox.stub().resolves(true),
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
@@ -481,6 +486,74 @@ suite("PublishProjectWebViewController Tests", () => {
             deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
             "allowIncompatiblePlatform should be false in saved deployment options",
         ).to.be.false;
+    });
+
+    test("connectAndPopulateDatabases with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Mock connection string with Azure MFA authentication but without accountId
+        const azureMfaConnectionString =
+            "Server=azure-server.database.windows.net;Database=testdb;Authentication=Active Directory Interactive;User Id=user@domain.com;";
+
+        // Mock parseConnectionString to return connection details without accountId
+        const mockConnectionDetails: Partial<ConnectionDetails> = {
+            options: {
+                server: "azure-server.database.windows.net",
+                database: "testdb",
+                authenticationType: "AzureMFA",
+                user: "user@domain.com",
+                email: "user@domain.com",
+                accountId: undefined, // Missing accountId - this is what we're testing
+            },
+        };
+
+        (mockConnectionManager.parseConnectionString as sinon.SinonStub).resolves(
+            mockConnectionDetails as ConnectionDetails,
+        );
+
+        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
+        const ensureAccountIdStub =
+            mockConnectionManager.ensureAccountIdForAzureMfa as sinon.SinonStub;
+        ensureAccountIdStub.callsFake(async (connInfo) => {
+            // Simulate what the real method does - populate accountId from saved profile
+            connInfo.accountId = "test-account-id-67890";
+            return true;
+        });
+
+        // Configure connect stub to succeed
+        (mockConnectionManager.connect as sinon.SinonStub).resolves(true);
+
+        // Configure listDatabases stub to return sample databases
+        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves([
+            "testdb",
+            "master",
+            "model",
+        ]);
+
+        // Call the private method
+        const result = await controller["connectAndPopulateDatabases"](azureMfaConnectionString);
+
+        // Verify the helper was called to populate missing accountId
+        expect(ensureAccountIdStub).to.have.been.calledOnce;
+
+        // Verify accountId was populated by checking the argument passed to connect
+        const connectStub = mockConnectionManager.connect as sinon.SinonStub;
+        const connectCallArgs = connectStub.firstCall.args;
+        const connectionInfoPassedToConnect = connectCallArgs[1];
+        expect(connectionInfoPassedToConnect.accountId).to.equal("test-account-id-67890");
+
+        // Verify connect was called (which means accountId was populated successfully)
+        expect(connectStub).to.have.been.calledOnce;
+
+        // Verify connection succeeded
+        expect(result.connectionUri).to.exist;
+        expect(result.errorMessage).to.be.undefined;
+
+        // Verify databases were populated in the component
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.lengthOf(3);
+        expect(databaseComponent.options![0].value).to.equal("testdb");
     });
     //#endregion
 

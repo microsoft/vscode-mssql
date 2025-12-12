@@ -139,7 +139,7 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            errorLoadingDesigner: l10n.t("Error loading designer"),
+            errorLoadingDesigner: l10n.t("Error loading Table Designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
             scriptAsCreate: l10n.t("Script as Create"),
@@ -325,6 +325,17 @@ export class LocConstants {
             signIntoFabricToBrowse: l10n.t(
                 "You must be signed into Fabric in order to browse SQL databases.",
             ),
+            azureTenantSignInStatus: (signedIn: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} tenants",
+                    args: [signedIn, total],
+                    comment: [
+                        "{0} is the number of tenants with active sessions",
+                        "{1} is the total number of tenants",
+                    ],
+                }),
+            signIntoTenantLink: l10n.t("Sign into tenant"),
+            noTenantsSignedIn: l10n.t("No tenants are currently signed in."),
             loadingWorkspaces: l10n.t("Loading workspaces..."),
             loadingDatabasesInWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {
@@ -480,6 +491,7 @@ export class LocConstants {
             },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
+            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
@@ -864,6 +876,8 @@ export class LocConstants {
                     comment: ["{0} is the max length"],
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            errorLoadingSchemaDesigner: l10n.t("Error loading Schema Designer"),
+            retry: l10n.t("Retry"),
             generatingReport: l10n.t("Generating report, this might take a while..."),
             nWarnings: (warningCount: number) =>
                 l10n.t({
@@ -1123,14 +1137,14 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorHeader: l10n.t(
-                "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
-            ),
             armErrorDescription: l10n.t(
-                "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
             ),
-            see: l10n.t("See"),
-            forMoreDetails: l10n.t("for more details"),
+            toContinueCheck: l10n.t(
+                "To continue, run SQL Server on a machine with a supported processor. Check ",
+            ),
+            theDocumentation: l10n.t("the documentation "),
+            forMoreInformation: l10n.t("for more information."),
         };
     }
 

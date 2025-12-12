@@ -87,6 +87,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 TelemetryActions.Initialize,
                 undefined,
                 undefined,
+                undefined,
+                true, // include callstack in telemetry
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
