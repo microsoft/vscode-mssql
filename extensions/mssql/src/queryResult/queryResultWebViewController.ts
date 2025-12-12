@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
