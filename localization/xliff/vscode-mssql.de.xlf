@@ -1160,6 +1160,11 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Connection error</source>
         <target state="translated">Verbindungsfehler</target>
       </trans-unit>
+      <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
+        <source xml:lang="en">Connection failed: {0}</source>
+        <note>{0} is the error message from the connection attempt</note>
+        <target state="new">Connection failed: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
         <target state="translated">Die Verbindung ist nicht aktiv. Stellen Sie eine Verbindung her, bevor Sie diese Aktion ausführen.</target>
@@ -1761,7 +1766,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++fc203569fa858e0ef3d2644e417247d162f933f5e91db77c913471844e2f3ced">
         <source xml:lang="en">Ends with</source>
-        <target state="new">Ends with</target>
+        <target state="translated">Endet auf</target>
       </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
@@ -1833,7 +1838,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
         <source xml:lang="en">Equal to</source>
-        <target state="new">Equal to</target>
+        <target state="translated">Gleich</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -2630,11 +2635,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++1fbcaddaa36260ff8a3c55cb7b0f95813cba07fbe56173e8a47a7099dcae75b6">
         <source xml:lang="en">Greater than</source>
-        <target state="new">Greater than</target>
+        <target state="translated">Größer als</target>
       </trans-unit>
       <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
         <source xml:lang="en">Greater than or equal to</source>
-        <target state="new">Greater than or equal to</target>
+        <target state="translated">Größer als oder gleich</target>
       </trans-unit>
       <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
         <source xml:lang="en">Grid View</source>
@@ -2909,11 +2914,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++23105bdfc3d62ed123bff7dd685f40015ddf25b49f2b9a895014acb9d8d40763">
         <source xml:lang="en">Less than</source>
-        <target state="new">Less than</target>
+        <target state="translated">Weniger als</target>
       </trans-unit>
       <trans-unit id="++CODE++ae1564a79ff31afebb08eb05fd9d31bcf9b616516c2a9deff4288695cf2c5240">
         <source xml:lang="en">Less than or equal to</source>
-        <target state="new">Less than or equal to</target>
+        <target state="translated">Kleiner als oder gleich</target>
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
@@ -3579,7 +3584,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
         <source xml:lang="en">Not equal to</source>
-        <target state="new">Not equal to</target>
+        <target state="translated">Ungleich</target>
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
@@ -3916,9 +3921,10 @@ Fehler:
         <source xml:lang="en">Profile created successfully</source>
         <target state="translated">Das Profil wurde erfolgreich erstellt.</target>
       </trans-unit>
-      <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
-        <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
-        <target state="translated">Profil wurde geladen, aber die Verbindung konnte nicht hergestellt werden. Stellen Sie die Verbindung manuell her.</target>
+      <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
+        <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
+        <note>{0} is the server name</note>
+        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4941,7 +4947,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
         <source xml:lang="en">Starts with</source>
-        <target state="new">Starts with</target>
+        <target state="translated">Beginnt mit</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -6521,10 +6527,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.intelliSense.enableSuggestions">
         <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
         <target state="translated">Gibt an, ob IntelliSense-Vorschläge aktiviert werden sollen.</target>
-      </trans-unit>
-      <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
-        <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
-        <target state="translated">Gibt an, ob IntelliSense-Vorschläge in Kleinbuchstaben angezeigt werden sollen.</target>
       </trans-unit>
       <trans-unit id="mssql.piiLogging">
         <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
