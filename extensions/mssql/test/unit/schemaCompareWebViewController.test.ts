@@ -973,10 +973,9 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        expect(
-            actualResult.endpointsSwitched,
-            "endpointsSwitched should be set to false",
-        ).to.equal(false);
+        expect(actualResult.endpointsSwitched, "endpointsSwitched should be set to false").to.equal(
+            false,
+        );
     });
 
     test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
