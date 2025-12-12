@@ -958,21 +958,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
-                    oldSourceType: getSchemaCompareEndpointTypeString(
-                        payload.newSourceEndpointInfo.endpointType,
-                    ),
-                    oldTargetType: getSchemaCompareEndpointTypeString(
-                        payload.newTargetEndpointInfo.endpointType,
-                    ),
+                    oldSourceType: payload.newSourceEndpointInfo
+                        ? getSchemaCompareEndpointTypeString(
+                              payload.newSourceEndpointInfo.endpointType,
+                          )
+                        : "None",
+                    oldTargetType: payload.newTargetEndpointInfo
+                        ? getSchemaCompareEndpointTypeString(
+                              payload.newTargetEndpointInfo.endpointType,
+                          )
+                        : "None",
                 },
             );
 
-            const sourceType = getSchemaCompareEndpointTypeString(
-                payload.newSourceEndpointInfo.endpointType,
-            );
-            const targetType = getSchemaCompareEndpointTypeString(
-                payload.newTargetEndpointInfo.endpointType,
-            );
+            const sourceType = payload.newSourceEndpointInfo
+                ? getSchemaCompareEndpointTypeString(payload.newSourceEndpointInfo.endpointType)
+                : "None";
+            const targetType = payload.newTargetEndpointInfo
+                ? getSchemaCompareEndpointTypeString(payload.newTargetEndpointInfo.endpointType)
+                : "None";
             this.logger.verbose(
                 `New source endpoint type: ${sourceType} - OperationId: ${this.operationId}`,
             );
