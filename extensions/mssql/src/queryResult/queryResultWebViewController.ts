@@ -403,11 +403,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             // This should never happen
 
             const error = new Error(`No query result state found for uri ${uri}`);
-
             sendErrorEvent(
                 TelemetryViews.QueryResult,
                 TelemetryActions.GetQueryResultState,
-                error,
+                new Error(`No query result state found for uri`),
                 false, // includeErrorMessage
             );
 
