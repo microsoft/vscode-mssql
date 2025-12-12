@@ -4247,6 +4247,10 @@ Fehler:
         <source xml:lang="en">Row created.</source>
         <target state="translated">Zeile erstellt.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
+        <source xml:lang="en">Row deleted.</source>
+        <target state="new">Row deleted.</target>
+      </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
         <target state="translated">Zeile, die zum Entfernen markiert ist.</target>
