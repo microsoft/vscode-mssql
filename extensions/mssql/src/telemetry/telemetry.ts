@@ -135,7 +135,7 @@ export function sendActionEvent(
  * @param additionalMeasurements Additional measurements to include in the telemetry event
  * @param connectionInfo connectionInfo for the error
  * @param serverInfo serverInfo for the error
- * @param includeCallStack Whether to capture and include the call stack. Defaults to false
+ * @param includeCallStack Whether to capture and include the call stack. Defaults to true
  */
 export function sendErrorEvent(
     telemetryView: TelemetryViews,
@@ -148,14 +148,14 @@ export function sendErrorEvent(
     additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
     connectionInfo?: IConnectionProfile,
     serverInfo?: vscodeMssql.IServerInfo,
-    includeCallStack: boolean = false,
+    includeCallStack: boolean = true,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
     let errorEvent = telemetryReporter
         .createErrorEvent2(
             telemetryView,
             telemetryAction,
-            error,
+            includeErrorMessage ? error : new Error("Event generated error"),
             includeErrorMessage,
             errorCode,
             errorType,
