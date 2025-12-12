@@ -501,3 +501,42 @@
     background-color: var(--vscode-list-activeSelectionBackground) !important;
     color: var(--vscode-list-activeSelectionForeground) !important;
 }
+
+/* Action icon styles for delete and undo buttons */
+.action-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.action-icon.pointer {
+    cursor: pointer;
+    color: var(--vscode-foreground);
+}
+
+.action-icon.pointer:hover {
+    color: var(--vscode-focusBorder);
+}
+
+.action-icon.disabled {
+    cursor: default;
+    color: var(--vscode-disabledForeground);
+    opacity: 0.4;
+}
+
+/* Ensure action icons in deleted rows don't get line-through */
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon {
+    text-decoration: none;
+    opacity: 1;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.disabled {
+    opacity: 0.4;
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
+    color: var(--vscode-foreground);
+}

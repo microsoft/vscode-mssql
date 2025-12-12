@@ -481,19 +481,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Check if this is a newly created row BEFORE calling the service
+            // The backend completely removes new rows (including decrementing NextRowId),
+            // so they cannot be reverted and should be removed from the UI immediately
+            const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.rowMarkedForRemoval,
-                );
-
-                // Remove from newRows tracking if it was a new row
-                state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
-
-                // Add to deletedRows tracking (keep row visible but marked as deleted)
-                if (!state.deletedRows.includes(payload.rowId)) {
-                    state.deletedRows = [...state.deletedRows, payload.rowId];
-                }
 
                 // Remove all failed cells for this row
                 if (state.failedCells) {
@@ -516,14 +510,52 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
                 }
 
-                this.showRestorePromptAfterClose = true;
+                if (isNewRow) {
+                    // For newly created rows, the backend completely removes them
+                    // Remove from newRows tracking and from resultSet immediately
+                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
-                // Update state to trigger re-render with deleted row styling
+                    if (state.resultSet) {
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.filter(
+                                (row) => row.id !== payload.rowId,
+                            ),
+                            rowCount: state.resultSet.rowCount - 1,
+                        };
+                    }
+
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowDeletedSuccessfully,
+                    );
+
+                    this.logger.info(
+                        `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
+                    );
+
+                    // Check if we still have unsaved changes
+                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                        this.showRestorePromptAfterClose = false;
+                    }
+                } else {
+                    // For existing rows, mark for deletion (keep visible but styled as deleted)
+                    if (!state.deletedRows.includes(payload.rowId)) {
+                        state.deletedRows = [...state.deletedRows, payload.rowId];
+                    }
+
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowMarkedForRemoval,
+                    );
+
+                    this.showRestorePromptAfterClose = true;
+
+                    this.logger.info(
+                        `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
+                    );
+                }
+
+                // Update state to trigger re-render
                 this.updateState();
-
-                this.logger.info(
-                    `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
-                );
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -872,29 +904,58 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
                 }
 
-                // Update the row in the result set
-                if (state.resultSet && revertRowResult.row) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
-                    );
+                // Check if this was a newly created row (row will be null after revert)
+                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
 
-                    if (rowIndex !== -1) {
+                if (revertRowResult.row) {
+                    // Update the row in the result set (for existing rows that were modified)
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, idx) => {
+                                    if (idx === rowIndex) {
+                                        return revertRowResult.row;
+                                    }
+
+                                    return row;
+                                }),
+                            };
+
+                            this.updateState();
+
+                            this.logger.info(
+                                `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
+                            );
+                        }
+                    }
+                } else if (isNewRow) {
+                    // Row was a newly created row that was reverted - remove it from the UI
+                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                    if (state.resultSet) {
                         state.resultSet = {
                             ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, idx) => {
-                                if (idx === rowIndex) {
-                                    return revertRowResult.row;
-                                }
-
-                                return row;
-                            }),
+                            subset: state.resultSet.subset.filter(
+                                (row) => row.id !== payload.rowId,
+                            ),
+                            rowCount: state.resultSet.rowCount - 1,
                         };
+                    }
 
-                        this.updateState();
+                    this.updateState();
 
-                        this.logger.info(
-                            `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
-                        );
+                    this.logger.info(
+                        `Removed newly created row ${payload.rowId} from UI after revert`,
+                    );
+
+                    // Check if we still have unsaved changes
+                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                        this.showRestorePromptAfterClose = false;
                     }
                 }
 

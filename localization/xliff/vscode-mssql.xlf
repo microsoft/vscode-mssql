@@ -3242,6 +3242,9 @@
     <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
       <source xml:lang="en">Row created.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
+      <source xml:lang="en">Row deleted.</source>
+    </trans-unit>
     <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
       <source xml:lang="en">Row marked for removal.</source>
     </trans-unit>

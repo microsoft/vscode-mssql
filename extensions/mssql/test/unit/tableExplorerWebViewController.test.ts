@@ -392,7 +392,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.deletedRows).to.have.length(1);
         });
 
-        test("should remove row from newRows array if it's a new row", async () => {
+        test("should completely remove newly created row from UI when deleted", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             const newRow = createMockRow(100, ["3", "New", "Row"]);
@@ -410,12 +410,19 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             // New row should be removed from newRows tracking array
             expect(controller.state.newRows).to.have.length(0);
-            // Row should still be in resultSet (just marked for deletion)
-            expect(controller.state.resultSet?.rowCount).to.equal(3);
-            expect(controller.state.resultSet?.subset).to.have.length(3);
-            // Row should be tracked in deletedRows array
-            expect(controller.state.deletedRows).to.include(100);
-            expect(controller.state.deletedRows).to.have.length(1);
+            // Row should be completely removed from resultSet (not just marked for deletion)
+            // because the backend completely removes newly created rows
+            expect(controller.state.resultSet?.rowCount).to.equal(2);
+            expect(controller.state.resultSet?.subset).to.have.length(2);
+            // Row should NOT be tracked in deletedRows (it's gone, not pending deletion)
+            expect(controller.state.deletedRows).to.not.include(100);
+            expect(controller.state.deletedRows).to.have.length(0);
+            // Should show "Row deleted" message instead of "Row marked for removal"
+            expect(
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.rowDeletedSuccessfully,
+                ),
+            ).to.be.true;
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -656,6 +663,40 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert row");
+        });
+
+        test("should remove newly created row from UI when revert returns null", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(2, ["3", "New", "User"]);
+            newRow.state = EditRowState.dirtyInsert;
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(3),
+                subset: [
+                    createMockRow(0, ["1", "John", "Doe"]),
+                    createMockRow(1, ["2", "Jane", "Smith"]),
+                    newRow,
+                ],
+                rowCount: 3,
+            };
+
+            // When reverting a newly created row, the server returns null
+            const revertedRow: EditRevertRowResult = {
+                row: undefined as any,
+            };
+            mockTableExplorerService.revertRow.resolves(revertedRow);
+
+            // Act
+            await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 2 });
+
+            // Assert
+            expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 2)).to.be
+                .true;
+            expect(controller.state.newRows.length).to.equal(0);
+            expect(controller.state.resultSet?.subset.length).to.equal(2);
+            expect(controller.state.resultSet?.rowCount).to.equal(2);
+            expect(controller.state.resultSet?.subset.find((r) => r.id === 2)).to.be.undefined;
         });
     });
 
