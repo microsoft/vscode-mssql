@@ -1407,9 +1407,13 @@ export class PublishProject {
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
-    public static ProfileLoadedConnectionFailed = l10n.t(
-        "Profile loaded but connection failed. Please connect to the server manually.",
-    );
+    public static ProfileLoadedConnectionFailed = (serverName: string) =>
+        l10n.t({
+            message:
+                "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
 }
 
 export class SchemaCompare {
@@ -1496,6 +1500,12 @@ export class SchemaCompare {
             message: "Cannot include {0}. Excluded dependents exist",
             args: [diffEntryName],
             comment: ["{0} is the name of the entry"],
+        });
+    public static connectionFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Connection failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message from the connection attempt"],
         });
 }
 
