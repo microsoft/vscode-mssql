@@ -564,7 +564,7 @@ export default class QueryRunner {
             Constants.extensionConfigSectionName,
             this.uri,
         );
-        let showBatchMessages: boolean = extConfig.get(Constants.configShowBatchMessages) ?? true;
+        let showBatchMessages: boolean = extConfig.get(Constants.configShowBatchMessages);
 
         // Only show success messages if the configuration allows it
         let shouldShowMessage = message.isError || showBatchMessages;
