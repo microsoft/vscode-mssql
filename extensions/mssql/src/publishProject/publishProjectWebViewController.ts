@@ -20,7 +20,9 @@ import {
     PublishFormContainerFields,
     PublishDialogState,
     PublishTarget,
+    GenerateSqlPackageCommandRequest,
 } from "../sharedInterfaces/publishDialog";
+import { SqlPackageService } from "../languageservice/sqlPackageService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
@@ -59,6 +61,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
+    private readonly _sqlPackageService?: SqlPackageService;
     private readonly _connectionManager: ConnectionManager;
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
@@ -72,6 +75,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         mainController: MainController,
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
+        sqlPackageService?: SqlPackageService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
@@ -123,6 +127,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
+        this._sqlPackageService = sqlPackageService;
         this._connectionManager = connectionManager;
         this._projectController = new ProjectController();
         this._mainController = mainController;
@@ -952,6 +957,39 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
             },
         );
+
+        // Request handler to generate sqlpackage command string
+        this.onRequest(GenerateSqlPackageCommandRequest.type, async () => {
+            const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
+
+            // Build arguments object matching CommandLineArguments structure expected by backend
+            const commandLineArguments: { [key: string]: string } = {
+                SourceFile: dacpacPath,
+            };
+
+            // Pass connection string if available, otherwise the backend will use server/database name from deployment options
+            if (this._connectionString) {
+                commandLineArguments.TargetConnectionString = this._connectionString;
+            }
+
+            // Serialize arguments as JSON (backend deserializes with PropertyNameCaseInsensitive)
+            const serializedArguments = JSON.stringify(commandLineArguments);
+
+            // Call SQL Tools Service to generate the command
+            // Backend will handle all formatting, quoting, and command construction
+            const result = await this._sqlPackageService!.generateSqlPackageCommand({
+                action: mssql.CommandLineToolAction.Publish,
+                arguments: serializedArguments,
+                deploymentOptions: this.state.deploymentOptions,
+                variables: this.state.formState.sqlCmdVariables,
+            });
+
+            if (!result.success) {
+                throw new Error(result.errorMessage || "Failed to generate SqlPackage command");
+            }
+
+            return result.command || "";
+        });
     }
 
     /**

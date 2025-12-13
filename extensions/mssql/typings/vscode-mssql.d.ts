@@ -1235,6 +1235,52 @@ declare module "vscode-mssql" {
     }
 
     /**
+     * Action SqlPackage is being run for - matches CommandLineToolAction enum in SqlPackage
+     */
+    export enum CommandLineToolAction {
+        /** Extract a dacpac */
+        Extract = "Extract",
+        /** Generate a deploy report */
+        DeployReport = "DeployReport",
+        /** Generate a drift report */
+        DriftReport = "DriftReport",
+        /** Publish a dacpac */
+        Publish = "Publish",
+        /** Script the steps for a publish action */
+        Script = "Script",
+        /** Export a bacpac */
+        Export = "Export",
+        /** Import a bacpac */
+        Import = "Import",
+    }
+
+    /**
+     * Parameters for generating a SqlPackage command - matches GenerateSqlPackageCommandParams in SqlTools Service
+     */
+    export interface GenerateSqlPackageCommandParams {
+        /** Action to perform: Publish, Extract, Script, Export, or Import */
+        action: CommandLineToolAction;
+        /** Serialized command-line arguments string containing source/target paths, connection strings, etc. */
+        arguments: string;
+        /** Deployment options (for Publish, Script, DeployReport operations) */
+        deploymentOptions?: DeploymentOptions;
+        /** SQLCMD variables (for Publish, Script, DeployReport operations) */
+        variables?: { [key: string]: string };
+    }
+
+    /**
+     * Result from SqlPackage command generation - matches SqlPackageCommandResult in SqlTools Service
+     */
+    export interface SqlPackageCommandResult {
+        /** Generated command string */
+        command: string | null;
+        /** Whether the operation was successful */
+        success: boolean;
+        /** Error message if the operation failed */
+        errorMessage: string;
+    }
+
+    /**
      * ResultStatus from d.ts
      */
     export interface ResultStatus {

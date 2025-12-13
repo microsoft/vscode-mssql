@@ -34,6 +34,7 @@ import { AzureAccountService } from "../services/azureAccountService";
 import { AzureResourceService } from "../services/azureResourceService";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { SqlPackageService } from "../languageservice/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
@@ -126,6 +127,7 @@ export default class MainController implements vscode.Disposable {
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
+    public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
@@ -575,6 +577,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
@@ -2651,6 +2654,7 @@ export default class MainController implements vscode.Disposable {
             this,
             this.sqlProjectsService,
             this.dacFxService,
+            this.sqlPackageService,
             deploymentOptions.defaultDeploymentOptions,
         );
 

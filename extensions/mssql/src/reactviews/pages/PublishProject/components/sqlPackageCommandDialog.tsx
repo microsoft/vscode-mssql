@@ -13,8 +13,6 @@ import {
     DialogTitle,
     Textarea,
 } from "@fluentui/react-components";
-import { Copy24Regular } from "@fluentui/react-icons";
-import React, { useCallback } from "react";
 import { LocConstants } from "../../../common/locConstants";
 
 interface SqlPackageCommandDialogProps {
@@ -30,14 +28,6 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
 }) => {
     const loc = LocConstants.getInstance().publishProject;
     const commonLoc = LocConstants.getInstance().common;
-
-    const handleCopy = useCallback(async () => {
-        try {
-            await navigator.clipboard.writeText(sqlPackageCommand);
-        } catch (error) {
-            console.error("Failed to copy sqlpackage command: ", error);
-        }
-    }, [sqlPackageCommand]);
 
     return (
         <Dialog open={isOpen}>

@@ -35,26 +35,15 @@ export const SqlPackageCommandSection: React.FC = () => {
     const [isSqlPackageDialogOpen, setIsSqlPackageDialogOpen] = useState(false);
     const [sqlPackageCommand, setSqlPackageCommand] = useState("");
 
-    const handleGenerateSqlPackageCommand = useCallback(() => {
+    const handleGenerateSqlPackageCommand = useCallback(async () => {
         if (!publishCtx || !formState) return;
 
-        // TODO: Get the actual sqlpackage command from the backend
-        // For now, we'll create a command based on current form state
-        const variableArgs = Object.entries(sqlCmdVariables || {})
-            .map(([name, value]) => `/v:${name}="${value}"`)
-            .join(" ");
-
-        const serverArg = formState.serverName ? `/TargetServerName:"${formState.serverName}"` : "";
-        const databaseArg = formState.databaseName
-            ? `/TargetDatabaseName:"${formState.databaseName}"`
-            : "";
-
-        const command =
-            `sqlpackage /Action:Publish /SourceFile:"<path-to-dacpac>" ${serverArg} ${databaseArg} ${variableArgs}`.trim();
+        // Call the backend service to generate the actual sqlpackage command
+        const command = await publishCtx.generateSqlPackageCommand();
 
         setSqlPackageCommand(command);
         setIsSqlPackageDialogOpen(true);
-    }, [publishCtx, formState, sqlCmdVariables]);
+    }, [publishCtx, formState]);
 
     if (!publishCtx) {
         return undefined;
