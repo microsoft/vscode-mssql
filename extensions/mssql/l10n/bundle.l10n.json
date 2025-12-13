@@ -892,6 +892,7 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "Export to JSON": "Export to JSON",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
     "Starts with": "Starts with",
@@ -2155,6 +2156,14 @@
         "comment": ["{0} is the table name"]
     },
     "Discard": "Discard",
+    "Results exported successfully to {0}/{0} is the file path": {
+        "message": "Results exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to export results: {0}/{0} is the error message": {
+        "message": "Failed to export results: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Read docs": "Read docs",
