@@ -43,6 +43,7 @@ import {
     getTenants,
     promptForAzureSubscriptionFilter,
     VsCodeAzureHelper,
+    VsCodeAzureAuth,
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
@@ -494,16 +495,46 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("loadFromConnectionString", async (state, payload) => {
-            sendActionEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.LoadFromConnectionString,
-            );
+            // Helper function to set error message in the appropriate place
+            function setConnectionStringError(errorMessage: string) {
+                if (state.dialog?.type === "loadFromConnectionString") {
+                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
+                        errorMessage;
+                } else {
+                    state.formMessage = { message: errorMessage };
+                }
+            }
 
             try {
                 const connDetails =
                     await this._mainController.connectionManager.parseConnectionString(
                         payload.connectionString,
                     );
+
+                const supportedAuthenticationTypes = [
+                    AuthenticationType.SqlLogin,
+                    AuthenticationType.Integrated,
+                    AuthenticationType.AzureMFA,
+                ];
+
+                if (
+                    !supportedAuthenticationTypes.includes(connDetails.options.authenticationType)
+                ) {
+                    setConnectionStringError(
+                        Loc.unsupportedAuthType(connDetails.options.authenticationType),
+                    );
+
+                    sendActionEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.LoadFromConnectionString,
+                        {
+                            result: "unsupportedAuthType",
+                            details: connDetails.options.authenticationType,
+                        },
+                    );
+
+                    return state;
+                }
 
                 state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
                     connDetails,
@@ -518,6 +549,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 await this.updateItemVisibility();
 
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadFromConnectionString,
+                    {
+                        result: "success",
+                    },
+                );
+
                 return state;
             } catch (error) {
                 // If there's an error parsing the connection string, show an error and keep dialog open
@@ -528,12 +567,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     getErrorMessage(error),
                 );
 
-                if (state.dialog?.type === "loadFromConnectionString") {
-                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
-                        errorMessage;
-                } else {
-                    state.formMessage = { message: errorMessage };
-                }
+                setConnectionStringError(errorMessage);
 
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
@@ -673,6 +707,34 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
+            return state;
+        });
+
+        this.registerReducer("signIntoAzureTenantForBrowse", async (state) => {
+            let auth: MssqlVSCodeAzureSubscriptionProvider;
+            try {
+                auth = await VsCodeAzureHelper.signIn();
+            } catch (error) {
+                this.logger.error("Error signing into Azure: " + getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
+
+                return state;
+            }
+
+            try {
+                await VsCodeAzureAuth.signInToTenant(auth);
+            } catch (error) {
+                this.logger.error("Error signing into Azure tenant: " + getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
+
+                return state;
+            }
+
+            await this.loadAllAzureServers(state);
             return state;
         });
 
@@ -1450,6 +1512,84 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
+    /**
+     * Refreshes the data used to generate the tenant sign-in count sumary and tooltip
+     */
+    private async refreshUnauthenticatedTenants(
+        state: ConnectionDialogWebviewState,
+        auth: MssqlVSCodeAzureSubscriptionProvider,
+    ): Promise<void> {
+        try {
+            // Capture the tenants that aren't signed in
+            const unauthenticatedTenants = await VsCodeAzureAuth.getUnauthenticatedTenants(auth);
+
+            state.unauthenticatedAzureTenants = unauthenticatedTenants.map((tenant) => ({
+                tenantId: tenant.tenantId,
+                tenantName: tenant.displayName ?? tenant.tenantId,
+                accountId: tenant.account.id,
+                accountName: tenant.account.label,
+            }));
+
+            // Capture all the tenants
+            const allTenants = await auth.getTenants();
+            const totalTenants = allTenants.length;
+            const unauthenticatedSet = new Set(
+                state.unauthenticatedAzureTenants.map(
+                    (tenant) => `${tenant.accountId}/${tenant.tenantId}`,
+                ),
+            );
+            const tenantStatusMap = new Map<
+                string,
+                {
+                    accountId: string;
+                    accountName: string;
+                    signedInTenants: string[];
+                }
+            >();
+
+            // Use those to get the authenticated tenants per account
+            for (const tenant of allTenants) {
+                const key = tenant.account.id;
+                if (!tenantStatusMap.has(key)) {
+                    tenantStatusMap.set(key, {
+                        accountId: key,
+                        accountName: tenant.account.label,
+                        signedInTenants: [],
+                    });
+                }
+
+                if (!unauthenticatedSet.has(`${key}/${tenant.tenantId}`)) {
+                    const entry = tenantStatusMap.get(key);
+                    entry?.signedInTenants.push(tenant.displayName ?? tenant.tenantId);
+                }
+            }
+
+            // Clean up info so it only includes accounts with at least one tenant signed in
+            state.azureTenantStatus = Array.from(tenantStatusMap.values()).filter(
+                (entry) => entry.signedInTenants.length > 0,
+            );
+
+            // Calculate the summary counts
+            const signedInTenants = Math.max(
+                0,
+                totalTenants - state.unauthenticatedAzureTenants.length,
+            );
+
+            state.azureTenantSignInCounts = {
+                totalTenants,
+                signedInTenants,
+            };
+        } catch (error) {
+            state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
+            this.logger.error(
+                "Error determining Azure tenants without active sessions: " +
+                    getErrorMessage(error),
+            );
+        }
+    }
+
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
@@ -1469,6 +1609,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 } as IAzureAccount;
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
             this.updateState(state);
 
             // If there are no accounts, don't proceed to load subscriptions
@@ -1489,6 +1632,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
+
+            await this.refreshUnauthenticatedTenants(state, auth);
+            this.updateState(state);
 
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
             // The specific vscode config setting it uses is hardcoded into the VS Code Azure SDK, so we need to use the same value here.
@@ -1538,6 +1684,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch (error) {
             state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
+            state.unauthenticatedAzureTenants = [];
+            state.azureTenantStatus = [];
+            state.azureTenantSignInCounts = undefined;
             this.logger.error(state.formMessage + "\n" + getErrorMessage(error));
             telemActivity?.endFailed(error, false);
             return undefined;

@@ -82,12 +82,18 @@ export const SchemaDesignerFlow = () => {
 
     useEffect(() => {
         const intialize = async () => {
-            const { nodes, edges } = await context.initializeSchemaDesigner();
-            setSchemaNodes(nodes);
-            setRelationshipEdges(edges);
+            try {
+                const { nodes, edges } = await context.initializeSchemaDesigner();
+                setSchemaNodes(nodes);
+                setRelationshipEdges(edges);
+            } catch (error) {
+                context.log?.(`Failed to initialize schema designer: ${String(error)}`);
+                setSchemaNodes([]);
+                setRelationshipEdges([]);
+            }
         };
         void intialize();
-    }, []);
+    }, [context.initializationRequestId]);
 
     /**
      * Displays an error toast notification

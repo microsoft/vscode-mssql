@@ -1097,25 +1097,31 @@ suite("Docker Utilities", () => {
             }),
         });
 
+        // 1. Non-localhost server: should return ""
+        let result = await dockerUtils.checkIfConnectionIsDockerContainer("some.remote.host");
+        assert.strictEqual(result, "", "Should return empty string for non-localhost address");
+
         // 2. Docker command fails: should return undefined
         spawnStub.returns(createFailureProcess(new Error("spawn failed")) as any);
-        let result = await dockerUtils.checkIfConnectionIsDockerContainer("dockercontainerid");
+        result = await dockerUtils.checkIfConnectionIsDockerContainer("localhost");
         assert.strictEqual(result, undefined, "Should return undefined on spawn failure");
 
         // Reset spawnStub for next test
         spawnStub.resetHistory();
         spawnStub.returns(createSuccessProcess("") as any); // simulate no containers
 
-        // 3. Docker command returns no containers: should return empty string
-        result = await dockerUtils.checkIfConnectionIsDockerContainer("dockercontainerid");
-        assert.strictEqual(result, "", "Should return empty string when no containers exist");
+        // 3. Docker command returns no containers: should return undefined
+        result = await dockerUtils.checkIfConnectionIsDockerContainer("127.0.0.1");
+        assert.strictEqual(result, undefined, "Should return undefined when no containers exist");
 
-        // 4. Containers exist and one matches the port: should return the container name
+        // 4. Containers exist and one matches the port: should return the container id
         spawnStub.resetHistory();
-        spawnStub.returns(createSuccessProcess(`dockercontainerid`) as any); // simulate container with port 1433
+        spawnStub.returns(
+            createSuccessProcess(`"HostPort": "1433", "Name": "/testContainer",\n`) as any,
+        ); // simulate container with port 1433
 
-        result = await dockerUtils.checkIfConnectionIsDockerContainer("dockercontainerid");
-        assert.ok(result, "Should return container name");
+        result = await dockerUtils.checkIfConnectionIsDockerContainer("localhost, 1433");
+        assert.strictEqual(result, "testContainer", "Should return matched container ID");
     });
 
     test("findAvailablePort: should find next available port", async () => {

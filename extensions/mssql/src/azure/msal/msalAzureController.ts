@@ -34,6 +34,8 @@ import { ICredentialStore } from "../../credentialstore/icredentialstore";
 import * as azureUtils from "../utils";
 import VscodeWrapper from "../../controllers/vscodeWrapper";
 import { Logger } from "../../models/logger";
+import { sendActionEvent } from "../../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 
 export class MsalAzureController extends AzureController {
     private _cachePluginProvider: MsalCachePluginProvider;
@@ -239,6 +241,19 @@ export class MsalAzureController extends AzureController {
         tenantId: string | undefined,
         settings: IAADResource,
     ): Promise<IToken | undefined> {
+        sendActionEvent(
+            TelemetryViews.AzureAccountManagement,
+            TelemetryActions.RefreshEntraToken,
+            {
+                authType: AzureAuthType[account?.properties?.azureAuthType] ?? "unknown",
+                cloudId: account?.key?.providerId ?? "unknown",
+            },
+            undefined,
+            undefined,
+            undefined,
+            true, // include call stack
+        );
+
         let newAccount: IAccount;
         try {
             const cloudAuth = this.getCloudAuthForAccount(account);

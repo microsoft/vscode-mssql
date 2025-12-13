@@ -88,7 +88,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 database: databaseName,
             }),
             getConnectionString: sandbox.stub().resolves(connectionString),
-            confirmEntraTokenValidity: sandbox.stub().resolves(),
+            prepareConnectionInfo: sandbox
+                .stub()
+                .callsFake((connInfo) => Promise.resolve(connInfo)),
             getConnectionInfo: sandbox.stub().returns({
                 credentials: {
                     server: "localhost",
@@ -142,7 +144,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             expect(designer).to.be.instanceOf(SchemaDesignerWebviewController);
             expect(mockMainController.connectionManager.createConnectionDetails).to.have.been
                 .calledOnce;
-            expect(mockMainController.connectionManager.confirmEntraTokenValidity).to.have.been
+            expect(mockMainController.connectionManager.prepareConnectionInfo).to.have.been
                 .calledOnce;
             expect(mockMainController.connectionManager.getConnectionString).to.have.been
                 .calledOnce;

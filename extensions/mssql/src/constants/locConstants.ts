@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static publicString = l10n.t("Public");
+    public static privateString = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");
@@ -682,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {
@@ -746,6 +749,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
@@ -1395,9 +1407,13 @@ export class PublishProject {
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
-    public static ProfileLoadedConnectionFailed = l10n.t(
-        "Profile loaded but connection failed. Please connect to the server manually.",
-    );
+    public static ProfileLoadedConnectionFailed = (serverName: string) =>
+        l10n.t({
+            message:
+                "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
 }
 
 export class SchemaCompare {
@@ -1484,6 +1500,12 @@ export class SchemaCompare {
             message: "Cannot include {0}. Excluded dependents exist",
             args: [diffEntryName],
             comment: ["{0} is the name of the entry"],
+        });
+    public static connectionFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Connection failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message from the connection attempt"],
         });
 }
 
@@ -2249,6 +2271,7 @@ export class TableExplorer {
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
+    public static rowDeletedSuccessfully = l10n.t("Row deleted.");
 
     public static title = (tableName: string) =>
         l10n.t({
