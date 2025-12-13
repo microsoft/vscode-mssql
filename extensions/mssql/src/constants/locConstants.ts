@@ -2376,6 +2376,8 @@ export class TableExplorer {
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
+    public static watchDemo = l10n.t("Watch demo");
+    public static learnMore = l10n.t("Learn more");
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");

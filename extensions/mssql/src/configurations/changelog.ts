@@ -11,46 +11,94 @@ import * as locConstants from "../constants/locConstants";
 export const changelogConfig: ChangelogWebviewState = {
     changes: [
         {
-            title: "GitHub Copilot integration (GA)",
+            title: "Edit Data (Preview)",
             description:
-                "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with {code-snippet-0} in Ask or Agent Mode.",
+                "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
             codeSnippets: ["@mssql"],
             actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-edit-data-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-edit-data-blog",
+                },
+            ],
+        },
+        {
+            title: "Fabric Browse / Provisioning (Preview)",
+            description:
+                "Browse Fabric workspaces and provision SQL databases directly from VS Code with a guided, developer-friendly flow.",
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-fabric-db-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-fabric-blog",
+                },
+            ],
+        },
+        {
+            title: "Schema Designer (GA)",
+            description:
+                "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-schema-designer-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-schema-designer",
+                },
+            ],
+        },
+        {
+            title: "Local SQL Server Container (GA)",
+            description:
+                "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-container-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-containers",
+                },
+            ],
+        },
+        {
+            title: "GitHub Copilot integration (GA)",
+            description:
+                "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-copilot-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-november2025",
+                },
                 {
                     label: locConstants.Changelog.tryIt,
                     type: "command",
                     value: constants.cmdOpenGithubChat,
                     args: [`@${constants.mssqlChatParticipantName} Hello!`],
-                },
-                {
-                    label: locConstants.Changelog.readDocs,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-copilot",
-                },
-            ],
-        },
-        {
-            title: "Edit data",
-            description:
-                "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-            actions: [
-                {
-                    label: locConstants.Changelog.readDocs,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-edit-data",
-                },
-            ],
-        },
-        {
-            title: "DACPAC/BACPAC import and export",
-            description:
-                "Deploy and extract {code-snippet-0} files or import/export {code-snippet-1} packages using an integrated, streamlined workflow in VS Code.",
-            codeSnippets: [".dacpac", ".bacpac"],
-            actions: [
-                {
-                    label: locConstants.Changelog.readDocs,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-dacpac",
                 },
             ],
         },

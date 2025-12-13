@@ -319,7 +319,7 @@ export const ChangelogPage = () => {
                         </div>
                     </div>
                 )}
-                <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
+                <Title3 as="h2">{sectionTitles.highlightsSectionTitle}</Title3>
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
                         {changes.map((change, index) => {
