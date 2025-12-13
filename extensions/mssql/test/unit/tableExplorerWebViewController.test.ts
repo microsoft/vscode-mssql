@@ -424,10 +424,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 controller.state.deletedRows,
                 "Row should NOT be tracked in deletedRows (it's gone, not pending deletion)",
             ).to.not.include(100);
-            expect(
-                controller.state.deletedRows,
-                "deletedRows should be empty",
-            ).to.have.lengthOf(0);
+            expect(controller.state.deletedRows, "deletedRows should be empty").to.have.lengthOf(0);
             expect(
                 showInformationMessageStub.calledOnceWith(
                     LocConstants.TableExplorer.rowDeletedSuccessfully,
