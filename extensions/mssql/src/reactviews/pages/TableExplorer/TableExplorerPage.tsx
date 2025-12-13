@@ -147,6 +147,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onLoadSubset={context?.loadSubset}
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
+                                            onSaveResults={context?.saveResults}
                                         />
                                     )}
                                 </div>

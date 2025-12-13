@@ -1325,6 +1325,9 @@ export class LocConstants {
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
+            copyWithHeaders: l10n.t("Copy with Headers"),
+            copyHeaders: l10n.t("Copy Headers"),
+            exportToJson: l10n.t("Export to JSON"),
         };
     }
 

@@ -1154,6 +1154,150 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
+
+        this.registerReducer("saveResults", async (state, payload) => {
+            this.logger.info(
+                `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.SaveResults,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    format: payload.format,
+                },
+            );
+
+            try {
+                const { headers, rows } = payload.data;
+                let content: string;
+                let defaultExt: string;
+                let filters: { [name: string]: string[] };
+
+                switch (payload.format) {
+                    case "csv":
+                        content = this.formatAsCsv(headers, rows);
+                        defaultExt = "csv";
+                        filters = { "CSV Files": ["csv"], "All Files": ["*"] };
+                        break;
+                    case "json":
+                        content = this.formatAsJson(headers, rows);
+                        defaultExt = "json";
+                        filters = { "JSON Files": ["json"], "All Files": ["*"] };
+                        break;
+                    case "excel":
+                        // Use tab-delimited format for Excel compatibility
+                        content = this.formatAsExcel(headers, rows);
+                        defaultExt = "xls";
+                        filters = { "Excel Files": ["xls", "xlsx"], "All Files": ["*"] };
+                        break;
+                    default:
+                        throw new Error(`Unsupported format: ${payload.format}`);
+                }
+
+                // Show save dialog
+                const uri = await vscode.window.showSaveDialog({
+                    defaultUri: vscode.Uri.file(`${state.tableName}-export.${defaultExt}`),
+                    filters: filters,
+                });
+
+                if (uri) {
+                    // Write file
+                    await vscode.workspace.fs.writeFile(uri, Buffer.from(content, "utf-8"));
+
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
+                    );
+
+                    this.logger.info(
+                        `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
+                    );
+
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                        format: payload.format,
+                        rowCount: rows.length.toString(),
+                    });
+                } else {
+                    this.logger.info("Save dialog cancelled by user");
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Error saving results: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to save results: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.exportFailed(getErrorMessage(error)),
+                );
+            }
+
+            return state;
+        });
+    }
+
+    /**
+     * Format data as CSV
+     */
+    private formatAsCsv(headers: string[], rows: string[][]): string {
+        const escapeValue = (val: string): string => {
+            if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+                return `"${val.replace(/"/g, '""')}"`;
+            }
+            return val;
+        };
+
+        const lines: string[] = [];
+        lines.push(headers.map(escapeValue).join(","));
+        rows.forEach((row) => {
+            lines.push(row.map(escapeValue).join(","));
+        });
+
+        return lines.join("\n");
+    }
+
+    /**
+     * Format data as JSON
+     */
+    private formatAsJson(headers: string[], rows: string[][]): string {
+        const data = rows.map((row) => {
+            const obj: Record<string, string | null> = {};
+            headers.forEach((header, index) => {
+                const value = row[index];
+                obj[header] = value === "" ? null : value;
+            });
+            return obj;
+        });
+
+        return JSON.stringify(data, null, 2);
+    }
+
+    /**
+     * Format data as Excel-compatible tab-delimited format
+     */
+    private formatAsExcel(headers: string[], rows: string[][]): string {
+        const lines: string[] = [];
+        lines.push(headers.join("\t"));
+        rows.forEach((row) => {
+            lines.push(row.join("\t"));
+        });
+
+        return lines.join("\n");
     }
 
     /**

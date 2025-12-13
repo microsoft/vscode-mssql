@@ -208,6 +208,7 @@ export interface TableExplorerContextProps {
     copyScriptToClipboard: () => void;
     toggleScriptPane: () => void;
     setCurrentPage: (pageNumber: number) => void;
+    saveResults: (format: "csv" | "json" | "excel", data: ExportData) => void;
 }
 
 export interface TableExplorerReducers {
@@ -223,4 +224,10 @@ export interface TableExplorerReducers {
     copyScriptToClipboard: {};
     toggleScriptPane: {};
     setCurrentPage: { pageNumber: number };
+    saveResults: { format: "csv" | "json" | "excel"; data: ExportData };
+}
+
+export interface ExportData {
+    headers: string[];
+    rows: string[][];
 }
