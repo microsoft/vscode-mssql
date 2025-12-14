@@ -43,6 +43,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
     let writeTextStub: sinon.SinonStub;
+    let showSaveDialogStub: sinon.SinonStub;
+    let writeFileStub: sinon.SinonStub;
 
     const mockConnectionProfile: IConnectionProfile = {
         server: "test-server",
@@ -91,6 +93,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
         writeTextStub = sandbox.stub();
         sandbox.stub(vscode.env, "clipboard").value({
             writeText: writeTextStub,
+        });
+        showSaveDialogStub = sandbox.stub(vscode.window, "showSaveDialog");
+        writeFileStub = sandbox.stub();
+        sandbox.stub(vscode.workspace, "fs").value({
+            writeFile: writeFileStub,
         });
 
         // Setup mock webview and panel
@@ -900,6 +907,208 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 pageNumber: 10,
             });
             expect(controller.state.currentPage).to.equal(10);
+        });
+    });
+
+    suite("saveResults reducer", () => {
+        const mockHeaders = ["id", "firstName", "lastName"];
+        const mockRows = [
+            ["1", "John", "Doe"],
+            ["2", "Jane", "Smith"],
+        ];
+
+        test("should save results as CSV format", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.csv");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "csv",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
+            expect(saveDialogOptions.filters).to.deep.equal({
+                "CSV Files": ["csv"],
+                "All Files": ["*"],
+            });
+            expect(writeFileStub.calledOnce).to.be.true;
+
+            // Verify CSV content
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            expect(writtenContent).to.include("id,firstName,lastName");
+            expect(writtenContent).to.include("1,John,Doe");
+            expect(writtenContent).to.include("2,Jane,Smith");
+
+            expect(showInformationMessageStub.calledOnce).to.be.true;
+        });
+
+        test("should save results as JSON format", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.json");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "json",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
+            expect(saveDialogOptions.filters).to.deep.equal({
+                "JSON Files": ["json"],
+                "All Files": ["*"],
+            });
+            expect(writeFileStub.calledOnce).to.be.true;
+
+            // Verify JSON content
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            const parsedJson = JSON.parse(writtenContent);
+            expect(parsedJson).to.have.length(2);
+            expect(parsedJson[0]).to.deep.equal({ id: "1", firstName: "John", lastName: "Doe" });
+            expect(parsedJson[1]).to.deep.equal({ id: "2", firstName: "Jane", lastName: "Smith" });
+
+            expect(showInformationMessageStub.calledOnce).to.be.true;
+        });
+
+        test("should save results as Excel format", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.xls");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "excel",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
+            expect(saveDialogOptions.filters).to.deep.equal({
+                "Excel Files": ["xls", "xlsx"],
+                "All Files": ["*"],
+            });
+            expect(writeFileStub.calledOnce).to.be.true;
+
+            // Verify tab-delimited content
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            expect(writtenContent).to.include("id\tfirstName\tlastName");
+            expect(writtenContent).to.include("1\tJohn\tDoe");
+            expect(writtenContent).to.include("2\tJane\tSmith");
+
+            expect(showInformationMessageStub.calledOnce).to.be.true;
+        });
+
+        test("should handle user cancelling save dialog", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            showSaveDialogStub.resolves(undefined); // User cancelled
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "csv",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            expect(writeFileStub.notCalled).to.be.true;
+            expect(showInformationMessageStub.notCalled).to.be.true;
+            expect(showErrorMessageStub.notCalled).to.be.true;
+        });
+
+        test("should show error message when save fails", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.csv");
+            showSaveDialogStub.resolves(mockUri);
+            const error = new Error("Write failed");
+            writeFileStub.rejects(error);
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "csv",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            expect(writeFileStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Write failed");
+        });
+
+        test("should escape CSV values containing commas", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.csv");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+            const headersWithComma = ["name", "address"];
+            const rowsWithComma = [["John", "123 Main St, Apt 4"]];
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "csv",
+                data: { headers: headersWithComma, rows: rowsWithComma },
+            });
+
+            // Assert
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            expect(writtenContent).to.include('"123 Main St, Apt 4"');
+        });
+
+        test("should escape CSV values containing quotes", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.csv");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+            const headers = ["name", "description"];
+            const rowsWithQuotes = [["Product", 'He said "hello"']];
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "csv",
+                data: { headers: headers, rows: rowsWithQuotes },
+            });
+
+            // Assert
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            expect(writtenContent).to.include('"He said ""hello"""');
+        });
+
+        test("should convert empty strings to null in JSON format", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.json");
+            showSaveDialogStub.resolves(mockUri);
+            writeFileStub.resolves();
+            const headers = ["name", "nickname"];
+            const rowsWithEmpty = [["John", ""]];
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "json",
+                data: { headers: headers, rows: rowsWithEmpty },
+            });
+
+            // Assert
+            const writtenContent = writeFileStub.firstCall.args[1].toString();
+            const parsedJson = JSON.parse(writtenContent);
+            expect(parsedJson[0].nickname).to.be.null;
         });
     });
 });
