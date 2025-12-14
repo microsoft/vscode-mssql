@@ -1140,19 +1140,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "export-csv",
                         title: loc.slickGrid.exportToCsv,
-                        iconCssClass: "mdi mdi-file-delimited",
+                        iconCssClass: "mdi mdi-download",
                         positionOrder: 5,
                     },
                     {
                         command: "export-excel",
                         title: loc.slickGrid.exportToExcel,
-                        iconCssClass: "mdi mdi-file-excel",
+                        iconCssClass: "mdi mdi-download",
                         positionOrder: 6,
                     },
                     {
                         command: "export-json",
                         title: loc.tableExplorer.exportToJson,
-                        iconCssClass: "mdi mdi-code-json",
+                        iconCssClass: "mdi mdi-download",
                         positionOrder: 7,
                     },
                     // Divider before edit commands
