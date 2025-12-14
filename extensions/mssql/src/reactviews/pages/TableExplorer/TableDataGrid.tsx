@@ -1125,13 +1125,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     {
                         command: "copy-with-headers",
                         title: loc.tableExplorer.copyWithHeaders,
-                        iconCssClass: "mdi mdi-table-headers-eye",
+                        iconCssClass: "mdi mdi-content-copy",
                         positionOrder: 2,
                     },
                     {
                         command: "copy-headers",
                         title: loc.tableExplorer.copyHeaders,
-                        iconCssClass: "mdi mdi-page-layout-header",
+                        iconCssClass: "mdi mdi-content-copy",
                         positionOrder: 3,
                     },
                     // Divider before export
