@@ -970,6 +970,9 @@
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
     </trans-unit>
+    <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
+      <source xml:lang="en">Copy command to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
     </trans-unit>
@@ -1680,6 +1683,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
       <source xml:lang="en">Failed to fetch user tokens.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++241834c43f110abedd551f363f4ea866f360fe552cd16f8cec31ab975738c57c">
+      <source xml:lang="en">Failed to generate SqlPackage command: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
       <source xml:lang="en">Failed to generate publish script: &apos;{0}&apos;</source>
