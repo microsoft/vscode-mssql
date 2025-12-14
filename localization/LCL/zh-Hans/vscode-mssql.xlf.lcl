@@ -1756,15 +1756,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profile loaded but connection failed. Please connect to the server manually.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[已加载配置文件，但连接失败。请手动连接到服务器。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear permissions for all extensions to access your connections]]></Val>
@@ -8497,6 +8488,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已加载配置文件，但无法自动建立连接。请创建与 {0} 的连接，然后重试。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Password (SQL Login)]]></Val>
@@ -8736,6 +8736,15 @@
           <Val><![CDATA[Remind Me Later]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[稍后提醒我]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection failed: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[连接失败: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10860,6 +10869,15 @@
           <Val><![CDATA[Copy Headers]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[复制标头]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Row deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已删除行。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13557,15 +13575,6 @@
           <Val><![CDATA[Should IntelliSense suggestions be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[是否启用 IntelliSense 建议]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.intelliSense.lowerCaseSuggestions" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Should IntelliSense suggestions be lowercase]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[是否小写显式 IntelliSense 建议]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
