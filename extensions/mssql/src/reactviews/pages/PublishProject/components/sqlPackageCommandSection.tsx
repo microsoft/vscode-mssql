@@ -35,13 +35,22 @@ export const SqlPackageCommandSection: React.FC = () => {
     const [sqlPackageCommand, setSqlPackageCommand] = useState("");
 
     const handleGenerateSqlPackageCommand = useCallback(async () => {
-        if (!publishCtx || !formState) return;
+        if (!publishCtx || !formState) {
+            console.error("Missing publishCtx or formState");
+            return;
+        }
 
-        // Call the backend service to generate the actual sqlpackage command
-        const command = await publishCtx.generateSqlPackageCommand();
+        try {
+            console.log("Calling generateSqlPackageCommand...");
+            // Call the backend service to generate the actual sqlpackage command
+            const command = await publishCtx.generateSqlPackageCommand();
+            console.log("Received command:", command);
 
-        setSqlPackageCommand(command);
-        setIsSqlPackageDialogOpen(true);
+            setSqlPackageCommand(command);
+            setIsSqlPackageDialogOpen(true);
+        } catch (error) {
+            console.error("Error generating SqlPackage command:", error);
+        }
     }, [publishCtx, formState]);
 
     if (!publishCtx) {

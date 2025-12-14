@@ -19,7 +19,7 @@ export class SqlPackageService {
      * @returns Promise resolving to the generated command result
      */
     public async generateSqlPackageCommand(
-        params: mssql.GenerateSqlPackageCommandParams,
+        params: mssql.SqlPackageCommandParams,
     ): Promise<mssql.SqlPackageCommandResult> {
         return this._client.sendRequest(
             sqlPackageContracts.GenerateSqlPackageCommandRequest.type,

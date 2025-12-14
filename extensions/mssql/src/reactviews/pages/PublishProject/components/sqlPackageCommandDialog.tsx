@@ -13,6 +13,7 @@ import {
     DialogTitle,
     Textarea,
 } from "@fluentui/react-components";
+import { Copy24Regular } from "@fluentui/react-icons";
 import { LocConstants } from "../../../common/locConstants";
 
 interface SqlPackageCommandDialogProps {
@@ -29,6 +30,10 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
     const loc = LocConstants.getInstance().publishProject;
     const commonLoc = LocConstants.getInstance().common;
 
+    const handleCopySqlPackageCommand = async () => {
+        await navigator.clipboard.writeText(sqlPackageCommand);
+    };
+
     return (
         <Dialog open={isOpen}>
             <DialogSurface>
@@ -40,6 +45,13 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
                             alignItems: "center",
                         }}>
                         <span>{loc.SqlPackageCommandTitle}</span>
+                        <Button
+                            appearance="transparent"
+                            size="small"
+                            icon={<Copy24Regular />}
+                            onClick={handleCopySqlPackageCommand}
+                            title={loc.copySqlPackageCommandToClipboard}
+                        />
                     </DialogTitle>
                     <DialogContent>
                         <div

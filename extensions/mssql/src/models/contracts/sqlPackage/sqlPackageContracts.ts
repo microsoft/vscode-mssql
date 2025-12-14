@@ -11,7 +11,7 @@ import * as mssql from "vscode-mssql";
  */
 export namespace GenerateSqlPackageCommandRequest {
     export const type = new RequestType<
-        mssql.GenerateSqlPackageCommandParams,
+        mssql.SqlPackageCommandParams,
         mssql.SqlPackageCommandResult,
         void,
         void

@@ -17,7 +17,7 @@ export class SqlPackageService {
      * Generate a SqlPackage command based on the provided parameters
      */
     public async generateSqlPackageCommand(
-        params: mssql.GenerateSqlPackageCommandParams,
+        params: mssql.SqlPackageCommandParams,
     ): Promise<mssql.SqlPackageCommandResult> {
         return this._client.sendRequest(
             sqlPackageContracts.GenerateSqlPackageCommandRequest.type,

@@ -1069,6 +1069,7 @@ export class LocConstants {
             SqlPackageCommand: l10n.t("SqlPackage Command"),
             GenerateSqlPackageCommand: l10n.t("Generate sqlpackage command"),
             SqlPackageCommandTitle: l10n.t("SqlPackage Command"),
+            copySqlPackageCommandToClipboard: l10n.t("Copy command to clipboard"),
         };
     }
 
