@@ -30,7 +30,6 @@ export const SqlPackageCommandSection: React.FC = () => {
     const loc = LocConstants.getInstance().publishProject;
     const publishCtx = useContext(PublishProjectContext);
     const formState = usePublishDialogSelector((s) => s.formState);
-    const sqlCmdVariables = usePublishDialogSelector((s) => s.formState.sqlCmdVariables);
 
     const [isSqlPackageDialogOpen, setIsSqlPackageDialogOpen] = useState(false);
     const [sqlPackageCommand, setSqlPackageCommand] = useState("");

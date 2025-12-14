@@ -1238,19 +1238,12 @@ declare module "vscode-mssql" {
      * Action SqlPackage is being run for - matches CommandLineToolAction enum in SqlPackage
      */
     export enum CommandLineToolAction {
-        /** Extract a dacpac */
         Extract = "Extract",
-        /** Generate a deploy report */
         DeployReport = "DeployReport",
-        /** Generate a drift report */
         DriftReport = "DriftReport",
-        /** Publish a dacpac */
         Publish = "Publish",
-        /** Script the steps for a publish action */
         Script = "Script",
-        /** Export a bacpac */
         Export = "Export",
-        /** Import a bacpac */
         Import = "Import",
     }
 
@@ -1258,13 +1251,9 @@ declare module "vscode-mssql" {
      * Parameters for generating a SqlPackage command - matches GenerateSqlPackageCommandParams in SqlTools Service
      */
     export interface GenerateSqlPackageCommandParams {
-        /** Action to perform: Publish, Extract, Script, Export, or Import */
         action: CommandLineToolAction;
-        /** Serialized command-line arguments string containing source/target paths, connection strings, etc. */
         arguments: string;
-        /** Deployment options (for Publish, Script, DeployReport operations) */
         deploymentOptions?: DeploymentOptions;
-        /** SQLCMD variables (for Publish, Script, DeployReport operations) */
         variables?: { [key: string]: string };
     }
 

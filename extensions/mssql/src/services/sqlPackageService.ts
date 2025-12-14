@@ -5,6 +5,7 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as sqlPackageContracts from "../models/contracts/sqlPackage/sqlPackageContracts";
+import * as mssql from "vscode-mssql";
 
 /**
  * Service for interacting with SqlPackage functionality in SQL Tools Service
@@ -18,8 +19,8 @@ export class SqlPackageService {
      * @returns Promise resolving to the generated command result
      */
     public async generateSqlPackageCommand(
-        params: sqlPackageContracts.GenerateSqlPackageCommandParams,
-    ): Promise<sqlPackageContracts.SqlPackageCommandResult> {
+        params: mssql.GenerateSqlPackageCommandParams,
+    ): Promise<mssql.SqlPackageCommandResult> {
         return this._client.sendRequest(
             sqlPackageContracts.GenerateSqlPackageCommandRequest.type,
             params,
