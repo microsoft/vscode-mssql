@@ -2,7 +2,7 @@
 	"name": "sql-database-projects-vscode",
   "displayName": "SQL Database Projects",
   "description": "Enables users to develop and publish database schemas for MSSQL Databases",
-  "version": "1.5.7",
+  "version": "1.5.6",
 	"publisher": "ms-mssql",
   "preview": false,
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/sql-database-projects/README.md",
