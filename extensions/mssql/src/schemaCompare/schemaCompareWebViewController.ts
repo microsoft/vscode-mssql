@@ -2338,7 +2338,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     const endpointInfo = {
                         endpointType: SchemaCompareEndpointType.Database,
                         serverDisplayName: `${connectionProfile.server} (${user})`,
-
                         serverName: connectionProfile.server,
                         databaseName: databaseName,
                         ownerUri: connectionUri,
