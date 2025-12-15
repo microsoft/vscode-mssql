@@ -1391,7 +1391,7 @@ export class LocConstants {
 
     public get changelog() {
         return {
-            whatsNewSectionTitle: l10n.t("What's new in this release"),
+            highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(
