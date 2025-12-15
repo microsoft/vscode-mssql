@@ -983,7 +983,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         test("should save results as Excel format", async () => {
             // Arrange
             controller.state.tableName = "TestTable";
-            const mockUri = vscode.Uri.file("/path/to/export.xls");
+            const mockUri = vscode.Uri.file("/path/to/export.xlsx");
             showSaveDialogStub.resolves(mockUri);
             writeFileStub.resolves();
 
@@ -997,16 +997,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(showSaveDialogStub.calledOnce).to.be.true;
             const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
             expect(saveDialogOptions.filters).to.deep.equal({
-                "Excel Files": ["xls", "xlsx"],
+                "Excel Files": ["xlsx"],
                 "All Files": ["*"],
             });
             expect(writeFileStub.calledOnce).to.be.true;
 
-            // Verify tab-delimited content
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            expect(writtenContent).to.include("id\tfirstName\tlastName");
-            expect(writtenContent).to.include("1\tJohn\tDoe");
-            expect(writtenContent).to.include("2\tJane\tSmith");
+            // Verify that Excel file was written (should be binary data)
+            const writtenContent = writeFileStub.firstCall.args[1];
+            expect(writtenContent).to.be.instanceof(Uint8Array);
+            expect(writtenContent.length).to.be.greaterThan(0);
 
             expect(showInformationMessageStub.calledOnce).to.be.true;
         });
