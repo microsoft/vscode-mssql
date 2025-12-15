@@ -102,6 +102,7 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
+import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1639,6 +1640,20 @@ export default class MainController implements vscode.Disposable {
                             focus: true,
                             expand: true,
                         });
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdBackupDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const reactPanel = new BackupDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            node,
+                        );
+                        reactPanel.revealToForeground();
                     },
                 ),
             );

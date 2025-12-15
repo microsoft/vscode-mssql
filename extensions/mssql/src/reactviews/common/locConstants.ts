@@ -1408,6 +1408,12 @@ export class LocConstants {
             close: l10n.t("Close"),
         };
     }
+
+    public get backupDatabase() {
+        return {
+            loadingBackupDatabase: l10n.t("Loading backup database..."),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
