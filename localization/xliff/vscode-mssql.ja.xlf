@@ -1163,7 +1163,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
         <note>{0} is the error message from the connection attempt</note>
-        <target state="new">Connection failed: {0}</target>
+        <target state="translated">接続に失敗しました: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
@@ -3932,7 +3932,7 @@ Error:
       <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
         <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
         <note>{0} is the server name</note>
-        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
+        <target state="translated">プロファイルは読み込まれましたが、接続を自動的に確立できませんでした。{0} への接続を作成してから、もう一度お試しください。</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4257,7 +4257,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
         <source xml:lang="en">Row deleted.</source>
-        <target state="new">Row deleted.</target>
+        <target state="translated">行が削除されました。</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
