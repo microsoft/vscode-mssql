@@ -24,6 +24,7 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { generateGuid } from "../models/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { createWorkbook, createExcelFile } from "excel-builder-vanilla";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -1174,26 +1175,25 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 const { headers, rows } = payload.data;
-                let content: string;
                 let defaultExt: string;
                 let filters: { [name: string]: string[] };
+                let fileContent: Uint8Array;
 
                 switch (payload.format) {
                     case "csv":
-                        content = this.formatAsCsv(headers, rows);
+                        fileContent = Buffer.from(this.formatAsCsv(headers, rows), "utf-8");
                         defaultExt = "csv";
                         filters = { "CSV Files": ["csv"], "All Files": ["*"] };
                         break;
                     case "json":
-                        content = this.formatAsJson(headers, rows);
+                        fileContent = Buffer.from(this.formatAsJson(headers, rows), "utf-8");
                         defaultExt = "json";
                         filters = { "JSON Files": ["json"], "All Files": ["*"] };
                         break;
                     case "excel":
-                        // Use tab-delimited format for Excel compatibility
-                        content = this.formatAsExcel(headers, rows);
-                        defaultExt = "xls";
-                        filters = { "Excel Files": ["xls", "xlsx"], "All Files": ["*"] };
+                        fileContent = await this.formatAsExcel(headers, rows);
+                        defaultExt = "xlsx";
+                        filters = { "Excel Files": ["xlsx"], "All Files": ["*"] };
                         break;
                     default:
                         throw new Error(`Unsupported format: ${payload.format}`);
@@ -1207,7 +1207,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 if (uri) {
                     // Write file
-                    await vscode.workspace.fs.writeFile(uri, Buffer.from(content, "utf-8"));
+                    await vscode.workspace.fs.writeFile(uri, fileContent);
 
                     vscode.window.showInformationMessage(
                         LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
@@ -1288,16 +1288,21 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Format data as Excel-compatible tab-delimited format
+     * Format data as Excel xlsx file using @excel-builder-vanilla
      */
-    private formatAsExcel(headers: string[], rows: string[][]): string {
-        const lines: string[] = [];
-        lines.push(headers.join("\t"));
-        rows.forEach((row) => {
-            lines.push(row.join("\t"));
-        });
+    private async formatAsExcel(headers: string[], rows: string[][]): Promise<Uint8Array> {
+        const workbook = createWorkbook();
+        const worksheet = workbook.createWorksheet({ name: "Data" });
 
-        return lines.join("\n");
+        // Combine headers and rows into a 2D array for the worksheet
+        const data: (string | null)[][] = [headers, ...rows];
+        worksheet.setData(data);
+
+        workbook.addWorksheet(worksheet);
+
+        // Generate the Excel file as Uint8Array
+        const excelFile = await createExcelFile(workbook, "Uint8Array");
+        return excelFile;
     }
 
     /**

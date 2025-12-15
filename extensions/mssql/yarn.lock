@@ -4471,6 +4471,13 @@ events@^3.0.0:
   resolved "https://registry.yarnpkg.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
   integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
 
+excel-builder-vanilla@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/excel-builder-vanilla/-/excel-builder-vanilla-4.2.1.tgz#c6c0f6ca8f7aaa0b3a660343f9359b3fe718d4dc"
+  integrity sha512-lqQ7WtIvJcVfuGi64/QOIkjEoqypr8P9YIYiR1LdRXCuPvdC8olvf3EoGeFsorkJt4Ml56qBUDthQIYz83H1Qg==
+  dependencies:
+    fflate "^0.8.2"
+
 execa@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/execa/-/execa-5.1.1.tgz#f80ad9cbf4298f7bd1d4c9555c21e93741c411dd"
