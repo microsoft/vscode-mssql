@@ -1,5 +1,37 @@
 # Change Log
 
+## Version 1.38.0
+
+-   Release date: December 16, 2025
+-   Release status: GA
+
+### What’s new in 1.38.0
+
+- Improved the experience for deleting rows in Edit Data
+- Updated the query results grid sorting and filter options
+- Fixed an issue in the results grid where copying data may throw an error on Linux
+- Updated GitHub Copilot integration to use user-friendly names when referring to connections
+- Improved handling of improperly configured proxies that may interfere with MSSQL's operation
+- Added ability to sign into multiple tenants and browse Azure SQL Managed Instances in the Connection Dialog
+- Added ability to copy a connection profile's connection string directly from Object Explorer
+- Enabled support for using the MSSQL extension in VS Code Virtual Workspaces
+- Consolidated Linux distribution support to x64 and arm64
+- Fixed issues in Edit Data where cells with invalid data could not be reverted and empty non-nullable cells would incorrectly display NULL
+- Fixed an issue where the `inMemoryDataProcessingThreshold` setting was not getting followed
+- Fixed an issue where modern UIs and the results grid may lag at initialization
+- Fixed an issue in Schema Compare and the Publish SQL Project dialog where a loaded profile doesn't connect if it uses Microsoft Entra ID authentication
+
+Thank you to @ghiscoding for contributing improvements to the Edit Data feature's use of SlickGrid React!
+
+## Version 1.37.1
+
+-   Release date: December 1, 2025
+-   Release status: GA
+
+### What’s new in 1.37.1
+
+-   Fixed an issue where the results grid may have flickering scrollbars for some users
+
 ## Version 1.37.0
 
 -   Release date: November 18, 2025
