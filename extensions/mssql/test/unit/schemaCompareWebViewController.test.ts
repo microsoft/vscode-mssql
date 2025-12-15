@@ -430,17 +430,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             extractTarget: 5,
         };
 
-        const expectedCompareResultMock: mssql.SchemaCompareResult = {
-            operationId: operationId,
-            areEqual: false,
-            differences: [],
-            success: true,
-            errorMessage: "",
-        };
-
-        // Stub the utility function to prevent actual comparison
-        const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
-
         controller = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapperStub,
@@ -466,10 +455,65 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(sourceArg2, "source should match mockSource").to.deep.equal(mockSource);
         expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
         expect(runComparisonArg2, "runComparison should be true").to.be.true;
+    });
 
-        launchStub.restore();
+    test("launch - automatically triggers schema comparison when runComparison is true", async () => {
+        const mockSource: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "sourceServer",
+            databaseName: "sourceDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
 
-        // Now call launch directly to test automatic comparison trigger
+        const expectedCompareResultMock: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: [],
+            success: true,
+            errorMessage: "",
+        };
+
+        // Stub the compare utility function to prevent actual comparison
+        const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
+
+        controller = new SchemaCompareWebViewController(
+            mockContext,
+            vscodeWrapperStub,
+            mockSource,
+            mockTarget,
+            false, // Don't auto-run on construction
+            schemaCompareService,
+            connectionManagerStub,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+
+        // Wait for constructor's async start to complete
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // Now call launch with runComparison=true to test automatic comparison
         await controller.launch(mockSource, mockTarget, true, undefined);
 
         // Verify compare was called automatically when runComparison is true
