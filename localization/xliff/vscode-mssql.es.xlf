@@ -1163,7 +1163,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
         <note>{0} is the error message from the connection attempt</note>
-        <target state="new">Connection failed: {0}</target>
+        <target state="translated">Error de conexión: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
@@ -1897,11 +1897,11 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7">
         <source xml:lang="en">Error loading Schema Designer</source>
-        <target state="new">Error loading Schema Designer</target>
+        <target state="translated">Error al cargar el Diseñador de esquemas</target>
       </trans-unit>
       <trans-unit id="++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0">
         <source xml:lang="en">Error loading Table Designer</source>
-        <target state="new">Error loading Table Designer</target>
+        <target state="translated">Error al cargar Diseñador de tablas</target>
       </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
@@ -2685,6 +2685,10 @@ Error:
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">Resaltar operación costosa</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
+        <source xml:lang="en">Highlights</source>
+        <target state="new">Highlights</target>
+      </trans-unit>
       <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
         <source xml:lang="en">Hostname</source>
         <target state="translated">Nombre de host</target>
@@ -2883,6 +2887,10 @@ Error:
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
         <target state="translated">Más información</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
+        <source xml:lang="en">Learn more</source>
+        <target state="new">Learn more</target>
       </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
@@ -3536,7 +3544,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4">
         <source xml:lang="en">No tenants are currently signed in.</source>
-        <target state="new">No tenants are currently signed in.</target>
+        <target state="translated">Actualmente no hay inquilinos con sesión iniciada.</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -3924,7 +3932,7 @@ Error:
       <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
         <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
         <note>{0} is the server name</note>
-        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
+        <target state="translated">Perfil cargado, pero la conexión no se pudo establecer automáticamente. Cree una conexión a {0} y vuelva a intentarlo.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4249,7 +4257,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
         <source xml:lang="en">Row deleted.</source>
-        <target state="new">Row deleted.</target>
+        <target state="translated">Fila eliminada.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
@@ -4342,7 +4350,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++fa9d43d3408d2b926cc81a65d48ab465911dbeecf89755eb0bb46c4a4ad61e04">
         <source xml:lang="en">SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.</source>
-        <target state="new">SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.</target>
+        <target state="translated">SQL Server no se admite en procesadores ARM, incluidos los equipos basados en silicio de Windows y Apple.</target>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
@@ -4849,7 +4857,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
         <source xml:lang="en">Sign into tenant</source>
-        <target state="new">Sign into tenant</target>
+        <target state="translated">Iniciar sesión en el inquilino</target>
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
@@ -5275,7 +5283,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++500066c85e5ad619476a8235df0b22c1d1cb23a1104f6d78c0353a03f797a18d">
         <source xml:lang="en">To continue, run SQL Server on a machine with a supported processor. Check </source>
-        <target state="new">To continue, run SQL Server on a machine with a supported processor. Check </target>
+        <target state="translated">Para continuar, ejecute SQL Server en una máquina con un procesador compatible. Comprobar </target>
       </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
@@ -5287,7 +5295,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
         <source xml:lang="en">Toggle Sort</source>
-        <target state="new">Toggle Sort</target>
+        <target state="translated">Alternar ordenación</target>
       </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
@@ -5491,6 +5499,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">advertencias detectadas. Revise los cambios.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
+        <source xml:lang="en">Watch demo</source>
+        <target state="new">Watch demo</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
         <target state="translated">Ver demostraciones en YouTube</target>
@@ -5510,10 +5522,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">¿Qué podemos hacer para mejorar?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
-        <source xml:lang="en">What's new in this release</source>
-        <target state="translated">Novedades de esta versión</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -5645,7 +5653,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792">
         <source xml:lang="en">for more information.</source>
-        <target state="new">for more information.</target>
+        <target state="translated">para obtener más información.</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -5697,7 +5705,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73">
         <source xml:lang="en">the documentation </source>
-        <target state="new">the documentation </target>
+        <target state="translated">la documentación </target>
       </trans-unit>
       <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
         <source xml:lang="en">untitled</source>
@@ -5775,7 +5783,7 @@ Consulta: {2}</target>
         <source xml:lang="en">{0} of {1} tenants</source>
         <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
-        <target state="new">{0} of {1} tenants</target>
+        <target state="translated">{0} de {1} inquilinos</target>
       </trans-unit>
       <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
         <source xml:lang="en">{0} password doesn't match the confirmation password</source>
