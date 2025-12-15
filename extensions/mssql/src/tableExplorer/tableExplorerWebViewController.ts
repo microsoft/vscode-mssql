@@ -1288,7 +1288,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Format data as Excel xlsx file using @excel-builder-vanilla
+     * Format data as Excel xlsx file using excel-builder-vanilla
      */
     private async formatAsExcel(headers: string[], rows: string[][]): Promise<Uint8Array> {
         const workbook = createWorkbook();
