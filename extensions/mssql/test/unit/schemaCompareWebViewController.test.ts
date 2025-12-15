@@ -429,6 +429,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             dataSchemaProvider: "",
             extractTarget: 5,
         };
+
+        const expectedCompareResultMock: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: [],
+            success: true,
+            errorMessage: "",
+        };
+
+        // Stub the utility function to prevent actual comparison
+        const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
+
         controller = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapperStub,
@@ -441,19 +453,29 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareWebViewTitle,
         );
 
+        // Stub launch to track its calls
         const launchStub = sinon.stub(controller, "launch").resolves();
 
         await controller.start(mockSource, mockTarget, true);
 
+        // Verify launch was called twice (once from constructor, once from explicit start)
         expect(launchStub).to.have.been.calledTwice;
 
-        // Second call: from explicit start
+        // Verify second call has correct arguments
         const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
         expect(sourceArg2, "source should match mockSource").to.deep.equal(mockSource);
         expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
         expect(runComparisonArg2, "runComparison should be true").to.be.true;
 
         launchStub.restore();
+
+        // Now call launch directly to test automatic comparison trigger
+        await controller.launch(mockSource, mockTarget, true, undefined);
+
+        // Verify compare was called automatically when runComparison is true
+        expect(compareStub).to.have.been.calledOnce;
+        expect(compareStub.firstCall.args[2].sourceEndpointInfo).to.deep.equal(mockSource);
+        expect(compareStub.firstCall.args[2].targetEndpointInfo).to.deep.equal(mockTarget);
     });
 
     // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint

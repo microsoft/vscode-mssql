@@ -274,6 +274,31 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
         this.updateState(this.state);
+
+        // Trigger automatic comparison if requested
+        if (runComparison && source && target) {
+            this.logger.info(
+                `Auto-starting schema comparison as runComparison=true - OperationId: ${this.operationId}`,
+            );
+
+            sendActionEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.CompareStartedAutomatically,
+                {
+                    operationId: this.operationId,
+                },
+            );
+
+            await this.schemaCompare(
+                {
+                    sourceEndpointInfo: source,
+                    targetEndpointInfo: target,
+                    deploymentOptions:
+                        this.state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
+                },
+                this.state,
+            );
+        }
     }
 
     private async getEndpointInfoFromConnectionProfile(
@@ -2313,6 +2338,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     const endpointInfo = {
                         endpointType: SchemaCompareEndpointType.Database,
                         serverDisplayName: `${connectionProfile.server} (${user})`,
+
                         serverName: connectionProfile.server,
                         databaseName: databaseName,
                         ownerUri: connectionUri,
