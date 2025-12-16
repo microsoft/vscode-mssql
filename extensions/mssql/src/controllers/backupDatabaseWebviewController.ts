@@ -6,15 +6,12 @@
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import {
-    BackupDatabaseReducers,
-    BackupDatabaseWebviewState,
-} from "../sharedInterfaces/backupDatabase";
+import { BackupDatabaseReducers, BackupDatabaseState } from "../sharedInterfaces/backupDatabase";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 
 export class BackupDatabaseWebviewController extends ReactWebviewPanelController<
-    BackupDatabaseWebviewState,
+    BackupDatabaseState,
     BackupDatabaseReducers
 > {
     constructor(
@@ -29,10 +26,14 @@ export class BackupDatabaseWebviewController extends ReactWebviewPanelController
             "backupDatabase",
             {
                 loadState: ApiStatus.Loading,
-                databaseNode: databaseNode,
+                databaseNode: {
+                    label: databaseNode.label.toString(),
+                    nodePath: databaseNode.nodePath,
+                    nodeStatus: databaseNode.nodeStatus,
+                },
             },
             {
-                title: `Backup Database - ${databaseNode.label}`, // Sets the webview title
+                title: `Backup Database - ${databaseNode.label.toString()}`, // Sets the webview title
                 viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -52,12 +53,13 @@ export class BackupDatabaseWebviewController extends ReactWebviewPanelController
     }
 
     private async initialize() {
-        this.updateState();
         this.registerRpcHandlers();
+        this.state.loadState = ApiStatus.Loaded;
+        this.updateState();
     }
 
     private registerRpcHandlers() {
-        this.registerReducer("getDatabase", async (state, payload) => {
+        this.registerReducer("getDatabase", async (state, _payload) => {
             return state;
         });
     }

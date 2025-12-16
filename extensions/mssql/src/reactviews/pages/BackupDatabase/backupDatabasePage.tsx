@@ -9,6 +9,7 @@ import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -40,9 +41,12 @@ export const BackupDatabasePage = () => {
     if (!context) {
         return;
     }
+
+    const state = useBackupDatabaseSelector((s) => s);
     
+
     const renderMainContent = () => {
-        switch (context.state?.loadState) {
+        switch (state?.loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -53,12 +57,16 @@ export const BackupDatabasePage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                <div className={classes.spinnerDiv}>{context.state?.databaseNode.label}</div>;
+                return (
+                    <div className={classes.spinnerDiv}>
+                        {state?.databaseNode.label}
+                    </div>
+                );
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{context.state?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{state?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }

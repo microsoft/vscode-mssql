@@ -3,13 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { ApiStatus } from "./webview";
 
-export interface BackupDatabaseWebviewState {
+export interface BackupDatabaseState {
     loadState?: ApiStatus;
     errorMessage?: string;
-    databaseNode: TreeNodeInfo;
+    databaseNode: BackupDatabaseNode;
+}
+
+export interface BackupDatabaseNode {
+    label: string;
+    nodePath: string;
+    nodeStatus: string;
 }
 
 export interface BackupDatabaseReducers {

@@ -947,6 +947,7 @@
         "comment": ["{0} is the version number of the MSSQL extension"]
     },
     "Don't show this again": "Don't show this again",
+    "Loading backup database...": "Loading backup database...",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
