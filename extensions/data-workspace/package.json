@@ -18,7 +18,7 @@
     "onCommand:projects.openExisting",
     "onCommand:projects.new"
   ],
-  "main": "./out/main",
+  "main": "./out/src/main.js",
   "l10n": "./l10n",
   "repository": {
     "type": "git",
