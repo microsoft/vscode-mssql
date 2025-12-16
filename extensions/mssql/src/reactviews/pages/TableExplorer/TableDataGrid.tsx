@@ -1124,13 +1124,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                     {
                         command: "copy-with-headers",
-                        title: loc.tableExplorer.copyWithHeaders,
+                        title: loc.slickGrid.copyWithHeaders,
                         iconCssClass: "mdi mdi-content-copy",
                         positionOrder: 2,
                     },
                     {
                         command: "copy-headers",
-                        title: loc.tableExplorer.copyHeaders,
+                        title: loc.slickGrid.copyHeaders,
                         iconCssClass: "mdi mdi-content-copy",
                         positionOrder: 3,
                     },
@@ -1151,7 +1151,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                     {
                         command: "export-json",
-                        title: loc.tableExplorer.exportToJson,
+                        title: loc.slickGrid.exportToJson,
                         iconCssClass: "mdi mdi-download",
                         positionOrder: 7,
                     },
