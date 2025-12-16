@@ -5,47 +5,42 @@
 
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import { BackupDatabaseReducers, BackupDatabaseState } from "../sharedInterfaces/backupDatabase";
+import {
+    BackupDatabaseFormItemSpec,
+    BackupDatabaseFormState,
+    BackupDatabaseReducers,
+    BackupDatabaseState,
+} from "../sharedInterfaces/backupDatabase";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { FormWebviewController } from "../forms/formWebviewController";
+import * as LocConstants from "../constants/locConstants";
 
-export class BackupDatabaseWebviewController extends ReactWebviewPanelController<
+export class BackupDatabaseWebviewController extends FormWebviewController<
+    BackupDatabaseFormState,
     BackupDatabaseState,
+    BackupDatabaseFormItemSpec,
     BackupDatabaseReducers
 > {
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        databaseNode: TreeNodeInfo,
+        private databaseNode: TreeNodeInfo,
     ) {
         super(
             context,
             vscodeWrapper,
             "backupDatabase",
             "backupDatabase",
+            new BackupDatabaseState(),
             {
-                loadState: ApiStatus.Loading,
-                databaseNode: {
-                    label: databaseNode.label.toString(),
-                    nodePath: databaseNode.nodePath,
-                    nodeStatus: databaseNode.nodeStatus,
-                },
-            },
-            {
-                title: `Backup Database - ${databaseNode.label.toString()}`, // Sets the webview title
+                title: LocConstants.BackupDatabase.backupDatabaseTitle(
+                    databaseNode.label.toString(),
+                ),
                 viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
                 iconPath: {
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "executionPlan_dark.svg",
-                    ),
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "executionPlan_light.svg",
-                    ),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
                 },
             },
         );
@@ -53,6 +48,11 @@ export class BackupDatabaseWebviewController extends ReactWebviewPanelController
     }
 
     private async initialize() {
+        this.state.databaseNode = {
+            label: this.databaseNode.label.toString(),
+            nodePath: this.databaseNode.nodePath,
+            nodeStatus: this.databaseNode.nodeStatus,
+        };
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
@@ -62,5 +62,13 @@ export class BackupDatabaseWebviewController extends ReactWebviewPanelController
         this.registerReducer("getDatabase", async (state, _payload) => {
             return state;
         });
+    }
+
+    async updateItemVisibility() {}
+
+    protected getActiveFormComponents(
+        state: BackupDatabaseState,
+    ): (keyof BackupDatabaseFormState)[] {
+        return Object.keys(state.formComponents) as (keyof BackupDatabaseFormState)[];
     }
 }

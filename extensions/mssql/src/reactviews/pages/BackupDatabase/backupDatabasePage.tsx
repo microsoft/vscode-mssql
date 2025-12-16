@@ -43,7 +43,6 @@ export const BackupDatabasePage = () => {
     }
 
     const state = useBackupDatabaseSelector((s) => s);
-    
 
     const renderMainContent = () => {
         switch (state?.loadState) {
@@ -57,11 +56,7 @@ export const BackupDatabasePage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        {state?.databaseNode.label}
-                    </div>
-                );
+                return <div className={classes.spinnerDiv}>{state?.databaseNode?.label}</div>;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

@@ -2401,3 +2401,12 @@ export class Proxy {
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
 }
+
+export class BackupDatabase {
+    public static backupDatabaseTitle = (databaseName: string) =>
+        l10n.t({
+            message: "Backup Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+}
