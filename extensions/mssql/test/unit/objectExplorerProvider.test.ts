@@ -96,7 +96,7 @@ suite("Object Explorer Provider Tests", function () {
 
         const rootGroup = {
             id: rootGroupId,
-            name: ConnectionConfig.RootGroupName,
+            name: ConnectionConfig.RootGroupId,
             parentId: undefined,
             color: undefined,
             description: undefined,
@@ -293,7 +293,7 @@ suite("Object Explorer Provider Tests", function () {
     test("Test addConnectionNode", () => {
         const rootNode = new ConnectionGroupNode({
             id: rootGroupId,
-            name: ConnectionConfig.RootGroupName,
+            name: ConnectionConfig.RootGroupId,
         });
         const connectionNode1 = new ConnectionNode(
             {

@@ -2467,7 +2467,7 @@ function createMockConnectionProfiles(
 function createMockRootConnectionGroup(): IConnectionGroup {
     return {
         id: TEST_ROOT_GROUP_ID,
-        name: ConnectionConfig.RootGroupName,
+        name: ConnectionConfig.RootGroupId,
     };
 }
 
@@ -2494,7 +2494,7 @@ function setUpOETreeRoot(
 ) {
     const rootNode = new ConnectionGroupNode({
         id: TEST_ROOT_GROUP_ID,
-        name: ConnectionConfig.RootGroupName,
+        name: ConnectionConfig.RootGroupId,
     });
 
     (objectExplorerService as any)._connectionGroupNodes = new Map<string, ConnectionGroupNode>([

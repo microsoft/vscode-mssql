@@ -127,7 +127,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
-            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
+            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupId },
         ]);
 
         azureAccountService.getAccounts.resolves([
