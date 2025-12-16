@@ -142,8 +142,8 @@ export async function readProjectProperties(
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
         // Normalize path separators for cross-platform compatibility
         const normalizedOutputPath = result.outputPath.replace(/\\/g, "/");
-        const outputPath = path.isAbsolute(result.outputPath)
-            ? result.outputPath
+        const outputPath = path.isAbsolute(normalizedOutputPath)
+            ? normalizedOutputPath
             : path.join(projectDir, normalizedOutputPath);
         const dacpacOutputPath = path.join(
             outputPath,

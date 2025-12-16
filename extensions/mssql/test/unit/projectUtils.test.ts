@@ -66,6 +66,26 @@ suite("projectUtils Tests", () => {
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
+    test("readProjectProperties normalizes Windows backslashes in absolute paths", async () => {
+        const projectPath = "/home/user/project/TestProject.sqlproj";
+        // Absolute path with Windows-style backslashes (edge case but should be handled)
+        const absoluteOutputPath = "C:\\absolute\\output\\path";
+
+        mockSqlProjectsService.getProjectProperties.resolves({
+            success: true,
+            outputPath: absoluteOutputPath,
+            databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
+        } as any);
+
+        const result = await readProjectProperties(mockSqlProjectsService, projectPath);
+
+        expect(result).to.exist;
+        expect(result?.dacpacOutputPath).to.exist;
+
+        // Even for absolute paths, backslashes should be normalized
+        expect(result?.dacpacOutputPath).to.not.include("\\");
+    });
+
     test("readProjectProperties handles relative paths with forward slashes", async () => {
         const projectPath = "/home/user/project/TestProject.sqlproj";
 
