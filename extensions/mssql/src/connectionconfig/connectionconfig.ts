@@ -415,7 +415,6 @@ export class ConnectionConfig implements IConnectionConfig {
         let madeGroupChanges = false;
         let connectionsChanged = false;
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
-        let connections: IConnectionProfile[] | undefined;
 
         let rootGroup =
             groups.find((group) => group.id === ConnectionConfig.RootGroupId) ??
@@ -427,14 +426,14 @@ export class ConnectionConfig implements IConnectionConfig {
                 id: ConnectionConfig.RootGroupId,
             };
 
-            this._logger.logDebug(`Adding missing ROOT group to connection groups`);
+            this._logger.info(`Adding missing ROOT group to connection groups`);
             madeGroupChanges = true;
             groups.push(rootGroup);
         } else if (rootGroup.id !== ConnectionConfig.RootGroupId) {
             const legacyRootId = rootGroup.id;
             rootGroup.id = ConnectionConfig.RootGroupId;
             madeGroupChanges = true;
-            this._logger.logDebug(
+            this._logger.info(
                 `Updating ROOT group ID from '${legacyRootId}' to '${ConnectionConfig.RootGroupId}'`,
             );
 
@@ -446,33 +445,33 @@ export class ConnectionConfig implements IConnectionConfig {
                 if (group.parentId === legacyRootId) {
                     group.parentId = ConnectionConfig.RootGroupId;
                     madeGroupChanges = true;
-                    this._logger.logDebug(
-                        `Updating parentId for group '${group.name}' (${group.id}) to ROOT`,
+                    this._logger.verbose(
+                        `Updating parentId for group '${group.name}' (${group.id}) to '${ConnectionConfig.RootGroupId}'`,
                     );
                 }
             }
 
-            connections = this.getConnectionsFromSettings();
+            const connections = this.getConnectionsFromSettings();
             for (const profile of connections) {
                 if (profile.groupId === legacyRootId) {
                     profile.groupId = ConnectionConfig.RootGroupId;
                     connectionsChanged = true;
-                    this._logger.logDebug(
-                        `Updating connection '${getConnectionDisplayName(profile)}' to ROOT group`,
+                    this._logger.verbose(
+                        `Updating groupId for connection '${getConnectionDisplayName(profile)}' to '${ConnectionConfig.RootGroupId}'`,
                     );
                 }
             }
-        }
 
-        if (connectionsChanged && connections) {
-            this._logger.logDebug(
-                `Updates made to connection profiles after ROOT group migration.  Writing all ${connections.length} profile(s) to settings.`,
-            );
-            await this.writeConnectionsToSettings(connections);
+            if (connectionsChanged && connections) {
+                this._logger.info(
+                    `Updates made to connection profiles after ROOT group migration.  Writing all ${connections.length} profile(s) to settings.`,
+                );
+                await this.writeConnectionsToSettings(connections);
+            }
         }
 
         if (madeGroupChanges) {
-            this._logger.logDebug(
+            this._logger.info(
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 

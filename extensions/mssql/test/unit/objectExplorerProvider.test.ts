@@ -42,8 +42,6 @@ suite("Object Explorer Provider Tests", function () {
     let testObjectExplorerService: ObjectExplorerService;
     let connectionStore: ConnectionStore;
 
-    const rootGroupId = "root-group-id";
-
     function createTreeNodeInfo(options?: {
         label?: string;
         nodePath?: string;
@@ -95,7 +93,7 @@ suite("Object Explorer Provider Tests", function () {
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
 
         const rootGroup = {
-            id: rootGroupId,
+            id: ConnectionConfig.RootGroupId,
             name: ConnectionConfig.RootGroupId,
             parentId: undefined,
             color: undefined,
@@ -108,7 +106,7 @@ suite("Object Explorer Provider Tests", function () {
         let savedConnections: IConnectionProfile[] = [];
 
         connectionStore = {
-            rootGroupId,
+            rootGroupId: ConnectionConfig.RootGroupId,
             readAllConnectionGroups: sandbox.stub().resolves([rootGroup]),
             readAllConnections: sandbox.stub().callsFake(async () => savedConnections),
             saveProfile: sandbox.stub().callsFake(async (profile: IConnectionProfile) => {
@@ -292,7 +290,7 @@ suite("Object Explorer Provider Tests", function () {
 
     test("Test addConnectionNode", () => {
         const rootNode = new ConnectionGroupNode({
-            id: rootGroupId,
+            id: ConnectionConfig.RootGroupId,
             name: ConnectionConfig.RootGroupId,
         });
         const connectionNode1 = new ConnectionNode(
