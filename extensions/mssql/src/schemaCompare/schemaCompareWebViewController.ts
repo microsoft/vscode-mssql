@@ -47,7 +47,12 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { cmdAddObjectExplorer, azureMfa } from "../constants/constants";
+import {
+    cmdAddObjectExplorer,
+    azureMfa,
+    triggerSchemaCompareAutomatic,
+    triggerSchemaCompareManual,
+} from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
@@ -281,14 +286,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Auto-starting schema comparison as runComparison=true - OperationId: ${this.operationId}`,
             );
 
-            sendActionEvent(
-                TelemetryViews.SchemaCompare,
-                TelemetryActions.CompareStartedAutomatically,
-                {
-                    operationId: this.operationId,
-                },
-            );
-
             await this.schemaCompare(
                 {
                     sourceEndpointInfo: source,
@@ -297,6 +294,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         this.state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
                 },
                 this.state,
+                triggerSchemaCompareAutomatic,
             );
         }
     }
@@ -1023,7 +1021,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("compare", async (state, payload) => {
-            return await this.schemaCompare(payload, state);
+            return await this.schemaCompare(payload, state, triggerSchemaCompareManual);
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
@@ -2414,6 +2412,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             deploymentOptions: mssql.DeploymentOptions;
         },
         state: SchemaCompareWebViewState,
+        triggerSource?: string,
     ) {
         this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
         this.logger.verbose(
@@ -2440,6 +2439,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 targetType: getSchemaCompareEndpointTypeString(
                     payload.targetEndpointInfo.endpointType,
                 ),
+                triggerSource: triggerSource,
             },
         );
 

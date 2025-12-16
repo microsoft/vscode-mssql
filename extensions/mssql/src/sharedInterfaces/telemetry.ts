@@ -54,7 +54,6 @@ export enum TelemetryActions {
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
-    CompareStartedAutomatically = "CompareStartedAutomatically",
     Switch = "Switch",
     OpenScmp = "OpenScmp",
     SaveScmp = "SaveScmp",
