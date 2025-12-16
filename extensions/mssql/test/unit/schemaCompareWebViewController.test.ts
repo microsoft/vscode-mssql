@@ -511,7 +511,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         // Wait for constructor's async start to complete
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        await controller.initializationComplete;
 
         // Now call launch with runComparison=true to test automatic comparison
         await controller.launch(mockSource, mockTarget, true, undefined);
