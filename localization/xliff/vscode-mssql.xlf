@@ -2361,6 +2361,9 @@
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
+    <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
+      <source xml:lang="en">Loading backup database...</source>
+    </trans-unit>
     <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
       <source xml:lang="en">Loading databases in &apos;{0}&apos;...</source>
       <note>{0} is the name of the workspace</note>
@@ -4508,6 +4511,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
       <source xml:lang="en">Azure MFA</source>
+    </trans-unit>
+    <trans-unit id="mssql.backupDatabase">
+      <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
