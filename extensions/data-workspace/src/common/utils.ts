@@ -40,7 +40,7 @@ export interface IPackageInfo {
 }
 
 export function getPackageInfo(packageJson: any): IPackageInfo | undefined {
-	const vscodePackageJson = require('../../package.vscode.json');
+	const vscodePackageJson = require('../../../package.vscode.json');
 	const azdataApi = getAzdataApi();
 
 	if (!packageJson || !azdataApi && !vscodePackageJson) {
