@@ -140,9 +140,11 @@ export async function readProjectProperties(
         // Calculate DACPAC output path
         const projectDir = path.dirname(projectFilePath);
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
+        // Normalize path separators for cross-platform compatibility
+        const normalizedOutputPath = result.outputPath.replace(/\\/g, "/");
         const outputPath = path.isAbsolute(result.outputPath)
             ? result.outputPath
-            : path.join(projectDir, result.outputPath);
+            : path.join(projectDir, normalizedOutputPath);
         const dacpacOutputPath = path.join(
             outputPath,
             `${projectName}${constants.DacpacExtension}`,
