@@ -1,7 +1,9 @@
-coverConfig.json
-coverage
 src
+#out
 tsconfig.json
-yarn.lock
-out
+.gitignore
+coverage
+coverConfig.json
 extension.webpack.config.js
+*.vsix
+yarn.lock

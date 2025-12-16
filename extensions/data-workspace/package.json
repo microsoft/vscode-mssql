@@ -8,10 +8,10 @@
 	"license": "SEE LICENSE IN LICENSE.txt",
   "icon": "images/extension.png",
   "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
-  "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/data-workspace/README.md",
+  "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/data-workspace/README.md",
   "engines": {
     "vscode": "^1.98.0",
-    "azdata": ">=1.25.0"
+    "azdata": ">=1.47.0"
   },
   "activationEvents": [
     "onView:dataworkspace.views.main",
