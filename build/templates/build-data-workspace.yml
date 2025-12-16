@@ -1,0 +1,62 @@
+steps:
+  - task: UseNode@1
+    displayName: "Use Node 22.x"
+    inputs:
+      version: 22.x
+
+  - pwsh: |
+      Write-Host "Installing Yarn"
+      npm install --global yarn@1.22.19
+      Write-Host "Installing VSCE"
+      npm install --global vsce@2.9.2
+    displayName: Install toolchain
+
+  - pwsh: |
+      yarn --frozen-lockfile
+    displayName: DataWorkspace - Install extension depedencies
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+
+  - pwsh: |
+      yarn run build
+    displayName: DataWorkspace - Build extension
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+
+  - pwsh: |
+      yarn lint
+    displayName: DataWorkspace - Lint code
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    continueOnError: true
+
+  - pwsh: |
+      yarn test
+    displayName: DataWorkspace - Run tests
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    displayName: DataWorkspace - Publish test results
+    inputs:
+      testResultsFormat: "JUnit"
+      testResultsFiles: "$(Build.SourcesDirectory)/extensions/data-workspace/test-reports/test-results-ext.xml"
+    condition: succeededOrFailed()
+    continueOnError: true
+
+  - task: PublishCodeCoverageResults@2
+    displayName: DataWorkspace - Publish code coverage
+    inputs:
+      summaryFileLocation: "$(Build.SourcesDirectory)/extensions/data-workspace/coverage/cobertura-coverage.xml"
+    condition: succeededOrFailed()
+    continueOnError: true
+
+  - pwsh: |
+      yarn package
+    displayName: DataWorkspace - Package extension
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
+
+  # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
+  - task: CopyFiles@2
+    displayName: DataWorkspace - Copy VSIXs to clean folder
+    inputs:
+      SourceFolder: "$(Build.SourcesDirectory)/extensions/data-workspace"
+      Contents: "*.vsix"
+      TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
