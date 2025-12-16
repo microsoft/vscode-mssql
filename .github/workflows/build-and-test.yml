@@ -86,6 +86,11 @@ jobs:
         with:
           source-dir: "./extensions/sql-database-projects"
 
+      - name: DataWorkspace - Install dependencies and build
+        uses: ./.github/actions/build-data-workspace
+        with:
+          source-dir: "./extensions/data-workspace"
+
       - name: MSSQL - Run lint
         run: |
           cd ./extensions/mssql
@@ -96,6 +101,12 @@ jobs:
         run: |
           cd ./extensions/sql-database-projects
           yarn lint src/ test/
+
+      - name: DataWorkspace - Run lint
+        continue-on-error: true
+        run: |
+          cd ./extensions/data-workspace
+          yarn lint
 
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
@@ -112,6 +123,12 @@ jobs:
           cd extensions/sql-database-projects
           vsce package
 
+      - name: DataWorkspace - Package extension
+        continue-on-error: true
+        run: |
+          cd extensions/data-workspace
+          vsce package
+
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v4
         with:
@@ -123,6 +140,12 @@ jobs:
         with:
           name: sql-database-projects-vsix
           path: ./extensions/sql-database-projects/*.vsix
+
+      - name: DataWorkspace - Upload VSIX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-workspace-vsix
+          path: ./extensions/data-workspace/*.vsix
 
       - name: Setting up change icons
         if: env.should_compare_baseline == 'true'
@@ -209,6 +232,46 @@ jobs:
             echo "sqlproj_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
           else
             echo "sqlproj_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
+      - name: Calculate data-workspace vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.data_workspace.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./extensions/data-workspace -name "*.vsix")
+          pr_size=$(stat -c%s "$pr_vsix")
+          pr_size=$((pr_size / 1024))
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline data-workspace VSIX size: $target_size KB"
+          echo "PR branch data-workspace VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "dataworkspace_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "dataworkspace_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "dataworkspace_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "dataworkspace_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "dataworkspace_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "dataworkspace_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
           fi
 
       - name: MSSQL - Run unit tests
@@ -333,6 +396,7 @@ jobs:
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
           echo "| vscode-mssql VSIX            | ${{ env.mssql_target_vsix_size }} KB | ${{ env.mssql_pr_vsix_size }} KB | ${{ env.mssql_vsix_change_icon }} ${{ env.mssql_vsix_size_diff }} KB ( ${{ env.mssql_vsix_percentage_change }}% ) |" >> results.md
           echo "| sql-database-projects VSIX   | ${{ env.sqlproj_target_vsix_size }} KB | ${{ env.sqlproj_pr_vsix_size }} KB | ${{ env.sqlproj_vsix_change_icon }} ${{ env.sqlproj_vsix_size_diff }} KB ( ${{ env.sqlproj_vsix_percentage_change }}% ) |" >> results.md
+          echo "| data-workspace VSIX          | ${{ env.dataworkspace_target_vsix_size }} KB | ${{ env.dataworkspace_pr_vsix_size }} KB | ${{ env.dataworkspace_vsix_change_icon }} ${{ env.dataworkspace_vsix_size_diff }} KB ( ${{ env.dataworkspace_vsix_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
@@ -363,6 +427,15 @@ jobs:
           UNIT_EXIT_CODE=$?
           echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
+      - name: DataWorkspace - Run unit tests
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          cd extensions/data-workspace
+          DISPLAY=:10 yarn test
+          UNIT_EXIT_CODE=$?
+          echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+
       - name: Generate xliff files
         run: |
           yarn localization
@@ -389,6 +462,16 @@ jobs:
 
           if ! git diff --quiet --exit-code ./extensions/sql-database-projects/l10n/bundle.l10n.json; then
             echo "Changes found in sql-database-projects bundle.l10n.json"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./localization/xliff/data-workspace.xlf; then
+            echo "Changes found in data-workspace.xlf"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./extensions/data-workspace/l10n/bundle.l10n.json; then
+            echo "Changes found in data-workspace bundle.l10n.json"
             CHANGES_FOUND=true
           fi
 
@@ -455,6 +538,12 @@ jobs:
             # PIPELINE_FAILED=true # Don't fail for sqlproj unit tests yet; they aren't stable
           fi
 
+          # Check DataWorkspace unit tests
+          if [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ⚠️ DataWorkspace unit tests failed with exit code ${{ env.dataworkspace_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
+            # PIPELINE_FAILED=true # Don't fail for dataworkspace unit tests yet; they aren't stable
+          fi
+
           # Check MSSQL smoke tests
           if [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "" ]; then
             echo "  ❌ MSSQL smoke tests failed with exit code ${{ env.mssql_smoke_tests_pr_exit_code }}"
@@ -470,6 +559,12 @@ jobs:
           # Check SqlProj VSIX percentage change (if variables exist)
           if [ "${{ env.sqlproj_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.sqlproj_vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
             echo "  ❌ SqlProj VSIX size increased by more than 5% (${{ env.sqlproj_vsix_percentage_change }}%)"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check DataWorkspace VSIX percentage change (if variables exist)
+          if [ "${{ env.dataworkspace_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.dataworkspace_vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ DataWorkspace VSIX size increased by more than 5% (${{ env.dataworkspace_vsix_percentage_change }}%)"
             PIPELINE_FAILED=true
           fi
 
