@@ -15,6 +15,7 @@ import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
 import { DialogMessage } from "../../common/dialogMessage";
 import { SqlCmdVariablesSection } from "./components/sqlCmdVariablesSection";
+import { SqlPackageCommandSection } from "./components/sqlPackageCommandSection";
 import { AdvancedDeploymentOptionsDrawer } from "./components/advancedDeploymentOptionsDrawer";
 
 const useStyles = makeStyles({
@@ -63,6 +64,7 @@ function PublishProjectDialog() {
                 <PublishProfileField />
                 <ConnectionSection />
                 <SqlCmdVariablesSection />
+                <SqlPackageCommandSection />
 
                 <div className={formStyles.formNavTray}>
                     <Button

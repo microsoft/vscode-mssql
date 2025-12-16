@@ -1235,6 +1235,51 @@ declare module "vscode-mssql" {
     }
 
     /**
+     * Action SqlPackage is being run for - matches CommandLineToolAction enum in SqlPackage
+     */
+    export const enum CommandLineToolAction {
+        Extract = "Extract",
+        DeployReport = "DeployReport",
+        DriftReport = "DriftReport",
+        Publish = "Publish",
+        Script = "Script",
+        Export = "Export",
+        Import = "Import",
+    }
+
+    /**
+     * Parameters for generating a SqlPackage command - matches SqlPackageCommandParams in SqlTools Service
+     */
+    export interface SqlPackageCommandParams {
+        /** Action to perform: Publish, Extract, Script, Export, or Import */
+        action: CommandLineToolAction;
+        /** Serialized command-line arguments string containing source/target paths, connection strings, etc. */
+        arguments: string;
+        /** Deployment options from VSCode (for Publish, Script operations) */
+        deploymentOptions?: DeploymentOptions;
+        /** Extract options (for Extract operation) */
+        extractOptions?: any;
+        /** Export options (for Export operation) */
+        exportOptions?: any;
+        /** Import options (for Import operation) */
+        importOptions?: any;
+        /** SQLCMD variables (for Publish, Script operations) */
+        variables?: { [key: string]: string };
+    }
+
+    /**
+     * Result from SqlPackage command generation - matches SqlPackageCommandResult in SqlTools Service
+     */
+    export interface SqlPackageCommandResult {
+        /** Generated command string */
+        command: string | null;
+        /** Whether the operation was successful */
+        success: boolean;
+        /** Error message if the operation failed */
+        errorMessage: string;
+    }
+
+    /**
      * ResultStatus from d.ts
      */
     export interface ResultStatus {

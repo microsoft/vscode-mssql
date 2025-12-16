@@ -1414,6 +1414,9 @@ export class PublishProject {
             args: [serverName],
             comment: ["{0} is the server name"],
         });
+    public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
+        return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
+    }
 }
 
 export class SchemaCompare {

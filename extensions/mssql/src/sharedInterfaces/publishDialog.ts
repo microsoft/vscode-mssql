@@ -7,6 +7,7 @@ import * as constants from "../constants/constants";
 import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
+import { RequestType } from "vscode-jsonrpc";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -139,4 +140,12 @@ export interface PublishProjectProvider {
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
+    generateSqlPackageCommand(): Promise<string>;
+}
+
+/**
+ * Request to generate a sqlpackage command string from the backend.
+ */
+export namespace GenerateSqlPackageCommandRequest {
+    export const type = new RequestType<void, string, void>("generateSqlPackageCommand");
 }

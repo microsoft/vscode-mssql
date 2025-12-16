@@ -20,7 +20,9 @@ import {
     PublishFormContainerFields,
     PublishDialogState,
     PublishTarget,
+    GenerateSqlPackageCommandRequest,
 } from "../sharedInterfaces/publishDialog";
+import { SqlPackageService } from "../languageservice/sqlPackageService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
@@ -59,6 +61,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
+    private readonly _sqlPackageService?: SqlPackageService;
     private readonly _connectionManager: ConnectionManager;
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
@@ -72,6 +75,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         mainController: MainController,
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
+        sqlPackageService?: SqlPackageService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
@@ -123,6 +127,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
+        this._sqlPackageService = sqlPackageService;
         this._connectionManager = connectionManager;
         this._projectController = new ProjectController();
         this._mainController = mainController;
@@ -807,6 +812,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 // Update connection fields after background connection completes
                                 this._connectionUri =
                                     connectionResult.connectionUri || this._connectionUri;
+                                this._connectionString =
+                                    connectionResult.connectionString || this._connectionString;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
                                         message: Loc.ProfileLoadedConnectionFailed(
@@ -952,16 +959,74 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
             },
         );
+
+        // Request handler to generate sqlpackage command string
+        this.onRequest(GenerateSqlPackageCommandRequest.type, async () => {
+            try {
+                const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
+
+                if (!dacpacPath) {
+                    throw new Error("DACPAC path not found. Please build the project first.");
+                }
+
+                // Build arguments object matching CommandLineArguments structure expected by backend
+                const commandLineArguments: { [key: string]: string } = {
+                    SourceFile: dacpacPath,
+                };
+
+                // Pass connection string if available, otherwise pass server and database name
+                if (this._connectionString) {
+                    commandLineArguments.TargetConnectionString = this._connectionString;
+                } else {
+                    // Fallback to server and database name when connection string is not yet available
+                    // (e.g., when profile is loading connection in background)
+                    if (this.state.formState.serverName) {
+                        commandLineArguments.TargetServerName = this.state.formState.serverName;
+                    }
+                    if (this.state.formState.databaseName) {
+                        commandLineArguments.TargetDatabaseName = this.state.formState.databaseName;
+                    }
+                }
+
+                // Pass publish profile path if available
+                if (this.state.formState.publishProfilePath) {
+                    commandLineArguments.Profile = this.state.formState.publishProfilePath;
+                }
+
+                // Serialize arguments as JSON (backend deserializes with PropertyNameCaseInsensitive)
+                const serializedArguments = JSON.stringify(commandLineArguments);
+
+                // Call SQL Tools Service to generate the command
+                // Backend will handle all formatting, quoting, and command construction
+                const result = await this._sqlPackageService.generateSqlPackageCommand({
+                    action: "Publish" as mssql.CommandLineToolAction,
+                    arguments: serializedArguments,
+                    deploymentOptions: this.state.deploymentOptions,
+                    variables: this.state.formState.sqlCmdVariables,
+                });
+
+                if (!result.success) {
+                    // Return error message instead of throwing, so it can be displayed in the dialog
+                    return Loc.FailedToGenerateSqlPackageCommand(result.errorMessage);
+                }
+
+                return result.command || "";
+            } catch (error) {
+                // Return error message for unexpected errors
+                return Loc.FailedToGenerateSqlPackageCommand(getErrorMessage(error));
+            }
+        });
     }
 
     /**
      * Connects to SQL Server using a connection string and populates the database dropdown.
      * This happens in the background when loading a publish profile.
      * @param connectionString The connection string from the publish profile
-     * @returns Object containing connectionUri if successful, or errorMessage if failed
+     * @returns Object containing connectionUri and connectionString if successful, or errorMessage if failed
      */
     private async connectAndPopulateDatabases(connectionString: string): Promise<{
         connectionUri?: string;
+        connectionString?: string;
         errorMessage?: string;
     }> {
         const fileUri = `mssql://publish-profile-${Utils.generateGuid()}`;
@@ -999,7 +1064,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }));
             }
 
-            return { connectionUri: fileUri };
+            // Get connection string for SqlPackage command generation and saving to publish profile
+            const retrievedConnectionString = await this._connectionManager.getConnectionString(
+                fileUri,
+                true, // includePassword
+                true, // includeApplicationName
+            );
+
+            return { connectionUri: fileUri, connectionString: retrievedConnectionString };
         } catch (error) {
             return { errorMessage: getErrorMessage(error) };
         }
