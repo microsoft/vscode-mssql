@@ -6,7 +6,7 @@
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
-import { ConfigSource, IConnectionGroup, IConnectionProfile } from "../models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
@@ -150,18 +150,15 @@ export class ConnectionConfig implements IConnectionConfig {
     public async addConnection(profile: IConnectionProfile): Promise<void> {
         this.populateMissingConnectionIds(profile);
 
-        const target = this.normalizeConfigTarget(profile.configSource);
-        profile.configSource = target;
-
         let profiles = this.getRawConnectionsFromSettings().filter(
-            (conn) => conn.configSource === target,
+            (conn) => conn.configSource === profile.configSource,
         );
 
         // Remove the profile if already set
         profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
-        return await this.writeConnectionsToSettings(profiles, target);
+        return await this.writeConnectionsToSettings(profiles, profile.configSource);
     }
 
     /**
@@ -253,8 +250,6 @@ export class ConnectionConfig implements IConnectionConfig {
         if (!group.parentId) {
             group.parentId = this.getRootGroup().id;
         }
-
-        group.configSource = this.normalizeConfigTarget(group.configSource);
 
         const groups = this.getRawGroupsFromSettings();
         groups.push(group);
@@ -622,14 +617,14 @@ export class ConnectionConfig implements IConnectionConfig {
             Constants.connectionsArrayName,
             ConfigurationTarget.Global,
         ).map((profile) => {
-            return { ...profile, configSource: ConfigurationTarget.Global as ConfigSource };
+            return { ...profile, configSource: ConfigurationTarget.Global as ConfigTarget };
         });
 
         const workspaceConnections = this.getArrayFromSettings<IConnectionProfile>(
             Constants.connectionsArrayName,
             ConfigurationTarget.Workspace,
         ).map((profile) => {
-            return { ...profile, configSource: ConfigurationTarget.Workspace as ConfigSource };
+            return { ...profile, configSource: ConfigurationTarget.Workspace as ConfigTarget };
         });
 
         return [...globalConnections, ...workspaceConnections];
@@ -648,14 +643,14 @@ export class ConnectionConfig implements IConnectionConfig {
             Constants.connectionGroupsArrayName,
             ConfigurationTarget.Global,
         ).map((group) => {
-            return { ...group, configSource: ConfigurationTarget.Global as ConfigSource };
+            return { ...group, configSource: ConfigurationTarget.Global as ConfigTarget };
         });
 
         const workspaceGroups = this.getArrayFromSettings<IConnectionGroup>(
             Constants.connectionGroupsArrayName,
             ConfigurationTarget.Workspace,
         ).map((group) => {
-            return { ...group, configSource: ConfigurationTarget.Workspace as ConfigSource };
+            return { ...group, configSource: ConfigurationTarget.Workspace as ConfigTarget };
         });
 
         return [...globalGroups, ...workspaceGroups];
@@ -688,9 +683,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         const groupedProfiles = new Map<ConfigTarget, IConnectionProfile[]>();
         const existingTargets = new Set<ConfigTarget>(
-            this.getRawConnectionsFromSettings().map((profile) =>
-                this.normalizeConfigTarget(profile.configSource),
-            ),
+            this.getRawConnectionsFromSettings().map((profile) => profile.configSource),
         );
 
         const lookup = profiles;
@@ -746,9 +739,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         const groupedGroups = new Map<ConfigTarget, IConnectionGroup[]>();
         const existingTargets = new Set<ConfigTarget>(
-            this.getRawGroupsFromSettings().map((group) =>
-                this.normalizeConfigTarget(group.configSource),
-            ),
+            this.getRawGroupsFromSettings().map((group) => group.configSource),
         );
 
         const lookup = connGroups;
@@ -791,66 +782,52 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Normalizes configuration target to supported config locations.
-     * Currently, only Global and Workspace are supported, and anything else defaults to Global.
-     */
-    private normalizeConfigTarget(source?: ConfigSource): ConfigTarget {
-        return source === ConfigurationTarget.Workspace
-            ? ConfigurationTarget.Workspace
-            : ConfigurationTarget.Global;
-    }
-
-    /**
      * Attempts to deduce which config target a connection belongs to when the caller hasn't set it.
      * This is required because we read from both user and workspace scopes.
      */
     private resolveConnectionConfigSource(
         profile: IConnectionProfile,
         profilesForLookup?: IConnectionProfile[],
-        fallback: ConfigTarget = ConfigurationTarget.Global,
     ): ConfigTarget {
-        if (this.isSupportedConfigTarget(profile.configSource)) {
+        // If it's already set, use that
+        if (profile.configSource !== undefined) {
             return profile.configSource;
         }
 
+        // If it's not set, try to look it up by ID
         const lookup = profilesForLookup ?? this.getRawConnectionsFromSettings();
         if (profile.id) {
-            const existing = lookup.find((conn) => conn.id === profile.id);
-            if (existing && this.isSupportedConfigTarget(existing.configSource)) {
-                profile.configSource = existing.configSource;
+            const existing = lookup.find((candidate) => candidate.id === profile.id);
+            if (existing) {
                 return existing.configSource;
             }
         }
 
-        profile.configSource = fallback;
-        return fallback;
+        // Otherwise, default to global
+        return ConfigurationTarget.Global;
     }
 
     /** Attempts to deduce which config target a group belongs to when the caller hasn't set it. */
     private resolveGroupConfigSource(
         group: IConnectionGroup,
         groupsForLookup?: IConnectionGroup[],
-        fallback: ConfigTarget = ConfigurationTarget.Global,
     ): ConfigTarget {
-        if (this.isSupportedConfigTarget(group.configSource)) {
+        // If it's already set, use that
+        if (group.configSource !== undefined) {
             return group.configSource;
         }
 
+        // If it's not set, try to look it up by ID
         const lookup = groupsForLookup ?? this.getRawGroupsFromSettings();
         if (group.id) {
             const existing = lookup.find((candidate) => candidate.id === group.id);
-            if (existing && this.isSupportedConfigTarget(existing.configSource)) {
-                group.configSource = existing.configSource;
+            if (existing) {
                 return existing.configSource;
             }
         }
 
-        group.configSource = fallback;
-        return fallback;
-    }
-
-    private isSupportedConfigTarget(source: ConfigSource | undefined): source is ConfigTarget {
-        return source === ConfigurationTarget.Global || source === ConfigurationTarget.Workspace;
+        // Otherwise, default to global
+        return ConfigurationTarget.Global;
     }
 
     /**
@@ -946,10 +923,9 @@ export class ConnectionConfig implements IConnectionConfig {
             // only return the global values if that's what's requested
             return configValue.globalValue || [];
         } else {
-            // otherwise, return the combination of the workspace and workspace folder values
-            return (configValue.workspaceValue || []).concat(
-                configValue.workspaceFolderValue || [],
-            );
+            // otherwise, return the the workspace values
+            // TODO: consider addition of workspace folder scope.  Workspace folder scope may have overlap/duplication with workspace scope
+            return configValue.workspaceValue || [];
         }
     }
 

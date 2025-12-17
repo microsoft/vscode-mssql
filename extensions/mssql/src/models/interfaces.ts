@@ -8,8 +8,7 @@ import { AccountStore } from "../azure/accountStore";
 import * as Constants from "../constants/constants";
 import * as vscodeMssql from "vscode-mssql";
 import { AzureAuthType } from "./contracts/azure";
-
-export type ConfigSource = vscode.ConfigurationTarget | string;
+import { ConfigTarget } from "../connectionconfig/connectionconfig";
 
 // interfaces
 export enum ContentType {
@@ -68,7 +67,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput: boolean;
     azureAuthType: AzureAuthType;
     accountStore: AccountStore;
-    configSource: ConfigSource;
+    configSource: ConfigTarget;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
 }
@@ -76,7 +75,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
 export interface IConnectionGroup {
     id: string;
     name: string;
-    configSource: ConfigSource;
+    configSource: ConfigTarget;
     parentId?: string;
     color?: string;
     description?: string;

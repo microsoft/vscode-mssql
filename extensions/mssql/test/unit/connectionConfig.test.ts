@@ -648,6 +648,21 @@ suite("ConnectionConfig Tests", () => {
 
                 expect(group).to.be.undefined;
             });
+
+            test("getGroups ignores duplicate workspace group entries", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
+                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const groups = await connConfig.getGroups();
+                const duplicateGroups = groups.filter((g) => g.id === "duplicate-id");
+
+                expect(duplicateGroups).to.have.lengthOf(1);
+            });
         });
 
         suite("Config sources", () => {
@@ -798,6 +813,37 @@ suite("ConnectionConfig Tests", () => {
                 expect(workspaceGroups).to.have.lengthOf(1);
                 expect(workspaceGroups[0]).to.not.have.property("configSource");
                 expect(workspaceGroups[0].name).to.equal("Workspace Child");
+            });
+
+            test("getConnectionsFromSettings ignores duplicate entries within a store", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "Workspace Group", id: "workspace-group", parentId: rootGroupId },
+                ]);
+
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "dup-conn",
+                        groupId: "workspace-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Workspace Conn",
+                    } as IConnectionProfile,
+                    {
+                        id: "dup-conn",
+                        groupId: "workspace-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Workspace Conn",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const workspaceConnections = connConfig.getConnectionsFromSettings(
+                    ConfigurationTarget.Workspace,
+                );
+                expect(workspaceConnections).to.have.lengthOf(1);
             });
         });
     });
