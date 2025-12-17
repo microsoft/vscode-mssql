@@ -1163,7 +1163,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
         <note>{0} is the error message from the connection attempt</note>
-        <target state="new">Connection failed: {0}</target>
+        <target state="translated">연결 실패: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
@@ -2685,6 +2685,10 @@ Error:
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">비용이 많이 드는 작업 강조 표시</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
+        <source xml:lang="en">Highlights</source>
+        <target state="translated">하이라이트</target>
+      </trans-unit>
       <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
         <source xml:lang="en">Hostname</source>
         <target state="translated">호스트 이름</target>
@@ -2882,6 +2886,10 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
+        <target state="translated">자세한 정보</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
+        <source xml:lang="en">Learn more</source>
         <target state="translated">자세한 정보</target>
       </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
@@ -3924,7 +3932,7 @@ Error:
       <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
         <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
         <note>{0} is the server name</note>
-        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
+        <target state="translated">프로필이 로드되었지만 연결을 자동으로 설정할 수 없습니다. {0} 연결을 만든 후 다시 시도하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4249,7 +4257,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
         <source xml:lang="en">Row deleted.</source>
-        <target state="new">Row deleted.</target>
+        <target state="translated">행이 삭제되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
@@ -5491,6 +5499,10 @@ Query: {2}</source>
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">경고가 검색되었습니다. 변경 내용을 검토하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
+        <source xml:lang="en">Watch demo</source>
+        <target state="translated">데모 보기</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
         <target state="translated">YouTube에서 데모 시청</target>
@@ -5510,10 +5522,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">어떤 점을 개선하면 좋을까요?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
-        <source xml:lang="en">What's new in this release</source>
-        <target state="translated">이 릴리스의 새로운 기능</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>

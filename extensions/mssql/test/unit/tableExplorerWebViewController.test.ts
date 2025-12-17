@@ -416,20 +416,28 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 100 });
 
             // Assert
-            // New row should be removed from newRows tracking array
-            expect(controller.state.newRows).to.have.length(0);
-            // Row should be completely removed from resultSet (not just marked for deletion)
-            // because the backend completely removes newly created rows
-            expect(controller.state.resultSet?.rowCount).to.equal(2);
-            expect(controller.state.resultSet?.subset).to.have.length(2);
-            // Row should NOT be tracked in deletedRows (it's gone, not pending deletion)
-            expect(controller.state.deletedRows).to.not.include(100);
-            expect(controller.state.deletedRows).to.have.length(0);
-            // Should show "Row deleted" message instead of "Row marked for removal"
+            expect(
+                controller.state.newRows,
+                "New row should be removed from newRows tracking array",
+            ).to.have.lengthOf(0);
+            expect(
+                controller.state.resultSet?.rowCount,
+                "Row should be completely removed from resultSet (not just marked for deletion) because the backend completely removes newly created rows",
+            ).to.equal(2);
+            expect(
+                controller.state.resultSet?.subset,
+                "Row should be completely removed from resultSet subset",
+            ).to.have.lengthOf(2);
+            expect(
+                controller.state.deletedRows,
+                "Row should NOT be tracked in deletedRows (it's gone, not pending deletion)",
+            ).to.not.include(100);
+            expect(controller.state.deletedRows, "deletedRows should be empty").to.have.lengthOf(0);
             expect(
                 showInformationMessageStub.calledOnceWith(
                     LocConstants.TableExplorer.rowDeletedSuccessfully,
                 ),
+                'Should show "Row deleted" message instead of "Row marked for removal"',
             ).to.be.true;
         });
 
@@ -701,8 +709,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 2)).to.be
                 .true;
-            expect(controller.state.newRows.length).to.equal(0);
-            expect(controller.state.resultSet?.subset.length).to.equal(2);
+            expect(controller.state.newRows).to.have.lengthOf(0);
+            expect(controller.state.resultSet?.subset).to.have.lengthOf(2);
             expect(controller.state.resultSet?.rowCount).to.equal(2);
             expect(controller.state.resultSet?.subset.find((r) => r.id === 2)).to.be.undefined;
         });

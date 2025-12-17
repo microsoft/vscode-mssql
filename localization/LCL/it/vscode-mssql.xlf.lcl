@@ -481,6 +481,9 @@
       <Item ItemId=";bundle.++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[for more information.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[per altre informazioni.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -739,6 +742,9 @@
       <Item ItemId=";bundle.++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[the documentation ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[la documentazione ]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1134,6 +1140,15 @@
           <Val><![CDATA[Rows per page]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Righe per pagina]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Learn more]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Altre informazioni]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1750,15 +1765,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Profile loaded but connection failed. Please connect to the server manually.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Profilo caricato, ma la connessione non riuscita. Connettersi al server manualmente.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear permissions for all extensions to access your connections]]></Val>
@@ -2122,6 +2128,9 @@
       <Item ItemId=";bundle.++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading Schema Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Errore durante il caricamento di Progettazione schemi]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4000,6 +4009,9 @@
       <Item ItemId=";bundle.++CODE++500066c85e5ad619476a8235df0b22c1d1cb23a1104f6d78c0353a03f797a18d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To continue, run SQL Server on a machine with a supported processor. Check ]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Per continuare, eseguire SQL Server su un computer con un processore supportato. Controlla ]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5371,6 +5383,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Highlights]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Highlights]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to connect to database: {0}]]></Val>
@@ -6247,6 +6268,9 @@
       <Item ItemId=";bundle.++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Toggle Sort]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Attiva/Disattiva ordinamento]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6514,6 +6538,9 @@
       <Item ItemId=";bundle.++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No tenants are currently signed in.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nessun tenant attualmente connesso.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6810,15 +6837,6 @@
           <Val><![CDATA[Export to Excel]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Esporta in Excel]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[What's new in this release]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Novità di questa versione]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7744,6 +7762,9 @@
       <Item ItemId=";bundle.++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error loading Table Designer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Errore durante il caricamento di Progettazione tabelle]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8476,6 +8497,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Profilo caricato, ma non è stato possibile stabilire automaticamente la connessione. Creare una connessione a {0} e riprovare.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Password (SQL Login)]]></Val>
@@ -8715,6 +8745,15 @@
           <Val><![CDATA[Remind Me Later]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ricordare più tardi]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection failed: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connessione non riuscita: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9388,6 +9427,9 @@
       <Item ItemId=";bundle.++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sign into tenant]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Accedere al tenant]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10390,6 +10432,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Watch demo]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Guarda la demo]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra account {0} successfully added.]]></Val>
@@ -10836,6 +10887,15 @@
           <Val><![CDATA[Copy Headers]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Copia intestazioni]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Row deleted.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[.Riga eliminata.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12022,6 +12082,9 @@
       <Item ItemId=";bundle.++CODE++fa9d43d3408d2b926cc81a65d48ab465911dbeecf89755eb0bb46c4a4ad61e04" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server non è supportato sui processori ARM, inclusi computer Windows e Apple basati su chip al silicio.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12172,6 +12235,9 @@
       <Item ItemId=";bundle.++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} of {1} tenants]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} tenant di {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13527,15 +13593,6 @@
           <Val><![CDATA[Should IntelliSense suggestions be enabled]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Consente di indicare se i suggerimenti IntelliSense devono essere abilitati]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.intelliSense.lowerCaseSuggestions" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Should IntelliSense suggestions be lowercase]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Consente di indicare se applicare la formattazione in lettere minuscole ai suggerimenti di IntelliSense]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

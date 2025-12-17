@@ -8,7 +8,7 @@ Creates baseline artifacts (VSIX packages size metrics) that PRs can compare aga
 ### How it works
 1. **Triggered automatically** on push to `main` or `release/*` branches
 2. **Can be triggered manually** via workflow_dispatch for testing without pushing code
-3. **Builds both extensions**: `mssql` and `sql-database-projects`
+3. **Builds all extensions**: `mssql`, `sql-database-projects`, and `data-workspace`
 4. **Packages them into VSIX files** and records their sizes in KB
 5. **Uploads artifact** with 90-day retention:
    - `baseline-sizes`: JSON file containing size metadata for comparisons (VSIX files themselves are not stored to save space)

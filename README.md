@@ -326,6 +326,7 @@ See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki
 - `extensions/` - all of the individual VS Code extensions
 - `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
 - `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
+- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
 - `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
 
 ## Prerequisites
@@ -367,6 +368,21 @@ yarn package              # produces VSIX
 
 # Testing
 yarn test                 # run unit tests; NOT CURRENTLY WORKING
+```
+
+### Data Workspace Extension (`extensions/data-workspace/`)
+
+```bash
+cd extensions/data-workspace
+
+# Development
+yarn                      # install extension dependencies
+yarn watch                # continuous build
+yarn build                # one-off full build
+yarn package              # produces VSIX
+
+# Testing
+yarn test                 # run unit tests
 ```
 
 ## Debugging From The Root Workspace
