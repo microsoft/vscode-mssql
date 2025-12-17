@@ -635,9 +635,43 @@ export default class MainController implements vscode.Disposable {
             );
 
             this.registerLanguageModelTools();
+            this.registerCommand("mssql.test");
+            this._event.on("mssql.test", async () => {
+                // select the 4o chat model
+                let [model] = await vscode.lm.selectChatModels({
+                    vendor: "copilot",
+                    family: "gpt-4o",
+                });
+                const messages = [vscode.LanguageModelChatMessage.User("hello")];
+                if (model) {
+                    // send the messages array to the model and get the response
+                    let chatResponse = await model.sendRequest(
+                        messages,
+                        {},
+                        new vscode.CancellationTokenSource().token,
+                    );
+
+                    // handle chat response
+                    const response = await this.parseChatResponse(chatResponse);
+                    vscode.window.showInformationMessage(
+                        `mssql.test command triggered.${response}`,
+                    );
+                }
+            });
 
             return true;
         }
+    }
+
+    private async parseChatResponse(
+        chatResponse: vscode.LanguageModelChatResponse,
+    ): Promise<string> {
+        let accumulatedResponse = "";
+
+        for await (const fragment of chatResponse.text) {
+            accumulatedResponse += fragment;
+        }
+        return accumulatedResponse;
     }
 
     /**
