@@ -274,6 +274,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileName: "",
             id: "",
             groupId: "",
+            configSource: vscode.ConfigurationTarget.Global,
             savePassword: false,
             emptyPasswordInput: false,
             azureAuthType: AzureAuthType.AuthCodeGrant,

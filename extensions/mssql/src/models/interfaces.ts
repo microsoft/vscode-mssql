@@ -66,6 +66,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput: boolean;
     azureAuthType: AzureAuthType;
     accountStore: AccountStore;
+    configSource: vscode.ConfigurationTarget | string;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
 }
@@ -73,6 +74,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
 export interface IConnectionGroup {
     id: string;
     name: string;
+    configSource: vscode.ConfigurationTarget | string;
     parentId?: string;
     color?: string;
     description?: string;

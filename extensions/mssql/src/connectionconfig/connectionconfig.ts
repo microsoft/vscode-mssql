@@ -67,7 +67,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         if (alsoGetFromWorkspace) {
             // Read from workspace settings
-            let workspaceProfiles = this.getConnectionsFromSettings(ConfigurationTarget.Workspace);
+            let workspaceProfiles = this.getConnectionsFromSettings();
 
             const missingIdConns: IConnectionProfile[] = [];
 
@@ -424,6 +424,7 @@ export class ConnectionConfig implements IConnectionConfig {
             rootGroup = {
                 name: ConnectionConfig.RootGroupId,
                 id: ConnectionConfig.RootGroupId,
+                configSource: ConfigurationTarget.Global,
             };
 
             this._logger.info(`Adding missing ROOT group to connection groups`);
@@ -557,22 +558,45 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param configLocation When `true` profiles come from user settings, otherwise from workspace settings.  Default is `true`.
      * @returns the set of connection profiles found in the settings.
      */
-    public getConnectionsFromSettings(
-        configLocation: ConfigTarget = ConfigurationTarget.Global,
-    ): IConnectionProfile[] {
-        return this.getArrayFromSettings<IConnectionProfile>(
+    public getConnectionsFromSettings(): IConnectionProfile[] {
+        const globalConnections = this.getArrayFromSettings<IConnectionProfile>(
             Constants.connectionsArrayName,
-            configLocation,
-        );
+            ConfigurationTarget.Global,
+        ).map((profile) => {
+            return { ...profile, profileSource: ConfigurationTarget.Global };
+        });
+
+        const workspaceConnections = this.getArrayFromSettings<IConnectionProfile>(
+            Constants.connectionsArrayName,
+            ConfigurationTarget.Workspace,
+        ).map((profile) => {
+            return {
+                ...profile,
+                profileSource: ConfigurationTarget.Workspace,
+            };
+        });
+
+        return [...globalConnections, ...workspaceConnections];
     }
 
     public getGroupsFromSettings(
         configLocation: ConfigTarget = ConfigurationTarget.Global,
     ): IConnectionGroup[] {
-        return this.getArrayFromSettings<IConnectionGroup>(
+        const globalGroups = this.getArrayFromSettings<IConnectionGroup>(
             Constants.connectionGroupsArrayName,
             configLocation,
-        );
+        ).map((group) => {
+            return { ...group, configSource: ConfigurationTarget.Global };
+        });
+
+        const workspaceGroups = this.getArrayFromSettings<IConnectionGroup>(
+            Constants.connectionGroupsArrayName,
+            configLocation,
+        ).map((group) => {
+            return { ...group, configSource: ConfigurationTarget.Workspace };
+        });
+
+        return [...globalGroups, ...workspaceGroups];
     }
 
     /**
@@ -580,19 +604,32 @@ export class ConnectionConfig implements IConnectionConfig {
      * @param profiles the set of profiles to insert into the settings file.
      */
     private async writeConnectionsToSettings(profiles: IConnectionProfile[]): Promise<void> {
-        // Save the file
+        // remove properties that shouldn't be serialized
+        const cleanedProfiles = profiles.map((profile) => {
+            const cleanedProfile = { ...profile };
+            delete cleanedProfile.configSource;
+            return cleanedProfile;
+        });
+
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionsArrayName,
-            profiles,
+            cleanedProfiles,
         );
     }
 
     private async writeConnectionGroupsToSettings(connGroups: IConnectionGroup[]): Promise<void> {
+        // remove properties that shouldn't be serialized
+        const cleanedGroups = connGroups.map((group) => {
+            const cleanedGroup = { ...group };
+            delete cleanedGroup.configSource;
+            return cleanedGroup;
+        });
+
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionGroupsArrayName,
-            connGroups,
+            cleanedGroups,
         );
     }
 
