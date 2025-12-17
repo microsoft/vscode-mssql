@@ -2687,7 +2687,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
         <source xml:lang="en">Highlights</source>
-        <target state="new">Highlights</target>
+        <target state="translated">Contenidos destacados</target>
       </trans-unit>
       <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
         <source xml:lang="en">Hostname</source>
@@ -2890,7 +2890,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
         <source xml:lang="en">Learn more</source>
-        <target state="new">Learn more</target>
+        <target state="translated">Más información</target>
       </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
@@ -5501,7 +5501,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
         <source xml:lang="en">Watch demo</source>
-        <target state="new">Watch demo</target>
+        <target state="translated">Ver demostración</target>
       </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
