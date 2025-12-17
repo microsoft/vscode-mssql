@@ -142,6 +142,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             revertRow: sandbox.stub().resolves(),
             generateScripts: sandbox.stub().resolves(),
             dispose: sandbox.stub().resolves({}),
+            serializeData: sandbox.stub().resolves({ succeeded: true, messages: "" }),
             sqlToolsClient: {
                 onNotification: sandbox.stub(),
             } as any,
@@ -922,7 +923,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.csv");
             showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
 
             // Act
             await controller["_reducerHandlers"].get("saveResults")(controller.state, {
@@ -937,13 +937,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 "CSV Files": ["csv"],
                 "All Files": ["*"],
             });
-            expect(writeFileStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
-            // Verify CSV content
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            expect(writtenContent).to.include("id,firstName,lastName");
-            expect(writtenContent).to.include("1,John,Doe");
-            expect(writtenContent).to.include("2,Jane,Smith");
+            // Verify serializeData was called with correct parameters
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("csv");
+            expect(callArgs[2]).to.deep.equal(mockHeaders);
+            expect(callArgs[3]).to.deep.equal(mockRows);
 
             expect(showInformationMessageStub.calledOnce).to.be.true;
         });
@@ -953,7 +955,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.json");
             showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
 
             // Act
             await controller["_reducerHandlers"].get("saveResults")(controller.state, {
@@ -968,14 +969,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 "JSON Files": ["json"],
                 "All Files": ["*"],
             });
-            expect(writeFileStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
-            // Verify JSON content
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            const parsedJson = JSON.parse(writtenContent);
-            expect(parsedJson).to.have.length(2);
-            expect(parsedJson[0]).to.deep.equal({ id: "1", firstName: "John", lastName: "Doe" });
-            expect(parsedJson[1]).to.deep.equal({ id: "2", firstName: "Jane", lastName: "Smith" });
+            // Verify serializeData was called with correct parameters
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("json");
+            expect(callArgs[2]).to.deep.equal(mockHeaders);
+            expect(callArgs[3]).to.deep.equal(mockRows);
 
             expect(showInformationMessageStub.calledOnce).to.be.true;
         });
@@ -985,7 +987,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.xlsx");
             showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
 
             // Act
             await controller["_reducerHandlers"].get("saveResults")(controller.state, {
@@ -1000,12 +1001,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 "Excel Files": ["xlsx"],
                 "All Files": ["*"],
             });
-            expect(writeFileStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
-            // Verify that Excel file was written (should be binary data)
-            const writtenContent = writeFileStub.firstCall.args[1];
-            expect(writtenContent).to.be.instanceof(Uint8Array);
-            expect(writtenContent.length).to.be.greaterThan(0);
+            // Verify serializeData was called with correct parameters
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("excel");
+            expect(callArgs[2]).to.deep.equal(mockHeaders);
+            expect(callArgs[3]).to.deep.equal(mockRows);
 
             expect(showInformationMessageStub.calledOnce).to.be.true;
         });
@@ -1023,7 +1027,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(showSaveDialogStub.calledOnce).to.be.true;
-            expect(writeFileStub.notCalled).to.be.true;
+            expect(mockTableExplorerService.serializeData.notCalled).to.be.true;
             expect(showInformationMessageStub.notCalled).to.be.true;
             expect(showErrorMessageStub.notCalled).to.be.true;
         });
@@ -1033,8 +1037,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.csv");
             showSaveDialogStub.resolves(mockUri);
-            const error = new Error("Write failed");
-            writeFileStub.rejects(error);
+            const error = new Error("Serialization failed");
+            (mockTableExplorerService.serializeData as sinon.SinonStub).rejects(error);
 
             // Act
             await controller["_reducerHandlers"].get("saveResults")(controller.state, {
@@ -1044,17 +1048,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(showSaveDialogStub.calledOnce).to.be.true;
-            expect(writeFileStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
             expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Write failed");
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Serialization failed");
         });
 
-        test("should escape CSV values containing commas", async () => {
+        test("should call serializeData with correct parameters for CSV", async () => {
             // Arrange
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.csv");
             showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
             const headersWithComma = ["name", "address"];
             const rowsWithComma = [["John", "123 Main St, Apt 4"]];
 
@@ -1065,36 +1068,20 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            expect(writtenContent).to.include('"123 Main St, Apt 4"');
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("csv");
+            expect(callArgs[2]).to.deep.equal(headersWithComma);
+            expect(callArgs[3]).to.deep.equal(rowsWithComma);
         });
 
-        test("should escape CSV values containing quotes", async () => {
-            // Arrange
-            controller.state.tableName = "TestTable";
-            const mockUri = vscode.Uri.file("/path/to/export.csv");
-            showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
-            const headers = ["name", "description"];
-            const rowsWithQuotes = [["Product", 'He said "hello"']];
-
-            // Act
-            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
-                format: "csv",
-                data: { headers: headers, rows: rowsWithQuotes },
-            });
-
-            // Assert
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            expect(writtenContent).to.include('"He said ""hello"""');
-        });
-
-        test("should convert empty strings to null in JSON format", async () => {
+        test("should call serializeData with correct parameters for JSON", async () => {
             // Arrange
             controller.state.tableName = "TestTable";
             const mockUri = vscode.Uri.file("/path/to/export.json");
             showSaveDialogStub.resolves(mockUri);
-            writeFileStub.resolves();
             const headers = ["name", "nickname"];
             const rowsWithEmpty = [["John", ""]];
 
@@ -1105,9 +1092,35 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            const writtenContent = writeFileStub.firstCall.args[1].toString();
-            const parsedJson = JSON.parse(writtenContent);
-            expect(parsedJson[0].nickname).to.be.null;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("json");
+            expect(callArgs[2]).to.deep.equal(headers);
+            expect(callArgs[3]).to.deep.equal(rowsWithEmpty);
+        });
+
+        test("should call serializeData with correct parameters for Excel", async () => {
+            // Arrange
+            controller.state.tableName = "TestTable";
+            const mockUri = vscode.Uri.file("/path/to/export.xlsx");
+            showSaveDialogStub.resolves(mockUri);
+
+            // Act
+            await controller["_reducerHandlers"].get("saveResults")(controller.state, {
+                format: "excel",
+                data: { headers: mockHeaders, rows: mockRows },
+            });
+
+            // Assert
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
+            const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
+                .args;
+            expect(callArgs[0]).to.equal(mockUri.fsPath);
+            expect(callArgs[1]).to.equal("excel");
+            expect(callArgs[2]).to.deep.equal(mockHeaders);
+            expect(callArgs[3]).to.deep.equal(mockRows);
         });
     });
 });
