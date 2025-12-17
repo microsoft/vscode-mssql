@@ -141,6 +141,7 @@ export async function readProjectProperties(
         const projectDir = path.dirname(projectFilePath);
         const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
         // Normalize path separators for cross-platform compatibility
+        // path.normalize doesn't convert backslashes, so using a regex replace here
         const normalizedOutputPath = result.outputPath.replace(/\\/g, "/");
         const outputPath = path.isAbsolute(normalizedOutputPath)
             ? normalizedOutputPath
