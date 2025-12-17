@@ -1,0 +1,30 @@
+name: Build Data Workspace Extension
+description: Builds the Data Workspace VS Code extension.
+runs:
+  using: "composite"
+  steps:
+    - name: DataWorkspace - Install tools
+      shell: bash
+      run: |
+        echo "Installing Yarn"
+        npm install --global yarn@1.22.19
+        echo "Installing VSCE"
+        npm install --global vsce@2.9.2
+
+    - name: DataWorkspace - Install extension dependencies
+      shell: bash
+      run: |
+        cd ${{ inputs.source-dir }}
+        yarn --frozen-lockfile
+
+    - name: DataWorkspace - Build extension
+      shell: bash
+      run: |
+        cd ${{ inputs.source-dir }}
+        yarn build
+
+inputs:
+  source-dir:
+    description: "The source directory to build"
+    required: false
+    default: "."
