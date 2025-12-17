@@ -587,15 +587,13 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public getConnectionsFromSettings(target?: ConfigTarget): IConnectionProfile[] {
         const allConnections = this.getRawConnectionsFromSettings();
-        const filteredGroups = this.getFilteredGroupsFromSettings();
-        const filteredConnections = this.filterConnectionsWithKnownGroups(
-            allConnections,
-            filteredGroups,
-        );
+        const groups = new Set(this.getValidGroupsFromSettings().map((g) => g.id));
+
+        const validConnections = allConnections.filter((conn) => groups.has(conn.groupId));
 
         return target
-            ? filteredConnections.filter((connection) => connection.configSource === target)
-            : filteredConnections;
+            ? validConnections.filter((connection) => connection.configSource === target)
+            : validConnections;
     }
 
     private getRawConnectionsFromSettings(): IConnectionProfile[] {
@@ -620,10 +618,8 @@ export class ConnectionConfig implements IConnectionConfig {
      * Returns connection groups stored across all config locations, excluding malformed entries.
      */
     public getGroupsFromSettings(target?: ConfigTarget): IConnectionGroup[] {
-        const filteredGroups = this.getFilteredGroupsFromSettings();
-        return target
-            ? filteredGroups.filter((group) => group.configSource === target)
-            : filteredGroups;
+        const groups = this.getValidGroupsFromSettings();
+        return target ? groups.filter((group) => group.configSource === target) : groups;
     }
 
     private getRawGroupsFromSettings(): IConnectionGroup[] {
@@ -644,7 +640,10 @@ export class ConnectionConfig implements IConnectionConfig {
         return [...globalGroups, ...workspaceGroups];
     }
 
-    private getFilteredGroupsFromSettings(): IConnectionGroup[] {
+    /**
+     * Gets the list of connection groups whose parent hierarchy is valid (eventually points to ROOT).
+     */
+    private getValidGroupsFromSettings(): IConnectionGroup[] {
         const allGroups = this.getRawGroupsFromSettings();
         return this.filterGroupsWithKnownParents(allGroups);
     }
@@ -739,7 +738,10 @@ export class ConnectionConfig implements IConnectionConfig {
         }
     }
 
-    /** Ensures inputs such as string paths always collapse to the two supported configuration scopes. */
+    /**
+     * Normalizes configuration target to supported config locations.
+     * Currently, only Global and Workspace are supported, and anything else defaults to Global.
+     */
     private normalizeConfigTarget(source?: ConfigSource): ConfigTarget {
         return source === ConfigurationTarget.Workspace
             ? ConfigurationTarget.Workspace
@@ -800,36 +802,6 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Filters connections whose groups no longer exist and notifies the user once per session.
-     */
-    private filterConnectionsWithKnownGroups(
-        connections: IConnectionProfile[],
-        groups: IConnectionGroup[],
-    ): IConnectionProfile[] {
-        const validGroupIds = new Set<string>(groups.map((g) => g.id));
-        const orphanedConnections: IConnectionProfile[] = [];
-
-        const filteredConnections = connections.filter((connection) => {
-            if (connection.groupId && !validGroupIds.has(connection.groupId)) {
-                orphanedConnections.push(connection);
-                return false;
-            }
-            return true;
-        });
-
-        if (orphanedConnections.length > 0 && !this._hasDisplayedOrphanedConnectionWarning) {
-            this._hasDisplayedOrphanedConnectionWarning = true;
-            void this._vscodeWrapper.showWarningMessage(
-                LocalizedConstants.Connection.orphanedConnectionsWarning(
-                    orphanedConnections.map((connection) => getConnectionDisplayName(connection)),
-                ),
-            );
-        }
-
-        return filteredConnections;
-    }
-
-    /**
      * Filters groups whose parent hierarchy is invalid and notifies the user once per session.
      */
     private filterGroupsWithKnownParents(groups: IConnectionGroup[]): IConnectionGroup[] {
@@ -837,25 +809,24 @@ export class ConnectionConfig implements IConnectionConfig {
         knownGroupIds.add(ConnectionConfig.RootGroupId);
 
         const orphanedGroups: IConnectionGroup[] = [];
-        const filteredGroups = groups.filter((group) => {
-            if (
-                group.id !== ConnectionConfig.RootGroupId &&
-                group.parentId &&
-                !knownGroupIds.has(group.parentId)
-            ) {
+        const filteredGroups: IConnectionGroup[] = [];
+
+        for (const group of groups) {
+            if (knownGroupIds.has(group.parentId)) {
+                filteredGroups.push(group);
+            } else {
                 orphanedGroups.push(group);
-                return false;
             }
-            return true;
-        });
+        }
 
         if (orphanedGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
             this._hasDisplayedGroupParentWarning = true;
-            void this._vscodeWrapper.showWarningMessage(
+            const orphanedGroupsMessage =
                 LocalizedConstants.Connection.orphanedConnectionGroupsWarning(
-                    orphanedGroups.map((group) => group.name ?? group.id),
-                ),
-            );
+                    orphanedGroups.map((group) => group.name).join(", "),
+                );
+
+            void this._vscodeWrapper.showWarningMessage(orphanedGroupsMessage);
         }
 
         return filteredGroups;

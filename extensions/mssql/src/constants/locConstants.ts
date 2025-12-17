@@ -1563,11 +1563,11 @@ export class Connection {
         });
     };
 
-    public static orphanedConnectionGroupsWarning = (groupNames: string[]) => {
+    public static orphanedConnectionGroupsWarning = (groupNames: string) => {
         return l10n.t({
             message:
                 "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
-            args: [groupNames.join(", ")],
+            args: [groupNames],
             comment: ["{0} is the comma separated list of connection group names"],
         });
     };
