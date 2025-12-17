@@ -2791,6 +2791,14 @@
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
+      <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
+      <note>{0} is the comma separated list of connection group names</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
+      <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
+      <note>{0} is the comma separated list of connection display names</note>
+    </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
     </trans-unit>

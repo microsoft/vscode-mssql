@@ -8,11 +8,12 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
 import { ConfigSource, IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { IConnectionConfig } from "./iconnectionconfig";
-import VscodeWrapper, { ConfigurationTarget } from "../controllers/vscodeWrapper";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { Deferred } from "../protocol";
 import { Logger } from "../models/logger";
+import { ConfigurationTarget } from "vscode";
 
 export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Workspace;
 
@@ -146,13 +147,10 @@ export class ConnectionConfig implements IConnectionConfig {
      * Adds or replaces a single connection in the appropriate config target.
      * The config source is inferred when not explicitly provided.
      */
-    public async addConnection(
-        profile: IConnectionProfile,
-        configSource: ConfigSource = ConfigurationTarget.Global,
-    ): Promise<void> {
+    public async addConnection(profile: IConnectionProfile): Promise<void> {
         this.populateMissingConnectionIds(profile);
 
-        const target = this.normalizeConfigTarget(configSource);
+        const target = this.normalizeConfigTarget(profile.configSource);
         profile.configSource = target;
 
         let profiles = this.getRawConnectionsFromSettings().filter(
@@ -247,10 +245,7 @@ export class ConnectionConfig implements IConnectionConfig {
     /**
      * Saves a connection group to the requested configuration scope.
      */
-    public addGroup(
-        group: IConnectionGroup,
-        configSource: ConfigSource = ConfigurationTarget.Global,
-    ): Promise<void> {
+    public addGroup(group: IConnectionGroup): Promise<void> {
         if (!group.id) {
             group.id = Utils.generateGuid();
         }
@@ -259,7 +254,7 @@ export class ConnectionConfig implements IConnectionConfig {
             group.parentId = this.getRootGroup().id;
         }
 
-        group.configSource = this.normalizeConfigTarget(configSource);
+        group.configSource = this.normalizeConfigTarget(group.configSource);
 
         const groups = this.getRawGroupsFromSettings();
         groups.push(group);
@@ -479,6 +474,9 @@ export class ConnectionConfig implements IConnectionConfig {
 
             const connections = this.getRawConnectionsFromSettings();
             for (const profile of connections) {
+                if (profile.configSource !== ConfigurationTarget.Global) {
+                    continue;
+                }
                 if (profile.groupId === legacyRootId) {
                     profile.groupId = ConnectionConfig.RootGroupId;
                     connectionsChanged = true;
@@ -492,7 +490,13 @@ export class ConnectionConfig implements IConnectionConfig {
                 this._logger.info(
                     `Updates made to connection profiles after ROOT group migration.  Writing all ${connections.length} profile(s) to settings.`,
                 );
-                await this.writeConnectionsToSettings(connections);
+                const globalConnections = connections.filter(
+                    (conn) => conn.configSource === ConfigurationTarget.Global,
+                );
+                await this.writeConnectionsToSettings(
+                    globalConnections,
+                    ConfigurationTarget.Global,
+                );
             }
         }
 
@@ -501,13 +505,16 @@ export class ConnectionConfig implements IConnectionConfig {
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 
-            await this.writeConnectionGroupsToSettings(groups);
+            const globalGroups = groups.filter(
+                (group) => group.configSource === ConfigurationTarget.Global,
+            );
+            await this.writeConnectionGroupsToSettings(globalGroups, ConfigurationTarget.Global);
         }
     }
 
     private async assignConnectionGroupMissingIds(): Promise<void> {
         let madeGroupChanges = false;
-        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        const groups: IConnectionGroup[] = this.getRawGroupsFromSettings();
         const rootGroup = this.getRootGroup();
 
         if (!rootGroup) {
@@ -519,6 +526,9 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // Clean up connection groups
         for (const group of groups) {
+            if (group.configSource !== ConfigurationTarget.Global) {
+                continue;
+            }
             if (group.id === rootGroup.id) {
                 continue;
             }
@@ -544,15 +554,20 @@ export class ConnectionConfig implements IConnectionConfig {
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 
-            await this.writeConnectionGroupsToSettings(groups);
+            const globalGroups = groups.filter(
+                (group) => group.configSource === ConfigurationTarget.Global,
+            );
+            await this.writeConnectionGroupsToSettings(globalGroups, ConfigurationTarget.Global);
         }
     }
 
     private async assignConnectionMissingIds(): Promise<void> {
         let madeChanges = false;
 
-        // Clean up connection profiles
-        const profiles: IConnectionProfile[] = this.getRawConnectionsFromSettings();
+        // Clean up connection profiles in the user settings only
+        const profiles: IConnectionProfile[] = this.getRawConnectionsFromSettings().filter(
+            (profile) => profile.configSource === ConfigurationTarget.Global,
+        );
 
         for (const profile of profiles) {
             if (this.populateMissingConnectionIds(profile)) {
@@ -569,7 +584,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 `Updates made to connection profiles.  Writing all ${profiles.length} profile(s) to settings.`,
             );
 
-            await this.writeConnectionsToSettings(profiles);
+            await this.writeConnectionsToSettings(profiles, ConfigurationTarget.Global);
         }
     }
 
@@ -587,9 +602,15 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public getConnectionsFromSettings(target?: ConfigTarget): IConnectionProfile[] {
         const allConnections = this.getRawConnectionsFromSettings();
-        const groups = new Set(this.getValidGroupsFromSettings().map((g) => g.id));
+        const validGroupIds = new Set<string>(
+            this.getValidGroupsFromSettings().map((group) => group.id),
+        );
+        validGroupIds.add(ConnectionConfig.RootGroupId);
 
-        const validConnections = allConnections.filter((conn) => groups.has(conn.groupId));
+        const validConnections = this.filterConnectionsWithKnownGroups(
+            allConnections,
+            validGroupIds,
+        );
 
         return target
             ? validConnections.filter((connection) => connection.configSource === target)
@@ -660,41 +681,55 @@ export class ConnectionConfig implements IConnectionConfig {
         profiles: IConnectionProfile[],
         target?: ConfigTarget,
     ): Promise<void> {
-        const connectionTargets = new Map<ConfigTarget, IConnectionProfile[]>();
-        const lookup = target ? undefined : profiles;
+        if (target) {
+            await this.persistConnectionsForTarget(profiles, target);
+            return;
+        }
 
-        const addProfileToTarget = (
-            profile: IConnectionProfile,
-            forcedTarget?: ConfigTarget,
-        ): void => {
-            const resolvedTarget = forcedTarget
-                ? this.normalizeConfigTarget(forcedTarget)
-                : this.resolveConnectionConfigSource(profile, lookup);
-            profile.configSource = resolvedTarget;
-            if (!connectionTargets.has(resolvedTarget)) {
-                connectionTargets.set(resolvedTarget, []);
-            }
-            connectionTargets.get(resolvedTarget).push(profile);
-        };
+        const groupedProfiles = new Map<ConfigTarget, IConnectionProfile[]>();
+        const existingTargets = new Set<ConfigTarget>(
+            this.getRawConnectionsFromSettings().map((profile) =>
+                this.normalizeConfigTarget(profile.configSource),
+            ),
+        );
 
+        const lookup = profiles;
         for (const profile of profiles) {
-            addProfileToTarget(profile, target);
+            const resolvedTarget = this.resolveConnectionConfigSource(profile, lookup);
+            profile.configSource = resolvedTarget;
+            if (!groupedProfiles.has(resolvedTarget)) {
+                groupedProfiles.set(resolvedTarget, []);
+            }
+            groupedProfiles.get(resolvedTarget).push(profile);
         }
 
-        for (const [configTarget, targetProfiles] of connectionTargets.entries()) {
-            const cleanedProfiles = targetProfiles.map((profile) => {
-                const cleanedProfile = { ...profile };
-                delete cleanedProfile.configSource;
-                return cleanedProfile;
-            });
+        const targetsToUpdate = new Set<ConfigTarget>([
+            ...existingTargets,
+            ...groupedProfiles.keys(),
+        ]);
 
-            await this._vscodeWrapper.setConfiguration(
-                Constants.extensionName,
-                Constants.connectionsArrayName,
-                cleanedProfiles,
-                configTarget,
-            );
+        for (const configTarget of targetsToUpdate) {
+            const targetProfiles = groupedProfiles.get(configTarget) ?? [];
+            await this.persistConnectionsForTarget(targetProfiles, configTarget);
         }
+    }
+
+    private async persistConnectionsForTarget(
+        profiles: IConnectionProfile[],
+        target: ConfigTarget,
+    ): Promise<void> {
+        const cleanedProfiles = profiles.map((profile) => {
+            const cleanedProfile = { ...profile };
+            delete cleanedProfile.configSource;
+            return cleanedProfile;
+        });
+
+        await this._vscodeWrapper.setConfiguration(
+            Constants.extensionName,
+            Constants.connectionsArrayName,
+            cleanedProfiles,
+            target,
+        );
     }
 
     /**
@@ -704,38 +739,55 @@ export class ConnectionConfig implements IConnectionConfig {
         connGroups: IConnectionGroup[],
         target?: ConfigTarget,
     ): Promise<void> {
-        const groupTargets = new Map<ConfigTarget, IConnectionGroup[]>();
-        const lookup = target ? undefined : connGroups;
+        if (target) {
+            await this.persistGroupsForTarget(connGroups, target);
+            return;
+        }
 
-        const addGroupToTarget = (group: IConnectionGroup, forcedTarget?: ConfigTarget): void => {
-            const resolvedTarget = forcedTarget
-                ? this.normalizeConfigTarget(forcedTarget)
-                : this.resolveGroupConfigSource(group, lookup);
-            group.configSource = resolvedTarget;
-            if (!groupTargets.has(resolvedTarget)) {
-                groupTargets.set(resolvedTarget, []);
-            }
-            groupTargets.get(resolvedTarget).push(group);
-        };
+        const groupedGroups = new Map<ConfigTarget, IConnectionGroup[]>();
+        const existingTargets = new Set<ConfigTarget>(
+            this.getRawGroupsFromSettings().map((group) =>
+                this.normalizeConfigTarget(group.configSource),
+            ),
+        );
 
+        const lookup = connGroups;
         for (const group of connGroups) {
-            addGroupToTarget(group, target);
+            const resolvedTarget = this.resolveGroupConfigSource(group, lookup);
+            group.configSource = resolvedTarget;
+            if (!groupedGroups.has(resolvedTarget)) {
+                groupedGroups.set(resolvedTarget, []);
+            }
+            groupedGroups.get(resolvedTarget).push(group);
         }
 
-        for (const [configTarget, groups] of groupTargets.entries()) {
-            const cleanedGroups = groups.map((group) => {
-                const cleanedGroup = { ...group };
-                delete cleanedGroup.configSource;
-                return cleanedGroup;
-            });
+        const targetsToUpdate = new Set<ConfigTarget>([
+            ...existingTargets,
+            ...groupedGroups.keys(),
+        ]);
 
-            await this._vscodeWrapper.setConfiguration(
-                Constants.extensionName,
-                Constants.connectionGroupsArrayName,
-                cleanedGroups,
-                configTarget,
-            );
+        for (const configTarget of targetsToUpdate) {
+            const targetGroups = groupedGroups.get(configTarget) ?? [];
+            await this.persistGroupsForTarget(targetGroups, configTarget);
         }
+    }
+
+    private async persistGroupsForTarget(
+        groups: IConnectionGroup[],
+        target: ConfigTarget,
+    ): Promise<void> {
+        const cleanedGroups = groups.map((group) => {
+            const cleanedGroup = { ...group };
+            delete cleanedGroup.configSource;
+            return cleanedGroup;
+        });
+
+        await this._vscodeWrapper.setConfiguration(
+            Constants.extensionName,
+            Constants.connectionGroupsArrayName,
+            cleanedGroups,
+            target,
+        );
     }
 
     /**
@@ -805,31 +857,77 @@ export class ConnectionConfig implements IConnectionConfig {
      * Filters groups whose parent hierarchy is invalid and notifies the user once per session.
      */
     private filterGroupsWithKnownParents(groups: IConnectionGroup[]): IConnectionGroup[] {
-        const knownGroupIds = new Set<string>(groups.map((group) => group.id));
-        knownGroupIds.add(ConnectionConfig.RootGroupId);
-
-        const orphanedGroups: IConnectionGroup[] = [];
+        const knownGroupIds = new Set<string>([ConnectionConfig.RootGroupId]);
         const filteredGroups: IConnectionGroup[] = [];
+        let pendingGroups = [...groups];
+        let madeProgress = true;
 
-        for (const group of groups) {
-            if (knownGroupIds.has(group.parentId)) {
-                filteredGroups.push(group);
-            } else {
-                orphanedGroups.push(group);
+        while (madeProgress && pendingGroups.length > 0) {
+            const nextPending: IConnectionGroup[] = [];
+            madeProgress = false;
+
+            for (const group of pendingGroups) {
+                const parentId =
+                    group.id === ConnectionConfig.RootGroupId
+                        ? ConnectionConfig.RootGroupId
+                        : group.parentId;
+
+                if (parentId && knownGroupIds.has(parentId)) {
+                    filteredGroups.push(group);
+                    if (group.id) {
+                        knownGroupIds.add(group.id);
+                    }
+                    madeProgress = true;
+                } else {
+                    nextPending.push(group);
+                }
             }
+
+            pendingGroups = nextPending;
         }
 
-        if (orphanedGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
+        if (pendingGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
             this._hasDisplayedGroupParentWarning = true;
             const orphanedGroupsMessage =
                 LocalizedConstants.Connection.orphanedConnectionGroupsWarning(
-                    orphanedGroups.map((group) => group.name).join(", "),
+                    pendingGroups.map((group) => group.name).join(", "),
                 );
 
             void this._vscodeWrapper.showWarningMessage(orphanedGroupsMessage);
         }
 
         return filteredGroups;
+    }
+
+    /**
+     * Filters out connections whose group IDs aren't known and warns once per session.
+     */
+    private filterConnectionsWithKnownGroups(
+        connections: IConnectionProfile[],
+        knownGroupIds: Set<string>,
+    ): IConnectionProfile[] {
+        const filteredConnections: IConnectionProfile[] = [];
+        const orphanedConnections: IConnectionProfile[] = [];
+
+        for (const connection of connections) {
+            if (connection.groupId && knownGroupIds.has(connection.groupId)) {
+                filteredConnections.push(connection);
+            } else {
+                orphanedConnections.push(connection);
+            }
+        }
+
+        if (orphanedConnections.length > 0 && !this._hasDisplayedOrphanedConnectionWarning) {
+            this._hasDisplayedOrphanedConnectionWarning = true;
+            const orphanedConnectionsMessage =
+                LocalizedConstants.Connection.orphanedConnectionsWarning(
+                    orphanedConnections.map((conn) => getConnectionDisplayName(conn)),
+                );
+
+            void this._vscodeWrapper.showWarningMessage(orphanedConnectionsMessage);
+        }
+
+        return filteredConnections;
     }
 
     private getArrayFromSettings<T>(
