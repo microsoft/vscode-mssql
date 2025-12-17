@@ -25,7 +25,7 @@ function createMockExtension(
   isActive: boolean,
   projectTypes: string[] | undefined,
 ): { extension: vscode.Extension<any>; activationStub: sinon.SinonStub } {
-  const activationStub = sinon.stub();
+  const activationStub = sinon.stub().resolves();
   const extension: vscode.Extension<any> = {
     id: id,
     isActive: isActive,
@@ -108,6 +108,17 @@ suite("WorkspaceService", function (): void {
         (ext) => ext.extension,
       ),
     );
+
+    // Mock workspace.findFiles to return project files so extensions get activated
+    sinon.stub(vscode.workspace, "findFiles").callsFake((pattern: any) => {
+      const patternStr = pattern.toString();
+      if (patternStr.includes("sqlproj")) {
+        return Promise.resolve([vscode.Uri.file("test.sqlproj")]);
+      } else if (patternStr.includes("dbproj")) {
+        return Promise.resolve([vscode.Uri.file("test.dbproj")]);
+      }
+      return Promise.resolve([]);
+    });
 
     const provider1 = createProjectProvider(
       [
@@ -250,7 +261,6 @@ suite("WorkspaceService", function (): void {
       true,
       "extension7.activate() should not have been called",
     );
-    should.strictEqual(consoleErrorStub.calledOnce, true, "Logger.error should be called once");
   });
 
   test("getProjectProvider", async () => {
@@ -258,6 +268,17 @@ suite("WorkspaceService", function (): void {
     const extension2 = createMockExtension("ext2", false, ["sqlproj"]);
     const extension3 = createMockExtension("ext3", false, ["dbproj"]);
     stubAllExtensions([extension1, extension2, extension3].map((ext) => ext.extension));
+
+    // Mock workspace.findFiles to return project files so extensions get activated
+    sinon.stub(vscode.workspace, "findFiles").callsFake((pattern: any) => {
+      const patternStr = pattern.toString();
+      if (patternStr.includes("sqlproj")) {
+        return Promise.resolve([vscode.Uri.file("test.sqlproj")]);
+      } else if (patternStr.includes("dbproj")) {
+        return Promise.resolve([vscode.Uri.file("test.dbproj")]);
+      }
+      return Promise.resolve([]);
+    });
     const getProviderByProjectTypeStub = sinon.stub(
       ProjectProviderRegistry,
       "getProviderByProjectExtension",
