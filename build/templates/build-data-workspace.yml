@@ -25,7 +25,6 @@ steps:
       yarn lint
     displayName: DataWorkspace - Lint code
     workingDirectory: "$(Build.SourcesDirectory)/extensions/data-workspace"
-    continueOnError: true
 
   - pwsh: |
       yarn test
@@ -39,14 +38,12 @@ steps:
       testResultsFormat: "JUnit"
       testResultsFiles: "$(Build.SourcesDirectory)/extensions/data-workspace/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
-    continueOnError: true
 
   - task: PublishCodeCoverageResults@2
     displayName: DataWorkspace - Publish code coverage
     inputs:
       summaryFileLocation: "$(Build.SourcesDirectory)/extensions/data-workspace/coverage/cobertura-coverage.xml"
     condition: succeededOrFailed()
-    continueOnError: true
 
   - pwsh: |
       yarn package

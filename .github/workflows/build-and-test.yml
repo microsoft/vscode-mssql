@@ -103,7 +103,6 @@ jobs:
           yarn lint src/ test/
 
       - name: DataWorkspace - Run lint
-        continue-on-error: true
         run: |
           cd ./extensions/data-workspace
           yarn lint
