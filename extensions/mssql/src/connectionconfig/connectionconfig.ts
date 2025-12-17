@@ -142,6 +142,10 @@ export class ConnectionConfig implements IConnectionConfig {
         return profiles.find((profile) => profile.id === id);
     }
 
+    /**
+     * Adds or replaces a single connection in the appropriate config target.
+     * The config source is inferred when not explicitly provided.
+     */
     public async addConnection(
         profile: IConnectionProfile,
         configSource: ConfigSource = ConfigurationTarget.Global,
@@ -240,6 +244,9 @@ export class ConnectionConfig implements IConnectionConfig {
         return connGroups.find((g) => g.id === id);
     }
 
+    /**
+     * Saves a connection group to the requested configuration scope.
+     */
     public addGroup(
         group: IConnectionGroup,
         configSource: ConfigSource = ConfigurationTarget.Global,
@@ -575,27 +582,16 @@ export class ConnectionConfig implements IConnectionConfig {
      * This is public for testing only.
      * @param target When set, only connections from that target are returned; otherwise all stored connections are returned.
      */
+    /**
+     * Returns connection profiles stored across all config locations, excluding malformed entries.
+     */
     public getConnectionsFromSettings(target?: ConfigTarget): IConnectionProfile[] {
         const allConnections = this.getRawConnectionsFromSettings();
-        const validGroupIds = new Set<string>(this.getGroupsFromSettings().map((g) => g.id));
-
-        const orphanedConnections: IConnectionProfile[] = [];
-        const filteredConnections = allConnections.filter((connection) => {
-            if (connection.groupId && !validGroupIds.has(connection.groupId)) {
-                orphanedConnections.push(connection);
-                return false;
-            }
-            return true;
-        });
-
-        if (orphanedConnections.length > 0 && !this._hasDisplayedOrphanedConnectionWarning) {
-            this._hasDisplayedOrphanedConnectionWarning = true;
-            void this._vscodeWrapper.showWarningMessage(
-                LocalizedConstants.Connection.orphanedConnectionsWarning(
-                    orphanedConnections.map((connection) => getConnectionDisplayName(connection)),
-                ),
-            );
-        }
+        const filteredGroups = this.getFilteredGroupsFromSettings();
+        const filteredConnections = this.filterConnectionsWithKnownGroups(
+            allConnections,
+            filteredGroups,
+        );
 
         return target
             ? filteredConnections.filter((connection) => connection.configSource === target)
@@ -620,33 +616,11 @@ export class ConnectionConfig implements IConnectionConfig {
         return [...globalConnections, ...workspaceConnections];
     }
 
+    /**
+     * Returns connection groups stored across all config locations, excluding malformed entries.
+     */
     public getGroupsFromSettings(target?: ConfigTarget): IConnectionGroup[] {
-        const allGroups = this.getRawGroupsFromSettings();
-        const knownGroupIds = new Set<string>(allGroups.map((group) => group.id));
-        knownGroupIds.add(ConnectionConfig.RootGroupId);
-
-        const orphanedGroups: IConnectionGroup[] = [];
-        const filteredGroups = allGroups.filter((group) => {
-            if (
-                group.id !== ConnectionConfig.RootGroupId &&
-                group.parentId &&
-                !knownGroupIds.has(group.parentId)
-            ) {
-                orphanedGroups.push(group);
-                return false;
-            }
-            return true;
-        });
-
-        if (orphanedGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
-            this._hasDisplayedGroupParentWarning = true;
-            void this._vscodeWrapper.showWarningMessage(
-                LocalizedConstants.Connection.orphanedConnectionGroupsWarning(
-                    orphanedGroups.map((group) => group.name ?? group.id),
-                ),
-            );
-        }
-
+        const filteredGroups = this.getFilteredGroupsFromSettings();
         return target
             ? filteredGroups.filter((group) => group.configSource === target)
             : filteredGroups;
@@ -670,9 +644,18 @@ export class ConnectionConfig implements IConnectionConfig {
         return [...globalGroups, ...workspaceGroups];
     }
 
+    private getFilteredGroupsFromSettings(): IConnectionGroup[] {
+        const allGroups = this.getRawGroupsFromSettings();
+        return this.filterGroupsWithKnownParents(allGroups);
+    }
+
     /**
      * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
+     */
+    /**
+     * Persists the provided profiles. When `target` is undefined, this method automatically splits
+     * the profiles by config target so that each backing store receives the correct subset.
      */
     private async writeConnectionsToSettings(
         profiles: IConnectionProfile[],
@@ -715,6 +698,9 @@ export class ConnectionConfig implements IConnectionConfig {
         }
     }
 
+    /**
+     * Persists the provided groups. Works similarly to {@link writeConnectionsToSettings}.
+     */
     private async writeConnectionGroupsToSettings(
         connGroups: IConnectionGroup[],
         target?: ConfigTarget,
@@ -753,12 +739,17 @@ export class ConnectionConfig implements IConnectionConfig {
         }
     }
 
+    /** Ensures inputs such as string paths always collapse to the two supported configuration scopes. */
     private normalizeConfigTarget(source?: ConfigSource): ConfigTarget {
         return source === ConfigurationTarget.Workspace
             ? ConfigurationTarget.Workspace
             : ConfigurationTarget.Global;
     }
 
+    /**
+     * Attempts to deduce which config target a connection belongs to when the caller hasn't set it.
+     * This is required because we read from both user and workspace scopes.
+     */
     private resolveConnectionConfigSource(
         profile: IConnectionProfile,
         profilesForLookup?: IConnectionProfile[],
@@ -781,6 +772,7 @@ export class ConnectionConfig implements IConnectionConfig {
         return fallback;
     }
 
+    /** Attempts to deduce which config target a group belongs to when the caller hasn't set it. */
     private resolveGroupConfigSource(
         group: IConnectionGroup,
         groupsForLookup?: IConnectionGroup[],
@@ -805,6 +797,68 @@ export class ConnectionConfig implements IConnectionConfig {
 
     private isSupportedConfigTarget(source: ConfigSource | undefined): source is ConfigTarget {
         return source === ConfigurationTarget.Global || source === ConfigurationTarget.Workspace;
+    }
+
+    /**
+     * Filters connections whose groups no longer exist and notifies the user once per session.
+     */
+    private filterConnectionsWithKnownGroups(
+        connections: IConnectionProfile[],
+        groups: IConnectionGroup[],
+    ): IConnectionProfile[] {
+        const validGroupIds = new Set<string>(groups.map((g) => g.id));
+        const orphanedConnections: IConnectionProfile[] = [];
+
+        const filteredConnections = connections.filter((connection) => {
+            if (connection.groupId && !validGroupIds.has(connection.groupId)) {
+                orphanedConnections.push(connection);
+                return false;
+            }
+            return true;
+        });
+
+        if (orphanedConnections.length > 0 && !this._hasDisplayedOrphanedConnectionWarning) {
+            this._hasDisplayedOrphanedConnectionWarning = true;
+            void this._vscodeWrapper.showWarningMessage(
+                LocalizedConstants.Connection.orphanedConnectionsWarning(
+                    orphanedConnections.map((connection) => getConnectionDisplayName(connection)),
+                ),
+            );
+        }
+
+        return filteredConnections;
+    }
+
+    /**
+     * Filters groups whose parent hierarchy is invalid and notifies the user once per session.
+     */
+    private filterGroupsWithKnownParents(groups: IConnectionGroup[]): IConnectionGroup[] {
+        const knownGroupIds = new Set<string>(groups.map((group) => group.id));
+        knownGroupIds.add(ConnectionConfig.RootGroupId);
+
+        const orphanedGroups: IConnectionGroup[] = [];
+        const filteredGroups = groups.filter((group) => {
+            if (
+                group.id !== ConnectionConfig.RootGroupId &&
+                group.parentId &&
+                !knownGroupIds.has(group.parentId)
+            ) {
+                orphanedGroups.push(group);
+                return false;
+            }
+            return true;
+        });
+
+        if (orphanedGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
+            this._hasDisplayedGroupParentWarning = true;
+            void this._vscodeWrapper.showWarningMessage(
+                LocalizedConstants.Connection.orphanedConnectionGroupsWarning(
+                    orphanedGroups.map((group) => group.name ?? group.id),
+                ),
+            );
+        }
+
+        return filteredGroups;
     }
 
     private getArrayFromSettings<T>(
