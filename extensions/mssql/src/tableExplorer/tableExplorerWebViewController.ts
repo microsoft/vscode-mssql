@@ -24,7 +24,6 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { generateGuid } from "../models/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { createWorkbook, createExcelFile } from "excel-builder-vanilla";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -1177,21 +1176,17 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 const { headers, rows } = payload.data;
                 let defaultExt: string;
                 let filters: { [name: string]: string[] };
-                let fileContent: Uint8Array;
 
                 switch (payload.format) {
                     case "csv":
-                        fileContent = Buffer.from(this.formatAsCsv(headers, rows), "utf-8");
                         defaultExt = "csv";
                         filters = { "CSV Files": ["csv"], "All Files": ["*"] };
                         break;
                     case "json":
-                        fileContent = Buffer.from(this.formatAsJson(headers, rows), "utf-8");
                         defaultExt = "json";
                         filters = { "JSON Files": ["json"], "All Files": ["*"] };
                         break;
                     case "excel":
-                        fileContent = await this.formatAsExcel(headers, rows);
                         defaultExt = "xlsx";
                         filters = { "Excel Files": ["xlsx"], "All Files": ["*"] };
                         break;
@@ -1206,23 +1201,32 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 });
 
                 if (uri) {
-                    // Write file
-                    await vscode.workspace.fs.writeFile(uri, fileContent);
-
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
+                    // Use backend serialization service to generate and save the file
+                    const result = await this._tableExplorerService.serializeData(
+                        uri.fsPath,
+                        payload.format,
+                        headers,
+                        rows,
                     );
 
-                    this.logger.info(
-                        `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
-                    );
+                    if (result.succeeded) {
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
+                        );
 
-                    endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                        format: payload.format,
-                        rowCount: rows.length.toString(),
-                    });
+                        this.logger.info(
+                            `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
+                        );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            format: payload.format,
+                            rowCount: rows.length.toString(),
+                        });
+                    } else {
+                        throw new Error(result.messages || "Serialization failed");
+                    }
                 } else {
                     this.logger.info("Save dialog cancelled by user");
                 }
@@ -1249,60 +1253,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
-    }
-
-    /**
-     * Format data as CSV
-     */
-    private formatAsCsv(headers: string[], rows: string[][]): string {
-        const escapeValue = (val: string): string => {
-            if (val.includes(",") || val.includes('"') || val.includes("\n")) {
-                return `"${val.replace(/"/g, '""')}"`;
-            }
-            return val;
-        };
-
-        const lines: string[] = [];
-        lines.push(headers.map(escapeValue).join(","));
-        rows.forEach((row) => {
-            lines.push(row.map(escapeValue).join(","));
-        });
-
-        return lines.join("\n");
-    }
-
-    /**
-     * Format data as JSON
-     */
-    private formatAsJson(headers: string[], rows: string[][]): string {
-        const data = rows.map((row) => {
-            const obj: Record<string, string | null> = {};
-            headers.forEach((header, index) => {
-                const value = row[index];
-                obj[header] = value === "" ? null : value;
-            });
-            return obj;
-        });
-
-        return JSON.stringify(data, null, 2);
-    }
-
-    /**
-     * Format data as Excel xlsx file using excel-builder-vanilla
-     */
-    private async formatAsExcel(headers: string[], rows: string[][]): Promise<Uint8Array> {
-        const workbook = createWorkbook();
-        const worksheet = workbook.createWorksheet({ name: "Data" });
-
-        // Combine headers and rows into a 2D array for the worksheet
-        const data: (string | null)[][] = [headers, ...rows];
-        worksheet.setData(data);
-
-        workbook.addWorksheet(worksheet);
-
-        // Generate the Excel file as Uint8Array
-        const excelFile = await createExcelFile(workbook, "Uint8Array");
-        return excelFile;
     }
 
     /**
