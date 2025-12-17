@@ -122,9 +122,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.error(`No target node provided - OperationId: ${this.operationId}`);
             endActivity.endFailed(
                 new Error("No target node provided for table explorer"),
-                true,
-                undefined,
-                undefined,
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -189,9 +189,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             endActivity.endFailed(
                 new Error("Failed to initialize table explorer"),
-                true,
-                undefined,
-                undefined,
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -294,9 +294,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to commit changes"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -374,9 +374,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to load subset"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -451,9 +451,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to create row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -571,9 +571,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to delete row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -715,9 +715,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to update cell"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -844,9 +844,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to revert cell"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -975,9 +975,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to revert row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1047,9 +1047,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to generate script"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1232,10 +1232,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to save results: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to save results"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
