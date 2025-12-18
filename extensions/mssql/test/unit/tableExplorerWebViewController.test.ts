@@ -132,16 +132,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
         // Setup mock services
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockTableExplorerService = sandbox.createStubInstance(TableExplorerService);
-        mockTableExplorerService.initialize.resolves();
+        // Only define stubs that need specific return values
         mockTableExplorerService.subset.resolves(createMockSubsetResult());
-        mockTableExplorerService.commit.resolves({});
-        mockTableExplorerService.createRow.resolves();
-        mockTableExplorerService.deleteRow.resolves({});
-        mockTableExplorerService.updateCell.resolves();
-        mockTableExplorerService.revertCell.resolves();
-        mockTableExplorerService.revertRow.resolves();
-        mockTableExplorerService.generateScripts.resolves();
-        mockTableExplorerService.dispose.resolves({});
         mockTableExplorerService.serializeData.resolves({ succeeded: true, messages: "" });
         // Setup sqlToolsClient property for notification handling
         Object.defineProperty(mockTableExplorerService, "sqlToolsClient", {
