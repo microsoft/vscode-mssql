@@ -22,7 +22,7 @@ import {
     ContextMenu,
 } from "slickgrid-react";
 import { FluentCompoundFilter } from "./fluentCompoundFilter";
-import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
+import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
@@ -45,6 +45,7 @@ interface TableDataGridProps {
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
+    onSaveResults?: (format: "csv" | "json" | "excel", data: ExportData) => void;
 }
 
 export interface TableDataGridRef {
@@ -71,6 +72,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onCellChangeCountChanged,
             onDeletionCountChanged,
             onSelectedRowsChanged,
+            onSaveResults,
         },
         ref,
     ) => {
@@ -467,12 +469,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             hideFreezeColumnsCommand: true, // Hide freeze columns (not needed)
                         },
 
-                        // Row selection
-                        enableRowSelection: true,
-                        rowSelectionOptions: {
-                            selectActiveRow: false, // Don't auto-select on cell click
-                        },
-
                         // Sorting
                         enableSorting: true,
                         multiColumnSort: true, // Allow multi-column sorting
@@ -482,8 +478,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         showHeaderRow: true, // Show filter row
                         headerRowHeight: FILTER_ROW_HEIGHT,
 
-                        // Cell navigation
+                        // Cell navigation and copy buffer
                         enableCellNavigation: true,
+                        enableExcelCopyBuffer: true, // Enables cell range selection + copy/paste (Ctrl+C, Ctrl+V)
 
                         // Context menu
                         enableContextMenu: true,
@@ -771,9 +768,33 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             const command = args.command;
             const dataContext = args.dataContext;
-            const rowId = dataContext.id;
+            const rowId = dataContext?.id;
 
             switch (command) {
+                case "copy":
+                    copySelectionToClipboard(false, false);
+                    break;
+
+                case "copy-with-headers":
+                    copySelectionToClipboard(true, false);
+                    break;
+
+                case "copy-headers":
+                    copySelectionToClipboard(false, true);
+                    break;
+
+                case "export-csv":
+                    exportToFile();
+                    break;
+
+                case "export-excel":
+                    exportToExcel();
+                    break;
+
+                case "export-json":
+                    exportToJson();
+                    break;
+
                 case "delete-row":
                     if (onDeleteRow) {
                         onDeleteRow(rowId);
@@ -844,18 +865,306 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        /**
+         * Copy selected cells to clipboard
+         * @param includeHeaders - Whether to include column headers
+         * @param headersOnly - Whether to copy only headers (no data)
+         */
+        function copySelectionToClipboard(includeHeaders: boolean, headersOnly: boolean) {
+            if (!reactGridRef.current?.slickGrid) {
+                return;
+            }
+
+            const grid = reactGridRef.current.slickGrid;
+            const dataView = reactGridRef.current.dataView;
+            const visibleColumns = grid.getColumns();
+
+            // Get selection ranges from the cell selection model
+            const selectionModel = grid.getSelectionModel();
+            const selectedRanges = selectionModel?.getSelectedRanges() || [];
+
+            // Create array of range bounds to process
+            interface RangeBounds {
+                fromRow: number;
+                toRow: number;
+                fromCell: number;
+                toCell: number;
+            }
+            const rangesToProcess: RangeBounds[] = [];
+
+            if (selectedRanges.length > 0) {
+                // Copy range properties from selected ranges
+                for (const r of selectedRanges) {
+                    rangesToProcess.push({
+                        fromRow: r.fromRow,
+                        toRow: r.toRow,
+                        fromCell: r.fromCell,
+                        toCell: r.toCell,
+                    });
+                }
+            } else {
+                // No cell range selected, try to use active cell
+                const activeCell = grid.getActiveCell();
+                if (!activeCell) {
+                    return;
+                }
+                // Create a single-cell range
+                rangesToProcess.push({
+                    fromRow: activeCell.row,
+                    toRow: activeCell.row,
+                    fromCell: activeCell.cell,
+                    toCell: activeCell.cell,
+                });
+            }
+
+            const lines: string[] = [];
+
+            // Process each selection range
+            for (const range of rangesToProcess) {
+                const fromRow = Math.min(range.fromRow, range.toRow);
+                const toRow = Math.max(range.fromRow, range.toRow);
+                const fromCell = Math.min(range.fromCell, range.toCell);
+                const toCell = Math.max(range.fromCell, range.toCell);
+
+                // Get headers for the selected columns
+                if (includeHeaders || headersOnly) {
+                    const headerValues: string[] = [];
+                    for (let c = fromCell; c <= toCell; c++) {
+                        const column = visibleColumns[c];
+                        if (column) {
+                            headerValues.push(column.name?.toString() || "");
+                        }
+                    }
+                    lines.push(headerValues.join("\t"));
+                }
+
+                // Get data for selected cells (skip if headersOnly)
+                if (!headersOnly && dataView) {
+                    for (let r = fromRow; r <= toRow; r++) {
+                        const rowValues: string[] = [];
+                        const item = dataView.getItem(r);
+                        if (item) {
+                            for (let c = fromCell; c <= toCell; c++) {
+                                const column = visibleColumns[c];
+                                if (column && column.field) {
+                                    const value = item[column.field];
+                                    // Handle NULL values and convert to string
+                                    rowValues.push(value === "NULL" ? "" : value?.toString() || "");
+                                }
+                            }
+                        }
+                        lines.push(rowValues.join("\t"));
+                    }
+                }
+            }
+
+            // Copy to clipboard
+            const textToCopy = lines.join("\n");
+            void navigator.clipboard.writeText(textToCopy);
+        }
+
+        /**
+         * Helper function to get export data from the grid
+         * If cells are selected, returns only the selected range data
+         * Otherwise returns all data respecting filters, sort, and visible columns
+         */
+        function getExportData(): { headers: string[]; rows: string[][] } | null {
+            if (!reactGridRef.current?.dataView || !reactGridRef.current?.slickGrid) {
+                return null;
+            }
+
+            const dataView = reactGridRef.current.dataView;
+            const grid = reactGridRef.current.slickGrid;
+            const visibleColumns = grid.getColumns();
+
+            // Check if there's a cell selection
+            const selectionModel = grid.getSelectionModel();
+            const selectedRanges = selectionModel?.getSelectedRanges() || [];
+
+            // If there's a selection, export only selected data
+            if (selectedRanges.length > 0) {
+                return getSelectedRangeData(selectedRanges, visibleColumns, dataView);
+            }
+
+            // No selection - export all data
+            // Get headers from visible columns (skip action columns)
+            const headers = visibleColumns
+                .filter((col) => col.field && col.name && col.id !== "delete" && col.id !== "undo")
+                .map((col) => col.name?.toString() || "");
+
+            // Get all filtered/sorted items from the DataView
+            const items = dataView.getFilteredItems();
+
+            // Get rows data (skip action columns)
+            const rows = items.map((item: any) => {
+                return visibleColumns
+                    .filter((col) => col.field && col.id !== "delete" && col.id !== "undo")
+                    .map((col) => {
+                        const value = item[col.field!];
+                        // Convert NULL to empty string for export
+                        return value === "NULL" ? "" : value?.toString() || "";
+                    });
+            });
+
+            return { headers, rows };
+        }
+
+        /**
+         * Helper function to get data from selected cell ranges
+         */
+        function getSelectedRangeData(
+            selectedRanges: any[],
+            visibleColumns: Column[],
+            dataView: any,
+        ): { headers: string[]; rows: string[][] } | null {
+            // Process the first range (primary selection)
+            // For multiple ranges, we combine them
+            interface RangeBounds {
+                fromRow: number;
+                toRow: number;
+                fromCell: number;
+                toCell: number;
+            }
+
+            const rangesToProcess: RangeBounds[] = selectedRanges.map((r) => ({
+                fromRow: Math.min(r.fromRow, r.toRow),
+                toRow: Math.max(r.fromRow, r.toRow),
+                fromCell: Math.min(r.fromCell, r.toCell),
+                toCell: Math.max(r.fromCell, r.toCell),
+            }));
+
+            // For simplicity, use the bounding box of all ranges
+            const minRow = Math.min(...rangesToProcess.map((r) => r.fromRow));
+            const maxRow = Math.max(...rangesToProcess.map((r) => r.toRow));
+            const minCell = Math.min(...rangesToProcess.map((r) => r.fromCell));
+            const maxCell = Math.max(...rangesToProcess.map((r) => r.toCell));
+
+            // Get headers for selected columns (skip action columns)
+            const headers: string[] = [];
+            for (let c = minCell; c <= maxCell; c++) {
+                const column = visibleColumns[c];
+                if (column && column.name && column.id !== "delete" && column.id !== "undo") {
+                    headers.push(column.name.toString());
+                }
+            }
+
+            // Get rows data for selected range (skip action columns)
+            const rows: string[][] = [];
+            for (let r = minRow; r <= maxRow; r++) {
+                const item = dataView.getItem(r);
+                if (item) {
+                    const rowData: string[] = [];
+                    for (let c = minCell; c <= maxCell; c++) {
+                        const column = visibleColumns[c];
+                        if (
+                            column &&
+                            column.field &&
+                            column.id !== "delete" &&
+                            column.id !== "undo"
+                        ) {
+                            const value = item[column.field];
+                            // Convert NULL to empty string for export
+                            rowData.push(value === "NULL" ? "" : value?.toString() || "");
+                        }
+                    }
+                    rows.push(rowData);
+                }
+            }
+
+            return { headers, rows };
+        }
+
+        /**
+         * Export grid data to CSV file
+         * Uses the filtered/sorted data from the DataView
+         */
+        function exportToFile() {
+            const data = getExportData();
+            if (!data || !onSaveResults) {
+                return;
+            }
+            onSaveResults("csv", data);
+        }
+
+        /**
+         * Export grid data to Excel file
+         * Uses the filtered/sorted data from the DataView
+         */
+        function exportToExcel() {
+            const data = getExportData();
+            if (!data || !onSaveResults) {
+                return;
+            }
+            onSaveResults("excel", data);
+        }
+
+        /**
+         * Export grid data to JSON file
+         * Uses the filtered/sorted data from the DataView
+         */
+        function exportToJson() {
+            const data = getExportData();
+            if (!data || !onSaveResults) {
+                return;
+            }
+            onSaveResults("json", data);
+        }
+
         function getContextMenuOptions(): ContextMenu {
             return {
                 hideCopyCellValueCommand: true,
                 hideCloseButton: true,
                 commandItems: [
+                    // Copy commands
+                    {
+                        command: "copy",
+                        title: loc.slickGrid.copy,
+                        iconCssClass: "mdi mdi-content-copy",
+                        positionOrder: 1,
+                    },
+                    {
+                        command: "copy-with-headers",
+                        title: loc.slickGrid.copyWithHeaders,
+                        iconCssClass: "mdi mdi-content-copy",
+                        positionOrder: 2,
+                    },
+                    {
+                        command: "copy-headers",
+                        title: loc.slickGrid.copyHeaders,
+                        iconCssClass: "mdi mdi-content-copy",
+                        positionOrder: 3,
+                    },
+                    // Divider before export
+                    { divider: true, command: "", positionOrder: 4 },
+                    // Export commands
+                    {
+                        command: "export-csv",
+                        title: loc.slickGrid.exportToCsv,
+                        iconCssClass: "mdi mdi-download",
+                        positionOrder: 5,
+                    },
+                    {
+                        command: "export-excel",
+                        title: loc.slickGrid.exportToExcel,
+                        iconCssClass: "mdi mdi-download",
+                        positionOrder: 6,
+                    },
+                    {
+                        command: "export-json",
+                        title: loc.slickGrid.exportToJson,
+                        iconCssClass: "mdi mdi-download",
+                        positionOrder: 7,
+                    },
+                    // Divider before edit commands
+                    { divider: true, command: "", positionOrder: 8 },
+                    // Edit commands
                     {
                         command: "delete-row",
                         title: loc.tableExplorer.deleteRow,
                         iconCssClass: "mdi mdi-close",
                         cssClass: "red",
                         textCssClass: "bold",
-                        positionOrder: 1,
+                        positionOrder: 9,
                         itemVisibilityOverride: (args: any) => {
                             // Hide "Delete Row" if row is already deleted
                             const rowId = args.dataContext?.id;
@@ -866,13 +1175,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         command: "revert-cell",
                         title: loc.tableExplorer.revertCell,
                         iconCssClass: "mdi mdi-undo",
-                        positionOrder: 2,
+                        positionOrder: 10,
                     },
                     {
                         command: "revert-row",
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "mdi mdi-undo",
-                        positionOrder: 3,
+                        positionOrder: 11,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),
