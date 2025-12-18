@@ -514,9 +514,15 @@ suite("SchemaCompareWebViewController Tests", () => {
         await controller.launch(mockSource, mockTarget, true, undefined);
 
         // Verify compare was called automatically when runComparison is true
-        expect(compareStub).to.have.been.calledOnce;
-        expect(compareStub.firstCall.args[2].sourceEndpointInfo).to.deep.equal(mockSource);
-        expect(compareStub.firstCall.args[2].targetEndpointInfo).to.deep.equal(mockTarget);
+        expect(compareStub, "compare should be called once").to.have.been.calledOnce;
+        expect(
+            compareStub.firstCall.args[2].sourceEndpointInfo,
+            "source should match mockSource",
+        ).to.deep.equal(mockSource);
+        expect(
+            compareStub.firstCall.args[2].targetEndpointInfo,
+            "target should match mockTarget",
+        ).to.deep.equal(mockTarget);
     });
 
     // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
