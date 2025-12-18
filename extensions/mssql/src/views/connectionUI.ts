@@ -472,6 +472,7 @@ export class ConnectionUI {
                 return {
                     displayName,
                     value: g.id,
+                    color: g.color || undefined,
                 };
             })
             .sort((a, b) => a.displayName.localeCompare(b.displayName));

@@ -17,7 +17,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { CSSProperties, useEffect, useId, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { locConstants } from "./locConstants";
 
 export interface SearchableDropdownOptions {
@@ -92,6 +92,8 @@ export interface SearchableDropdownProps {
      * Sets the dropdown to be clearable. If true, a clear button will be shown to clear the selected option.
      */
     clearable?: boolean;
+
+    renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
 }
 
 /**
@@ -241,9 +243,25 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     style={{
                         display: "flex",
                         justifyContent: "space-between",
+                        alignItems: "center",
                     }}>
-                    <span>{getOptionDisplayText(option)}</span>
-                    <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
+                    <span
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}>
+                        {props.renderDecoration && props.renderDecoration(option)}
+                        <span>{getOptionDisplayText(option)}</span>
+                    </span>
+
+                    <span
+                        style={{
+                            display: "flex",
+                            gap: "4px",
+                            marginRight: "12px",
+                            alignItems: "center",
+                        }}>
                         {option.description && <Text>{option.description}</Text>}
                         {option.icon && FluentOptionIcons[option.icon]}
                     </span>
@@ -296,11 +314,15 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, [buttonRef.current]);
 
     useEffect(() => {
-        setSelectedOption(props.selectedOption ?? props.options[0]);
+        const fallbackOption = props.options[0] ?? {
+            value: "",
+        };
+
+        setSelectedOption(props.selectedOption ?? fallbackOption);
         setSelectedOptionIndex(
             props.options.findIndex((opt) => opt.value === props.selectedOption?.value),
         );
-    }, [props.selectedOption]);
+    }, [props.selectedOption, props.options]);
 
     return (
         <Menu
