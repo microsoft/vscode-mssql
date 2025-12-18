@@ -110,7 +110,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * The config source is inferred when not explicitly provided.
      */
     public async addConnection(profile: IConnectionProfile): Promise<void> {
-        this.populateMissingConnectionIds(profile);
+        this.populateMissingConnectionMetadata(profile);
 
         let profiles = this.getRawConnectionsFromSettings().filter(
             (conn) => conn.configSource === profile.configSource,
@@ -363,7 +363,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Populate missing connection ID and group ID for a connection profile.
      * @returns true if the profile was modified, false otherwise.
      */
-    public populateMissingConnectionIds(profile: IConnectionProfile): boolean {
+    public populateMissingConnectionMetadata(profile: IConnectionProfile): boolean {
         let modified = false;
 
         // ensure each profile is in a group
@@ -378,6 +378,12 @@ export class ConnectionConfig implements IConnectionConfig {
         // ensure each profile has an ID
         if (profile.id === undefined) {
             ConnectionProfile.addIdIfMissing(profile);
+            modified = true;
+        }
+
+        // ensure profile has a config source set
+        if (profile.configSource === undefined) {
+            profile.configSource = ConfigurationTarget.Global;
             modified = true;
         }
 
@@ -527,7 +533,7 @@ export class ConnectionConfig implements IConnectionConfig {
         );
 
         for (const profile of profiles) {
-            if (this.populateMissingConnectionIds(profile)) {
+            if (this.populateMissingConnectionMetadata(profile)) {
                 madeChanges = true;
                 this._logger.logDebug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,

@@ -1128,19 +1128,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
             }
 
-            // all properties are set when converting from a ConnectionDetails object,
-            // so we want to clean the default undefined properties before saving.
+            // Prep connection for saving
+            // 1. Clean properties that are set to keep the config JSON clean
             cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
 
+            // 2. Set the config source for serialization; use the group config source if not already set
+            if ((cleanedConnection as IConnectionProfile).configSource === undefined) {
+                const connectionGroup =
+                    this._mainController.connectionManager.connectionStore.connectionConfig.getGroupById(
+                        cleanedConnection.groupId,
+                    );
+                (cleanedConnection as IConnectionProfile).configSource =
+                    connectionGroup.configSource;
+            }
+
             async function saveConnectionAndCreateSession(
                 self: ConnectionDialogWebviewController,
             ): Promise<TreeNodeInfo> {
                 await self._mainController.connectionManager.connectionStore.saveProfile(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    cleanedConnection as any,
+                    cleanedConnection as IConnectionProfile,
                 );
                 const node =
                     await self._mainController.createObjectExplorerSession(cleanedConnection);
