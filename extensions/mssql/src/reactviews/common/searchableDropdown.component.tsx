@@ -102,9 +102,24 @@ export interface SearchableDropdownProps {
 /**
  * Icon Map for options in the searchable dropdown. Add more icons here if you need a specific icon
  */
-export const FluentOptionIcons: Record<string, JSX.Element> = {
+export const FluentOptionIcons: Record<string, React.JSX.Element> = {
     Warning20Regular: <FluentIcons.Warning20Regular />,
 };
+
+export function renderColorSwatch(color: string | undefined): React.JSX.Element | undefined {
+    return color ? (
+        <span
+            aria-hidden="true"
+            style={{
+                width: "12px",
+                height: "12px",
+                borderRadius: "2px",
+                backgroundColor: color,
+                border: `1px solid ${tokens.colorNeutralStroke2}`,
+            }}
+        />
+    ) : undefined;
+}
 
 const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: string): string => {
     const optionText = option.text || option.value;
@@ -384,7 +399,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             }}
                             className={
                                 getOptionDisplayText(selectedOption, props.placeholder) ===
-                                props.placeholder
+                                    props.placeholder
                                     ? "placeholder"
                                     : ""
                             }

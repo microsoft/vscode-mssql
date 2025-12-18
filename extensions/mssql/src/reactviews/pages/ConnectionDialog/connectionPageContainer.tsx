@@ -34,7 +34,10 @@ import { ConnectionStringDialog } from "./components/connectionStringDialog.comp
 import { locConstants } from "../../common/locConstants";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
-import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import {
+    renderColorSwatch,
+    SearchableDropdownOptions,
+} from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
 import { AzureIcon20, FabricIcon20 } from "../../common/icons/fluentIcons";
 import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
@@ -159,18 +162,7 @@ export const ConnectionInfoFormContainer = () => {
                             }
                         },
                         renderDecoration: (option: SearchableDropdownOptions) => {
-                            return option.color ? (
-                                <span
-                                    aria-hidden="true"
-                                    style={{
-                                        width: "12px",
-                                        height: "12px",
-                                        borderRadius: "2px",
-                                        backgroundColor: option.color,
-                                        border: `1px solid ${tokens.colorNeutralStroke2}`,
-                                    }}
-                                />
-                            ) : undefined;
+                            return renderColorSwatch(option.color);
                         },
                     }}
                 />
