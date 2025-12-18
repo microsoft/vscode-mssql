@@ -93,6 +93,9 @@ export interface SearchableDropdownProps {
      */
     clearable?: boolean;
 
+    /**
+     * Optional function to render a decoration element for each option.
+     */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
 }
 
@@ -243,7 +246,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center",
                     }}>
                     <span
                         style={{
@@ -255,13 +257,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         <span>{getOptionDisplayText(option)}</span>
                     </span>
 
-                    <span
-                        style={{
-                            display: "flex",
-                            gap: "4px",
-                            marginRight: "12px",
-                            alignItems: "center",
-                        }}>
+                    <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
                         {option.description && <Text>{option.description}</Text>}
                         {option.icon && FluentOptionIcons[option.icon]}
                     </span>
@@ -373,20 +369,29 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         justifyContent: "space-between",
                         fontWeight: 400,
                     }}>
-                    <Text
+                    <span
                         style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
                             overflow: "hidden",
-                            textOverflow: "ellipsis",
-                        }}
-                        className={
-                            getOptionDisplayText(selectedOption, props.placeholder) ===
-                            props.placeholder
-                                ? "placeholder"
-                                : ""
-                        }
-                        title={getOptionDisplayText(selectedOption, props.placeholder)}>
-                        {getOptionDisplayText(selectedOption, props.placeholder)}
-                    </Text>
+                        }}>
+                        {props.renderDecoration && props.renderDecoration(selectedOption)}
+                        <Text
+                            style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            }}
+                            className={
+                                getOptionDisplayText(selectedOption, props.placeholder) ===
+                                props.placeholder
+                                    ? "placeholder"
+                                    : ""
+                            }
+                            title={getOptionDisplayText(selectedOption, props.placeholder)}>
+                            {getOptionDisplayText(selectedOption, props.placeholder)}
+                        </Text>
+                    </span>
                 </Button>
             </MenuTrigger>
 
