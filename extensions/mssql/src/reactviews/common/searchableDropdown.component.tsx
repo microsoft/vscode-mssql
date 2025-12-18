@@ -399,7 +399,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             }}
                             className={
                                 getOptionDisplayText(selectedOption, props.placeholder) ===
-                                    props.placeholder
+                                props.placeholder
                                     ? "placeholder"
                                     : ""
                             }
