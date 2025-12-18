@@ -1030,6 +1030,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
+    test("resetEndpointsSwitched reducer - when called - sets endpointsSwitched to false", async () => {
+        // Setup initial state with endpointsSwitched set to true
+        const initialState = { ...mockInitialState };
+        initialState.endpointsSwitched = true;
+
+        const payload = {};
+
+        const actualResult = await controller["_reducerHandlers"].get("resetEndpointsSwitched")(
+            initialState,
+            payload,
+        );
+
+        expect(actualResult.endpointsSwitched, "endpointsSwitched should be set to false").to.equal(
+            false,
+        );
+    });
+
     test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
         const payload = {};
 

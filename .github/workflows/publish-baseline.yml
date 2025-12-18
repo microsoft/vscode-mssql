@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout main branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
 
@@ -83,7 +83,7 @@ jobs:
           cat baseline-sizes.json
 
       - name: Upload baseline sizes
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: baseline-sizes
           path: baseline-sizes.json

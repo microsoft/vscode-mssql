@@ -540,3 +540,13 @@
 #tableExplorerGrid .slick-row.deleted-row .slick-cell .action-icon.pointer {
     color: var(--vscode-foreground);
 }
+
+/* Cell range selection styles (for Excel copy buffer / Ctrl+drag selection) */
+#tableExplorerGrid .slick-cell.selected {
+    background-color: var(--vscode-editor-selectionBackground, rgba(0, 120, 215, 0.3)) !important;
+}
+
+#tableExplorerGrid .slick-cell.copied {
+    background-color: var(--vscode-editor-selectionBackground, rgba(0, 0, 255, 0.2)) !important;
+    transition: 0.5s background;
+}
