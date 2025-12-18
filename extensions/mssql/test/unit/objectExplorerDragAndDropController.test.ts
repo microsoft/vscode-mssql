@@ -108,6 +108,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Test Group",
                 parentId: ConnectionConfig.RootGroupId,
                 description: "Test group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock connection group node
@@ -204,6 +205,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Target Group",
                 parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target group node
@@ -254,6 +256,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Source Group",
                 parentId: "old-parent-id",
                 description: "Source group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target connection group
@@ -262,6 +265,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Target Group",
                 parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target group node
@@ -364,6 +368,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Test Group",
                 parentId: "old-parent-id",
                 description: "Test group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock group node (same group as source and target)
@@ -418,6 +423,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Target Group",
                 parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);
 
@@ -449,6 +455,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Target Group",
                 parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);
 

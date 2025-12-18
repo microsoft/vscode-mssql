@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ConfigSource, IConnectionProfile } from "../models/interfaces";
+import { IConnectionProfile } from "../models/interfaces";
 
 /**
  * Interface for a configuration file that stores connection profiles
@@ -12,7 +12,7 @@ import { ConfigSource, IConnectionProfile } from "../models/interfaces";
  * @interface IConnectionConfig
  */
 export interface IConnectionConfig {
-    addConnection(profile: IConnectionProfile, configSource?: ConfigSource): Promise<void>;
+    addConnection(profile: IConnectionProfile): Promise<void>;
     getConnections(getWorkspaceConnections: boolean): Promise<IConnectionProfile[]>;
     removeConnection(profile: IConnectionProfile): Promise<boolean>;
 }

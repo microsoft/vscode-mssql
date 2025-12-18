@@ -26,7 +26,6 @@ export class ConnectionConfig implements IConnectionConfig {
 
     /** Root group ID and name. */
     static readonly RootGroupId: string = "ROOT";
-    private _hasDisplayedMissingIdError: boolean = false;
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
 
@@ -57,53 +56,16 @@ export class ConnectionConfig implements IConnectionConfig {
      * are sorted first by whether they were found in the user/workspace settings,
      * and next alphabetically by profile/server name.
      */
-    public async getConnections(alsoGetFromWorkspace: boolean): Promise<IConnectionProfile[]> {
+    public async getConnections(_alsoGetFromWorkspace: boolean): Promise<IConnectionProfile[]> {
+        // TODO: remove alsoGetFromWorkspace param since we now always get from both locations
         await this.initialized;
 
-        let profiles: IConnectionProfile[] = [];
-
-        // Read from user settings
-        let userProfiles = this.getConnectionsFromSettings(ConfigurationTarget.Global);
-
-        userProfiles.sort(this.compareConnectionProfile);
-        profiles = profiles.concat(userProfiles);
-
-        if (alsoGetFromWorkspace) {
-            // Read from workspace settings
-            let workspaceProfiles = this.getConnectionsFromSettings(ConfigurationTarget.Workspace);
-
-            const missingIdConns: IConnectionProfile[] = [];
-
-            workspaceProfiles = workspaceProfiles.filter((profile) => {
-                if (!profile.id) {
-                    if (!this._hasDisplayedMissingIdError) {
-                        missingIdConns.push(profile);
-                    }
-
-                    return false;
-                }
-                return true;
-            });
-
-            if (missingIdConns.length > 0) {
-                // We don't currently auto-update connections in workspace/workspace folder config,
-                // so alert the user if any of those are missing their ID property that they need manual updating.
-
-                this._hasDisplayedMissingIdError = true;
-                this._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.Connection.missingConnectionIdsError(
-                        missingIdConns.map((c) => getConnectionDisplayName(c)),
-                    ),
-                );
-            }
-
-            workspaceProfiles.sort(this.compareConnectionProfile);
-            profiles = profiles.concat(workspaceProfiles);
-        }
+        let profiles: IConnectionProfile[] = this.getConnectionsFromSettings();
+        profiles.sort(this.compareConnectionProfile);
 
         if (profiles.length > 0) {
             profiles = profiles.filter((conn) => {
-                // filter any connection missing a connection string and server name or the sample that's shown by default
+                // filter out any connection missing a connection string and server name or the sample that's shown by default
                 if (
                     !(
                         conn.connectionString ||

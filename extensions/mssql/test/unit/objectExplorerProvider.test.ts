@@ -292,6 +292,7 @@ suite("Object Explorer Provider Tests", function () {
         const rootNode = new ConnectionGroupNode({
             id: ConnectionConfig.RootGroupId,
             name: ConnectionConfig.RootGroupId,
+            configSource: vscode.ConfigurationTarget.Global,
         });
         const connectionNode1 = new ConnectionNode(
             {
