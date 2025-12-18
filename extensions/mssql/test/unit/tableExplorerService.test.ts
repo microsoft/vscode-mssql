@@ -727,16 +727,17 @@ suite("TableExplorerService Tests", () => {
             const result = await tableExplorerService.serializeData(filePath, "csv", headers, rows);
 
             expect(result).to.equal(mockResult);
-            expect(result.succeeded).to.be.true;
-            expect(mockClient.sendRequest.calledOnce).to.be.true;
+            expect(result.succeeded, "Serialization should succeed").to.be.true;
+            expect(mockClient.sendRequest.calledOnce, "sendRequest should be called exactly once")
+                .to.be.true;
 
             const callArgs = mockClient.sendRequest.firstCall.args;
             const params = callArgs[1] as any;
             expect(callArgs[0]).to.equal(SerializeStartRequest.type);
             expect(params.saveFormat).to.equal("csv");
             expect(params.filePath).to.equal(filePath);
-            expect(params.isLastBatch).to.be.true;
-            expect(params.includeHeaders).to.be.true;
+            expect(params.isLastBatch, "isLastBatch should be true for single batch").to.be.true;
+            expect(params.includeHeaders, "includeHeaders should be true by default").to.be.true;
         });
 
         test("should successfully serialize data to JSON format", async () => {
@@ -756,7 +757,7 @@ suite("TableExplorerService Tests", () => {
                 rows,
             );
 
-            expect(result.succeeded).to.be.true;
+            expect(result.succeeded, "JSON serialization should succeed").to.be.true;
 
             const callArgs = mockClient.sendRequest.firstCall.args;
             expect((callArgs[1] as any).saveFormat).to.equal("json");
@@ -779,7 +780,7 @@ suite("TableExplorerService Tests", () => {
                 rows,
             );
 
-            expect(result.succeeded).to.be.true;
+            expect(result.succeeded, "Excel serialization should succeed").to.be.true;
 
             const callArgs = mockClient.sendRequest.firstCall.args;
             expect((callArgs[1] as any).saveFormat).to.equal("excel");
@@ -860,7 +861,7 @@ suite("TableExplorerService Tests", () => {
 
             const result = await tableExplorerService.serializeData(filePath, "csv", headers, rows);
 
-            expect(result.succeeded).to.be.false;
+            expect(result.succeeded, "Serialization should return failure status").to.be.false;
             expect(result.messages).to.equal("Failed to write file");
         });
 
@@ -875,7 +876,7 @@ suite("TableExplorerService Tests", () => {
                 expect.fail("Should have thrown an error");
             } catch (err) {
                 expect(err).to.equal(error);
-                expect(mockLogger.error.calledOnce).to.be.true;
+                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
                 expect(mockLogger.error.firstCall.args[0]).to.equal("Serialization failed");
             }
         });
@@ -892,7 +893,7 @@ suite("TableExplorerService Tests", () => {
 
             const result = await tableExplorerService.serializeData(filePath, "csv", headers, []);
 
-            expect(result.succeeded).to.be.true;
+            expect(result.succeeded, "Serialization should succeed with empty rows").to.be.true;
 
             const callArgs = mockClient.sendRequest.firstCall.args;
             expect((callArgs[1] as any).rows).to.have.lengthOf(0);
@@ -910,7 +911,7 @@ suite("TableExplorerService Tests", () => {
 
             const result = await tableExplorerService.serializeData(filePath, "csv", [], []);
 
-            expect(result.succeeded).to.be.true;
+            expect(result.succeeded, "Serialization should succeed with empty headers").to.be.true;
 
             const callArgs = mockClient.sendRequest.firstCall.args;
             expect((callArgs[1] as any).columns).to.have.lengthOf(0);
@@ -927,7 +928,7 @@ suite("TableExplorerService Tests", () => {
                 await tableExplorerService.initialize("uri", "table", "schema", "type", undefined);
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error.calledOnce).to.be.true;
+                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
                 expect(mockLogger.error.firstCall.args[0]).to.contain(errorMessage);
             }
         });
@@ -940,7 +941,7 @@ suite("TableExplorerService Tests", () => {
                 await tableExplorerService.commit("uri");
                 expect.fail("Should have thrown an error");
             } catch (err) {
-                expect(mockLogger.error.calledOnce).to.be.true;
+                expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
             }
         });
     });

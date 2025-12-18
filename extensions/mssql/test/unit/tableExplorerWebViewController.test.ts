@@ -7,7 +7,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { TableExplorerWebViewController } from "../../src/tableExplorer/tableExplorerWebViewController";
-import { ITableExplorerService } from "../../src/services/tableExplorerService";
+import { TableExplorerService } from "../../src/services/tableExplorerService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -31,7 +31,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: VscodeWrapper;
-    let mockTableExplorerService: sinon.SinonStubbedInstance<ITableExplorerService>;
+    let mockTableExplorerService: sinon.SinonStubbedInstance<TableExplorerService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockTargetNode: TreeNodeInfo;
     let controller: TableExplorerWebViewController;
@@ -131,22 +131,23 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
         // Setup mock services
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
-        mockTableExplorerService = {
-            initialize: sandbox.stub().resolves(),
-            subset: sandbox.stub().resolves(createMockSubsetResult()),
-            commit: sandbox.stub().resolves({}),
-            createRow: sandbox.stub().resolves(),
-            deleteRow: sandbox.stub().resolves({}),
-            updateCell: sandbox.stub().resolves(),
-            revertCell: sandbox.stub().resolves(),
-            revertRow: sandbox.stub().resolves(),
-            generateScripts: sandbox.stub().resolves(),
-            dispose: sandbox.stub().resolves({}),
-            serializeData: sandbox.stub().resolves({ succeeded: true, messages: "" }),
-            sqlToolsClient: {
-                onNotification: sandbox.stub(),
-            } as any,
-        } as any;
+        mockTableExplorerService = sandbox.createStubInstance(TableExplorerService);
+        mockTableExplorerService.initialize.resolves();
+        mockTableExplorerService.subset.resolves(createMockSubsetResult());
+        mockTableExplorerService.commit.resolves({});
+        mockTableExplorerService.createRow.resolves();
+        mockTableExplorerService.deleteRow.resolves({});
+        mockTableExplorerService.updateCell.resolves();
+        mockTableExplorerService.revertCell.resolves();
+        mockTableExplorerService.revertRow.resolves();
+        mockTableExplorerService.generateScripts.resolves();
+        mockTableExplorerService.dispose.resolves({});
+        mockTableExplorerService.serializeData.resolves({ succeeded: true, messages: "" });
+        // Setup sqlToolsClient property for notification handling
+        Object.defineProperty(mockTableExplorerService, "sqlToolsClient", {
+            value: { onNotification: sandbox.stub() },
+            writable: true,
+        });
 
         mockConnectionManager = {
             isConnected: sandbox.stub().returns(true),
