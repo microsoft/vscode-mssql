@@ -2172,6 +2172,10 @@
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
     },
+    "Backup Database - {0}/{0} is the database name": {
+        "message": "Backup Database - {0}",
+        "comment": ["{0} is the database name"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

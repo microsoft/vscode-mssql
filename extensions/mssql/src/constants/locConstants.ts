@@ -2409,4 +2409,18 @@ export class BackupDatabase {
             args: [databaseName],
             comment: ["{0} is the database name"],
         });
+    public static backupName = l10n.t("Backup Name");
+    public static recoveryModel = l10n.t("Recovery Model");
+    public static full = l10n.t("Full");
+    public static bulkLogged = l10n.t("Bulk-logged");
+    public static simple = l10n.t("Simple");
+    public static backupType = l10n.t("Backup Type");
+    public static differential = l10n.t("Differential");
+    public static transactionLog = l10n.t("Transaction Log");
+    public static copyOnly = l10n.t("Copy-only Backup");
+    public static saveToUrl = l10n.t("Save backup to URL");
+    public static backupCompression = l10n.t("Set backup Compression");
+    public static useDefault = l10n.t("Use the default server setting");
+    public static compressBackup = l10n.t("Compress backup");
+    public static doNotCompressBackup = l10n.t("Do not compress backup")
 }

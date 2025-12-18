@@ -7,7 +7,7 @@ import {
     BackupDatabaseProvider,
     BackupDatabaseReducers,
     BackupDatabaseState,
-} from "../../../sharedInterfaces/backupDatabase";
+} from "../../../sharedInterfaces/objectManagement";
 import { FormEvent } from "../../../sharedInterfaces/form";
 import { ReactNode, createContext, useMemo } from "react";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";

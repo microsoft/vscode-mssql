@@ -1,7 +1,7 @@
 import {
     BackupDatabaseReducers,
     BackupDatabaseState,
-} from "../../../sharedInterfaces/backupDatabase";
+} from "../../../sharedInterfaces/objectManagement";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useBackupDatabaseSelector<T>(
