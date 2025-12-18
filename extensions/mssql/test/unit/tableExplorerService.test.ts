@@ -20,6 +20,10 @@ import {
     EditUpdateCellRequest,
 } from "../../src/models/contracts/tableExplorer";
 import {
+    SerializeStartRequest,
+    SerializeDataResult,
+} from "../../src/models/contracts";
+import {
     EditCommitResult,
     EditCreateRowResult,
     EditDeleteRowResult,
@@ -702,6 +706,217 @@ suite("TableExplorerService Tests", () => {
                 expect(mockLogger.error.calledOnce).to.be.true;
                 expect(mockLogger.error.firstCall.args[0]).to.equal("Generate scripts failed");
             }
+        });
+    });
+
+    suite("serializeData", () => {
+        const filePath = "/path/to/export.csv";
+        const headers = ["id", "name", "email"];
+        const rows = [
+            ["1", "John Doe", "john@example.com"],
+            ["2", "Jane Smith", "jane@example.com"],
+        ];
+
+        test("should successfully serialize data to CSV format", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(filePath, "csv", headers, rows);
+
+            expect(result).to.equal(mockResult);
+            expect(result.succeeded).to.be.true;
+            expect(mockClient.sendRequest.calledOnce).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            const params = callArgs[1] as any;
+            expect(callArgs[0]).to.equal(SerializeStartRequest.type);
+            expect(params.saveFormat).to.equal("csv");
+            expect(params.filePath).to.equal(filePath);
+            expect(params.isLastBatch).to.be.true;
+            expect(params.includeHeaders).to.be.true;
+        });
+
+        test("should successfully serialize data to JSON format", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(
+                "/path/to/export.json",
+                "json",
+                headers,
+                rows,
+            );
+
+            expect(result.succeeded).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            expect((callArgs[1] as any).saveFormat).to.equal("json");
+        });
+
+        test("should successfully serialize data to Excel format", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(
+                "/path/to/export.xlsx",
+                "excel",
+                headers,
+                rows,
+            );
+
+            expect(result.succeeded).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            expect((callArgs[1] as any).saveFormat).to.equal("excel");
+        });
+
+        test("should convert headers to SerializeColumnInfo array", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            await tableExplorerService.serializeData(filePath, "csv", headers, rows);
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            const columns = (callArgs[1] as any).columns;
+
+            expect(columns).to.have.lengthOf(3);
+            expect(columns[0]).to.deep.equal({ name: "id", dataTypeName: "nvarchar" });
+            expect(columns[1]).to.deep.equal({ name: "name", dataTypeName: "nvarchar" });
+            expect(columns[2]).to.deep.equal({ name: "email", dataTypeName: "nvarchar" });
+        });
+
+        test("should convert string rows to SerializeDbCellValue format", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            await tableExplorerService.serializeData(filePath, "csv", headers, rows);
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            const dbRows = (callArgs[1] as any).rows;
+
+            expect(dbRows).to.have.lengthOf(2);
+            expect(dbRows[0]).to.have.lengthOf(3);
+            expect(dbRows[0][0]).to.deep.equal({ displayValue: "1", isNull: false });
+            expect(dbRows[0][1]).to.deep.equal({ displayValue: "John Doe", isNull: false });
+            expect(dbRows[1][2]).to.deep.equal({ displayValue: "jane@example.com", isNull: false });
+        });
+
+        test("should mark empty strings as null", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const rowsWithEmpty = [["1", "", "john@example.com"]];
+
+            await tableExplorerService.serializeData(filePath, "csv", headers, rowsWithEmpty);
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            const dbRows = (callArgs[1] as any).rows;
+
+            expect(dbRows[0][1]).to.deep.equal({ displayValue: "", isNull: true });
+        });
+
+        test("should handle serialization failure result", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: false,
+                messages: "Failed to write file",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(filePath, "csv", headers, rows);
+
+            expect(result.succeeded).to.be.false;
+            expect(result.messages).to.equal("Failed to write file");
+        });
+
+        test("should handle serializeData error and log it", async () => {
+            const error = new Error("Serialization failed");
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .rejects(error);
+
+            try {
+                await tableExplorerService.serializeData(filePath, "csv", headers, rows);
+                expect.fail("Should have thrown an error");
+            } catch (err) {
+                expect(err).to.equal(error);
+                expect(mockLogger.error.calledOnce).to.be.true;
+                expect(mockLogger.error.firstCall.args[0]).to.equal("Serialization failed");
+            }
+        });
+
+        test("should handle empty rows array", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(filePath, "csv", headers, []);
+
+            expect(result.succeeded).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            expect((callArgs[1] as any).rows).to.have.lengthOf(0);
+        });
+
+        test("should handle empty headers array", async () => {
+            const mockResult: SerializeDataResult = {
+                succeeded: true,
+                messages: "",
+            };
+
+            mockClient.sendRequest
+                .withArgs(SerializeStartRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.serializeData(filePath, "csv", [], []);
+
+            expect(result.succeeded).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            expect((callArgs[1] as any).columns).to.have.lengthOf(0);
         });
     });
 
