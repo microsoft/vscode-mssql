@@ -19,10 +19,7 @@ import {
     EditSubsetRequest,
     EditUpdateCellRequest,
 } from "../../src/models/contracts/tableExplorer";
-import {
-    SerializeStartRequest,
-    SerializeDataResult,
-} from "../../src/models/contracts";
+import { SerializeStartRequest, SerializeDataResult } from "../../src/models/contracts";
 import {
     EditCommitResult,
     EditCreateRowResult,
