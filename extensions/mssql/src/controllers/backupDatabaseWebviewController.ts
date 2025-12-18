@@ -6,15 +6,22 @@
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
 import {
+    BackupComponent,
+    BackupCompression,
     BackupDatabaseFormItemSpec,
     BackupDatabaseFormState,
     BackupDatabaseReducers,
     BackupDatabaseState,
+    BackupInfo,
+    BackupType,
+    ObjectManagementService,
+    PhysicalDeviceType,
 } from "../sharedInterfaces/objectManagement";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FormWebviewController } from "../forms/formWebviewController";
 import * as LocConstants from "../constants/locConstants";
+import { TaskExecutionMode } from "../sharedInterfaces/task";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -25,6 +32,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
+        private objectManagementService: ObjectManagementService,
         private databaseNode: TreeNodeInfo,
     ) {
         super(
@@ -50,6 +58,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     private async initialize() {
         this.state.databaseNode = {
             label: this.databaseNode.label.toString(),
+            nodeUri: this.databaseNode.sessionId,
             nodePath: this.databaseNode.nodePath,
             nodeStatus: this.databaseNode.nodeStatus,
         };
@@ -60,6 +69,46 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("getDatabase", async (state, _payload) => {
+            const backupName = `testBackup_${new Date().getTime()}`;
+            const backupPath = `/var/opt/mssql/data/${backupName}.bak`;
+            const backupPathDevices: Record<string, number> = {
+                [backupPath]: PhysicalDeviceType.Disk,
+            };
+            const testBackupInfo: BackupInfo = {
+                databaseName: this.databaseNode.label.toString(),
+                backupType: BackupType.Full,
+                backupComponent: BackupComponent.Database,
+                backupDeviceType: PhysicalDeviceType.Disk,
+                selectedFiles: undefined,
+                backupsetName: backupName,
+                selectedFileGroup: undefined,
+                backupPathDevices: backupPathDevices,
+                backupPathList: [backupPath],
+                isCopyOnly: false,
+                formatMedia: false,
+                initialize: false,
+                skipTapeHeader: false,
+                mediaName: "",
+                mediaDescription: "",
+                checksum: false,
+                continueAfterError: false,
+                logTruncation: false,
+                tailLogBackup: false,
+                backupSetDescription: "",
+                retainDays: 0,
+                expirationDate: undefined,
+                compressionOption: BackupCompression.Default,
+                verifyBackupRequired: false,
+                encryptionAlgorithm: 0,
+                encryptorType: undefined,
+                encryptorName: "",
+            };
+            const backupResult = await this.objectManagementService.backupDatabase(
+                state.databaseNode.nodeUri,
+                testBackupInfo,
+                TaskExecutionMode.execute,
+            );
+            console.log("Backup Result: ", JSON.stringify(backupResult));
             return state;
         });
     }

@@ -103,6 +103,7 @@ import { ChangelogWebviewController } from "./changelogWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
+import { ObjectManagementService } from "../services/objectManagementService";
 
 /**
  * The main controller class that initializes the extension
@@ -138,7 +139,7 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
-
+    public objectManagementService: ObjectManagementService;
     /**
      * The main controller constructor
      * @constructor
@@ -815,6 +816,8 @@ export default class MainController implements vscode.Disposable {
          * Good candidate for dependency injection.
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+        this.objectManagementService = new ObjectManagementService(SqlToolsServerClient.instance);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
@@ -1651,6 +1654,7 @@ export default class MainController implements vscode.Disposable {
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
+                            this.objectManagementService,
                             node,
                         );
                         reactPanel.revealToForeground();

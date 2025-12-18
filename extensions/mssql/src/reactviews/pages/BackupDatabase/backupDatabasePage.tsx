@@ -56,7 +56,16 @@ export const BackupDatabasePage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <div className={classes.spinnerDiv}>{state?.databaseNode?.label}</div>;
+                return (<div className={classes.spinnerDiv}>
+                    <label>{state?.databaseNode?.label}</label>
+                    <button
+                        onClick={() => {
+                            console.log("Button clicked for:", state?.databaseNode?.label);
+                            context.getDatabase()
+                            // You can replace this with any action you want
+                        }}>
+                    </button>
+                </div>);
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

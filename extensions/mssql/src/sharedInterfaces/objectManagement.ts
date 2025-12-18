@@ -192,6 +192,7 @@ export class BackupDatabaseState
 
 export interface BackupDatabaseNode {
     label: string;
+    nodeUri: string;
     nodePath: string;
     nodeStatus: string;
 }
@@ -254,15 +255,46 @@ export enum RecoveryModel {
 }
 
 export enum BackupType {
-    Full = "Full",
-    Differential = "Differential",
-    TransactionLog = "TransactionLog",
+    Full = 0,
+    Differential = 1,
+    TransactionLog = 2,
+}
+
+export enum BackupComponent {
+    Database = 0,
+    Files = 1,
+}
+
+/**
+ * Backup phisical device type: https://docs.microsoft.com/en-us/dotnet/api/microsoft.sqlserver.management.smo.backupdevicetype
+ */
+export enum PhysicalDeviceType {
+    Disk = 2,
+    FloppyA = 3,
+    FloppyB = 4,
+    Tape = 5,
+    Pipe = 6,
+    CDRom = 7,
+    Url = 9,
+    Unknown = 100,
+}
+
+/**
+ * Backup media device type: https://docs.microsoft.com/en-us/dotnet/api/microsoft.sqlserver.management.smo.devicetype
+ */
+export enum MediaDeviceType {
+    LogicalDevice = 0,
+    Tape = 1,
+    File = 2,
+    Pipe = 3,
+    VirtualDevice = 4,
+    Url = 5,
 }
 
 export enum BackupCompression {
-    Default = "Default",
-    Compress = "Compress",
-    NoCompression = "NoCompression",
+    Default = 0,
+    Compress = 1,
+    NoCompression = 2,
 }
 
 export enum ExistingMediaSetBackupMethod {
