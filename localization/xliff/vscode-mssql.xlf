@@ -2540,6 +2540,10 @@
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
+    <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
+      <source xml:lang="en">Multiple connection groups with ID &apos;{0}&apos; found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
+      <note>{0} is the root id</note>
+    </trans-unit>
     <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
       <source xml:lang="en">My Data</source>
     </trans-unit>
