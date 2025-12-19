@@ -783,46 +783,72 @@ export class ConnectionConfig implements IConnectionConfig {
      * Filters groups whose parent hierarchy is invalid and notifies the user once per session.
      */
     private filterInvalidGroups(groups: IConnectionGroup[]): IConnectionGroup[] {
+        const orderedGroups = [
+            ...groups.filter((group) => group.configSource === ConfigurationTarget.Global),
+            ...groups.filter((group) => group.configSource !== ConfigurationTarget.Global),
+        ];
+
+        const uniqueGroups = this.removeDuplicateGroupIds(orderedGroups);
+
+        return this.removeGroupsWithUnknownParents(uniqueGroups);
+    }
+
+    /**
+     * Removes groups whose parent ID does not refer to another known group.
+     * Emits a warning once per session if any invalid parents are found.
+     */
+    private removeGroupsWithUnknownParents(groups: IConnectionGroup[]): IConnectionGroup[] {
         const knownGroupIds = new Set<string>([ConnectionConfig.ROOT_GROUP_ID]);
-        const filteredGroups: IConnectionGroup[] = [];
-        let pendingGroups = [...groups];
-        let madeProgress = true;
-
-        while (madeProgress && pendingGroups.length > 0) {
-            const nextPending: IConnectionGroup[] = [];
-            madeProgress = false;
-
-            for (const group of pendingGroups) {
-                const parentId =
-                    group.id === ConnectionConfig.ROOT_GROUP_ID
-                        ? ConnectionConfig.ROOT_GROUP_ID
-                        : group.parentId;
-
-                if (parentId && knownGroupIds.has(parentId)) {
-                    filteredGroups.push(group);
-                    if (group.id) {
-                        knownGroupIds.add(group.id);
-                    }
-                    madeProgress = true;
-                } else {
-                    nextPending.push(group);
-                }
-            }
-
-            pendingGroups = nextPending;
+        for (const group of groups) {
+            knownGroupIds.add(group.id);
         }
 
-        if (pendingGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
+        const invalidGroups: IConnectionGroup[] = [];
+        const groupsToKeep: IConnectionGroup[] = [];
+
+        for (const group of groups) {
+            const parentId =
+                group.id === ConnectionConfig.ROOT_GROUP_ID
+                    ? ConnectionConfig.ROOT_GROUP_ID
+                    : group.parentId;
+
+            if (parentId && knownGroupIds.has(parentId)) {
+                groupsToKeep.push(group);
+            } else {
+                invalidGroups.push(group);
+            }
+        }
+
+        if (invalidGroups.length > 0 && !this._hasDisplayedGroupParentWarning) {
             this._hasDisplayedGroupParentWarning = true;
             const orphanedGroupsMessage =
                 LocalizedConstants.Connection.orphanedConnectionGroupsWarning(
-                    pendingGroups.map((group) => group.name).join(", "),
+                    invalidGroups.map((group) => group.name).join(", "),
                 );
 
             void this._vscodeWrapper.showWarningMessage(orphanedGroupsMessage);
         }
 
-        return filteredGroups;
+        return groupsToKeep;
+    }
+
+    /**
+     * Removes groups with duplicate IDs, preserving the first occurrence.
+     */
+    private removeDuplicateGroupIds(groups: IConnectionGroup[]): IConnectionGroup[] {
+        const seenIds = new Set<string>();
+        const groupsToKeep: IConnectionGroup[] = [];
+
+        for (const group of groups) {
+            if (seenIds.has(group.id)) {
+                continue;
+            }
+
+            seenIds.add(group.id);
+            groupsToKeep.push(group);
+        }
+
+        return groupsToKeep;
     }
 
     /**

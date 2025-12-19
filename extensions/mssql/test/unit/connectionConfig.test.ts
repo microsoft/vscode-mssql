@@ -831,7 +831,7 @@ suite("ConnectionConfig Tests", () => {
                 expect(workspaceGroups[0].name).to.equal("Workspace Child");
             });
 
-            test("getConnectionsFromSettings ignores duplicate entries within a store", async () => {
+            test("getConnections ignores duplicate entries within a store", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
                     {
                         name: "Workspace Group",
@@ -842,28 +842,27 @@ suite("ConnectionConfig Tests", () => {
 
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
                     {
-                        id: "dup-conn",
+                        id: "dupicate-id",
                         groupId: "workspace-group",
                         server: "workspace",
                         authenticationType: "Integrated",
-                        profileName: "Workspace Conn",
+                        profileName: "Workspace Conn One",
                     } as IConnectionProfile,
                     {
-                        id: "dup-conn",
+                        id: "dupicate-id",
                         groupId: "workspace-group",
                         server: "workspace",
                         authenticationType: "Integrated",
-                        profileName: "Workspace Conn",
+                        profileName: "Workspace Conn Two",
                     } as IConnectionProfile,
                 ]);
 
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
                 await connConfig.initialized;
 
-                const workspaceConnections = connConfig.getConnectionsFromSettings(
-                    ConfigurationTarget.Workspace,
-                );
-                expect(workspaceConnections).to.have.lengthOf(1);
+                let connections = await connConfig.getConnections();
+                connections = connections.filter((c) => c.id === "dupicate-id");
+                expect(connections).to.have.lengthOf(1);
             });
         });
     });
