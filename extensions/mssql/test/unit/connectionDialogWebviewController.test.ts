@@ -125,7 +125,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
-            { id: ConnectionConfig.RootGroupId, name: ConnectionConfig.RootGroupId },
+            {
+                id: ConnectionConfig.RootGroupId,
+                name: ConnectionConfig.RootGroupId,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
         ]);
 
         azureAccountService.getAccounts.resolves([

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { ConfigurationTarget } from "vscode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as sinon from "sinon";
@@ -21,6 +22,7 @@ chai.use(sinonChai);
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let showWarningStub: sinon.SinonStub;
 
     const rootGroupId = ConnectionConfig.RootGroupId;
 
@@ -66,13 +68,19 @@ suite("ConnectionConfig Tests", () => {
             section === Constants.extensionName ? workspaceConfiguration : undefined,
         );
 
-        mockVscodeWrapper.setConfiguration.callsFake(async (_section, key, value) => {
-            mockGlobalConfigData.set(key, deepClone(value));
+        mockVscodeWrapper.setConfiguration.callsFake(async (_section, key, value, target) => {
+            const targetStore =
+                target === ConfigurationTarget.Workspace ||
+                target === ConfigurationTarget.WorkspaceFolder
+                    ? mockWorkspaceConfigData
+                    : mockGlobalConfigData;
+            targetStore.set(key, deepClone(value));
         });
 
         sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => undefined);
 
         mockVscodeWrapper.showErrorMessage.resolves(undefined);
+        showWarningStub = mockVscodeWrapper.showWarningMessage.resolves(undefined);
     });
 
     teardown(() => {
@@ -206,6 +214,24 @@ suite("ConnectionConfig Tests", () => {
             expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
         });
     });
+
+    function getStoredConnections(
+        target: ConfigurationTarget = ConfigurationTarget.Global,
+    ): IConnectionProfile[] {
+        const store =
+            target === ConfigurationTarget.Workspace
+                ? mockWorkspaceConfigData
+                : mockGlobalConfigData;
+        return deepClone(store.get(Constants.connectionsArrayName) || []);
+    }
+
+    function getStoredGroups(target: ConfigurationTarget = ConfigurationTarget.Global) {
+        const store =
+            target === ConfigurationTarget.Workspace
+                ? mockWorkspaceConfigData
+                : mockGlobalConfigData;
+        return deepClone(store.get(Constants.connectionGroupsArrayName) || []);
+    }
 
     suite("Functions", () => {
         setup(() => {
@@ -414,6 +440,7 @@ suite("ConnectionConfig Tests", () => {
                     name: "Test Group",
                     id: undefined, // This should get populated
                     parentId: rootGroupId,
+                    configSource: ConfigurationTarget.Global,
                 };
 
                 await connConfig.addGroup(newGroup);
@@ -620,6 +647,203 @@ suite("ConnectionConfig Tests", () => {
                 const group = await connConfig.getGroupById("non-existent-id");
 
                 expect(group).to.be.undefined;
+            });
+
+            test("getGroups ignores duplicate workspace group entries", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
+                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const groups = await connConfig.getGroups();
+                const duplicateGroups = groups.filter((g) => g.id === "duplicate-id");
+
+                expect(duplicateGroups).to.have.lengthOf(1);
+            });
+        });
+
+        suite("Config sources", () => {
+            test("getConnectionsFromSettings tags configSource for each store", async () => {
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "global-conn",
+                        groupId: rootGroupId,
+                        server: "global",
+                        authenticationType: "Integrated",
+                        profileName: "Global Conn",
+                    } as IConnectionProfile,
+                ]);
+
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "Workspace Group", id: "workspace-group", parentId: rootGroupId },
+                ]);
+
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "workspace-conn",
+                        groupId: "workspace-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Workspace Conn",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const allConnections = connConfig.getConnectionsFromSettings();
+                const globalConn = allConnections.find((c) => c.id === "global-conn");
+                const workspaceConn = allConnections.find((c) => c.id === "workspace-conn");
+
+                expect(globalConn?.configSource).to.equal(ConfigurationTarget.Global);
+                expect(workspaceConn?.configSource).to.equal(ConfigurationTarget.Workspace);
+
+                const workspaceOnly = connConfig.getConnectionsFromSettings(
+                    ConfigurationTarget.Workspace,
+                );
+                expect(workspaceOnly).to.have.lengthOf(1);
+                expect(workspaceOnly[0].id).to.equal("workspace-conn");
+            });
+
+            test("getConnectionsFromSettings filters orphaned connections once", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "orphan",
+                        groupId: "missing-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Needs Help",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const connections = connConfig.getConnectionsFromSettings();
+                expect(connections).to.have.lengthOf(0);
+                expect(showWarningStub).to.have.been.calledOnce;
+            });
+
+            test("addConnection respects configSource parameter and strips configSource before persisting", async () => {
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const globalProfile = {
+                    id: "global-profile",
+                    groupId: rootGroupId,
+                    server: "global",
+                    authenticationType: "Integrated",
+                    profileName: "Global Profile",
+                    configSource: ConfigurationTarget.Global,
+                } as IConnectionProfile;
+
+                const workspaceProfile = {
+                    id: "workspace-profile",
+                    groupId: rootGroupId,
+                    server: "workspace",
+                    authenticationType: "Integrated",
+                    profileName: "Workspace Profile",
+                    configSource: ConfigurationTarget.Workspace,
+                } as IConnectionProfile;
+
+                await connConfig.addConnection(globalProfile);
+                await connConfig.addConnection(workspaceProfile);
+
+                const savedGlobal = getStoredConnections(ConfigurationTarget.Global);
+                const savedWorkspace = getStoredConnections(ConfigurationTarget.Workspace);
+
+                expect(savedGlobal).to.have.lengthOf(1);
+                expect(savedGlobal[0].id).to.equal("global-profile");
+                expect(savedGlobal[0]).to.not.have.property("configSource");
+
+                expect(savedWorkspace).to.have.lengthOf(1);
+                expect(savedWorkspace[0].id).to.equal("workspace-profile");
+                expect(savedWorkspace[0]).to.not.have.property("configSource");
+            });
+
+            test("updateConnection infers configSource using the existing ID", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "existing",
+                        groupId: rootGroupId,
+                        server: "old",
+                        authenticationType: "Integrated",
+                        profileName: "Old Name",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const updatedProfile: IConnectionProfile = {
+                    id: "existing",
+                    groupId: rootGroupId,
+                    server: "new",
+                    authenticationType: "Integrated",
+                    profileName: "Updated Name",
+                } as IConnectionProfile;
+
+                await connConfig.updateConnection(updatedProfile);
+
+                const workspaceConnections = getStoredConnections(ConfigurationTarget.Workspace);
+                const globalConnections = getStoredConnections(ConfigurationTarget.Global);
+
+                expect(workspaceConnections).to.have.lengthOf(1);
+                expect(workspaceConnections[0].profileName).to.equal("Updated Name");
+                expect(globalConnections).to.have.lengthOf(0);
+            });
+
+            test("addGroup writes to requested config source and strips configSource", async () => {
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const newGroup: IConnectionGroup = {
+                    id: undefined,
+                    name: "Workspace Child",
+                    parentId: rootGroupId,
+                    configSource: ConfigurationTarget.Workspace,
+                };
+
+                await connConfig.addGroup(newGroup);
+
+                const workspaceGroups = getStoredGroups(ConfigurationTarget.Workspace);
+                expect(workspaceGroups).to.have.lengthOf(1);
+                expect(workspaceGroups[0]).to.not.have.property("configSource");
+                expect(workspaceGroups[0].name).to.equal("Workspace Child");
+            });
+
+            test("getConnectionsFromSettings ignores duplicate entries within a store", async () => {
+                mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "Workspace Group", id: "workspace-group", parentId: rootGroupId },
+                ]);
+
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "dup-conn",
+                        groupId: "workspace-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Workspace Conn",
+                    } as IConnectionProfile,
+                    {
+                        id: "dup-conn",
+                        groupId: "workspace-group",
+                        server: "workspace",
+                        authenticationType: "Integrated",
+                        profileName: "Workspace Conn",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper);
+                await connConfig.initialized;
+
+                const workspaceConnections = connConfig.getConnectionsFromSettings(
+                    ConfigurationTarget.Workspace,
+                );
+                expect(workspaceConnections).to.have.lengthOf(1);
             });
         });
     });

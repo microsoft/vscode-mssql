@@ -2476,6 +2476,7 @@ function createMockRootConnectionGroup(): IConnectionGroup {
     return {
         id: ConnectionConfig.RootGroupId,
         name: ConnectionConfig.RootGroupId,
+        configSource: vscode.ConfigurationTarget.Global,
     };
 }
 
@@ -2490,6 +2491,7 @@ function createMockConnectionGroups(
             name: `Group ${i}`,
             parentId: parentId,
             description: `Test group ${i}`,
+            configSource: vscode.ConfigurationTarget.Global,
         });
     }
     return groups;
@@ -2503,6 +2505,7 @@ function setUpOETreeRoot(
     const rootNode = new ConnectionGroupNode({
         id: ConnectionConfig.RootGroupId,
         name: ConnectionConfig.RootGroupId,
+        configSource: vscode.ConfigurationTarget.Global,
     });
 
     (objectExplorerService as any)._connectionGroupNodes = new Map<string, ConnectionGroupNode>([
