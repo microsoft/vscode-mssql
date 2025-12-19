@@ -20,7 +20,7 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import { Field, Link, makeStyles, Radio, RadioGroup, tokens } from "@fluentui/react-components";
+import { Field, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
