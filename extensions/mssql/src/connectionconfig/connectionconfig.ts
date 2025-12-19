@@ -28,7 +28,6 @@ export class ConnectionConfig implements IConnectionConfig {
     static readonly RootGroupId: string = "ROOT";
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
-    private _hasDisplayedMissingIdError: boolean = false;
 
     /**
      * Constructor
