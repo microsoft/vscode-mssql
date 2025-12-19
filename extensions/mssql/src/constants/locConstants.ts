@@ -1581,6 +1581,15 @@ export class Connection {
         });
     };
 
+    public static multipleRootGroupsFoundError = (rootId: string) => {
+        return l10n.t({
+            message:
+                "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+            args: [rootId],
+            comment: ["{0} is the root id"],
+        });
+    };
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:

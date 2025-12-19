@@ -74,10 +74,6 @@ suite("OE Service Tests", () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
 
-            sandbox
-                .stub(mockConnectionStore, "rootGroupId")
-                .get(() => ConnectionConfig.RootGroupId);
-
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
 
@@ -115,7 +111,7 @@ suite("OE Service Tests", () => {
                     user: "",
                     password: "",
                     savePassword: false,
-                    groupId: ConnectionConfig.RootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionProfileWithSource,
                 {
                     id: "conn2",
@@ -125,7 +121,7 @@ suite("OE Service Tests", () => {
                     user: "",
                     password: "",
                     savePassword: false,
-                    groupId: ConnectionConfig.RootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionProfileWithSource,
             ];
 
@@ -934,10 +930,6 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
 
-            sandbox
-                .stub(mockConnectionStore, "rootGroupId")
-                .get(() => ConnectionConfig.RootGroupId);
-
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
@@ -1200,9 +1192,6 @@ suite("OE Service Tests", () => {
 
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.readAllConnections.resolves([]);
-            sandbox
-                .stub(mockConnectionStore, "rootGroupId")
-                .get(() => ConnectionConfig.RootGroupId);
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.client = mockClient;
@@ -1899,10 +1888,6 @@ suite("OE Service Tests", () => {
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
 
-            sandbox
-                .stub(mockConnectionStore, "rootGroupId")
-                .get(() => ConnectionConfig.RootGroupId);
-
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
             startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
@@ -2145,7 +2130,7 @@ suite("OE Service Tests", () => {
             ).to.equal(2);
 
             // Verify root's children
-            const rootNode = connectionGroupNodes.get(ConnectionConfig.RootGroupId);
+            const rootNode = connectionGroupNodes.get(ConnectionConfig.ROOT_GROUP_ID);
             expect(rootNode.children.length, "Root should have 2 children").to.equal(2);
             expect(rootNode.children).to.include(topLevelGroupNode);
 
@@ -2172,7 +2157,7 @@ suite("OE Service Tests", () => {
                 "Top-level connection ID should match",
             ).to.equal(rootConnections[0].id);
             expect(topLevelConnection.connectionProfile.groupId, "Group ID should match").to.equal(
-                ConnectionConfig.RootGroupId,
+                ConnectionConfig.ROOT_GROUP_ID,
             );
 
             expect(topLevelConnection.parentNode).to.be.undefined;
@@ -2211,9 +2196,7 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
-            sandbox
-                .stub(mockConnectionStore, "rootGroupId")
-                .get(() => ConnectionConfig.RootGroupId);
+
             mockConnectionManager.client = mockClient;
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
@@ -2282,7 +2265,7 @@ suite("OE Service Tests", () => {
                     user: "",
                     password: "",
                     savePassword: false,
-                    groupId: ConnectionConfig.RootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionProfileWithSource,
                 {
                     id: "conn2",
@@ -2292,7 +2275,7 @@ suite("OE Service Tests", () => {
                     user: "",
                     password: "",
                     savePassword: false,
-                    groupId: ConnectionConfig.RootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionProfileWithSource,
             ];
 
@@ -2318,7 +2301,7 @@ suite("OE Service Tests", () => {
                 user: "",
                 password: "",
                 savePassword: false,
-                groupId: ConnectionConfig.RootGroupId,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             } as IConnectionProfileWithSource;
             const resultNonExistent = (objectExplorerService as any).getConnectionNodeFromProfile(
                 nonExistentProfile,
@@ -2334,7 +2317,7 @@ suite("OE Service Tests", () => {
                 server: "server1",
                 database: "db1",
                 authenticationType: "Integrated",
-                groupId: ConnectionConfig.RootGroupId,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             } as IConnectionProfile;
             setUpOETreeRoot(objectExplorerService, [mockProfile]);
 
@@ -2453,7 +2436,7 @@ suite("OE Service Tests", () => {
 
 function createMockConnectionProfiles(
     count: number,
-    groupId: string = ConnectionConfig.RootGroupId,
+    groupId: string = ConnectionConfig.ROOT_GROUP_ID,
 ): IConnectionProfileWithSource[] {
     const profiles: IConnectionProfileWithSource[] = [];
     for (let i = 0; i < count; i++) {
@@ -2474,15 +2457,15 @@ function createMockConnectionProfiles(
 
 function createMockRootConnectionGroup(): IConnectionGroup {
     return {
-        id: ConnectionConfig.RootGroupId,
-        name: ConnectionConfig.RootGroupId,
+        id: ConnectionConfig.ROOT_GROUP_ID,
+        name: ConnectionConfig.ROOT_GROUP_ID,
         configSource: vscode.ConfigurationTarget.Global,
     };
 }
 
 function createMockConnectionGroups(
     count: number,
-    parentId: string = ConnectionConfig.RootGroupId,
+    parentId: string = ConnectionConfig.ROOT_GROUP_ID,
 ): IConnectionGroup[] {
     const groups: IConnectionGroup[] = [];
     for (let i = 0; i < count; i++) {
@@ -2503,8 +2486,8 @@ function setUpOETreeRoot(
     groups: IConnectionGroup[] = [],
 ) {
     const rootNode = new ConnectionGroupNode({
-        id: ConnectionConfig.RootGroupId,
-        name: ConnectionConfig.RootGroupId,
+        id: ConnectionConfig.ROOT_GROUP_ID,
+        name: ConnectionConfig.ROOT_GROUP_ID,
         configSource: vscode.ConfigurationTarget.Global,
     });
 
@@ -2571,7 +2554,7 @@ function createMockConnectionProfile(
         savePassword: true,
         accountId: options.accountId,
         tenantId: options.tenantId,
-        groupId: ConnectionConfig.RootGroupId,
+        groupId: ConnectionConfig.ROOT_GROUP_ID,
     } as IConnectionProfile;
 }
 

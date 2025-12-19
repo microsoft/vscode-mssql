@@ -740,11 +740,6 @@ export class ConnectionStore {
         return ConnectionMatcher.findMatchingProfile(connProfile, savedConnections);
     }
 
-    /** Gets the groupId for connections  */
-    public get rootGroupId(): string {
-        return this.connectionConfig.getRootGroup().id;
-    }
-
     public async getConnectionQuickpickItems(
         includeRecentConnections: boolean = false,
     ): Promise<IConnectionCredentialsQuickPickItem[]> {

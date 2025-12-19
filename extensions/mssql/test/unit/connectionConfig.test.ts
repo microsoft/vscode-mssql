@@ -24,8 +24,6 @@ suite("ConnectionConfig Tests", () => {
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let showWarningStub: sinon.SinonStub;
 
-    const rootGroupId = ConnectionConfig.RootGroupId;
-
     /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
     let mockWorkspaceConfigData: Map<string, any> = new Map();
@@ -98,7 +96,7 @@ suite("ConnectionConfig Tests", () => {
 
             expect(savedGroups).to.have.lengthOf(1);
             expect(savedGroups[0].name).to.equal("ROOT");
-            expect(savedGroups[0].id).to.equal(ConnectionConfig.RootGroupId);
+            expect(savedGroups[0].id).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
         test("Initialization migrates legacy ROOT ID and reassigns children", async () => {
@@ -127,19 +125,19 @@ suite("ConnectionConfig Tests", () => {
             const rootGroup = savedGroups.find((g) => g.name === "ROOT");
             const childGroup = savedGroups.find((g) => g.name === "Child Group");
 
-            expect(rootGroup?.id).to.equal(ConnectionConfig.RootGroupId);
+            expect(rootGroup?.id).to.equal(ConnectionConfig.ROOT_GROUP_ID);
             expect(savedGroups.find((g) => g.id === legacyRootId)).to.be.undefined;
-            expect(childGroup?.parentId).to.equal(ConnectionConfig.RootGroupId);
+            expect(childGroup?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
 
             const savedConnections = mockGlobalConfigData.get(
                 Constants.connectionsArrayName,
             ) as IConnectionProfile[];
-            expect(savedConnections[0].groupId).to.equal(ConnectionConfig.RootGroupId);
+            expect(savedConnections[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
         test("Initialization adds IDs to groups without IDs", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                { name: "ROOT", id: rootGroupId },
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
                 { name: "Group without ID" } as IConnectionGroup, // Missing ID
             ]);
 
@@ -154,12 +152,12 @@ suite("ConnectionConfig Tests", () => {
             const nonRootGroup = savedGroups.find((g) => g.name === "Group without ID");
             expect(nonRootGroup).to.not.be.undefined;
             expect(nonRootGroup?.id).to.not.be.undefined;
-            expect(nonRootGroup?.parentId).to.equal(rootGroupId);
+            expect(nonRootGroup?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
         test("Initialization adds missing IDs to connection profiles", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                { name: "ROOT", id: rootGroupId },
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
             ]);
 
             // Start with a profile missing both ID and groupId
@@ -184,18 +182,18 @@ suite("ConnectionConfig Tests", () => {
             ) as IConnectionProfile[];
             expect(savedProfiles).to.have.lengthOf(1);
             expect(savedProfiles[0].id).to.not.be.undefined;
-            expect(savedProfiles[0].groupId).to.equal(rootGroupId);
+            expect(savedProfiles[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
         test("Initialization doesn't make changes when all IDs are present", async () => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                { name: "ROOT", id: rootGroupId },
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
             ]);
 
             mockGlobalConfigData.set(Constants.connectionsArrayName, [
                 {
                     id: "profile-id",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "test-server",
                     database: "test-db",
                     authenticationType: "SqlLogin",
@@ -236,7 +234,7 @@ suite("ConnectionConfig Tests", () => {
     suite("Functions", () => {
         setup(() => {
             mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                { name: "ROOT", id: rootGroupId },
+                { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
             ]);
         });
 
@@ -267,7 +265,7 @@ suite("ConnectionConfig Tests", () => {
 
                 expect(savedProfiles).to.have.lengthOf(1);
                 expect(savedProfiles[0].id).to.not.be.undefined;
-                expect(savedProfiles[0].groupId).to.equal(rootGroupId);
+                expect(savedProfiles[0].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
                 expect(savedProfiles[0].server).to.equal("new-server");
                 expect(savedProfiles[0].database).to.equal("new-db");
             });
@@ -275,7 +273,7 @@ suite("ConnectionConfig Tests", () => {
             test("removeConnection removes an existing connection from profiles", async () => {
                 const testConnProfile = {
                     id: "profile-id",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "TestServer",
                     authenticationType: "Integrated",
                     profileName: "Test Profile",
@@ -297,7 +295,7 @@ suite("ConnectionConfig Tests", () => {
             test("removeConnection does not write config if asked to remove a connection that doesn't exist", async () => {
                 const testConnProfile = {
                     id: "profile-id",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "TestServer",
                     authenticationType: "Integrated",
                     profileName: "Test Profile",
@@ -307,7 +305,7 @@ suite("ConnectionConfig Tests", () => {
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [
                     {
                         id: "different-profile-id",
-                        groupId: rootGroupId,
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "DifferentServer",
                         authenticationType: "Integrated",
                         profileName: "Different Profile",
@@ -336,14 +334,14 @@ suite("ConnectionConfig Tests", () => {
                 const testConnProfiles = [
                     {
                         id: undefined, // missing ID won't get automatically populated for workspace connections
-                        groupId: rootGroupId,
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "TestServer",
                         authenticationType: "Integrated",
                         profileName: "Test Profile One",
                     } as IConnectionProfile,
                     {
                         id: undefined, // missing ID won't get automatically populated for workspace connections
-                        groupId: rootGroupId,
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "TestServer",
                         authenticationType: "Integrated",
                         profileName: "Test Profile Two",
@@ -377,7 +375,7 @@ suite("ConnectionConfig Tests", () => {
             test("getConnections filters out connections that are missing a server", async () => {
                 const testConnProfile = {
                     id: "profile-id",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "", // missing server should result in this connection being ignored
                     authenticationType: "Integrated",
                     profileName: "Test Profile",
@@ -404,7 +402,7 @@ suite("ConnectionConfig Tests", () => {
             test("updateConnection updates an existing connection profile", async () => {
                 const testConnProfile = {
                     id: "profile-id",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "TestServer",
                     authenticationType: "Integrated",
                     profileName: "Test Profile",
@@ -439,7 +437,7 @@ suite("ConnectionConfig Tests", () => {
                 const newGroup: IConnectionGroup = {
                     name: "Test Group",
                     id: undefined, // This should get populated
-                    parentId: rootGroupId,
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
                     configSource: ConfigurationTarget.Global,
                 };
 
@@ -452,18 +450,18 @@ suite("ConnectionConfig Tests", () => {
                 const addedGroup = savedGroups.find((g) => g.name === "Test Group");
                 expect(addedGroup).to.not.be.undefined;
                 expect(addedGroup?.id).to.not.be.undefined;
-                expect(addedGroup?.parentId).to.equal(rootGroupId);
+                expect(addedGroup?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
             });
 
             test("removeGroup removes an existing group", async () => {
                 const testGroup = {
                     name: "Test Group",
                     id: "test-group-id",
-                    parentId: rootGroupId,
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
                 };
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "ROOT", id: rootGroupId },
+                    { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
                     testGroup,
                 ]);
 
@@ -482,12 +480,16 @@ suite("ConnectionConfig Tests", () => {
 
             test("removeGroup with delete option removes child groups and their connections recursively", async () => {
                 // Set up test groups: Group A with children B and C
-                const groupA = { name: "Group A", id: "group-a", parentId: rootGroupId };
+                const groupA = {
+                    name: "Group A",
+                    id: "group-a",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                };
                 const groupB = { name: "Group B", id: "group-b", parentId: "group-a" };
                 const groupC = { name: "Group C", id: "group-c", parentId: "group-a" };
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "ROOT", id: rootGroupId },
+                    { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
                     groupA,
                     groupB,
                     groupC,
@@ -525,7 +527,7 @@ suite("ConnectionConfig Tests", () => {
                     Constants.connectionGroupsArrayName,
                 ) as IConnectionGroup[];
                 expect(savedGroups).to.have.lengthOf(1, "Only ROOT group should remain");
-                expect(savedGroups[0].id).to.equal(rootGroupId);
+                expect(savedGroups[0].id).to.equal(ConnectionConfig.ROOT_GROUP_ID);
 
                 // Verify connections were removed
                 const savedConnections = mockGlobalConfigData.get(
@@ -536,12 +538,16 @@ suite("ConnectionConfig Tests", () => {
 
             test("removeGroup with move option moves immediate children to root and removes subgroups", async () => {
                 // Set up test groups: Group A with children B and C
-                const groupA = { name: "Group A", id: "group-a", parentId: rootGroupId };
+                const groupA = {
+                    name: "Group A",
+                    id: "group-a",
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
+                };
                 const groupB = { name: "Group B", id: "group-b", parentId: "group-a" };
                 const groupC = { name: "Group C", id: "group-c", parentId: "group-a" };
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "ROOT", id: rootGroupId },
+                    { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
                     groupA,
                     groupB,
                     groupC,
@@ -584,11 +590,11 @@ suite("ConnectionConfig Tests", () => {
                 const groupB_Saved = savedGroups.find((g) => g.id === groupB.id);
                 const groupC_Saved = savedGroups.find((g) => g.id === groupC.id);
                 expect(groupB_Saved.parentId).to.equal(
-                    rootGroupId,
+                    ConnectionConfig.ROOT_GROUP_ID,
                     "Group B should be moved to root",
                 );
                 expect(groupC_Saved.parentId).to.equal(
-                    rootGroupId,
+                    ConnectionConfig.ROOT_GROUP_ID,
                     "Group C should be moved to root",
                 );
 
@@ -599,16 +605,16 @@ suite("ConnectionConfig Tests", () => {
                 const conn1_Saved = savedConnections.find((c) => c.id === conn1.id);
                 expect(conn1_Saved).to.not.be.undefined;
                 expect(conn1_Saved.groupId).to.equal(
-                    rootGroupId,
+                    ConnectionConfig.ROOT_GROUP_ID,
                     "Connection 1 should be moved to root",
                 );
             });
 
             test("getGroups returns all connection groups", async () => {
                 const testGroups = [
-                    { name: "ROOT", id: rootGroupId },
-                    { name: "Group 1", id: "group1-id", parentId: rootGroupId },
-                    { name: "Group 2", id: "group2-id", parentId: rootGroupId },
+                    { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
+                    { name: "Group 1", id: "group1-id", parentId: ConnectionConfig.ROOT_GROUP_ID },
+                    { name: "Group 2", id: "group2-id", parentId: ConnectionConfig.ROOT_GROUP_ID },
                 ];
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
@@ -624,8 +630,12 @@ suite("ConnectionConfig Tests", () => {
 
             test("getGroupById returns the correct group", async () => {
                 const testGroups = [
-                    { name: "ROOT", id: rootGroupId },
-                    { name: "Test Group", id: "test-group-id", parentId: rootGroupId },
+                    { name: "ROOT", id: ConnectionConfig.ROOT_GROUP_ID },
+                    {
+                        name: "Test Group",
+                        id: "test-group-id",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
                 ];
 
                 mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
@@ -637,7 +647,7 @@ suite("ConnectionConfig Tests", () => {
 
                 expect(group).to.not.be.undefined;
                 expect(group?.name).to.equal("Test Group");
-                expect(group?.parentId).to.equal(rootGroupId);
+                expect(group?.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
             });
 
             test("getGroupById returns undefined for non-existent group", async () => {
@@ -651,8 +661,16 @@ suite("ConnectionConfig Tests", () => {
 
             test("getGroups ignores duplicate workspace group entries", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
-                    { name: "Workspace Group", id: "duplicate-id", parentId: rootGroupId },
+                    {
+                        name: "Workspace Group",
+                        id: "duplicate-id",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
+                    {
+                        name: "Workspace Group",
+                        id: "duplicate-id",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
                 ]);
 
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
@@ -670,7 +688,7 @@ suite("ConnectionConfig Tests", () => {
                 mockGlobalConfigData.set(Constants.connectionsArrayName, [
                     {
                         id: "global-conn",
-                        groupId: rootGroupId,
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "global",
                         authenticationType: "Integrated",
                         profileName: "Global Conn",
@@ -678,7 +696,11 @@ suite("ConnectionConfig Tests", () => {
                 ]);
 
                 mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "Workspace Group", id: "workspace-group", parentId: rootGroupId },
+                    {
+                        name: "Workspace Group",
+                        id: "workspace-group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
                 ]);
 
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
@@ -733,7 +755,7 @@ suite("ConnectionConfig Tests", () => {
 
                 const globalProfile = {
                     id: "global-profile",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "global",
                     authenticationType: "Integrated",
                     profileName: "Global Profile",
@@ -742,7 +764,7 @@ suite("ConnectionConfig Tests", () => {
 
                 const workspaceProfile = {
                     id: "workspace-profile",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "workspace",
                     authenticationType: "Integrated",
                     profileName: "Workspace Profile",
@@ -768,7 +790,7 @@ suite("ConnectionConfig Tests", () => {
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [
                     {
                         id: "existing",
-                        groupId: rootGroupId,
+                        groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "old",
                         authenticationType: "Integrated",
                         profileName: "Old Name",
@@ -780,7 +802,7 @@ suite("ConnectionConfig Tests", () => {
 
                 const updatedProfile: IConnectionProfile = {
                     id: "existing",
-                    groupId: rootGroupId,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                     server: "new",
                     authenticationType: "Integrated",
                     profileName: "Updated Name",
@@ -803,7 +825,7 @@ suite("ConnectionConfig Tests", () => {
                 const newGroup: IConnectionGroup = {
                     id: undefined,
                     name: "Workspace Child",
-                    parentId: rootGroupId,
+                    parentId: ConnectionConfig.ROOT_GROUP_ID,
                     configSource: ConfigurationTarget.Workspace,
                 };
 
@@ -817,7 +839,11 @@ suite("ConnectionConfig Tests", () => {
 
             test("getConnectionsFromSettings ignores duplicate entries within a store", async () => {
                 mockWorkspaceConfigData.set(Constants.connectionGroupsArrayName, [
-                    { name: "Workspace Group", id: "workspace-group", parentId: rootGroupId },
+                    {
+                        name: "Workspace Group",
+                        id: "workspace-group",
+                        parentId: ConnectionConfig.ROOT_GROUP_ID,
+                    },
                 ]);
 
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, [

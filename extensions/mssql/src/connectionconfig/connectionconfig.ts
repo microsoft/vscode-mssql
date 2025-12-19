@@ -24,8 +24,8 @@ export class ConnectionConfig implements IConnectionConfig {
     protected _logger: Logger;
     public initialized: Deferred<void> = new Deferred<void>();
 
-    /** Root group ID and name. */
-    static readonly RootGroupId: string = "ROOT";
+    /** Root group ID and name */
+    static readonly ROOT_GROUP_ID: string = "ROOT";
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
 
@@ -158,32 +158,28 @@ export class ConnectionConfig implements IConnectionConfig {
 
     public getRootGroup(): IConnectionGroup | undefined {
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
-        const rootGroupsById = groups.filter((group) => group.id === ConnectionConfig.RootGroupId);
-        if (rootGroupsById.length === 1) {
-            return rootGroupsById[0];
-        } else if (rootGroupsById.length > 1) {
-            const message = `Multiple connection groups with ID "${ConnectionConfig.RootGroupId}" found.  Returning the first one: ${rootGroupsById[0].id}. Delete or rename the others, then restart the extension.`;
-            this._logger.error(message);
-            this._vscodeWrapper.showErrorMessage(message);
-            return rootGroupsById[0];
-        }
-
-        const rootGroupsByName = groups.filter(
-            (group) => group.name === ConnectionConfig.RootGroupId,
+        const rootGroupsById = groups.filter(
+            (group) => group.id === ConnectionConfig.ROOT_GROUP_ID,
         );
 
-        if (rootGroupsByName.length === 0) {
+        if (rootGroupsById.length === 0) {
             this._logger.error(
-                `No root connection group found. This should have been fixed at initialization.`,
+                `Root group not found in getRootGroup().  This should have been created during initialization.`,
             );
             return undefined;
-        } else if (rootGroupsByName.length > 1) {
-            const message = `Multiple connection groups with name "${ConnectionConfig.RootGroupId}" found.  Returning the first one: ${rootGroupsByName[0].id}. Delete or rename the others, then restart the extension.`;
-            this._logger.error(message);
-            this._vscodeWrapper.showErrorMessage(message);
+        } else if (rootGroupsById.length === 1) {
+            return rootGroupsById[0];
+        } else if (rootGroupsById.length > 1) {
+            this._logger.error(
+                `Multiple connection groups with ID "${ConnectionConfig.ROOT_GROUP_ID}" found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.`,
+            );
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Connection.multipleRootGroupsFoundError(
+                    ConnectionConfig.ROOT_GROUP_ID,
+                ),
+            );
+            return rootGroupsById[0];
         }
-
-        return rootGroupsByName[0];
     }
 
     public async getGroups(location?: ConfigTarget): Promise<IConnectionGroup[]> {
@@ -400,48 +396,52 @@ export class ConnectionConfig implements IConnectionConfig {
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
 
         let rootGroup =
-            groups.find((group) => group.id === ConnectionConfig.RootGroupId) ??
-            groups.find((group) => group.name === ConnectionConfig.RootGroupId);
+            groups.find((group) => group.id === ConnectionConfig.ROOT_GROUP_ID) ?? // Modern root group should have expected ID "ROOT"
+            groups.find((group) => group.name === ConnectionConfig.ROOT_GROUP_ID); // Legacy root group had name "ROOT" but not ID "ROOT"; this gets upgraded below
 
         if (!rootGroup) {
+            // Root node entirely missing; create it
             rootGroup = {
-                name: ConnectionConfig.RootGroupId,
-                id: ConnectionConfig.RootGroupId,
+                name: ConnectionConfig.ROOT_GROUP_ID,
+                id: ConnectionConfig.ROOT_GROUP_ID,
                 configSource: ConfigurationTarget.Global,
             };
 
             this._logger.info(`Adding missing ROOT group to connection groups`);
             madeGroupChanges = true;
             groups.push(rootGroup);
-        } else if (rootGroup.id !== ConnectionConfig.RootGroupId) {
+        } else if (rootGroup.id !== ConnectionConfig.ROOT_GROUP_ID) {
+            // Migrate legacy root group to have the correct ID
             const legacyRootId = rootGroup.id;
-            rootGroup.id = ConnectionConfig.RootGroupId;
+            rootGroup.id = ConnectionConfig.ROOT_GROUP_ID;
             madeGroupChanges = true;
             this._logger.info(
-                `Updating ROOT group ID from '${legacyRootId}' to '${ConnectionConfig.RootGroupId}'`,
+                `Updating ROOT group ID from '${legacyRootId}' to '${ConnectionConfig.ROOT_GROUP_ID}'`,
             );
 
+            // Update all groups that referenced the legacy root ID
             for (const group of groups) {
                 if (group.id === legacyRootId) {
                     continue;
                 }
 
                 if (group.parentId === legacyRootId) {
-                    group.parentId = ConnectionConfig.RootGroupId;
+                    group.parentId = ConnectionConfig.ROOT_GROUP_ID;
                     madeGroupChanges = true;
                     this._logger.verbose(
-                        `Updating parentId for group '${group.name}' (${group.id}) to '${ConnectionConfig.RootGroupId}'`,
+                        `Updating parentId for group '${group.name}' (${group.id}) to '${ConnectionConfig.ROOT_GROUP_ID}'`,
                     );
                 }
             }
 
+            // Update all connections that referenced the legacy root ID
             const connections = this.getConnectionsFromSettings();
             for (const profile of connections) {
                 if (profile.groupId === legacyRootId) {
-                    profile.groupId = ConnectionConfig.RootGroupId;
+                    profile.groupId = ConnectionConfig.ROOT_GROUP_ID;
                     connectionsChanged = true;
                     this._logger.verbose(
-                        `Updating groupId for connection '${getConnectionDisplayName(profile)}' to '${ConnectionConfig.RootGroupId}'`,
+                        `Updating groupId for connection '${getConnectionDisplayName(profile)}' to '${ConnectionConfig.ROOT_GROUP_ID}'`,
                     );
                 }
             }
@@ -470,7 +470,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         if (!rootGroup) {
             this._logger.error(
-                "Root group not found when assigning connection group IDs. This should have been handled earlier in initialization.",
+                "Root group not found in assignConnectionGroupMissingIds(). This should have been handled earlier in initialization.",
             );
             return;
         }
@@ -556,7 +556,7 @@ export class ConnectionConfig implements IConnectionConfig {
         const validGroupIds = new Set<string>(
             this.getValidGroupsFromSettings().map((group) => group.id),
         );
-        validGroupIds.add(ConnectionConfig.RootGroupId);
+        validGroupIds.add(ConnectionConfig.ROOT_GROUP_ID);
 
         const validConnections = this.filterConnectionsWithKnownGroups(
             allConnections,
@@ -790,7 +790,7 @@ export class ConnectionConfig implements IConnectionConfig {
      * Filters groups whose parent hierarchy is invalid and notifies the user once per session.
      */
     private filterGroupsWithKnownParents(groups: IConnectionGroup[]): IConnectionGroup[] {
-        const knownGroupIds = new Set<string>([ConnectionConfig.RootGroupId]);
+        const knownGroupIds = new Set<string>([ConnectionConfig.ROOT_GROUP_ID]);
         const filteredGroups: IConnectionGroup[] = [];
         let pendingGroups = [...groups];
         let madeProgress = true;
@@ -801,8 +801,8 @@ export class ConnectionConfig implements IConnectionConfig {
 
             for (const group of pendingGroups) {
                 const parentId =
-                    group.id === ConnectionConfig.RootGroupId
-                        ? ConnectionConfig.RootGroupId
+                    group.id === ConnectionConfig.ROOT_GROUP_ID
+                        ? ConnectionConfig.ROOT_GROUP_ID
                         : group.parentId;
 
                 if (parentId && knownGroupIds.has(parentId)) {

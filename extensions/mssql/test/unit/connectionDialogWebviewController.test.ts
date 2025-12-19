@@ -92,7 +92,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
-        groupId: ConnectionConfig.RootGroupId,
+        groupId: ConnectionConfig.ROOT_GROUP_ID,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -126,8 +126,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
             {
-                id: ConnectionConfig.RootGroupId,
-                name: ConnectionConfig.RootGroupId,
+                id: ConnectionConfig.ROOT_GROUP_ID,
+                name: ConnectionConfig.ROOT_GROUP_ID,
                 configSource: vscode.ConfigurationTarget.Global,
             },
         ]);
