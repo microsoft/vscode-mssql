@@ -330,18 +330,20 @@ suite("ConnectionConfig Tests", () => {
                 expect(mockVscodeWrapper.setConfiguration).to.not.have.been.called;
             });
 
-            test("getConnections filters out workspace connections that are missing IDs", async () => {
+            test("getConnections populates IDs for workspace connections that are missing them", async () => {
                 const testConnProfiles = [
                     {
-                        id: undefined, // missing ID won't get automatically populated for workspace connections
+                        // case 1: missing ID
+                        id: undefined,
                         groupId: ConnectionConfig.ROOT_GROUP_ID,
                         server: "TestServer",
                         authenticationType: "Integrated",
                         profileName: "Test Profile One",
                     } as IConnectionProfile,
                     {
-                        id: undefined, // missing ID won't get automatically populated for workspace connections
-                        groupId: ConnectionConfig.ROOT_GROUP_ID,
+                        // case 2: missing ID and groupId
+                        id: undefined,
+                        groupId: undefined,
                         server: "TestServer",
                         authenticationType: "Integrated",
                         profileName: "Test Profile Two",
@@ -349,27 +351,19 @@ suite("ConnectionConfig Tests", () => {
                 ];
 
                 mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
-
-                mockVscodeWrapper;
                 mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
                 await connConfig.initialized;
 
-                const result = await connConfig.getConnections(true /* getWorkspaceConnections */);
+                const result = await connConfig.getConnections();
 
-                expect(result).to.have.lengthOf(
-                    0,
-                    "Workspace connection missing ID should not be returned",
-                );
+                expect(result).to.have.lengthOf(2, "All workspace connections should be returned");
+                expect(result[0].id).to.be.a("string").that.is.not.empty;
+                expect(result[1].id).to.be.a("string").that.is.not.empty;
+                expect(result[1].groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
 
-                expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
-                expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledWithMatch(
-                    sinon.match(
-                        (msg: string) =>
-                            msg.includes("Test Profile One") && msg.includes("Test Profile Two"),
-                    ),
-                );
+                expect(mockVscodeWrapper.showErrorMessage).to.have.not.been.called;
             });
 
             test("getConnections filters out connections that are missing a server", async () => {
@@ -667,7 +661,7 @@ suite("ConnectionConfig Tests", () => {
                         parentId: ConnectionConfig.ROOT_GROUP_ID,
                     },
                     {
-                        name: "Workspace Group",
+                        name: "Workspace Group Two",
                         id: "duplicate-id",
                         parentId: ConnectionConfig.ROOT_GROUP_ID,
                     },
