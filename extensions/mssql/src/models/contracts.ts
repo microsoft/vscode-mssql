@@ -127,3 +127,110 @@ export namespace SaveResultsAsInsertRequest {
     >("query/saveInsert");
 }
 // --------------------------------- </ Save Results as INSERT Request > ------------------------------------------
+
+// --------------------------------- < Serialize Data Request > ------------------------------------------
+// Serialize data to CSV, JSON, or Excel format using the backend serialization service
+
+export class SerializeColumnInfo {
+    /**
+     * Name of this column
+     */
+    public name: string;
+
+    /**
+     * Data type name of this column
+     */
+    public dataTypeName: string;
+}
+
+export class SerializeDbCellValue {
+    /**
+     * Display value of the cell
+     */
+    public displayValue: string;
+
+    /**
+     * Whether the cell value is null
+     */
+    public isNull: boolean;
+}
+
+export class SerializeDataStartRequestParams {
+    /**
+     * The format to serialize the data to (csv, json, excel)
+     */
+    public saveFormat: string;
+
+    /**
+     * Path to file that the serialized results will be stored in
+     */
+    public filePath: string;
+
+    /**
+     * Results that are to be serialized
+     */
+    public rows: SerializeDbCellValue[][];
+
+    /**
+     * Column information for the data
+     */
+    public columns: SerializeColumnInfo[];
+
+    /**
+     * Whether this is the only batch (or last batch) for this file
+     */
+    public isLastBatch: boolean;
+
+    /**
+     * Whether to include column headers in the output
+     */
+    public includeHeaders?: boolean;
+
+    /**
+     * Delimiter for CSV format
+     */
+    public delimiter?: string;
+
+    /**
+     * Line separator for CSV format
+     */
+    public lineSeparator?: string;
+
+    /**
+     * Text identifier for CSV format
+     */
+    public textIdentifier?: string;
+
+    /**
+     * Encoding for the output file
+     */
+    public encoding?: string;
+
+    /**
+     * Whether to format JSON output
+     */
+    public formatted?: boolean;
+}
+
+export class SerializeDataResult {
+    /**
+     * Error or status messages
+     */
+    public messages: string;
+
+    /**
+     * Whether the serialization succeeded
+     */
+    public succeeded: boolean;
+}
+
+// Serialize data request to backend service
+export namespace SerializeStartRequest {
+    export const type = new RequestType<
+        SerializeDataStartRequestParams,
+        SerializeDataResult,
+        void,
+        void
+    >("serialize/start");
+}
+// --------------------------------- </ Serialize Data Request > ------------------------------------------

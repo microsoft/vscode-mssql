@@ -28,6 +28,7 @@ export class ConnectionConfig implements IConnectionConfig {
     static readonly RootGroupId: string = "ROOT";
     private _hasDisplayedGroupParentWarning: boolean = false;
     private _hasDisplayedOrphanedConnectionWarning: boolean = false;
+    private _hasDisplayedMissingIdError: boolean = false;
 
     /**
      * Constructor
@@ -157,7 +158,7 @@ export class ConnectionConfig implements IConnectionConfig {
     //#region Connection Groups
 
     public getRootGroup(): IConnectionGroup | undefined {
-        const groups: IConnectionGroup[] = this.getRawGroupsFromSettings();
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
         const rootGroupsById = groups.filter((group) => group.id === ConnectionConfig.RootGroupId);
         if (rootGroupsById.length === 1) {
             return rootGroupsById[0];
@@ -397,7 +398,7 @@ export class ConnectionConfig implements IConnectionConfig {
     private async addOrUpdateRootGroup(): Promise<void> {
         let madeGroupChanges = false;
         let connectionsChanged = false;
-        const groups: IConnectionGroup[] = this.getRawGroupsFromSettings();
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
 
         let rootGroup =
             groups.find((group) => group.id === ConnectionConfig.RootGroupId) ??
@@ -435,11 +436,8 @@ export class ConnectionConfig implements IConnectionConfig {
                 }
             }
 
-            const connections = this.getRawConnectionsFromSettings();
+            const connections = this.getConnectionsFromSettings();
             for (const profile of connections) {
-                if (profile.configSource !== ConfigurationTarget.Global) {
-                    continue;
-                }
                 if (profile.groupId === legacyRootId) {
                     profile.groupId = ConnectionConfig.RootGroupId;
                     connectionsChanged = true;
@@ -453,13 +451,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 this._logger.info(
                     `Updates made to connection profiles after ROOT group migration.  Writing all ${connections.length} profile(s) to settings.`,
                 );
-                const globalConnections = connections.filter(
-                    (conn) => conn.configSource === ConfigurationTarget.Global,
-                );
-                await this.writeConnectionsToSettings(
-                    globalConnections,
-                    ConfigurationTarget.Global,
-                );
+                await this.writeConnectionsToSettings(connections);
             }
         }
 
@@ -468,16 +460,13 @@ export class ConnectionConfig implements IConnectionConfig {
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
 
-            const globalGroups = groups.filter(
-                (group) => group.configSource === ConfigurationTarget.Global,
-            );
-            await this.writeConnectionGroupsToSettings(globalGroups, ConfigurationTarget.Global);
+            await this.writeConnectionGroupsToSettings(groups);
         }
     }
 
     private async assignConnectionGroupMissingIds(): Promise<void> {
         let madeGroupChanges = false;
-        const groups: IConnectionGroup[] = this.getRawGroupsFromSettings();
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
         const rootGroup = this.getRootGroup();
 
         if (!rootGroup) {

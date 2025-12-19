@@ -79,6 +79,7 @@ import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { buildChatAgentConnectPrompt } from "../copilot/tools/toolsUtils";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
 import { ListTablesTool } from "../copilot/tools/listTablesTool";
@@ -485,6 +486,7 @@ export default class MainController implements vscode.Disposable {
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
+                        databaseName &&
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
@@ -498,7 +500,7 @@ export default class MainController implements vscode.Disposable {
                     if (chatCommand) {
                         vscode.commands.executeCommand(
                             chatCommand,
-                            `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                            buildChatAgentConnectPrompt(connectionCredentials),
                         );
                     } else {
                         // Fallback or error handling

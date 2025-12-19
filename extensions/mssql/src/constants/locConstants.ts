@@ -2389,6 +2389,20 @@ export class TableExplorer {
     public static Save = l10n.t("Save");
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
+
+    public static exportSuccessful = (filePath: string) =>
+        l10n.t({
+            message: "Results exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+
+    public static exportFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to export results: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class Changelog {

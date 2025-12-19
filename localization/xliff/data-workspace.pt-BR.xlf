@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="package" source-language="en" datatype="plaintext" target-language="pt-BR">
+    <body>
+      <trans-unit id="projects.showNotAddedProjectsInWorkspacePrompt">
+        <source xml:lang="en">Always show information message when the current workspace folders contain projects that have not been added to the workspace's projects.</source>
+        <target state="new">Always show information message when the current workspace folders contain projects that have not been added to the workspace's projects.</target>
+      </trans-unit>
+      <trans-unit id="close-workspace-command">
+        <source xml:lang="en">Close Workspace</source>
+        <target state="new">Close Workspace</target>
+      </trans-unit>
+      <trans-unit id="projects-view-no-workspace-content">
+        <source xml:lang="en">Create new or open existing to get started.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</source>
+        <target state="new">Create new or open existing to get started.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</target>
+      </trans-unit>
+      <trans-unit id="main-view-name">
+        <source xml:lang="en">Database Projects</source>
+        <target state="new">Database Projects</target>
+      </trans-unit>
+      <trans-unit id="data-workspace-view-container-name">
+        <source xml:lang="en">Database Projects</source>
+        <target state="new">Database Projects</target>
+      </trans-unit>
+      <trans-unit id="projects.defaultProjectSaveLocation">
+        <source xml:lang="en">Full path to folder where new projects are saved by default.</source>
+        <target state="new">Full path to folder where new projects are saved by default.</target>
+      </trans-unit>
+      <trans-unit id="projects.excludedProjectsDescription">
+        <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
+        <target state="new">List of projects in the workspace to exclude from the projects viewlet</target>
+      </trans-unit>
+      <trans-unit id="manage-project-command">
+        <source xml:lang="en">Manage</source>
+        <target state="new">Manage</target>
+      </trans-unit>
+      <trans-unit id="new-command">
+        <source xml:lang="en">New</source>
+        <target state="new">New</target>
+      </trans-unit>
+      <trans-unit id="projects-view-no-project-content">
+        <source xml:lang="en">No projects open in current workspace.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).
+</source>
+        <target state="new">No projects open in current workspace.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).
+</target>
+      </trans-unit>
+      <trans-unit id="open-existing-command">
+        <source xml:lang="en">Open existing</source>
+        <target state="new">Open existing</target>
+      </trans-unit>
+      <trans-unit id="refresh-workspace-command">
+        <source xml:lang="en">Refresh</source>
+        <target state="new">Refresh</target>
+      </trans-unit>
+      <trans-unit id="remove-project-command">
+        <source xml:lang="en">Remove Project</source>
+        <target state="new">Remove Project</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

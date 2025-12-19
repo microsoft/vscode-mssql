@@ -907,6 +907,7 @@
     "Expand all groups": "Expand all groups",
     "Export to CSV": "Export to CSV",
     "Export to Excel": "Export to Excel",
+    "Export to JSON": "Export to JSON",
     "Export to text format": "Export to text format",
     "Export to tab delimited": "Export to tab delimited",
     "Filter shortcuts": "Filter shortcuts",
@@ -2163,6 +2164,14 @@
         "comment": ["{0} is the table name"]
     },
     "Discard": "Discard",
+    "Results exported successfully to {0}/{0} is the file path": {
+        "message": "Results exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to export results: {0}/{0} is the error message": {
+        "message": "Failed to export results: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",

@@ -8,6 +8,7 @@ import {
     TableExplorerWebViewState,
     TableExplorerReducers,
     TableExplorerContextProps,
+    ExportData,
 } from "../../../sharedInterfaces/tableExplorer";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { getCoreRPCs2 } from "../../common/utils";
@@ -70,6 +71,10 @@ export const TableExplorerStateProvider: React.FC<{
 
             setCurrentPage: function (pageNumber: number): void {
                 extensionRpc.action("setCurrentPage", { pageNumber });
+            },
+
+            saveResults: function (format: "csv" | "json" | "excel", data: ExportData): void {
+                extensionRpc.action("saveResults", { format, data });
             },
         }),
         [extensionRpc],
