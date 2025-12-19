@@ -27,8 +27,6 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
     let getQualifiedNameStub: sinon.SinonStub;
     let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
 
-    const TEST_ROOT_GROUP_ID = "test-root-group-id";
-
     setup(() => {
         initializeIconUtils();
         sandbox = sinon.createSandbox();
@@ -41,7 +39,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
 
         getQualifiedNameStub = sandbox.stub(ObjectExplorerUtils, "getQualifiedName");
 
-        sandbox.stub(mockConnectionStore, "rootGroupId").get(() => TEST_ROOT_GROUP_ID);
+        sandbox.stub(mockConnectionStore, "rootGroupId").get(() => ConnectionConfig.RootGroupId);
         sandbox.stub(mockConnectionStore, "connectionConfig").get(() => mockConnectionConfig);
 
         controller = new ObjectExplorerDragAndDropController(
@@ -65,7 +63,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 user: "",
                 password: "",
                 savePassword: false,
-                groupId: TEST_ROOT_GROUP_ID,
+                groupId: ConnectionConfig.RootGroupId,
             } as IConnectionProfile;
 
             // Create mock connection node
@@ -108,7 +106,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockGroup: IConnectionGroup = {
                 id: "group1",
                 name: "Test Group",
-                parentId: TEST_ROOT_GROUP_ID,
+                parentId: ConnectionConfig.RootGroupId,
                 description: "Test group description",
             };
 
@@ -204,7 +202,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: TEST_ROOT_GROUP_ID,
+                parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
             };
 
@@ -262,7 +260,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: TEST_ROOT_GROUP_ID,
+                parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
             };
 
@@ -356,7 +354,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub)
                     .args[0][0].groupId,
                 "Updated connection groupId should match root group id",
-            ).to.equal(TEST_ROOT_GROUP_ID);
+            ).to.equal(ConnectionConfig.RootGroupId);
         });
 
         test("should prevent dropping group into itself", async () => {
@@ -418,7 +416,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: TEST_ROOT_GROUP_ID,
+                parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);
@@ -449,7 +447,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: TEST_ROOT_GROUP_ID,
+                parentId: ConnectionConfig.RootGroupId,
                 description: "Target group description",
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);

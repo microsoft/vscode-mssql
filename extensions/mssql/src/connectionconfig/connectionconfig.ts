@@ -23,8 +23,8 @@ export class ConnectionConfig implements IConnectionConfig {
     protected _logger: Logger;
     public initialized: Deferred<void> = new Deferred<void>();
 
-    /** The name of the root connection group. */
-    static readonly RootGroupName: string = "ROOT";
+    /** Root group ID and name. */
+    static readonly RootGroupId: string = "ROOT";
     private _hasDisplayedMissingIdError: boolean = false;
 
     /**
@@ -40,6 +40,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     private async initialize(): Promise<void> {
+        await this.addOrUpdateRootGroup();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
 
@@ -180,21 +181,33 @@ export class ConnectionConfig implements IConnectionConfig {
     //#region Connection Groups
 
     public getRootGroup(): IConnectionGroup | undefined {
-        let groups: IConnectionGroup[] = this.getGroupsFromSettings();
-        groups = groups.filter((group) => group.name === ConnectionConfig.RootGroupName);
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        const rootGroupsById = groups.filter((group) => group.id === ConnectionConfig.RootGroupId);
+        if (rootGroupsById.length === 1) {
+            return rootGroupsById[0];
+        } else if (rootGroupsById.length > 1) {
+            const message = `Multiple connection groups with ID "${ConnectionConfig.RootGroupId}" found.  Returning the first one: ${rootGroupsById[0].id}. Delete or rename the others, then restart the extension.`;
+            this._logger.error(message);
+            this._vscodeWrapper.showErrorMessage(message);
+            return rootGroupsById[0];
+        }
 
-        if (groups.length === 0) {
+        const rootGroupsByName = groups.filter(
+            (group) => group.name === ConnectionConfig.RootGroupId,
+        );
+
+        if (rootGroupsByName.length === 0) {
             this._logger.error(
                 `No root connection group found. This should have been fixed at initialization.`,
             );
             return undefined;
-        } else if (groups.length > 1) {
-            const message = `Multiple connection groups with name "${ConnectionConfig.RootGroupName}" found.  Returning the first one: ${groups[0].id}. Delete or rename the others, then restart the extension.`;
+        } else if (rootGroupsByName.length > 1) {
+            const message = `Multiple connection groups with name "${ConnectionConfig.RootGroupId}" found.  Returning the first one: ${rootGroupsByName[0].id}. Delete or rename the others, then restart the extension.`;
             this._logger.error(message);
             this._vscodeWrapper.showErrorMessage(message);
         }
 
-        return groups[0];
+        return rootGroupsByName[0];
     }
 
     public async getGroups(
@@ -398,22 +411,84 @@ export class ConnectionConfig implements IConnectionConfig {
 
     //#region Initialization
 
-    private async assignConnectionGroupMissingIds(): Promise<void> {
-        let madeChanges = false;
+    private async addOrUpdateRootGroup(): Promise<void> {
+        let madeGroupChanges = false;
+        let connectionsChanged = false;
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
 
-        // ensure ROOT group exists
-        let rootGroup = await this.getRootGroup();
+        let rootGroup =
+            groups.find((group) => group.id === ConnectionConfig.RootGroupId) ??
+            groups.find((group) => group.name === ConnectionConfig.RootGroupId);
 
         if (!rootGroup) {
             rootGroup = {
-                name: ConnectionConfig.RootGroupName,
-                id: Utils.generateGuid(),
+                name: ConnectionConfig.RootGroupId,
+                id: ConnectionConfig.RootGroupId,
             };
 
-            this._logger.logDebug(`Adding missing ROOT group to connection groups`);
-            madeChanges = true;
+            this._logger.info(`Adding missing ROOT group to connection groups`);
+            madeGroupChanges = true;
             groups.push(rootGroup);
+        } else if (rootGroup.id !== ConnectionConfig.RootGroupId) {
+            const legacyRootId = rootGroup.id;
+            rootGroup.id = ConnectionConfig.RootGroupId;
+            madeGroupChanges = true;
+            this._logger.info(
+                `Updating ROOT group ID from '${legacyRootId}' to '${ConnectionConfig.RootGroupId}'`,
+            );
+
+            for (const group of groups) {
+                if (group.id === legacyRootId) {
+                    continue;
+                }
+
+                if (group.parentId === legacyRootId) {
+                    group.parentId = ConnectionConfig.RootGroupId;
+                    madeGroupChanges = true;
+                    this._logger.verbose(
+                        `Updating parentId for group '${group.name}' (${group.id}) to '${ConnectionConfig.RootGroupId}'`,
+                    );
+                }
+            }
+
+            const connections = this.getConnectionsFromSettings();
+            for (const profile of connections) {
+                if (profile.groupId === legacyRootId) {
+                    profile.groupId = ConnectionConfig.RootGroupId;
+                    connectionsChanged = true;
+                    this._logger.verbose(
+                        `Updating groupId for connection '${getConnectionDisplayName(profile)}' to '${ConnectionConfig.RootGroupId}'`,
+                    );
+                }
+            }
+
+            if (connectionsChanged && connections) {
+                this._logger.info(
+                    `Updates made to connection profiles after ROOT group migration.  Writing all ${connections.length} profile(s) to settings.`,
+                );
+                await this.writeConnectionsToSettings(connections);
+            }
+        }
+
+        if (madeGroupChanges) {
+            this._logger.info(
+                `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
+            );
+
+            await this.writeConnectionGroupsToSettings(groups);
+        }
+    }
+
+    private async assignConnectionGroupMissingIds(): Promise<void> {
+        let madeGroupChanges = false;
+        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        const rootGroup = this.getRootGroup();
+
+        if (!rootGroup) {
+            this._logger.error(
+                "Root group not found when assigning connection group IDs. This should have been handled earlier in initialization.",
+            );
+            return;
         }
 
         // Clean up connection groups
@@ -425,20 +500,20 @@ export class ConnectionConfig implements IConnectionConfig {
             // ensure each group has an ID
             if (!group.id) {
                 group.id = Utils.generateGuid();
-                madeChanges = true;
+                madeGroupChanges = true;
                 this._logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
             }
 
             // ensure each group is in a group
             if (!group.parentId) {
                 group.parentId = rootGroup.id;
-                madeChanges = true;
+                madeGroupChanges = true;
                 this._logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
             }
         }
 
         // Save the changes to settings
-        if (madeChanges) {
+        if (madeGroupChanges) {
             this._logger.logDebug(
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );

@@ -22,7 +22,7 @@ suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
-    const rootGroupId = "root-group-id";
+    const rootGroupId = ConnectionConfig.RootGroupId;
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
@@ -90,7 +90,43 @@ suite("ConnectionConfig Tests", () => {
 
             expect(savedGroups).to.have.lengthOf(1);
             expect(savedGroups[0].name).to.equal("ROOT");
-            expect(savedGroups[0].id).to.not.be.undefined;
+            expect(savedGroups[0].id).to.equal(ConnectionConfig.RootGroupId);
+        });
+
+        test("Initialization migrates legacy ROOT ID and reassigns children", async () => {
+            const legacyRootId = "legacy-root-id";
+            mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                { name: "ROOT", id: legacyRootId },
+                { name: "Child Group", id: "child-group", parentId: legacyRootId },
+            ]);
+
+            mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                {
+                    id: "conn-id",
+                    groupId: legacyRootId,
+                    server: "server",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                } as IConnectionProfile,
+            ]);
+
+            const connConfig = new ConnectionConfig(mockVscodeWrapper);
+            await connConfig.initialized;
+
+            const savedGroups = mockGlobalConfigData.get(
+                Constants.connectionGroupsArrayName,
+            ) as IConnectionGroup[];
+            const rootGroup = savedGroups.find((g) => g.name === "ROOT");
+            const childGroup = savedGroups.find((g) => g.name === "Child Group");
+
+            expect(rootGroup?.id).to.equal(ConnectionConfig.RootGroupId);
+            expect(savedGroups.find((g) => g.id === legacyRootId)).to.be.undefined;
+            expect(childGroup?.parentId).to.equal(ConnectionConfig.RootGroupId);
+
+            const savedConnections = mockGlobalConfigData.get(
+                Constants.connectionsArrayName,
+            ) as IConnectionProfile[];
+            expect(savedConnections[0].groupId).to.equal(ConnectionConfig.RootGroupId);
         });
 
         test("Initialization adds IDs to groups without IDs", async () => {
