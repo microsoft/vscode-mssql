@@ -247,8 +247,8 @@ suite("Connection UI tests", () => {
 
     test("getConnectionGroupOptions", async () => {
         const mockGroups = [
-            { id: "0000", name: "Parent Group One", parentId: ConnectionConfig.RootGroupName },
-            { id: "1111", name: "Parent Group Two", parentId: ConnectionConfig.RootGroupName },
+            { id: "0000", name: "Parent Group One", parentId: ConnectionConfig.RootGroupId },
+            { id: "1111", name: "Parent Group Two", parentId: ConnectionConfig.RootGroupId },
             { id: "0000-0000", name: "Child Group", parentId: "0000" }, // two child groups with the same name but different parents
             { id: "1111-0000", name: "Child Group", parentId: "1111" },
             { id: "1111-1111", name: "Other Child Group", parentId: "1111" }, // a child group with a unique name shouldn't have parent prefix
@@ -257,7 +257,7 @@ suite("Connection UI tests", () => {
         connectionStoreStub.readAllConnectionGroups.resolves(mockGroups);
 
         sandbox.stub(connectionStoreStub, "rootGroupId").get(() => {
-            return ConnectionConfig.RootGroupName;
+            return ConnectionConfig.RootGroupId;
         });
 
         const options = await connectionUI.getConnectionGroupOptions();
@@ -265,7 +265,7 @@ suite("Connection UI tests", () => {
         expect(options).to.have.lengthOf(mockGroups.length + 2); // +2 for root and 'create new' options
         expect(options[0], "Root node should be first").to.deep.equal({
             displayName: LocConstants.ConnectionDialog.default,
-            value: ConnectionConfig.RootGroupName,
+            value: ConnectionConfig.RootGroupId,
         });
         expect(options[1], "'Create new' option should be second").to.deep.equal({
             displayName: LocConstants.ConnectionDialog.createConnectionGroup,
