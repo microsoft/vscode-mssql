@@ -82,8 +82,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
 
-    const TEST_ROOT_GROUP_ID = "test-root-group-id";
-
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
         server: "MruServer",
@@ -94,7 +92,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
-        groupId: TEST_ROOT_GROUP_ID,
+        groupId: ConnectionConfig.RootGroupId,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -127,7 +125,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
-            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
+            { id: ConnectionConfig.RootGroupId, name: ConnectionConfig.RootGroupId },
         ]);
 
         azureAccountService.getAccounts.resolves([
