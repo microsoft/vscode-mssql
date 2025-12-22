@@ -2066,7 +2066,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
         <source xml:lang="en">Export to JSON</source>
-        <target state="new">Export to JSON</target>
+        <target state="translated">Экспорт в JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
@@ -2203,7 +2203,7 @@ Error:
       <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
         <source xml:lang="en">Failed to export results: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to export results: {0}</target>
+        <target state="translated">Не удалось экспортировать результаты: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
@@ -4227,7 +4227,7 @@ Error:
       <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
         <source xml:lang="en">Results exported successfully to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Results exported successfully to {0}</target>
+        <target state="translated">Результаты экспортированы в {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
