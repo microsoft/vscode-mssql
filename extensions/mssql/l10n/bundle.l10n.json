@@ -939,6 +939,53 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+    "Azure Data Studio settings file": "Azure Data Studio settings file",
+    "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
+    "Browse to Azure Data Studio settings.json": "Browse to Azure Data Studio settings.json",
+    "Browse": "Browse",
+    "Connection groups to import": "Connection groups to import",
+    "{0} of {1} connection groups selected./{0} is the number of groups selected for import{1} is the total number of groups detected": {
+        "message": "{0} of {1} connection groups selected.",
+        "comment": [
+            "{0} is the number of groups selected for import",
+            "{1} is the total number of groups detected"
+        ]
+    },
+    "Connections in groups that are not selected will be moved under the root.": "Connections in groups that are not selected will be moved under the root.",
+    "No connection groups were found in the file.": "No connection groups were found in the file.",
+    "Select or clear all connection groups": "Select or clear all connection groups",
+    "Toggle selection for {0}/{0} is the connection group name": {
+        "message": "Toggle selection for {0}",
+        "comment": ["{0} is the connection group name"]
+    },
+    "Color for {0}: {1}/{0} is the connection group name{1} is the color hex or name shown in the swatch": {
+        "message": "Color for {0}: {1}",
+        "comment": [
+            "{0} is the connection group name",
+            "{1} is the color hex or name shown in the swatch"
+        ]
+    },
+    "Connections to import": "Connections to import",
+    "{0} of {1} connections selected/{0} is the number of connections selected for import{1} is the total number of connections detected": {
+        "message": "{0} of {1} connections selected",
+        "comment": [
+            "{0} is the number of connections selected for import",
+            "{1} is the total number of connections detected"
+        ]
+    },
+    "Select or clear all connections": "Select or clear all connections",
+    "No connections were found in the file.": "No connections were found in the file.",
+    "Display name": "Display name",
+    "Auth type": "Auth type",
+    "User ID": "User ID",
+    "Actions": "Actions",
+    "Toggle selection for {0}/{0} is the connection display name": {
+        "message": "Toggle selection for {0}",
+        "comment": ["{0} is the connection display name"]
+    },
+    "Add authentication": "Add authentication",
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
@@ -2164,6 +2211,8 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Locate the Azure Data Studio settings.json file to import": "Locate the Azure Data Studio settings.json file to import",
+    "Select settings file": "Select settings file",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",

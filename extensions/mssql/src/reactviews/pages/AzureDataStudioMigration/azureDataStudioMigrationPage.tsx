@@ -21,7 +21,14 @@ import {
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
-import { FolderOpenRegular, ShieldLockRegular } from "@fluentui/react-icons";
+import {
+    CheckmarkCircle16Regular,
+    ChevronDownRegular,
+    ChevronRightRegular,
+    FolderOpenRegular,
+    ShieldLockRegular,
+    Warning16Regular,
+} from "@fluentui/react-icons";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -92,6 +99,11 @@ const useStyles = makeStyles({
     tableWrapper: {
         overflowX: "auto",
     },
+    tableScrollArea: {
+        overflowY: "auto",
+        maxHeight: "360px",
+        borderRadius: "8px",
+    },
     colorSwatch: {
         width: "16px",
         height: "16px",
@@ -105,6 +117,21 @@ const useStyles = makeStyles({
     buttonCell: {
         display: "flex",
         justifyContent: "flex-start",
+    },
+    sectionHeaderRow: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+    },
+    collapseButton: {
+        minWidth: "32px",
+        height: "32px",
+    },
+    statusCell: {
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
     },
 });
 
@@ -121,6 +148,8 @@ export const AzureDataStudioMigrationPage = () => {
     const [connections, setConnections] = useState<AdsMigrationConnection[]>(
         state.connections ?? [],
     );
+    const [groupsCollapsed, setGroupsCollapsed] = useState(false);
+    const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
 
     useEffect(() => {
         setConfigPath(state.adsConfigPath ?? "");
@@ -145,6 +174,22 @@ export const AzureDataStudioMigrationPage = () => {
         const selected = connections.filter((connection) => connection.selected).length;
         return { total, selected };
     }, [connections]);
+
+    const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
+        if (total === 0 || selected === 0) {
+            return false;
+        }
+        if (selected === total) {
+            return true;
+        }
+        return "mixed";
+    };
+
+    const groupHeaderState = computeHeaderState(groupSelection.selected, groupSelection.total);
+    const connectionHeaderState = computeHeaderState(
+        connectionSelection.selected,
+        connectionSelection.total,
+    );
 
     const toggleConnectionGroup = (groupId: string, checked: boolean) => {
         setConnectionGroups((prev) =>
@@ -178,16 +223,28 @@ export const AzureDataStudioMigrationPage = () => {
         }
     };
 
-    const groupHeaderChecked =
-        groupSelection.total > 0 && groupSelection.selected === groupSelection.total;
-    const groupHeaderIndeterminate =
-        groupSelection.selected > 0 && groupSelection.selected < groupSelection.total;
-
-    const connectionHeaderChecked =
-        connectionSelection.total > 0 && connectionSelection.selected === connectionSelection.total;
-    const connectionHeaderIndeterminate =
-        connectionSelection.selected > 0 &&
-        connectionSelection.selected < connectionSelection.total;
+    const renderStatusIcon = (status: AdsMigrationConnection["status"]) => {
+        if (status === "ready") {
+            return (
+                <span className={classes.statusCell}>
+                    <CheckmarkCircle16Regular
+                        aria-label={loc.connectionStatusReady}
+                        color="var(--vscode-testing-iconPassed)"
+                    />
+                    <Text>{loc.connectionStatusReady}</Text>
+                </span>
+            );
+        }
+        return (
+            <span className={classes.statusCell}>
+                <Warning16Regular
+                    aria-label={loc.connectionStatusNeedsAttention}
+                    color="var(--vscode-testing-iconErrored)"
+                />
+                <Text>{loc.connectionStatusNeedsAttention}</Text>
+            </span>
+        );
+    };
 
     return (
         <div className={classes.root}>
@@ -219,7 +276,26 @@ export const AzureDataStudioMigrationPage = () => {
                 <div className={classes.tablesStack}>
                     <section className={classes.tableSection}>
                         <div className={classes.sectionHeader}>
-                            <Subtitle2>{loc.connectionGroupsHeader}</Subtitle2>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{loc.connectionGroupsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        groupsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        groupsCollapsed
+                                            ? loc.connectionGroupsExpand
+                                            : loc.connectionGroupsCollapse
+                                    }
+                                    onClick={() => setGroupsCollapsed((prev) => !prev)}
+                                />
+                            </div>
                             <Text className={classes.summaryText}>
                                 {loc.connectionGroupsSelection(
                                     groupSelection.selected,
@@ -227,68 +303,98 @@ export const AzureDataStudioMigrationPage = () => {
                                 )}
                             </Text>
                         </div>
-                        <div className={classes.tableWrapper}>
-                            {connectionGroups.length === 0 ? (
-                                <Text className={classes.emptyState}>{loc.noConnectionGroups}</Text>
-                            ) : (
-                                <Table role="grid">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHeaderCell>
-                                                <Checkbox
-                                                    aria-label={loc.selectAllGroupsLabel}
-                                                    checked={groupHeaderChecked}
-                                                    indeterminate={groupHeaderIndeterminate}
-                                                    onChange={(_, data) =>
-                                                        toggleAllGroups(!!data.checked)
-                                                    }
-                                                />
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>{loc.groupNameColumn}</TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.groupColorColumn}
-                                            </TableHeaderCell>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {connectionGroups.map((group) => (
-                                            <TableRow key={group.id}>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={group.selected}
-                                                        onChange={(_, data) =>
-                                                            toggleConnectionGroup(
-                                                                group.id,
-                                                                !!data.checked,
-                                                            )
-                                                        }
-                                                        aria-label={loc.groupSelectionToggle(
-                                                            group.name,
-                                                        )}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{group.name}</TableCell>
-                                                <TableCell>
-                                                    <div
-                                                        className={classes.colorSwatch}
-                                                        style={{ backgroundColor: group.color }}
-                                                        aria-label={loc.groupColorSwatch(
-                                                            group.name,
-                                                            group.color,
-                                                        )}
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </div>
+                        {!groupsCollapsed && (
+                            <div className={classes.tableWrapper}>
+                                {connectionGroups.length === 0 ? (
+                                    <Text className={classes.emptyState}>
+                                        {loc.noConnectionGroups}
+                                    </Text>
+                                ) : (
+                                    <div className={classes.tableScrollArea}>
+                                        <Table role="grid">
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHeaderCell>
+                                                        <Checkbox
+                                                            aria-label={loc.selectAllGroupsLabel}
+                                                            checked={groupHeaderState}
+                                                            onChange={(_, data) =>
+                                                                toggleAllGroups(
+                                                                    data.checked === true,
+                                                                )
+                                                            }
+                                                        />
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.groupNameColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.groupColorColumn}
+                                                    </TableHeaderCell>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {connectionGroups.map((group) => (
+                                                    <TableRow key={group.id}>
+                                                        <TableCell>
+                                                            <Checkbox
+                                                                checked={group.selected}
+                                                                onChange={(_, data) =>
+                                                                    toggleConnectionGroup(
+                                                                        group.id,
+                                                                        !!data.checked,
+                                                                    )
+                                                                }
+                                                                aria-label={loc.groupSelectionToggle(
+                                                                    group.name,
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>{group.name}</TableCell>
+                                                        <TableCell>
+                                                            <div
+                                                                className={classes.colorSwatch}
+                                                                style={{
+                                                                    backgroundColor: group.color,
+                                                                }}
+                                                                aria-label={loc.groupColorSwatch(
+                                                                    group.name,
+                                                                    group.color,
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <Text className={classes.summaryText}>{loc.groupsRootNote}</Text>
                     </section>
                     <section className={classes.tableSection}>
                         <div className={classes.sectionHeader}>
-                            <Subtitle2>{loc.connectionsHeader}</Subtitle2>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{loc.connectionsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        connectionsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        connectionsCollapsed
+                                            ? loc.connectionsExpand
+                                            : loc.connectionsCollapse
+                                    }
+                                    onClick={() => setConnectionsCollapsed((prev) => !prev)}
+                                />
+                            </div>
                             <Text className={classes.summaryText}>
                                 {loc.connectionsSelection(
                                     connectionSelection.selected,
@@ -296,85 +402,104 @@ export const AzureDataStudioMigrationPage = () => {
                                 )}
                             </Text>
                         </div>
-                        <div className={classes.tableWrapper}>
-                            {connections.length === 0 ? (
-                                <Text className={classes.emptyState}>{loc.noConnections}</Text>
-                            ) : (
-                                <Table role="grid">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHeaderCell>
-                                                <Checkbox
-                                                    aria-label={loc.selectAllConnectionsLabel}
-                                                    checked={connectionHeaderChecked}
-                                                    indeterminate={connectionHeaderIndeterminate}
-                                                    onChange={(_, data) =>
-                                                        toggleAllConnections(!!data.checked)
-                                                    }
-                                                />
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionNameColumn}
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionServerColumn}
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionDatabaseColumn}
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionAuthColumn}
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionUserColumn}
-                                            </TableHeaderCell>
-                                            <TableHeaderCell>
-                                                {loc.connectionActionsColumn}
-                                            </TableHeaderCell>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {connections.map((connection) => (
-                                            <TableRow key={connection.id}>
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={connection.selected}
-                                                        onChange={(_, data) =>
-                                                            toggleConnection(
-                                                                connection.id,
-                                                                !!data.checked,
-                                                            )
-                                                        }
-                                                        aria-label={loc.connectionSelectionToggle(
-                                                            connection.displayName,
-                                                        )}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>{connection.displayName}</TableCell>
-                                                <TableCell>{connection.server}</TableCell>
-                                                <TableCell>{connection.database ?? "—"}</TableCell>
-                                                <TableCell>
-                                                    {connection.authenticationType}
-                                                </TableCell>
-                                                <TableCell>{connection.userId ?? "—"}</TableCell>
-                                                <TableCell className={classes.buttonCell}>
-                                                    <Button
-                                                        appearance="secondary"
-                                                        size="small"
-                                                        icon={<ShieldLockRegular />}
-                                                        onClick={() => {
-                                                            // Placeholder for future auth wiring
-                                                            return;
-                                                        }}>
-                                                        {loc.addAuthentication}
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </div>
+                        {!connectionsCollapsed && (
+                            <div className={classes.tableWrapper}>
+                                {connections.length === 0 ? (
+                                    <Text className={classes.emptyState}>{loc.noConnections}</Text>
+                                ) : (
+                                    <div className={classes.tableScrollArea}>
+                                        <Table role="grid">
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHeaderCell>
+                                                        <Checkbox
+                                                            aria-label={
+                                                                loc.selectAllConnectionsLabel
+                                                            }
+                                                            checked={connectionHeaderState}
+                                                            onChange={(_, data) =>
+                                                                toggleAllConnections(
+                                                                    data.checked === true,
+                                                                )
+                                                            }
+                                                        />
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionStatusColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionNameColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionServerColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionDatabaseColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionAuthColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionUserColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {loc.connectionActionsColumn}
+                                                    </TableHeaderCell>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {connections.map((connection) => (
+                                                    <TableRow key={connection.id}>
+                                                        <TableCell>
+                                                            <Checkbox
+                                                                checked={connection.selected}
+                                                                onChange={(_, data) =>
+                                                                    toggleConnection(
+                                                                        connection.id,
+                                                                        !!data.checked,
+                                                                    )
+                                                                }
+                                                                aria-label={loc.connectionSelectionToggle(
+                                                                    connection.displayName,
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {renderStatusIcon(connection.status)}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {connection.displayName}
+                                                        </TableCell>
+                                                        <TableCell>{connection.server}</TableCell>
+                                                        <TableCell>
+                                                            {connection.database ?? "—"}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {connection.authenticationType}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {connection.userId ?? "—"}
+                                                        </TableCell>
+                                                        <TableCell className={classes.buttonCell}>
+                                                            <Button
+                                                                appearance="secondary"
+                                                                size="small"
+                                                                icon={<ShieldLockRegular />}
+                                                                onClick={() => {
+                                                                    // Placeholder for future auth wiring
+                                                                    return;
+                                                                }}>
+                                                                {loc.addAuthentication}
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </section>
                 </div>
             </div>

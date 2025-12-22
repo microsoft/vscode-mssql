@@ -76,6 +76,9 @@
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
+      <source xml:lang="en">Actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
     </trans-unit>
@@ -118,6 +121,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++589922f612097b399a6597809c8e3273fbc4793c160de6a252a66b4855b4aae9">
+      <source xml:lang="en">Add authentication</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
@@ -278,6 +284,9 @@
     <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
       <source xml:lang="en">Are you sure?</source>
     </trans-unit>
+    <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
+      <source xml:lang="en">Auth type</source>
+    </trans-unit>
     <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
       <source xml:lang="en">Authentication</source>
     </trans-unit>
@@ -339,6 +348,12 @@
     <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
       <source xml:lang="en">Azure Code Grant</source>
     </trans-unit>
+    <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
+      <source xml:lang="en">Azure Data Studio Migration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
+      <source xml:lang="en">Azure Data Studio settings file</source>
+    </trans-unit>
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
@@ -393,6 +408,12 @@
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
     </trans-unit>
+    <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
+      <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
+      <source xml:lang="en">Browse</source>
+    </trans-unit>
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
     </trans-unit>
@@ -401,6 +422,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
+      <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
     </trans-unit>
     <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
       <source xml:lang="en">Browse...</source>
@@ -681,6 +705,11 @@
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
+    <trans-unit id="++CODE++26a59e58508387089ffc0b776a617b9584cdf0b994c6d285aafa38967b61948c">
+      <source xml:lang="en">Color for {0}: {1}</source>
+      <note>{0} is the connection group name
+{1} is the color hex or name shown in the swatch</note>
+    </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
     </trans-unit>
@@ -890,6 +919,9 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
+      <source xml:lang="en">Connection groups to import</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
       <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
     </trans-unit>
@@ -918,6 +950,12 @@
     <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
+      <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
+      <source xml:lang="en">Connections to import</source>
     </trans-unit>
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1255,6 +1293,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b7f6a84de917e387539dbe441ca22056e793d738e6c50db30c3f569e4448df3">
+      <source xml:lang="en">Display name</source>
     </trans-unit>
     <trans-unit id="++CODE++8a2ada67a303fe2602331dc153b30259b92e7cc2d741f8d5955d8af906ef016a">
       <source xml:lang="en">Displays the data type name for the column</source>
@@ -2421,6 +2462,9 @@
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
+    <trans-unit id="++CODE++4b84dbc5cfc785c6d8f1fc681ab50ca68873e6edd352bf31111aa646afbb1b88">
+      <source xml:lang="en">Locate the Azure Data Studio settings.json file to import</source>
+    </trans-unit>
     <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
       <source xml:lang="en">Location</source>
     </trans-unit>
@@ -2643,6 +2687,9 @@
       <source xml:lang="en">No connection found for connectionId: {0}</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++062ed1eb39f94280e66412038f4fe1971935cfefdde249136051b69c28ed683b">
+      <source xml:lang="en">No connection groups were found in the file.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
       <source xml:lang="en">No connection information found</source>
     </trans-unit>
@@ -2654,6 +2701,9 @@
     </trans-unit>
     <trans-unit id="++CODE++17f0b82ed4308509b67351b92fb3e2892fa54bae44e90f88811c90938aef0c20">
       <source xml:lang="en">No connections available. Please create a connection first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
+      <source xml:lang="en">No connections were found in the file.</source>
     </trans-unit>
     <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
       <source xml:lang="en">No data available</source>
@@ -3570,14 +3620,26 @@
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a387a608fae904e256b03c48e16889d585f52ddd5dfbceccf00959b34f384031">
+      <source xml:lang="en">Select or clear all connection groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a55cdaf558e3df25a1e10c4967be5c53e2a9e2b74ba13f61aa4fc8ee866d03e9">
+      <source xml:lang="en">Select or clear all connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
       <source xml:lang="en">Select package file</source>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
     </trans-unit>
+    <trans-unit id="++CODE++4896b8ba91ac57a924c787a8951840dd5f78d9cf2cda65234e76a21f73e56267">
+      <source xml:lang="en">Select settings file</source>
+    </trans-unit>
     <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
       <source xml:lang="en">Select subscriptions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++816fb2b1f45f1228327db6df7e553f728b2074ca7897d2b506a881d6a7e5f6f6">
+      <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
     </trans-unit>
     <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
       <source xml:lang="en">Select the SQL Server Container Image</source>
@@ -4058,6 +4120,14 @@
     <trans-unit id="++CODE++c8c86447a74a9d36167b90e7c4359908771623e1bb592636feb58962bdee02f1">
       <source xml:lang="en">Toggle pre-header row</source>
     </trans-unit>
+    <trans-unit id="++CODE++7d4d6138cf85c51e38656f86216b716e449fe20eb0d14ea074601e691241bedb">
+      <source xml:lang="en">Toggle selection for {0}</source>
+      <note>{0} is the connection display name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++909717fe342b115370e475a3dde87aa1db0db4fa6012b92b3a87386b6654e236">
+      <source xml:lang="en">Toggle selection for {0}</source>
+      <note>{0} is the connection group name</note>
+    </trans-unit>
     <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
       <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
       <note>{0} is the part name
@@ -4145,6 +4215,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
       <source xml:lang="en">User</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7967e089a7b94464ee1b0c6d4b8271e99bcf36f9e5481e40a5eec5c5a5108d01">
+      <source xml:lang="en">User ID</source>
     </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>
@@ -4414,6 +4487,16 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++51e6bdbb52f5fe3271eb11b24de7b07440a59a88f0df6bfc9b620179db64c925">
+      <source xml:lang="en">{0} of {1} connection groups selected.</source>
+      <note>{0} is the number of groups selected for import
+{1} is the total number of groups detected</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3ccee9fb40a58a704c946e7e55b257c5b2ed5ad5019d515454aa79160149b56e">
+      <source xml:lang="en">{0} of {1} connections selected</source>
+      <note>{0} is the number of connections selected for import
+{1} is the total number of connections detected</note>
     </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
@@ -4852,6 +4935,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
+    </trans-unit>
+    <trans-unit id="mssql.openAzureDataStudioMigration">
+      <source xml:lang="en">Open Azure Data Studio Migration</source>
     </trans-unit>
     <trans-unit id="mssql.openChangelog">
       <source xml:lang="en">Open Changelog</source>

@@ -12,6 +12,8 @@ export interface AdsMigrationConnectionGroup {
     selected: boolean;
 }
 
+export type AdsMigrationConnectionStatus = "ready" | "needsAttention";
+
 export interface AdsMigrationConnection {
     id: string;
     displayName: string;
@@ -21,6 +23,7 @@ export interface AdsMigrationConnection {
     userId?: string;
     groupId?: string;
     selected: boolean;
+    status: AdsMigrationConnectionStatus;
 }
 
 export interface AzureDataStudioMigrationWebviewState {

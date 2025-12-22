@@ -1454,6 +1454,7 @@ export class LocConstants {
             connectionAuthColumn: l10n.t("Auth type"),
             connectionUserColumn: l10n.t("User ID"),
             connectionActionsColumn: l10n.t("Actions"),
+            connectionStatusColumn: l10n.t("Status"),
             connectionSelectionToggle: (connectionName: string) =>
                 l10n.t({
                     message: "Toggle selection for {0}",
@@ -1461,6 +1462,12 @@ export class LocConstants {
                     comment: ["{0} is the connection display name"],
                 }),
             addAuthentication: l10n.t("Add authentication"),
+            connectionStatusReady: l10n.t("Ready"),
+            connectionStatusNeedsAttention: l10n.t("Needs attention"),
+            connectionGroupsCollapse: l10n.t("Collapse connection groups"),
+            connectionGroupsExpand: l10n.t("Expand connection groups"),
+            connectionsCollapse: l10n.t("Collapse connections"),
+            connectionsExpand: l10n.t("Expand connections"),
         };
     }
 
