@@ -39,6 +39,7 @@ export enum TelemetryViews {
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
+    AzureDataStudioMigration = "AzureDataStudioMigration",
 }
 
 export enum TelemetryActions {

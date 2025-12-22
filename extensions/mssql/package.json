@@ -1315,6 +1315,11 @@
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openAzureDataStudioMigration",
+                "title": "%mssql.openAzureDataStudioMigration%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [

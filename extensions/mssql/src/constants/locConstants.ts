@@ -2387,6 +2387,14 @@ export class TableExplorer {
         });
 }
 
+export class AzureDataStudioMigration {
+    public static DocumentTitle = l10n.t("Azure Data Studio Migration");
+    public static SelectConfigFileDialogTitle = l10n.t(
+        "Locate the Azure Data Studio settings.json file to import",
+    );
+    public static SelectConfigOpenLabel = l10n.t("Select settings file");
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");

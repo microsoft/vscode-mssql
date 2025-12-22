@@ -1392,6 +1392,78 @@ export class LocConstants {
         };
     }
 
+    public get azureDataStudioMigration() {
+        return {
+            title: l10n.t("Azure Data Studio Migration"),
+            subtitle: l10n.t(
+                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+            ),
+            configInputLabel: l10n.t("Azure Data Studio settings file"),
+            configInputDescription: l10n.t(
+                "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
+            ),
+            configInputPlaceholder: l10n.t("Browse to Azure Data Studio settings.json"),
+            browseButton: l10n.t("Browse"),
+            connectionGroupsHeader: l10n.t("Connection groups to import"),
+            connectionGroupsSelection: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} connection groups selected.",
+                    args: [selected, total],
+                    comment: [
+                        "{0} is the number of groups selected for import",
+                        "{1} is the total number of groups detected",
+                    ],
+                }),
+            groupsRootNote: l10n.t(
+                "Connections in groups that are not selected will be moved under the root.",
+            ),
+            noConnectionGroups: l10n.t("No connection groups were found in the file."),
+            groupNameColumn: l10n.t("Name"),
+            groupColorColumn: l10n.t("Color"),
+            selectAllGroupsLabel: l10n.t("Select or clear all connection groups"),
+            groupSelectionToggle: (groupName: string) =>
+                l10n.t({
+                    message: "Toggle selection for {0}",
+                    args: [groupName],
+                    comment: ["{0} is the connection group name"],
+                }),
+            groupColorSwatch: (groupName: string, color: string) =>
+                l10n.t({
+                    message: "Color for {0}: {1}",
+                    args: [groupName, color],
+                    comment: [
+                        "{0} is the connection group name",
+                        "{1} is the color hex or name shown in the swatch",
+                    ],
+                }),
+            connectionsHeader: l10n.t("Connections to import"),
+            connectionsSelection: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} connections selected",
+                    args: [selected, total],
+                    comment: [
+                        "{0} is the number of connections selected for import",
+                        "{1} is the total number of connections detected",
+                    ],
+                }),
+            selectAllConnectionsLabel: l10n.t("Select or clear all connections"),
+            noConnections: l10n.t("No connections were found in the file."),
+            connectionNameColumn: l10n.t("Display name"),
+            connectionServerColumn: l10n.t("Server"),
+            connectionDatabaseColumn: l10n.t("Database"),
+            connectionAuthColumn: l10n.t("Auth type"),
+            connectionUserColumn: l10n.t("User ID"),
+            connectionActionsColumn: l10n.t("Actions"),
+            connectionSelectionToggle: (connectionName: string) =>
+                l10n.t({
+                    message: "Toggle selection for {0}",
+                    args: [connectionName],
+                    comment: ["{0} is the connection display name"],
+                }),
+            addAuthentication: l10n.t("Add authentication"),
+        };
+    }
+
     public get changelog() {
         return {
             highlightsSectionTitle: l10n.t("Highlights"),

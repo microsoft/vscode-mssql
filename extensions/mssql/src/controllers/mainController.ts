@@ -101,6 +101,7 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 
@@ -326,6 +327,14 @@ export default class MainController implements vscode.Disposable {
                     this._vscodeWrapper,
                 );
                 await changelogController.revealToForeground();
+            });
+            this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
+            this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
+                const migrationController = new AzureDataStudioMigrationWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                );
+                await migrationController.revealToForeground();
             });
 
             this._context.subscriptions.push(
