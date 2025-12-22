@@ -95,6 +95,7 @@ import {
     ChangePasswordWebviewState,
 } from "../sharedInterfaces/changePassword";
 import { getCloudId } from "../azure/providerSettings";
+import { ConnectionConfig } from "./connectionconfig";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
@@ -249,8 +250,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         }
 
+        // Ensure connection group is set in precedence order:
+        // 1. explicitly-specified initialConnectionGroup
+        // 2. existing groupId on connection being edited
+        // 3. default to root group
         if (initialConnectionGroup) {
             this.state.connectionProfile.groupId = initialConnectionGroup.id;
+        } else {
+            this.state.connectionProfile.groupId ??= ConnectionConfig.ROOT_GROUP_ID;
         }
 
         await this.updateItemVisibility();

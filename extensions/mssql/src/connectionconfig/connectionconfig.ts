@@ -539,14 +539,15 @@ export class ConnectionConfig implements IConnectionConfig {
      * Returns connection profiles stored across all config locations, excluding malformed entries.
      */
     public getConnectionsFromSettings(target?: ConfigTarget): IConnectionProfile[] {
-        const allConnections = this.getRawConnectionsFromSettings();
+        const orderedConnections = this.getRawConnectionsFromSettings();
+        const uniqueConnections = this.removeDuplicateConnectionIds(orderedConnections);
+
         const validGroupIds = new Set<string>(
             this.getGroupsFromSettings().map((group) => group.id),
         );
-        validGroupIds.add(ConnectionConfig.ROOT_GROUP_ID);
 
-        const validConnections = this.filterConnectionsWithKnownGroups(
-            allConnections,
+        const validConnections = this.removeConnectionsWithUnknownGroups(
+            uniqueConnections,
             validGroupIds,
         );
 
@@ -852,9 +853,9 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Filters out connections whose group IDs aren't known and warns once per session.
+     * Removes connections whose group IDs aren't known and warns once per session.
      */
-    private filterConnectionsWithKnownGroups(
+    private removeConnectionsWithUnknownGroups(
         connections: IConnectionProfile[],
         knownGroupIds: Set<string>,
     ): IConnectionProfile[] {
@@ -880,6 +881,28 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         return filteredConnections;
+    }
+
+    /**
+     * Removes duplicate connection IDs, preserving the first occurrence (preferring user/global entries).
+     */
+    private removeDuplicateConnectionIds(connections: IConnectionProfile[]): IConnectionProfile[] {
+        const seenIds = new Set<string>();
+        const connectionsToKeep: IConnectionProfile[] = [];
+
+        for (const connection of connections) {
+            if (connection.id) {
+                if (seenIds.has(connection.id)) {
+                    continue;
+                }
+
+                seenIds.add(connection.id);
+            }
+
+            connectionsToKeep.push(connection);
+        }
+
+        return connectionsToKeep;
     }
 
     private getArrayFromSettings<T>(
