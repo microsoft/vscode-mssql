@@ -23,7 +23,7 @@ suite("DacFxService Tests", () => {
         registeredHandlers = new Map<string, TaskCompletionHandler>();
 
         // Capture registered handlers
-        sqlTasksServiceStub.registerCompletionHandler.callsFake(
+        sqlTasksServiceStub.registerCompletionSuccessHandler.callsFake(
             (handler: TaskCompletionHandler) => {
                 registeredHandlers.set(handler.operationName, handler);
             },
@@ -40,7 +40,7 @@ suite("DacFxService Tests", () => {
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Assert
-            expect(sqlTasksServiceStub.registerCompletionHandler).to.have.callCount(4);
+            expect(sqlTasksServiceStub.registerCompletionSuccessHandler).to.have.callCount(4);
             expect(registeredHandlers.size).to.equal(4);
         });
 
@@ -120,7 +120,7 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
-            const buttonText = handler.getActionButtonText?.();
+            const buttonText = handler.actionButtonText;
 
             // Assert
             expect(buttonText).to.exist;
@@ -133,7 +133,7 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
 
             // Act
-            const command = handler.getActionCommand?.();
+            const command = handler.actionCommand;
 
             // Assert
             expect(command).to.equal("revealFileInOS");
@@ -189,7 +189,7 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
-            const buttonText = handler.getActionButtonText?.();
+            const buttonText = handler.actionButtonText;
 
             // Assert
             expect(buttonText).to.exist;
@@ -202,7 +202,7 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
-            const command = handler.getActionCommand?.();
+            const command = handler.actionCommand;
 
             // Assert
             expect(command).to.equal("revealFileInOS");
@@ -258,8 +258,8 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdImportBacpac)!;
 
             // Act & Assert
-            expect(handler.getActionButtonText).to.be.undefined;
-            expect(handler.getActionCommand).to.be.undefined;
+            expect(handler.actionButtonText).to.be.undefined;
+            expect(handler.actionCommand).to.be.undefined;
             expect(handler.getActionCommandArgs).to.be.undefined;
         });
     });
@@ -299,8 +299,8 @@ suite("DacFxService Tests", () => {
             const handler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
 
             // Act & Assert
-            expect(handler.getActionButtonText).to.be.undefined;
-            expect(handler.getActionCommand).to.be.undefined;
+            expect(handler.actionButtonText).to.be.undefined;
+            expect(handler.actionCommand).to.be.undefined;
             expect(handler.getActionCommandArgs).to.be.undefined;
         });
     });
@@ -328,7 +328,7 @@ suite("DacFxService Tests", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
             const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
-            const buttonText = handler.getActionButtonText?.();
+            const buttonText = handler.actionButtonText;
 
             // Assert - on Windows, should contain "Explorer"
             expect(buttonText).to.exist;
@@ -343,7 +343,7 @@ suite("DacFxService Tests", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
             const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
-            const buttonText = handler.getActionButtonText?.();
+            const buttonText = handler.actionButtonText;
 
             // Assert - on macOS, should contain "Finder"
             expect(buttonText).to.exist;
@@ -358,7 +358,7 @@ suite("DacFxService Tests", () => {
             // Act
             new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
             const handler = registeredHandlers.get(Constants.operationIdExportBacpac)!;
-            const buttonText = handler.getActionButtonText?.();
+            const buttonText = handler.actionButtonText;
 
             // Assert - on Linux, should contain "Folder"
             expect(buttonText).to.exist;
@@ -373,12 +373,12 @@ suite("DacFxService Tests", () => {
             const extractHandler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Assert
-            expect(exportHandler.getActionButtonText).to.exist;
-            expect(exportHandler.getActionCommand).to.exist;
+            expect(exportHandler.actionButtonText).to.exist;
+            expect(exportHandler.actionCommand).to.exist;
             expect(exportHandler.getActionCommandArgs).to.exist;
 
-            expect(extractHandler.getActionButtonText).to.exist;
-            expect(extractHandler.getActionCommand).to.exist;
+            expect(extractHandler.actionButtonText).to.exist;
+            expect(extractHandler.actionCommand).to.exist;
             expect(extractHandler.getActionCommandArgs).to.exist;
         });
 
@@ -389,12 +389,12 @@ suite("DacFxService Tests", () => {
             const deployHandler = registeredHandlers.get(Constants.operationIdDeployDacpac)!;
 
             // Assert
-            expect(importHandler.getActionButtonText).to.be.undefined;
-            expect(importHandler.getActionCommand).to.be.undefined;
+            expect(importHandler.actionButtonText).to.be.undefined;
+            expect(importHandler.actionCommand).to.be.undefined;
             expect(importHandler.getActionCommandArgs).to.be.undefined;
 
-            expect(deployHandler.getActionButtonText).to.be.undefined;
-            expect(deployHandler.getActionCommand).to.be.undefined;
+            expect(deployHandler.actionButtonText).to.be.undefined;
+            expect(deployHandler.actionCommand).to.be.undefined;
             expect(deployHandler.getActionCommandArgs).to.be.undefined;
         });
 
@@ -405,8 +405,8 @@ suite("DacFxService Tests", () => {
             const extractHandler = registeredHandlers.get(Constants.operationIdExtractDacpac)!;
 
             // Act
-            const exportCommand = exportHandler.getActionCommand?.();
-            const extractCommand = extractHandler.getActionCommand?.();
+            const exportCommand = exportHandler.actionCommand;
+            const extractCommand = extractHandler.actionCommand;
 
             // Assert
             expect(exportCommand).to.equal(extractCommand);

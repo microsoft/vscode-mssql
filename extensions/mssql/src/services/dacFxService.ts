@@ -32,41 +32,41 @@ export class DacFxService implements mssql.IDacFxService {
         let revealButtonText: string;
         if (platformInfo.isMacOS) {
             revealButtonText = LocalizedConstants.DacpacDialog.RevealInFinder;
-        } else if (platformInfo.isLinux) {
-            revealButtonText = LocalizedConstants.DacpacDialog.OpenContainingFolder;
-        } else {
-            // Windows or any other platform
+        } else if (platformInfo.isWindows) {
             revealButtonText = LocalizedConstants.DacpacDialog.RevealInExplorer;
+        } else {
+            // Linux and other platforms
+            revealButtonText = LocalizedConstants.DacpacDialog.OpenContainingFolder;
         }
 
         // Register handler for Export BACPAC operation
-        sqlTasksService.registerCompletionHandler({
+        sqlTasksService.registerCompletionSuccessHandler({
             operationName: Constants.operationIdExportBacpac,
             getTargetLocation: (taskInfo) => taskInfo.targetLocation,
             getSuccessMessage: (_taskInfo, targetLocation) => {
                 const fileName = path.basename(targetLocation);
                 return LocalizedConstants.DacpacDialog.ExportSuccessWithFile(fileName);
             },
-            getActionButtonText: () => revealButtonText,
-            getActionCommand: () => "revealFileInOS",
+            actionButtonText: revealButtonText,
+            actionCommand: "revealFileInOS",
             getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
         });
 
         // Register handler for Extract DACPAC operation
-        sqlTasksService.registerCompletionHandler({
+        sqlTasksService.registerCompletionSuccessHandler({
             operationName: Constants.operationIdExtractDacpac,
             getTargetLocation: (taskInfo) => taskInfo.targetLocation,
             getSuccessMessage: (_taskInfo, targetLocation) => {
                 const fileName = path.basename(targetLocation);
                 return LocalizedConstants.DacpacDialog.ExtractSuccessWithFile(fileName);
             },
-            getActionButtonText: () => revealButtonText,
-            getActionCommand: () => "revealFileInOS",
+            actionButtonText: revealButtonText,
+            actionCommand: "revealFileInOS",
             getActionCommandArgs: (_taskInfo, targetLocation) => [vscode.Uri.file(targetLocation)],
         });
 
         // Register handler for Import BACPAC operation
-        sqlTasksService.registerCompletionHandler({
+        sqlTasksService.registerCompletionSuccessHandler({
             operationName: Constants.operationIdImportBacpac,
             getTargetLocation: (taskInfo) => taskInfo.databaseName,
             getSuccessMessage: (_taskInfo, databaseName) => {
@@ -76,7 +76,7 @@ export class DacFxService implements mssql.IDacFxService {
         });
 
         // Register handler for Deploy DACPAC operation
-        sqlTasksService.registerCompletionHandler({
+        sqlTasksService.registerCompletionSuccessHandler({
             operationName: Constants.operationIdDeployDacpac,
             getTargetLocation: (taskInfo) => taskInfo.databaseName,
             getSuccessMessage: (_taskInfo, databaseName) => {

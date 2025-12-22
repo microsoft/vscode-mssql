@@ -11,6 +11,8 @@ import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -69,6 +71,12 @@ type ActiveTaskInfo = {
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
 /**
+ * Arguments to pass to a VS Code command when an action button is clicked.
+ * These are passed directly to vscode.commands.executeCommand via the spread operator.
+ */
+type ActionCommandArgs = Array<string | vscode.Uri>;
+
+/**
  * Configuration for a custom task completion handler that shows a notification with an action button
  */
 export interface TaskCompletionHandler {
@@ -95,27 +103,25 @@ export interface TaskCompletionHandler {
     getSuccessMessage: (taskInfo: TaskInfo, targetLocation: string) => string;
 
     /**
-     * Gets the action button text (e.g., "Reveal in Explorer")
+     * The localized action button text (e.g., "Reveal in Explorer")
      * Optional - if not provided, no action button will be shown
-     * @returns The localized button text
      */
-    getActionButtonText?: () => string;
+    actionButtonText?: string;
 
     /**
-     * Gets the VS Code command to execute when the action button is clicked
-     * Optional - required only if getActionButtonText is provided
-     * @returns The VS Code command ID
+     * The VS Code command to execute when the action button is clicked
+     * Optional - required only if actionButtonText is provided
      */
-    getActionCommand?: () => string;
+    actionCommand?: string;
 
     /**
      * Gets the command arguments to pass when executing the action
-     * Optional - required only if getActionButtonText is provided
+     * Optional - required only if actionButtonText is provided
      * @param taskInfo The task information
      * @param targetLocation The resolved target location
      * @returns The command arguments
      */
-    getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => unknown[];
+    getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => ActionCommandArgs;
 }
 
 /**
@@ -140,12 +146,19 @@ export class SqlTasksService {
     }
 
     /**
-     * Registers a custom completion handler for a specific task type.
-     * When a task with the specified operation ID completes successfully, the handler will be invoked
-     * to show a custom notification with an action button.
+     * Registers a custom completion handler for successful task completions.
+     * This handler is ONLY invoked when a task completes successfully.
+     * The handler will show a custom notification with an optional action button.
      * @param handler The task completion handler configuration
      */
-    public registerCompletionHandler(handler: TaskCompletionHandler): void {
+    public registerCompletionSuccessHandler(handler: TaskCompletionHandler): void {
+        // Emit telemetry if a handler for this operation is being overwritten
+        if (this._completionHandlers.has(handler.operationName)) {
+            sendActionEvent(TelemetryViews.General, TelemetryActions.Initialize, {
+                event: "CompletionHandlerOverwritten",
+                operationName: handler.operationName,
+            });
+        }
         this._completionHandlers.set(handler.operationName, handler);
     }
 
@@ -232,15 +245,15 @@ export class SqlTasksService {
             if (taskProgressInfo.status === TaskStatus.Succeeded && handler && targetLocation) {
                 // Show custom notification with optional action button
                 const successMessage = handler.getSuccessMessage(taskInfo.taskInfo, targetLocation);
-                const actionButtonText = handler.getActionButtonText?.();
+                const actionButtonText = handler.actionButtonText;
 
-                if (actionButtonText && handler.getActionCommand && handler.getActionCommandArgs) {
+                if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
                     void this._vscodeWrapper
                         .showInformationMessage(successMessage, actionButtonText)
                         .then((selection) => {
                             if (selection === actionButtonText) {
-                                const command = handler.getActionCommand!();
+                                const command = handler.actionCommand!;
                                 const args = handler.getActionCommandArgs!(
                                     taskInfo.taskInfo,
                                     targetLocation,
@@ -271,6 +284,7 @@ export class SqlTasksService {
                       );
                 this.showCompletionMessage(taskProgressInfo.status, taskMessage);
             }
+
             if (
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script

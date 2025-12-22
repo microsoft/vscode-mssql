@@ -50,7 +50,7 @@ suite("SqlTasksService Tests", () => {
         sandbox.restore();
     });
 
-    suite("registerCompletionHandler", () => {
+    suite("registerCompletionSuccessHandler", () => {
         test("should register a completion handler", () => {
             const handler: TaskCompletionHandler = {
                 operationName: "TestOperation",
@@ -58,7 +58,7 @@ suite("SqlTasksService Tests", () => {
                 getSuccessMessage: (_taskInfo, targetLocation) => `Success: ${targetLocation}`,
             };
 
-            sqlTasksService.registerCompletionHandler(handler);
+            sqlTasksService.registerCompletionSuccessHandler(handler);
 
             // Verify handler is registered by triggering a task completion
             const taskInfo: TaskInfo = {
@@ -108,8 +108,8 @@ suite("SqlTasksService Tests", () => {
                 getSuccessMessage: (_taskInfo, databaseName) => `Deployed to: ${databaseName}`,
             };
 
-            sqlTasksService.registerCompletionHandler(handler1);
-            sqlTasksService.registerCompletionHandler(handler2);
+            sqlTasksService.registerCompletionSuccessHandler(handler1);
+            sqlTasksService.registerCompletionSuccessHandler(handler2);
 
             const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
             const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
@@ -187,14 +187,14 @@ suite("SqlTasksService Tests", () => {
                 operationName: "ExportBacpac",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
-                getActionButtonText: () => "Reveal in Explorer",
-                getActionCommand: () => "revealFileInOS",
+                actionButtonText: "Reveal in Explorer",
+                actionCommand: "revealFileInOS",
                 getActionCommandArgs: (_taskInfo, targetLocation) => [
                     vscode.Uri.file(targetLocation),
                 ],
             };
 
-            sqlTasksService.registerCompletionHandler(handler);
+            sqlTasksService.registerCompletionSuccessHandler(handler);
 
             const taskInfo: TaskInfo = {
                 taskId: "task-1",
@@ -241,14 +241,14 @@ suite("SqlTasksService Tests", () => {
                 operationName: "ExportBacpac",
                 getTargetLocation: (taskInfo) => taskInfo.targetLocation,
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
-                getActionButtonText: () => actionButtonText,
-                getActionCommand: () => "revealFileInOS",
+                actionButtonText: actionButtonText,
+                actionCommand: "revealFileInOS",
                 getActionCommandArgs: (_taskInfo, targetLocation) => [
                     vscode.Uri.file(targetLocation),
                 ],
             };
 
-            sqlTasksService.registerCompletionHandler(handler);
+            sqlTasksService.registerCompletionSuccessHandler(handler);
 
             const taskInfo: TaskInfo = {
                 taskId: "task-1",
@@ -302,7 +302,7 @@ suite("SqlTasksService Tests", () => {
                 // No action button methods
             };
 
-            sqlTasksService.registerCompletionHandler(handler);
+            sqlTasksService.registerCompletionSuccessHandler(handler);
 
             const taskInfo: TaskInfo = {
                 taskId: "task-1",
@@ -446,7 +446,7 @@ suite("SqlTasksService Tests", () => {
                 getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
             };
 
-            sqlTasksService.registerCompletionHandler(handler);
+            sqlTasksService.registerCompletionSuccessHandler(handler);
 
             const taskInfo: TaskInfo = {
                 taskId: "task-1",
