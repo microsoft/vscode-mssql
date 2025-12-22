@@ -38,7 +38,6 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 export class ConnectionUI {
     constructor(
         private _connectionManager: ConnectionManager,
-        private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
         private _vscodeWrapper?: VscodeWrapper,
@@ -50,6 +49,10 @@ export class ConnectionUI {
 
     private get connectionManager(): ConnectionManager {
         return this._connectionManager;
+    }
+
+    private get _connectionStore(): ConnectionStore {
+        return this._connectionManager.connectionStore;
     }
 
     /**
@@ -472,6 +475,7 @@ export class ConnectionUI {
                 return {
                     displayName,
                     value: g.id,
+                    color: g.color || undefined,
                 };
             })
             .sort((a, b) => a.displayName.localeCompare(b.displayName));
