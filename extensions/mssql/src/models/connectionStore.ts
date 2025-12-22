@@ -226,10 +226,8 @@ export class ConnectionStore {
      *
      * @returns
      */
-    public async getProfilePickListItems(
-        getWorkspaceProfiles: boolean,
-    ): Promise<IConnectionCredentialsQuickPickItem[]> {
-        return await this.loadProfiles(getWorkspaceProfiles);
+    public async getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]> {
+        return await this.loadProfiles();
     }
 
     public async addSavedPassword(
@@ -672,7 +670,7 @@ export class ConnectionStore {
     ): Promise<IConnectionProfileWithSource[]> {
         let connResults: IConnectionProfileWithSource[] = [];
 
-        const connections = await this._connectionConfig.getConnections(true);
+        const connections = await this._connectionConfig.getConnections();
 
         const configConnections = connections.map((c) => {
             const conn = c as IConnectionProfileWithSource;
@@ -753,11 +751,8 @@ export class ConnectionStore {
         return output;
     }
 
-    private async loadProfiles(
-        loadWorkspaceProfiles: boolean,
-    ): Promise<IConnectionCredentialsQuickPickItem[]> {
-        let connections: IConnectionProfile[] =
-            await this._connectionConfig.getConnections(loadWorkspaceProfiles);
+    private async loadProfiles(): Promise<IConnectionCredentialsQuickPickItem[]> {
+        let connections: IConnectionProfile[] = await this._connectionConfig.getConnections();
         let quickPickItems = connections.map((c) =>
             this.createQuickPickItem(c, CredentialsQuickPickItemType.Profile),
         );

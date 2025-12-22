@@ -507,7 +507,7 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = await self._connectionStore.getProfilePickListItems(false);
+        let profiles = await self._connectionStore.getProfilePickListItems();
         let profile = await self.selectProfileForRemoval(profiles);
         let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
 

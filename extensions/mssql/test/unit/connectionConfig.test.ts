@@ -383,7 +383,7 @@ suite("ConnectionConfig Tests", () => {
                 const connConfig = new ConnectionConfig(mockVscodeWrapper);
                 await connConfig.initialized;
 
-                const result = await connConfig.getConnections(false /* getWorkspaceConnections */);
+                const result = await connConfig.getConnections();
 
                 expect(result).to.have.lengthOf(
                     0,

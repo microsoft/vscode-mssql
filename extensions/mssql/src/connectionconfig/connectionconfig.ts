@@ -55,12 +55,8 @@ export class ConnectionConfig implements IConnectionConfig {
      * Get a list of all connections in the connection config. Connections returned
      * are sorted first by whether they were found in the user/workspace settings,
      * and next alphabetically by profile/server name.
-     * @param _alsoGetFromWorkspace deprecated parameter; connections are always retrieved from both user and workspace settings.
      */
-    public async getConnections(
-        _alsoGetFromWorkspace: boolean = true,
-    ): Promise<IConnectionProfile[]> {
-        // TODO: remove alsoGetFromWorkspace param since we now always get from both locations
+    public async getConnections(): Promise<IConnectionProfile[]> {
         await this.initialized;
 
         let profiles: IConnectionProfile[] = this.getConnectionsFromSettings();
@@ -104,7 +100,7 @@ export class ConnectionConfig implements IConnectionConfig {
     public async getConnectionById(id: string): Promise<IConnectionProfile | undefined> {
         await this.initialized;
 
-        const profiles = await this.getConnections(true /* getFromWorkspace */);
+        const profiles = await this.getConnections();
         return profiles.find((profile) => profile.id === id);
     }
 
