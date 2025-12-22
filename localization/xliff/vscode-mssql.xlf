@@ -702,6 +702,12 @@
     <trans-unit id="++CODE++bbeecf3d3d08d6b405f2fce7ea90dd90c7d438d7a926329a86bffb5c8de96c55">
       <source xml:lang="en">Collapse all groups</source>
     </trans-unit>
+    <trans-unit id="++CODE++a85ebf45b79818fe0f9459bd61eb48e03ea0b9668381e94448c7c100b1e25d8d">
+      <source xml:lang="en">Collapse connection groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
+      <source xml:lang="en">Collapse connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -1588,6 +1594,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d2fc073e6098215896ebf6c1a31f09b47f966e3c1280eec921d00fb2fbdea336">
       <source xml:lang="en">Expand all groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de60696021738b970e35e0ce59d441a5dc7eadd336ac90d3db9de15a6e4318a2">
+      <source xml:lang="en">Expand connection groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
+      <source xml:lang="en">Expand connections</source>
     </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
@@ -2596,6 +2608,9 @@
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
+      <source xml:lang="en">Needs attention</source>
+    </trans-unit>
     <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
       <source xml:lang="en">New Azure SQL logical server (Preview)</source>
     </trans-unit>
@@ -3154,6 +3169,9 @@
     </trans-unit>
     <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
       <source xml:lang="en">Read the documentation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
+      <source xml:lang="en">Ready</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
@@ -3853,6 +3871,9 @@
     </trans-unit>
     <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
       <source xml:lang="en">Starts with</source>
+    </trans-unit>
+    <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
+      <source xml:lang="en">Status</source>
     </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>

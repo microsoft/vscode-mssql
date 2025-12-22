@@ -981,11 +981,18 @@
     "Auth type": "Auth type",
     "User ID": "User ID",
     "Actions": "Actions",
+    "Status": "Status",
     "Toggle selection for {0}/{0} is the connection display name": {
         "message": "Toggle selection for {0}",
         "comment": ["{0} is the connection display name"]
     },
     "Add authentication": "Add authentication",
+    "Ready": "Ready",
+    "Needs attention": "Needs attention",
+    "Collapse connection groups": "Collapse connection groups",
+    "Expand connection groups": "Expand connection groups",
+    "Collapse connections": "Collapse connections",
+    "Expand connections": "Expand connections",
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
