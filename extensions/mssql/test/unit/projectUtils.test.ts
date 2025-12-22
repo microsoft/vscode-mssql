@@ -37,11 +37,7 @@ suite("projectUtils Tests", () => {
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // The dacpac path should use forward slashes, not backslashes
-        expect(result?.dacpacOutputPath).to.not.include("\\");
-        expect(result?.dacpacOutputPath).to.include("/");
-
-        // Verify the path is constructed correctly with forward slashes
+        // Verify the path is constructed correctly - path.join will use platform-specific separators
         const expectedPath = path.join("/home/user/project", "bin/Debug", "TestProject.dacpac");
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
@@ -82,8 +78,10 @@ suite("projectUtils Tests", () => {
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // Even for absolute paths, backslashes should be normalized
-        expect(result?.dacpacOutputPath).to.not.include("\\");
+        // For absolute paths, should use the absolute path directly with the project name appended
+        // On Windows, this will have backslashes; on Unix, forward slashes
+        const expectedPath = path.join("C:/absolute/output/path", "TestProject.dacpac");
+        expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
     test("readProjectProperties handles relative paths with forward slashes", async () => {
