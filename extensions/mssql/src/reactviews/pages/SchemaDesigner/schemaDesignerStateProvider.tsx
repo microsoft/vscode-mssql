@@ -6,7 +6,7 @@
 import { createContext, useEffect, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs } from "../../common/utils";
+import { getCoreRPCs, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
@@ -48,6 +48,9 @@ export interface SchemaDesignerContextProps
     resetUndoRedoState: () => void;
     resetView: () => void;
     isInitialized: boolean;
+    initializationError?: string;
+    initializationRequestId: number;
+    triggerInitialization: () => void;
     renderOnlyVisibleTables: boolean;
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
@@ -79,6 +82,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
     const [isInitialized, setIsInitialized] = useState(false);
+    const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
+    const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
@@ -132,29 +137,44 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, []);
 
     const initializeSchemaDesigner = async () => {
-        const model = await extensionRpc.sendRequest(
-            SchemaDesigner.InitializeSchemaDesignerRequest.type,
-        );
-
-        const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
-
-        setDatatypes(model.dataTypes);
-        setSchemaNames(model.schemaNames);
-        setIsInitialized(true);
-
-        setTimeout(() => {
-            stateStack.setInitialState(
-                reactFlow.toObject() as ReactFlowJsonObject<
-                    Node<SchemaDesigner.Table>,
-                    Edge<SchemaDesigner.ForeignKey>
-                >,
+        try {
+            setIsInitialized(false);
+            setInitializationError(undefined);
+            const model = await extensionRpc.sendRequest(
+                SchemaDesigner.InitializeSchemaDesignerRequest.type,
             );
-        });
 
-        return {
-            nodes,
-            edges,
-        };
+            const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
+
+            setDatatypes(model.dataTypes);
+            setSchemaNames(model.schemaNames);
+            setIsInitialized(true);
+
+            setTimeout(() => {
+                stateStack.setInitialState(
+                    reactFlow.toObject() as ReactFlowJsonObject<
+                        Node<SchemaDesigner.Table>,
+                        Edge<SchemaDesigner.ForeignKey>
+                    >,
+                );
+            });
+
+            return {
+                nodes,
+                edges,
+            };
+        } catch (error) {
+            const errorMessage = getErrorMessage(error);
+            setInitializationError(errorMessage);
+            setIsInitialized(false);
+            throw error;
+        }
+    };
+
+    const triggerInitialization = () => {
+        setInitializationError(undefined);
+        setIsInitialized(false);
+        setInitializationRequestId((id) => id + 1);
     };
 
     // Get the script from the server
@@ -460,6 +480,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setFindTableText,
                 getDefinition,
                 initializeSchemaDesigner,
+                initializationError,
+                initializationRequestId,
+                triggerInitialization,
                 saveAsFile,
                 getReport,
                 openInEditor,

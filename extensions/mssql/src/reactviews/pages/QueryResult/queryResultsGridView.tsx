@@ -42,6 +42,7 @@ type GridItem = { batchId: number; resultId: number; index: number };
 const ROW_HEIGHT = 26;
 const HEADER = 30;
 export const MARGIN_BOTTOM = 10;
+const MIN_HORIZONTAL_SCROLLBAR_SPACE = 18; // Reserve space so short grids don't clip the scrollbar over rows
 const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
 
 export const QueryResultsGridView = () => {
@@ -84,7 +85,7 @@ export const QueryResultsGridView = () => {
         if (visibleRows > DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS) {
             visibleRows = DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS;
         }
-        return visibleRows * ROW_HEIGHT + HEADER + MARGIN_BOTTOM;
+        return visibleRows * ROW_HEIGHT + HEADER + MARGIN_BOTTOM + MIN_HORIZONTAL_SCROLLBAR_SPACE;
     }
 
     const gridHeights: number[] = useMemo(() => {
@@ -344,7 +345,9 @@ export const QueryResultsGridView = () => {
                             fontSize: `${fontSettings.fontSize ?? 12}px`,
                             height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
                         }}>
-                        <div style={{ flex: 1, minWidth: 0, overflow: "auto" }} ref={containerRef}>
+                        <div
+                            style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
+                            ref={containerRef}>
                             <ResultGrid
                                 gridId={gridKey}
                                 key={gridKey}

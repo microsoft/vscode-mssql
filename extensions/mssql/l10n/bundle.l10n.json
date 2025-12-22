@@ -159,7 +159,7 @@
     "Generate Script": "Generate Script",
     "Publish": "Publish",
     "Preview Database Updates": "Preview Database Updates",
-    "Error loading designer": "Error loading designer",
+    "Error loading Table Designer": "Error loading Table Designer",
     "Severity": "Severity",
     "Script as Create": "Script as Create",
     "I have read the summary and understand the potential risks.": "I have read the summary and understand the potential risks.",
@@ -283,6 +283,15 @@
     "Search settings...": "Search settings...",
     "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
     "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+    "{0} of {1} tenants/{0} is the number of tenants with active sessions{1} is the total number of tenants": {
+        "message": "{0} of {1} tenants",
+        "comment": [
+            "{0} is the number of tenants with active sessions",
+            "{1} is the total number of tenants"
+        ]
+    },
+    "Sign into tenant": "Sign into tenant",
+    "No tenants are currently signed in.": "No tenants are currently signed in.",
     "Loading workspaces...": "Loading workspaces...",
     "Loading databases in '{0}'.../{0} is the name of the workspace": {
         "message": "Loading databases in '{0}'...",
@@ -376,6 +385,7 @@
     "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
+    "Toggle Sort": "Toggle Sort",
     "Clear Sort": "Clear Sort",
     "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
         "message": "Save as CSV ({0})",
@@ -602,6 +612,7 @@
         "comment": ["{0} is the max length"]
     },
     "Loading Schema Designer": "Loading Schema Designer",
+    "Error loading Schema Designer": "Error loading Schema Designer",
     "Generating report, this might take a while...": "Generating report, this might take a while...",
     "{0} warnings/{0} is the number of warnings": {
         "message": "{0} warnings",
@@ -753,10 +764,10 @@
     "Hide full error message": "Hide full error message",
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
-    "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).": "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
-    "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.": "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
-    "See": "See",
-    "for more details": "for more details",
+    "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.": "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
+    "To continue, run SQL Server on a machine with a supported processor. Check ": "To continue, run SQL Server on a machine with a supported processor. Check ",
+    "the documentation ": "the documentation ",
+    "for more information.": "for more information.",
     "+ Add Fabric Account": "+ Add Fabric Account",
     "Loading fabric provisioning...": "Loading fabric provisioning...",
     "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
@@ -867,7 +878,6 @@
     "Maximize Panel Size": "Maximize Panel Size",
     "Restore Panel Size": "Restore Panel Size",
     "Update Script": "Update Script",
-    "Commands": "Commands",
     "Delete Row": "Delete Row",
     "Revert Cell": "Revert Cell",
     "Revert Row": "Revert Row",
@@ -882,7 +892,54 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
-    "What's new in this release": "What's new in this release",
+    "Not contains": "Not contains",
+    "Not equal to": "Not equal to",
+    "Starts with": "Starts with",
+    "Ends with": "Ends with",
+    "All selected": "All selected",
+    "Clear all filters": "Clear all filters",
+    "Clear all grouping": "Clear all grouping",
+    "Clear all sorting": "Clear all sorting",
+    "Unfreeze columns/rows": "Unfreeze columns/rows",
+    "Collapse all groups": "Collapse all groups",
+    "Column resize by content": "Column resize by content",
+    "Commands": "Commands",
+    "Expand all groups": "Expand all groups",
+    "Export to CSV": "Export to CSV",
+    "Export to Excel": "Export to Excel",
+    "Export to JSON": "Export to JSON",
+    "Export to text format": "Export to text format",
+    "Export to tab delimited": "Export to tab delimited",
+    "Filter shortcuts": "Filter shortcuts",
+    "Force fit columns": "Force fit columns",
+    "Freeze columns": "Freeze columns",
+    "Greater than": "Greater than",
+    "Greater than or equal to": "Greater than or equal to",
+    "Group by": "Group by",
+    "Hide column": "Hide column",
+    "items": "items",
+    "items per page": "items per page",
+    "items selected": "items selected",
+    "Less than": "Less than",
+    "Less than or equal to": "Less than or equal to",
+    "No elements found": "No elements found",
+    "No matches found": "No matches found",
+    "of": "of",
+    "Page": "Page",
+    "Refresh dataset": "Refresh dataset",
+    "Remove filter": "Remove filter",
+    "Remove sort": "Remove sort",
+    "Select all": "Select all",
+    "Sort ascending": "Sort ascending",
+    "Sort descending": "Sort descending",
+    "Synchronous resize": "Synchronous resize",
+    "Toggle dark mode": "Toggle dark mode",
+    "Toggle filter row": "Toggle filter row",
+    "Toggle pre-header row": "Toggle pre-header row",
+    "Unfreeze columns": "Unfreeze columns",
+    "x of y selected": "x of y selected",
+    "Equal to": "Equal to",
+    "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
     "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",
@@ -909,6 +966,8 @@
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
     "Accept": "Accept",
+    "Public": "Public",
+    "Private": "Private",
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
     "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -1162,7 +1221,6 @@
     "CSV": "CSV",
     "JSON": "JSON",
     "Excel": "Excel",
-    "Select all": "Select all",
     "Executing query...": "Executing query...",
     "Query executed": "Query executed",
     "Total execution time: {0}/{0} is the elapsed time": {
@@ -1295,6 +1353,7 @@
         "message": "Are you sure you want to delete {0}?",
         "comment": ["{0} is the group name"]
     },
+    "Connection string copied to clipboard": "Connection string copied to clipboard",
     "Connection Dialog": "Connection Dialog",
     "Microsoft Account": "Microsoft Account",
     "Microsoft Account is required": "Microsoft Account is required",
@@ -1329,6 +1388,10 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported./{0} is the authentication type": {
+        "message": "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+        "comment": ["{0} is the authentication type"]
+    },
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
@@ -1648,7 +1711,10 @@
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
-    "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
+    "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
+        "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+        "comment": ["{0} is the server name"]
+    },
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1662,6 +1728,10 @@
     "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
         "message": "Schema Compare failed: '{0}'",
         "comment": ["{0} is the error message returned from the compare operation"]
+    },
+    "Connection failed: {0}/{0} is the error message from the connection attempt": {
+        "message": "Connection failed: {0}",
+        "comment": ["{0} is the error message from the connection attempt"]
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
@@ -1792,54 +1862,63 @@
         "message": "Connecting using profile {0}",
         "comment": ["{0} is the profile ID"]
     },
-    "Disconnect from connection '{0}'?/{0} is the connection ID": {
-        "message": "Disconnect from connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Disconnect from connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Disconnect from connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Disconnecting from connection '{0}'/{0} is the connection ID": {
-        "message": "Disconnecting from connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Disconnecting from connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Disconnecting from connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Show Schema": "Show Schema",
-    "Show schema for connection '{0}'?/{0} is the connection ID": {
-        "message": "Show schema for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Show schema for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Show schema for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Showing schema for connection '{0}'/{0} is the connection ID": {
-        "message": "Showing schema for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Showing schema for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Showing schema for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "No connection found for connectionId: {0}/{0} is the connection ID": {
         "message": "No connection found for connectionId: {0}",
         "comment": ["{0} is the connection ID"]
     },
+    "Unknown Connection": "Unknown Connection",
     "Schema visualization opened.": "Schema visualization opened.",
     "Get Connection Details": "Get Connection Details",
-    "Get connection details for connection '{0}'?/{0} is the connection ID": {
-        "message": "Get connection details for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "Get connection details for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "Get connection details for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Getting connection details for connection '{0}'/{0} is the connection ID": {
-        "message": "Getting connection details for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Getting connection details for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Getting connection details for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Databases": "List Databases",
-    "List databases for connection '{0}'?/{0} is the connection ID": {
-        "message": "List databases for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List databases for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List databases for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing databases for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing databases for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing databases for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing databases for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Change Database": "Change Database",
-    "Change database to '{1}' for connection '{0}'?/{0} is the connection ID{1} is the database name": {
-        "message": "Change database to '{1}' for connection '{0}'?",
-        "comment": ["{0} is the connection ID", "{1} is the database name"]
+    "Change database to '{2}' for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID{2} is the database name": {
+        "message": "Change database to '{2}' for connection '{0}' (ID: {1})?",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the database name"
+        ]
     },
-    "Changing database to '{1}' for connection '{0}'/{0} is the connection ID{1} is the database name": {
-        "message": "Changing database to '{1}' for connection '{0}'",
-        "comment": ["{0} is the connection ID", "{1} is the database name"]
+    "Changing database to '{2}' for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID{2} is the database name": {
+        "message": "Changing database to '{2}' for connection '{0}' (ID: {1})",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the database name"
+        ]
     },
     "Successfully changed to database: {0}/{0} is the database name": {
         "message": "Successfully changed to database: {0}",
@@ -1850,49 +1929,53 @@
         "comment": ["{0} is the database name"]
     },
     "List Tables": "List Tables",
-    "List tables for connection '{0}'?/{0} is the connection ID": {
-        "message": "List tables for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List tables for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List tables for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing tables for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing tables for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing tables for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing tables for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Schemas": "List Schemas",
-    "List schemas for connection '{0}'?/{0} is the connection ID": {
-        "message": "List schemas for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List schemas for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List schemas for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing schemas for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing schemas for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing schemas for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing schemas for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Views": "List Views",
-    "List views for connection '{0}'?/{0} is the connection ID": {
-        "message": "List views for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List views for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List views for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing views for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing views for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing views for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing views for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "List Functions": "List Functions",
-    "List functions for connection '{0}'?/{0} is the connection ID": {
-        "message": "List functions for connection '{0}'?",
-        "comment": ["{0} is the connection ID"]
+    "List functions for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
+        "message": "List functions for connection '{0}' (ID: {1})?",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Listing functions for connection '{0}'/{0} is the connection ID": {
-        "message": "Listing functions for connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Listing functions for connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Listing functions for connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Run Query": "Run Query",
-    "Run query on connection '{0}'?\n\nQuery: {1}/{0} is the connection ID{1} is the SQL query": {
-        "message": "Run query on connection '{0}'?\n\nQuery: {1}",
-        "comment": ["{0} is the connection ID", "{1} is the SQL query"]
+    "Run query on connection '{0}' (ID: {1})?\n\nQuery: {2}/{0} is the connection display name{1} is the connection ID{2} is the SQL query": {
+        "message": "Run query on connection '{0}' (ID: {1})?\n\nQuery: {2}",
+        "comment": [
+            "{0} is the connection display name",
+            "{1} is the connection ID",
+            "{2} is the SQL query"
+        ]
     },
-    "Running query on connection '{0}'/{0} is the connection ID": {
-        "message": "Running query on connection '{0}'",
-        "comment": ["{0} is the connection ID"]
+    "Running query on connection '{0}' (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Running query on connection '{0}' (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
     "Connected successfully": "Connected successfully",
     "Failed to connect": "Failed to connect",
@@ -2025,6 +2108,7 @@
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
     "Row marked for removal.": "Row marked for removal.",
+    "Row deleted.": "Row deleted.",
     "{0} (Preview)/{0} is the table name": {
         "message": "{0} (Preview)",
         "comment": ["{0} is the table name"]
@@ -2072,14 +2156,32 @@
         "comment": ["{0} is the table name"]
     },
     "Discard": "Discard",
+    "Results exported successfully to {0}/{0} is the file path": {
+        "message": "Results exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to export results: {0}/{0} is the error message": {
+        "message": "Failed to export results: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
+    "Watch demo": "Watch demo",
+    "Learn more": "Learn more",
     "Read docs": "Read docs",
     "Watch demos on YouTube": "Watch demos on YouTube",
     "View roadmap": "View roadmap",
     "Read the documentation": "Read the documentation",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+        "comment": ["{0} is the proxy URL"]
+    },
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+        "comment": ["{0} is the proxy URL", "{1} is the error message"]
+    },
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

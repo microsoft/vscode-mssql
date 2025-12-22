@@ -30,7 +30,7 @@ import {
 } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
-import { getEditorEOL, getNonce } from "../utils/utils";
+import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
@@ -56,7 +56,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
     private _webview: vscode.Webview;
-    constructor(private logger: Logger) {
+    constructor() {
         super();
         this._onData = new Emitter<Message>();
     }
@@ -70,18 +70,6 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
-                const { method, error } = event as any;
-                this.logger.verbose(`Message received from webview: ${method}`);
-                sendActionEvent(
-                    TelemetryViews.WebviewController,
-                    TelemetryActions.ReceivedFromWebview,
-                    {
-                        messageType: method ? "request" : "response",
-                        type: method,
-                        isError: error ? "true" : "false",
-                    },
-                );
-
                 this._onData.fire(event);
             });
             this._disposables.push(disposable);
@@ -103,14 +91,7 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
     }
     write(msg: Message): Promise<void> {
         if (this._webview) {
-            const { method, error } = msg as any;
-            this.logger.verbose(`Sending message to webview: ${method}`);
             this._webview.postMessage(msg);
-            sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SentToWebview, {
-                messageType: method ? "request" : "response",
-                type: method,
-                isError: error ? "true" : "false",
-            });
         } else {
             this.logger.warn("Attempted to write message but webview is not set");
         }
@@ -174,7 +155,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 
         this.logger = Logger.create(vscodeWrapper.outputChannel, viewId);
 
-        this._connectionReader = new WebviewControllerMessageReader(this.logger);
+        this._connectionReader = new WebviewControllerMessageReader();
         this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
         this.connection = createMessageConnection(this._connectionReader, this._connectionWriter);
         this.connection.listen();
@@ -368,29 +349,39 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         });
 
         this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
+            this.logger.verbose(`Reducer action received from webview: ${action.type as string}`);
             const reducerActivity = startActivity(
                 TelemetryViews.WebviewController,
                 TelemetryActions.Reducer,
                 undefined,
                 {
                     type: action.type as string,
+                    webviewId: this._sourceFile,
                 },
+                undefined,
+                true, // include call stack
             );
             const reducer = this._reducerHandlers.get(action.type);
             if (reducer) {
                 try {
                     this.state = await reducer(this.state, action.payload);
+                    this.logger.verbose(`Reducer action succeeded: ${action.type as string}`);
                     reducerActivity.end(ActivityStatus.Succeeded);
                 } catch (error) {
+                    this.logger.error(
+                        `Reducer action failed: ${action.type as string} - ${getErrorMessage(error)}`,
+                    );
                     reducerActivity.endFailed(error, false);
                     throw error;
                 }
             } else {
+                const errorMsg = `No reducer registered for action ${action.type as string}`;
+                this.logger.error(errorMsg);
                 reducerActivity.endFailed(
-                    new Error(`No reducer registered for action ${action.type as string}`),
-                    false,
+                    new Error(errorMsg),
+                    true, // include error in telemetry
                 );
-                throw new Error(`No reducer registered for action ${action.type as string}`);
+                throw new Error(errorMsg);
             }
         });
 
@@ -428,7 +419,51 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
-        this.connection.onRequest(type, handler);
+        const handlerWrap: RequestHandler<TParam, TResult, TError> = (
+            params: TParam,
+            token: CancellationToken,
+        ) => {
+            this.logger.verbose(`Request received from webview: ${type.method}`);
+            const handlerActivity = startActivity(
+                TelemetryViews.WebviewController,
+                TelemetryActions.OnRequest,
+                undefined,
+                {
+                    type: type.method,
+                    webviewId: this._sourceFile,
+                },
+                undefined,
+                true, // include call stack
+            );
+            try {
+                const result = handler(params, token);
+                if (result instanceof Promise) {
+                    return result.then(
+                        (res) => {
+                            this.logger.verbose(`Request succeeded: ${type.method}`);
+                            handlerActivity.end(ActivityStatus.Succeeded);
+                            return res;
+                        },
+                        (error) => {
+                            this.logger.error(
+                                `Request failed: ${type.method} - ${getErrorMessage(error)}`,
+                            );
+                            handlerActivity.endFailed(error, false);
+                            throw error;
+                        },
+                    );
+                } else {
+                    this.logger.verbose(`Request succeeded: ${type.method}`);
+                    handlerActivity.end(ActivityStatus.Succeeded);
+                    return result;
+                }
+            } catch (error) {
+                this.logger.error(`Request failed: ${type.method} - ${getErrorMessage(error)}`);
+                handlerActivity.endFailed(error, false);
+                throw error;
+            }
+        };
+        this.connection.onRequest(type, handlerWrap);
     }
 
     /**
@@ -463,6 +498,18 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         if (this._isDisposed) {
             throw new Error("Cannot send notification on disposed controller");
         }
+        sendActionEvent(
+            TelemetryViews.WebviewController,
+            TelemetryActions.SendNotification,
+            {
+                type: type.method,
+                webviewId: this._sourceFile,
+            },
+            undefined,
+            undefined,
+            undefined,
+            true, // include call stack
+        );
         return this.connection.sendNotification(type, params);
     }
 
@@ -482,6 +529,18 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         if (this._isDisposed) {
             throw new Error("Cannot register notification handler on disposed controller");
         }
+        sendActionEvent(
+            TelemetryViews.WebviewController,
+            TelemetryActions.onNotification,
+            {
+                type: type.method,
+                webviewId: this._sourceFile,
+            },
+            undefined,
+            undefined,
+            undefined,
+            true, // include call stack
+        );
         this.connection.onNotification(type, handler);
     }
 

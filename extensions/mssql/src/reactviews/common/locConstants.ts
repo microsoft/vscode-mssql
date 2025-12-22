@@ -139,7 +139,7 @@ export class LocConstants {
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
             previewDatabaseUpdates: l10n.t("Preview Database Updates"),
-            errorLoadingDesigner: l10n.t("Error loading designer"),
+            errorLoadingDesigner: l10n.t("Error loading Table Designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
             scriptAsCreate: l10n.t("Script as Create"),
@@ -325,6 +325,17 @@ export class LocConstants {
             signIntoFabricToBrowse: l10n.t(
                 "You must be signed into Fabric in order to browse SQL databases.",
             ),
+            azureTenantSignInStatus: (signedIn: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} tenants",
+                    args: [signedIn, total],
+                    comment: [
+                        "{0} is the number of tenants with active sessions",
+                        "{1} is the total number of tenants",
+                    ],
+                }),
+            signIntoTenantLink: l10n.t("Sign into tenant"),
+            noTenantsSignedIn: l10n.t("No tenants are currently signed in."),
             loadingWorkspaces: l10n.t("Loading workspaces..."),
             loadingDatabasesInWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {
@@ -480,6 +491,7 @@ export class LocConstants {
             },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
+            toggleSort: l10n.t("Toggle Sort"),
             clearSort: l10n.t("Clear Sort"),
             saveAsCsv: (shortcut: string) => {
                 if (shortcut) {
@@ -864,6 +876,8 @@ export class LocConstants {
                     comment: ["{0} is the max length"],
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            errorLoadingSchemaDesigner: l10n.t("Error loading Schema Designer"),
+            retry: l10n.t("Retry"),
             generatingReport: l10n.t("Generating report, this might take a while..."),
             nWarnings: (warningCount: number) =>
                 l10n.t({
@@ -1123,14 +1137,14 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorHeader: l10n.t(
-                "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
-            ),
             armErrorDescription: l10n.t(
-                "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
             ),
-            see: l10n.t("See"),
-            forMoreDetails: l10n.t("for more details"),
+            toContinueCheck: l10n.t(
+                "To continue, run SQL Server on a machine with a supported processor. Check ",
+            ),
+            theDocumentation: l10n.t("the documentation "),
+            forMoreInformation: l10n.t("for more information."),
         };
     }
 
@@ -1297,7 +1311,6 @@ export class LocConstants {
             maximizePanelSize: l10n.t("Maximize Panel Size"),
             restorePanelSize: l10n.t("Restore Panel Size"),
             updateScript: l10n.t("Update Script"),
-            commands: l10n.t("Commands"),
             deleteRow: l10n.t("Delete Row"),
             revertCell: l10n.t("Revert Cell"),
             revertRow: l10n.t("Revert Row"),
@@ -1315,9 +1328,73 @@ export class LocConstants {
         };
     }
 
+    // SlickGrid-specific localization strings
+    public get slickGrid() {
+        return {
+            filterContains: l10n.t("Contains"),
+            filterNotContains: l10n.t("Not contains"),
+            filterEquals: l10n.t("Equals"),
+            filterNotEqualTo: l10n.t("Not equal to"),
+            filterStartsWith: l10n.t("Starts with"),
+            filterEndsWith: l10n.t("Ends with"),
+            allSelected: l10n.t("All selected"),
+            cancel: l10n.t("Cancel"),
+            clearAllFilters: l10n.t("Clear all filters"),
+            clearAllGrouping: l10n.t("Clear all grouping"),
+            clearAllSorting: l10n.t("Clear all sorting"),
+            clearPinning: l10n.t("Unfreeze columns/rows"),
+            collapseAllGroups: l10n.t("Collapse all groups"),
+            columns: l10n.t("Columns"),
+            columnResizeByContent: l10n.t("Column resize by content"),
+            commands: l10n.t("Commands"),
+            copy: l10n.t("Copy"),
+            copyWithHeaders: l10n.t("Copy with Headers"),
+            copyHeaders: l10n.t("Copy Headers"),
+            expandAllGroups: l10n.t("Expand all groups"),
+            exportToCsv: l10n.t("Export to CSV"),
+            exportToExcel: l10n.t("Export to Excel"),
+            exportToJson: l10n.t("Export to JSON"),
+            exportToTextFormat: l10n.t("Export to text format"),
+            exportToTabDelimited: l10n.t("Export to tab delimited"),
+            filterShortcuts: l10n.t("Filter shortcuts"),
+            forceFitColumns: l10n.t("Force fit columns"),
+            freezeColumns: l10n.t("Freeze columns"),
+            greaterThan: l10n.t("Greater than"),
+            greaterThanOrEqualTo: l10n.t("Greater than or equal to"),
+            groupBy: l10n.t("Group by"),
+            hideColumn: l10n.t("Hide column"),
+            items: l10n.t("items"),
+            itemsPerPage: l10n.t("items per page"),
+            itemsSelected: l10n.t("items selected"),
+            lessThan: l10n.t("Less than"),
+            lessThanOrEqualTo: l10n.t("Less than or equal to"),
+            loading: l10n.t("Loading..."),
+            noElementsFound: l10n.t("No elements found"),
+            noMatchesFound: l10n.t("No matches found"),
+            of: l10n.t("of"),
+            ok: l10n.t("OK"),
+            options: l10n.t("Options"),
+            page: l10n.t("Page"),
+            refreshDataset: l10n.t("Refresh dataset"),
+            removeFilter: l10n.t("Remove filter"),
+            removeSort: l10n.t("Remove sort"),
+            save: l10n.t("Save"),
+            selectAll: l10n.t("Select all"),
+            sortAscending: l10n.t("Sort ascending"),
+            sortDescending: l10n.t("Sort descending"),
+            synchronousResize: l10n.t("Synchronous resize"),
+            toggleDarkMode: l10n.t("Toggle dark mode"),
+            toggleFilterRow: l10n.t("Toggle filter row"),
+            togglePreHeaderRow: l10n.t("Toggle pre-header row"),
+            unfreezeColumns: l10n.t("Unfreeze columns"),
+            xOfYSelected: l10n.t("x of y selected"),
+            equalTo: l10n.t("Equal to"),
+        };
+    }
+
     public get changelog() {
         return {
-            whatsNewSectionTitle: l10n.t("What's new in this release"),
+            highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(

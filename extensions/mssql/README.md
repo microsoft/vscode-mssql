@@ -193,8 +193,7 @@ Configure the MSSQL extension using these settings. Set them in user preferences
   "mssql.intelliSense.enableIntelliSense": true,           // Enable IntelliSense for T-SQL code completion
   "mssql.intelliSense.enableErrorChecking": true,          // Enable real-time syntax and semantic error checking
   "mssql.intelliSense.enableSuggestions": true,            // Enable code suggestions and autocompletion
-  "mssql.intelliSense.enableQuickInfo": true,              // Show quick info tooltips on hover
-  "mssql.intelliSense.lowerCaseSuggestions": false         // Display suggestions in lowercase (false = match case)
+  "mssql.intelliSense.enableQuickInfo": true              // Show quick info tooltips on hover
 }
 
 // Query Execution
@@ -217,7 +216,7 @@ Configure the MSSQL extension using these settings. Set them in user preferences
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
   "mssql.showBatchTime": false,                            // Show batch execution time in results pane
-  "mssql.resultsGrid.autoSizeColumns": true,               // Auto-size result grid columns to fit content
+  "mssql.resultsGrid.autoSizeColumnsMode": "headersAndData", // Auto-size result grid columns with "headersAndData", "dataOnly", "headerOnly", "off"
   "mssql.resultsGrid.inMemoryDataProcessingThreshold": 5000, // Rows threshold for in-memory processing
   "mssql.splitPaneSelection": "next",                      // Focus after split pane: "next" | "current" | "end"
   "mssql.persistQueryResultTabs": false,                   // Keep result tabs open after closing query file
@@ -282,6 +281,7 @@ Customize keyboard shortcuts for query results, grid operations, and other actio
     "event.resultGrid.expandSelectionUp": "shift+up",
     "event.resultGrid.expandSelectionDown": "shift+down",
     "event.resultGrid.openColumnMenu": "f3",
+    "event.resultGrid.openFilterMenu": "",
     "event.resultGrid.moveToRowStart": "ctrlcmd+left",
     "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
     "event.resultGrid.selectColumn": "ctrl+space",

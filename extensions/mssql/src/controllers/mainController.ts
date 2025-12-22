@@ -79,6 +79,7 @@ import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { buildChatAgentConnectPrompt } from "../copilot/tools/toolsUtils";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
 import { ListTablesTool } from "../copilot/tools/listTablesTool";
@@ -100,6 +101,8 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { HttpHelper } from "../http/httpHelper";
+import { Logger } from "../models/logger";
 
 /**
  * The main controller class that initializes the extension
@@ -119,6 +122,8 @@ export default class MainController implements vscode.Disposable {
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
     private _availableCommands: string[] | undefined;
+    private _logger: Logger;
+
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -148,8 +153,11 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
+        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
         this.configuration = vscode.workspace.getConfiguration();
+
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
+        new HttpHelper(this._logger).warnOnInvalidProxySettings();
     }
 
     /**
@@ -478,6 +486,7 @@ export default class MainController implements vscode.Disposable {
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
+                        databaseName &&
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
@@ -491,7 +500,7 @@ export default class MainController implements vscode.Disposable {
                     if (chatCommand) {
                         vscode.commands.executeCommand(
                             chatCommand,
-                            `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                            buildChatAgentConnectPrompt(connectionCredentials),
                         );
                     } else {
                         // Fallback or error handling
@@ -1708,9 +1717,51 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node) {
+                        return;
+                    }
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
+                    }
+                },
+            ),
+        );
+
+        // Copy connection string command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyConnectionString,
+                async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node?.connectionProfile) {
+                        return;
+                    }
+                    if (
+                        node.context.type !== Constants.disconnectedServerNodeType &&
+                        node.context.type !== Constants.serverLabel
+                    ) {
+                        return;
+                    }
+
+                    const connectionDetails = this.connectionManager.createConnectionDetails(
+                        node.connectionProfile,
+                    );
+                    const connectionString = await this.connectionManager.getConnectionString(
+                        connectionDetails,
+                        true, // include password
+                        false, // Do not include application name
+                    );
+                    if (connectionString) {
+                        await vscode.env.clipboard.writeText(connectionString);
+                        await vscode.window.showInformationMessage(
+                            LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+                        );
                     }
                 },
             ),

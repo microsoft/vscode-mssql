@@ -82,6 +82,7 @@ export const TableExplorerPage: React.FC = () => {
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
+    const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
 
@@ -138,6 +139,7 @@ export const TableExplorerPage: React.FC = () => {
                                             pageSize={10}
                                             currentRowCount={currentRowCount}
                                             failedCells={failedCells}
+                                            deletedRows={deletedRows}
                                             onDeleteRow={context?.deleteRow}
                                             onUpdateCell={context?.updateCell}
                                             onRevertCell={context?.revertCell}
@@ -145,6 +147,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onLoadSubset={context?.loadSubset}
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
+                                            onSaveResults={context?.saveResults}
                                         />
                                     )}
                                 </div>

@@ -67,10 +67,7 @@ suite("RunQueryTool Tests", () => {
         mockToken = {} as vscode.CancellationToken;
 
         // Create the tool instance
-        runQueryTool = new RunQueryTool(
-            mockConnectionManager as unknown as ConnectionManager,
-            mockServiceClient as unknown as SqlToolsServiceClient,
-        );
+        runQueryTool = new RunQueryTool(mockConnectionManager, mockServiceClient);
     });
 
     teardown(() => {
@@ -142,10 +139,7 @@ suite("RunQueryTool Tests", () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new RunQueryTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new RunQueryTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {
@@ -272,6 +266,69 @@ suite("RunQueryTool Tests", () => {
             const telemetryCall = sendActionEventStub.getCall(0);
             expect(telemetryCall.args[2].queryTypes).to.equal("DROP,DELETE,TRUNCATE");
             expect(telemetryCall.args[2].queryIntent).to.equal("schema_modification");
+        });
+
+        test("should include both display name and connection ID in messages", async () => {
+            // Mock credentials with server and database for display name
+            const mockCredentialsWithDetails = {
+                server: "localhost",
+                database: "TestDB",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+            } as IConnectionProfile;
+
+            const mockConnectionInfoWithDetails = {
+                credentials: mockCredentialsWithDetails,
+                connectionId: sampleConnectionId,
+            } as unknown as ConnectionInfo;
+
+            mockConnectionManager.getConnectionInfo.returns(mockConnectionInfoWithDetails);
+
+            const options = {
+                input: {
+                    connectionId: sampleConnectionId,
+                    query: sampleQuery,
+                    queryTypes: sampleQueryTypes,
+                    queryIntent: sampleQueryIntent,
+                },
+            } as vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>;
+
+            const result = await runQueryTool.prepareInvocation(options, mockToken);
+
+            // Verify display name is present (format: server, database (user))
+            expect(result.invocationMessage).to.include("localhost");
+            expect(result.invocationMessage).to.include("TestDB");
+            // Verify connection ID is present for debugging
+            expect(result.invocationMessage).to.include(sampleConnectionId);
+            // Verify both are in confirmation message
+            expect(result.confirmationMessages.message.value).to.include("localhost");
+            expect(result.confirmationMessages.message.value).to.include("TestDB");
+            expect(result.confirmationMessages.message.value).to.include(sampleConnectionId);
+        });
+
+        test("should show only connection ID when connection info is not found", async () => {
+            // Create a mock that returns undefined connection info
+            const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            noConnectionMock.getConnectionInfo.returns(undefined as any);
+
+            const toolWithNoConnection = new RunQueryTool(noConnectionMock, mockServiceClient);
+
+            const options = {
+                input: {
+                    connectionId: sampleConnectionId,
+                    query: sampleQuery,
+                    queryTypes: sampleQueryTypes,
+                    queryIntent: sampleQueryIntent,
+                },
+            } as vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>;
+
+            const result = await toolWithNoConnection.prepareInvocation(options, mockToken);
+
+            // Verify it shows "Unknown Connection" placeholder with connection ID
+            expect(result.invocationMessage).to.include("Unknown Connection");
+            expect(result.invocationMessage).to.include(sampleConnectionId);
+            expect(result.confirmationMessages.message.value).to.include("Unknown Connection");
+            expect(result.confirmationMessages.message.value).to.include(sampleConnectionId);
         });
     });
 });

@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.38.0",
+    "version": "1.39.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -154,7 +154,7 @@
     },
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",
-        "@azure/arm-sql": "^9.0.0",
+        "@azure/arm-sql": "^10.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
@@ -363,6 +363,11 @@
                 "path": "./snippets/mssql.json"
             }
         ],
+        "configurationDefaults": {
+            "[sql]": {
+                "editor.wordSeparators": "~!#$%^&*()-=+[{]}\\|;:'\",.<>/?"
+            }
+        },
         "submenus": [
             {
                 "id": "mssql.copilot.editorSubmenu",
@@ -643,8 +648,13 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
                     "group": "5_MSSQL_tree@4"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
+                    "group": "5_MSSQL_tree@5"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -796,7 +806,11 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
                 },
                 {
                     "command": "mssql.runQueryHistory",
@@ -1163,6 +1177,11 @@
             {
                 "command": "mssql.copyObjectName",
                 "title": "%mssql.copyObjectName%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copyConnectionString",
+                "title": "%mssql.copyConnectionString%",
                 "category": "MS SQL"
             },
             {
@@ -1679,6 +1698,7 @@
                         "event.resultGrid.expandSelectionUp": "shift+up",
                         "event.resultGrid.expandSelectionDown": "shift+down",
                         "event.resultGrid.openColumnMenu": "f3",
+                        "event.resultGrid.openFilterMenu": "",
                         "event.resultGrid.moveToRowStart": "ctrlcmd+left",
                         "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
                         "event.resultGrid.selectColumn": "ctrl+space",
@@ -1882,12 +1902,6 @@
                     "description": "%mssql.intelliSense.enableQuickInfo%",
                     "scope": "window"
                 },
-                "mssql.intelliSense.lowerCaseSuggestions": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.intelliSense.lowerCaseSuggestions%",
-                    "scope": "window"
-                },
                 "mssql.persistQueryResultTabs": {
                     "type": "boolean",
                     "default": false,
@@ -1941,10 +1955,22 @@
                     "default": 100,
                     "description": "%mssql.logFilesRemovalLimit%"
                 },
-                "mssql.resultsGrid.autoSizeColumns": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "%mssql.resultsGrid.autoSizeColumns%"
+                "mssql.resultsGrid.autoSizeColumnsMode": {
+                    "type": "string",
+                    "default": "headersAndData",
+                    "enum": [
+                        "headersAndData",
+                        "dataOnly",
+                        "headerOnly",
+                        "off"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.resultsGrid.useHeaderAndDataEnumDescription%",
+                        "%mssql.resultsGrid.useDataOnlyEnumDescription%",
+                        "%mssql.resultsGrid.useHeaderOnlyEnumDescription%",
+                        "%mssql.resultsGrid.disableAutoSizingEnumDescription%"
+                    ],
+                    "description": "%mssql.resultsGrid.autoSizeColumnsMode%"
                 },
                 "mssql.resultsGrid.inMemoryDataProcessingThreshold": {
                     "type": "number",

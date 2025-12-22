@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static publicString = l10n.t("Public");
+    public static privateString = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");
@@ -682,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {
@@ -746,6 +749,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
@@ -1395,9 +1407,13 @@ export class PublishProject {
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
-    public static ProfileLoadedConnectionFailed = l10n.t(
-        "Profile loaded but connection failed. Please connect to the server manually.",
-    );
+    public static ProfileLoadedConnectionFailed = (serverName: string) =>
+        l10n.t({
+            message:
+                "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
 }
 
 export class SchemaCompare {
@@ -1484,6 +1500,12 @@ export class SchemaCompare {
             message: "Cannot include {0}. Excluded dependents exist",
             args: [diffEntryName],
             comment: ["{0} is the name of the entry"],
+        });
+    public static connectionFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Connection failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message from the connection attempt"],
         });
 }
 
@@ -1741,33 +1763,39 @@ export class MssqlChatAgent {
         });
     };
     public static disconnectToolConfirmationTitle = l10n.t("Disconnect");
-    public static disconnectToolConfirmationMessage = (connectionId: string) => {
+    public static disconnectToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Disconnect from connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Disconnect from connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static disconnectToolInvocationMessage = (connectionId: string) => {
+    public static disconnectToolInvocationMessage = (displayName: string, connectionId: string) => {
         return l10n.t({
-            message: "Disconnecting from connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Disconnecting from connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static showSchemaToolConfirmationTitle = l10n.t("Show Schema");
-    public static showSchemaToolConfirmationMessage = (connectionId: string) => {
+    public static showSchemaToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Show schema for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Show schema for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static showSchemaToolInvocationMessage = (connectionId: string) => {
+    public static showSchemaToolInvocationMessage = (displayName: string, connectionId: string) => {
         return l10n.t({
-            message: "Showing schema for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Showing schema for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static noConnectionError = (connectionId: string) => {
@@ -1777,56 +1805,79 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+    public static unknownConnection = l10n.t("Unknown Connection");
     public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
     public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
-    public static getConnectionDetailsToolConfirmationMessage = (connectionId: string) => {
+    public static getConnectionDetailsToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Get connection details for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Get connection details for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static getConnectionDetailsToolInvocationMessage = (connectionId: string) => {
+    public static getConnectionDetailsToolInvocationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Getting connection details for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Getting connection details for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static listDatabasesToolConfirmationTitle = l10n.t("List Databases");
-    public static listDatabasesToolConfirmationMessage = (connectionId: string) => {
+    public static listDatabasesToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "List databases for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "List databases for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static listDatabasesToolInvocationMessage = (connectionId: string) => {
+    public static listDatabasesToolInvocationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Listing databases for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Listing databases for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static changeDatabaseToolConfirmationTitle = l10n.t("Change Database");
     public static changeDatabaseToolConfirmationMessage = (
+        displayName: string,
         connectionId: string,
         database: string,
     ) => {
         return l10n.t({
-            message: "Change database to '{1}' for connection '{0}'?",
-            args: [connectionId, database],
-            comment: ["{0} is the connection ID", "{1} is the database name"],
+            message: "Change database to '{2}' for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId, database],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection ID",
+                "{2} is the database name",
+            ],
         });
     };
     public static changeDatabaseToolInvocationMessage = (
+        displayName: string,
         connectionId: string,
         database: string,
     ) => {
         return l10n.t({
-            message: "Changing database to '{1}' for connection '{0}'",
-            args: [connectionId, database],
-            comment: ["{0} is the connection ID", "{1} is the database name"],
+            message: "Changing database to '{2}' for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId, database],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection ID",
+                "{2} is the database name",
+            ],
         });
     };
     public static changeDatabaseToolSuccessMessage = (database: string) => {
@@ -1844,78 +1895,104 @@ export class MssqlChatAgent {
         });
     };
     public static ListTablesToolConfirmationTitle = l10n.t("List Tables");
-    public static ListTablesToolConfirmationMessage = (connectionId: string) => {
+    public static ListTablesToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "List tables for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "List tables for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static ListTablesToolInvocationMessage = (connectionId: string) => {
+    public static ListTablesToolInvocationMessage = (displayName: string, connectionId: string) => {
         return l10n.t({
-            message: "Listing tables for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Listing tables for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
-    public static ListSchemasToolConfirmationMessage = (connectionId: string) => {
+    public static ListSchemasToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "List schemas for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "List schemas for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static ListSchemasToolInvocationMessage = (connectionId: string) => {
+    public static ListSchemasToolInvocationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Listing schemas for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Listing schemas for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static ListViewsToolConfirmationTitle = l10n.t("List Views");
-    public static ListViewsToolConfirmationMessage = (connectionId: string) => {
+    public static ListViewsToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "List views for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "List views for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static ListViewsToolInvocationMessage = (connectionId: string) => {
+    public static ListViewsToolInvocationMessage = (displayName: string, connectionId: string) => {
         return l10n.t({
-            message: "Listing views for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Listing views for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static ListFunctionsToolConfirmationTitle = l10n.t("List Functions");
-    public static ListFunctionsToolConfirmationMessage = (connectionId: string) => {
+    public static ListFunctionsToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "List functions for connection '{0}'?",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "List functions for connection '{0}' (ID: {1})?",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
-    public static ListFunctionsToolInvocationMessage = (connectionId: string) => {
+    public static ListFunctionsToolInvocationMessage = (
+        displayName: string,
+        connectionId: string,
+    ) => {
         return l10n.t({
-            message: "Listing functions for connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Listing functions for connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
     public static RunQueryToolConfirmationTitle = l10n.t("Run Query");
-    public static RunQueryToolConfirmationMessage = (connectionId: string, query: string) => {
+    public static RunQueryToolConfirmationMessage = (
+        displayName: string,
+        connectionId: string,
+        query: string,
+    ) => {
         return l10n.t({
-            message: "Run query on connection '{0}'?\n\nQuery: {1}",
-            args: [connectionId, query],
-            comment: ["{0} is the connection ID", "{1} is the SQL query"],
+            message: "Run query on connection '{0}' (ID: {1})?\n\nQuery: {2}",
+            args: [displayName, connectionId, query],
+            comment: [
+                "{0} is the connection display name",
+                "{1} is the connection ID",
+                "{2} is the SQL query",
+            ],
         });
     };
-    public static RunQueryToolInvocationMessage = (connectionId: string) => {
+    public static RunQueryToolInvocationMessage = (displayName: string, connectionId: string) => {
         return l10n.t({
-            message: "Running query on connection '{0}'",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Running query on connection '{0}' (ID: {1})",
+            args: [displayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
     };
 
@@ -2194,6 +2271,7 @@ export class TableExplorer {
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
+    public static rowDeletedSuccessfully = l10n.t("Row deleted.");
 
     public static title = (tableName: string) =>
         l10n.t({
@@ -2293,15 +2371,49 @@ export class TableExplorer {
     public static Save = l10n.t("Save");
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
+
+    public static exportSuccessful = (filePath: string) =>
+        l10n.t({
+            message: "Results exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+
+    public static exportFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to export results: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
+    public static watchDemo = l10n.t("Watch demo");
+    public static learnMore = l10n.t("Learn more");
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
     public static readTheDocumentation = l10n.t("Read the documentation");
     public static joinTheDiscussions = l10n.t("Join the discussions");
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
+}
+
+export class Proxy {
+    public static missingProtocolWarning = (proxy: string) =>
+        l10n.t({
+            message:
+                "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
+            args: [proxy],
+            comment: ["{0} is the proxy URL"],
+        });
+
+    public static unparseableWarning = (proxy: string, errorMessage: string) =>
+        l10n.t({
+            message:
+                "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
+            args: [proxy, errorMessage],
+            comment: ["{0} is the proxy URL", "{1} is the error message"],
+        });
 }

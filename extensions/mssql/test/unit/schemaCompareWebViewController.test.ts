@@ -429,6 +429,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             dataSchemaProvider: "",
             extractTarget: 5,
         };
+
         controller = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapperStub,
@@ -441,19 +442,87 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareWebViewTitle,
         );
 
+        // Stub launch to track its calls
         const launchStub = sinon.stub(controller, "launch").resolves();
 
         await controller.start(mockSource, mockTarget, true);
 
+        // Verify launch was called twice (once from constructor, once from explicit start)
         expect(launchStub).to.have.been.calledTwice;
 
-        // Second call: from explicit start
+        // Verify second call has correct arguments
         const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
         expect(sourceArg2, "source should match mockSource").to.deep.equal(mockSource);
         expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
         expect(runComparisonArg2, "runComparison should be true").to.be.true;
+    });
 
-        launchStub.restore();
+    test("launch - automatically triggers schema comparison when runComparison is true", async () => {
+        const mockSource: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "sourceServer",
+            databaseName: "sourceDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+
+        const expectedCompareResultMock: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: [],
+            success: true,
+            errorMessage: "",
+        };
+
+        // Stub the compare utility function to prevent actual comparison
+        const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
+
+        controller = new SchemaCompareWebViewController(
+            mockContext,
+            vscodeWrapperStub,
+            mockSource,
+            mockTarget,
+            false, // Don't auto-run on construction
+            schemaCompareService,
+            connectionManagerStub,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+
+        // Now call launch with runComparison=true to test automatic comparison
+        await controller.launch(mockSource, mockTarget, true, undefined);
+
+        // Verify compare was called automatically when runComparison is true
+        expect(compareStub, "compare should be called once").to.have.been.calledOnce;
+        expect(
+            compareStub.firstCall.args[2].sourceEndpointInfo,
+            "source should match mockSource",
+        ).to.deep.equal(mockSource);
+        expect(
+            compareStub.firstCall.args[2].targetEndpointInfo,
+            "target should match mockTarget",
+        ).to.deep.equal(mockTarget);
     });
 
     // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
@@ -564,9 +633,15 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(generateScriptStub, "generateScript should be called once").to.have.been.calledOnce;
 
         expect(
-            generateScriptStub.firstCall.args,
+            generateScriptStub,
             "generateScript should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.script, payload, schemaCompareService]);
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.script,
+            payload,
+            schemaCompareService,
+            sinon.match.any,
+        );
 
         expect(
             result.generateScriptResultStatus,
@@ -718,9 +793,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             .calledOnce;
 
         expect(
-            publishProjectChangesStub.firstCall.args,
+            publishProjectChangesStub,
             "includeExcludeNode should be called with correct arguments",
-        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
+        ).to.have.been.calledWith(
+            operationId,
+            TaskExecutionMode.execute,
+            payload,
+            schemaCompareService,
+            sinon.match.any,
+        );
 
         expect(
             actualResult.schemaCompareIncludeExcludeResult,
@@ -766,9 +847,9 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(openScmpStub, "openScmp should be called once").to.have.been.calledOnce;
 
         expect(
-            openScmpStub.firstCall.args,
+            openScmpStub,
             "openScmp should be called with correct arguments",
-        ).to.deep.equal([filePath, schemaCompareService]);
+        ).to.have.been.calledWith(filePath, schemaCompareService, sinon.match.any);
 
         expect(
             actualResult.schemaCompareOpenScmpResult,
@@ -782,6 +863,89 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResultMock.deploymentOptions);
 
         openScmpStub.restore();
+    });
+
+    test("openScmp reducer - with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
+        // Setup Azure MFA endpoint info without accountId
+        const azureMfaTargetEndpointInfo = {
+            endpointType: 0,
+            packageFilePath: "",
+            serverDisplayName: "azure-server.database.windows.net (user@domain.com)",
+            serverName: "azure-server.database.windows.net",
+            databaseName: "testdb",
+            ownerUri: "",
+            connectionDetails: {
+                options: {
+                    server: "azure-server.database.windows.net",
+                    database: "testdb",
+                    authenticationType: "AzureMFA",
+                    accountId: undefined, // Missing accountId - this is what we're testing
+                    user: "user@domain.com",
+                    email: "user@domain.com",
+                },
+            },
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            extractTarget: 5,
+            dataSchemaProvider: "",
+        };
+
+        const expectedResultMock = {
+            success: true,
+            errorMessage: "",
+            sourceEndpointInfo,
+            targetEndpointInfo: azureMfaTargetEndpointInfo,
+            originalTargetName: "testdb",
+            originalTargetServerName: "azure-server.database.windows.net",
+            originalConnectionString: "",
+            deploymentOptions,
+            excludedSourceElements: [],
+            excludedTargetElements: [],
+        };
+
+        const filePath = "c:\\test_azure.scmp";
+
+        const showOpenDialogForScmpStub = sandbox
+            .stub(scUtils, "showOpenDialogForScmp")
+            .resolves(filePath);
+
+        const openScmpStub = sandbox.stub(scUtils, "openScmp").resolves(expectedResultMock);
+
+        // Stub connectionManager methods
+        connectionManagerStub.getUriForScmpConnection.returns(undefined); // No existing connection
+        connectionManagerStub.connect.resolves(true);
+
+        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
+        const ensureAccountIdStub =
+            connectionManagerStub.ensureAccountIdForAzureMfa as sinon.SinonStub;
+        ensureAccountIdStub.callsFake(async (connInfo) => {
+            // Simulate what the real method does - populate accountId from saved profile
+            connInfo.accountId = "test-account-id-12345";
+            return true;
+        });
+
+        const payload = {};
+
+        const actualResult = await controller["_reducerHandlers"].get("openScmp")(
+            mockInitialState,
+            payload,
+        );
+
+        expect(showOpenDialogForScmpStub).to.have.been.calledOnce;
+        expect(openScmpStub).to.have.been.calledOnce;
+
+        // Verify the helper was called to populate missing accountId
+        expect(ensureAccountIdStub).to.have.been.calledOnce;
+
+        // Verify connect was called with accountId populated
+        const connectCallArgs = connectionManagerStub.connect.firstCall.args;
+        expect(connectCallArgs[1].accountId).to.equal("test-account-id-12345");
+
+        expect(actualResult.schemaCompareOpenScmpResult).to.deep.equal(expectedResultMock);
+
+        openScmpStub.restore();
+        ensureAccountIdStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -864,6 +1028,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
+    });
+
+    test("resetEndpointsSwitched reducer - when called - sets endpointsSwitched to false", async () => {
+        // Setup initial state with endpointsSwitched set to true
+        const initialState = { ...mockInitialState };
+        initialState.endpointsSwitched = true;
+
+        const payload = {};
+
+        const actualResult = await controller["_reducerHandlers"].get("resetEndpointsSwitched")(
+            initialState,
+            payload,
+        );
+
+        expect(actualResult.endpointsSwitched, "endpointsSwitched should be set to false").to.equal(
+            false,
+        );
     });
 
     test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
