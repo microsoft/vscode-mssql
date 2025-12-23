@@ -763,86 +763,96 @@ export default class QueryRunner {
         this._copyOperationCancellation = new vscode.CancellationTokenSource();
         const copyToken = this._copyOperationCancellation.token;
 
-        await vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: LocalizedConstants.copyingResults,
-                cancellable: true,
-            },
-            async (_progress, token) => {
-                return new Promise<void>(async (resolve, reject) => {
-                    try {
-                        // Handle cancellation from the progress dialog (user clicked cancel)
-                        token.onCancellationRequested(async () => {
-                            await this._client.sendNotification(CancelCopy2Notification.type);
-                            vscode.window.showInformationMessage("Copying results cancelled");
-                            resolve();
-                        });
+        const totalRows = this.getTotalSelectedRows(selection);
+        const threshold = getInMemoryGridDataProcessingThreshold();
+        const showProgress = totalRows > threshold;
 
-                        // Handle internal cancellation (new copy operation started) - no notification
-                        copyToken.onCancellationRequested(async () => {
-                            resolve();
-                        });
-
-                        // Check if already cancelled before starting
-                        if (copyToken.isCancellationRequested) {
-                            resolve();
-                            return;
-                        }
-
-                        const selections: TableSelectionRange[] = selection.map((range) => ({
-                            fromRow: range.fromRow,
-                            toRow: range.toRow,
-                            fromColumn: range.fromCell,
-                            toColumn: range.toCell,
-                        }));
-
-                        const params: CopyResults2RequestParams = {
-                            ownerUri: this.uri,
-                            batchIndex: batchId,
-                            resultSetIndex: resultId,
-                            copyType,
-                            includeHeaders: options?.includeHeaders ?? false,
-                            selections,
-                            delimiter: options?.delimiter,
-                            lineSeparator: options?.lineSeparator ?? editorEol,
-                            textIdentifier: options?.textIdentifier,
-                            encoding: options?.encoding,
-                        };
-
-                        const result = await this._client.sendRequest(
-                            CopyResults2Request.type,
-                            params,
-                        );
-
-                        // Check if cancelled while waiting for the request
-                        if (copyToken.isCancellationRequested) {
-                            resolve();
-                            return;
-                        }
-
-                        if (result?.content) {
-                            await this.writeStringToClipboard(result.content);
-                        }
-
-                        vscode.window.showInformationMessage(
-                            LocalizedConstants.resultsCopiedToClipboard,
-                        );
+        const executeCopy = async (
+            _progress?: vscode.Progress<any>,
+            token?: vscode.CancellationToken,
+        ) => {
+            return new Promise<void>(async (resolve, reject) => {
+                try {
+                    // Handle cancellation from the progress dialog (user clicked cancel)
+                    token?.onCancellationRequested(async () => {
+                        await this._client.sendNotification(CancelCopy2Notification.type);
+                        vscode.window.showInformationMessage("Copying results cancelled");
                         resolve();
-                    } catch (error) {
-                        // Don't show error if cancelled
-                        if (copyToken.isCancellationRequested) {
-                            resolve();
-                            return;
-                        }
-                        vscode.window.showErrorMessage(
-                            LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
-                        );
-                        reject(error);
+                    });
+
+                    // Handle internal cancellation (new copy operation started) - no notification
+                    copyToken.onCancellationRequested(async () => {
+                        resolve();
+                    });
+
+                    // Check if already cancelled before starting
+                    if (copyToken.isCancellationRequested) {
+                        resolve();
+                        return;
                     }
-                });
-            },
-        );
+
+                    const selections: TableSelectionRange[] = selection.map((range) => ({
+                        fromRow: range.fromRow,
+                        toRow: range.toRow,
+                        fromColumn: range.fromCell,
+                        toColumn: range.toCell,
+                    }));
+
+                    const params: CopyResults2RequestParams = {
+                        ownerUri: this.uri,
+                        batchIndex: batchId,
+                        resultSetIndex: resultId,
+                        copyType,
+                        includeHeaders: options?.includeHeaders ?? false,
+                        selections,
+                        delimiter: options?.delimiter,
+                        lineSeparator: options?.lineSeparator ?? editorEol,
+                        textIdentifier: options?.textIdentifier,
+                        encoding: options?.encoding,
+                    };
+
+                    const result = await this._client.sendRequest(CopyResults2Request.type, params);
+
+                    // Check if cancelled while waiting for the request
+                    if (copyToken.isCancellationRequested) {
+                        resolve();
+                        return;
+                    }
+
+                    if (result?.clipboardText) {
+                        await this.writeStringToClipboard(result.clipboardText);
+                    }
+
+                    vscode.window.showInformationMessage(
+                        LocalizedConstants.resultsCopiedToClipboard,
+                    );
+                    resolve();
+                } catch (error) {
+                    // Don't show error if cancelled
+                    if (copyToken.isCancellationRequested) {
+                        resolve();
+                        return;
+                    }
+                    vscode.window.showErrorMessage(
+                        LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
+                    );
+                    reject(error);
+                }
+            });
+        };
+
+        if (showProgress) {
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: LocalizedConstants.copyingResults,
+                    cancellable: true,
+                },
+                executeCopy,
+            );
+        } else {
+            await executeCopy();
+        }
     }
 
     /**
