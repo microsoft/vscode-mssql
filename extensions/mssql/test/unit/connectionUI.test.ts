@@ -12,6 +12,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
+    IConnectionGroup,
 } from "../../src/models/interfaces";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AccountStore } from "../../src/azure/accountStore";
@@ -246,26 +247,47 @@ suite("Connection UI tests", () => {
     });
 
     test("getConnectionGroupOptions", async () => {
-        const mockGroups = [
-            { id: "0000", name: "Parent Group One", parentId: ConnectionConfig.RootGroupId },
-            { id: "1111", name: "Parent Group Two", parentId: ConnectionConfig.RootGroupId },
-            { id: "0000-0000", name: "Child Group", parentId: "0000" }, // two child groups with the same name but different parents
-            { id: "1111-0000", name: "Child Group", parentId: "1111" },
-            { id: "1111-1111", name: "Other Child Group", parentId: "1111" }, // a child group with a unique name shouldn't have parent prefix
+        const mockGroups: IConnectionGroup[] = [
+            {
+                id: "0000",
+                name: "Parent Group One",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "1111",
+                name: "Parent Group Two",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "0000-0000",
+                name: "Child Group",
+                parentId: "0000",
+                configSource: vscode.ConfigurationTarget.Global,
+            }, // two child groups with the same name but different parents
+            {
+                id: "1111-0000",
+                name: "Child Group",
+                parentId: "1111",
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "1111-1111",
+                name: "Other Child Group",
+                parentId: "1111",
+                configSource: vscode.ConfigurationTarget.Global,
+            }, // a child group with a unique name shouldn't have parent prefix
         ];
 
         connectionStoreStub.readAllConnectionGroups.resolves(mockGroups);
-
-        sandbox.stub(connectionStoreStub, "rootGroupId").get(() => {
-            return ConnectionConfig.RootGroupId;
-        });
 
         const options = await connectionUI.getConnectionGroupOptions();
 
         expect(options).to.have.lengthOf(mockGroups.length + 2); // +2 for root and 'create new' options
         expect(options[0], "Root node should be first").to.deep.equal({
             displayName: LocConstants.ConnectionDialog.default,
-            value: ConnectionConfig.RootGroupId,
+            value: ConnectionConfig.ROOT_GROUP_ID,
         });
         expect(options[1], "'Create new' option should be second").to.deep.equal({
             displayName: LocConstants.ConnectionDialog.createConnectionGroup,
