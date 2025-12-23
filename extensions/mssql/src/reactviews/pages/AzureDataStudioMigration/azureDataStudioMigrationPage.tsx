@@ -7,7 +7,6 @@ import {
     Body1,
     Button,
     Checkbox,
-    CheckboxCheckedValue,
     Dropdown,
     Input,
     Label,
@@ -56,7 +55,7 @@ const useStyles = makeStyles({
     },
     layout: {
         width: "100%",
-        maxWidth: "1200px",
+        maxWidth: "1500px",
         display: "flex",
         flexDirection: "column",
         gap: "16px",
@@ -168,7 +167,7 @@ const useStyles = makeStyles({
         verticalAlign: "bottom",
     },
     authCell: {
-        minWidth: "200px",
+        minWidth: "160px",
     },
     importBar: {
         display: "flex",
@@ -176,19 +175,19 @@ const useStyles = makeStyles({
         padding: "0 16px 24px",
     },
     nameColumn: {
-        width: "22%",
+        width: "15%",
         maxWidth: "300px",
     },
     serverColumn: {
-        width: "25%",
+        width: "15%",
         maxWidth: "280px",
     },
     databaseColumn: {
-        width: "18%",
+        width: "15%",
         maxWidth: "200px",
     },
     userColumn: {
-        width: "18%",
+        width: "15%",
         maxWidth: "220px",
     },
     authTypeColumn: {
@@ -240,7 +239,7 @@ export const AzureDataStudioMigrationPage = () => {
         return { total, selected };
     }, [connections]);
 
-    const computeHeaderState = (selected: number, total: number): CheckboxCheckedValue => {
+    const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
         if (total === 0 || selected === 0) {
             return false;
         }
