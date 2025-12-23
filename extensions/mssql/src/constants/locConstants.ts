@@ -1563,6 +1563,33 @@ export class Connection {
         });
     };
 
+    public static orphanedConnectionGroupsWarning = (groupNames: string) => {
+        return l10n.t({
+            message:
+                "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
+            args: [groupNames],
+            comment: ["{0} is the comma separated list of connection group names"],
+        });
+    };
+
+    public static orphanedConnectionsWarning = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.",
+            args: [connectionDisplayNames.join(", ")],
+            comment: ["{0} is the comma separated list of connection display names"],
+        });
+    };
+
+    public static multipleRootGroupsFoundError = (rootId: string) => {
+        return l10n.t({
+            message:
+                "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+            args: [rootId],
+            comment: ["{0} is the root id"],
+        });
+    };
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:

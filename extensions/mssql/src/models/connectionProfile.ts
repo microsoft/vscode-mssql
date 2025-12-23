@@ -10,6 +10,7 @@ import { INameValueChoice } from "../prompts/question";
 import * as utils from "./utils";
 import { AccountStore } from "../azure/accountStore";
 import { AzureAuthType } from "./contracts/azure";
+import { ConfigTarget } from "../connectionconfig/connectionconfig";
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -20,6 +21,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public profileName: string;
     public id: string;
     public groupId: string;
+    public configSource: ConfigTarget;
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;

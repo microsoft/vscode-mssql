@@ -1758,6 +1758,18 @@
         "message": "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
         "comment": ["{0} is the connection ID for the connection that has been ignored"]
     },
+    "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries./{0} is the comma separated list of connection group names": {
+        "message": "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
+        "comment": ["{0} is the comma separated list of connection group names"]
+    },
+    "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries./{0} is the comma separated list of connection display names": {
+        "message": "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.",
+        "comment": ["{0} is the comma separated list of connection display names"]
+    },
+    "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension./{0} is the root id": {
+        "message": "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+        "comment": ["{0} is the root id"]
+    },
     "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
         "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
         "comment": ["{0} is the connection id", "{1} is the error message"]

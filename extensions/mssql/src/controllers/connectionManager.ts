@@ -183,7 +183,6 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                this._connectionStore,
                 this._accountStore,
                 prompter,
                 this.vscodeWrapper,
