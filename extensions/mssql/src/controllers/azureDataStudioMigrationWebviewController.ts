@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { homedir } from "os";
 import { promises as fs } from "fs";
-import { parse } from "jsonc-parser";
+import stripJsonComments from "strip-json-comments";
 
 import { AzureDataStudioMigration } from "../constants/locConstants";
 import {
@@ -28,6 +28,7 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
     connectionGroups: [],
     connections: [],
+    rootGroupIds: [],
 };
 
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
@@ -144,17 +145,18 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private async loadSettingsFromFile(filePath: string): Promise<void> {
         try {
             const raw = await fs.readFile(filePath, { encoding: "utf8" });
+            const parsed = JSON.parse(stripJsonComments(raw)) as Record<string, unknown>;
 
-            // Parse using jsonc-parser to support comments in the settings file
-            const parsed = parse(raw) as Record<string, unknown>;
-
-            const groups = this.parseConnectionGroups(parsed?.["datasource.connectionGroups"]);
+            const { groups, rootGroupIds } = this.parseConnectionGroups(
+                parsed?.["datasource.connectionGroups"],
+            );
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
 
             this.state = {
                 adsConfigPath: filePath,
                 connectionGroups: groups,
                 connections,
+                rootGroupIds,
             };
         } catch (error) {
             void vscode.window.showErrorMessage(
@@ -163,20 +165,31 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         }
     }
 
-    private parseConnectionGroups(value: unknown): AdsMigrationConnectionGroup[] {
+    private parseConnectionGroups(value: unknown): {
+        groups: AdsMigrationConnectionGroup[];
+        rootGroupIds: string[];
+    } {
         if (!Array.isArray(value)) {
-            return [];
+            return {
+                groups: [],
+                rootGroupIds: [],
+            };
         }
 
         const groups: AdsMigrationConnectionGroup[] = [];
+        const rootGroupIds: string[] = [];
         for (const candidate of value) {
             const group = this.createGroup(candidate);
             if (group) {
-                groups.push(group);
+                if (group.name?.trim().toUpperCase() === "ROOT") {
+                    rootGroupIds.push(group.id);
+                } else {
+                    groups.push(group);
+                }
             }
         }
 
-        return groups;
+        return { groups, rootGroupIds };
     }
 
     private createGroup(candidate: unknown): AdsMigrationConnectionGroup | undefined {

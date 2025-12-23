@@ -23,6 +23,7 @@ export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
+    rootGroupIds: string[];
 }
 
 export namespace AzureDataStudioMigrationBrowseForConfigRequest {

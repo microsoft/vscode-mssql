@@ -711,11 +711,6 @@
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
-    <trans-unit id="++CODE++26a59e58508387089ffc0b776a617b9584cdf0b994c6d285aafa38967b61948c">
-      <source xml:lang="en">Color for {0}: {1}</source>
-      <note>{0} is the connection group name
-{1} is the color hex or name shown in the swatch</note>
-    </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
     </trans-unit>
