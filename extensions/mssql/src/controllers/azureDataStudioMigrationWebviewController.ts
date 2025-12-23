@@ -22,11 +22,12 @@ import {
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { Deferred } from "../protocol";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
@@ -39,6 +40,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     AzureDataStudioMigrationWebviewState,
     void
 > {
+    public readonly initialized: Deferred<void> = new Deferred<void>();
+
     private _existingConnectionIds: Set<string> = new Set<string>();
     private _existingGroupIds: Set<string> = new Set<string>();
 
@@ -65,7 +68,38 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         );
 
         this.registerRequestHandlers();
-        void this.initialize();
+        void this.initialize()
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                void vscode.window.showErrorMessage(getErrorMessage(err));
+
+                // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
+                // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.Initialize,
+                    err,
+                    true, // includeErrorMessage
+                    undefined, // errorCode,
+                    "catchAll", // errorType
+                );
+                this.initialized.reject(getErrorMessage(err));
+            });
+    }
+
+    private async initialize() {
+        // Attempt to load settings from the default ADS settings path
+        const defaultPath = this.getDefaultAdsSettingsPath();
+        if (!defaultPath) {
+            return;
+        }
+        if (!(await this.fileExists(defaultPath))) {
+            return;
+        }
+        await this.loadSettingsFromFile(defaultPath);
     }
 
     private registerRequestHandlers() {
@@ -90,18 +124,6 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
             return selectedPath;
         });
-    }
-
-    private async initialize() {
-        // Attempt to load settings from the default ADS settings path
-        const defaultPath = this.getDefaultAdsSettingsPath();
-        if (!defaultPath) {
-            return;
-        }
-        if (!(await this.fileExists(defaultPath))) {
-            return;
-        }
-        await this.loadSettingsFromFile(defaultPath);
     }
 
     private getDefaultAdsSettingsPath(): string | undefined {
