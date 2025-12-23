@@ -1442,8 +1442,14 @@
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
     </trans-unit>
+    <trans-unit id="++CODE++ee9e2da2bd60a5984c5c9f6a2848f9a7efca5615bb2546a40e3555ecf3f6b914">
+      <source xml:lang="en">Enter the SQL Login username.</source>
+    </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ff29df7348793bb4b4c52f26627e7ec2370d4025382e2d4ee43dfaa5ff7f315">
+      <source xml:lang="en">Enter the server name.</source>
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -3091,6 +3097,9 @@
     <trans-unit id="++CODE++40040cb181f7f0ee5add2b52e8467c6652477f7ce12af39fe380b5084b64f4fe">
       <source xml:lang="en">Property</source>
     </trans-unit>
+    <trans-unit id="++CODE++49193ac1a2d2c25457fbdbfb509447f159869adbe05891ac6eb5d2d47eaaed54">
+      <source xml:lang="en">Provide authentication information in the Authentication column.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
@@ -3630,6 +3639,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
       <source xml:lang="en">Select an account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e83c8e96d0ed1feda2ab19df33f4397b32278187b803581eb704d7485ed34c53">
+      <source xml:lang="en">Select an authentication action</source>
     </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
