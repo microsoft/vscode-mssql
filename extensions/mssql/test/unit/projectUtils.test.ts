@@ -38,8 +38,8 @@ suite("projectUtils Tests", () => {
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
-        expect(result).to.exist;
-        expect(result?.dacpacOutputPath).to.exist;
+        expect(result, "project properties should be successfully retrieved").to.exist;
+        expect(result?.dacpacOutputPath, "dacpac output path read from properties").to.exist;
 
         // The dacpac path should use forward slashes, not backslashes
         expect(result?.dacpacOutputPath).to.not.include("\\");
@@ -49,6 +49,37 @@ suite("projectUtils Tests", () => {
         const expectedPath = path.posix.join(
             "/home/user/project",
             "bin/Debug",
+            "TestProject.dacpac",
+        );
+
+        expect(result?.dacpacOutputPath).to.equal(expectedPath);
+    });
+
+    test("readProjectProperties normalizes Unix slashes in outputPath on Windows", async () => {
+        const projectPath = "C:\\Users\\TestUser\\project\\TestProject.sqlproj";
+
+        // Mock getProjectProperties to return Unix-style path with forward slashes
+        mockSqlProjectsService.getProjectProperties.resolves({
+            success: true,
+            outputPath: "bin/Debug", // Unix-style path with forward slashes
+            databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
+        } as GetProjectPropertiesResult);
+
+        stubPathAsPlatform(sandbox, path.win32);
+
+        const result = await readProjectProperties(mockSqlProjectsService, projectPath);
+
+        expect(result, "project properties should be successfully retrieved").to.exist;
+        expect(result?.dacpacOutputPath, "dacpac output path read from properties").to.exist;
+
+        // The dacpac path should use forward slashes, not backslashes
+        expect(result?.dacpacOutputPath).to.not.include("/");
+        expect(result?.dacpacOutputPath).to.include("\\");
+
+        // Verify the path is constructed correctly with forward slashes
+        const expectedPath = path.win32.join(
+            "C:\\Users\\TestUser\\project",
+            "bin\\Debug",
             "TestProject.dacpac",
         );
 

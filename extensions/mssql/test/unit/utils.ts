@@ -185,6 +185,14 @@ export function stubWithProgress(
 }
 
 export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.PlatformPath): void {
+    if (
+        (process.platform === "win32" && platform === path.win32) ||
+        (process.platform !== "win32" && platform === path.posix)
+    ) {
+        // stubbing the path module to the same platform results in infinite recursion when calling the stubbed methods.
+        return;
+    }
+
     sandbox.stub(path, "dirname").callsFake(platform.dirname);
     sandbox.stub(path, "join").callsFake(platform.join);
     sandbox.stub(path, "basename").callsFake(platform.basename);
