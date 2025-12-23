@@ -8,6 +8,8 @@ import * as sinon from "sinon";
 import * as path from "path";
 import { readProjectProperties } from "../../src/publishProject/projectUtils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import { GetProjectPropertiesResult } from "vscode-mssql";
+import { stubPathAsPlatform } from "./utils";
 
 suite("projectUtils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -30,15 +32,26 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: "bin\\Debug", // Windows-style path with backslashes
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
+
+        stubPathAsPlatform(sandbox, path.posix);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // Verify the path is constructed correctly - path.join will use platform-specific separators
-        const expectedPath = path.join("/home/user/project", "bin/Debug", "TestProject.dacpac");
+        // The dacpac path should use forward slashes, not backslashes
+        expect(result?.dacpacOutputPath).to.not.include("\\");
+        expect(result?.dacpacOutputPath).to.include("/");
+
+        // Verify the path is constructed correctly with forward slashes
+        const expectedPath = path.posix.join(
+            "/home/user/project",
+            "bin/Debug",
+            "TestProject.dacpac",
+        );
+
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
@@ -50,7 +63,7 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: absoluteOutputPath,
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
@@ -71,7 +84,7 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: absoluteOutputPath,
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
@@ -91,7 +104,7 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: "bin/Debug", // Unix-style path
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 

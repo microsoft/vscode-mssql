@@ -183,3 +183,12 @@ export function stubWithProgress(
 ): sinon.SinonStub {
     return sandbox.stub(vscode.window, "withProgress").callsFake(onInvoke);
 }
+
+export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.PlatformPath): void {
+    sandbox.stub(path, "dirname").callsFake(platform.dirname);
+    sandbox.stub(path, "join").callsFake(platform.join);
+    sandbox.stub(path, "basename").callsFake(platform.basename);
+    sandbox.stub(path, "extname").callsFake(platform.extname);
+    sandbox.stub(path, "isAbsolute").callsFake(platform.isAbsolute);
+    sandbox.stub(path, "normalize").callsFake(platform.normalize);
+}
