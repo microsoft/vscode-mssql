@@ -168,6 +168,9 @@
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
     </trans-unit>
+    <trans-unit id="++CODE++e47fafe0a1c6f8d6b5c641c5d9cc7ca61e66a1c50bbc3b619c8ff5912444bfa8">
+      <source xml:lang="en">Already imported</source>
+    </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
@@ -1397,6 +1400,9 @@
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++007cfed7bd772f5dfb3035d6bc6409a401abba0843ee6d5514ed44337fe3da67">
+      <source xml:lang="en">Enter SQL login username</source>
+    </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
     </trans-unit>
@@ -2147,6 +2153,9 @@
     <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
       <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
     </trans-unit>
+    <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
+      <source xml:lang="en">Import selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
       <source xml:lang="en">Importance</source>
     </trans-unit>
@@ -2815,6 +2824,9 @@
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
     </trans-unit>
+    <trans-unit id="++CODE++5fe2851c6d173f8dbda8ae27ebe533054077436c7e34e51bdc2fe718d118c6ea">
+      <source xml:lang="en">Not required</source>
+    </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
     </trans-unit>
@@ -3167,6 +3179,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
       <source xml:lang="en">Ready</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
+      <source xml:lang="en">Ready for import</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
@@ -3784,6 +3799,9 @@
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
     </trans-unit>
+    <trans-unit id="++CODE++255b526011e8892709f255a9ecce2760fe91a096f4fb4f0b5c95ab8381ca108c">
+      <source xml:lang="en">Sign into Entra ID account</source>
+    </trans-unit>
     <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
       <source xml:lang="en">Sign into Fabric</source>
     </trans-unit>
@@ -4100,11 +4118,17 @@
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
+      <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
+      <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
@@ -4470,6 +4494,11 @@
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
       <note>{0} is the number of accounts</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
+      <source xml:lang="en">{0} color swatch ({1})</source>
+      <note>{0} is the connection group name
+{1} is the color value applied to the group</note>
     </trans-unit>
     <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
       <source xml:lang="en">{0} column data</source>

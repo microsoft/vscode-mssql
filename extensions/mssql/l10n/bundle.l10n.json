@@ -955,6 +955,13 @@
     },
     "Connections in groups that are not selected will be moved under the root.": "Connections in groups that are not selected will be moved under the root.",
     "No connection groups were found in the file.": "No connection groups were found in the file.",
+    "{0} color swatch ({1})/{0} is the connection group name{1} is the color value applied to the group": {
+        "message": "{0} color swatch ({1})",
+        "comment": [
+            "{0} is the connection group name",
+            "{1} is the color value applied to the group"
+        ]
+    },
     "Select or clear all connection groups": "Select or clear all connection groups",
     "Toggle selection for {0}/{0} is the connection group name": {
         "message": "Toggle selection for {0}",
@@ -982,10 +989,19 @@
     "Add authentication": "Add authentication",
     "Ready": "Ready",
     "Needs attention": "Needs attention",
+    "Already imported": "Already imported",
+    "Ready for import": "Ready for import",
     "Collapse connection groups": "Collapse connection groups",
     "Expand connection groups": "Expand connection groups",
     "Collapse connections": "Collapse connections",
     "Expand connections": "Expand connections",
+    "This connection does not have a display name in Azure Data Studio.": "This connection does not have a display name in Azure Data Studio.",
+    "This value was not provided in the Azure Data Studio settings file.": "This value was not provided in the Azure Data Studio settings file.",
+    "Authentication": "Authentication",
+    "Enter SQL login username": "Enter SQL login username",
+    "Sign into Entra ID account": "Sign into Entra ID account",
+    "Not required": "Not required",
+    "Import selected": "Import selected",
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
@@ -2031,7 +2047,6 @@
     "Failed to change database": "Failed to change database",
     "No active connection for database change": "No active connection for database change",
     "Connection Details": "Connection Details",
-    "Authentication": "Authentication",
     "Server Version": "Server Version",
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
