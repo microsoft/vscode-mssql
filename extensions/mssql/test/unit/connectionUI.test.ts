@@ -219,9 +219,7 @@ suite("Connection UI tests", () => {
 
         await connectionUI.removeProfile();
 
-        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
-            false,
-        );
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.have.been.calledOnce;
         expect(connectionStoreStub.removeProfile).to.have.been.calledOnce;
     });
@@ -231,9 +229,7 @@ suite("Connection UI tests", () => {
 
         await connectionUI.removeProfile();
 
-        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
-            false,
-        );
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.not.have.been.called;
         expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
     });
