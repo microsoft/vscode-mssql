@@ -33,11 +33,12 @@ import {
     PresenceAvailableRegular,
     Warning16Regular,
 } from "@fluentui/react-icons";
-import { useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
+    AdsMigrationConnectionIssue,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
@@ -109,6 +110,10 @@ const useStyles = makeStyles({
         maxHeight: "360px",
         borderRadius: "8px",
     },
+    dataTable: {
+        width: "100%",
+        tableLayout: "fixed",
+    },
     colorSwatch: {
         width: "16px",
         height: "16px",
@@ -150,9 +155,13 @@ const useStyles = makeStyles({
         paddingInlineEnd: "4px",
         paddingInlineStart: "4px",
     },
+    statusColumnHeader: {
+        width: "48px",
+        maxWidth: "48px",
+    },
     truncatedCell: {
-        display: "inline-block",
-        maxWidth: "220px",
+        display: "block",
+        width: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -165,6 +174,27 @@ const useStyles = makeStyles({
         display: "flex",
         justifyContent: "flex-end",
         padding: "0 16px 24px",
+    },
+    nameColumn: {
+        width: "22%",
+        maxWidth: "300px",
+    },
+    serverColumn: {
+        width: "25%",
+        maxWidth: "280px",
+    },
+    databaseColumn: {
+        width: "18%",
+        maxWidth: "200px",
+    },
+    userColumn: {
+        width: "18%",
+        maxWidth: "220px",
+    },
+    authTypeColumn: {
+        width: "90px",
+        maxWidth: "110px",
+        whiteSpace: "nowrap",
     },
 });
 
@@ -273,19 +303,53 @@ export const AzureDataStudioMigrationPage = () => {
         `${connection.profile.server}-${connection.profile.database}-${connection.profile.user}`;
 
     const getConnectionDisplayName = (connection: AdsMigrationConnection) =>
-        connection.profile.profileName?.trim() ?? "";
+        connection.displayName?.trim() ?? "";
+
+    const hasAuthenticationSelection = (
+        connection: AdsMigrationConnection,
+        connectionId: string,
+    ): boolean => {
+        if (connection.profile.authenticationType === AuthenticationType.SqlLogin) {
+            return Boolean(authOverrides[connectionId]?.trim());
+        }
+        if (connection.profile.authenticationType === AuthenticationType.AzureMFA) {
+            return Boolean(authOverrides[connectionId]);
+        }
+        return true;
+    };
 
     const computeEffectiveStatus = (connection: AdsMigrationConnection, connectionId: string) => {
+        if (connection.status === "alreadyImported") {
+            return "alreadyImported";
+        }
+
+        let computedStatus = connection.status;
         if (
-            connection.status === "needsAttention" &&
+            computedStatus === "needsAttention" &&
             connection.profile.authenticationType === AuthenticationType.SqlLogin
         ) {
             const override = authOverrides[connectionId]?.trim();
             if (override) {
-                return "ready";
+                computedStatus = "ready";
             }
         }
-        return connection.status;
+
+        if (!hasAuthenticationSelection(connection, connectionId)) {
+            return "needsAttention";
+        }
+
+        return computedStatus;
+    };
+
+    const getIssueDescription = (issue: AdsMigrationConnectionIssue) => {
+        switch (issue) {
+            case "missingServer":
+                return loc.connectionIssueMissingServer;
+            case "missingSqlUsername":
+                return loc.connectionIssueMissingSqlUsername;
+            default:
+                return loc.connectionStatusNeedsAttention;
+        }
     };
 
     const renderStatusIcon = (
@@ -326,15 +390,40 @@ export const AzureDataStudioMigrationPage = () => {
         return renderStatusIcon(status, tooltip);
     };
 
-    const renderConnectionStatusIcon = (status: AdsMigrationConnection["status"]) => {
-        const tooltip =
-            status === "alreadyImported"
-                ? loc.connectionStatusAlreadyImported
-                : status === "needsAttention"
-                  ? loc.connectionStatusNeedsAttention
-                  : loc.connectionStatusReady;
-        return renderStatusIcon(status, tooltip);
+    const getConnectionWarningMessage = (
+        connection: AdsMigrationConnection,
+        connectionId: string,
+    ): string | undefined => {
+        if (!hasAuthenticationSelection(connection, connectionId)) {
+            return loc.connectionStatusNeedsAuthInput;
+        }
+        if (connection.issues?.length) {
+            return connection.issues.map(getIssueDescription).join(" ");
+        }
+        return undefined;
     };
+
+    const getConnectionStatusTooltip = (
+        status: AdsMigrationConnection["status"],
+        connection: AdsMigrationConnection,
+        connectionId: string,
+    ) => {
+        if (status === "alreadyImported") {
+            return loc.connectionStatusAlreadyImported;
+        }
+        if (status === "needsAttention") {
+            return (
+                getConnectionWarningMessage(connection, connectionId) ??
+                loc.connectionStatusNeedsAttention
+            );
+        }
+        return loc.connectionStatusReady;
+    };
+
+    const renderConnectionStatusIcon = (
+        status: AdsMigrationConnection["status"],
+        tooltip: string,
+    ) => renderStatusIcon(status, tooltip);
 
     const renderTruncatedCell = (
         rawValue: string,
@@ -355,7 +444,10 @@ export const AzureDataStudioMigrationPage = () => {
                   : "-");
         const tooltip =
             value || options?.emptyTooltip || options?.emptyDisplay || loc.connectionValueMissing;
-        const style = options?.maxWidth ? { maxWidth: `${options.maxWidth}px` } : undefined;
+        const style: CSSProperties = { width: "100%" };
+        if (options?.maxWidth) {
+            style.maxWidth = `${options.maxWidth}px`;
+        }
         return (
             <Tooltip content={tooltip} relationship="description">
                 <span className={classes.truncatedCell} style={style}>
@@ -384,10 +476,11 @@ export const AzureDataStudioMigrationPage = () => {
         }
 
         if (connection.profile.authenticationType === AuthenticationType.AzureMFA) {
-            const selected = authOverrides[connectionId] ?? "entra";
+            const selected = authOverrides[connectionId];
             return (
                 <Dropdown
-                    selectedOptions={[selected]}
+                    placeholder={loc.authenticationAzurePlaceholder}
+                    selectedOptions={selected ? [selected] : []}
                     onOptionSelect={(_, data) =>
                         handleAuthenticationChange(connectionId, data.optionValue as string)
                     }>
@@ -401,12 +494,11 @@ export const AzureDataStudioMigrationPage = () => {
 
     const hasBlockingWarnings = connections.some((connection) => {
         const connectionId = getConnectionId(connection);
-        return (
-            connection.selected &&
-            computeEffectiveStatus(connection, connectionId) === "needsAttention"
-        );
+        const status = computeEffectiveStatus(connection, connectionId);
+        return connection.selected && status === "needsAttention";
     });
-    const importDisabled = hasBlockingWarnings;
+    const nothingSelected = groupSelection.selected === 0 && connectionSelection.selected === 0;
+    const importDisabled = hasBlockingWarnings || nothingSelected;
 
     return (
         <div className={classes.root}>
@@ -474,7 +566,7 @@ export const AzureDataStudioMigrationPage = () => {
                                     </Text>
                                 ) : (
                                     <div className={classes.tableScrollArea}>
-                                        <Table role="grid">
+                                        <Table role="grid" className={classes.dataTable}>
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHeaderCell
@@ -490,13 +582,14 @@ export const AzureDataStudioMigrationPage = () => {
                                                         />
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
-                                                        className={classes.narrowColumn}>
+                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
                                                         {loc.connectionStatusColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell className={classes.nameColumn}>
                                                         {loc.groupNameColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.serverColumn}>
                                                         {loc.groupColorColumn}
                                                     </TableHeaderCell>
                                                 </TableRow>
@@ -518,11 +611,14 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 )}
                                                             />
                                                         </TableCell>
-                                                        <TableCell className={classes.narrowColumn}>
+                                                        <TableCell
+                                                            className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
                                                             {renderGroupStatusIcon(group.status)}
                                                         </TableCell>
-                                                        <TableCell>{group.name}</TableCell>
-                                                        <TableCell>
+                                                        <TableCell className={classes.nameColumn}>
+                                                            {group.name}
+                                                        </TableCell>
+                                                        <TableCell className={classes.serverColumn}>
                                                             {group.color ? (
                                                                 <Tooltip
                                                                     content={loc.groupColorSwatch(
@@ -588,7 +684,7 @@ export const AzureDataStudioMigrationPage = () => {
                                     <Text className={classes.emptyState}>{loc.noConnections}</Text>
                                 ) : (
                                     <div className={classes.tableScrollArea}>
-                                        <Table role="grid">
+                                        <Table role="grid" className={classes.dataTable}>
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHeaderCell
@@ -606,22 +702,25 @@ export const AzureDataStudioMigrationPage = () => {
                                                         />
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
-                                                        className={classes.narrowColumn}>
+                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
                                                         {loc.connectionStatusColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell className={classes.nameColumn}>
                                                         {loc.connectionNameColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.serverColumn}>
                                                         {loc.connectionServerColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.databaseColumn}>
                                                         {loc.connectionDatabaseColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.authTypeColumn}>
                                                         {loc.connectionAuthColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell>
+                                                    <TableHeaderCell className={classes.userColumn}>
                                                         {loc.connectionUserColumn}
                                                     </TableHeaderCell>
                                                     <TableHeaderCell>
@@ -639,6 +738,12 @@ export const AzureDataStudioMigrationPage = () => {
                                                         connection,
                                                         connectionId,
                                                     );
+                                                    const statusTooltip =
+                                                        getConnectionStatusTooltip(
+                                                            effectiveStatus,
+                                                            connection,
+                                                            connectionId,
+                                                        );
                                                     return (
                                                         <TableRow key={connectionId}>
                                                             <TableCell
@@ -660,53 +765,56 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 className={classes.narrowColumn}>
                                                                 {renderConnectionStatusIcon(
                                                                     effectiveStatus,
+                                                                    statusTooltip,
                                                                 )}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell
+                                                                className={classes.nameColumn}>
                                                                 {renderTruncatedCell(displayName, {
                                                                     allowBlank: true,
                                                                     emptyTooltip:
                                                                         loc.connectionDisplayNameMissing,
-                                                                    maxWidth: 220,
                                                                 })}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell
+                                                                className={classes.serverColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.server ?? "",
                                                                     {
                                                                         emptyTooltip:
                                                                             loc.connectionValueMissing,
                                                                         emptyDisplay: "-",
-                                                                        maxWidth: 200,
                                                                     },
                                                                 )}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell
+                                                                className={classes.databaseColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.database ??
                                                                         "",
                                                                     {
                                                                         emptyTooltip:
                                                                             loc.connectionValueMissing,
-                                                                        emptyDisplay: "-",
-                                                                        maxWidth: 180,
+                                                                        emptyDisplay:
+                                                                            loc.connectionDatabaseDefault,
                                                                     },
                                                                 )}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell
+                                                                className={classes.authTypeColumn}>
                                                                 {
                                                                     connection.profile
                                                                         .authenticationType
                                                                 }
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell
+                                                                className={classes.userColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.user ?? "",
                                                                     {
                                                                         emptyTooltip:
                                                                             loc.connectionValueMissing,
                                                                         emptyDisplay: "-",
-                                                                        maxWidth: 180,
                                                                     },
                                                                 )}
                                                             </TableCell>

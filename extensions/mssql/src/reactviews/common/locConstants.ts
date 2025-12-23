@@ -1451,6 +1451,7 @@ export class LocConstants {
             connectionNameColumn: l10n.t("Display name"),
             connectionServerColumn: l10n.t("Server"),
             connectionDatabaseColumn: l10n.t("Database"),
+            connectionDatabaseDefault: l10n.t("<default>"),
             connectionAuthColumn: l10n.t("Auth type"),
             connectionUserColumn: l10n.t("User ID"),
             connectionActionsColumn: l10n.t("Actions"),
@@ -1465,6 +1466,9 @@ export class LocConstants {
             connectionStatusReady: l10n.t("Ready"),
             connectionStatusNeedsAttention: l10n.t("Needs attention"),
             connectionStatusAlreadyImported: l10n.t("Already imported"),
+            connectionStatusNeedsAuthInput: l10n.t(
+                "Provide authentication information in the Authentication column.",
+            ),
             connectionGroupStatusReady: l10n.t("Ready for import"),
             connectionGroupStatusAlreadyImported: l10n.t("Already imported"),
             connectionGroupsCollapse: l10n.t("Collapse connection groups"),
@@ -1479,9 +1483,12 @@ export class LocConstants {
             ),
             authenticationColumn: l10n.t("Authentication"),
             authenticationSqlPlaceholder: l10n.t("Enter SQL login username"),
+            authenticationAzurePlaceholder: l10n.t("Select an authentication action"),
             authenticationAzureOption: l10n.t("Sign into Entra ID account"),
             authenticationNotRequired: l10n.t("Not required"),
             importButtonLabel: l10n.t("Import selected"),
+            connectionIssueMissingServer: l10n.t("Enter the server name."),
+            connectionIssueMissingSqlUsername: l10n.t("Enter the SQL Login username."),
         };
     }
 

@@ -16,9 +16,12 @@ export type AdsMigrationConnectionStatus = "ready" | "needsAttention";
 export type AdsMigrationConnectionResolvedStatus = AdsMigrationConnectionStatus | "alreadyImported";
 export type AdsMigrationConnectionGroupStatus = "ready" | "alreadyImported";
 
+export type AdsMigrationConnectionIssue = "missingServer" | "missingSqlUsername";
+
 export interface AdsMigrationConnection {
     profile: IConnectionDialogProfile;
-    issue?: "missingCredentials";
+    displayName?: string;
+    issues?: AdsMigrationConnectionIssue[];
     selected: boolean;
     status: AdsMigrationConnectionResolvedStatus;
 }
