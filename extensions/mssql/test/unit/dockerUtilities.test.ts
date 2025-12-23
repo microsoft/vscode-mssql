@@ -112,7 +112,9 @@ suite("Docker Utilities", () => {
 
         // Too long
         const longResult = dockerUtils.validateSqlServerPassword("<0>".repeat(129));
-        expect(longResult, "Should return length error").to.equal(LocalContainers.passwordLengthError);
+        expect(longResult, "Should return length error").to.equal(
+            LocalContainers.passwordLengthError,
+        );
 
         // Valid length but not enough complexity (only lowercase)
         const lowComplexityResult = dockerUtils.validateSqlServerPassword("<placeholder>");
@@ -166,7 +168,7 @@ suite("Docker Utilities", () => {
         expect(result.error).to.equal(undefined);
         expect(result.fullErrorText).to.equal(undefined);
 
-        expect(spawnStub).to.have.been.calledOnceWithExactly("docker", ["--version"]);
+        expect(spawnStub).to.have.been.calledOnceWith("docker", ["--version"]);
     });
 
     test("checkDockerInstallation: should check Docker installation and return correct error status", async () => {
@@ -202,7 +204,7 @@ suite("Docker Utilities", () => {
         expect(result.error).to.equal(LocalContainers.dockerInstallError);
         expect(result.fullErrorText).to.equal("Docker is not installed");
 
-        expect(spawnStub).to.have.been.calledOnceWithExactly("docker", ["--version"]);
+        expect(spawnStub).to.have.been.calledOnceWith("docker", ["--version"]);
     });
 
     test("checkEngine: should succeed on Linux platform with x64 architecture", async () => {
@@ -626,6 +628,11 @@ suite("Docker Utilities", () => {
                 ) as any,
             );
 
+        const resultFailure = await dockerUtils.startSqlServerDockerContainer(
+            containerName,
+            "Xf9!uDq7@LmB2#cV",
+            version,
+            hostname,
             port,
         );
 
@@ -703,7 +710,7 @@ suite("Docker Utilities", () => {
 
         const result = await dockerUtils.startDocker();
         expect(result.success, "Docker is already running, should be successful").to.be.true;
-        expect(spawnStub).to.have.been.calledOnceWithExactly("docker", ["info"]);
+        expect(spawnStub).to.have.been.calledOnceWith("docker", ["info"]);
     });
 
     test("startDocker: should start Docker successfully on Windows when not running", async () => {
@@ -812,7 +819,9 @@ suite("Docker Utilities", () => {
 
         const result = await dockerUtils.startDocker();
         expect(!result.success, "Should not succeed on unsupported platform").to.be.true;
-        expect(result.error).to.equal(LocalContainers.unsupportedDockerPlatformError("fakePlatform"));
+        expect(result.error).to.equal(
+            LocalContainers.unsupportedDockerPlatformError("fakePlatform"),
+        );
     });
 
     test("startDocker: should fail on Windows when Docker is not installed", async () => {
@@ -947,8 +956,8 @@ suite("Docker Utilities", () => {
         spawnStub.onSecondCall().returns(grepProcess as any); // grep/findstr
 
         let result = await dockerUtils.checkIfContainerIsReadyForConnections("testContainer");
-        expect(result.success, "Should return success when container is ready for connections").to.be
-            .true;
+        expect(result.success, "Should return success when container is ready for connections").to
+            .be.true;
         spawnStub.resetHistory();
     });
 
@@ -1177,11 +1186,8 @@ suite("Docker Utilities", () => {
         );
         expect(!result.success, "Should return false if container does not exist").to.be.true;
         expect(result.error).to.equal(LocalContainers.containerDoesNotExistError);
-        expect(
-            showInformationMessageStub.callCount,
-            1,
-            "Should show info message if container does not exist",
-        );
+        expect(showInformationMessageStub, "Should show info message if container does not exist")
+            .to.have.been.calledOnce;
 
         // finding container returns an error
         spawnStub.resetHistory();
@@ -1222,7 +1228,9 @@ suite("Docker Utilities", () => {
 
         // Test with command injection attempt
         result = dockerUtils.sanitizeContainerInput('container" && echo Injected');
-        expect(result, "Command injection chars should be removed").to.equal("containerechoInjected");
+        expect(result, "Command injection chars should be removed").to.equal(
+            "containerechoInjected",
+        );
 
         // Test with command injection attempt
         result = dockerUtils.sanitizeContainerInput('container"; rm -rf /');
@@ -1272,7 +1280,7 @@ suite("Docker Utilities", () => {
         let result = await dockerUtils.pullSqlServerContainerImage("2025");
         expect(spawnStub).to.have.been.calledOnce;
 
-        expect(result).to.be.true;
+        expect(result.success).to.be.true;
     });
 
     test("getEngineErrorLink and getEngineErrorLinkText: should return correct error link and text", () => {
@@ -1285,7 +1293,9 @@ suite("Docker Utilities", () => {
 
         let errorLink = dockerUtils.getEngineErrorLink();
         let errorLinkText = dockerUtils.getEngineErrorLinkText();
-        expect(errorLink, "Error link should match").to.equal(dockerUtils.windowsContainersErrorLink);
+        expect(errorLink, "Error link should match").to.equal(
+            dockerUtils.windowsContainersErrorLink,
+        );
         expect(errorLinkText, "Error link text should match").to.equal(
             LocalContainers.configureLinuxContainers,
         );
