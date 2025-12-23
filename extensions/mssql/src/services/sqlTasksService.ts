@@ -158,8 +158,12 @@ export class SqlTasksService {
                 event: "CompletionHandlerOverwritten",
                 operationName: handler.operationName,
             });
+            this._client.logger.error(
+                `There is an existing completion handler for operation ${handler.operationName} cannot be overwritten.`,
+            );
+        } else {
+            this._completionHandlers.set(handler.operationName, handler);
         }
-        this._completionHandlers.set(handler.operationName, handler);
     }
 
     private cancelTask(taskId: string): Thenable<boolean> {

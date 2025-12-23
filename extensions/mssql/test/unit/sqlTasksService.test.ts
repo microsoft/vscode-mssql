@@ -17,6 +17,7 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
+import * as telemetry from "../../src/telemetry/telemetry";
 
 suite("SqlTasksService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -28,6 +29,8 @@ suite("SqlTasksService Tests", () => {
     let showErrorMessageStub: sinon.SinonStub;
     let showWarningMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    let sendActionEventStub: sinon.SinonStub;
+    let loggerErrorStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -39,6 +42,16 @@ suite("SqlTasksService Tests", () => {
         showErrorMessageStub = vscodeWrapperStub.showErrorMessage;
         showWarningMessageStub = vscodeWrapperStub.showWarningMessage;
         executeCommandStub = vscodeWrapperStub.executeCommand;
+
+        // Stub telemetry
+        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+
+        // Stub logger - use defineProperty since logger is a getter
+        loggerErrorStub = sandbox.stub();
+        Object.defineProperty(sqlToolsClientStub, "logger", {
+            get: () => ({ error: loggerErrorStub }),
+        });
+
         sqlTasksService = new SqlTasksService(
             sqlToolsClientStub,
             sqlDocumentServiceStub,
@@ -93,6 +106,43 @@ suite("SqlTasksService Tests", () => {
             expect(showInformationMessageStub).to.have.been.calledWith(
                 "Success: /path/to/file.bacpac",
             );
+        });
+
+        test("should emit telemetry event when handler is overwritten", () => {
+            const handler1: TaskCompletionHandler = {
+                operationName: "TestOperation",
+                getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+                getSuccessMessage: (_taskInfo, targetLocation) => `Success 1: ${targetLocation}`,
+            };
+
+            const handler2: TaskCompletionHandler = {
+                operationName: "TestOperation", // Same operation name
+                getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+                getSuccessMessage: (_taskInfo, targetLocation) => `Success 2: ${targetLocation}`,
+            };
+
+            sqlTasksService.registerCompletionSuccessHandler(handler1);
+
+            // Reset to ensure we're only checking the second registration
+            sendActionEventStub.resetHistory();
+            loggerErrorStub.resetHistory();
+
+            sqlTasksService.registerCompletionSuccessHandler(handler2);
+
+            // Verify telemetry was sent
+            expect(sendActionEventStub).to.have.been.calledOnce;
+            expect(sendActionEventStub).to.have.been.calledWith(
+                "General",
+                "Initialize",
+                sinon.match({
+                    event: "CompletionHandlerOverwritten",
+                    operationName: "TestOperation",
+                }),
+            );
+
+            // Verify error was logged
+            expect(loggerErrorStub).to.have.been.calledOnce;
+            expect(loggerErrorStub.firstCall.args[0]).to.include("TestOperation");
         });
 
         test("should support multiple handlers for different operation IDs", async () => {
@@ -291,6 +341,119 @@ suite("SqlTasksService Tests", () => {
                 sinon.match.instanceOf(vscode.Uri),
             );
         });
+
+        test("should not execute command when action button is not clicked", async () => {
+            const actionButtonText = "Reveal in Explorer";
+            const targetFile = "/path/to/file.bacpac";
+
+            const handler: TaskCompletionHandler = {
+                operationName: "ExportBacpac",
+                getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+                getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
+                actionButtonText: actionButtonText,
+                actionCommand: "revealFileInOS",
+                getActionCommandArgs: (_taskInfo, targetLocation) => [
+                    vscode.Uri.file(targetLocation),
+                ],
+            };
+
+            sqlTasksService.registerCompletionSuccessHandler(handler);
+
+            const taskInfo: TaskInfo = {
+                taskId: "task-1",
+                status: TaskStatus.InProgress,
+                taskExecutionMode: TaskExecutionMode.execute,
+                serverName: "test-server",
+                databaseName: "test-db",
+                name: "Export bacpac",
+                description: "Export operation",
+                providerName: "MSSQL",
+                isCancelable: false,
+                targetLocation: targetFile,
+                operationName: "ExportBacpac",
+            };
+
+            const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            const taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+
+            taskCreatedHandler(taskInfo);
+
+            // Simulate user dismissing the notification without clicking the button
+            showInformationMessageStub.resolves(undefined);
+
+            const progressInfo: TaskProgressInfo = {
+                taskId: "task-1",
+                status: TaskStatus.Succeeded,
+                message: "Completed",
+            };
+
+            await taskStatusChangedHandler(progressInfo);
+
+            // Wait for promise chain to resolve
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Verify command was not executed
+            expect(executeCommandStub).to.not.have.been.called;
+        });
+
+        test("should handle multiple arguments in action command", async () => {
+            const actionButtonText = "Open";
+            const targetFile = "/path/to/file.sql";
+
+            const handler: TaskCompletionHandler = {
+                operationName: "GenerateScript",
+                getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+                getSuccessMessage: (_taskInfo, targetLocation) =>
+                    `Script saved to ${targetLocation}`,
+                actionButtonText: actionButtonText,
+                actionCommand: "vscode.open",
+                getActionCommandArgs: (_taskInfo, targetLocation) => [
+                    vscode.Uri.file(targetLocation),
+                ],
+            };
+
+            sqlTasksService.registerCompletionSuccessHandler(handler);
+
+            const taskInfo: TaskInfo = {
+                taskId: "task-1",
+                status: TaskStatus.InProgress,
+                taskExecutionMode: TaskExecutionMode.execute,
+                serverName: "test-server",
+                databaseName: "test-db",
+                name: "Generate script",
+                description: "Generate script operation",
+                providerName: "MSSQL",
+                isCancelable: false,
+                targetLocation: targetFile,
+                operationName: "GenerateScript",
+            };
+
+            const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            const taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+
+            taskCreatedHandler(taskInfo);
+
+            // Simulate user clicking the action button
+            showInformationMessageStub.resolves(actionButtonText);
+
+            const progressInfo: TaskProgressInfo = {
+                taskId: "task-1",
+                status: TaskStatus.Succeeded,
+                message: "Completed",
+            };
+
+            await taskStatusChangedHandler(progressInfo);
+
+            // Wait for promise chain to resolve
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            expect(executeCommandStub).to.have.been.calledWith(
+                "vscode.open",
+                sinon.match.instanceOf(vscode.Uri),
+            );
+        });
     });
 
     suite("Task completion without action button", () => {
@@ -479,6 +642,104 @@ suite("SqlTasksService Tests", () => {
             // Should fall back to generic message
             expect(showInformationMessageStub).to.have.been.calledOnce;
             expect(showInformationMessageStub.firstCall.args[0]).to.include("Export bacpac");
+        });
+    });
+
+    suite("Task completion with handler for non-successful status", () => {
+        test("should use generic message for failed tasks even with registered handler", async () => {
+            const handler: TaskCompletionHandler = {
+                operationName: "ExportBacpac",
+                getTargetLocation: (taskInfo) => taskInfo.targetLocation,
+                getSuccessMessage: (_taskInfo, targetLocation) => `Exported to ${targetLocation}`,
+                actionButtonText: "Reveal in Explorer",
+                actionCommand: "revealFileInOS",
+                getActionCommandArgs: (_taskInfo, targetLocation) => [
+                    vscode.Uri.file(targetLocation),
+                ],
+            };
+
+            sqlTasksService.registerCompletionSuccessHandler(handler);
+
+            const taskInfo: TaskInfo = {
+                taskId: "task-1",
+                status: TaskStatus.InProgress,
+                taskExecutionMode: TaskExecutionMode.execute,
+                serverName: "test-server",
+                databaseName: "test-db",
+                name: "Export bacpac",
+                description: "Export operation",
+                providerName: "MSSQL",
+                isCancelable: false,
+                targetLocation: "/path/to/file.bacpac",
+                operationName: "ExportBacpac",
+            };
+
+            const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            const taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+
+            taskCreatedHandler(taskInfo);
+
+            const progressInfo: TaskProgressInfo = {
+                taskId: "task-1",
+                status: TaskStatus.Failed,
+                message: "Export failed: disk full",
+            };
+
+            await taskStatusChangedHandler(progressInfo);
+
+            // Should use error message, not custom handler
+            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Export bacpac");
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("disk full");
+
+            // Custom handler should not be invoked
+            expect(showInformationMessageStub).to.not.have.been.called;
+        });
+
+        test("should use generic message for SucceededWithWarning even with registered handler", async () => {
+            const handler: TaskCompletionHandler = {
+                operationName: "DeployDacpac",
+                getTargetLocation: (taskInfo) => taskInfo.databaseName,
+                getSuccessMessage: (_taskInfo, databaseName) => `Deployed to ${databaseName}`,
+            };
+
+            sqlTasksService.registerCompletionSuccessHandler(handler);
+
+            const taskInfo: TaskInfo = {
+                taskId: "task-1",
+                status: TaskStatus.InProgress,
+                taskExecutionMode: TaskExecutionMode.execute,
+                serverName: "test-server",
+                databaseName: "my-database",
+                name: "Deploy dacpac",
+                description: "Deploy operation",
+                providerName: "MSSQL",
+                isCancelable: false,
+                targetLocation: "",
+                operationName: "DeployDacpac",
+            };
+
+            const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            const taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+
+            taskCreatedHandler(taskInfo);
+
+            const progressInfo: TaskProgressInfo = {
+                taskId: "task-1",
+                status: TaskStatus.SucceededWithWarning,
+                message: "Deployed with warnings",
+            };
+
+            await taskStatusChangedHandler(progressInfo);
+
+            // Should use warning message, not custom handler
+            expect(showWarningMessageStub).to.have.been.calledOnce;
+            expect(showWarningMessageStub.firstCall.args[0]).to.include("Deploy dacpac");
+
+            // Custom handler should not be invoked
+            expect(showInformationMessageStub).to.not.have.been.called;
         });
     });
 });
