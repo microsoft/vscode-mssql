@@ -21,7 +21,7 @@ import {
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import VscodeWrapper, { ConfigurationTarget } from "./vscodeWrapper";
+import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
@@ -39,13 +39,13 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     AzureDataStudioMigrationWebviewState,
     void
 > {
-    private existingConnectionIds: Set<string> = new Set<string>();
-    private existingGroupIds: Set<string> = new Set<string>();
-    private connectionConfig: ConnectionConfig;
+    private _existingConnectionIds: Set<string> = new Set<string>();
+    private _existingGroupIds: Set<string> = new Set<string>();
 
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
+        private connectionConfig: ConnectionConfig,
         initialState: AzureDataStudioMigrationWebviewState = defaultState,
     ) {
         super(
@@ -63,8 +63,6 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 },
             },
         );
-
-        this.connectionConfig = new ConnectionConfig(vscodeWrapper);
 
         this.registerRequestHandlers();
         void this.initialize();
@@ -224,7 +222,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             description: this.getString(record, ["description"]),
         };
 
-        const alreadyImported = this.existingGroupIds.has(group.id);
+        const alreadyImported = this._existingGroupIds.has(group.id);
 
         return {
             ...group,
@@ -314,7 +312,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         const status: AdsMigrationConnectionStatus = issues.length > 0 ? "needsAttention" : "ready";
 
         let resolvedStatus: AdsMigrationConnectionResolvedStatus = status;
-        if (this.existingConnectionIds.has(profile.id)) {
+        if (this._existingConnectionIds.has(profile.id)) {
             resolvedStatus = "alreadyImported";
         }
 
@@ -344,20 +342,16 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     }
 
     private async refreshExistingMssqlEntities(): Promise<void> {
-        const connections = await this.connectionConfig.getConnections(true);
-        this.existingConnectionIds = new Set(
+        const connections = await this.connectionConfig.getConnections();
+        this._existingConnectionIds = new Set(
             connections
                 .map((connection) => connection.id?.trim())
                 .filter((id): id is string => Boolean(id)),
         );
 
-        const [globalGroups, workspaceGroups] = await Promise.all([
-            this.connectionConfig.getGroups(ConfigurationTarget.Global),
-            this.connectionConfig.getGroups(ConfigurationTarget.Workspace),
-        ]);
-        const combinedGroups = [...globalGroups, ...workspaceGroups];
-        this.existingGroupIds = new Set(
-            combinedGroups
+        const connectionGroups = await this.connectionConfig.getGroups();
+        this._existingGroupIds = new Set(
+            connectionGroups
                 .map((group) => group.id?.trim())
                 .filter((id): id is string => Boolean(id)),
         );
