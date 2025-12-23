@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as utils from "../../src/utils/utils";
@@ -13,6 +15,8 @@ import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+
+chai.use(sinonChai);
 
 suite("ReactWebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -97,65 +101,57 @@ suite("ReactWebviewPanelController", () => {
             showRestorePromptAfterClose: true,
         };
         createController(options);
-        assert.ok(createWebviewPanelStub.calledOnce);
-        assert.ok(
-            createWebviewPanelStub.calledWith(
-                "mssql-react-webview",
-                options.title,
-                {
-                    viewColumn: options.viewColumn,
-                    preserveFocus: options.preserveFocus,
-                },
-                {
-                    enableScripts: true,
-                    retainContextWhenHidden: true,
-                    localResourceRoots: [vscode.Uri.file(mockContext.extensionPath)],
-                },
-            ),
+        expect(createWebviewPanelStub).to.have.been.calledOnce;
+        expect(createWebviewPanelStub).to.have.been.calledWith(
+            "mssql-react-webview",
+            options.title,
+            {
+                viewColumn: options.viewColumn,
+                preserveFocus: options.preserveFocus,
+            },
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(mockContext.extensionPath)],
+            },
         );
 
-        assert.ok(mockPanel.webview.html.includes("testSource.js"));
-        assert.strictEqual(mockPanel.iconPath, options.iconPath);
+        expect(mockPanel.webview.html.includes("testSource.js")).to.be.true;
+        expect(mockPanel.iconPath).to.equal(options.iconPath);
     });
 
     test("should register onDidDispose handler that disposes the controller", async () => {
         createController();
         const disposeSpy = mockPanel.onDidDispose as sinon.SinonSpy;
         const disposeHandler = disposeSpy.firstCall.args[0];
-        assert.ok(disposeSpy.called, "onDidDispose should be called once");
-        assert.strictEqual(
-            typeof disposeHandler,
-            "function",
-            "Dispose handler should be a function",
-        );
+        expect(disposeSpy, "onDidDispose should be called once").to.have.been.called;
+        expect(typeof disposeHandler, "Dispose handler should be a function").to.equal("function");
     });
 
     test("Should register onDidReceiveMessage handler", () => {
         createController();
         const onDidReceiveMessageSpy = mockWebview.onDidReceiveMessage as sinon.SinonSpy;
-        assert.ok(onDidReceiveMessageSpy.calledOnce, "onDidReceiveMessage should be called once");
+        expect(onDidReceiveMessageSpy, "onDidReceiveMessage should be called once").to.have.been
+            .calledOnce;
         const onDidReceiveMessageHandler = onDidReceiveMessageSpy.firstCall.args[0];
-        assert.strictEqual(
-            typeof onDidReceiveMessageHandler,
-            "function",
-            "onDidReceiveMessage handler should be a function",
-        );
+        expect(typeof onDidReceiveMessageHandler, "onDidReceiveMessage handler should be a function")
+            .to.equal("function");
     });
 
     test("Should reveal the panel to the foreground", () => {
         const controller = createController();
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground();
-        assert.ok(revealSpy.calledOnce, "reveal should be called once");
-        assert.ok(revealSpy.calledWith(vscode.ViewColumn.One, true));
+        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
+        expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.One, true);
     });
 
     test("Should reveal the panel to the foreground with the specified view column", () => {
         const controller = createController();
         const revealSpy = mockPanel.reveal as sinon.SinonSpy;
         controller.revealToForeground(vscode.ViewColumn.Two);
-        assert.ok(revealSpy.calledOnce, "reveal should be called once");
-        assert.ok(revealSpy.calledWith(vscode.ViewColumn.Two, true));
+        expect(revealSpy, "reveal should be called once").to.have.been.calledOnce;
+        expect(revealSpy).to.have.been.calledWith(vscode.ViewColumn.Two, true);
     });
 
     test("should show restore prompt when showRestorePromptAfterClose is true", async () => {
@@ -174,42 +170,30 @@ suite("ReactWebviewPanelController", () => {
         await disposeHandler();
 
         // Expect showInformationMessage to be called with the correct prompt
-        assert.strictEqual(
+        expect(
             showInformationMessageStub.calledOnce,
-            true,
             "showInformationMessage should be called once",
-        );
+        ).to.be.true;
 
         const promptCallerArgs = showInformationMessageStub.firstCall.args;
 
-        assert.deepEqual(promptCallerArgs[0], "Restore webview?", "prompt message is not correct");
+        expect(promptCallerArgs[0], "prompt message is not correct").to.equal("Restore webview?");
 
-        assert.deepEqual(
-            promptCallerArgs[1],
-            {
-                modal: true,
-            },
-            "Prompt should be modal",
-        );
+        expect(promptCallerArgs[1], "Prompt should be modal").to.deep.equal({
+            modal: true,
+        });
 
-        assert.strictEqual(
-            promptCallerArgs[2].title,
+        expect(promptCallerArgs[2].title, "Restore button title is not correct").to.equal(
             "Restore",
-            "Restore button title is not correct",
         );
 
-        assert.strictEqual(
-            restoreOption.run.calledOnce,
-            true,
-            "Restore option run should be called once",
-        );
+        expect(restoreOption.run.calledOnce, "Restore option run should be called once").to.be.true;
 
         // Disposing the panel should not be called
-        assert.strictEqual(
+        expect(
             (mockPanel.dispose as sinon.SinonStub).calledOnce,
-            false,
             "Panel should not be disposed",
-        );
+        ).to.be.false;
     });
 
     test("should dispose without showing restore prompt when showRestorePromptAfterClose is false", async () => {
@@ -234,18 +218,16 @@ suite("ReactWebviewPanelController", () => {
         await disposeHandler();
 
         // Expect showInformationMessage to not be called
-        assert.strictEqual(
+        expect(
             showInformationMessageStub.calledOnce,
-            false,
             "showInformationMessage should not be called",
-        );
+        ).to.be.false;
 
         // Disposing the panel should be called
-        assert.strictEqual(
+        expect(
             (controller.dispose as sinon.SinonStub).calledOnce,
-            true,
             "Panel should be disposed",
-        );
+        ).to.be.true;
     });
 
     test("should set showRestorePromptAfterClose correctly via setter", () => {
@@ -254,11 +236,10 @@ suite("ReactWebviewPanelController", () => {
 
         // To verify, we need to access the private _options
         const options = (controller as any)._options;
-        assert.strictEqual(
+        expect(
             options.showRestorePromptAfterClose,
-            true,
             "showRestorePromptAfterClose should be set to true",
-        );
+        ).to.be.true;
     });
 
     test("Should generate correct HTML template", () => {
@@ -266,14 +247,14 @@ suite("ReactWebviewPanelController", () => {
         asWebviewUriStub.returns(vscode.Uri.parse("https://example.com/"));
         const controller = createController();
         const html = controller["_getHtmlTemplate"]();
-        assert.strictEqual(typeof html, "string", "HTML should be a string");
-        assert.ok(html.includes("testSource.css"), "HTML should include testSource.css");
-        assert.ok(html.includes("testSource.js"), "HTML should include testSource.js");
-        assert.ok(html.includes('nonce="test-nonce"'), "HTML should include the nonce");
-        assert.ok(
+        expect(typeof html, "HTML should be a string").to.equal("string");
+        expect(html.includes("testSource.css"), "HTML should include testSource.css").to.be.true;
+        expect(html.includes("testSource.js"), "HTML should include testSource.js").to.be.true;
+        expect(html.includes('nonce="test-nonce"'), "HTML should include the nonce").to.be.true;
+        expect(
             html.includes('<base href="https://example.com//">'),
             "HTML should include the correct base href",
-        );
+        ).to.be.true;
     });
 
     suite("DialogResult", () => {
@@ -300,17 +281,13 @@ suite("ReactWebviewPanelController", () => {
                 isCompleted = true;
             });
 
-            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+            expect(isCompleted, "dialogResult should be an uncompleted promise").to.be.false;
 
             controller.dispose();
 
             await delay(50); // Give a moment for the promise completion check to occur
-            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
-            assert.equal(
-                await controller.dialogResult,
-                undefined,
-                "dialogResult should be undefined",
-            );
+            expect(isCompleted, "dialogResult should a resolved promise").to.be.true;
+            expect(await controller.dialogResult, "dialogResult should be undefined").to.be.undefined;
         });
 
         test("Should have dialogResult set when disposed after setting dialogResult", async () => {
@@ -321,17 +298,16 @@ suite("ReactWebviewPanelController", () => {
                 isCompleted = true;
             });
 
-            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+            expect(isCompleted, "dialogResult should be an uncompleted promise").to.be.false;
 
             controller.dispose();
 
             await delay(50); // Give a moment for the promise completion check to occur
-            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
-            assert.equal(
+            expect(isCompleted, "dialogResult should a resolved promise").to.be.true;
+            expect(
                 await controller.dialogResult,
-                "testResult",
                 "dialogResult should be set to the correct value",
-            );
+            ).to.equal("testResult");
         });
 
         test("dialogResult should be completed when the controller is disposed", async () => {
@@ -341,12 +317,12 @@ suite("ReactWebviewPanelController", () => {
                 isCompleted = true;
             });
 
-            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+            expect(isCompleted, "dialogResult should be an uncompleted promise").to.be.false;
 
             controller.dispose();
 
             await delay(50); // Give a moment for the promise completion check to occur
-            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
+            expect(isCompleted, "dialogResult should a resolved promise").to.be.true;
         });
     });
 });
