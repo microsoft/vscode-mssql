@@ -1141,12 +1141,16 @@ export default class ConnectionManager {
         if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
+            if (
+                Utils.isEmpty(password) &&
+                !(connectionCreds as IConnectionProfile).emptyPasswordInput
+            ) {
                 password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
-                    if (!password) {
-                        return false;
+                    // If user provided empty password, set the flag to avoid re-prompting
+                    if (password === undefined || password === "") {
+                        (connectionCreds as IConnectionProfile).emptyPasswordInput = true;
                     }
                 }
 
@@ -1406,6 +1410,7 @@ export default class ConnectionManager {
         // Handle password-based credentials
         const passwordResult = await this.handlePasswordBasedCredentials(credentials);
         if (!passwordResult) {
+            // User cancelled the password prompt
             const passwordError = new Error(LocalizedConstants.cannotConnect);
             telemetryActivity?.endFailed(
                 passwordError,
