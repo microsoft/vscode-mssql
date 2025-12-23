@@ -203,9 +203,16 @@ export const AzureDataStudioMigrationPage = () => {
 
     const toggleConnection = (connectionId: string, checked: boolean) => {
         setConnections((prev) =>
-            prev.map((connection) =>
-                connection.id === connectionId ? { ...connection, selected: checked } : connection,
-            ),
+            prev.map((connection) => {
+                const currentId =
+                    connection.profile.id ??
+                    connection.profile.profileName ??
+                    connection.profile.server;
+                if (currentId === connectionId) {
+                    return { ...connection, selected: checked };
+                }
+                return connection;
+            }),
         );
     };
 
@@ -357,10 +364,6 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 style={{
                                                                     backgroundColor: group.color,
                                                                 }}
-                                                                aria-label={loc.groupColorSwatch(
-                                                                    group.name,
-                                                                    group.color,
-                                                                )}
                                                             />
                                                         </TableCell>
                                                     </TableRow>
@@ -448,52 +451,63 @@ export const AzureDataStudioMigrationPage = () => {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {connections.map((connection) => (
-                                                    <TableRow key={connection.id}>
-                                                        <TableCell>
-                                                            <Checkbox
-                                                                checked={connection.selected}
-                                                                onChange={(_, data) =>
-                                                                    toggleConnection(
-                                                                        connection.id,
-                                                                        !!data.checked,
-                                                                    )
-                                                                }
-                                                                aria-label={loc.connectionSelectionToggle(
-                                                                    connection.displayName,
+                                                {connections.map((connection) => {
+                                                    const profile = connection.profile;
+                                                    const displayName =
+                                                        profile.profileName?.trim() ||
+                                                        profile.server ||
+                                                        "—";
+                                                    const connectionId = profile.id ?? displayName;
+                                                    return (
+                                                        <TableRow key={connectionId}>
+                                                            <TableCell>
+                                                                <Checkbox
+                                                                    checked={connection.selected}
+                                                                    onChange={(_, data) =>
+                                                                        toggleConnection(
+                                                                            connectionId,
+                                                                            !!data.checked,
+                                                                        )
+                                                                    }
+                                                                    aria-label={loc.connectionSelectionToggle(
+                                                                        displayName,
+                                                                    )}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {renderStatusIcon(
+                                                                    connection.status,
                                                                 )}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {renderStatusIcon(connection.status)}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {connection.displayName}
-                                                        </TableCell>
-                                                        <TableCell>{connection.server}</TableCell>
-                                                        <TableCell>
-                                                            {connection.database ?? "—"}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {connection.authenticationType}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {connection.userId ?? "—"}
-                                                        </TableCell>
-                                                        <TableCell className={classes.buttonCell}>
-                                                            <Button
-                                                                appearance="secondary"
-                                                                size="small"
-                                                                icon={<ShieldLockRegular />}
-                                                                onClick={() => {
-                                                                    // Placeholder for future auth wiring
-                                                                    return;
-                                                                }}>
-                                                                {loc.addAuthentication}
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
+                                                            </TableCell>
+                                                            <TableCell>{displayName}</TableCell>
+                                                            <TableCell>
+                                                                {profile.server || "—"}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {profile.database || "—"}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {profile.authenticationType || "—"}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {profile.user || "—"}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.buttonCell}>
+                                                                <Button
+                                                                    appearance="secondary"
+                                                                    size="small"
+                                                                    icon={<ShieldLockRegular />}
+                                                                    onClick={() => {
+                                                                        // Placeholder for future auth wiring
+                                                                        return;
+                                                                    }}>
+                                                                    {loc.addAuthentication}
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
                                             </TableBody>
                                         </Table>
                                     </div>

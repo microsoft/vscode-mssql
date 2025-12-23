@@ -1427,15 +1427,6 @@ export class LocConstants {
                     args: [groupName],
                     comment: ["{0} is the connection group name"],
                 }),
-            groupColorSwatch: (groupName: string, color: string) =>
-                l10n.t({
-                    message: "Color for {0}: {1}",
-                    args: [groupName, color],
-                    comment: [
-                        "{0} is the connection group name",
-                        "{1} is the color hex or name shown in the swatch",
-                    ],
-                }),
             connectionsHeader: l10n.t("Connections to import"),
             connectionsSelection: (selected: number, total: number) =>
                 l10n.t({

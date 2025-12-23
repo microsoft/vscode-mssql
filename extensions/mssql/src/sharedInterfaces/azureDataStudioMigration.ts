@@ -4,24 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from "vscode-jsonrpc/browser";
+import { IConnectionDialogProfile } from "./connectionDialog";
+import { IConnectionGroup } from "./connectionGroup";
 
-export interface AdsMigrationConnectionGroup {
-    id: string;
-    name: string;
-    color: string;
+export interface AdsMigrationConnectionGroup extends IConnectionGroup {
     selected: boolean;
 }
 
 export type AdsMigrationConnectionStatus = "ready" | "needsAttention";
 
 export interface AdsMigrationConnection {
-    id: string;
-    displayName: string;
-    server: string;
-    database?: string;
-    authenticationType: string;
-    userId?: string;
-    groupId?: string;
+    profile: IConnectionDialogProfile;
     selected: boolean;
     status: AdsMigrationConnectionStatus;
 }

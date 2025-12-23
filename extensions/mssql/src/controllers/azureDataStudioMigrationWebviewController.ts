@@ -4,6 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
+import { homedir } from "os";
+import { promises as fs } from "fs";
+import { parse } from "jsonc-parser";
 
 import { AzureDataStudioMigration } from "../constants/locConstants";
 import {
@@ -12,198 +16,18 @@ import {
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
 } from "../sharedInterfaces/azureDataStudioMigration";
+import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-
-const defaultConnectionGroups: AdsMigrationConnectionGroup[] = [
-    { id: "favorites", name: "Favorites", color: "#C94F4F", selected: true },
-    { id: "production", name: "Production", color: "#025446", selected: true },
-    { id: "experiments", name: "Experiments", color: "#3A78C2", selected: false },
-    { id: "analytics", name: "Analytics", color: "#7D549C", selected: true },
-    { id: "qa-ring", name: "QA Ring", color: "#A15C2F", selected: true },
-    { id: "sandbox", name: "Sandbox", color: "#3FA7D6", selected: false },
-    { id: "reporting", name: "Reporting", color: "#B1A214", selected: true },
-    { id: "mission-critical", name: "Mission Critical", color: "#195E83", selected: true },
-    { id: "prototypes", name: "Prototypes", color: "#D37AB6", selected: false },
-    { id: "training", name: "Training", color: "#528C33", selected: false },
-    { id: "partner-demos", name: "Partner Demos", color: "#6E3E6B", selected: true },
-    { id: "retail", name: "Retail", color: "#C46B1A", selected: true },
-    { id: "manufacturing", name: "Manufacturing", color: "#4F6E8F", selected: true },
-    { id: "healthcare", name: "Healthcare", color: "#A3475C", selected: false },
-    { id: "finance", name: "Finance", color: "#2F4858", selected: true },
-];
-
-const defaultConnections: AdsMigrationConnection[] = [
-    {
-        id: "contoso-payroll",
-        displayName: "Contoso Payroll",
-        server: "contoso-payroll.database.windows.net",
-        database: "payroll",
-        authenticationType: "Azure AD",
-        userId: "payroll-admin@contoso.com",
-        groupId: "production",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "fabric-telemetry",
-        displayName: "Fabric Telemetry Warehouse",
-        server: "fabric-sql.contoso.com",
-        database: "telemetry",
-        authenticationType: "Azure AD",
-        userId: "telemetry@contoso.com",
-        groupId: "favorites",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "edge-lab",
-        displayName: "Edge Team Lab",
-        server: "edge-dev.sql.contoso.local",
-        database: "edgeSandbox",
-        authenticationType: "SQL Login",
-        userId: "edge_admin",
-        groupId: "experiments",
-        selected: false,
-        status: "needsAttention",
-    },
-    {
-        id: "fabrikam-supply-chain",
-        displayName: "Fabrikam Supply Chain",
-        server: "fabrikam-supply.database.windows.net",
-        database: "supplyChain",
-        authenticationType: "Azure AD",
-        userId: "sc-admin@fabrikam.com",
-        groupId: "mission-critical",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "wingtip-retail-pos",
-        displayName: "Wingtip Retail POS",
-        server: "retail-pos.wingtip.com",
-        database: "retailPOS",
-        authenticationType: "SQL Login",
-        userId: "pos_reader",
-        groupId: "retail",
-        selected: true,
-        status: "needsAttention",
-    },
-    {
-        id: "wideworld-importers",
-        displayName: "Wide World Importers",
-        server: "sql.wwi.azure.com",
-        database: "importers",
-        authenticationType: "Azure AD",
-        userId: "warehouse.ops@wwi.com",
-        groupId: "analytics",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "tailspin-training",
-        displayName: "Tailspin Training",
-        server: "training-db.tailspin.org",
-        database: "trainingDB",
-        authenticationType: "SQL Login",
-        userId: "trainer",
-        groupId: "training",
-        selected: false,
-        status: "needsAttention",
-    },
-    {
-        id: "adventureworks-finance",
-        displayName: "AdventureWorks Finance",
-        server: "finance.awdatabase.net",
-        database: "financeOps",
-        authenticationType: "Azure AD",
-        userId: "finance@adventureworks.com",
-        groupId: "finance",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "northwind-reports",
-        displayName: "Northwind Reports",
-        server: "reports.northwind.com",
-        database: "northwindReports",
-        authenticationType: "SQL Login",
-        userId: "reports_user",
-        groupId: "reporting",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "consolidated-prototype",
-        displayName: "Consolidated Prototype Lab",
-        server: "proto-lab.contoso.net",
-        authenticationType: "Integrated",
-        groupId: "prototypes",
-        selected: false,
-        status: "needsAttention",
-    },
-    {
-        id: "alpaca-qa-ring",
-        displayName: "Project Alpaca QA",
-        server: "qa-alpaca.internal",
-        database: "alpacaQA",
-        authenticationType: "Azure AD",
-        userId: "qa@alpaca.ai",
-        groupId: "qa-ring",
-        selected: true,
-        status: "ready",
-    },
-    {
-        id: "sterling-health",
-        displayName: "Sterling Health Data Lake",
-        server: "sql.health.sterling.net",
-        database: "sterlingHealth",
-        authenticationType: "Azure AD",
-        userId: "healthops@sterling.net",
-        groupId: "healthcare",
-        selected: false,
-        status: "needsAttention",
-    },
-    {
-        id: "northwind-partner-demo",
-        displayName: "Northwind Partner Demo",
-        server: "demo-partner.northwind.com",
-        database: "demoDb",
-        authenticationType: "SQL Login",
-        userId: "demo_user",
-        groupId: "partner-demos",
-        selected: true,
-        status: "needsAttention",
-    },
-    {
-        id: "urban-sandbox",
-        displayName: "Urban Research Sandbox",
-        server: "urban-research.local",
-        database: "urbanSandbox",
-        authenticationType: "Integrated",
-        groupId: "sandbox",
-        selected: false,
-        status: "needsAttention",
-    },
-    {
-        id: "global-operations",
-        displayName: "Global Operations Hub",
-        server: "global-ops.fabric.azure.com",
-        database: "globalOps",
-        authenticationType: "Azure AD",
-        userId: "operations@global.com",
-        groupId: "mission-critical",
-        selected: true,
-        status: "ready",
-    },
-];
+import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
+import { getErrorMessage } from "../utils/utils";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
-    connectionGroups: defaultConnectionGroups,
-    connections: defaultConnections,
+    connectionGroups: [],
+    connections: [],
 };
 
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
@@ -231,10 +55,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             },
         );
 
-        this.initialize();
+        this.registerRequestHandlers();
+        void this.initialize();
     }
 
-    private initialize() {
+    private registerRequestHandlers() {
         this.onRequest(AzureDataStudioMigrationBrowseForConfigRequest.type, async () => {
             const selection = await vscode.window.showOpenDialog({
                 title: AzureDataStudioMigration.SelectConfigFileDialogTitle,
@@ -249,20 +74,233 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
             const selectedPath = selection?.[0]?.fsPath;
             if (selectedPath) {
-                const currentState = this.state ?? defaultState;
-                this.state = {
-                    ...currentState,
-                    adsConfigPath: selectedPath,
-                };
-                sendActionEvent(
-                    TelemetryViews.AzureDataStudioMigration,
-                    TelemetryActions.Open,
-                    {
-                        action: "browseConfig",
-                    },
-                );
+                await this.loadSettingsFromFile(selectedPath);
+                sendActionEvent(TelemetryViews.AzureDataStudioMigration, TelemetryActions.Open, {
+                    action: "browseConfig",
+                });
             }
             return selectedPath;
         });
+    }
+
+    private async initialize() {
+        // Attempt to load settings from the default ADS settings path
+        const defaultPath = this.getDefaultAdsSettingsPath();
+        if (!defaultPath) {
+            return;
+        }
+        if (!(await this.fileExists(defaultPath))) {
+            return;
+        }
+        await this.loadSettingsFromFile(defaultPath);
+    }
+
+    private getDefaultAdsSettingsPath(): string | undefined {
+        const home = homedir();
+        switch (process.platform) {
+            case "win32":
+                if (process.env.APPDATA) {
+                    return path.join(
+                        process.env.APPDATA,
+                        "azuredatastudio",
+                        "User",
+                        "settings.json",
+                    );
+                }
+                return home
+                    ? path.join(
+                          home,
+                          "AppData",
+                          "Roaming",
+                          "azuredatastudio",
+                          "User",
+                          "settings.json",
+                      )
+                    : undefined;
+            case "darwin":
+                return path.join(
+                    home,
+                    "Library",
+                    "Application Support",
+                    "azuredatastudio",
+                    "User",
+                    "settings.json",
+                );
+            case "linux":
+            default:
+                return path.join(home, ".config", "azuredatastudio", "User", "settings.json");
+        }
+    }
+
+    private async fileExists(filePath: string): Promise<boolean> {
+        try {
+            await fs.access(filePath);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private async loadSettingsFromFile(filePath: string): Promise<void> {
+        try {
+            const raw = await fs.readFile(filePath, { encoding: "utf8" });
+
+            // Parse using jsonc-parser to support comments in the settings file
+            const parsed = parse(raw) as Record<string, unknown>;
+
+            const groups = this.parseConnectionGroups(parsed?.["datasource.connectionGroups"]);
+            const connections = this.parseConnections(parsed?.["datasource.connections"]);
+
+            this.state = {
+                adsConfigPath: filePath,
+                connectionGroups: groups,
+                connections,
+            };
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to load Azure Data Studio settings: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    private parseConnectionGroups(value: unknown): AdsMigrationConnectionGroup[] {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+
+        const groups: AdsMigrationConnectionGroup[] = [];
+        for (const candidate of value) {
+            const group = this.createGroup(candidate);
+            if (group) {
+                groups.push(group);
+            }
+        }
+
+        return groups;
+    }
+
+    private createGroup(candidate: unknown): AdsMigrationConnectionGroup | undefined {
+        if (!candidate || typeof candidate !== "object") {
+            return undefined;
+        }
+
+        const record = candidate as Record<string, unknown>;
+        const id = this.getString(record, ["id", "groupId"]);
+        const name = this.getString(record, ["name", "groupName"]);
+        if (!id || !name) {
+            return undefined;
+        }
+
+        const group: IConnectionGroup = {
+            id,
+            name,
+            parentId: this.getString(record, ["parentId"]),
+            color: this.getString(record, ["color"]),
+            description: this.getString(record, ["description"]),
+        };
+
+        return {
+            ...group,
+            selected: true,
+        };
+    }
+
+    private parseConnections(value: unknown): AdsMigrationConnection[] {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+
+        const connections: AdsMigrationConnection[] = [];
+        for (const entry of value) {
+            const connection = this.createConnection(entry);
+            if (connection) {
+                connections.push(connection);
+            }
+        }
+
+        return connections;
+    }
+
+    private createConnection(candidate: unknown): AdsMigrationConnection | undefined {
+        if (!candidate || typeof candidate !== "object") {
+            return undefined;
+        }
+
+        const record = candidate as Record<string, unknown>;
+        const providerName =
+            this.getString(record, ["providerName"]) ??
+            this.getString(record.options as Record<string, unknown> | undefined, ["providerName"]);
+        if (providerName && providerName.toLowerCase() !== "mssql") {
+            return undefined;
+        }
+
+        const options =
+            typeof record.options === "object" && record.options
+                ? (record.options as Record<string, unknown>)
+                : record;
+
+        const server = this.getString(options, ["server"]) ?? "";
+        const authenticationType =
+            this.getString(options, ["authenticationType", "authType"]) ??
+            AuthenticationType.SqlLogin;
+        const database = this.getString(options, ["database"]) ?? "";
+        const user = this.getString(options, ["user", "userName"]) ?? "";
+        const profileName =
+            this.getString(options, ["connectionName", "name", "profileName"]) ?? server;
+
+        const fallbackId =
+            this.getString(record, ["id", "connectionId"]) ??
+            profileName ??
+            (server ||
+                `ads-import-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+
+        const profile: IConnectionDialogProfile = {
+            profileName,
+            server,
+            database,
+            authenticationType,
+            user,
+            password: "",
+            email: undefined,
+            accountId: undefined,
+            tenantId: undefined,
+            port: typeof options.port === "number" ? options.port : 0,
+            groupId:
+                this.getString(record, ["groupId", "groupIdName", "group"]) ??
+                this.getString(options, ["groupId"]) ??
+                "",
+            azureAuthType: undefined,
+            savePassword: Boolean(options.savePassword),
+            emptyPasswordInput: false,
+            id: fallbackId,
+        } as IConnectionDialogProfile;
+
+        const status =
+            !profile.server ||
+            (profile.authenticationType === AuthenticationType.SqlLogin && !profile.user)
+                ? "needsAttention"
+                : "ready";
+
+        return {
+            profile,
+            selected: true,
+            status,
+        };
+    }
+
+    private getString(
+        source: Record<string, unknown> | undefined,
+        keys: string[],
+    ): string | undefined {
+        if (!source) {
+            return undefined;
+        }
+        for (const key of keys) {
+            const value = source[key];
+            if (typeof value === "string" && value.trim().length > 0) {
+                return value;
+            }
+        }
+        return undefined;
     }
 }
