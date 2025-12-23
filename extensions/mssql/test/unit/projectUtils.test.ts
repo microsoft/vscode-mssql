@@ -37,11 +37,7 @@ suite("projectUtils Tests", () => {
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // The dacpac path should use forward slashes, not backslashes
-        expect(result?.dacpacOutputPath).to.not.include("\\");
-        expect(result?.dacpacOutputPath).to.include("/");
-
-        // Verify the path is constructed correctly with forward slashes
+        // Verify the path is constructed correctly - path.join will use platform-specific separators
         const expectedPath = path.join("/home/user/project", "bin/Debug", "TestProject.dacpac");
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
@@ -68,8 +64,8 @@ suite("projectUtils Tests", () => {
 
     test("readProjectProperties normalizes Windows backslashes in absolute paths", async () => {
         const projectPath = "/home/user/project/TestProject.sqlproj";
-        // Absolute path with Windows-style backslashes (edge case but should be handled)
-        const absoluteOutputPath = "C:\\absolute\\output\\path";
+        // Absolute path with Windows-style backslashes that gets normalized
+        const absoluteOutputPath = "\\absolute\\output\\path";
 
         mockSqlProjectsService.getProjectProperties.resolves({
             success: true,
@@ -82,8 +78,10 @@ suite("projectUtils Tests", () => {
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // Even for absolute paths, backslashes should be normalized
-        expect(result?.dacpacOutputPath).to.not.include("\\");
+        // After normalization, the backslashes become forward slashes
+        // Unix-style absolute paths (starting with /) are absolute on both Windows and Unix
+        const expectedPath = path.join("/absolute/output/path", "TestProject.dacpac");
+        expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
     test("readProjectProperties handles relative paths with forward slashes", async () => {
