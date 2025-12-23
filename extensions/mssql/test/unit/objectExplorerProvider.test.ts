@@ -93,8 +93,8 @@ suite("Object Explorer Provider Tests", function () {
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
 
         const rootGroup = {
-            id: ConnectionConfig.RootGroupId,
-            name: ConnectionConfig.RootGroupId,
+            id: ConnectionConfig.ROOT_GROUP_ID,
+            name: ConnectionConfig.ROOT_GROUP_ID,
             parentId: undefined,
             color: undefined,
             description: undefined,
@@ -106,7 +106,7 @@ suite("Object Explorer Provider Tests", function () {
         let savedConnections: IConnectionProfile[] = [];
 
         connectionStore = {
-            rootGroupId: ConnectionConfig.RootGroupId,
+            rootGroupId: ConnectionConfig.ROOT_GROUP_ID,
             readAllConnectionGroups: sandbox.stub().resolves([rootGroup]),
             readAllConnections: sandbox.stub().callsFake(async () => savedConnections),
             saveProfile: sandbox.stub().callsFake(async (profile: IConnectionProfile) => {
@@ -290,8 +290,9 @@ suite("Object Explorer Provider Tests", function () {
 
     test("Test addConnectionNode", () => {
         const rootNode = new ConnectionGroupNode({
-            id: ConnectionConfig.RootGroupId,
-            name: ConnectionConfig.RootGroupId,
+            id: ConnectionConfig.ROOT_GROUP_ID,
+            name: ConnectionConfig.ROOT_GROUP_ID,
+            configSource: vscode.ConfigurationTarget.Global,
         });
         const connectionNode1 = new ConnectionNode(
             {

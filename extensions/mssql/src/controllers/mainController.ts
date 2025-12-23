@@ -2770,9 +2770,7 @@ export default class MainController implements vscode.Disposable {
 
         // 2. Handle connections that have been added, removed, or reparented in OE
         let configConnections =
-            await this.connectionManager.connectionStore.connectionConfig.getConnections(
-                true /* alsoGetFromWorkspace */,
-            );
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
         let objectExplorerConnections = this._objectExplorerProvider.connections;
 
         let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);

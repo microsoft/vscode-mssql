@@ -21,7 +21,10 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import {
+    renderColorSwatch,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { ArmSql2025ErrorDialog } from "./armSql2025ErrorDialog";
@@ -165,6 +168,9 @@ export const LocalContainersInputForm: React.FC = () => {
                                         value: option.value,
                                     });
                                 }
+                            },
+                            renderDecoration: (option: SearchableDropdownOptions) => {
+                                return renderColorSwatch(option.color);
                             },
                         }}
                     />
