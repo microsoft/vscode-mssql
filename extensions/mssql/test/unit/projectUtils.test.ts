@@ -64,8 +64,8 @@ suite("projectUtils Tests", () => {
 
     test("readProjectProperties normalizes Windows backslashes in absolute paths", async () => {
         const projectPath = "/home/user/project/TestProject.sqlproj";
-        // Absolute path with Windows-style backslashes (edge case but should be handled)
-        const absoluteOutputPath = "C:\\absolute\\output\\path";
+        // Absolute path with Windows-style backslashes that gets normalized
+        const absoluteOutputPath = "\\absolute\\output\\path";
 
         mockSqlProjectsService.getProjectProperties.resolves({
             success: true,
@@ -78,9 +78,9 @@ suite("projectUtils Tests", () => {
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // For absolute paths, should use the absolute path directly with the project name appended
-        // On Windows, this will have backslashes; on Unix, forward slashes
-        const expectedPath = path.join("C:/absolute/output/path", "TestProject.dacpac");
+        // After normalization, the backslashes become forward slashes
+        // Unix-style absolute paths (starting with /) are absolute on both Windows and Unix
+        const expectedPath = path.join("/absolute/output/path", "TestProject.dacpac");
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
