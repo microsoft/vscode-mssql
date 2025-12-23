@@ -13,6 +13,8 @@ import { AzureDataStudioMigration } from "../constants/locConstants";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
+    AdsMigrationConnectionResolvedStatus,
+    AdsMigrationConnectionStatus,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
 } from "../sharedInterfaces/azureDataStudioMigration";
@@ -35,6 +37,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     AzureDataStudioMigrationWebviewState,
     void
 > {
+    private existingConnectionIds: Set<string> = new Set<string>();
+    private existingGroupIds: Set<string> = new Set<string>();
+
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -144,6 +149,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
     private async loadSettingsFromFile(filePath: string): Promise<void> {
         try {
+            this.refreshExistingMssqlEntities();
+
             const raw = await fs.readFile(filePath, { encoding: "utf8" });
             const parsed = JSON.parse(stripJsonComments(raw)) as Record<string, unknown>;
 
@@ -212,9 +219,12 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             description: this.getString(record, ["description"]),
         };
 
+        const alreadyImported = this.existingGroupIds.has(group.id);
+
         return {
             ...group,
-            selected: true,
+            selected: !alreadyImported,
+            status: alreadyImported ? "alreadyImported" : "ready",
         };
     }
 
@@ -288,16 +298,26 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             id: fallbackId,
         } as IConnectionDialogProfile;
 
-        const status =
+        let issue: AdsMigrationConnection["issue"];
+        let status: AdsMigrationConnectionStatus = "ready";
+        if (
             !profile.server ||
             (profile.authenticationType === AuthenticationType.SqlLogin && !profile.user)
-                ? "needsAttention"
-                : "ready";
+        ) {
+            status = "needsAttention";
+            issue = "missingCredentials";
+        }
+
+        let resolvedStatus: AdsMigrationConnectionResolvedStatus = status;
+        if (this.existingConnectionIds.has(profile.id)) {
+            resolvedStatus = "alreadyImported";
+        }
 
         return {
             profile,
-            selected: true,
-            status,
+            issue,
+            selected: resolvedStatus !== "alreadyImported",
+            status: resolvedStatus,
         };
     }
 
@@ -315,5 +335,52 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
         }
         return undefined;
+    }
+
+    private refreshExistingMssqlEntities(): void {
+        const config = vscode.workspace.getConfiguration("mssql");
+
+        this.existingConnectionIds = this.collectIdsFromInspect<IConnectionDialogProfile>(
+            config.inspect<IConnectionDialogProfile[]>("connections"),
+        );
+        this.existingGroupIds = this.collectIdsFromInspect<IConnectionGroup[]>(
+            config.inspect<IConnectionGroup[]>("connectionGroups"),
+        );
+    }
+
+    private collectIdsFromInspect<T extends { id?: string }>(
+        inspectResult: vscode.ConfigurationInspect<T[]> | undefined,
+    ): Set<string> {
+        const ids = new Set<string>();
+        if (!inspectResult) {
+            return ids;
+        }
+
+        const addEntries = (entries?: T[] | null) => {
+            if (!Array.isArray(entries)) {
+                return;
+            }
+            for (const entry of entries) {
+                if (entry && typeof entry === "object") {
+                    const identifier = (entry as { id?: string }).id;
+                    if (typeof identifier === "string" && identifier.trim().length > 0) {
+                        ids.add(identifier.trim());
+                    }
+                }
+            }
+        };
+
+        addEntries(inspectResult.defaultValue);
+        addEntries(inspectResult.globalValue);
+        addEntries(inspectResult.workspaceValue);
+        addEntries(inspectResult.workspaceFolderValue);
+
+        const inspectWithLanguages = inspectResult as Record<string, T[] | undefined>;
+        addEntries(inspectWithLanguages.globalLanguageValue as T[] | undefined);
+        addEntries(inspectWithLanguages.workspaceLanguageValue as T[] | undefined);
+        addEntries(inspectWithLanguages.workspaceFolderLanguageValue as T[] | undefined);
+        addEntries(inspectWithLanguages.languageValue as T[] | undefined);
+
+        return ids;
     }
 }

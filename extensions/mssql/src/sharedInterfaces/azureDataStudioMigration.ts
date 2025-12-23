@@ -9,14 +9,18 @@ import { IConnectionGroup } from "./connectionGroup";
 
 export interface AdsMigrationConnectionGroup extends IConnectionGroup {
     selected: boolean;
+    status: AdsMigrationConnectionGroupStatus;
 }
 
 export type AdsMigrationConnectionStatus = "ready" | "needsAttention";
+export type AdsMigrationConnectionResolvedStatus = AdsMigrationConnectionStatus | "alreadyImported";
+export type AdsMigrationConnectionGroupStatus = "ready" | "alreadyImported";
 
 export interface AdsMigrationConnection {
     profile: IConnectionDialogProfile;
+    issue?: "missingCredentials";
     selected: boolean;
-    status: AdsMigrationConnectionStatus;
+    status: AdsMigrationConnectionResolvedStatus;
 }
 
 export interface AzureDataStudioMigrationWebviewState {

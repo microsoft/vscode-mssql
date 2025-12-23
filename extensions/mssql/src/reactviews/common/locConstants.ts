@@ -1420,6 +1420,15 @@ export class LocConstants {
             noConnectionGroups: l10n.t("No connection groups were found in the file."),
             groupNameColumn: l10n.t("Name"),
             groupColorColumn: l10n.t("Color"),
+            groupColorSwatch: (groupName: string, color: string) =>
+                l10n.t({
+                    message: "{0} color swatch ({1})",
+                    args: [groupName, color],
+                    comment: [
+                        "{0} is the connection group name",
+                        "{1} is the color value applied to the group",
+                    ],
+                }),
             selectAllGroupsLabel: l10n.t("Select or clear all connection groups"),
             groupSelectionToggle: (groupName: string) =>
                 l10n.t({
@@ -1455,10 +1464,24 @@ export class LocConstants {
             addAuthentication: l10n.t("Add authentication"),
             connectionStatusReady: l10n.t("Ready"),
             connectionStatusNeedsAttention: l10n.t("Needs attention"),
+            connectionStatusAlreadyImported: l10n.t("Already imported"),
+            connectionGroupStatusReady: l10n.t("Ready for import"),
+            connectionGroupStatusAlreadyImported: l10n.t("Already imported"),
             connectionGroupsCollapse: l10n.t("Collapse connection groups"),
             connectionGroupsExpand: l10n.t("Expand connection groups"),
             connectionsCollapse: l10n.t("Collapse connections"),
             connectionsExpand: l10n.t("Expand connections"),
+            connectionDisplayNameMissing: l10n.t(
+                "This connection does not have a display name in Azure Data Studio.",
+            ),
+            connectionValueMissing: l10n.t(
+                "This value was not provided in the Azure Data Studio settings file.",
+            ),
+            authenticationColumn: l10n.t("Authentication"),
+            authenticationSqlPlaceholder: l10n.t("Enter SQL login username"),
+            authenticationAzureOption: l10n.t("Sign into Entra ID account"),
+            authenticationNotRequired: l10n.t("Not required"),
+            importButtonLabel: l10n.t("Import selected"),
         };
     }
 
