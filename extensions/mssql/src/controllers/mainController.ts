@@ -334,6 +334,7 @@ export default class MainController implements vscode.Disposable {
                     this._context,
                     this._vscodeWrapper,
                     this.connectionManager.connectionStore.connectionConfig,
+                    this.azureAccountService,
                 );
                 await migrationController.revealToForeground();
             });

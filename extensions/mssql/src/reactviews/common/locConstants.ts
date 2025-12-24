@@ -62,6 +62,7 @@ export class LocConstants {
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
             warning: l10n.t("Warning"),
+            signIn: l10n.t("Sign In"),
         };
     }
 
@@ -220,7 +221,6 @@ export class LocConstants {
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
             account: l10n.t("Account"),
-            signIn: l10n.t("Sign In"),
             tenantId: l10n.t("Tenant ID"),
             authenticationType: l10n.t("Authentication Type"),
             browseBy: l10n.t("Browse By"),
@@ -1448,7 +1448,7 @@ export class LocConstants {
                 }),
             selectAllConnectionsLabel: l10n.t("Select or clear all connections"),
             noConnections: l10n.t("No connections were found in the file."),
-            connectionNameColumn: l10n.t("Display name"),
+            connectionProfileName: l10n.t("Profile name"),
             connectionServerColumn: l10n.t("Server"),
             connectionDatabaseColumn: l10n.t("Database"),
             connectionDatabaseDefault: l10n.t("<default>"),
@@ -1482,7 +1482,7 @@ export class LocConstants {
                 "This value was not provided in the Azure Data Studio settings file.",
             ),
             authenticationColumn: l10n.t("Authentication"),
-            authenticationSqlPlaceholder: l10n.t("Enter SQL login username"),
+            enterPassword: l10n.t("Enter password"),
             authenticationAzurePlaceholder: l10n.t("Select an authentication action"),
             authenticationAzureOption: l10n.t("Sign into Entra ID account"),
             authenticationNotRequired: l10n.t("Not required"),

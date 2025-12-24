@@ -13,11 +13,9 @@ import { AzureDataStudioMigration } from "../constants/locConstants";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
-    AdsMigrationConnectionIssue,
-    AdsMigrationConnectionResolvedStatus,
-    AdsMigrationConnectionStatus,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
+    MigrationStatus,
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
@@ -28,6 +26,8 @@ import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
+import { AzureAccountService } from "../services/azureAccountService";
+import { IAccount } from "vscode-mssql";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
@@ -49,6 +49,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private connectionConfig: ConnectionConfig,
+        private azureAccountService: AzureAccountService,
         initialState: AzureDataStudioMigrationWebviewState = defaultState,
     ) {
         super(
@@ -76,10 +77,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             .catch((err) => {
                 void vscode.window.showErrorMessage(getErrorMessage(err));
 
-                // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
-                // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
                 sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
+                    TelemetryViews.AzureDataStudioMigration,
                     TelemetryActions.Initialize,
                     err,
                     true, // includeErrorMessage
@@ -91,15 +90,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     }
 
     private async initialize() {
-        // Attempt to load settings from the default ADS settings path
-        const defaultPath = this.getDefaultAdsSettingsPath();
-        if (!defaultPath) {
-            return;
-        }
-        if (!(await this.fileExists(defaultPath))) {
-            return;
-        }
-        await this.loadSettingsFromFile(defaultPath);
+        await this.loadAdsConfigFromDefaultPath();
+        await this.loadEntraAuthAccounts();
     }
 
     private registerRequestHandlers() {
@@ -124,6 +116,21 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
             return selectedPath;
         });
+    }
+
+    private async loadEntraAuthAccounts(): Promise<void> {
+        // TODO
+    }
+
+    private async loadAdsConfigFromDefaultPath(): Promise<void> {
+        const defaultPath = this.getDefaultAdsSettingsPath();
+        if (!defaultPath) {
+            return;
+        }
+        if (!(await this.fileExists(defaultPath))) {
+            return;
+        }
+        await this.loadSettingsFromFile(defaultPath);
     }
 
     private getDefaultAdsSettingsPath(): string | undefined {
@@ -174,7 +181,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
     private async loadSettingsFromFile(filePath: string): Promise<void> {
         try {
-            await this.refreshExistingMssqlEntities();
+            await this.loadExistingConfigItems();
 
             const raw = await fs.readFile(filePath, { encoding: "utf8" });
             const parsed = JSON.parse(stripJsonComments(raw)) as Record<string, unknown>;
@@ -182,13 +189,17 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             const { groups, rootGroupIds } = this.parseConnectionGroups(
                 parsed?.["datasource.connectionGroups"],
             );
+            const migrationGroups = await this.updateGroupStatuses(groups);
+
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
+
+            const migrationConnections = await this.updateConnectionStatuses(connections);
 
             this.state = {
                 adsConfigPath: filePath,
-                connectionGroups: groups,
-                connections,
-                rootGroupIds,
+                connectionGroups: migrationGroups,
+                connections: migrationConnections,
+                rootGroupIds: rootGroupIds, // TODO: why is this needed?
             };
         } catch (error) {
             void vscode.window.showErrorMessage(
@@ -197,8 +208,110 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         }
     }
 
+    private async readValidAzureAccounts(): Promise<IAccount[]> {
+        let azureAccounts: IAccount[] = [];
+        try {
+            const azureAccounts = await this.azureAccountService.getAccounts();
+
+            // check that all accounts are valid
+            for (const account of azureAccounts) {
+                if (!account?.displayInfo?.displayName || !account?.key?.id) {
+                    throw new Error(`Invalid Azure account found: ${JSON.stringify(account)}`);
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Error loading Azure accounts: ${getErrorMessage(error)}`);
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureAccountsForEntraAuth,
+                error,
+                false, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
+                {
+                    accountCount: azureAccounts.length,
+                    undefinedAccountCount: azureAccounts.filter((x) => x === undefined).length,
+                    undefinedDisplayInfoCount: azureAccounts.filter(
+                        (x) => x !== undefined && x.displayInfo === undefined,
+                    ).length,
+                }, // additionalMeasurements
+            );
+        }
+
+        return azureAccounts;
+    }
+
+    private async updateConnectionStatuses(
+        connections: IConnectionDialogProfile[],
+    ): Promise<AdsMigrationConnection[]> {
+        const result: AdsMigrationConnection[] = [];
+
+        const azureAccounts = new Set<string>(
+            (await this.readValidAzureAccounts()).map((account) => account.key.id),
+        );
+
+        for (const connection of connections) {
+            let status = MigrationStatus.Ready;
+            let statusMessage = "";
+
+            if (this._existingConnectionIds.has(connection.id)) {
+                status = MigrationStatus.AlreadyImported;
+                statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported;
+            } else if (connection.authenticationType === AuthenticationType.SqlLogin) {
+                if (!connection.password) {
+                    status = MigrationStatus.NeedsAttention;
+                    statusMessage = AzureDataStudioMigration.connectionIssueMissingSqlPassword(
+                        connection.user,
+                    );
+                }
+            } else if (connection.authenticationType === AuthenticationType.AzureMFA) {
+                if (!azureAccounts.has(connection.accountId)) {
+                    status = MigrationStatus.NeedsAttention;
+                    statusMessage = AzureDataStudioMigration.connectionIssueMissingAzureAccount(
+                        connection.user,
+                    );
+                }
+            }
+
+            result.push({
+                profile: connection,
+                profileName: connection.profileName,
+                status,
+                statusMessage,
+                selected: status === MigrationStatus.Ready,
+            });
+        }
+
+        return result;
+    }
+
+    private updateGroupStatuses(groups: IConnectionGroup[]): AdsMigrationConnectionGroup[] {
+        const result: AdsMigrationConnectionGroup[] = [];
+
+        for (const group of groups) {
+            let status = MigrationStatus.Ready;
+            let statusMessage = "";
+
+            if (this._existingGroupIds.has(group.id)) {
+                status = MigrationStatus.AlreadyImported;
+                statusMessage = AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported;
+            }
+
+            result.push({
+                group: group,
+                status,
+                statusMessage,
+                selected: status === MigrationStatus.Ready,
+            });
+        }
+
+        return result;
+    }
+
     private parseConnectionGroups(value: unknown): {
-        groups: AdsMigrationConnectionGroup[];
+        groups: IConnectionGroup[];
         rootGroupIds: string[];
     } {
         if (!Array.isArray(value)) {
@@ -208,7 +321,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             };
         }
 
-        const groups: AdsMigrationConnectionGroup[] = [];
+        const groups: IConnectionGroup[] = [];
         const rootGroupIds: string[] = [];
         for (const candidate of value) {
             const group = this.createGroup(candidate);
@@ -224,7 +337,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return { groups, rootGroupIds };
     }
 
-    private createGroup(candidate: unknown): AdsMigrationConnectionGroup | undefined {
+    private createGroup(candidate: unknown): IConnectionGroup | undefined {
         if (!candidate || typeof candidate !== "object") {
             return undefined;
         }
@@ -244,21 +357,15 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             description: this.getString(record, ["description"]),
         };
 
-        const alreadyImported = this._existingGroupIds.has(group.id);
-
-        return {
-            ...group,
-            selected: !alreadyImported,
-            status: alreadyImported ? "alreadyImported" : "ready",
-        };
+        return group;
     }
 
-    private parseConnections(value: unknown): AdsMigrationConnection[] {
+    private parseConnections(value: unknown): IConnectionDialogProfile[] {
         if (!Array.isArray(value)) {
             return [];
         }
 
-        const connections: AdsMigrationConnection[] = [];
+        const connections: IConnectionDialogProfile[] = [];
         for (const entry of value) {
             const connection = this.createConnection(entry);
             if (connection) {
@@ -269,7 +376,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return connections;
     }
 
-    private createConnection(candidate: unknown): AdsMigrationConnection | undefined {
+    private createConnection(candidate: unknown): IConnectionDialogProfile | undefined {
         if (!candidate || typeof candidate !== "object") {
             return undefined;
         }
@@ -293,9 +400,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             AuthenticationType.SqlLogin;
         const database = this.getString(options, ["database"]) ?? "";
         const user = this.getString(options, ["user", "userName"]) ?? "";
-        const displayName = this.getString(options, ["connectionName", "name", "profileName"]);
-        const profileName = displayName ?? server;
+        const profileName = this.getString(options, ["connectionName", "name", "profileName"]);
 
+        // TODO: clean up all this stuff.  Fallbacks aren't necessary.
         const fallbackId =
             this.getString(record, ["id", "connectionId"]) ??
             profileName ??
@@ -323,28 +430,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             id: fallbackId,
         } as IConnectionDialogProfile;
 
-        const issues: AdsMigrationConnectionIssue[] = [];
-        if (!profile.server) {
-            issues.push("missingServer");
-        }
-        if (profile.authenticationType === AuthenticationType.SqlLogin && !profile.user) {
-            issues.push("missingSqlUsername");
-        }
-
-        const status: AdsMigrationConnectionStatus = issues.length > 0 ? "needsAttention" : "ready";
-
-        let resolvedStatus: AdsMigrationConnectionResolvedStatus = status;
-        if (this._existingConnectionIds.has(profile.id)) {
-            resolvedStatus = "alreadyImported";
-        }
-
-        return {
-            profile,
-            displayName,
-            issues: issues.length > 0 ? issues : undefined,
-            selected: resolvedStatus !== "alreadyImported",
-            status: resolvedStatus,
-        };
+        return profile;
     }
 
     private getString(
@@ -363,19 +449,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return undefined;
     }
 
-    private async refreshExistingMssqlEntities(): Promise<void> {
+    private async loadExistingConfigItems(): Promise<void> {
         const connections = await this.connectionConfig.getConnections();
-        this._existingConnectionIds = new Set(
-            connections
-                .map((connection) => connection.id?.trim())
-                .filter((id): id is string => Boolean(id)),
-        );
+        this._existingConnectionIds = new Set(connections.map((conn) => conn.id));
 
         const connectionGroups = await this.connectionConfig.getGroups();
-        this._existingGroupIds = new Set(
-            connectionGroups
-                .map((group) => group.id?.trim())
-                .filter((id): id is string => Boolean(id)),
-        );
+        this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
     }
 }

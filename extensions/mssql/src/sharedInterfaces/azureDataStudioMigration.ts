@@ -7,23 +7,25 @@ import { RequestType } from "vscode-jsonrpc/browser";
 import { IConnectionDialogProfile } from "./connectionDialog";
 import { IConnectionGroup } from "./connectionGroup";
 
-export interface AdsMigrationConnectionGroup extends IConnectionGroup {
-    selected: boolean;
-    status: AdsMigrationConnectionGroupStatus;
+export enum MigrationStatus {
+    NeedsAttention = "needsAttention",
+    Ready = "ready",
+    AlreadyImported = "alreadyImported",
 }
 
-export type AdsMigrationConnectionStatus = "ready" | "needsAttention";
-export type AdsMigrationConnectionResolvedStatus = AdsMigrationConnectionStatus | "alreadyImported";
-export type AdsMigrationConnectionGroupStatus = "ready" | "alreadyImported";
-
-export type AdsMigrationConnectionIssue = "missingServer" | "missingSqlUsername";
+export interface AdsMigrationConnectionGroup {
+    group: IConnectionGroup;
+    selected: boolean;
+    status: MigrationStatus;
+    statusMessage: string;
+}
 
 export interface AdsMigrationConnection {
     profile: IConnectionDialogProfile;
-    displayName?: string;
-    issues?: AdsMigrationConnectionIssue[];
+    profileName?: string;
     selected: boolean;
-    status: AdsMigrationConnectionResolvedStatus;
+    status: MigrationStatus;
+    statusMessage: string;
 }
 
 export interface AzureDataStudioMigrationWebviewState {

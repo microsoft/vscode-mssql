@@ -2420,6 +2420,27 @@ export class AzureDataStudioMigration {
         "Locate the Azure Data Studio settings.json file to import",
     );
     public static SelectConfigOpenLabel = l10n.t("Select settings file");
+    public static ConnectionStatusReady = l10n.t("Ready");
+    public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
+    public static ConnectionStatusAlreadyImported = l10n.t("Already imported");
+    public static ConnectionStatusNeedsAuthInput = l10n.t(
+        "Provide authentication information in the Authentication column.",
+    );
+    public static ConnectionGroupStatusReady = l10n.t("Ready for import");
+    public static ConnectionGroupStatusAlreadyImported = l10n.t("Already imported");
+    public static ConnectionIssueMissingServer = l10n.t("Enter the server name.");
+    public static connectionIssueMissingSqlPassword = (username: string) =>
+        l10n.t({
+            message: "Enter the SQL Login password for user '{0}'.",
+            args: [username],
+            comment: ["{0} is the SQL Login username"],
+        });
+    public static connectionIssueMissingAzureAccount = (username: string) =>
+        l10n.t({
+            message: "Sign in with Entra ID '{0}'.",
+            args: [username],
+            comment: ["{0} is the Entra ID username"],
+        });
 }
 
 export class Changelog {

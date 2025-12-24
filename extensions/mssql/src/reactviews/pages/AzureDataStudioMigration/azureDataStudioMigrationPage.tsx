@@ -7,10 +7,8 @@ import {
     Body1,
     Button,
     Checkbox,
-    Dropdown,
     Input,
     Label,
-    Option,
     Subtitle2,
     Table,
     TableBody,
@@ -37,14 +35,588 @@ import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
-    AdsMigrationConnectionIssue,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { locConstants } from "../../common/locConstants";
+import { locConstants as Loc } from "../../common/locConstants";
+
+export const AzureDataStudioMigrationPage = () => {
+    const LocMigration = Loc.azureDataStudioMigration;
+
+    const classes = useStyles();
+    const { extensionRpc } = useVscodeWebview2<AzureDataStudioMigrationWebviewState, void>();
+    const state = useAzureDataStudioMigrationSelector((s) => s);
+
+    const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
+    const [connectionGroups, setConnectionGroups] = useState<AdsMigrationConnectionGroup[]>(
+        state.connectionGroups ?? [],
+    );
+    const [connections, setConnections] = useState<AdsMigrationConnection[]>(
+        state.connections ?? [],
+    );
+    const [groupsCollapsed, setGroupsCollapsed] = useState(false);
+    const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
+    const [authOverrides, setAuthOverrides] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        setConfigPath(state.adsConfigPath ?? "");
+    }, [state.adsConfigPath]);
+
+    useEffect(() => {
+        setConnectionGroups(state.connectionGroups ?? []);
+    }, [state.connectionGroups]);
+
+    useEffect(() => {
+        setConnections(state.connections ?? []);
+        setAuthOverrides({});
+    }, [state.connections]);
+
+    const groupSelection = useMemo(() => {
+        const total = connectionGroups.length;
+        const selected = connectionGroups.filter((group) => group.selected).length;
+        return { total, selected };
+    }, [connectionGroups]);
+
+    const connectionSelection = useMemo(() => {
+        const total = connections.length;
+        const selected = connections.filter((connection) => connection.selected).length;
+        return { total, selected };
+    }, [connections]);
+
+    const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
+        if (total === 0 || selected === 0) {
+            return false;
+        }
+        if (selected === total) {
+            return true;
+        }
+        return "mixed";
+    };
+
+    const groupHeaderState = computeHeaderState(groupSelection.selected, groupSelection.total);
+    const connectionHeaderState = computeHeaderState(
+        connectionSelection.selected,
+        connectionSelection.total,
+    );
+
+    const toggleConnectionGroup = (groupId: string, checked: boolean) => {
+        setConnectionGroups((prev) =>
+            prev.map((group) =>
+                group.group.id === groupId ? { ...group, selected: checked } : group,
+            ),
+        );
+    };
+
+    const toggleAllGroups = (checked: boolean) => {
+        setConnectionGroups((prev) => prev.map((group) => ({ ...group, selected: checked })));
+    };
+
+    const toggleConnection = (connectionId: string, checked: boolean) => {
+        setConnections((prev) =>
+            prev.map((connection) => {
+                const currentId = getConnectionId(connection);
+                if (currentId === connectionId) {
+                    return { ...connection, selected: checked };
+                }
+                return connection;
+            }),
+        );
+    };
+
+    const toggleAllConnections = (checked: boolean) => {
+        setConnections((prev) =>
+            prev.map((connection) => ({
+                ...connection,
+                selected: checked,
+            })),
+        );
+    };
+
+    const handleBrowseForConfig = async () => {
+        const result = await extensionRpc.sendRequest(
+            AzureDataStudioMigrationBrowseForConfigRequest.type,
+            undefined,
+        );
+        if (result) {
+            setConfigPath(result);
+        }
+    };
+
+    const getConnectionId = (connection: AdsMigrationConnection) =>
+        connection.profile.id ||
+        connection.profile.profileName ||
+        `${connection.profile.server}-${connection.profile.database}-${connection.profile.user}`;
+
+    const renderStatusIcon = (
+        status: "ready" | "needsAttention" | "alreadyImported",
+        tooltip: string,
+    ) => {
+        let icon: React.JSX.Element;
+        let color = "";
+        switch (status) {
+            case "alreadyImported":
+                icon = <CheckmarkCircle16Filled />;
+                color = "var(--vscode-testing-iconPassed)";
+                break;
+            case "ready":
+                icon = <PresenceAvailableRegular />;
+                color = "var(--vscode-testing-iconPassed)";
+                break;
+            default:
+                icon = <Warning16Regular />;
+                color = "var(--vscode-testing-iconErrored)";
+                break;
+        }
+
+        return (
+            <Tooltip content={tooltip} relationship="label">
+                <span className={classes.statusIconOnly} style={{ color }}>
+                    {icon}
+                </span>
+            </Tooltip>
+        );
+    };
+
+    const renderGroupStatusIcon = (
+        status: AdsMigrationConnectionGroup["status"],
+        tooltip: string,
+    ) => {
+        return renderStatusIcon(status, tooltip);
+    };
+
+    const renderConnectionStatusIcon = (
+        status: AdsMigrationConnection["status"],
+        tooltip: string,
+    ) => renderStatusIcon(status, tooltip);
+
+    const renderTruncatedCell = (
+        rawValue: string,
+        options?: {
+            allowBlank?: boolean;
+            emptyTooltip?: string;
+            emptyDisplay?: string;
+            maxWidth?: number;
+        },
+    ) => {
+        const value = rawValue ?? "";
+        const content =
+            value ||
+            (options?.allowBlank
+                ? ""
+                : options?.emptyDisplay !== undefined
+                    ? options.emptyDisplay
+                    : "-");
+
+        const tooltip =
+            value ||
+            options?.emptyTooltip ||
+            options?.emptyDisplay ||
+            LocMigration.connectionValueMissing;
+
+        const style: CSSProperties = { width: "100%" };
+        if (options?.maxWidth) {
+            style.maxWidth = `${options.maxWidth}px`;
+        }
+        return (
+            <Tooltip content={tooltip} relationship="description">
+                <span className={classes.truncatedCell} style={style}>
+                    {content || "\u00A0"}
+                </span>
+            </Tooltip>
+        );
+    };
+
+    const handleEnterPassword = (connectionId: string, value: string) => {
+        // TODO
+    };
+
+    const handleEntraSignIn = () => {
+        // TODO
+    };
+
+    const renderAuthenticationCell = (connection: AdsMigrationConnection, connectionId: string) => {
+        if (connection.profile.authenticationType === AuthenticationType.Integrated) {
+            return undefined;
+        }
+
+        return (
+            <Tooltip content={connection.statusMessage} relationship="label">
+                <div>
+                    {connection.profile.authenticationType === AuthenticationType.SqlLogin && (
+                        <Input
+                            value={authOverrides[connectionId] ?? ""}
+                            onChange={(_, data) => handleEnterPassword(connectionId, data.value)}
+                            placeholder={LocMigration.enterPassword}
+                        />
+                    )}
+                    {connection.profile.authenticationType === AuthenticationType.AzureMFA && (
+                        <Button
+                            onClick={() => {
+                                handleEntraSignIn();
+                            }}>
+                            {Loc.common.signIn}
+                        </Button>
+                    )}
+                </div>
+            </Tooltip>
+        );
+    };
+
+    const hasBlockingWarnings = connections.some((connection) => {
+        return connection.selected && connection.status === "needsAttention";
+    });
+
+    const nothingSelected = groupSelection.selected === 0 && connectionSelection.selected === 0;
+    const importDisabled = hasBlockingWarnings || nothingSelected;
+
+    return (
+        <div className={classes.root}>
+            <div className={classes.layout}>
+                <div>
+                    <Title3 as="h1">{LocMigration.title}</Title3>
+                    <Body1 className={classes.summaryText}>{LocMigration.subtitle}</Body1>
+                </div>
+                <section className={classes.inputSection}>
+                    <Label htmlFor="ads-config-input">{LocMigration.configInputLabel}</Label>
+                    <Body1 className={classes.summaryText}>
+                        {LocMigration.configInputDescription}
+                    </Body1>
+                    <div className={classes.pickerRow}>
+                        <Input
+                            id="ads-config-input"
+                            value={configPath}
+                            onChange={(_, data) => setConfigPath(data.value)}
+                            className={classes.pickerInput}
+                            placeholder={LocMigration.configInputPlaceholder}
+                        />
+                        <Button
+                            type="button"
+                            appearance="secondary"
+                            icon={<FolderOpenRegular />}
+                            onClick={handleBrowseForConfig}>
+                            {LocMigration.browseButton}
+                        </Button>
+                    </div>
+                </section>
+                <div className={classes.tablesStack}>
+                    <section className={classes.tableSection}>
+                        <div className={classes.sectionHeader}>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{LocMigration.connectionGroupsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        groupsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        groupsCollapsed
+                                            ? LocMigration.connectionGroupsExpand
+                                            : LocMigration.connectionGroupsCollapse
+                                    }
+                                    onClick={() => setGroupsCollapsed((prev) => !prev)}
+                                />
+                            </div>
+                            <Text className={classes.summaryText}>
+                                {LocMigration.connectionGroupsSelection(
+                                    groupSelection.selected,
+                                    groupSelection.total,
+                                )}
+                            </Text>
+                            <Text className={classes.summaryText}>
+                                {LocMigration.groupsRootNote}
+                            </Text>
+                        </div>
+                        {!groupsCollapsed && (
+                            <div className={classes.tableWrapper}>
+                                {connectionGroups.length === 0 ? (
+                                    <Text className={classes.emptyState}>
+                                        {LocMigration.noConnectionGroups}
+                                    </Text>
+                                ) : (
+                                    <div className={classes.tableScrollArea}>
+                                        <Table role="grid" className={classes.dataTable}>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHeaderCell
+                                                        className={classes.narrowColumn}>
+                                                        <Checkbox
+                                                            aria-label={
+                                                                LocMigration.selectAllGroupsLabel
+                                                            }
+                                                            checked={groupHeaderState}
+                                                            onChange={(_, data) =>
+                                                                toggleAllGroups(
+                                                                    data.checked === true,
+                                                                )
+                                                            }
+                                                        />
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                        {LocMigration.connectionStatusColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell className={classes.nameColumn}>
+                                                        {LocMigration.groupNameColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.serverColumn}>
+                                                        {LocMigration.groupColorColumn}
+                                                    </TableHeaderCell>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {connectionGroups.map((group) => (
+                                                    <TableRow key={group.group.id}>
+                                                        <TableCell className={classes.narrowColumn}>
+                                                            <Checkbox
+                                                                checked={group.selected}
+                                                                onChange={(_, data) =>
+                                                                    toggleConnectionGroup(
+                                                                        group.group.id,
+                                                                        !!data.checked,
+                                                                    )
+                                                                }
+                                                                aria-label={LocMigration.groupSelectionToggle(
+                                                                    group.group.name,
+                                                                )}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell
+                                                            className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                            {renderGroupStatusIcon(
+                                                                group.status,
+                                                                group.statusMessage,
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className={classes.nameColumn}>
+                                                            {group.group.name}
+                                                        </TableCell>
+                                                        <TableCell className={classes.serverColumn}>
+                                                            {group.group.color ? (
+                                                                <Tooltip
+                                                                    content={LocMigration.groupColorSwatch(
+                                                                        group.group.name,
+                                                                        group.group.color,
+                                                                    )}
+                                                                    relationship="label">
+                                                                    <div
+                                                                        className={
+                                                                            classes.colorSwatch
+                                                                        }
+                                                                        style={{
+                                                                            backgroundColor:
+                                                                                group.group.color,
+                                                                        }}
+                                                                    />
+                                                                </Tooltip>
+                                                            ) : (
+                                                                <Text>—</Text>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </section>
+                    <section className={classes.tableSection}>
+                        <div className={classes.sectionHeader}>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{LocMigration.connectionsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        connectionsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        connectionsCollapsed
+                                            ? LocMigration.connectionsExpand
+                                            : LocMigration.connectionsCollapse
+                                    }
+                                    onClick={() => setConnectionsCollapsed((prev) => !prev)}
+                                />
+                            </div>
+                            <Text className={classes.summaryText}>
+                                {LocMigration.connectionsSelection(
+                                    connectionSelection.selected,
+                                    connectionSelection.total,
+                                )}
+                            </Text>
+                        </div>
+                        {!connectionsCollapsed && (
+                            <div className={classes.tableWrapper}>
+                                {connections.length === 0 ? (
+                                    <Text className={classes.emptyState}>
+                                        {LocMigration.noConnections}
+                                    </Text>
+                                ) : (
+                                    <div className={classes.tableScrollArea}>
+                                        <Table role="grid" className={classes.dataTable}>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHeaderCell
+                                                        className={classes.narrowColumn}>
+                                                        <Checkbox
+                                                            aria-label={
+                                                                LocMigration.selectAllConnectionsLabel
+                                                            }
+                                                            checked={connectionHeaderState}
+                                                            onChange={(_, data) =>
+                                                                toggleAllConnections(
+                                                                    data.checked === true,
+                                                                )
+                                                            }
+                                                        />
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                        {LocMigration.connectionStatusColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell className={classes.nameColumn}>
+                                                        {LocMigration.connectionProfileName}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.serverColumn}>
+                                                        {LocMigration.connectionServerColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.databaseColumn}>
+                                                        {LocMigration.connectionDatabaseColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell
+                                                        className={classes.authTypeColumn}>
+                                                        {LocMigration.connectionAuthColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell className={classes.userColumn}>
+                                                        {LocMigration.connectionUserColumn}
+                                                    </TableHeaderCell>
+                                                    <TableHeaderCell>
+                                                        {LocMigration.authenticationColumn}
+                                                    </TableHeaderCell>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {connections.map((connection) => {
+                                                    const connectionId =
+                                                        getConnectionId(connection);
+                                                    const displayName =
+                                                        connection.profileName ?? "";
+                                                    return (
+                                                        <TableRow key={connectionId}>
+                                                            <TableCell
+                                                                className={classes.narrowColumn}>
+                                                                <Checkbox
+                                                                    checked={connection.selected}
+                                                                    onChange={(_, data) =>
+                                                                        toggleConnection(
+                                                                            connectionId,
+                                                                            !!data.checked,
+                                                                        )
+                                                                    }
+                                                                    aria-label={LocMigration.connectionSelectionToggle(
+                                                                        displayName || connectionId,
+                                                                    )}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.narrowColumn}>
+                                                                {renderConnectionStatusIcon(
+                                                                    connection.status,
+                                                                    connection.statusMessage,
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.nameColumn}>
+                                                                {renderTruncatedCell(displayName, {
+                                                                    allowBlank: true,
+                                                                    emptyTooltip:
+                                                                        LocMigration.connectionDisplayNameMissing,
+                                                                })}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.serverColumn}>
+                                                                {renderTruncatedCell(
+                                                                    connection.profile.server ?? "",
+                                                                    {
+                                                                        emptyTooltip:
+                                                                            LocMigration.connectionValueMissing,
+                                                                        emptyDisplay: "-",
+                                                                    },
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.databaseColumn}>
+                                                                {renderTruncatedCell(
+                                                                    connection.profile.database ??
+                                                                    "",
+                                                                    {
+                                                                        emptyTooltip:
+                                                                            LocMigration.connectionValueMissing,
+                                                                        emptyDisplay:
+                                                                            LocMigration.connectionDatabaseDefault,
+                                                                    },
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.authTypeColumn}>
+                                                                {
+                                                                    connection.profile
+                                                                        .authenticationType
+                                                                }
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.userColumn}>
+                                                                {renderTruncatedCell(
+                                                                    connection.profile.user ?? "",
+                                                                    {
+                                                                        emptyTooltip:
+                                                                            LocMigration.connectionValueMissing,
+                                                                        emptyDisplay: "-",
+                                                                    },
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className={classes.authCell}>
+                                                                {renderAuthenticationCell(
+                                                                    connection,
+                                                                    connectionId,
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </section>
+                </div>
+                <div className={classes.importBar}>
+                    <Button appearance="primary" disabled={importDisabled}>
+                        {LocMigration.importButtonLabel}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const useStyles = makeStyles({
     root: {
@@ -167,7 +739,7 @@ const useStyles = makeStyles({
         verticalAlign: "bottom",
     },
     authCell: {
-        minWidth: "160px",
+        width: "10%",
     },
     importBar: {
         display: "flex",
@@ -196,650 +768,3 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
 });
-
-export const AzureDataStudioMigrationPage = () => {
-    const classes = useStyles();
-    const loc = locConstants.azureDataStudioMigration;
-    const { extensionRpc } = useVscodeWebview2<AzureDataStudioMigrationWebviewState, void>();
-    const state = useAzureDataStudioMigrationSelector((s) => s);
-
-    const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
-    const [connectionGroups, setConnectionGroups] = useState<AdsMigrationConnectionGroup[]>(
-        state.connectionGroups ?? [],
-    );
-    const [connections, setConnections] = useState<AdsMigrationConnection[]>(
-        state.connections ?? [],
-    );
-    const [groupsCollapsed, setGroupsCollapsed] = useState(false);
-    const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
-    const [authOverrides, setAuthOverrides] = useState<Record<string, string>>({});
-
-    useEffect(() => {
-        setConfigPath(state.adsConfigPath ?? "");
-    }, [state.adsConfigPath]);
-
-    useEffect(() => {
-        setConnectionGroups(state.connectionGroups ?? []);
-    }, [state.connectionGroups]);
-
-    useEffect(() => {
-        setConnections(state.connections ?? []);
-        setAuthOverrides({});
-    }, [state.connections]);
-
-    const groupSelection = useMemo(() => {
-        const total = connectionGroups.length;
-        const selected = connectionGroups.filter((group) => group.selected).length;
-        return { total, selected };
-    }, [connectionGroups]);
-
-    const connectionSelection = useMemo(() => {
-        const total = connections.length;
-        const selected = connections.filter((connection) => connection.selected).length;
-        return { total, selected };
-    }, [connections]);
-
-    const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
-        if (total === 0 || selected === 0) {
-            return false;
-        }
-        if (selected === total) {
-            return true;
-        }
-        return "mixed";
-    };
-
-    const groupHeaderState = computeHeaderState(groupSelection.selected, groupSelection.total);
-    const connectionHeaderState = computeHeaderState(
-        connectionSelection.selected,
-        connectionSelection.total,
-    );
-
-    const toggleConnectionGroup = (groupId: string, checked: boolean) => {
-        setConnectionGroups((prev) =>
-            prev.map((group) => (group.id === groupId ? { ...group, selected: checked } : group)),
-        );
-    };
-
-    const toggleAllGroups = (checked: boolean) => {
-        setConnectionGroups((prev) => prev.map((group) => ({ ...group, selected: checked })));
-    };
-
-    const toggleConnection = (connectionId: string, checked: boolean) => {
-        setConnections((prev) =>
-            prev.map((connection) => {
-                const currentId = getConnectionId(connection);
-                if (currentId === connectionId) {
-                    return { ...connection, selected: checked };
-                }
-                return connection;
-            }),
-        );
-    };
-
-    const toggleAllConnections = (checked: boolean) => {
-        setConnections((prev) =>
-            prev.map((connection) => ({
-                ...connection,
-                selected: checked,
-            })),
-        );
-    };
-
-    const handleBrowseForConfig = async () => {
-        const result = await extensionRpc.sendRequest(
-            AzureDataStudioMigrationBrowseForConfigRequest.type,
-            undefined,
-        );
-        if (result) {
-            setConfigPath(result);
-        }
-    };
-
-    const getConnectionId = (connection: AdsMigrationConnection) =>
-        connection.profile.id ||
-        connection.profile.profileName ||
-        `${connection.profile.server}-${connection.profile.database}-${connection.profile.user}`;
-
-    const getConnectionDisplayName = (connection: AdsMigrationConnection) =>
-        connection.displayName?.trim() ?? "";
-
-    const hasAuthenticationSelection = (
-        connection: AdsMigrationConnection,
-        connectionId: string,
-    ): boolean => {
-        if (connection.profile.authenticationType === AuthenticationType.SqlLogin) {
-            return Boolean(authOverrides[connectionId]?.trim());
-        }
-        if (connection.profile.authenticationType === AuthenticationType.AzureMFA) {
-            return Boolean(authOverrides[connectionId]);
-        }
-        return true;
-    };
-
-    const computeEffectiveStatus = (connection: AdsMigrationConnection, connectionId: string) => {
-        if (connection.status === "alreadyImported") {
-            return "alreadyImported";
-        }
-
-        let computedStatus = connection.status;
-        if (
-            computedStatus === "needsAttention" &&
-            connection.profile.authenticationType === AuthenticationType.SqlLogin
-        ) {
-            const override = authOverrides[connectionId]?.trim();
-            if (override) {
-                computedStatus = "ready";
-            }
-        }
-
-        if (!hasAuthenticationSelection(connection, connectionId)) {
-            return "needsAttention";
-        }
-
-        return computedStatus;
-    };
-
-    const getIssueDescription = (issue: AdsMigrationConnectionIssue) => {
-        switch (issue) {
-            case "missingServer":
-                return loc.connectionIssueMissingServer;
-            case "missingSqlUsername":
-                return loc.connectionIssueMissingSqlUsername;
-            default:
-                return loc.connectionStatusNeedsAttention;
-        }
-    };
-
-    const renderStatusIcon = (
-        status: "ready" | "needsAttention" | "alreadyImported",
-        tooltip: string,
-    ) => {
-        let icon: JSX.Element;
-        let color = "";
-        switch (status) {
-            case "alreadyImported":
-                icon = <CheckmarkCircle16Filled />;
-                color = "var(--vscode-testing-iconPassed)";
-                break;
-            case "ready":
-                icon = <PresenceAvailableRegular />;
-                color = "var(--vscode-testing-iconPassed)";
-                break;
-            default:
-                icon = <Warning16Regular />;
-                color = "var(--vscode-testing-iconErrored)";
-                break;
-        }
-
-        return (
-            <Tooltip content={tooltip} relationship="label">
-                <span className={classes.statusIconOnly} style={{ color }}>
-                    {icon}
-                </span>
-            </Tooltip>
-        );
-    };
-
-    const renderGroupStatusIcon = (status: AdsMigrationConnectionGroup["status"]) => {
-        const tooltip =
-            status === "alreadyImported"
-                ? loc.connectionGroupStatusAlreadyImported
-                : loc.connectionGroupStatusReady;
-        return renderStatusIcon(status, tooltip);
-    };
-
-    const getConnectionWarningMessage = (
-        connection: AdsMigrationConnection,
-        connectionId: string,
-    ): string | undefined => {
-        if (!hasAuthenticationSelection(connection, connectionId)) {
-            return loc.connectionStatusNeedsAuthInput;
-        }
-        if (connection.issues?.length) {
-            return connection.issues.map(getIssueDescription).join(" ");
-        }
-        return undefined;
-    };
-
-    const getConnectionStatusTooltip = (
-        status: AdsMigrationConnection["status"],
-        connection: AdsMigrationConnection,
-        connectionId: string,
-    ) => {
-        if (status === "alreadyImported") {
-            return loc.connectionStatusAlreadyImported;
-        }
-        if (status === "needsAttention") {
-            return (
-                getConnectionWarningMessage(connection, connectionId) ??
-                loc.connectionStatusNeedsAttention
-            );
-        }
-        return loc.connectionStatusReady;
-    };
-
-    const renderConnectionStatusIcon = (
-        status: AdsMigrationConnection["status"],
-        tooltip: string,
-    ) => renderStatusIcon(status, tooltip);
-
-    const renderTruncatedCell = (
-        rawValue: string,
-        options?: {
-            allowBlank?: boolean;
-            emptyTooltip?: string;
-            emptyDisplay?: string;
-            maxWidth?: number;
-        },
-    ) => {
-        const value = rawValue ?? "";
-        const content =
-            value ||
-            (options?.allowBlank
-                ? ""
-                : options?.emptyDisplay !== undefined
-                  ? options.emptyDisplay
-                  : "-");
-        const tooltip =
-            value || options?.emptyTooltip || options?.emptyDisplay || loc.connectionValueMissing;
-        const style: CSSProperties = { width: "100%" };
-        if (options?.maxWidth) {
-            style.maxWidth = `${options.maxWidth}px`;
-        }
-        return (
-            <Tooltip content={tooltip} relationship="description">
-                <span className={classes.truncatedCell} style={style}>
-                    {content || "\u00A0"}
-                </span>
-            </Tooltip>
-        );
-    };
-
-    const handleAuthenticationChange = (connectionId: string, value: string) => {
-        setAuthOverrides((prev) => ({
-            ...prev,
-            [connectionId]: value,
-        }));
-    };
-
-    const renderAuthenticationCell = (connection: AdsMigrationConnection, connectionId: string) => {
-        if (connection.profile.authenticationType === AuthenticationType.SqlLogin) {
-            return (
-                <Input
-                    value={authOverrides[connectionId] ?? ""}
-                    onChange={(_, data) => handleAuthenticationChange(connectionId, data.value)}
-                    placeholder={loc.authenticationSqlPlaceholder}
-                />
-            );
-        }
-
-        if (connection.profile.authenticationType === AuthenticationType.AzureMFA) {
-            const selected = authOverrides[connectionId];
-            return (
-                <Dropdown
-                    placeholder={loc.authenticationAzurePlaceholder}
-                    selectedOptions={selected ? [selected] : []}
-                    onOptionSelect={(_, data) =>
-                        handleAuthenticationChange(connectionId, data.optionValue as string)
-                    }>
-                    <Option value="entra">{loc.authenticationAzureOption}</Option>
-                </Dropdown>
-            );
-        }
-
-        return <Text>{loc.authenticationNotRequired}</Text>;
-    };
-
-    const hasBlockingWarnings = connections.some((connection) => {
-        const connectionId = getConnectionId(connection);
-        const status = computeEffectiveStatus(connection, connectionId);
-        return connection.selected && status === "needsAttention";
-    });
-    const nothingSelected = groupSelection.selected === 0 && connectionSelection.selected === 0;
-    const importDisabled = hasBlockingWarnings || nothingSelected;
-
-    return (
-        <div className={classes.root}>
-            <div className={classes.layout}>
-                <div>
-                    <Title3 as="h1">{loc.title}</Title3>
-                    <Body1 className={classes.summaryText}>{loc.subtitle}</Body1>
-                </div>
-                <section className={classes.inputSection}>
-                    <Label htmlFor="ads-config-input">{loc.configInputLabel}</Label>
-                    <Body1 className={classes.summaryText}>{loc.configInputDescription}</Body1>
-                    <div className={classes.pickerRow}>
-                        <Input
-                            id="ads-config-input"
-                            value={configPath}
-                            onChange={(_, data) => setConfigPath(data.value)}
-                            className={classes.pickerInput}
-                            placeholder={loc.configInputPlaceholder}
-                        />
-                        <Button
-                            type="button"
-                            appearance="secondary"
-                            icon={<FolderOpenRegular />}
-                            onClick={handleBrowseForConfig}>
-                            {loc.browseButton}
-                        </Button>
-                    </div>
-                </section>
-                <div className={classes.tablesStack}>
-                    <section className={classes.tableSection}>
-                        <div className={classes.sectionHeader}>
-                            <div className={classes.sectionHeaderRow}>
-                                <Subtitle2>{loc.connectionGroupsHeader}</Subtitle2>
-                                <Button
-                                    appearance="subtle"
-                                    className={classes.collapseButton}
-                                    icon={
-                                        groupsCollapsed ? (
-                                            <ChevronRightRegular />
-                                        ) : (
-                                            <ChevronDownRegular />
-                                        )
-                                    }
-                                    title={
-                                        groupsCollapsed
-                                            ? loc.connectionGroupsExpand
-                                            : loc.connectionGroupsCollapse
-                                    }
-                                    onClick={() => setGroupsCollapsed((prev) => !prev)}
-                                />
-                            </div>
-                            <Text className={classes.summaryText}>
-                                {loc.connectionGroupsSelection(
-                                    groupSelection.selected,
-                                    groupSelection.total,
-                                )}
-                            </Text>
-                            <Text className={classes.summaryText}>{loc.groupsRootNote}</Text>
-                        </div>
-                        {!groupsCollapsed && (
-                            <div className={classes.tableWrapper}>
-                                {connectionGroups.length === 0 ? (
-                                    <Text className={classes.emptyState}>
-                                        {loc.noConnectionGroups}
-                                    </Text>
-                                ) : (
-                                    <div className={classes.tableScrollArea}>
-                                        <Table role="grid" className={classes.dataTable}>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHeaderCell
-                                                        className={classes.narrowColumn}>
-                                                        <Checkbox
-                                                            aria-label={loc.selectAllGroupsLabel}
-                                                            checked={groupHeaderState}
-                                                            onChange={(_, data) =>
-                                                                toggleAllGroups(
-                                                                    data.checked === true,
-                                                                )
-                                                            }
-                                                        />
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
-                                                        {loc.connectionStatusColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell className={classes.nameColumn}>
-                                                        {loc.groupNameColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={classes.serverColumn}>
-                                                        {loc.groupColorColumn}
-                                                    </TableHeaderCell>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {connectionGroups.map((group) => (
-                                                    <TableRow key={group.id}>
-                                                        <TableCell className={classes.narrowColumn}>
-                                                            <Checkbox
-                                                                checked={group.selected}
-                                                                onChange={(_, data) =>
-                                                                    toggleConnectionGroup(
-                                                                        group.id,
-                                                                        !!data.checked,
-                                                                    )
-                                                                }
-                                                                aria-label={loc.groupSelectionToggle(
-                                                                    group.name,
-                                                                )}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell
-                                                            className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
-                                                            {renderGroupStatusIcon(group.status)}
-                                                        </TableCell>
-                                                        <TableCell className={classes.nameColumn}>
-                                                            {group.name}
-                                                        </TableCell>
-                                                        <TableCell className={classes.serverColumn}>
-                                                            {group.color ? (
-                                                                <Tooltip
-                                                                    content={loc.groupColorSwatch(
-                                                                        group.name,
-                                                                        group.color,
-                                                                    )}
-                                                                    relationship="label">
-                                                                    <div
-                                                                        className={
-                                                                            classes.colorSwatch
-                                                                        }
-                                                                        style={{
-                                                                            backgroundColor:
-                                                                                group.color,
-                                                                        }}
-                                                                    />
-                                                                </Tooltip>
-                                                            ) : (
-                                                                <Text>—</Text>
-                                                            )}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </section>
-                    <section className={classes.tableSection}>
-                        <div className={classes.sectionHeader}>
-                            <div className={classes.sectionHeaderRow}>
-                                <Subtitle2>{loc.connectionsHeader}</Subtitle2>
-                                <Button
-                                    appearance="subtle"
-                                    className={classes.collapseButton}
-                                    icon={
-                                        connectionsCollapsed ? (
-                                            <ChevronRightRegular />
-                                        ) : (
-                                            <ChevronDownRegular />
-                                        )
-                                    }
-                                    title={
-                                        connectionsCollapsed
-                                            ? loc.connectionsExpand
-                                            : loc.connectionsCollapse
-                                    }
-                                    onClick={() => setConnectionsCollapsed((prev) => !prev)}
-                                />
-                            </div>
-                            <Text className={classes.summaryText}>
-                                {loc.connectionsSelection(
-                                    connectionSelection.selected,
-                                    connectionSelection.total,
-                                )}
-                            </Text>
-                        </div>
-                        {!connectionsCollapsed && (
-                            <div className={classes.tableWrapper}>
-                                {connections.length === 0 ? (
-                                    <Text className={classes.emptyState}>{loc.noConnections}</Text>
-                                ) : (
-                                    <div className={classes.tableScrollArea}>
-                                        <Table role="grid" className={classes.dataTable}>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHeaderCell
-                                                        className={classes.narrowColumn}>
-                                                        <Checkbox
-                                                            aria-label={
-                                                                loc.selectAllConnectionsLabel
-                                                            }
-                                                            checked={connectionHeaderState}
-                                                            onChange={(_, data) =>
-                                                                toggleAllConnections(
-                                                                    data.checked === true,
-                                                                )
-                                                            }
-                                                        />
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
-                                                        {loc.connectionStatusColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell className={classes.nameColumn}>
-                                                        {loc.connectionNameColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={classes.serverColumn}>
-                                                        {loc.connectionServerColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={classes.databaseColumn}>
-                                                        {loc.connectionDatabaseColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell
-                                                        className={classes.authTypeColumn}>
-                                                        {loc.connectionAuthColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell className={classes.userColumn}>
-                                                        {loc.connectionUserColumn}
-                                                    </TableHeaderCell>
-                                                    <TableHeaderCell>
-                                                        {loc.authenticationColumn}
-                                                    </TableHeaderCell>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {connections.map((connection) => {
-                                                    const connectionId =
-                                                        getConnectionId(connection);
-                                                    const displayName =
-                                                        getConnectionDisplayName(connection);
-                                                    const effectiveStatus = computeEffectiveStatus(
-                                                        connection,
-                                                        connectionId,
-                                                    );
-                                                    const statusTooltip =
-                                                        getConnectionStatusTooltip(
-                                                            effectiveStatus,
-                                                            connection,
-                                                            connectionId,
-                                                        );
-                                                    return (
-                                                        <TableRow key={connectionId}>
-                                                            <TableCell
-                                                                className={classes.narrowColumn}>
-                                                                <Checkbox
-                                                                    checked={connection.selected}
-                                                                    onChange={(_, data) =>
-                                                                        toggleConnection(
-                                                                            connectionId,
-                                                                            !!data.checked,
-                                                                        )
-                                                                    }
-                                                                    aria-label={loc.connectionSelectionToggle(
-                                                                        displayName || connectionId,
-                                                                    )}
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.narrowColumn}>
-                                                                {renderConnectionStatusIcon(
-                                                                    effectiveStatus,
-                                                                    statusTooltip,
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.nameColumn}>
-                                                                {renderTruncatedCell(displayName, {
-                                                                    allowBlank: true,
-                                                                    emptyTooltip:
-                                                                        loc.connectionDisplayNameMissing,
-                                                                })}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.serverColumn}>
-                                                                {renderTruncatedCell(
-                                                                    connection.profile.server ?? "",
-                                                                    {
-                                                                        emptyTooltip:
-                                                                            loc.connectionValueMissing,
-                                                                        emptyDisplay: "-",
-                                                                    },
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.databaseColumn}>
-                                                                {renderTruncatedCell(
-                                                                    connection.profile.database ??
-                                                                        "",
-                                                                    {
-                                                                        emptyTooltip:
-                                                                            loc.connectionValueMissing,
-                                                                        emptyDisplay:
-                                                                            loc.connectionDatabaseDefault,
-                                                                    },
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.authTypeColumn}>
-                                                                {
-                                                                    connection.profile
-                                                                        .authenticationType
-                                                                }
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className={classes.userColumn}>
-                                                                {renderTruncatedCell(
-                                                                    connection.profile.user ?? "",
-                                                                    {
-                                                                        emptyTooltip:
-                                                                            loc.connectionValueMissing,
-                                                                        emptyDisplay: "-",
-                                                                    },
-                                                                )}
-                                                            </TableCell>
-                                                            <TableCell className={classes.authCell}>
-                                                                {renderAuthenticationCell(
-                                                                    connection,
-                                                                    connectionId,
-                                                                )}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                })}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </section>
-                </div>
-                <div className={classes.importBar}>
-                    <Button appearance="primary" disabled={importDisabled}>
-                        {loc.importButtonLabel}
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
-};
