@@ -1298,9 +1298,6 @@
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
     </trans-unit>
-    <trans-unit id="++CODE++2b7f6a84de917e387539dbe441ca22056e793d738e6c50db30c3f569e4448df3">
-      <source xml:lang="en">Display name</source>
-    </trans-unit>
     <trans-unit id="++CODE++8a2ada67a303fe2602331dc153b30259b92e7cc2d741f8d5955d8af906ef016a">
       <source xml:lang="en">Displays the data type name for the column</source>
     </trans-unit>
@@ -1400,9 +1397,6 @@
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
     </trans-unit>
-    <trans-unit id="++CODE++007cfed7bd772f5dfb3035d6bc6409a401abba0843ee6d5514ed44337fe3da67">
-      <source xml:lang="en">Enter SQL login username</source>
-    </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
     </trans-unit>
@@ -1441,6 +1435,10 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
+      <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
+      <note>{0} is the SQL Login username</note>
     </trans-unit>
     <trans-unit id="++CODE++ee9e2da2bd60a5984c5c9f6a2848f9a7efca5615bb2546a40e3555ecf3f6b914">
       <source xml:lang="en">Enter the SQL Login username.</source>
@@ -3100,6 +3098,9 @@
       <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d3663280e101b56ddfbbcb0b124e7b19ac07da8d1691fcef6138356fdc2f8ac3">
+      <source xml:lang="en">Profile name</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
     </trans-unit>
@@ -3816,6 +3817,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
       <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20d9a35f003953d841cd3280e559c97fd36197414fb054f5416d12f3cbbbd9d9">
+      <source xml:lang="en">Sign in with Entra ID &apos;{0}&apos;.</source>
+      <note>{0} is the Entra ID username</note>
     </trans-unit>
     <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
       <source xml:lang="en">Sign into Azure</source>
@@ -4975,6 +4980,9 @@
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
     </trans-unit>
+    <trans-unit id="mssql.openAzureDataStudioMigration">
+      <source xml:lang="en">Migrate from Azure Data Studio</source>
+    </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Modify Table</source>
     </trans-unit>
@@ -5004,9 +5012,6 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
-    </trans-unit>
-    <trans-unit id="mssql.openAzureDataStudioMigration">
-      <source xml:lang="en">Open Azure Data Studio Migration</source>
     </trans-unit>
     <trans-unit id="mssql.openChangelog">
       <source xml:lang="en">Open Changelog</source>
