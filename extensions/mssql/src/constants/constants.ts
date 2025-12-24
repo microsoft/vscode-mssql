@@ -341,3 +341,9 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+
+// DacFx operation IDs (as reported by SQL Tools Service via taskOperation field)
+export const operationIdExportBacpac = "ExportOperation";
+export const operationIdExtractDacpac = "ExtractOperation";
+export const operationIdImportBacpac = "ImportOperation";
+export const operationIdDeployDacpac = "DeployOperation";
