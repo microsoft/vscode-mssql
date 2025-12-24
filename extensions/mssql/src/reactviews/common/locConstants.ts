@@ -1489,6 +1489,8 @@ export class LocConstants {
             importButtonLabel: l10n.t("Import selected"),
             connectionIssueMissingServer: l10n.t("Enter the server name."),
             connectionIssueMissingSqlUsername: l10n.t("Enter the SQL Login username."),
+            entraSignInAccountLabel: l10n.t("Account"),
+            entraSignInTenantLabel: l10n.t("Tenant ID"),
         };
     }
 

@@ -28,11 +28,35 @@ export interface AdsMigrationConnection {
     statusMessage: string;
 }
 
+export interface EntraSignInDialogProps {
+    type: "entraSignIn";
+    connectionId: string;
+    title: string;
+    message: string;
+    accountDisplayName: string;
+    tenantIdDisplayName: string;
+    primaryButtonText: string;
+    secondaryButtonText: string;
+}
+
+export type AzureDataStudioMigrationDialogProps = EntraSignInDialogProps;
+
 export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
     rootGroupIds: string[];
+    dialog?: AzureDataStudioMigrationDialogProps;
+}
+
+export interface AzureDataStudioMigrationReducers {
+    openEntraSignInDialog: {
+        connectionId: string;
+    };
+    closeDialog: {};
+    signIntoEntraAccount: {
+        connectionId: string;
+    };
 }
 
 export namespace AzureDataStudioMigrationBrowseForConfigRequest {

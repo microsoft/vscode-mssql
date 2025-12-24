@@ -36,6 +36,7 @@ import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
     AzureDataStudioMigrationBrowseForConfigRequest,
+    AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     MigrationStatus,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
@@ -43,12 +44,14 @@ import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { locConstants as Loc } from "../../common/locConstants";
+import { EntraSignInDialog } from "./components/entraSignInDialog";
 
 export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
 
     const classes = useStyles();
-    const { extensionRpc } = useVscodeWebview2<AzureDataStudioMigrationWebviewState, void>();
+    const { extensionRpc } =
+        useVscodeWebview2<AzureDataStudioMigrationWebviewState, AzureDataStudioMigrationReducers>();
     const state = useAzureDataStudioMigrationSelector((s) => s);
 
     const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
@@ -61,6 +64,7 @@ export const AzureDataStudioMigrationPage = () => {
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
     const [authOverrides, setAuthOverrides] = useState<Record<string, string>>({});
+    const [dialog, setDialog] = useState(state.dialog);
 
     useEffect(() => {
         setConfigPath(state.adsConfigPath ?? "");
@@ -74,6 +78,10 @@ export const AzureDataStudioMigrationPage = () => {
         setConnections(state.connections ?? []);
         setAuthOverrides({});
     }, [state.connections]);
+
+    useEffect(() => {
+        setDialog(state.dialog);
+    }, [state.dialog]);
 
     const groupSelection = useMemo(() => {
         const total = connectionGroups.length;
@@ -234,15 +242,20 @@ export const AzureDataStudioMigrationPage = () => {
         // TODO
     };
 
-    const handleEntraSignIn = () => {
-        // TODO
+    const handleEntraSignIn = (connectionId: string) => {
+        extensionRpc.action("openEntraSignInDialog", { connectionId });
+    };
+
+    const handleCloseDialog = () => {
+        extensionRpc.action("closeDialog");
+    };
+
+    const handleSignInDialogSubmit = (connectionId: string) => {
+        extensionRpc.action("signIntoEntraAccount", { connectionId });
     };
 
     const renderAuthenticationCell = (connection: AdsMigrationConnection, connectionId: string) => {
-        if (
-            connection.profile.authenticationType === AuthenticationType.Integrated ||
-            connection.status !== MigrationStatus.NeedsAttention
-        ) {
+        if (connection.profile.authenticationType === AuthenticationType.Integrated) {
             return undefined;
         }
 
@@ -259,9 +272,9 @@ export const AzureDataStudioMigrationPage = () => {
                     {connection.profile.authenticationType === AuthenticationType.AzureMFA && (
                         <Button
                             onClick={() => {
-                                handleEntraSignIn();
+                                handleEntraSignIn(connectionId);
                             }}>
-                            {Loc.common.signIn}
+                            {Loc.connectionDialog.selectAnAccount}
                         </Button>
                     )}
                 </div>
@@ -276,9 +289,19 @@ export const AzureDataStudioMigrationPage = () => {
     const nothingSelected = groupSelection.selected === 0 && connectionSelection.selected === 0;
     const importDisabled = hasBlockingWarnings || nothingSelected;
 
+    const dialogContent =
+        dialog?.type === "entraSignIn" ? (
+            <EntraSignInDialog
+                dialog={dialog}
+                onCancel={handleCloseDialog}
+                onSignIn={handleSignInDialogSubmit}
+            />
+        ) : null;
+
     return (
         <div className={classes.root}>
             <div className={classes.layout}>
+                {dialogContent}
                 <div>
                     <Title3 as="h1">{LocMigration.title}</Title3>
                     <Body1 className={classes.summaryText}>{LocMigration.subtitle}</Body1>

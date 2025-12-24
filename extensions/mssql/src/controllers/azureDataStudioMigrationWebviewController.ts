@@ -14,6 +14,7 @@ import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
     AzureDataStudioMigrationBrowseForConfigRequest,
+    AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     MigrationStatus,
 } from "../sharedInterfaces/azureDataStudioMigration";
@@ -34,11 +35,12 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     connectionGroups: [],
     connections: [],
     rootGroupIds: [],
+    dialog: undefined,
 };
 
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
     AzureDataStudioMigrationWebviewState,
-    void
+    AzureDataStudioMigrationReducers
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
@@ -69,6 +71,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         );
 
         this.registerRequestHandlers();
+        this.registerReducerHandlers();
         void this.initialize()
             .then(() => {
                 this.updateState();
@@ -115,6 +118,53 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 });
             }
             return selectedPath;
+        });
+    }
+
+    private registerReducerHandlers() {
+        this.registerReducer("openEntraSignInDialog", async (state, payload) => {
+            const connection = state.connections.find(
+                (conn) => conn.profile.id === payload.connectionId,
+            );
+
+            if (!connection) {
+                state.dialog = undefined;
+                return state;
+            }
+
+            state.dialog = {
+                type: "entraSignIn",
+                connectionId: payload.connectionId,
+                title: AzureDataStudioMigration.EntraSignInDialogTitle,
+                message: AzureDataStudioMigration.EntraSignInDialogMessage,
+                accountDisplayName: this.getAccountDisplayName(connection),
+                tenantIdDisplayName: this.getTenantDisplayName(connection),
+                primaryButtonText: AzureDataStudioMigration.EntraSignInDialogPrimaryButton,
+                secondaryButtonText: AzureDataStudioMigration.EntraSignInDialogSecondaryButton,
+            };
+
+            return state;
+        });
+
+        this.registerReducer("closeDialog", async (state) => {
+            state.dialog = undefined;
+            return state;
+        });
+
+        this.registerReducer("signIntoEntraAccount", async (state) => {
+            if (!state.dialog || state.dialog.type !== "entraSignIn") {
+                return state;
+            }
+
+            const targetAccount = state.dialog.accountDisplayName
+            
+            const account = await this.azureAccountService.addAccount();
+
+            if ()
+
+            // Placeholder reducer - the actual sign-in workflow will be implemented later.
+            state.dialog = undefined;
+            return state;
         });
     }
 
@@ -200,6 +250,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 connectionGroups: migrationGroups,
                 connections: migrationConnections,
                 rootGroupIds: rootGroupIds, // TODO: why is this needed?
+                dialog: undefined,
             };
         } catch (error) {
             void vscode.window.showErrorMessage(
@@ -458,5 +509,20 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         const connectionGroups = await this.connectionConfig.getGroups();
         this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
+    }
+
+    private getAccountDisplayName(connection: AdsMigrationConnection): string {
+        return (
+            connection.profile.user?.trim() ??
+            connection.profile.accountId?.trim() ??
+            AzureDataStudioMigration.EntraSignInDialogUnknownAccount
+        );
+    }
+
+    private getTenantDisplayName(connection: AdsMigrationConnection): string {
+        return (
+            connection.profile.tenantId?.trim() ??
+            AzureDataStudioMigration.EntraSignInDialogUnknownTenant
+        );
     }
 }
