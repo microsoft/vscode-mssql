@@ -37,6 +37,7 @@ import {
     AdsMigrationConnectionGroup,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationWebviewState,
+    MigrationStatus,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
@@ -238,7 +239,10 @@ export const AzureDataStudioMigrationPage = () => {
     };
 
     const renderAuthenticationCell = (connection: AdsMigrationConnection, connectionId: string) => {
-        if (connection.profile.authenticationType === AuthenticationType.Integrated) {
+        if (
+            connection.profile.authenticationType === AuthenticationType.Integrated ||
+            connection.status !== MigrationStatus.NeedsAttention
+        ) {
             return undefined;
         }
 

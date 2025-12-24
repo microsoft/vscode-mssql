@@ -211,7 +211,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private async readValidAzureAccounts(): Promise<IAccount[]> {
         let azureAccounts: IAccount[] = [];
         try {
-            const azureAccounts = await this.azureAccountService.getAccounts();
+            azureAccounts = await this.azureAccountService.getAccounts();
 
             // check that all accounts are valid
             for (const account of azureAccounts) {
@@ -402,6 +402,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         const user = this.getString(options, ["user", "userName"]) ?? "";
         const profileName = this.getString(options, ["connectionName", "name", "profileName"]);
 
+        const azureAuthAccountId = this.getString(options, ["azureAccount"]);
+        const azureAuthTenantId = this.getString(options, ["azureTenantId"]);
+
         // TODO: clean up all this stuff.  Fallbacks aren't necessary.
         const fallbackId =
             this.getString(record, ["id", "connectionId"]) ??
@@ -417,8 +420,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             user,
             password: "",
             email: undefined,
-            accountId: undefined,
-            tenantId: undefined,
+            accountId: azureAuthAccountId,
+            tenantId: azureAuthTenantId,
             port: typeof options.port === "number" ? options.port : 0,
             groupId:
                 this.getString(record, ["groupId", "groupIdName", "group"]) ??
