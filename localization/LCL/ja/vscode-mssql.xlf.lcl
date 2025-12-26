@@ -2332,6 +2332,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1 つ以上の接続グループが存在しない親グループを参照しており、無視されました: {0}。設定ファイルを更新して、これらのエントリを修正してください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please Accept the SQL Server EULA]]></Val>
@@ -6873,6 +6882,15 @@
           <Val><![CDATA[Show MSSQL output]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[MSSQL 出力の表示]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[1 つ以上の接続が存在しないグループを参照しており、無視されました: {0}。接続設定を更新して、これらのエントリを修正してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -12399,6 +12417,15 @@
           <Val><![CDATA[DACPAC extracted successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[DACPAC が正常に抽出されました]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ID '{0}' の接続グループが複数見つかりました。 User/Global settings.json 内の 1 つを除くすべての項目を削除または名前変更し、拡張機能を再起動してください。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
