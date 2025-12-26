@@ -3325,7 +3325,7 @@ Error:
       <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
         <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
         <note>{0} is the root id</note>
-        <target state="new">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</target>
+        <target state="translated">ID가 '{0}'인 연결 그룹을 여러 개 찾았습니다.  사용자/전역 settings.json에서 하나를 제외한 모든 항목을 삭제하거나 이름을 바꾼 다음 확장을 다시 시작합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
@@ -3672,12 +3672,12 @@ Error:
       <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
         <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
         <note>{0} is the comma separated list of connection group names</note>
-        <target state="new">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</target>
+        <target state="translated">하나 이상의 연결 그룹이 존재하지 않고 무시된 부모 그룹을 참조합니다. {0}. 이러한 항목을 수정하려면 설정 파일을 업데이트하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
         <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
         <note>{0} is the comma separated list of connection display names</note>
-        <target state="new">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</target>
+        <target state="translated">존재하지 않고 무시된 하나 이상의 연결 참조 그룹: {0}. 이러한 항목을 수정하려면 연결 설정을 업데이트하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>

@@ -3325,7 +3325,7 @@ Error:
       <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
         <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
         <note>{0} is the root id</note>
-        <target state="new">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</target>
+        <target state="translated">發現多個連線群組使用相同的識別碼 '{0}'。 請刪除或重新命名使用者/全域 settings.json 中的所有重複群組，只保留一個，然後重新啟動擴充功能。</target>
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
@@ -3672,12 +3672,12 @@ Error:
       <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
         <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
         <note>{0} is the comma separated list of connection group names</note>
-        <target state="new">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</target>
+        <target state="translated">一個或多個連線群組參考了不存在且已被忽略的上層群組: {0}。請更新您的設定檔以修正這些項目。</target>
       </trans-unit>
       <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
         <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
         <note>{0} is the comma separated list of connection display names</note>
-        <target state="new">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</target>
+        <target state="translated">一個或多個連線參考了不存在且已被忽略的群組: {0}。請更新您的連線設定以修正這些項目。</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
