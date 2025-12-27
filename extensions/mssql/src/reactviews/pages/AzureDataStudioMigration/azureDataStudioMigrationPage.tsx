@@ -26,6 +26,8 @@ import {
     CheckmarkCircle16Filled,
     ChevronDownRegular,
     ChevronRightRegular,
+    EyeOffRegular,
+    EyeRegular,
     FolderOpenRegular,
     PresenceAvailableRegular,
     Warning16Regular,
@@ -65,6 +67,7 @@ export const AzureDataStudioMigrationPage = () => {
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
     const [dialog, setDialog] = useState(state.dialog);
+    const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         setConfigPath(state.adsConfigPath ?? "");
@@ -76,6 +79,7 @@ export const AzureDataStudioMigrationPage = () => {
 
     useEffect(() => {
         setConnections(state.connections ?? []);
+        setPasswordVisibility({});
     }, [state.connections]);
 
     useEffect(() => {
@@ -257,6 +261,13 @@ export const AzureDataStudioMigrationPage = () => {
         extensionRpc.action("enterSqlPassword", { connectionId, password: value });
     };
 
+    const togglePasswordVisibility = (connectionId: string) => {
+        setPasswordVisibility((prev) => ({
+            ...prev,
+            [connectionId]: !prev[connectionId],
+        }));
+    };
+
     const handleEntraSignIn = (connectionId: string) => {
         extensionRpc.action("openEntraSignInDialog", { connectionId });
     };
@@ -283,10 +294,34 @@ export const AzureDataStudioMigrationPage = () => {
                 <div>
                     {connection.profile.authenticationType === AuthenticationType.SqlLogin && (
                         <Input
-                            type="password"
+                            type={passwordVisibility[connectionId] ? "text" : "password"}
                             value={connection.profile.password ?? ""}
                             onChange={(_, data) => handleEnterPassword(connectionId, data.value)}
                             placeholder={LocMigration.enterPassword}
+                            contentAfter={
+                                <Button
+                                    appearance="transparent"
+                                    size="small"
+                                    icon={
+                                        passwordVisibility[connectionId] ? (
+                                            <EyeOffRegular />
+                                        ) : (
+                                            <EyeRegular />
+                                        )
+                                    }
+                                    title={
+                                        passwordVisibility[connectionId]
+                                            ? Loc.common.hidePassword
+                                            : Loc.common.showPassword
+                                    }
+                                    aria-label={
+                                        passwordVisibility[connectionId]
+                                            ? Loc.common.hidePassword
+                                            : Loc.common.showPassword
+                                    }
+                                    onClick={() => togglePasswordVisibility(connectionId)}
+                                />
+                            }
                         />
                     )}
                     {connection.profile.authenticationType === AuthenticationType.AzureMFA && (
