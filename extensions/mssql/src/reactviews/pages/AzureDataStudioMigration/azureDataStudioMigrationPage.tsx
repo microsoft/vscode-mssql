@@ -38,7 +38,6 @@ import {
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
-    MigrationStatus,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
@@ -50,8 +49,10 @@ export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
 
     const classes = useStyles();
-    const { extensionRpc } =
-        useVscodeWebview2<AzureDataStudioMigrationWebviewState, AzureDataStudioMigrationReducers>();
+    const { extensionRpc } = useVscodeWebview2<
+        AzureDataStudioMigrationWebviewState,
+        AzureDataStudioMigrationReducers
+    >();
     const state = useAzureDataStudioMigrationSelector((s) => s);
 
     const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
@@ -216,8 +217,8 @@ export const AzureDataStudioMigrationPage = () => {
             (options?.allowBlank
                 ? ""
                 : options?.emptyDisplay !== undefined
-                    ? options.emptyDisplay
-                    : "-");
+                  ? options.emptyDisplay
+                  : "-");
 
         const tooltip =
             value ||
@@ -252,6 +253,10 @@ export const AzureDataStudioMigrationPage = () => {
 
     const handleSignInDialogSubmit = (connectionId: string) => {
         extensionRpc.action("signIntoEntraAccount", { connectionId });
+    };
+
+    const handleSelectAccount = (connectionId: string, accountId: string, tenantId: string) => {
+        extensionRpc.action("selectAccount", { connectionId, accountId, tenantId });
     };
 
     const renderAuthenticationCell = (connection: AdsMigrationConnection, connectionId: string) => {
@@ -295,6 +300,7 @@ export const AzureDataStudioMigrationPage = () => {
                 dialog={dialog}
                 onCancel={handleCloseDialog}
                 onSignIn={handleSignInDialogSubmit}
+                onSelectAccount={handleSelectAccount}
             />
         ) : null;
 
@@ -591,7 +597,7 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 className={classes.databaseColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.database ??
-                                                                    "",
+                                                                        "",
                                                                     {
                                                                         emptyTooltip:
                                                                             LocMigration.connectionValueMissing,

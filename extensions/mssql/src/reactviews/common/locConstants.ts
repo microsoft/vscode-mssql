@@ -1491,6 +1491,12 @@ export class LocConstants {
             connectionIssueMissingSqlUsername: l10n.t("Enter the SQL Login username."),
             entraSignInAccountLabel: l10n.t("Account"),
             entraSignInTenantLabel: l10n.t("Tenant ID"),
+            entraSignInLink: l10n.t("Sign into additional accounts"),
+            selectAccount: l10n.t("Select account"),
+            entraSignInDialogTitle: l10n.t("Sign in to Microsoft Entra ID"),
+            entraSignInDialogMessage: l10n.t(
+                "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
+            ),
         };
     }
 

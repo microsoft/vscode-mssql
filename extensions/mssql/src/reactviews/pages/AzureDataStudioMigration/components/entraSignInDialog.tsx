@@ -11,65 +11,150 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Dropdown,
+    Link,
+    Option,
     Text,
     makeStyles,
 } from "@fluentui/react-components";
+import { useEffect, useMemo, useState } from "react";
 
 import { EntraSignInDialogProps } from "../../../../sharedInterfaces/azureDataStudioMigration";
 import { locConstants as Loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
-    list: {
+    contentStack: {
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "12px",
         marginTop: "12px",
-        marginBottom: "12px",
+    },
+    summaryStack: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        marginTop: "12px",
     },
     label: {
         fontWeight: 600,
-        marginRight: "4px",
+        marginBottom: "4px",
     },
 });
 
 interface EntraSignInDialogComponentProps {
     dialog: EntraSignInDialogProps;
     onSignIn: (connectionId: string) => void;
+    onSelectAccount: (connectionId: string, accountId: string, tenantId: string) => void;
     onCancel: () => void;
 }
 
 export const EntraSignInDialog = ({
     dialog,
     onSignIn,
+    onSelectAccount,
     onCancel,
 }: EntraSignInDialogComponentProps) => {
     const styles = useStyles();
     const loc = Loc.azureDataStudioMigration;
 
+    const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(
+        dialog.entraAuthAccounts[0]?.id,
+    );
+    const [selectedTenantId, setSelectedTenantId] = useState<string | undefined>(
+        dialog.entraAuthAccounts[0]?.tenants?.[0]?.id,
+    );
+
+    useEffect(() => {
+        setSelectedAccountId(dialog.entraAuthAccounts[0]?.id);
+        setSelectedTenantId(dialog.entraAuthAccounts[0]?.tenants?.[0]?.id);
+    }, [dialog.entraAuthAccounts]);
+
+    const selectedAccount = useMemo(() => {
+        return dialog.entraAuthAccounts.find((acct) => acct.id === selectedAccountId);
+    }, [dialog.entraAuthAccounts, selectedAccountId]);
+
+    const handleAccountChange = (accountId: string) => {
+        setSelectedAccountId(accountId);
+        const fallbackTenant = dialog.entraAuthAccounts.find((acct) => acct.id === accountId)
+            ?.tenants?.[0]?.id;
+        setSelectedTenantId(fallbackTenant);
+    };
+
+    const handleTenantChange = (tenantId: string) => {
+        setSelectedTenantId(tenantId);
+    };
+
+    const isSelectionValid = Boolean(selectedAccountId && selectedTenantId);
+
     return (
         <Dialog open>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>{dialog.title}</DialogTitle>
+                    <DialogTitle>{Loc.azureDataStudioMigration.entraSignInDialogTitle}</DialogTitle>
                     <DialogContent>
-                        <Text>{dialog.message}</Text>
-                        <div className={styles.list}>
+                        <Text>{Loc.azureDataStudioMigration.entraSignInDialogMessage}</Text>
+                        <div className={styles.summaryStack}>
                             <Text>
-                                <span className={styles.label}>{loc.entraSignInAccountLabel}:</span>
-                                {dialog.accountDisplayName}
+                                <strong>{loc.entraSignInAccountLabel}:</strong>{" "}
+                                {dialog.originalEntraAccount}
                             </Text>
                             <Text>
-                                <span className={styles.label}>{loc.entraSignInTenantLabel}:</span>
-                                {dialog.tenantIdDisplayName}
+                                <strong>{loc.entraSignInTenantLabel}:</strong>{" "}
+                                {dialog.originalEntraTenantId}
                             </Text>
+                        </div>
+                        <div className={styles.contentStack}>
+                            <div>
+                                <div className={styles.label}>{loc.entraSignInAccountLabel}</div>
+                                <Dropdown
+                                    selectedOptions={selectedAccountId ? [selectedAccountId] : []}
+                                    onOptionSelect={(_, data) =>
+                                        handleAccountChange(data.optionValue as string)
+                                    }>
+                                    {dialog.entraAuthAccounts.map((account) => (
+                                        <Option key={account.id} value={account.id}>
+                                            {account.displayName}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                            </div>
+                            <div>
+                                <div className={styles.label}>{loc.entraSignInTenantLabel}</div>
+                                <Dropdown
+                                    disabled={!selectedAccount?.tenants.length}
+                                    selectedOptions={selectedTenantId ? [selectedTenantId] : []}
+                                    onOptionSelect={(_, data) =>
+                                        handleTenantChange(data.optionValue as string)
+                                    }>
+                                    {selectedAccount?.tenants.map((tenant) => (
+                                        <Option key={tenant.id} value={tenant.id}>
+                                            {tenant.displayName}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                            </div>
+                            <Link onClick={() => onSignIn(dialog.connectionId)}>
+                                {loc.entraSignInLink}
+                            </Link>
                         </div>
                     </DialogContent>
                     <DialogActions>
                         <Button appearance="secondary" onClick={onCancel}>
-                            {dialog.secondaryButtonText}
+                            {Loc.common.cancel}
                         </Button>
-                        <Button appearance="primary" onClick={() => onSignIn(dialog.connectionId)}>
-                            {dialog.primaryButtonText}
+                        <Button
+                            appearance="primary"
+                            disabled={!isSelectionValid}
+                            onClick={() => {
+                                if (selectedAccountId && selectedTenantId) {
+                                    onSelectAccount(
+                                        dialog.connectionId,
+                                        selectedAccountId,
+                                        selectedTenantId,
+                                    );
+                                }
+                            }}>
+                            {Loc.azureDataStudioMigration.selectAccount}
                         </Button>
                     </DialogActions>
                 </DialogBody>

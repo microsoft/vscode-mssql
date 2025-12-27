@@ -2441,16 +2441,11 @@ export class AzureDataStudioMigration {
             args: [username],
             comment: ["{0} is the Entra ID username"],
         });
-    public static EntraSignInDialogTitle = l10n.t("Sign in to Microsoft Entra ID");
-    public static EntraSignInDialogMessage = l10n.t(
-        "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
-    );
     public static EntraSignInDialogAccountLabel = l10n.t("Account");
     public static EntraSignInDialogTenantLabel = l10n.t("Tenant ID");
     public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
     public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
-    public static EntraSignInDialogPrimaryButton = l10n.t("Sign in");
-    public static EntraSignInDialogSecondaryButton = l10n.t("Cancel");
+    public static EntraSignInDialogLink = l10n.t("Use a different account");
 }
 
 export class Changelog {

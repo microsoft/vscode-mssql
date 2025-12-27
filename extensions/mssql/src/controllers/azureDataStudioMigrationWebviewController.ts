@@ -14,6 +14,7 @@ import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
     AzureDataStudioMigrationBrowseForConfigRequest,
+    EntraAccountOption,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     MigrationStatus,
@@ -46,6 +47,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
     private _existingConnectionIds: Set<string> = new Set<string>();
     private _existingGroupIds: Set<string> = new Set<string>();
+    private entraAuthAccounts: IAccount[] = [];
 
     constructor(
         context: vscode.ExtensionContext,
@@ -128,19 +130,31 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             );
 
             if (!connection) {
+                console.error("Cannot open Entra sign-in dialog for undefined connection");
                 state.dialog = undefined;
                 return state;
             }
 
+            if (connection.profile.authenticationType !== AuthenticationType.AzureMFA) {
+                console.error(
+                    `Cannot open Entra sign-in dialog for connection with authentication type: ${connection?.profile.authenticationType}`,
+                );
+                state.dialog = undefined;
+                return state;
+            }
+
+            if (!this.entraAuthAccounts?.length) {
+                await this.loadEntraAuthAccounts();
+            }
+
+            const accountOptions = this.mapAccountsToOptions(this.entraAuthAccounts);
+
             state.dialog = {
                 type: "entraSignIn",
                 connectionId: payload.connectionId,
-                title: AzureDataStudioMigration.EntraSignInDialogTitle,
-                message: AzureDataStudioMigration.EntraSignInDialogMessage,
-                accountDisplayName: this.getAccountDisplayName(connection),
-                tenantIdDisplayName: this.getTenantDisplayName(connection),
-                primaryButtonText: AzureDataStudioMigration.EntraSignInDialogPrimaryButton,
-                secondaryButtonText: AzureDataStudioMigration.EntraSignInDialogSecondaryButton,
+                originalEntraAccount: connection.profile.user || "",
+                originalEntraTenantId: connection.profile.tenantId || "",
+                entraAuthAccounts: accountOptions,
             };
 
             return state;
@@ -156,20 +170,64 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 return state;
             }
 
-            const targetAccount = state.dialog.accountDisplayName
-            
-            const account = await this.azureAccountService.addAccount();
+            await this.azureAccountService.addAccount();
+            await this.loadEntraAuthAccounts();
 
-            if ()
+            const connection = state.connections.find(
+                (conn) => conn.profile.id === state.dialog?.connectionId,
+            );
+            if (!connection) {
+                return state;
+            }
 
-            // Placeholder reducer - the actual sign-in workflow will be implemented later.
+            const accountOptions = this.mapAccountsToOptions(this.entraAuthAccounts);
+            const { selectedAccountId, selectedTenantId } = this.resolveAccountSelection(
+                connection,
+                accountOptions,
+            );
+
+            state.dialog = {
+                ...state.dialog,
+                entraAuthAccounts: accountOptions,
+                originalEntraAccount: this.getAccountDisplayNameFromOptions(
+                    accountOptions,
+                    selectedAccountId,
+                ),
+                originalEntraTenantId: this.getTenantDisplayNameFromOptions(
+                    accountOptions,
+                    selectedAccountId,
+                    selectedTenantId,
+                ),
+            };
+
+            return state;
+        });
+
+        this.registerReducer("selectAccount", async (state, payload) => {
+            const connection = state.connections.find(
+                (conn) => conn.profile.id === payload.connectionId,
+            );
+
+            const entraAccount = this.entraAuthAccounts.find(
+                (acct) => acct.key.id === payload.accountId,
+            );
+
+            if (connection && entraAccount) {
+                connection.profile.user =
+                    entraAccount.displayInfo.displayName || entraAccount.displayInfo.email || "";
+                connection.profile.accountId = payload.accountId;
+                connection.profile.tenantId = payload.tenantId;
+                connection.status = MigrationStatus.Ready;
+                connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
+            }
+
             state.dialog = undefined;
             return state;
         });
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {
-        // TODO
+        this.entraAuthAccounts = await this.azureAccountService.getAccounts();
     }
 
     private async loadAdsConfigFromDefaultPath(): Promise<void> {
@@ -511,17 +569,66 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
     }
 
-    private getAccountDisplayName(connection: AdsMigrationConnection): string {
+    private mapAccountsToOptions(accounts: IAccount[]): EntraAccountOption[] {
+        return accounts.map((account) => ({
+            id: account.key.id,
+            displayName:
+                account.displayInfo?.displayName ?? account.displayInfo?.userId ?? account.key.id,
+            tenants:
+                account.properties?.tenants?.map((tenant) => ({
+                    id: tenant.id,
+                    displayName: tenant.displayName ?? tenant.id,
+                })) ?? [],
+        }));
+    }
+
+    private resolveAccountSelection(
+        connection: AdsMigrationConnection,
+        accounts: EntraAccountOption[],
+    ): { selectedAccountId?: string; selectedTenantId?: string } {
+        let selectedAccountId = connection.profile.accountId;
+        if (!selectedAccountId || !accounts.some((acct) => acct.id === selectedAccountId)) {
+            selectedAccountId = accounts[0]?.id;
+        }
+
+        let selectedTenantId = connection.profile.tenantId;
+        const account = accounts.find((acct) => acct.id === selectedAccountId);
+        if (
+            !selectedTenantId ||
+            !account?.tenants.some((tenant) => tenant.id === selectedTenantId)
+        ) {
+            selectedTenantId = account?.tenants[0]?.id;
+        }
+
+        return { selectedAccountId, selectedTenantId };
+    }
+
+    private getAccountDisplayNameFromOptions(
+        accounts: EntraAccountOption[],
+        accountId?: string,
+    ): string {
+        if (!accountId) {
+            return AzureDataStudioMigration.EntraSignInDialogUnknownAccount;
+        }
+
         return (
-            connection.profile.user?.trim() ??
-            connection.profile.accountId?.trim() ??
+            accounts.find((acct) => acct.id === accountId)?.displayName ??
             AzureDataStudioMigration.EntraSignInDialogUnknownAccount
         );
     }
 
-    private getTenantDisplayName(connection: AdsMigrationConnection): string {
+    private getTenantDisplayNameFromOptions(
+        accounts: EntraAccountOption[],
+        accountId?: string,
+        tenantId?: string,
+    ): string {
+        if (!accountId || !tenantId) {
+            return AzureDataStudioMigration.EntraSignInDialogUnknownTenant;
+        }
+
+        const account = accounts.find((acct) => acct.id === accountId);
         return (
-            connection.profile.tenantId?.trim() ??
+            account?.tenants.find((tenant) => tenant.id === tenantId)?.displayName ??
             AzureDataStudioMigration.EntraSignInDialogUnknownTenant
         );
     }

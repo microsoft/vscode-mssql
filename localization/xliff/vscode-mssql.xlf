@@ -3618,6 +3618,9 @@
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
+      <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
+    </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
     </trans-unit>
@@ -3805,6 +3808,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05979684596d5117b4a6241fb625976197e0e892b1280ff12be7bd5e51d9972a">
+      <source xml:lang="en">Sign in to Microsoft Entra ID</source>
     </trans-unit>
     <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
       <source xml:lang="en">Sign in to a new account</source>
@@ -4242,8 +4248,14 @@
     <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
       <source xml:lang="en">Unknown Connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
+      <source xml:lang="en">Unknown account</source>
+    </trans-unit>
     <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
       <source xml:lang="en">Unknown error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
+      <source xml:lang="en">Unknown tenant ID</source>
     </trans-unit>
     <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
       <source xml:lang="en">Unnamed Profile</source>
