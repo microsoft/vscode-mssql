@@ -3647,6 +3647,9 @@
       <source xml:lang="en">Select a {0} for filtering</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++6dd7b48a3fb195b4a52c7d60e9f3b179113b489c9412a881a41abf06da3df7e2">
+      <source xml:lang="en">Select account</source>
+    </trans-unit>
     <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
       <source xml:lang="en">Select all</source>
     </trans-unit>
@@ -3839,6 +3842,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
       <source xml:lang="en">Sign into Fabric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++057a95531cc67517faa38f1129b6721abe884696ec9d937a8b600721d4548f9e">
+      <source xml:lang="en">Sign into additional accounts</source>
     </trans-unit>
     <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
       <source xml:lang="en">Sign into tenant</source>
@@ -4289,6 +4295,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2fe9116400cf32af5650464b88491a8640f69f97c71a5697a240e4e2a8c1734">
+      <source xml:lang="en">Use a different account</source>
     </trans-unit>
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
