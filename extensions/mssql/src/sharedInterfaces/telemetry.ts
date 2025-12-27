@@ -195,6 +195,7 @@ export enum TelemetryActions {
     SendNotification = "SendNotification",
     onNotification = "onNotification",
     RefreshEntraToken = "RefreshEntraToken",
+    ImportConfig = "ImportConfig",
 }
 
 /**

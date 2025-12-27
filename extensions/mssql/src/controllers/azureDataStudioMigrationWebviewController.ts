@@ -32,6 +32,8 @@ import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import { getConnectionDisplayName } from "../models/connectionInfo";
+import * as interfaces from "../models/interfaces";
+import { ConnectionStore } from "../models/connectionStore";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
@@ -49,11 +51,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private _existingConnectionIds: Set<string> = new Set<string>();
     private _existingGroupIds: Set<string> = new Set<string>();
     private _entraAuthAccounts: IAccount[] = [];
-    private _rootGroupIds: Set<string> = new Set<string>();
 
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
+        private connectionStore: ConnectionStore,
         private connectionConfig: ConnectionConfig,
         private azureAccountService: AzureAccountService,
         initialState: AzureDataStudioMigrationWebviewState = defaultState,
@@ -216,6 +218,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     entraAccount.displayInfo.displayName || entraAccount.displayInfo.email || "";
                 connection.profile.accountId = payload.accountId;
                 connection.profile.tenantId = payload.tenantId;
+                connection.profile.email = entraAccount.displayInfo.email || "";
 
                 this.updateConnectionStatus(connection);
             }
@@ -306,13 +309,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
 
             await this.importHelper(state);
-            state.dialog = undefined;
             return state;
         });
 
         this.registerReducer("confirmImport", async (state) => {
             await this.importHelper(state);
-            state.dialog = undefined;
             return state;
         });
     }
@@ -322,22 +323,67 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     }
 
     private async importHelper(state: AzureDataStudioMigrationWebviewState): Promise<void> {
+        const selectedGroups = new Map<string, AdsMigrationConnectionGroup>(
+            state.connectionGroups
+                .filter((group) => group.selected)
+                .map((group) => [group.group.id, group]),
+        );
         const selectedConnections = state.connections.filter((connection) => connection.selected);
-        const selectedGroups = state.connectionGroups.filter((group) => group.selected);
 
         sendActionEvent(
             TelemetryViews.AzureDataStudioMigration,
-            TelemetryActions.Submit,
-            {
-                action: "importSelections",
-            },
+            TelemetryActions.ImportConfig,
+            {},
             {
                 connectionCount: selectedConnections.length,
-                groupCount: selectedGroups.length,
+                groupCount: selectedGroups.size,
             },
         );
 
-        // TODO: invoke the actual import workflow once available.
+        const validGroupIds = new Set<string>([
+            ...this._existingGroupIds,
+            ...selectedGroups.keys(),
+        ]);
+
+        for (const group of selectedGroups.values()) {
+            const groupToAdd: interfaces.IConnectionGroup = {
+                ...group.group,
+                configSource: vscode.ConfigurationTarget.Global,
+            };
+
+            if (!validGroupIds.has(groupToAdd.parentId)) {
+                groupToAdd.parentId = ConnectionConfig.ROOT_GROUP_ID;
+            }
+
+            await this.connectionConfig.addGroup(groupToAdd);
+        }
+
+        for (const connection of selectedConnections) {
+            const connectionToAdd: interfaces.IConnectionProfile = {
+                ...connection.profile,
+                configSource: vscode.ConfigurationTarget.Global,
+            } as interfaces.IConnectionProfile;
+
+            // use root group for connections with invalid group IDs
+            if (!validGroupIds.has(connectionToAdd.groupId)) {
+                connectionToAdd.groupId = ConnectionConfig.ROOT_GROUP_ID;
+            }
+
+            // add email for AzureMFA connections
+            if (connectionToAdd.authenticationType === AuthenticationType.AzureMFA) {
+                const entraAccount = this._entraAuthAccounts.find(
+                    (acct) => acct.key.id === connectionToAdd.accountId,
+                );
+
+                if (entraAccount) {
+                    connectionToAdd.email = entraAccount.displayInfo.email || "";
+                }
+            }
+
+            await this.connectionStore.saveProfile(connectionToAdd);
+        }
+
+        this.state.dialog = undefined;
     }
 
     private async loadAdsConfigFromDefaultPath(): Promise<void> {
@@ -404,15 +450,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             const raw = await fs.readFile(filePath, { encoding: "utf8" });
             const parsed = JSON.parse(stripJsonComments(raw)) as Record<string, unknown>;
 
-            const { groups, rootGroupIds } = this.parseConnectionGroups(
-                parsed?.["datasource.connectionGroups"],
-            );
+            const groups = this.parseConnectionGroups(parsed?.["datasource.connectionGroups"]);
             const migrationGroups = this.updateGroupStatuses(groups);
 
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
             const migrationConnections = this.updateConnectionStatuses(connections);
-
-            this._rootGroupIds = new Set<string>(rootGroupIds);
 
             this.state = {
                 adsConfigPath: filePath,
@@ -552,15 +594,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return connectionGroup;
     }
 
-    private parseConnectionGroups(value: unknown): {
-        groups: IConnectionGroup[];
-        rootGroupIds: string[];
-    } {
+    private parseConnectionGroups(value: unknown): IConnectionGroup[] {
         if (!Array.isArray(value)) {
-            return {
-                groups: [],
-                rootGroupIds: [],
-            };
+            return [];
         }
 
         const groups: IConnectionGroup[] = [];
@@ -576,7 +612,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
         }
 
-        return { groups, rootGroupIds };
+        return groups;
     }
 
     private createGroup(candidate: unknown): IConnectionGroup | undefined {
@@ -670,9 +706,10 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 this.getString(options, ["groupId"]) ??
                 "",
             azureAuthType: undefined,
-            savePassword: Boolean(options.savePassword),
+            savePassword: Boolean(record.savePassword),
             emptyPasswordInput: false,
             id: fallbackId,
+            trustServerCertificate: Boolean(options.trustServerCertificate),
         } as IConnectionDialogProfile;
 
         return profile;

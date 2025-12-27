@@ -333,10 +333,12 @@ export default class MainController implements vscode.Disposable {
                 const migrationController = new AzureDataStudioMigrationWebviewController(
                     this._context,
                     this._vscodeWrapper,
+                    this.connectionManager.connectionStore,
                     this.connectionManager.connectionStore.connectionConfig,
                     this.azureAccountService,
                 );
-                await migrationController.revealToForeground();
+
+                migrationController.revealToForeground();
             });
 
             this._context.subscriptions.push(
