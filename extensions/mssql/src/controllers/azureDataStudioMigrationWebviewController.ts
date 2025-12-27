@@ -47,7 +47,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
     private _existingConnectionIds: Set<string> = new Set<string>();
     private _existingGroupIds: Set<string> = new Set<string>();
-    private entraAuthAccounts: IAccount[] = [];
+    private _entraAuthAccounts: IAccount[] = [];
 
     constructor(
         context: vscode.ExtensionContext,
@@ -72,8 +72,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             },
         );
 
-        this.registerRequestHandlers();
-        this.registerReducerHandlers();
+        this.registerHandlers();
+
         void this.initialize()
             .then(() => {
                 this.updateState();
@@ -99,7 +99,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         await this.loadEntraAuthAccounts();
     }
 
-    private registerRequestHandlers() {
+    private registerHandlers() {
         this.onRequest(AzureDataStudioMigrationBrowseForConfigRequest.type, async () => {
             const selection = await vscode.window.showOpenDialog({
                 title: AzureDataStudioMigration.SelectConfigFileDialogTitle,
@@ -121,9 +121,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
             return selectedPath;
         });
-    }
 
-    private registerReducerHandlers() {
         this.registerReducer("openEntraSignInDialog", async (state, payload) => {
             const connection = state.connections.find(
                 (conn) => conn.profile.id === payload.connectionId,
@@ -143,11 +141,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 return state;
             }
 
-            if (!this.entraAuthAccounts?.length) {
+            if (!this._entraAuthAccounts?.length) {
                 await this.loadEntraAuthAccounts();
             }
 
-            const accountOptions = this.mapAccountsToOptions(this.entraAuthAccounts);
+            const accountOptions = this.mapAccountsToOptions(this._entraAuthAccounts);
 
             state.dialog = {
                 type: "entraSignIn",
@@ -180,7 +178,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 return state;
             }
 
-            const accountOptions = this.mapAccountsToOptions(this.entraAuthAccounts);
+            const accountOptions = this.mapAccountsToOptions(this._entraAuthAccounts);
             const { selectedAccountId, selectedTenantId } = this.resolveAccountSelection(
                 connection,
                 accountOptions,
@@ -208,7 +206,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 (conn) => conn.profile.id === payload.connectionId,
             );
 
-            const entraAccount = this.entraAuthAccounts.find(
+            const entraAccount = this._entraAuthAccounts.find(
                 (acct) => acct.key.id === payload.accountId,
             );
 
@@ -217,8 +215,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     entraAccount.displayInfo.displayName || entraAccount.displayInfo.email || "";
                 connection.profile.accountId = payload.accountId;
                 connection.profile.tenantId = payload.tenantId;
-                connection.status = MigrationStatus.Ready;
-                connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
+
+                this.updateConnectionStatus(connection);
             }
 
             state.dialog = undefined;
@@ -243,29 +241,23 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
             connection.profile.password = payload.password ?? "";
 
-            if (payload.password?.length) {
-                connection.status = MigrationStatus.Ready;
-                connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
-            } else {
-                connection.status = MigrationStatus.NeedsAttention;
-                connection.statusMessage =
-                    AzureDataStudioMigration.connectionIssueMissingSqlPassword(
-                        connection.profile.user,
-                    );
-            }
+            this.updateConnectionStatus(connection);
 
             return state;
         });
 
         this.registerReducer("setConnectionGroupSelections", async (state, payload) => {
             if (payload.groupId) {
+                // set selection for specific group
                 const group = state.connectionGroups.find(
                     (grp) => grp.group.id === payload.groupId,
                 );
+
                 if (group) {
                     group.selected = payload.selected;
                 }
             } else {
+                // set selection for all groups
                 state.connectionGroups.forEach((group) => {
                     group.selected = payload.selected;
                 });
@@ -276,13 +268,16 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         this.registerReducer("setConnectionSelections", async (state, payload) => {
             if (payload.connectionId) {
-                const connection = state.connections.find((conn) =>
-                    this.connectionMatchesIdentifier(conn, payload.connectionId),
+                // set selection for specific connection
+                const connection = state.connections.find(
+                    (conn) => conn.profile.id === payload.connectionId,
                 );
+
                 if (connection) {
                     connection.selected = payload.selected;
                 }
             } else {
+                // set selection for all connections
                 state.connections.forEach((connection) => {
                     connection.selected = payload.selected;
                 });
@@ -292,7 +287,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {
-        this.entraAuthAccounts = await this.azureAccountService.getAccounts();
+        this._entraAuthAccounts = await this.readValidAzureAccounts();
     }
 
     private async loadAdsConfigFromDefaultPath(): Promise<void> {
@@ -422,66 +417,89 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     ): Promise<AdsMigrationConnection[]> {
         const result: AdsMigrationConnection[] = [];
 
-        const azureAccounts = new Set<string>(
-            (await this.readValidAzureAccounts()).map((account) => account.key.id),
-        );
-
         for (const connection of connections) {
-            let status = MigrationStatus.Ready;
-            let statusMessage = "";
-
-            if (this._existingConnectionIds.has(connection.id)) {
-                status = MigrationStatus.AlreadyImported;
-                statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported;
-            } else if (connection.authenticationType === AuthenticationType.SqlLogin) {
-                if (!connection.password) {
-                    status = MigrationStatus.NeedsAttention;
-                    statusMessage = AzureDataStudioMigration.connectionIssueMissingSqlPassword(
-                        connection.user,
-                    );
-                }
-            } else if (connection.authenticationType === AuthenticationType.AzureMFA) {
-                if (!azureAccounts.has(connection.accountId)) {
-                    status = MigrationStatus.NeedsAttention;
-                    statusMessage = AzureDataStudioMigration.connectionIssueMissingAzureAccount(
-                        connection.user,
-                    );
-                }
-            }
-
-            result.push({
-                profile: connection,
-                profileName: connection.profileName,
-                status,
-                statusMessage,
-                selected: status === MigrationStatus.Ready,
-            });
+            result.push(
+                this.updateConnectionStatus({
+                    profile: connection,
+                    profileName: connection.profileName,
+                    status: MigrationStatus.Ready, // default props that get updated in this call
+                    statusMessage: "",
+                    selected: true,
+                }),
+            );
         }
 
         return result;
+    }
+
+    private updateConnectionStatus(connection: AdsMigrationConnection): AdsMigrationConnection {
+        if (this._existingConnectionIds.has(connection.profile.id)) {
+            connection.status = MigrationStatus.AlreadyImported;
+            connection.statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported;
+        } else {
+            connection.status = MigrationStatus.Ready;
+            connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
+
+            if (connection.profile.authenticationType === AuthenticationType.SqlLogin) {
+                if (!connection.profile.password?.length) {
+                    connection.status = MigrationStatus.NeedsAttention;
+                    connection.statusMessage =
+                        AzureDataStudioMigration.connectionIssueMissingSqlPassword(
+                            connection.profile.user,
+                        );
+                }
+            } else if (connection.profile.authenticationType === AuthenticationType.AzureMFA) {
+                if (
+                    !this._entraAuthAccounts.find(
+                        (account) => account.key.id === connection.profile.accountId,
+                    )
+                ) {
+                    connection.status = MigrationStatus.NeedsAttention;
+                    connection.statusMessage =
+                        AzureDataStudioMigration.connectionIssueMissingAzureAccount(
+                            connection.profile.user,
+                        );
+                }
+            }
+        }
+
+        connection.selected = connection.status === MigrationStatus.Ready;
+
+        return connection;
     }
 
     private updateGroupStatuses(groups: IConnectionGroup[]): AdsMigrationConnectionGroup[] {
         const result: AdsMigrationConnectionGroup[] = [];
 
         for (const group of groups) {
-            let status = MigrationStatus.Ready;
-            let statusMessage = "";
-
-            if (this._existingGroupIds.has(group.id)) {
-                status = MigrationStatus.AlreadyImported;
-                statusMessage = AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported;
-            }
-
-            result.push({
-                group: group,
-                status,
-                statusMessage,
-                selected: status === MigrationStatus.Ready,
-            });
+            result.push(
+                this.updateConnectionGroupStatus({
+                    group: group,
+                    status: MigrationStatus.Ready, // default props that get updated in this call
+                    statusMessage: "",
+                    selected: true,
+                }),
+            );
         }
 
         return result;
+    }
+
+    private updateConnectionGroupStatus(
+        connectionGroup: AdsMigrationConnectionGroup,
+    ): AdsMigrationConnectionGroup {
+        if (this._existingGroupIds.has(connectionGroup.group.id)) {
+            connectionGroup.status = MigrationStatus.AlreadyImported;
+            connectionGroup.statusMessage =
+                AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported;
+        } else {
+            connectionGroup.status = MigrationStatus.Ready;
+            connectionGroup.statusMessage = "";
+        }
+
+        connectionGroup.selected = connectionGroup.status === MigrationStatus.Ready;
+
+        return connectionGroup;
     }
 
     private parseConnectionGroups(value: unknown): {

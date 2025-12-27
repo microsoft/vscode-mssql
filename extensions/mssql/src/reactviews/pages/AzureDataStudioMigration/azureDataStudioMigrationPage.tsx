@@ -342,7 +342,7 @@ export const AzureDataStudioMigrationPage = () => {
                 onSignIn={handleSignInDialogSubmit}
                 onSelectAccount={handleSelectAccount}
             />
-        ) : null;
+        ) : undefined;
 
     return (
         <div className={classes.root}>
