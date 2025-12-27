@@ -18,6 +18,7 @@ import {
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
     MigrationStatus,
+    EntraSignInDialogProps,
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
@@ -30,6 +31,7 @@ import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
 import { IAccount } from "vscode-mssql";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
@@ -168,11 +170,13 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 return state;
             }
 
+            const dialog = state.dialog as EntraSignInDialogProps;
+
             await this.azureAccountService.addAccount();
             await this.loadEntraAuthAccounts();
 
             const connection = state.connections.find(
-                (conn) => conn.profile.id === state.dialog?.connectionId,
+                (conn) => conn.profile.id === dialog.connectionId,
             );
             if (!connection) {
                 return state;
@@ -184,19 +188,16 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 accountOptions,
             );
 
-            state.dialog = {
-                ...state.dialog,
-                entraAuthAccounts: accountOptions,
-                originalEntraAccount: this.getAccountDisplayNameFromOptions(
-                    accountOptions,
-                    selectedAccountId,
-                ),
-                originalEntraTenantId: this.getTenantDisplayNameFromOptions(
-                    accountOptions,
-                    selectedAccountId,
-                    selectedTenantId,
-                ),
-            };
+            dialog.entraAuthAccounts = accountOptions;
+            dialog.originalEntraAccount = this.getAccountDisplayNameFromOptions(
+                accountOptions,
+                selectedAccountId,
+            );
+            dialog.originalEntraTenantId = this.getTenantDisplayNameFromOptions(
+                accountOptions,
+                selectedAccountId,
+                selectedTenantId,
+            );
 
             return state;
         });
@@ -284,10 +285,59 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
             return state;
         });
+
+        this.registerReducer("import", async (state) => {
+            const warnings = [];
+
+            for (const connection of state.connections) {
+                if (connection.selected && connection.status === MigrationStatus.NeedsAttention) {
+                    warnings.push(
+                        `${getConnectionDisplayName(connection.profile)}: ${connection.statusMessage}`,
+                    );
+                }
+            }
+
+            if (warnings.length > 0) {
+                state.dialog = {
+                    type: "importWarning",
+                    warnings: warnings,
+                };
+                return state;
+            }
+
+            await this.importHelper(state);
+            state.dialog = undefined;
+            return state;
+        });
+
+        this.registerReducer("confirmImport", async (state) => {
+            await this.importHelper(state);
+            state.dialog = undefined;
+            return state;
+        });
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {
         this._entraAuthAccounts = await this.readValidAzureAccounts();
+    }
+
+    private async importHelper(state: AzureDataStudioMigrationWebviewState): Promise<void> {
+        const selectedConnections = state.connections.filter((connection) => connection.selected);
+        const selectedGroups = state.connectionGroups.filter((group) => group.selected);
+
+        sendActionEvent(
+            TelemetryViews.AzureDataStudioMigration,
+            TelemetryActions.Submit,
+            {
+                action: "importSelections",
+            },
+            {
+                connectionCount: selectedConnections.length,
+                groupCount: selectedGroups.length,
+            },
+        );
+
+        // TODO: invoke the actual import workflow once available.
     }
 
     private async loadAdsConfigFromDefaultPath(): Promise<void> {

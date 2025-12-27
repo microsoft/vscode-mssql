@@ -47,7 +47,12 @@ export interface EntraSignInDialogProps {
     entraAuthAccounts: EntraAccountOption[];
 }
 
-export type AzureDataStudioMigrationDialogProps = EntraSignInDialogProps;
+export interface ImportWarningDialogProps {
+    type: "importWarning";
+    warnings: string[];
+}
+
+export type AzureDataStudioMigrationDialogProps = EntraSignInDialogProps | ImportWarningDialogProps;
 
 export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
@@ -82,6 +87,8 @@ export interface AzureDataStudioMigrationReducers {
         connectionId?: string;
         selected: boolean;
     };
+    import: {};
+    confirmImport: {};
 }
 
 export namespace AzureDataStudioMigrationBrowseForConfigRequest {

@@ -46,6 +46,7 @@ import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationS
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
+import { ImportWarningDialog } from "./components/importWarningDialog";
 
 export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
@@ -327,13 +328,6 @@ export const AzureDataStudioMigrationPage = () => {
         );
     };
 
-    const hasBlockingWarnings = connections.some((connection) => {
-        return connection.selected && connection.status === "needsAttention";
-    });
-
-    const nothingSelected = groupSelection.selected === 0 && connectionSelection.selected === 0;
-    const importDisabled = hasBlockingWarnings || nothingSelected;
-
     const dialogContent =
         dialog?.type === "entraSignIn" ? (
             <EntraSignInDialog
@@ -341,6 +335,12 @@ export const AzureDataStudioMigrationPage = () => {
                 onCancel={handleCloseDialog}
                 onSignIn={handleSignInDialogSubmit}
                 onSelectAccount={handleSelectAccount}
+            />
+        ) : dialog?.type === "importWarning" ? (
+            <ImportWarningDialog
+                dialog={dialog}
+                onCancel={handleCloseDialog}
+                onProceed={() => extensionRpc.action("confirmImport")}
             />
         ) : undefined;
 
@@ -682,7 +682,12 @@ export const AzureDataStudioMigrationPage = () => {
                     </section>
                 </div>
                 <div className={classes.importBar}>
-                    <Button appearance="primary" disabled={importDisabled}>
+                    <Button
+                        appearance="primary"
+                        disabled={
+                            groupSelection.selected === 0 && connectionSelection.selected === 0
+                        }
+                        onClick={() => extensionRpc.action("import")}>
                         {LocMigration.importButtonLabel}
                     </Button>
                 </div>

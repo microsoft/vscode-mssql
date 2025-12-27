@@ -1487,6 +1487,16 @@ export class LocConstants {
             authenticationAzureOption: l10n.t("Sign into Entra ID account"),
             authenticationNotRequired: l10n.t("Not required"),
             importButtonLabel: l10n.t("Import selected"),
+            importWarningInlineMessage: l10n.t(
+                "Some selected items are missing information. You can continue, but review the warning before importing.",
+            ),
+            importWarningDialogTitle: l10n.t("Some selections still need information"),
+            importWarningDialogMessage: l10n.t(
+                "You can continue, but you may need to edit these connections later before connecting.",
+            ),
+            importWarningConnectionsHeader: l10n.t("Connections needing attention"),
+            importWarningGroupsHeader: l10n.t("Connection groups needing attention"),
+            importWarningProceed: l10n.t("Import anyway"),
             connectionIssueMissingServer: l10n.t("Enter the server name."),
             connectionIssueMissingSqlUsername: l10n.t("Enter the SQL Login username."),
             entraSignInAccountLabel: l10n.t("Account"),
