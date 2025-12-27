@@ -256,6 +256,39 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
             return state;
         });
+
+        this.registerReducer("setConnectionGroupSelections", async (state, payload) => {
+            if (payload.groupId) {
+                const group = state.connectionGroups.find(
+                    (grp) => grp.group.id === payload.groupId,
+                );
+                if (group) {
+                    group.selected = payload.selected;
+                }
+            } else {
+                state.connectionGroups.forEach((group) => {
+                    group.selected = payload.selected;
+                });
+            }
+
+            return state;
+        });
+
+        this.registerReducer("setConnectionSelections", async (state, payload) => {
+            if (payload.connectionId) {
+                const connection = state.connections.find((conn) =>
+                    this.connectionMatchesIdentifier(conn, payload.connectionId),
+                );
+                if (connection) {
+                    connection.selected = payload.selected;
+                }
+            } else {
+                state.connections.forEach((connection) => {
+                    connection.selected = payload.selected;
+                });
+            }
+            return state;
+        });
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {
@@ -599,6 +632,23 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         const connectionGroups = await this.connectionConfig.getGroups();
         this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
+    }
+
+    private connectionMatchesIdentifier(
+        connection: AdsMigrationConnection,
+        identifier: string,
+    ): boolean {
+        if (!identifier) {
+            return false;
+        }
+
+        const possibleIdentifiers = [
+            connection.profile.id,
+            connection.profile.profileName,
+            `${connection.profile.server}-${connection.profile.database}-${connection.profile.user}`,
+        ].filter((value): value is string => Boolean(value));
+
+        return possibleIdentifiers.includes(identifier);
     }
 
     private mapAccountsToOptions(accounts: IAccount[]): EntraAccountOption[] {

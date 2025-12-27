@@ -13,19 +13,19 @@ export enum MigrationStatus {
     AlreadyImported = "alreadyImported",
 }
 
-export interface AdsMigrationConnectionGroup {
-    group: IConnectionGroup;
+export interface AdsMigrationItem {
     selected: boolean;
     status: MigrationStatus;
     statusMessage: string;
 }
 
-export interface AdsMigrationConnection {
+export interface AdsMigrationConnectionGroup extends AdsMigrationItem {
+    group: IConnectionGroup;
+}
+
+export interface AdsMigrationConnection extends AdsMigrationItem {
     profile: IConnectionDialogProfile;
     profileName?: string;
-    selected: boolean;
-    status: MigrationStatus;
-    statusMessage: string;
 }
 
 export interface EntraAccountTenantOption {
@@ -73,6 +73,14 @@ export interface AzureDataStudioMigrationReducers {
     enterSqlPassword: {
         connectionId: string;
         password: string;
+    };
+    setConnectionGroupSelections: {
+        groupId?: string;
+        selected: boolean;
+    };
+    setConnectionSelections: {
+        connectionId?: string;
+        selected: boolean;
     };
 }
 

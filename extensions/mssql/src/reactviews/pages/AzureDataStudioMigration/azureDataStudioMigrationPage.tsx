@@ -115,36 +115,26 @@ export const AzureDataStudioMigrationPage = () => {
     );
 
     const toggleConnectionGroup = (groupId: string, checked: boolean) => {
-        setConnectionGroups((prev) =>
-            prev.map((group) =>
-                group.group.id === groupId ? { ...group, selected: checked } : group,
-            ),
-        );
+        extensionRpc.action("setConnectionGroupSelections", { groupId, selected: checked });
     };
 
     const toggleAllGroups = (checked: boolean) => {
-        setConnectionGroups((prev) => prev.map((group) => ({ ...group, selected: checked })));
+        extensionRpc.action("setConnectionGroupSelections", { selected: checked });
     };
 
     const toggleConnection = (connectionId: string, checked: boolean) => {
-        setConnections((prev) =>
-            prev.map((connection) => {
-                const currentId = getConnectionId(connection);
-                if (currentId === connectionId) {
-                    return { ...connection, selected: checked };
-                }
-                return connection;
-            }),
+        const targetConnection = connections.find(
+            (connection) => getConnectionId(connection) === connectionId,
         );
+        const connectionProfileId = targetConnection?.profile.id ?? connectionId;
+        extensionRpc.action("setConnectionSelections", {
+            connectionId: connectionProfileId,
+            selected: checked,
+        });
     };
 
     const toggleAllConnections = (checked: boolean) => {
-        setConnections((prev) =>
-            prev.map((connection) => ({
-                ...connection,
-                selected: checked,
-            })),
-        );
+        extensionRpc.action("setConnectionSelections", { selected: checked });
     };
 
     const handleBrowseForConfig = async () => {
