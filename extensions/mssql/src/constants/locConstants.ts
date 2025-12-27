@@ -2422,12 +2422,25 @@ export class AzureDataStudioMigration {
     public static SelectConfigOpenLabel = l10n.t("Select settings file");
     public static ConnectionStatusReady = l10n.t("Ready");
     public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
-    public static ConnectionStatusAlreadyImported = l10n.t("Already imported");
+    public static ConnectionStatusAlreadyImported = (connectionId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing connection with ID {0}",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+
     public static ConnectionStatusNeedsAuthInput = l10n.t(
         "Provide authentication information in the Authentication column.",
     );
     public static ConnectionGroupStatusReady = l10n.t("Ready for import");
-    public static ConnectionGroupStatusAlreadyImported = l10n.t("Already imported");
+    public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing group with ID {0}",
+            args: [groupId],
+            comment: ["{0} is the group ID"],
+        });
     public static ConnectionIssueMissingServer = l10n.t("Enter the server name.");
     public static connectionIssueMissingSqlPassword = (username: string) =>
         l10n.t({

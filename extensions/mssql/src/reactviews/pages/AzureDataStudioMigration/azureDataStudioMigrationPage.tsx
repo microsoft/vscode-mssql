@@ -23,7 +23,6 @@ import {
     shorthands,
 } from "@fluentui/react-components";
 import {
-    CheckmarkCircle16Filled,
     ChevronDownRegular,
     ChevronRightRegular,
     EyeOffRegular,
@@ -31,6 +30,7 @@ import {
     FolderOpenRegular,
     PresenceAvailableRegular,
     Warning16Regular,
+    ArrowStepOver20Filled,
 } from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 
@@ -161,16 +161,16 @@ export const AzureDataStudioMigrationPage = () => {
         let color = "";
         switch (status) {
             case "alreadyImported":
-                icon = <CheckmarkCircle16Filled />;
-                color = "var(--vscode-testing-iconPassed)";
+                icon = <ArrowStepOver20Filled />;
+                color = "var(--vscode-debugIcon-stepOverForeground)";
                 break;
             case "ready":
                 icon = <PresenceAvailableRegular />;
-                color = "var(--vscode-testing-iconPassed)";
+                color = "var(--vscode-debugIcon-startForeground)";
                 break;
             default:
                 icon = <Warning16Regular />;
-                color = "var(--vscode-testing-iconErrored)";
+                color = "var(--vscode-debugIcon-stopForeground)";
                 break;
         }
 

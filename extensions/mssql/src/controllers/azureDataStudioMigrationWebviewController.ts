@@ -527,7 +527,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private updateConnectionStatus(connection: AdsMigrationConnection): AdsMigrationConnection {
         if (this._existingConnectionIds.has(connection.profile.id)) {
             connection.status = MigrationStatus.AlreadyImported;
-            connection.statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported;
+            connection.statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported(
+                connection.profile.id,
+            );
         } else {
             connection.status = MigrationStatus.Ready;
             connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
@@ -583,7 +585,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         if (this._existingGroupIds.has(connectionGroup.group.id)) {
             connectionGroup.status = MigrationStatus.AlreadyImported;
             connectionGroup.statusMessage =
-                AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported;
+                AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported(
+                    connectionGroup.group.id,
+                );
         } else {
             connectionGroup.status = MigrationStatus.Ready;
             connectionGroup.statusMessage = "";
