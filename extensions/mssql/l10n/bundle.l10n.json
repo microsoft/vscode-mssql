@@ -1011,6 +1011,7 @@
     "Connections needing attention": "Connections needing attention",
     "Connection groups needing attention": "Connection groups needing attention",
     "Import anyway": "Import anyway",
+    "Importing selections": "Importing selections",
     "Enter the server name.": "Enter the server name.",
     "Enter the SQL Login username.": "Enter the SQL Login username.",
     "Sign into additional accounts": "Sign into additional accounts",
@@ -2272,6 +2273,12 @@
     "Unknown account": "Unknown account",
     "Unknown tenant ID": "Unknown tenant ID",
     "Use a different account": "Use a different account",
+    "Importing the selected connection groups and connections. This may take a few moments.": "Importing the selected connection groups and connections. This may take a few moments.",
+    "Import complete. You can close this dialog.": "Import complete. You can close this dialog.",
+    "Import failed: {0}/{0} is the error message returned from the import helper.": {
+        "message": "Import failed: {0}",
+        "comment": ["{0} is the error message returned from the import helper."]
+    },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",

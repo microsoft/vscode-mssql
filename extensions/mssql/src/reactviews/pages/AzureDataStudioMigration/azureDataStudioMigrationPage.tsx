@@ -40,6 +40,9 @@ import {
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
+    EntraSignInDialogProps,
+    ImportProgressDialogProps,
+    ImportWarningDialogProps,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
@@ -347,19 +350,22 @@ export const AzureDataStudioMigrationPage = () => {
     const dialogContent =
         dialog?.type === "entraSignIn" ? (
             <EntraSignInDialog
-                dialog={dialog}
+                dialog={dialog as EntraSignInDialogProps}
                 onCancel={handleCloseDialog}
                 onSignIn={handleSignInDialogSubmit}
                 onSelectAccount={handleSelectAccount}
             />
         ) : dialog?.type === "importWarning" ? (
             <ImportWarningDialog
-                dialog={dialog}
+                dialog={dialog as ImportWarningDialogProps}
                 onCancel={handleCloseDialog}
-                onProceed={() => extensionRpc.action("confirmImportSelections")}
+                onProceed={() => extensionRpc.action("confirmImport")}
             />
         ) : dialog?.type === "importProgress" ? (
-            <ImportProgressDialog dialog={dialog} onDismiss={handleCloseDialog} />
+            <ImportProgressDialog
+                dialog={dialog as ImportProgressDialogProps}
+                onDismiss={handleCloseDialog}
+            />
         ) : undefined;
 
     return (
@@ -711,7 +717,7 @@ export const AzureDataStudioMigrationPage = () => {
                         disabled={
                             groupSelection.selected === 0 && connectionSelection.selected === 0
                         }
-                        onClick={() => extensionRpc.action("attemptImportSelections")}>
+                        onClick={() => extensionRpc.action("import")}>
                         {LocMigration.importButtonLabel}
                     </Button>
                 </div>

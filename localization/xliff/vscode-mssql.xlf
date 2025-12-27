@@ -2174,6 +2174,13 @@
     <trans-unit id="++CODE++e06eac7e7960029aa3e9849f6e1d9316e9bf7f143c1fb634dd0a2b3391e373f1">
       <source xml:lang="en">Import anyway</source>
     </trans-unit>
+    <trans-unit id="++CODE++2e8e2a40f8096590ad749613dff43e0ffb3a0dae652f82c93d12d1248b1e28b8">
+      <source xml:lang="en">Import complete. You can close this dialog.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
+      <source xml:lang="en">Import failed: {0}</source>
+      <note>{0} is the error message returned from the import helper.</note>
+    </trans-unit>
     <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
       <source xml:lang="en">Import selected</source>
     </trans-unit>
@@ -2182,6 +2189,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
       <source xml:lang="en">Importing BACPAC...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
+      <source xml:lang="en">Importing selections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c1e72d29277f518c74e3c00fce16ee9ae15086997af8836cb2420a2ba53b52e">
+      <source xml:lang="en">Importing the selected connection groups and connections. This may take a few moments.</source>
     </trans-unit>
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
