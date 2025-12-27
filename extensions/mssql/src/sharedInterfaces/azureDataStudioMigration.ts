@@ -58,7 +58,6 @@ export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
-    rootGroupIds: string[];
     dialog?: AzureDataStudioMigrationDialogProps;
 }
 

@@ -37,7 +37,6 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
     connectionGroups: [],
     connections: [],
-    rootGroupIds: [],
     dialog: undefined,
 };
 
@@ -50,6 +49,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private _existingConnectionIds: Set<string> = new Set<string>();
     private _existingGroupIds: Set<string> = new Set<string>();
     private _entraAuthAccounts: IAccount[] = [];
+    private _rootGroupIds: Set<string> = new Set<string>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -407,17 +407,17 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             const { groups, rootGroupIds } = this.parseConnectionGroups(
                 parsed?.["datasource.connectionGroups"],
             );
-            const migrationGroups = await this.updateGroupStatuses(groups);
+            const migrationGroups = this.updateGroupStatuses(groups);
 
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
+            const migrationConnections = this.updateConnectionStatuses(connections);
 
-            const migrationConnections = await this.updateConnectionStatuses(connections);
+            this._rootGroupIds = new Set<string>(rootGroupIds);
 
             this.state = {
                 adsConfigPath: filePath,
                 connectionGroups: migrationGroups,
                 connections: migrationConnections,
-                rootGroupIds: rootGroupIds, // TODO: why is this needed?
                 dialog: undefined,
             };
         } catch (error) {
@@ -462,9 +462,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return azureAccounts;
     }
 
-    private async updateConnectionStatuses(
+    private updateConnectionStatuses(
         connections: IConnectionDialogProfile[],
-    ): Promise<AdsMigrationConnection[]> {
+    ): AdsMigrationConnection[] {
         const result: AdsMigrationConnection[] = [];
 
         for (const connection of connections) {
@@ -700,23 +700,6 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         const connectionGroups = await this.connectionConfig.getGroups();
         this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
-    }
-
-    private connectionMatchesIdentifier(
-        connection: AdsMigrationConnection,
-        identifier: string,
-    ): boolean {
-        if (!identifier) {
-            return false;
-        }
-
-        const possibleIdentifiers = [
-            connection.profile.id,
-            connection.profile.profileName,
-            `${connection.profile.server}-${connection.profile.database}-${connection.profile.user}`,
-        ].filter((value): value is string => Boolean(value));
-
-        return possibleIdentifiers.includes(identifier);
     }
 
     private mapAccountsToOptions(accounts: IAccount[]): EntraAccountOption[] {
