@@ -820,7 +820,7 @@ export default class QueryRunner {
                     }
 
                     if (result?.content) {
-                        await this.writeStringToClipboard(result.clipboardText);
+                        await this.writeStringToClipboard(result.content);
                     }
 
                     vscode.window.showInformationMessage(
