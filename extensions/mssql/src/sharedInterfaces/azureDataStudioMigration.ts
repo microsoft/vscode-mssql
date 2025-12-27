@@ -70,6 +70,10 @@ export interface AzureDataStudioMigrationReducers {
         accountId: string;
         tenantId: string;
     };
+    enterSqlPassword: {
+        connectionId: string;
+        password: string;
+    };
 }
 
 export namespace AzureDataStudioMigrationBrowseForConfigRequest {

@@ -224,6 +224,38 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             state.dialog = undefined;
             return state;
         });
+
+        this.registerReducer("enterSqlPassword", async (state, payload) => {
+            const connection = state.connections.find(
+                (conn) => conn.profile.id === payload.connectionId,
+            );
+
+            if (!connection) {
+                return state;
+            }
+
+            if (connection.profile.authenticationType !== AuthenticationType.SqlLogin) {
+                this.logger.error(
+                    `Cannot enter SQL password for connection with authentication type: ${connection?.profile.authenticationType}`,
+                );
+                return state;
+            }
+
+            connection.profile.password = payload.password ?? "";
+
+            if (payload.password?.length) {
+                connection.status = MigrationStatus.Ready;
+                connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
+            } else {
+                connection.status = MigrationStatus.NeedsAttention;
+                connection.statusMessage =
+                    AzureDataStudioMigration.connectionIssueMissingSqlPassword(
+                        connection.profile.user,
+                    );
+            }
+
+            return state;
+        });
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {

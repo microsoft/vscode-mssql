@@ -64,7 +64,6 @@ export const AzureDataStudioMigrationPage = () => {
     );
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
-    const [authOverrides, setAuthOverrides] = useState<Record<string, string>>({});
     const [dialog, setDialog] = useState(state.dialog);
 
     useEffect(() => {
@@ -77,7 +76,6 @@ export const AzureDataStudioMigrationPage = () => {
 
     useEffect(() => {
         setConnections(state.connections ?? []);
-        setAuthOverrides({});
     }, [state.connections]);
 
     useEffect(() => {
@@ -240,7 +238,23 @@ export const AzureDataStudioMigrationPage = () => {
     };
 
     const handleEnterPassword = (connectionId: string, value: string) => {
-        // TODO
+        setConnections((prev) =>
+            prev.map((connection) => {
+                const currentId = getConnectionId(connection);
+                if (currentId === connectionId) {
+                    return {
+                        ...connection,
+                        profile: {
+                            ...connection.profile,
+                            password: value,
+                        },
+                    };
+                }
+                return connection;
+            }),
+        );
+
+        extensionRpc.action("enterSqlPassword", { connectionId, password: value });
     };
 
     const handleEntraSignIn = (connectionId: string) => {
@@ -269,7 +283,8 @@ export const AzureDataStudioMigrationPage = () => {
                 <div>
                     {connection.profile.authenticationType === AuthenticationType.SqlLogin && (
                         <Input
-                            value={authOverrides[connectionId] ?? ""}
+                            type="password"
+                            value={connection.profile.password ?? ""}
                             onChange={(_, data) => handleEnterPassword(connectionId, data.value)}
                             placeholder={LocMigration.enterPassword}
                         />
