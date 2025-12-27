@@ -279,7 +279,7 @@ export class CopyResults2RequestParams {
 }
 
 export class CopyResults2RequestResult {
-    clipboardText?: string;
+    content?: string;
 }
 
 export namespace CancelCopy2Notification {

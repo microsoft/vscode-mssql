@@ -819,7 +819,7 @@ export default class QueryRunner {
                         return;
                     }
 
-                    if (result?.clipboardText) {
+                    if (result?.content) {
                         await this.writeStringToClipboard(result.clipboardText);
                     }
 
