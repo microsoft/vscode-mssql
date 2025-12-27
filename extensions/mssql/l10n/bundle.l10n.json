@@ -2253,6 +2253,14 @@
     },
     "Locate the Azure Data Studio settings.json file to import": "Locate the Azure Data Studio settings.json file to import",
     "Select settings file": "Select settings file",
+    "Already imported.  Importing again will replace the existing connection with ID {0}/{0} is the connection ID": {
+        "message": "Already imported.  Importing again will replace the existing connection with ID {0}",
+        "comment": ["{0} is the connection ID"]
+    },
+    "Already imported.  Importing again will replace the existing group with ID {0}/{0} is the group ID": {
+        "message": "Already imported.  Importing again will replace the existing group with ID {0}",
+        "comment": ["{0} is the group ID"]
+    },
     "Enter the SQL Login password for user '{0}'./{0} is the SQL Login username": {
         "message": "Enter the SQL Login password for user '{0}'.",
         "comment": ["{0} is the SQL Login username"]

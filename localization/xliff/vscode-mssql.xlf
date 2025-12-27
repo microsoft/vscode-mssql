@@ -171,6 +171,14 @@
     <trans-unit id="++CODE++e47fafe0a1c6f8d6b5c641c5d9cc7ca61e66a1c50bbc3b619c8ff5912444bfa8">
       <source xml:lang="en">Already imported</source>
     </trans-unit>
+    <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
+      <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
+      <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
+      <note>{0} is the group ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
