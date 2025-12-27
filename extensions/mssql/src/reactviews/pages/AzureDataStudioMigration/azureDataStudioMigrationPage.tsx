@@ -47,6 +47,7 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
 import { ImportWarningDialog } from "./components/importWarningDialog";
+import { ImportProgressDialog } from "./components/importProgressDialog";
 
 export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
@@ -98,6 +99,21 @@ export const AzureDataStudioMigrationPage = () => {
         const selected = connections.filter((connection) => connection.selected).length;
         return { total, selected };
     }, [connections]);
+
+    const selectedGroupsWithWarnings = useMemo(() => {
+        return connectionGroups.filter(
+            (group) => group.selected && group.status === "needsAttention",
+        );
+    }, [connectionGroups]);
+
+    const selectedConnectionsWithWarnings = useMemo(() => {
+        return connections.filter(
+            (connection) => connection.selected && connection.status === "needsAttention",
+        );
+    }, [connections]);
+
+    const hasSelectionWarnings =
+        selectedGroupsWithWarnings.length > 0 || selectedConnectionsWithWarnings.length > 0;
 
     const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
         if (total === 0 || selected === 0) {
@@ -340,8 +356,10 @@ export const AzureDataStudioMigrationPage = () => {
             <ImportWarningDialog
                 dialog={dialog}
                 onCancel={handleCloseDialog}
-                onProceed={() => extensionRpc.action("confirmImport")}
+                onProceed={() => extensionRpc.action("confirmImportSelections")}
             />
+        ) : dialog?.type === "importProgress" ? (
+            <ImportProgressDialog dialog={dialog} onDismiss={handleCloseDialog} />
         ) : undefined;
 
     return (
@@ -682,12 +700,18 @@ export const AzureDataStudioMigrationPage = () => {
                     </section>
                 </div>
                 <div className={classes.importBar}>
+                    {hasSelectionWarnings && (
+                        <div className={classes.importWarningBanner}>
+                            <Warning16Regular />
+                            <Text>{LocMigration.importWarningInlineMessage}</Text>
+                        </div>
+                    )}
                     <Button
                         appearance="primary"
                         disabled={
                             groupSelection.selected === 0 && connectionSelection.selected === 0
                         }
-                        onClick={() => extensionRpc.action("import")}>
+                        onClick={() => extensionRpc.action("attemptImportSelections")}>
                         {LocMigration.importButtonLabel}
                     </Button>
                 </div>
@@ -821,7 +845,9 @@ const useStyles = makeStyles({
     },
     importBar: {
         display: "flex",
-        justifyContent: "flex-end",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: "8px",
         padding: "0 16px 24px",
     },
     nameColumn: {
@@ -844,5 +870,13 @@ const useStyles = makeStyles({
         width: "90px",
         maxWidth: "110px",
         whiteSpace: "nowrap",
+    },
+    importWarningBanner: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        color: "var(--vscode-notificationsWarningIcon-foreground, var(--vscode-terminal-ansiYellow))",
+        textAlign: "right",
+        maxWidth: "420px",
     },
 });

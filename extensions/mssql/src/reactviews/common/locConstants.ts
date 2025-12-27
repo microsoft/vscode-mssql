@@ -1497,6 +1497,7 @@ export class LocConstants {
             importWarningConnectionsHeader: l10n.t("Connections needing attention"),
             importWarningGroupsHeader: l10n.t("Connection groups needing attention"),
             importWarningProceed: l10n.t("Import anyway"),
+            importProgressDialogTitle: l10n.t("Importing selections"),
             connectionIssueMissingServer: l10n.t("Enter the server name."),
             connectionIssueMissingSqlUsername: l10n.t("Enter the SQL Login username."),
             entraSignInAccountLabel: l10n.t("Account"),

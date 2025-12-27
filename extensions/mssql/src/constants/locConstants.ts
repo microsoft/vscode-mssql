@@ -2459,6 +2459,18 @@ export class AzureDataStudioMigration {
     public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
     public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
     public static EntraSignInDialogLink = l10n.t("Use a different account");
+    public static importProgressInProgressMessage = l10n.t(
+        "Importing the selected connection groups and connections. This may take a few moments.",
+    );
+    public static importProgressSuccessMessage = l10n.t(
+        "Import complete. You can close this dialog.",
+    );
+    public static importProgressErrorMessage = (error: string) =>
+        l10n.t({
+            message: "Import failed: {0}",
+            args: [error],
+            comment: ["{0} is the error message returned from the import helper."],
+        });
 }
 
 export class Changelog {

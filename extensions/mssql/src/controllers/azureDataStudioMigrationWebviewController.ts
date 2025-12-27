@@ -17,8 +17,10 @@ import {
     EntraAccountOption,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
-    MigrationStatus,
     EntraSignInDialogProps,
+    ImportProgressDialogProps,
+    MigrationStatus,
+    ImportWarningDialogProps,
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
@@ -34,6 +36,7 @@ import { IAccount } from "vscode-mssql";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import * as interfaces from "../models/interfaces";
 import { ConnectionStore } from "../models/connectionStore";
+import { ApiStatus, Status } from "../sharedInterfaces/webview";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
@@ -157,7 +160,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 originalEntraAccount: connection.profile.user || "",
                 originalEntraTenantId: connection.profile.tenantId || "",
                 entraAuthAccounts: accountOptions,
-            };
+            } as EntraSignInDialogProps;
 
             return state;
         });
@@ -304,7 +307,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 state.dialog = {
                     type: "importWarning",
                     warnings: warnings,
-                };
+                } as ImportWarningDialogProps;
                 return state;
             }
 
@@ -330,6 +333,15 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         );
         const selectedConnections = state.connections.filter((connection) => connection.selected);
 
+        state.dialog = {
+            type: "importProgress",
+            status: {
+                status: ApiStatus.Loading,
+            },
+        } as ImportProgressDialogProps;
+
+        this.updateState(state);
+
         sendActionEvent(
             TelemetryViews.AzureDataStudioMigration,
             TelemetryActions.ImportConfig,
@@ -340,50 +352,81 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             },
         );
 
-        const validGroupIds = new Set<string>([
-            ...this._existingGroupIds,
-            ...selectedGroups.keys(),
-        ]);
+        try {
+            const validGroupIds = new Set<string>([
+                ...this._existingGroupIds,
+                ...selectedGroups.keys(),
+            ]);
 
-        for (const group of selectedGroups.values()) {
-            const groupToAdd: interfaces.IConnectionGroup = {
-                ...group.group,
-                configSource: vscode.ConfigurationTarget.Global,
-            };
+            for (const group of selectedGroups.values()) {
+                const groupToAdd: interfaces.IConnectionGroup = {
+                    ...group.group,
+                    configSource: vscode.ConfigurationTarget.Global,
+                };
 
-            if (!validGroupIds.has(groupToAdd.parentId)) {
-                groupToAdd.parentId = ConnectionConfig.ROOT_GROUP_ID;
-            }
-
-            await this.connectionConfig.addGroup(groupToAdd);
-        }
-
-        for (const connection of selectedConnections) {
-            const connectionToAdd: interfaces.IConnectionProfile = {
-                ...connection.profile,
-                configSource: vscode.ConfigurationTarget.Global,
-            } as interfaces.IConnectionProfile;
-
-            // use root group for connections with invalid group IDs
-            if (!validGroupIds.has(connectionToAdd.groupId)) {
-                connectionToAdd.groupId = ConnectionConfig.ROOT_GROUP_ID;
-            }
-
-            // add email for AzureMFA connections
-            if (connectionToAdd.authenticationType === AuthenticationType.AzureMFA) {
-                const entraAccount = this._entraAuthAccounts.find(
-                    (acct) => acct.key.id === connectionToAdd.accountId,
-                );
-
-                if (entraAccount) {
-                    connectionToAdd.email = entraAccount.displayInfo.email || "";
+                if (!validGroupIds.has(groupToAdd.parentId)) {
+                    groupToAdd.parentId = ConnectionConfig.ROOT_GROUP_ID;
                 }
+
+                await this.connectionConfig.addGroup(groupToAdd);
             }
 
-            await this.connectionStore.saveProfile(connectionToAdd);
-        }
+            for (const connection of selectedConnections) {
+                const connectionToAdd: interfaces.IConnectionProfile = {
+                    ...connection.profile,
+                    configSource: vscode.ConfigurationTarget.Global,
+                } as interfaces.IConnectionProfile;
 
-        this.state.dialog = undefined;
+                // use root group for connections with invalid group IDs
+                if (!validGroupIds.has(connectionToAdd.groupId)) {
+                    connectionToAdd.groupId = ConnectionConfig.ROOT_GROUP_ID;
+                }
+
+                // add email for AzureMFA connections
+                if (connectionToAdd.authenticationType === AuthenticationType.AzureMFA) {
+                    const entraAccount = this._entraAuthAccounts.find(
+                        (acct) => acct.key.id === connectionToAdd.accountId,
+                    );
+
+                    if (entraAccount) {
+                        connectionToAdd.email = entraAccount.displayInfo.email || "";
+                    }
+                }
+
+                await this.connectionStore.saveProfile(connectionToAdd);
+            }
+
+            state.dialog = {
+                type: "importProgress",
+                status: {
+                    status: ApiStatus.Loaded,
+                    message: AzureDataStudioMigration.importProgressSuccessMessage,
+                },
+            } as ImportProgressDialogProps;
+        } catch (err) {
+            this.state.dialog = {
+                status: {
+                    status: ApiStatus.Error,
+                    message: AzureDataStudioMigration.importProgressErrorMessage(
+                        getErrorMessage(err),
+                    ),
+                },
+            } as ImportProgressDialogProps;
+
+            sendErrorEvent(
+                TelemetryViews.AzureDataStudioMigration,
+                TelemetryActions.ImportConfig,
+                err,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    connectionCount: selectedConnections.length,
+                    groupCount: selectedGroups.size,
+                },
+            );
+        }
     }
 
     private async loadAdsConfigFromDefaultPath(): Promise<void> {

@@ -6,6 +6,7 @@
 import { RequestType } from "vscode-jsonrpc/browser";
 import { IConnectionDialogProfile } from "./connectionDialog";
 import { IConnectionGroup } from "./connectionGroup";
+import { Status } from "./webview";
 
 export enum MigrationStatus {
     NeedsAttention = "needsAttention",
@@ -39,7 +40,11 @@ export interface EntraAccountOption {
     tenants: EntraAccountTenantOption[];
 }
 
-export interface EntraSignInDialogProps {
+export interface IDialogProps {
+    type: "entraSignIn" | "importWarning" | "importProgress";
+}
+
+export interface EntraSignInDialogProps extends IDialogProps {
     type: "entraSignIn";
     connectionId: string;
     originalEntraAccount: string;
@@ -47,18 +52,21 @@ export interface EntraSignInDialogProps {
     entraAuthAccounts: EntraAccountOption[];
 }
 
-export interface ImportWarningDialogProps {
+export interface ImportWarningDialogProps extends IDialogProps {
     type: "importWarning";
     warnings: string[];
 }
 
-export type AzureDataStudioMigrationDialogProps = EntraSignInDialogProps | ImportWarningDialogProps;
+export interface ImportProgressDialogProps extends IDialogProps {
+    type: "importProgress";
+    status: Status;
+}
 
 export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
-    dialog?: AzureDataStudioMigrationDialogProps;
+    dialog?: IDialogProps;
 }
 
 export interface AzureDataStudioMigrationReducers {
