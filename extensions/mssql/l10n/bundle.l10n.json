@@ -1009,7 +1009,7 @@
     "Enter the SQL Login username.": "Enter the SQL Login username.",
     "Sign into additional accounts": "Sign into additional accounts",
     "Select account": "Select account",
-    "Sign in to Microsoft Entra ID": "Sign in to Microsoft Entra ID",
+    "Select an account for authentication": "Select an account for authentication",
     "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.": "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
     "Highlights": "Highlights",
     "Resources": "Resources",

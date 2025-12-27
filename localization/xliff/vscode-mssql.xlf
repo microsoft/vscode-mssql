@@ -3659,6 +3659,9 @@
     <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
       <source xml:lang="en">Select an account</source>
     </trans-unit>
+    <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
+      <source xml:lang="en">Select an account for authentication</source>
+    </trans-unit>
     <trans-unit id="++CODE++e83c8e96d0ed1feda2ab19df33f4397b32278187b803581eb704d7485ed34c53">
       <source xml:lang="en">Select an authentication action</source>
     </trans-unit>
@@ -3811,9 +3814,6 @@
     </trans-unit>
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
-    </trans-unit>
-    <trans-unit id="++CODE++05979684596d5117b4a6241fb625976197e0e892b1280ff12be7bd5e51d9972a">
-      <source xml:lang="en">Sign in to Microsoft Entra ID</source>
     </trans-unit>
     <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
       <source xml:lang="en">Sign in to a new account</source>
