@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
-
+import { expect } from "chai";
 import ConfigUtils from "../../src/configurations/configUtils";
 
 suite("Config Tests", () => {
@@ -12,7 +11,7 @@ suite("Config Tests", () => {
         return new Promise((resolve, reject) => {
             let config = new ConfigUtils();
             let serviceDownloawUrl = config.getSqlToolsServiceDownloadUrl;
-            assert.notEqual(serviceDownloawUrl, undefined);
+            expect(serviceDownloawUrl).to.not.be.undefined;
             done();
         });
     });

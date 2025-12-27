@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { expect } from "chai";
 import * as Extension from "../../src/extension";
-import * as assert from "assert";
 
 import MainController from "../../src/controllers/mainController";
 import { activateExtension } from "./utils";
@@ -15,6 +15,6 @@ suite("Initialization Tests", () => {
         await activateExtension();
         let controller: MainController = await Extension.getController();
         let connectionManager: ConnectionManager = controller.connectionManager;
-        assert.notStrictEqual(undefined, connectionManager);
+        expect(connectionManager).to.not.be.undefined;
     });
 });

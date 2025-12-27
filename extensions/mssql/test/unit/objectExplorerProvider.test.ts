@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
@@ -403,7 +403,7 @@ suite("Object Explorer Provider Tests", function () {
             "test_session",
         );
         const treeItem = objectExplorerProvider.getTreeItem(node);
-        assert.equal(treeItem, node);
+        expect(treeItem).to.equal(node);
     });
 
     // TODO: Readd these test
@@ -466,9 +466,9 @@ suite("Object Explorer Provider Tests", function () {
     //     notificationObject.call(testOeService, mockExpandResponse);
 
     //     const childNodes = await outputPromise;
-    //     assert.equal(childNodes.length, 1, "Child nodes length");
-    //     assert.equal(childNodes[0].label, childNodeInfo.label, "Child node label");
-    //     assert.equal(childNodes[0].nodePath, childNodeInfo.nodePath, "Child node path");
+    //     expect(childNodes.length, "Child nodes length").to.equal(1);
+    //     expect(childNodes[0].label, "Child node label").to.equal(childNodeInfo.label);
+    //     expect(childNodes[0].nodePath, "Child node path").to.equal(childNodeInfo.nodePath);
     // });
 
     // test("Test handleExpandSessionNotification returns message node upon failure", async function () {
@@ -514,13 +514,14 @@ suite("Object Explorer Provider Tests", function () {
     //         TypeMoq.Times.once(),
     //     );
 
-    //     assert.equal(childNodes.length, 1, "Child nodes length");
-    //     assert.equal(
+    //     expect(childNodes.length, "Child nodes length").to.equal(1);
+    //     expect(
     //         childNodes[0].label,
-    //         "Error loading; refresh to try again",
     //         "Error node label",
+    //     ).to.equal("Error loading; refresh to try again");
+    //     expect(childNodes[0].tooltip, "Error node tooltip").to.equal(
+    //         mockExpandResponse.errorMessage,
     //     );
-    //     assert.equal(childNodes[0].tooltip, mockExpandResponse.errorMessage, "Error node tooltip");
     // });
 
     // test("Test signInNode function", () => {

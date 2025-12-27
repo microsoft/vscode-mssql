@@ -3,10 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import ListPrompt from "../../src/prompts/list";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubVscodeWrapper } from "./utils";
+
+chai.use(sinonChai);
 
 suite("List Prompt Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -32,8 +37,7 @@ suite("List Prompt Tests", () => {
         const listPrompt = new ListPrompt(question, vscodeWrapper);
         await listPrompt.render();
 
-        sinon.assert.calledOnceWithExactly(
-            vscodeWrapper.showQuickPickStrings,
+        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnceWithExactly(
             sinon.match.array,
             sinon.match.object,
         );
@@ -45,6 +49,6 @@ suite("List Prompt Tests", () => {
         errorWrapper.showQuickPickStrings.resolves(undefined);
         const errorPrompt = new ListPrompt(question, errorWrapper);
         await errorPrompt.render();
-        sinon.assert.calledOnce(errorWrapper.showQuickPickStrings);
+        expect(errorWrapper.showQuickPickStrings).to.have.been.calledOnce;
     });
 });

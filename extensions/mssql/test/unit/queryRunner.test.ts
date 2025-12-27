@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
@@ -89,7 +88,7 @@ suite("Query Runner tests", () => {
 
     test("Constructs properly", () => {
         let queryRunner = createQueryRunner("", "");
-        assert.equal(typeof queryRunner !== undefined, true);
+        expect(queryRunner).to.not.be.undefined;
     });
 
     test("Handles Query Request Result Properly", async () => {
@@ -126,8 +125,8 @@ suite("Query Runner tests", () => {
         expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
-        assert.equal(queryRunner.isExecutingQuery, true);
-        assert.equal(queryRunner.totalElapsedMilliseconds, 0);
+        expect(queryRunner.isExecutingQuery).to.equal(true);
+        expect(queryRunner.totalElapsedMilliseconds).to.equal(0);
     });
 
     test("Handles Query Request Error Properly", async () => {
@@ -159,16 +158,15 @@ suite("Query Runner tests", () => {
         try {
             await queryRunner.runQuery(standardSelection);
             // If we reach here, the test should fail because we expected an error
-            assert.fail("Expected runQuery to throw an error");
+            expect.fail("Expected runQuery to throw an error");
         } catch (error) {
             // Then:
             // ... The view status should have started and stopped
             expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
-
             // ... The query runner should not be running a query
-            assert.strictEqual(queryRunner.isExecutingQuery, false);
+            expect(queryRunner.isExecutingQuery).to.equal(false);
         }
     });
 
@@ -198,8 +196,8 @@ suite("Query Runner tests", () => {
         queryRunner.handleBatchStart(batchStart);
 
         // Then: It should store the batch, messages and emit a batch start
-        assert.equal(queryRunner.batchSets.indexOf(batchStart.batchSummary), 0);
-        assert.ok(queryRunner.batchSetMessages[batchStart.batchSummary.id]);
+        expect(queryRunner.batchSets.indexOf(batchStart.batchSummary)).to.equal(0);
+        expect(queryRunner.batchSetMessages[batchStart.batchSummary.id]).to.be.ok;
     });
 
     function testBatchCompleteNotification(sendBatchTime: boolean): void {
@@ -250,25 +248,23 @@ suite("Query Runner tests", () => {
         queryRunner.handleBatchComplete(batchComplete);
 
         // Then: It should the remainder of the information and emit a batch complete notification
-        assert.equal(queryRunner.batchSets.length, 1);
+        expect(queryRunner.batchSets.length).to.equal(1);
         let storedBatch = queryRunner.batchSets[0];
-        assert.equal(storedBatch.executionElapsed, elapsedTimeString);
-        assert.equal(
-            typeof storedBatch.executionEnd,
+        expect(storedBatch.executionElapsed).to.equal(elapsedTimeString);
+        expect(typeof storedBatch.executionEnd).to.equal(
             typeof batchComplete.batchSummary.executionEnd,
         );
-        assert.equal(
-            typeof storedBatch.executionStart,
+        expect(typeof storedBatch.executionStart).to.equal(
             typeof batchComplete.batchSummary.executionStart,
         );
-        assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
+        expect(storedBatch.hasError).to.equal(batchComplete.batchSummary.hasError);
 
         // ... Messages should be empty since batch time messages are stored separately
-        assert.equal(queryRunner.batchSetMessages[queryRunner.batchSets[0].id].length, 0);
+        expect(queryRunner.batchSetMessages[queryRunner.batchSets[0].id].length).to.equal(0);
 
         // ... Result sets should not be set by the batch complete notification
-        assert.equal(typeof storedBatch.resultSetSummaries, typeof []);
-        assert.equal(storedBatch.resultSetSummaries.length, 0);
+        expect(typeof storedBatch.resultSetSummaries).to.equal(typeof []);
+        expect(storedBatch.resultSetSummaries.length).to.equal(0);
     }
 
     test("Notification - Batch Complete no message", () => {
@@ -311,9 +307,8 @@ suite("Query Runner tests", () => {
 
         // Then:
         // ... The pre-existing batch should contain the result set we got back
-        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 1);
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[0],
+        expect(queryRunner.batchSets[0].resultSetSummaries.length).to.equal(1);
+        expect(queryRunner.batchSets[0].resultSetSummaries[0]).to.equal(
             resultSetComplete.resultSetSummary,
         );
     });
@@ -364,13 +359,11 @@ suite("Query Runner tests", () => {
 
         // Then:
         // ... There should be two results in the batch summary
-        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 2);
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[0],
+        expect(queryRunner.batchSets[0].resultSetSummaries.length).to.equal(2);
+        expect(queryRunner.batchSets[0].resultSetSummaries[0]).to.equal(
             resultSetComplete1.resultSetSummary,
         );
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[1],
+        expect(queryRunner.batchSets[0].resultSetSummaries[1]).to.equal(
             resultSetComplete2.resultSetSummary,
         );
     });
@@ -398,7 +391,7 @@ suite("Query Runner tests", () => {
         queryRunner.handleMessage(message);
 
         // ... Result set message cache contains one entry
-        assert.equal(queryRunner.batchSetMessages[message.message.batchId].length, 1);
+        expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
     test("Notification - Query complete", () => {
@@ -434,8 +427,8 @@ suite("Query Runner tests", () => {
         expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
-        assert.equal(queryRunner.batchSets.length, 1);
-        assert.equal(queryRunner.isExecutingQuery, false);
+        expect(queryRunner.batchSets.length).to.equal(1);
+        expect(queryRunner.isExecutingQuery).to.equal(false);
     });
 
     test("Correctly handles subset", async () => {
@@ -476,7 +469,7 @@ suite("Query Runner tests", () => {
         queryRunner.uri = testuri;
 
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        assert.equal(result, testresult);
+        expect(result).to.equal(testresult);
     });
 
     test("Correctly handles error from subset request", async () => {
@@ -815,11 +808,11 @@ function setupStandardQueryRequestServiceMock(
     testSqlToolsServerClient.sendRequest
         .withArgs(QueryExecuteContracts.QueryExecuteRequest.type, sinon.match.object)
         .callsFake((_type, details: QueryExecuteParams) => {
-            assert.equal(details.ownerUri, standardUri);
-            assert.equal(details.querySelection.startLine, standardSelection.startLine);
-            assert.equal(details.querySelection.startColumn, standardSelection.startColumn);
-            assert.equal(details.querySelection.endLine, standardSelection.endLine);
-            assert.equal(details.querySelection.endColumn, standardSelection.endColumn);
+            expect(details.ownerUri).to.equal(standardUri);
+            expect(details.querySelection.startLine).to.equal(standardSelection.startLine);
+            expect(details.querySelection.startColumn).to.equal(standardSelection.startColumn);
+            expect(details.querySelection.endLine).to.equal(standardSelection.endLine);
+            expect(details.querySelection.endColumn).to.equal(standardSelection.endColumn);
             return returnCallback(_type, details);
         });
 }
@@ -828,6 +821,6 @@ function setupStandardQueryNotificationHandlerMock(
     testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>,
 ): void {
     testQueryNotificationHandler.registerRunner.callsFake((_qr, uri: string) => {
-        assert.equal(uri, standardUri);
+        expect(uri).to.equal(standardUri);
     });
 }
