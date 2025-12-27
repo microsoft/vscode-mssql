@@ -97,8 +97,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     }
 
     private async initialize() {
-        await this.loadAdsConfigFromDefaultPath();
         await this.loadEntraAuthAccounts();
+        await this.loadAdsConfigFromDefaultPath();
     }
 
     private registerHandlers() {
