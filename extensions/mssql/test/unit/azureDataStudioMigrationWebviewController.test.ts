@@ -108,6 +108,17 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         );
     }
 
+    function getControllerInternals() {
+        return controller as unknown as {
+            loadSettingsFromFile: (filePath: string) => Promise<void>;
+            importHelper: (state: AzureDataStudioMigrationWebviewState) => Promise<void>;
+            updateConnectionStatus: (connection: AdsMigrationConnection) => AdsMigrationConnection;
+            _entraAuthAccounts: IAccount[];
+            _existingGroupIds: Set<string>;
+            _existingConnectionIds: Set<string>;
+        };
+    }
+
     test("loadSettingsFromFile reads ADS config and updates state with parsed objects", async () => {
         const settingsPath = "C:\\temp\\settings.json";
         const adsSettings = JSON.stringify({
@@ -120,7 +131,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     id: "integrated-conn",
                     options: {
                         providerName: "mssql",
-                        connectionName: "Integrated Connection",
+                        profileName: "Integrated Connection",
                         server: "server-one",
                         authenticationType: AuthenticationType.Integrated,
                         groupId: "group-1",
@@ -130,7 +141,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     id: "existing-conn",
                     options: {
                         providerName: "mssql",
-                        connectionName: "Existing Connection",
+                        profileName: "Existing Connection",
                         server: "server-two",
                         authenticationType: AuthenticationType.SqlLogin,
                         user: "sqlUser",
@@ -195,6 +206,48 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             secondConnection.statusMessage,
             "Status message should mention the duplicate connection id",
         ).to.include("existing-conn");
+    });
+
+    test("loadSettingsFromFile preserves additional connection options", async () => {
+        const settingsPath = "C:\\temp\\full-settings.json";
+        const adsSettings = JSON.stringify({
+            "datasource.connectionGroups": [],
+            "datasource.connections": [
+                {
+                    id: "full-conn",
+                    savePassword: true,
+                    groupId: "ads-group",
+                    options: {
+                        providerName: "mssql",
+                        profileName: "Full Connection",
+                        server: "server-full",
+                        database: "full-db",
+                        encrypt: "Mandatory",
+                        trustServerCertificate: true,
+                        commandTimeout: 45,
+                        authenticationType: AuthenticationType.AzureMFA,
+                        accountId: "acct-full",
+                        tenantId: "tenant-full",
+                    },
+                },
+            ],
+        });
+
+        connectionConfigStub.getConnections.resolves([]);
+        connectionConfigStub.getGroups.resolves([]);
+        sandbox.stub(fs, "readFile").resolves(adsSettings);
+
+        await getControllerInternals().loadSettingsFromFile(settingsPath);
+
+        const [connection] = controller.state.connections;
+        expect(connection.profile.profileName).to.equal("Full Connection");
+        expect(connection.profile.encrypt).to.equal("Mandatory");
+        expect(connection.profile.commandTimeout).to.equal(45);
+        expect(connection.profile.trustServerCertificate).to.be.true;
+        expect(connection.profile.accountId).to.equal("acct-full");
+        expect(connection.profile.tenantId).to.equal("tenant-full");
+        expect(connection.profile.savePassword).to.be.true;
+        expect(connection.profile.groupId).to.equal("ads-group");
     });
 
     test("importHelper saves selected groups and connections", async () => {

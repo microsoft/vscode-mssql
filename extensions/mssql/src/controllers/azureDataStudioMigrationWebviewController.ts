@@ -668,8 +668,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         }
 
         const record = candidate as Record<string, unknown>;
-        const id = this.getString(record, ["id", "groupId"]);
-        const name = this.getString(record, ["name", "groupName"]);
+        const id = this.getStringValue(record, "id") ?? this.getStringValue(record, "groupId");
+        const name =
+            this.getStringValue(record, "name") ?? this.getStringValue(record, "groupName");
         if (!id || !name) {
             return undefined;
         }
@@ -677,9 +678,9 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         const group: IConnectionGroup = {
             id,
             name,
-            parentId: this.getString(record, ["parentId"]),
-            color: this.getString(record, ["color"]),
-            description: this.getString(record, ["description"]),
+            parentId: this.getStringValue(record, "parentId"),
+            color: this.getStringValue(record, "color"),
+            description: this.getStringValue(record, "description"),
         };
 
         return group;
@@ -707,75 +708,100 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         }
 
         const record = candidate as Record<string, unknown>;
-        const providerName =
-            this.getString(record, ["providerName"]) ??
-            this.getString(record.options as Record<string, unknown> | undefined, ["providerName"]);
-        if (providerName && providerName.toLowerCase() !== "mssql") {
-            return undefined;
-        }
-
         const options =
             typeof record.options === "object" && record.options
                 ? (record.options as Record<string, unknown>)
                 : record;
 
-        const server = this.getString(options, ["server"]) ?? "";
-        const authenticationType =
-            this.getString(options, ["authenticationType", "authType"]) ??
-            AuthenticationType.SqlLogin;
-        const database = this.getString(options, ["database"]) ?? "";
-        const user = this.getString(options, ["user", "userName"]) ?? "";
-        const profileName = this.getString(options, ["connectionName", "name", "profileName"]);
-
-        const azureAuthAccountId = this.getString(options, ["azureAccount"]);
-        const azureAuthTenantId = this.getString(options, ["azureTenantId"]);
-
-        // TODO: clean up all this stuff.  Fallbacks aren't necessary.
-        const fallbackId =
-            this.getString(record, ["id", "connectionId"]) ??
-            profileName ??
-            (server ||
-                `ads-import-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+        const providerNameValue =
+            this.getStringValue(options, "providerName") ??
+            this.getStringValue(record, "providerName");
+        if (providerNameValue && providerNameValue.toLowerCase() !== "mssql") {
+            return undefined;
+        }
 
         const profile: IConnectionDialogProfile = {
-            profileName,
-            server,
-            database,
-            authenticationType,
-            user,
-            password: "",
-            email: undefined,
-            accountId: azureAuthAccountId,
-            tenantId: azureAuthTenantId,
-            port: typeof options.port === "number" ? options.port : 0,
-            groupId:
-                this.getString(record, ["groupId", "groupIdName", "group"]) ??
-                this.getString(options, ["groupId"]) ??
-                "",
-            azureAuthType: undefined,
-            savePassword: Boolean(record.savePassword),
-            emptyPasswordInput: false,
-            id: fallbackId,
-            trustServerCertificate: Boolean(options.trustServerCertificate),
-        } as IConnectionDialogProfile;
+            ...(options as Record<string, unknown>),
+        } as unknown as IConnectionDialogProfile;
+
+        // overrides from the top-level ADS record
+        profile.id = this.getStringValue(record, "id");
+        profile.groupId = this.getStringValue(record, "groupId");
+        profile.savePassword = this.getBooleanValue(record, "savePassword");
+
+        // overrides from the ADS options
+        profile.profileName = this.getStringValue(options, "connectionName");
+        profile.port = this.getNumberValue(options, "port", undefined /* defaultValue */);
+        profile.emptyPasswordInput = this.getBooleanValue(options, "emptyPasswordInput");
+        profile.trustServerCertificate = this.getBooleanValue(
+            options,
+            "trustServerCertificate",
+            true, // defaultValue
+        );
+
+        // additional overrides for Entra authentication
+        profile.accountId = this.getStringValue(options, "azureAccount");
+        profile.tenantId = this.getStringValue(options, "azureTenantId");
+
+        // additional cleanup for property names that differ between MSSQL and ADS
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        delete (profile as any).connectionName;
+        delete (profile as any).azureTenantId;
+        delete (profile as any).azureAccount;
+        delete (profile as any).databaseDisplayName;
+        /* eslint-enable @typescript-eslint/no-explicit-any */
 
         return profile;
     }
 
-    private getString(
+    private getStringValue(
         source: Record<string, unknown> | undefined,
-        keys: string[],
+        property: string,
+        defaultValue: string = "",
     ): string | undefined {
         if (!source) {
-            return undefined;
+            return defaultValue;
         }
-        for (const key of keys) {
-            const value = source[key];
-            if (typeof value === "string" && value.trim().length > 0) {
-                return value;
-            }
+        const value = source[property];
+        if (typeof value === "string") {
+            return value;
         }
-        return undefined;
+
+        return defaultValue;
+    }
+
+    private getNumberValue(
+        source: Record<string, unknown> | undefined,
+        property: string,
+        defaultValue: number,
+    ): number | undefined {
+        if (!source) {
+            return defaultValue;
+        }
+        const value = source[property];
+        if (typeof value === "number") {
+            return value;
+        }
+
+        return defaultValue;
+    }
+
+    private getBooleanValue(
+        source: Record<string, unknown> | undefined,
+        property: string,
+        defaultValue: boolean = false,
+    ): boolean {
+        if (!source) {
+            return defaultValue;
+        }
+        const value = source[property];
+        if (typeof value === "boolean") {
+            return value;
+        } else if (typeof value === "string") {
+            return value.toLowerCase() === "true";
+        }
+
+        return defaultValue;
     }
 
     private async loadExistingConfigItems(): Promise<void> {
