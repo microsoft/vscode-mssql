@@ -36,7 +36,7 @@ import { IAccount } from "vscode-mssql";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import * as interfaces from "../models/interfaces";
 import { ConnectionStore } from "../models/connectionStore";
-import { ApiStatus, Status } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../sharedInterfaces/webview";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",

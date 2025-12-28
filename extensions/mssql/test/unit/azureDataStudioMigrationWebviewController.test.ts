@@ -21,14 +21,12 @@ import {
     stubTelemetry,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
-    stubWebviewPanel,
     stubExtensionContext,
 } from "./utils";
 import { Logger } from "../../src/models/logger";
 import * as utils from "../../src/utils/utils";
 import { AzureDataStudioMigration } from "../../src/constants/locConstants";
 import {
-    AdsMigrationConnection,
     AzureDataStudioMigrationWebviewState,
     ImportProgressDialogProps,
     MigrationStatus,
@@ -51,8 +49,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
     let connectionConfigStub: sinon.SinonStubbedInstance<ConnectionConfig>;
     let azureAccountServiceStub: sinon.SinonStubbedInstance<AzureAccountService>;
     let controller: AzureDataStudioMigrationWebviewController;
-    let panelStub: vscode.WebviewPanel;
-    let createWebviewPanelStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -79,11 +75,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         sandbox
             .stub(jsonRpc, "createMessageConnection")
             .returns(rpc.connection as unknown as jsonRpc.MessageConnection);
-
-        panelStub = stubWebviewPanel(sandbox);
-        createWebviewPanelStub = sandbox
-            .stub(vscode.window, "createWebviewPanel")
-            .returns(panelStub);
 
         mockContext = stubExtensionContext(sandbox);
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
@@ -115,17 +106,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             connectionConfigStub,
             azureAccountServiceStub,
         );
-    }
-
-    function getControllerInternals() {
-        return controller as unknown as {
-            loadSettingsFromFile: (filePath: string) => Promise<void>;
-            importHelper: (state: AzureDataStudioMigrationWebviewState) => Promise<void>;
-            updateConnectionStatus: (connection: AdsMigrationConnection) => AdsMigrationConnection;
-            _entraAuthAccounts: IAccount[];
-            _existingGroupIds: Set<string>;
-            _existingConnectionIds: Set<string>;
-        };
     }
 
     test("loadSettingsFromFile reads ADS config and updates state with parsed objects", async () => {
@@ -166,40 +146,60 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             ],
         });
 
+        sandbox.stub(fs, "readFile").resolves(adsSettings);
         connectionConfigStub.getConnections.resolves([
             { id: "existing-conn" } as interfaces.IConnectionProfile,
         ]);
         connectionConfigStub.getGroups.resolves([]);
-        sandbox.stub(fs, "readFile").resolves(adsSettings);
 
-        await getControllerInternals().loadSettingsFromFile(settingsPath);
+        await controller["loadSettingsFromFile"](settingsPath);
 
-        expect(createWebviewPanelStub).to.have.been.calledOnce;
-        expect(controller.state.adsConfigPath).to.equal(settingsPath);
+        expect(
+            controller.state.adsConfigPath,
+            "ADS config path should reflect loaded file",
+        ).to.equal(settingsPath);
 
-        expect(controller.state.connectionGroups).to.have.lengthOf(1);
+        expect(
+            controller.state.connectionGroups,
+            "Only non-root ADS groups should be tracked",
+        ).to.have.lengthOf(1);
         const [group] = controller.state.connectionGroups;
-        expect(group.group.id).to.equal("group-1");
-        expect(group.status).to.equal(MigrationStatus.Ready);
-        expect(group.selected).to.be.true;
+        expect(group.group.id, "Group id should match ADS payload").to.equal("group-1");
+        expect(group.status, "Group import status should be ready").to.equal(MigrationStatus.Ready);
+        expect(group.selected, "Ready group should be automatically selected").to.be.true;
 
-        expect(controller.state.connections).to.have.lengthOf(2);
+        expect(
+            controller.state.connections,
+            "Non-MSSQL connections should be filtered out",
+        ).to.have.lengthOf(2);
         const firstConnection = controller.state.connections[0];
-        expect(firstConnection.profile.id).to.equal("integrated-conn");
-        expect(firstConnection.status).to.equal(MigrationStatus.Ready);
-        expect(firstConnection.selected).to.be.true;
+        expect(firstConnection.profile.id, "Connection id should match ADS payload").to.equal(
+            "integrated-conn",
+        );
+        expect(firstConnection.status, "Integrated connection should be ready").to.equal(
+            MigrationStatus.Ready,
+        );
+        expect(firstConnection.selected, "Ready connection should be selected").to.be.true;
 
         const secondConnection = controller.state.connections[1];
-        expect(secondConnection.profile.id).to.equal("existing-conn");
-        expect(secondConnection.status).to.equal(MigrationStatus.AlreadyImported);
-        expect(secondConnection.selected).to.be.false;
-        expect(secondConnection.statusMessage).to.include("existing-conn");
+        expect(secondConnection.profile.id, "Existing id should be preserved").to.equal(
+            "existing-conn",
+        );
+        expect(
+            secondConnection.status,
+            "Existing connection ids should emit AlreadyImported status",
+        ).to.equal(MigrationStatus.AlreadyImported);
+        expect(secondConnection.selected, "Already imported connection should be unselected").to.be
+            .false;
+        expect(
+            secondConnection.statusMessage,
+            "Status message should mention the duplicate connection id",
+        ).to.include("existing-conn");
     });
 
-    test("importHelper saves selected groups and connections with expected defaults", async () => {
-        const internalController = getControllerInternals();
-        internalController._existingGroupIds = new Set(["existing-group"]);
-        internalController._entraAuthAccounts = [
+    test("importHelper saves selected groups and connections", async () => {
+        controller["_existingGroupIds"] = new Set(["existing-group"]);
+        controller["_entraAuthAccounts"] = [
             {
                 key: { id: "acct-1" } as IAccount["key"],
                 displayInfo: {
@@ -276,42 +276,58 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             dialog: undefined,
         };
 
-        await internalController.importHelper(state);
+        await controller["importHelper"](state);
 
-        expect(connectionConfigStub.addGroup).to.have.been.calledOnce;
+        expect(connectionConfigStub.addGroup, "Only selected groups should be persisted").to.have
+            .been.calledOnce;
         const addedGroup = connectionConfigStub.addGroup.getCall(0).args[0];
-        expect(addedGroup.parentId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
-        expect(addedGroup.configSource).to.equal(vscode.ConfigurationTarget.Global);
+        expect(addedGroup.parentId, "Missing parents should fall back to root group").to.equal(
+            ConnectionConfig.ROOT_GROUP_ID,
+        );
+        expect(addedGroup.configSource, "Imported groups should target global scope").to.equal(
+            vscode.ConfigurationTarget.Global,
+        );
 
-        expect(connectionStoreStub.saveProfile).to.have.been.calledTwice;
+        expect(connectionStoreStub.saveProfile, "Only selected connections should be added").to.have
+            .been.calledTwice;
         const savedProfiles = connectionStoreStub.saveProfile
             .getCalls()
             .map((call) => call.args[0] as IConnectionDialogProfile);
 
         const expectedSave = savedProfiles.find((profile) => profile.id === "connection-one");
-        expect(expectedSave?.groupId).to.equal("group-to-import");
-        expect(expectedSave as interfaces.IConnectionProfile).to.equal(
-            vscode.ConfigurationTarget.Global,
+        expect(expectedSave?.groupId, "Integrated connection should keep selected group").to.equal(
+            "group-to-import",
         );
+        expect(
+            (expectedSave as interfaces.IConnectionProfile)?.configSource,
+            "Imported connection should target global scope",
+        ).to.equal(vscode.ConfigurationTarget.Global);
 
         const azureSave = savedProfiles.find(
             (profile) => profile.authenticationType === AuthenticationType.AzureMFA,
         );
-        expect(azureSave?.groupId).to.equal(ConnectionConfig.ROOT_GROUP_ID);
+        expect(
+            azureSave?.groupId,
+            "Connections referencing invalid groups should default to root",
+        ).to.equal(ConnectionConfig.ROOT_GROUP_ID);
 
         const dialog = controller.state.dialog as ImportProgressDialogProps;
 
-        expect(dialog.type).to.equal("importProgress");
-        expect(dialog.status.status).to.equal(ApiStatus.Loaded);
-        expect(dialog.status.message).to.equal(
-            AzureDataStudioMigration.importProgressSuccessMessage,
+        expect(dialog.type, "Import helper should surface progress dialog").to.equal(
+            "importProgress",
         );
+        expect(dialog.status.status, "Successful import should flip the dialog to loaded").to.equal(
+            ApiStatus.Loaded,
+        );
+        expect(
+            dialog.status.message,
+            "Success dialog should use localized success message",
+        ).to.equal(AzureDataStudioMigration.importProgressSuccessMessage);
     });
 
     test("updateConnectionStatus reflects sql password and Entra account requirements", () => {
-        const internalController = getControllerInternals();
-        internalController._existingConnectionIds = new Set(["existing-conn"]);
-        internalController._entraAuthAccounts = [
+        controller["_existingConnectionIds"] = new Set(["existing-conn"]);
+        controller["_entraAuthAccounts"] = [
             {
                 key: { id: "acct-1" } as IAccount["key"],
                 displayInfo: {
@@ -324,7 +340,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             } as IAccount,
         ];
 
-        const alreadyImported = internalController.updateConnectionStatus({
+        const alreadyImported = controller["updateConnectionStatus"]({
             profileName: "Existing",
             profile: {
                 id: "existing-conn",
@@ -334,10 +350,14 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             statusMessage: "",
             selected: true,
         });
-        expect(alreadyImported.status).to.equal(MigrationStatus.AlreadyImported);
-        expect(alreadyImported.selected).to.be.false;
+        expect(
+            alreadyImported.status,
+            "Connections with ids already persisted should be marked already imported",
+        ).to.equal(MigrationStatus.AlreadyImported);
+        expect(alreadyImported.selected, "Already imported connection should be deselected").to.be
+            .false;
 
-        const missingPassword = internalController.updateConnectionStatus({
+        const missingPassword = controller["updateConnectionStatus"]({
             profileName: "Sql Login",
             profile: {
                 id: "sql-conn",
@@ -349,13 +369,18 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             statusMessage: "",
             selected: true,
         });
-        expect(missingPassword.status).to.equal(MigrationStatus.NeedsAttention);
-        expect(missingPassword.selected).to.be.false;
-        expect(missingPassword.statusMessage).to.equal(
-            AzureDataStudioMigration.connectionIssueMissingSqlPassword("sqlUser"),
-        );
+        expect(
+            missingPassword.status,
+            "SQL login without password should require user attention",
+        ).to.equal(MigrationStatus.NeedsAttention);
+        expect(missingPassword.selected, "Connections needing attention should be deselected").to.be
+            .false;
+        expect(
+            missingPassword.statusMessage,
+            "Status message should call out the missing SQL password",
+        ).to.equal(AzureDataStudioMigration.connectionIssueMissingSqlPassword("sqlUser"));
 
-        const azureReady = internalController.updateConnectionStatus({
+        const azureReady = controller["updateConnectionStatus"]({
             profileName: "Azure",
             profile: {
                 id: "azure-conn",
@@ -367,8 +392,13 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             statusMessage: "old message",
             selected: false,
         });
-        expect(azureReady.status).to.equal(MigrationStatus.Ready);
-        expect(azureReady.selected).to.be.true;
-        expect(azureReady.statusMessage).to.equal(AzureDataStudioMigration.ConnectionStatusReady);
+        expect(azureReady.status, "Azure connection with valid account should be ready").to.equal(
+            MigrationStatus.Ready,
+        );
+        expect(azureReady.selected, "Ready Azure connection should auto-select").to.be.true;
+        expect(
+            azureReady.statusMessage,
+            "Ready Azure connection should surface the ready message",
+        ).to.equal(AzureDataStudioMigration.ConnectionStatusReady);
     });
 });
