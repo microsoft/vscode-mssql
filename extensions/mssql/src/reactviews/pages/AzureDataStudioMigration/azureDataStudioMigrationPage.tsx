@@ -451,11 +451,12 @@ export const AzureDataStudioMigrationPage = () => {
                                                         className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
                                                         {LocMigration.connectionStatusColumn}
                                                     </TableHeaderCell>
-                                                    <TableHeaderCell className={classes.nameColumn}>
+                                                    <TableHeaderCell
+                                                        className={classes.groupNameColumn}>
                                                         {LocMigration.groupNameColumn}
                                                     </TableHeaderCell>
                                                     <TableHeaderCell
-                                                        className={classes.serverColumn}>
+                                                        className={classes.groupColorColumn}>
                                                         {LocMigration.groupColorColumn}
                                                     </TableHeaderCell>
                                                 </TableRow>
@@ -484,10 +485,12 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 group.statusMessage,
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className={classes.nameColumn}>
+                                                        <TableCell
+                                                            className={classes.groupNameColumn}>
                                                             {group.group.name}
                                                         </TableCell>
-                                                        <TableCell className={classes.serverColumn}>
+                                                        <TableCell
+                                                            className={classes.groupColorColumn}>
                                                             {group.group.color ? (
                                                                 <Tooltip
                                                                     content={LocMigration.groupColorSwatch(
@@ -829,12 +832,14 @@ const useStyles = makeStyles({
     narrowColumn: {
         width: "40px",
         maxWidth: "40px",
+        minWidth: "40px",
         paddingInlineEnd: "4px",
         paddingInlineStart: "4px",
     },
     statusColumnHeader: {
         width: "48px",
         maxWidth: "48px",
+        minWidth: "48px",
     },
     truncatedCell: {
         display: "block",
@@ -861,6 +866,14 @@ const useStyles = makeStyles({
     serverColumn: {
         width: "15%",
         maxWidth: "280px",
+    },
+    groupNameColumn: {
+        width: "auto",
+        maxWidth: "none",
+    },
+    groupColorColumn: {
+        width: "90px",
+        maxWidth: "120px",
     },
     databaseColumn: {
         width: "15%",
