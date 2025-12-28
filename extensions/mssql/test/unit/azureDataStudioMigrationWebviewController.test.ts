@@ -118,8 +118,8 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             "datasource.connections": [
                 {
                     id: "integrated-conn",
+                    providerName: "mssql",
                     options: {
-                        providerName: "mssql",
                         profileName: "Integrated Connection",
                         server: "server-one",
                         authenticationType: AuthenticationType.Integrated,
@@ -128,8 +128,8 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                 },
                 {
                     id: "existing-conn",
+                    providerName: "mssql",
                     options: {
-                        providerName: "mssql",
                         profileName: "Existing Connection",
                         server: "server-two",
                         authenticationType: AuthenticationType.SqlLogin,
@@ -139,9 +139,8 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                 },
                 {
                     id: "non-mssql",
-                    options: {
-                        providerName: "postgres",
-                    },
+                    providerName: "postgres",
+                    options: {},
                 },
             ],
         });
@@ -206,17 +205,17 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     id: "full-conn",
                     savePassword: true,
                     groupId: "ads-group",
+                    providerName: "mssql",
                     options: {
-                        providerName: "mssql",
-                        profileName: "Full Connection",
+                        connectionName: "Full Connection",
                         server: "server-full",
                         database: "full-db",
                         encrypt: "Mandatory",
                         trustServerCertificate: true,
                         commandTimeout: 45,
                         authenticationType: AuthenticationType.AzureMFA,
-                        accountId: "acct-full",
-                        tenantId: "tenant-full",
+                        azureAccount: "acct-full",
+                        azureTenantId: "tenant-full",
                     },
                 },
             ],

@@ -716,9 +716,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 ? (record.options as Record<string, unknown>)
                 : record;
 
-        const providerNameValue =
-            this.getStringValue(options, "providerName") ??
-            this.getStringValue(record, "providerName");
+        const providerNameValue = this.getStringValue(record, "providerName");
         if (providerNameValue && providerNameValue.toLowerCase() !== "mssql") {
             return undefined;
         }
