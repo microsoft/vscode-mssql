@@ -204,6 +204,10 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 selectedTenantId,
             );
 
+            for (const connection of state.connections) {
+                this.updateConnectionStatus(connection);
+            }
+
             return state;
         });
 
