@@ -7,8 +7,9 @@ import {
     Body1,
     Button,
     Checkbox,
+    Field,
+    InfoLabel,
     Input,
-    Label,
     Subtitle2,
     Table,
     TableBody,
@@ -372,32 +373,37 @@ export const AzureDataStudioMigrationPage = () => {
         <div className={classes.root}>
             <div className={classes.layout}>
                 {dialogContent}
-                <div>
+                <div className={classes.header}>
                     <Title3 as="h1">{LocMigration.title}</Title3>
-                    <Body1 className={classes.summaryText}>{LocMigration.subtitle}</Body1>
-                </div>
-                <section className={classes.inputSection}>
-                    <Label htmlFor="ads-config-input">{LocMigration.configInputLabel}</Label>
-                    <Body1 className={classes.summaryText}>
-                        {LocMigration.configInputDescription}
+                    <Body1 as="p" className={`${classes.summaryText} ${classes.headerSubtitle}`}>
+                        {LocMigration.subtitle}
                     </Body1>
-                    <div className={classes.pickerRow}>
-                        <Input
-                            id="ads-config-input"
-                            value={configPath}
-                            onChange={(_, data) => setConfigPath(data.value)}
-                            className={classes.pickerInput}
-                            placeholder={LocMigration.configInputPlaceholder}
-                        />
-                        <Button
-                            type="button"
-                            appearance="secondary"
-                            icon={<FolderOpenRegular />}
-                            onClick={handleBrowseForConfig}>
-                            {LocMigration.browseButton}
-                        </Button>
-                    </div>
-                </section>
+                    <Field
+                        className={classes.configField}
+                        orientation="horizontal"
+                        label={
+                            <InfoLabel info={LocMigration.configInputDescription}>
+                                {LocMigration.configInputLabel}
+                            </InfoLabel>
+                        }>
+                        <div className={classes.pickerRow}>
+                            <Input
+                                id="ads-config-input"
+                                value={configPath}
+                                onChange={(_, data) => setConfigPath(data.value)}
+                                className={classes.pickerInput}
+                                placeholder={LocMigration.configInputPlaceholder}
+                            />
+                            <Button
+                                type="button"
+                                appearance="secondary"
+                                icon={<FolderOpenRegular />}
+                                onClick={handleBrowseForConfig}>
+                                {LocMigration.browseButton}
+                            </Button>
+                        </div>
+                    </Field>
+                </div>
                 <div className={classes.tablesStack}>
                     <section className={classes.tableSection}>
                         <div className={classes.sectionHeader}>
@@ -741,6 +747,19 @@ const useStyles = makeStyles({
         gap: "16px",
         ...shorthands.padding("16px", "24px"),
         boxSizing: "border-box",
+    },
+    header: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+    },
+    headerSubtitle: {
+        margin: 0,
+    },
+    configField: {
+        marginTop: "12px",
+        width: "60%",
+        alignItems: "center",
     },
     inputSection: {
         display: "flex",
