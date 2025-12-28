@@ -76,9 +76,6 @@
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
     </trans-unit>
-    <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
-      <source xml:lang="en">Actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
     </trans-unit>
@@ -122,9 +119,6 @@
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
     </trans-unit>
-    <trans-unit id="++CODE++589922f612097b399a6597809c8e3273fbc4793c160de6a252a66b4855b4aae9">
-      <source xml:lang="en">Add authentication</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
       <note>{0} is the IP address of the client</note>
@@ -167,9 +161,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e47fafe0a1c6f8d6b5c641c5d9cc7ca61e66a1c50bbc3b619c8ff5912444bfa8">
-      <source xml:lang="en">Already imported</source>
     </trans-unit>
     <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
       <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
@@ -931,9 +922,6 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
-    <trans-unit id="++CODE++3fcb7264f090c60f8b1173645c662c2409a5be944d63df1ef160fb3888396bfe">
-      <source xml:lang="en">Connection groups needing attention</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
     </trans-unit>
@@ -1454,14 +1442,8 @@
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
     </trans-unit>
-    <trans-unit id="++CODE++ee9e2da2bd60a5984c5c9f6a2848f9a7efca5615bb2546a40e3555ecf3f6b914">
-      <source xml:lang="en">Enter the SQL Login username.</source>
-    </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5ff29df7348793bb4b4c52f26627e7ec2370d4025382e2d4ee43dfaa5ff7f315">
-      <source xml:lang="en">Enter the server name.</source>
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -2193,9 +2175,6 @@
     <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
       <source xml:lang="en">Importing selections</source>
     </trans-unit>
-    <trans-unit id="++CODE++6c1e72d29277f518c74e3c00fce16ee9ae15086997af8836cb2420a2ba53b52e">
-      <source xml:lang="en">Importing the selected connection groups and connections. This may take a few moments.</source>
-    </trans-unit>
     <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
       <source xml:lang="en">In progress</source>
     </trans-unit>
@@ -2512,8 +2491,8 @@
     <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
       <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
-    <trans-unit id="++CODE++4b84dbc5cfc785c6d8f1fc681ab50ca68873e6edd352bf31111aa646afbb1b88">
-      <source xml:lang="en">Locate the Azure Data Studio settings.json file to import</source>
+    <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
+      <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
     </trans-unit>
     <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
       <source xml:lang="en">Location</source>
@@ -2862,9 +2841,6 @@
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
     </trans-unit>
-    <trans-unit id="++CODE++5fe2851c6d173f8dbda8ae27ebe533054077436c7e34e51bdc2fe718d118c6ea">
-      <source xml:lang="en">Not required</source>
-    </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
     </trans-unit>
@@ -3140,9 +3116,6 @@
     <trans-unit id="++CODE++40040cb181f7f0ee5add2b52e8467c6652477f7ce12af39fe380b5084b64f4fe">
       <source xml:lang="en">Property</source>
     </trans-unit>
-    <trans-unit id="++CODE++49193ac1a2d2c25457fbdbfb509447f159869adbe05891ac6eb5d2d47eaaed54">
-      <source xml:lang="en">Provide authentication information in the Authentication column.</source>
-    </trans-unit>
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
@@ -3231,9 +3204,6 @@
     </trans-unit>
     <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
       <source xml:lang="en">Ready</source>
-    </trans-unit>
-    <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
-      <source xml:lang="en">Ready for import</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
@@ -3692,9 +3662,6 @@
     <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
       <source xml:lang="en">Select an account for authentication</source>
     </trans-unit>
-    <trans-unit id="++CODE++e83c8e96d0ed1feda2ab19df33f4397b32278187b803581eb704d7485ed34c53">
-      <source xml:lang="en">Select an authentication action</source>
-    </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
     </trans-unit>
@@ -3723,9 +3690,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4896b8ba91ac57a924c787a8951840dd5f78d9cf2cda65234e76a21f73e56267">
-      <source xml:lang="en">Select settings file</source>
     </trans-unit>
     <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
       <source xml:lang="en">Select subscriptions</source>
@@ -3867,9 +3831,6 @@
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
     </trans-unit>
-    <trans-unit id="++CODE++255b526011e8892709f255a9ecce2760fe91a096f4fb4f0b5c95ab8381ca108c">
-      <source xml:lang="en">Sign into Entra ID account</source>
-    </trans-unit>
     <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
       <source xml:lang="en">Sign into Fabric</source>
     </trans-unit>
@@ -3887,9 +3848,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4a37b74c860691f59c2976f98ecb13c5b7f4975ff86eeeca216f01eca7b5c0fa">
-      <source xml:lang="en">Some selected items are missing information. You can continue, but review the warning before importing.</source>
     </trans-unit>
     <trans-unit id="++CODE++a4fc5133409f8a143e806d9a71b88a9a32029c885589a0df6b63de5fac3e6e74">
       <source xml:lang="en">Some selections still need information</source>
@@ -4331,9 +4289,6 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d2fe9116400cf32af5650464b88491a8640f69f97c71a5697a240e4e2a8c1734">
-      <source xml:lang="en">Use a different account</source>
     </trans-unit>
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
