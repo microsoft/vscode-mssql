@@ -363,31 +363,42 @@ export const AzureDataStudioMigrationPage = () => {
                     <Body1 as="p" className={`${classes.summaryText} ${classes.headerSubtitle}`}>
                         {LocMigration.subtitle}
                     </Body1>
-                    <Field
-                        className={classes.configField}
-                        orientation="horizontal"
-                        label={
-                            <InfoLabel info={LocMigration.configInputDescription}>
-                                {LocMigration.configInputLabel}
-                            </InfoLabel>
-                        }>
-                        <div className={classes.pickerRow}>
-                            <Input
-                                id="ads-config-input"
-                                value={configPath}
-                                onChange={(_, data) => setConfigPath(data.value)}
-                                className={classes.pickerInput}
-                                placeholder={LocMigration.configInputPlaceholder}
-                            />
-                            <Button
-                                type="button"
-                                appearance="secondary"
-                                icon={<FolderOpenRegular />}
-                                onClick={handleBrowseForConfig}>
-                                {LocMigration.browseButton}
-                            </Button>
-                        </div>
-                    </Field>
+                    <div className={classes.configRow}>
+                        <Field
+                            className={classes.configField}
+                            orientation="horizontal"
+                            label={
+                                <InfoLabel info={LocMigration.configInputDescription}>
+                                    {LocMigration.configInputLabel}
+                                </InfoLabel>
+                            }>
+                            <div className={classes.pickerRow}>
+                                <Input
+                                    id="ads-config-input"
+                                    value={configPath}
+                                    onChange={(_, data) => setConfigPath(data.value)}
+                                    className={classes.pickerInput}
+                                    placeholder={LocMigration.configInputPlaceholder}
+                                />
+                                <Button
+                                    type="button"
+                                    appearance="secondary"
+                                    icon={<FolderOpenRegular />}
+                                    onClick={handleBrowseForConfig}>
+                                    {LocMigration.browseButton}
+                                </Button>
+                            </div>
+                        </Field>
+                        <Button
+                            className={classes.importButton}
+                            appearance="primary"
+                            disabled={
+                                groupSelection.selected === 0 && connectionSelection.selected === 0
+                            }
+                            onClick={() => extensionRpc.action("import")}>
+                            {LocMigration.importButtonLabel}
+                        </Button>
+                    </div>
                 </div>
                 <div className={classes.tablesStack}>
                     <section className={classes.tableSection}>
@@ -699,16 +710,6 @@ export const AzureDataStudioMigrationPage = () => {
                         )}
                     </section>
                 </div>
-                <div className={classes.importBar}>
-                    <Button
-                        appearance="primary"
-                        disabled={
-                            groupSelection.selected === 0 && connectionSelection.selected === 0
-                        }
-                        onClick={() => extensionRpc.action("import")}>
-                        {LocMigration.importButtonLabel}
-                    </Button>
-                </div>
             </div>
         </div>
     );
@@ -720,6 +721,7 @@ const useStyles = makeStyles({
         width: "100%",
         display: "flex",
         justifyContent: "center",
+        overflowY: "auto",
     },
     layout: {
         width: "100%",
@@ -739,9 +741,17 @@ const useStyles = makeStyles({
         margin: 0,
     },
     configField: {
+        flex: "1 1 520px",
+        minWidth: "320px",
+        marginRight: "20%",
+    },
+    configRow: {
         marginTop: "12px",
-        width: "60%",
+        display: "flex",
         alignItems: "center",
+        gap: "16px",
+        width: "100%",
+        flexWrap: "wrap",
     },
     inputSection: {
         display: "flex",
@@ -752,11 +762,16 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "8px",
+        width: "100%",
         flexWrap: "wrap",
     },
     pickerInput: {
         flex: "1 1 320px",
         minWidth: "260px",
+    },
+    importButton: {
+        marginInlineStart: "auto",
+        flexShrink: 0,
     },
     tablesStack: {
         display: "flex",
@@ -851,13 +866,6 @@ const useStyles = makeStyles({
     },
     authCell: {
         width: "10%",
-    },
-    importBar: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        gap: "8px",
-        padding: "0 16px 24px",
     },
     nameColumn: {
         width: "15%",
