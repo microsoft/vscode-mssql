@@ -108,17 +108,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         );
     }
 
-    function getControllerInternals() {
-        return controller as unknown as {
-            loadSettingsFromFile: (filePath: string) => Promise<void>;
-            importHelper: (state: AzureDataStudioMigrationWebviewState) => Promise<void>;
-            updateConnectionStatus: (connection: AdsMigrationConnection) => AdsMigrationConnection;
-            _entraAuthAccounts: IAccount[];
-            _existingGroupIds: Set<string>;
-            _existingConnectionIds: Set<string>;
-        };
-    }
-
     test("loadSettingsFromFile reads ADS config and updates state with parsed objects", async () => {
         const settingsPath = "C:\\temp\\settings.json";
         const adsSettings = JSON.stringify({
@@ -237,7 +226,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         connectionConfigStub.getGroups.resolves([]);
         sandbox.stub(fs, "readFile").resolves(adsSettings);
 
-        await getControllerInternals().loadSettingsFromFile(settingsPath);
+        await controller["loadSettingsFromFile"](settingsPath);
 
         const [connection] = controller.state.connections;
         expect(connection.profile.profileName).to.equal("Full Connection");

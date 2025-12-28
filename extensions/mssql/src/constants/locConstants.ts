@@ -2415,11 +2415,10 @@ export class TableExplorer {
 }
 
 export class AzureDataStudioMigration {
-    public static DocumentTitle = l10n.t("Azure Data Studio Migration");
+    public static PageTitle = l10n.t("Azure Data Studio Migration");
     public static SelectConfigFileDialogTitle = l10n.t(
-        "Locate the Azure Data Studio settings.json file to import",
+        "Locate an Azure Data Studio settings.json file to import",
     );
-    public static SelectConfigOpenLabel = l10n.t("Select settings file");
     public static ConnectionStatusReady = l10n.t("Ready");
     public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
     public static ConnectionStatusAlreadyImported = (connectionId: string) =>
@@ -2430,10 +2429,6 @@ export class AzureDataStudioMigration {
             comment: ["{0} is the connection ID"],
         });
 
-    public static ConnectionStatusNeedsAuthInput = l10n.t(
-        "Provide authentication information in the Authentication column.",
-    );
-    public static ConnectionGroupStatusReady = l10n.t("Ready for import");
     public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
         l10n.t({
             message:
@@ -2441,7 +2436,6 @@ export class AzureDataStudioMigration {
             args: [groupId],
             comment: ["{0} is the group ID"],
         });
-    public static ConnectionIssueMissingServer = l10n.t("Enter the server name.");
     public static connectionIssueMissingSqlPassword = (username: string) =>
         l10n.t({
             message: "Enter the SQL Login password for user '{0}'.",
@@ -2454,14 +2448,10 @@ export class AzureDataStudioMigration {
             args: [username],
             comment: ["{0} is the Entra ID username"],
         });
-    public static EntraSignInDialogAccountLabel = l10n.t("Account");
-    public static EntraSignInDialogTenantLabel = l10n.t("Tenant ID");
+
     public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
     public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
-    public static EntraSignInDialogLink = l10n.t("Use a different account");
-    public static importProgressInProgressMessage = l10n.t(
-        "Importing the selected connection groups and connections. This may take a few moments.",
-    );
+
     public static importProgressSuccessMessage = l10n.t(
         "Import complete. You can close this dialog.",
     );

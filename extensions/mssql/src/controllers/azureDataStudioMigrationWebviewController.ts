@@ -70,7 +70,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             "azureDataStudioMigration",
             initialState,
             {
-                title: AzureDataStudioMigration.DocumentTitle,
+                title: AzureDataStudioMigration.PageTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "connect_dark.svg"),
@@ -110,7 +110,6 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         this.onRequest(AzureDataStudioMigrationBrowseForConfigRequest.type, async () => {
             const selection = await vscode.window.showOpenDialog({
                 title: AzureDataStudioMigration.SelectConfigFileDialogTitle,
-                openLabel: AzureDataStudioMigration.SelectConfigOpenLabel,
                 canSelectFiles: true,
                 canSelectMany: false,
                 filters: {
