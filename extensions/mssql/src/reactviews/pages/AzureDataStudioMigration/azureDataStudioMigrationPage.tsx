@@ -104,21 +104,6 @@ export const AzureDataStudioMigrationPage = () => {
         return { total, selected };
     }, [connections]);
 
-    const selectedGroupsWithWarnings = useMemo(() => {
-        return connectionGroups.filter(
-            (group) => group.selected && group.status === "needsAttention",
-        );
-    }, [connectionGroups]);
-
-    const selectedConnectionsWithWarnings = useMemo(() => {
-        return connections.filter(
-            (connection) => connection.selected && connection.status === "needsAttention",
-        );
-    }, [connections]);
-
-    const hasSelectionWarnings =
-        selectedGroupsWithWarnings.length > 0 || selectedConnectionsWithWarnings.length > 0;
-
     const computeHeaderState = (selected: number, total: number): boolean | "mixed" => {
         if (total === 0 || selected === 0) {
             return false;
@@ -712,12 +697,6 @@ export const AzureDataStudioMigrationPage = () => {
                     </section>
                 </div>
                 <div className={classes.importBar}>
-                    {hasSelectionWarnings && (
-                        <div className={classes.importWarningBanner}>
-                            <Warning16Regular />
-                            <Text>{LocMigration.importWarningInlineMessage}</Text>
-                        </div>
-                    )}
                     <Button
                         appearance="primary"
                         disabled={
