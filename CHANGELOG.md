@@ -1,5 +1,56 @@
 # Change Log
 
+## Version 1.38.0
+
+-   Release date: December 16, 2025
+-   Release status: GA
+
+### What’s new in 1.38.0
+
+- Improved the experience for deleting rows in Edit Data
+- Updated the query results grid sorting and filter options
+- Fixed an issue in the results grid where copying data may throw an error on Linux
+- Updated GitHub Copilot integration to use user-friendly names when referring to connections
+- Improved handling of improperly configured proxies that may interfere with MSSQL's operation
+- Added ability to sign into multiple tenants and browse Azure SQL Managed Instances in the Connection Dialog
+- Added ability to copy a connection profile's connection string directly from Object Explorer
+- Enabled support for using the MSSQL extension in VS Code Virtual Workspaces
+- Consolidated Linux distribution support to x64 and arm64
+- Fixed issues in Edit Data where cells with invalid data could not be reverted and empty non-nullable cells would incorrectly display NULL
+- Fixed an issue where the `inMemoryDataProcessingThreshold` setting was not getting followed
+- Fixed an issue where modern UIs and the results grid may lag at initialization
+- Fixed an issue in Schema Compare and the Publish SQL Project dialog where a loaded profile doesn't connect if it uses Microsoft Entra ID authentication
+
+Thank you to @ghiscoding for contributing improvements to the Edit Data feature's use of SlickGrid React!
+
+## Version 1.37.1
+
+-   Release date: December 1, 2025
+-   Release status: GA
+
+### What’s new in 1.37.1
+
+-   Fixed flickering scrollbars issue happening in query results grid.
+
+## Version 1.37.0
+
+-   Release date: November 18, 2025
+-   Release status: GA
+
+### What's new in 1.37.0
+
+- Released general availability of GitHub Copilot integration, including Ask Mode, Agent Mode, Slash Commands, and a new onboarding experience, providing schema-aware exploration and scaffolding, query generation, explanations, optimization guidance, and contextual assistance based on your active database connection.
+- Introduced Edit Data (Public Preview), an interactive grid for browsing, editing, adding, and deleting table data directly in the editor with real-time validation and script previews. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Introduced Data-tier Application dialog (Public Preview) to deploy and extract `.dacpac` files and import or export `.bacpac` packages through a modernized workflow inside VS Code. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Introduced Publish SQL Project dialog (Public Preview) to assist users in deploying a SQL Database project (`.sqlproj`) to existing database or to a new local SQL development container. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Added a "What's New" panel to highlight major updates, new features, learning resources, and onboarding tips.
+- Added support for Microsoft Entra ID authentication to and browsing resources in Sovereign and Government clouds
+- Fixed an issue where users may be prompted for reauthentication continually after a Microsoft Entra ID token has expired
+- Fixed an issue where long-running queries could not be cancelled
+- Fixed an issue where query result aggregations (count, sum, average) were not displaying when selecting rows or columns
+- Improved rendering and stability of query results grid
+- Improved keyboard accessibility for query results grid
+
 ## Version 1.36.0
 
 -   Release date: September 11, 2025

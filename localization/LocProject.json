@@ -8,6 +8,18 @@
                     "LclFile": "localization\\LCL\\{Lang}\\vscode-mssql.xlf.lcl",
                     "CopyOption": "LangIDOnName",
                     "OutputPath": "localization\\xliff\\"
+                },
+                {
+                    "SourceFile": "localization\\xliff\\sql-database-projects.xlf",
+                    "LclFile": "localization\\LCL\\{Lang}\\sql-database-projects.xlf.lcl",
+                    "CopyOption": "LangIDOnName",
+                    "OutputPath": "localization\\xliff\\"
+                },
+                {
+                    "SourceFile": "localization\\xliff\\data-workspace.xlf",
+                    "LclFile": "localization\\LCL\\{Lang}\\data-workspace.xlf.lcl",
+                    "CopyOption": "LangIDOnName",
+                    "OutputPath": "localization\\xliff\\"
                 }
             ]
         }

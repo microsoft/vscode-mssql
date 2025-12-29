@@ -1,0 +1,174 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-table * {
+    box-sizing: border-box;
+    white-space: pre;
+}
+
+.monaco-table {
+    width: 100%;
+    height: 100%;
+}
+
+.monaco-table > div {
+    width: 100%;
+    height: 100%;
+}
+
+/* Filter button styling */
+.slick-header-filterbutton {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("filter.svg");
+    background-size: 14px;
+    flex: 0 0 auto;
+    margin-left: 4px;
+    background-color: transparent;
+    border: 0px;
+    padding: 0px;
+}
+
+/* Sort button styling */
+.slick-header-sortbutton {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("sort.svg");
+    background-size: 14px;
+    flex: 0 0 auto;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: transparent;
+    border: 0px;
+    padding: 0px;
+}
+
+.slick-header-menu-image-button-container {
+    flex: 0 0 auto;
+}
+
+.monaco-table label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.slick-header-menuitem {
+    border: 1px solid transparent;
+    padding: 2px 4px;
+    cursor: pointer;
+    list-style: none outside none;
+    margin: 0;
+}
+
+.slick-header-menuitem:hover {
+    border-color: #bfbdbd;
+}
+
+.header-overlay,
+.cell-overlay,
+.selection-cell-overlay {
+    display: block;
+    position: absolute;
+    z-index: 999;
+}
+
+.slick-icon-cell-content {
+    background-position: 5px center !important;
+    background-repeat: no-repeat;
+    background-size: 16px !important;
+    width: 100%;
+    height: 100%;
+    padding-left: 30px;
+    color: inherit !important;
+    display: flex;
+    align-items: center;
+}
+
+.slick-cell .toggle {
+    font-size: 12px !important;
+    margin-right: -5px;
+}
+
+.checkbox-list {
+    min-height: 200px;
+    max-height: 250px;
+}
+
+#popup-menu .checkbox-list label {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Icons */
+/* Icon for filter button - dark theme */
+.vscode-dark .slick-header-filterbutton,
+.vscode-high-contrast .slick-header-filterbutton {
+    background-image: url("filter_inverse.svg");
+}
+
+/* Icon for filter button - light theme */
+.vscode-light .slick-header-filterbutton,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-filterbutton {
+    background-image: url("filter.svg");
+}
+
+/* Icon for filter button when filter is applied - dark theme */
+.vscode-dark .slick-header-filterbutton.filtered,
+.vscode-high-contrast .slick-header-filterbutton.filtered {
+    background-image: url("filterFilled_inverse.svg");
+}
+
+/* Icon for filter button when filter is applied - light theme */
+.vscode-light .slick-header-filterbutton.filtered,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-filterbutton.filtered {
+    background-image: url("filterFilled.svg");
+}
+
+/* Icon for sort button - dark theme */
+.vscode-dark .slick-header-sortbutton,
+.vscode-high-contrast .slick-header-sortbutton {
+    background-image: url("sort_inverse.svg");
+}
+
+/* Icon for sort button - light theme */
+.vscode-light .slick-header-sortbutton,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton {
+    background-image: url("sort.svg");
+}
+
+/* Icon for sort button ascending - dark theme */
+.vscode-dark .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast .slick-header-sortbutton.sorted-asc {
+    background-image: url("sort_asc_inverse.svg");
+}
+
+/* Icon for sort button ascending - light theme */
+.vscode-light .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton.sorted-asc {
+    background-image: url("sort_asc.svg");
+}
+
+/* Icon for sort button descending - dark theme */
+.vscode-dark .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast .slick-header-sortbutton.sorted-desc {
+    background-image: url("sort_desc_inverse.svg");
+}
+
+/* Icon for sort button descending - light theme */
+.vscode-light .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortbutton.sorted-desc {
+    background-image: url("sort_desc.svg");
+}

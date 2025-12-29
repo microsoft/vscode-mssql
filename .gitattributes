@@ -1,5 +1,6 @@
-# Force CRLF for .xlf files
-*.xlf text eol=crlf
-
-# Enforce LF line endings for all other text files
-* text=auto eol=lf
+# Enforce LF line endings for all text files by default
+* text=auto eol=crlf
+# Ensure shell scripts use LF line endings
+.husky/** text eol=lf
+*.sh text eol=lf
+*.init text eol=lf
