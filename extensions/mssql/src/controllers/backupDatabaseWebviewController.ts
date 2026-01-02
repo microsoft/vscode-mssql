@@ -68,7 +68,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     }
 
     private registerRpcHandlers() {
-        this.registerReducer("getDatabase", async (state, _payload) => {
+        this.registerReducer("backupDatabase", async (state, _payload) => {
             const backupName = `testBackup_${new Date().getTime()}`;
             const backupPath = `/var/opt/mssql/data/${backupName}.bak`;
             const backupPathDevices: Record<string, number> = {

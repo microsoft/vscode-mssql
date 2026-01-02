@@ -207,7 +207,7 @@ export interface BackupDatabaseReducers extends FormReducers<BackupDatabaseFormS
     /**
      * Gets the database information associated with the backup operation
      */
-    getDatabase: {};
+    backupDatabase: {};
 }
 
 export interface BackupDatabaseProvider {
@@ -220,7 +220,7 @@ export interface BackupDatabaseProvider {
     /**
      * Gets the database information associated with the backup operation
      */
-    getDatabase(): void;
+    backupDatabase(): void;
 }
 
 export interface BackupDatabaseFormItemSpec

@@ -32,7 +32,7 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
             ...getCoreRPCs2(extensionRpc),
             formAction: (event: FormEvent<BackupDatabaseFormState>) =>
                 extensionRpc.action("formAction", { event }),
-            getDatabase: () => extensionRpc.action("getDatabase"),
+            backupDatabase: () => extensionRpc.action("backupDatabase"),
             extensionRpc,
         }),
         [extensionRpc],

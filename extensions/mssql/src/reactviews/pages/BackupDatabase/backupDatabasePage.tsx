@@ -61,7 +61,7 @@ export const BackupDatabasePage = () => {
                     <button
                         onClick={() => {
                             console.log("Button clicked for:", state?.databaseNode?.label);
-                            context.getDatabase()
+                            context.backupDatabase()
                             // You can replace this with any action you want
                         }}>
                     </button>
