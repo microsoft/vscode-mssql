@@ -1348,9 +1348,12 @@ export class LocConstants {
             columnResizeByContent: l10n.t("Column resize by content"),
             commands: l10n.t("Commands"),
             copy: l10n.t("Copy"),
+            copyWithHeaders: l10n.t("Copy with Headers"),
+            copyHeaders: l10n.t("Copy Headers"),
             expandAllGroups: l10n.t("Expand all groups"),
             exportToCsv: l10n.t("Export to CSV"),
             exportToExcel: l10n.t("Export to Excel"),
+            exportToJson: l10n.t("Export to JSON"),
             exportToTextFormat: l10n.t("Export to text format"),
             exportToTabDelimited: l10n.t("Export to tab delimited"),
             filterShortcuts: l10n.t("Filter shortcuts"),
@@ -1391,7 +1394,7 @@ export class LocConstants {
 
     public get changelog() {
         return {
-            whatsNewSectionTitle: l10n.t("What's new in this release"),
+            highlightsSectionTitle: l10n.t("Highlights"),
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(

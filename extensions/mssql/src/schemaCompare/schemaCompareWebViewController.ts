@@ -47,7 +47,12 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { cmdAddObjectExplorer, azureMfa } from "../constants/constants";
+import {
+    cmdAddObjectExplorer,
+    azureMfa,
+    triggerSchemaCompareAutomatic,
+    triggerSchemaCompareManual,
+} from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
@@ -274,6 +279,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.state.sourceEndpointInfo = source;
         this.state.targetEndpointInfo = target;
         this.updateState(this.state);
+
+        // Trigger automatic comparison if requested
+        if (runComparison && source && target) {
+            this.logger.info(
+                `Auto-starting schema comparison as runComparison=true - OperationId: ${this.operationId}`,
+            );
+
+            await this.schemaCompare(
+                {
+                    sourceEndpointInfo: source,
+                    targetEndpointInfo: target,
+                    deploymentOptions:
+                        this.state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
+                },
+                this.state,
+                triggerSchemaCompareAutomatic,
+            );
+        }
     }
 
     private async getEndpointInfoFromConnectionProfile(
@@ -958,21 +981,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
-                    oldSourceType: getSchemaCompareEndpointTypeString(
-                        payload.newSourceEndpointInfo.endpointType,
-                    ),
-                    oldTargetType: getSchemaCompareEndpointTypeString(
-                        payload.newTargetEndpointInfo.endpointType,
-                    ),
+                    oldSourceType: payload.newSourceEndpointInfo
+                        ? getSchemaCompareEndpointTypeString(
+                              payload.newSourceEndpointInfo.endpointType,
+                          )
+                        : "None",
+                    oldTargetType: payload.newTargetEndpointInfo
+                        ? getSchemaCompareEndpointTypeString(
+                              payload.newTargetEndpointInfo.endpointType,
+                          )
+                        : "None",
                 },
             );
 
-            const sourceType = getSchemaCompareEndpointTypeString(
-                payload.newSourceEndpointInfo.endpointType,
-            );
-            const targetType = getSchemaCompareEndpointTypeString(
-                payload.newTargetEndpointInfo.endpointType,
-            );
+            const sourceType = payload.newSourceEndpointInfo
+                ? getSchemaCompareEndpointTypeString(payload.newSourceEndpointInfo.endpointType)
+                : "None";
+            const targetType = payload.newTargetEndpointInfo
+                ? getSchemaCompareEndpointTypeString(payload.newTargetEndpointInfo.endpointType)
+                : "None";
             this.logger.verbose(
                 `New source endpoint type: ${sourceType} - OperationId: ${this.operationId}`,
             );
@@ -997,8 +1024,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("resetEndpointsSwitched", async (state) => {
+            state.endpointsSwitched = false;
+            this.updateState(state);
+            return state;
+        });
+
         this.registerReducer("compare", async (state, payload) => {
-            return await this.schemaCompare(payload, state);
+            return await this.schemaCompare(payload, state, triggerSchemaCompareManual);
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
@@ -2389,6 +2422,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             deploymentOptions: mssql.DeploymentOptions;
         },
         state: SchemaCompareWebViewState,
+        triggerSource?: string,
     ) {
         this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
         this.logger.verbose(
@@ -2415,6 +2449,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 targetType: getSchemaCompareEndpointTypeString(
                     payload.targetEndpointInfo.endpointType,
                 ),
+                triggerSource: triggerSource,
             },
         );
 

@@ -306,28 +306,22 @@ export function generateFormComponent<
             if (component.options === undefined) {
                 throw new Error("Dropdown component must have options");
             }
-            const selectedOption = component.options.find(
+            const dropdownOptions = component.options.map((opt) => ({
+                value: opt.value,
+                text: opt.displayName,
+                color: opt.color,
+                description: opt.description,
+                icon: opt.icon,
+            }));
+            const selectedOption = dropdownOptions.find(
                 (option) => option.value === formState[component.propertyName],
             );
             return (
                 <SearchableDropdown
-                    options={component.options.map((opt) => ({
-                        value: opt.value,
-                        text: opt.displayName,
-                        color: opt.color,
-                        description: opt.description,
-                        icon: opt.icon,
-                    }))}
+                    options={dropdownOptions}
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}
-                    selectedOption={
-                        selectedOption
-                            ? {
-                                  value: selectedOption.value,
-                                  text: selectedOption.displayName,
-                              }
-                            : undefined
-                    }
+                    selectedOption={selectedOption}
                     onSelect={(option) => {
                         if (props && props.onSelect) {
                             props.onSelect(option.value);

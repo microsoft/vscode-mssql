@@ -382,6 +382,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 .find((col) => col.id === this._currentSortColumn) as FilterableColumn<T>;
             if (prevColumn) {
                 this._columnSortStateMapping.set(this._currentSortColumn, SortProperties.NONE);
+                prevColumn.sorted = undefined;
                 let prevFilterState: ColumnFilterState = {
                     columnDef: prevColumn.id!,
                     filterValues: prevColumn.filterValues ?? [],
@@ -394,6 +395,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
 
         this._columnSortStateMapping.set(columnId, command);
+        column.sorted = command === SortProperties.NONE ? undefined : command;
 
         // Update current sort column - clear it if command is NONE
         if (command === SortProperties.NONE) {

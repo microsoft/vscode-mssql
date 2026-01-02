@@ -55,6 +55,8 @@ export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const triggerSchemaCompareAutomatic = "automatic";
+export const triggerSchemaCompareManual = "manual";
 export const cmdDacpacDialog = "mssql.dacpacDialog.launch";
 export const cmdDeployDacpac = "mssql.dacpacDialog.deploy";
 export const cmdExtractDacpac = "mssql.dacpacDialog.extract";
@@ -340,3 +342,9 @@ export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+
+// DacFx operation IDs (as reported by SQL Tools Service via taskOperation field)
+export const operationIdExportBacpac = "ExportOperation";
+export const operationIdExtractDacpac = "ExtractOperation";
+export const operationIdImportBacpac = "ImportOperation";
+export const operationIdDeployDacpac = "DeployOperation";

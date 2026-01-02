@@ -183,3 +183,20 @@ export function stubWithProgress(
 ): sinon.SinonStub {
     return sandbox.stub(vscode.window, "withProgress").callsFake(onInvoke);
 }
+
+export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.PlatformPath): void {
+    if (
+        (process.platform === "win32" && platform === path.win32) ||
+        (process.platform !== "win32" && platform === path.posix)
+    ) {
+        // stubbing the path module to the same platform results in infinite recursion when calling the stubbed methods.
+        return;
+    }
+
+    sandbox.stub(path, "dirname").callsFake(platform.dirname);
+    sandbox.stub(path, "join").callsFake(platform.join);
+    sandbox.stub(path, "basename").callsFake(platform.basename);
+    sandbox.stub(path, "extname").callsFake(platform.extname);
+    sandbox.stub(path, "isAbsolute").callsFake(platform.isAbsolute);
+    sandbox.stub(path, "normalize").callsFake(platform.normalize);
+}
