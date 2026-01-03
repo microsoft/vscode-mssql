@@ -18,10 +18,11 @@ const useStyles = makeStyles({
         maxWidth: "640px",
         width: "100%",
     },
-    linkContainer: {
+    linkWrapper: {
         display: "flex",
         alignItems: "center",
-        gap: "4px",
+        minHeight: "32px",
+        marginTop: "-2px",
     },
 });
 
@@ -61,7 +62,7 @@ export const SqlPackageCommandSection: React.FC = () => {
         <>
             <div className={styles.root}>
                 <Field label={loc.SqlPackageCommand} orientation="horizontal">
-                    <div className={styles.linkContainer}>
+                    <div className={styles.linkWrapper}>
                         <Link onClick={handleGenerateSqlPackageCommand}>
                             {loc.GenerateSqlPackageCommand}
                         </Link>

@@ -1248,34 +1248,77 @@ declare module "vscode-mssql" {
     }
 
     /**
+     * Masking mode for data operations - matches MaskMode enum in SqlTools Service
+     */
+    export const enum MaskMode {
+        Masked = "Masked",
+        Unmasked = "Unmasked",
+    }
+
+    /**
+     * Command-line arguments for SqlPackage operations - matches SqlPackageCommandLineArguments in SqlTools Service
+     * Contains source/target paths, connection strings, profile paths, etc.
+     */
+    export interface SqlPackageCommandLineArguments {
+        Action: CommandLineToolAction;
+        Quiet?: boolean;
+        Diagnostics?: boolean;
+        MaxParallelism?: number;
+        DiagnosticsFile?: string;
+        OverwriteFiles?: boolean;
+
+        // Source connection parameters
+        SourceServerName?: string;
+        SourceDatabaseName?: string;
+        SourceUser?: string;
+        SourcePassword?: string;
+        SourceTimeout?: number;
+        SourceTrustServerCertificate?: boolean;
+        SourceConnectionString?: string;
+        SourceFile?: string;
+
+        // Target connection parameters
+        TargetServerName?: string;
+        TargetDatabaseName?: string;
+        TargetUser?: string;
+        TargetPassword?: string;
+        TargetTimeout?: number;
+        TargetTrustServerCertificate?: boolean;
+        TargetConnectionString?: string;
+        TargetFile?: string;
+
+        // Additional operation parameters
+        Profile?: string;
+        OutputPath?: string;
+        DeployScriptPath?: string;
+        DeployReportPath?: string;
+        AccessToken?: string;
+        TenantId?: string;
+        UniversalAuthentication?: boolean;
+
+        /** Other SqlPackage command-line arguments as key-value pairs */
+        [key: string]: string | number | boolean | CommandLineToolAction | undefined;
+    }
+
+    /**
      * Parameters for generating a SqlPackage command - matches SqlPackageCommandParams in SqlTools Service
      */
     export interface SqlPackageCommandParams {
-        /** Action to perform: Publish, Extract, Script, Export, or Import */
-        action: CommandLineToolAction;
-        /** Serialized command-line arguments string containing source/target paths, connection strings, etc. */
-        arguments: string;
-        /** Deployment options from VSCode (for Publish, Script operations) */
+        commandLineArguments: SqlPackageCommandLineArguments;
         deploymentOptions?: DeploymentOptions;
-        /** Extract options (for Extract operation) */
         extractOptions?: any;
-        /** Export options (for Export operation) */
         exportOptions?: any;
-        /** Import options (for Import operation) */
         importOptions?: any;
-        /** SQLCMD variables (for Publish, Script operations) */
         variables?: { [key: string]: string };
+        maskMode?: MaskMode;
     }
 
     /**
      * Result from SqlPackage command generation - matches SqlPackageCommandResult in SqlTools Service
      */
     export interface SqlPackageCommandResult {
-        /** Generated command string */
         command: string | null;
-        /** Whether the operation was successful */
         success: boolean;
-        /** Error message if the operation failed */
         errorMessage: string;
     }
 

@@ -970,7 +970,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
 
                 // Build arguments object matching CommandLineArguments structure expected by backend
-                const commandLineArguments: { [key: string]: string } = {
+                const commandLineArguments: mssql.SqlPackageCommandLineArguments = {
+                    Action: "Publish" as mssql.CommandLineToolAction,
                     SourceFile: dacpacPath,
                 };
 
@@ -993,14 +994,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     commandLineArguments.Profile = this.state.formState.publishProfilePath;
                 }
 
-                // Serialize arguments as JSON (backend deserializes with PropertyNameCaseInsensitive)
-                const serializedArguments = JSON.stringify(commandLineArguments);
-
                 // Call SQL Tools Service to generate the command
                 // Backend will handle all formatting, quoting, and command construction
                 const result = await this._sqlPackageService.generateSqlPackageCommand({
-                    action: "Publish" as mssql.CommandLineToolAction,
-                    arguments: serializedArguments,
+                    commandLineArguments: commandLineArguments,
                     deploymentOptions: this.state.deploymentOptions,
                     variables: this.state.formState.sqlCmdVariables,
                 });
