@@ -728,6 +728,8 @@
     "SqlPackage Command": "SqlPackage Command",
     "Generate sqlpackage command": "Generate sqlpackage command",
     "Copy command to clipboard": "Copy command to clipboard",
+    "Show unmasked command (reveals sensitive information)": "Show unmasked command (reveals sensitive information)",
+    "Show masked command (hides sensitive information)": "Show masked command (hides sensitive information)",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
