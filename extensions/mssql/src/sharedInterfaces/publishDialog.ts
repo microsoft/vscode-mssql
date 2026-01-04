@@ -16,6 +16,12 @@ export enum PublishTarget {
     NewAzureServer = "newAzureServer",
 }
 
+// Masking mode for SqlPackage command generation
+export enum MaskMode {
+    Masked = "Masked",
+    Unmasked = "Unmasked",
+}
+
 /**
  * Field names for the Publish form - defines the keys used in IPublishForm interface
  */
@@ -140,12 +146,14 @@ export interface PublishProjectProvider {
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
-    generateSqlPackageCommand(): Promise<string>;
+    generateSqlPackageCommand(maskMode?: MaskMode): Promise<string>;
 }
 
 /**
  * Request to generate a sqlpackage command string from the backend.
  */
 export namespace GenerateSqlPackageCommandRequest {
-    export const type = new RequestType<void, string, void>("generateSqlPackageCommand");
+    export const type = new RequestType<{ maskMode?: MaskMode }, string, void>(
+        "generateSqlPackageCommand",
+    );
 }

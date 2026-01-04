@@ -1250,7 +1250,7 @@ declare module "vscode-mssql" {
     /**
      * Masking mode for data operations - matches MaskMode enum in SqlTools Service
      */
-    export const enum MaskMode {
+    export enum MaskMode {
         Masked = "Masked",
         Unmasked = "Unmasked",
     }

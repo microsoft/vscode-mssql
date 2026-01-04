@@ -961,7 +961,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         );
 
         // Request handler to generate sqlpackage command string
-        this.onRequest(GenerateSqlPackageCommandRequest.type, async () => {
+        this.onRequest(GenerateSqlPackageCommandRequest.type, async (params) => {
             try {
                 const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
 
@@ -1000,6 +1000,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     commandLineArguments: commandLineArguments,
                     deploymentOptions: this.state.deploymentOptions,
                     variables: this.state.formState.sqlCmdVariables,
+                    maskMode: params?.maskMode,
                 });
 
                 if (!result.success) {

@@ -49,8 +49,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             updateSqlCmdVariables: (variables: { [key: string]: string }) =>
                 extensionRpc.action("updateSqlCmdVariables", { variables }),
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
-            generateSqlPackageCommand: () =>
-                extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type),
+            generateSqlPackageCommand: (maskMode?: mssql.MaskMode) =>
+                extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type, { maskMode }),
             extensionRpc,
         }),
         [extensionRpc],
