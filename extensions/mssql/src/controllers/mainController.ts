@@ -573,8 +573,12 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
+                this._vscodeWrapper,
             );
-            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.dacFxService = new DacFxService(
+                SqlToolsServerClient.instance,
+                this.sqlTasksService,
+            );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
@@ -2761,9 +2765,7 @@ export default class MainController implements vscode.Disposable {
 
         // 2. Handle connections that have been added, removed, or reparented in OE
         let configConnections =
-            await this.connectionManager.connectionStore.connectionConfig.getConnections(
-                true /* alsoGetFromWorkspace */,
-            );
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
         let objectExplorerConnections = this._objectExplorerProvider.connections;
 
         let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);

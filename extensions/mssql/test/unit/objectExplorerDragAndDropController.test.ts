@@ -39,7 +39,6 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
 
         getQualifiedNameStub = sandbox.stub(ObjectExplorerUtils, "getQualifiedName");
 
-        sandbox.stub(mockConnectionStore, "rootGroupId").get(() => ConnectionConfig.RootGroupId);
         sandbox.stub(mockConnectionStore, "connectionConfig").get(() => mockConnectionConfig);
 
         controller = new ObjectExplorerDragAndDropController(
@@ -63,7 +62,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 user: "",
                 password: "",
                 savePassword: false,
-                groupId: ConnectionConfig.RootGroupId,
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             } as IConnectionProfile;
 
             // Create mock connection node
@@ -106,8 +105,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockGroup: IConnectionGroup = {
                 id: "group1",
                 name: "Test Group",
-                parentId: ConnectionConfig.RootGroupId,
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
                 description: "Test group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock connection group node
@@ -202,8 +202,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: ConnectionConfig.RootGroupId,
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target group node
@@ -254,14 +255,16 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Source Group",
                 parentId: "old-parent-id",
                 description: "Source group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target connection group
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: ConnectionConfig.RootGroupId,
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock target group node
@@ -354,7 +357,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 (mockConnectionStore.connectionConfig.updateConnection as sinon.SinonStub)
                     .args[0][0].groupId,
                 "Updated connection groupId should match root group id",
-            ).to.equal(ConnectionConfig.RootGroupId);
+            ).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
 
         test("should prevent dropping group into itself", async () => {
@@ -364,6 +367,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
                 name: "Test Group",
                 parentId: "old-parent-id",
                 description: "Test group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
 
             // Create mock group node (same group as source and target)
@@ -416,8 +420,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: ConnectionConfig.RootGroupId,
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);
 
@@ -447,8 +452,9 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
             const mockTargetGroup: IConnectionGroup = {
                 id: "target-group-id",
                 name: "Target Group",
-                parentId: ConnectionConfig.RootGroupId,
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
                 description: "Target group description",
+                configSource: vscode.ConfigurationTarget.Global,
             };
             const mockTargetGroupNode = new ConnectionGroupNode(mockTargetGroup);
 

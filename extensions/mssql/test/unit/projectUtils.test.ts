@@ -8,6 +8,8 @@ import * as sinon from "sinon";
 import * as path from "path";
 import { readProjectProperties } from "../../src/publishProject/projectUtils";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import { GetProjectPropertiesResult } from "vscode-mssql";
+import { stubPathAsPlatform } from "./utils";
 
 suite("projectUtils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -30,19 +32,57 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: "bin\\Debug", // Windows-style path with backslashes
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
+
+        stubPathAsPlatform(sandbox, path.posix);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
-        expect(result).to.exist;
-        expect(result?.dacpacOutputPath).to.exist;
+        expect(result, "project properties should be successfully retrieved").to.exist;
+        expect(result?.dacpacOutputPath, "dacpac output path read from properties").to.exist;
 
         // The dacpac path should use forward slashes, not backslashes
         expect(result?.dacpacOutputPath).to.not.include("\\");
         expect(result?.dacpacOutputPath).to.include("/");
 
         // Verify the path is constructed correctly with forward slashes
-        const expectedPath = path.join("/home/user/project", "bin/Debug", "TestProject.dacpac");
+        const expectedPath = path.posix.join(
+            "/home/user/project",
+            "bin/Debug",
+            "TestProject.dacpac",
+        );
+
+        expect(result?.dacpacOutputPath).to.equal(expectedPath);
+    });
+
+    test("readProjectProperties normalizes Unix slashes in outputPath on Windows", async () => {
+        const projectPath = "C:\\Users\\TestUser\\project\\TestProject.sqlproj";
+
+        // Mock getProjectProperties to return Unix-style path with forward slashes
+        mockSqlProjectsService.getProjectProperties.resolves({
+            success: true,
+            outputPath: "bin/Debug", // Unix-style path with forward slashes
+            databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
+        } as GetProjectPropertiesResult);
+
+        stubPathAsPlatform(sandbox, path.win32);
+
+        const result = await readProjectProperties(mockSqlProjectsService, projectPath);
+
+        expect(result, "project properties should be successfully retrieved").to.exist;
+        expect(result?.dacpacOutputPath, "dacpac output path read from properties").to.exist;
+
+        // The dacpac path should use forward slashes, not backslashes
+        expect(result?.dacpacOutputPath).to.not.include("/");
+        expect(result?.dacpacOutputPath).to.include("\\");
+
+        // Verify the path is constructed correctly with forward slashes
+        const expectedPath = path.win32.join(
+            "C:\\Users\\TestUser\\project",
+            "bin\\Debug",
+            "TestProject.dacpac",
+        );
+
         expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
@@ -54,7 +94,7 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: absoluteOutputPath,
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 
@@ -68,20 +108,23 @@ suite("projectUtils Tests", () => {
 
     test("readProjectProperties normalizes Windows backslashes in absolute paths", async () => {
         const projectPath = "/home/user/project/TestProject.sqlproj";
-        // Absolute path with Windows-style backslashes (edge case but should be handled)
-        const absoluteOutputPath = "C:\\absolute\\output\\path";
+        // Absolute path with Windows-style backslashes that gets normalized
+        const absoluteOutputPath = "\\absolute\\output\\path";
 
         mockSqlProjectsService.getProjectProperties.resolves({
             success: true,
             outputPath: absoluteOutputPath,
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
+
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
-        // Even for absolute paths, backslashes should be normalized
-        expect(result?.dacpacOutputPath).to.not.include("\\");
+        // After normalization, the backslashes become forward slashes
+        // Unix-style absolute paths (starting with /) are absolute on both Windows and Unix
+        const expectedPath = path.join("/absolute/output/path", "TestProject.dacpac");
+        expect(result?.dacpacOutputPath).to.equal(expectedPath);
     });
 
     test("readProjectProperties handles relative paths with forward slashes", async () => {
@@ -91,7 +134,7 @@ suite("projectUtils Tests", () => {
             success: true,
             outputPath: "bin/Debug", // Unix-style path
             databaseSchemaProvider: "Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider",
-        } as any);
+        } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
 

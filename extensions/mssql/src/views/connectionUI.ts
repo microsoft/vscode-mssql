@@ -20,6 +20,7 @@ import { Timer } from "../models/utils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { FormItemOptions } from "../sharedInterfaces/form";
+import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 
 /**
  * The different tasks for managing connection profiles.
@@ -440,10 +441,9 @@ export class ConnectionUI {
      * @returns A promise that resolves to an array of FormItemOptions for connection groups.
      */
     public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
-        const rootId = this._connectionManager.connectionStore.rootGroupId;
         let connectionGroups =
             await this._connectionManager.connectionStore.readAllConnectionGroups();
-        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+        connectionGroups = connectionGroups.filter((g) => g.id !== ConnectionConfig.ROOT_GROUP_ID);
 
         // Count occurrences of group names to handle naming conflicts
         const nameOccurrences = new Map<string, number>();
@@ -457,7 +457,7 @@ export class ConnectionUI {
 
         // Helper function to get parent path
         const getParentPath = (group: IConnectionGroup): string => {
-            if (!group.parentId || group.parentId === rootId) {
+            if (!group.parentId || group.parentId === ConnectionConfig.ROOT_GROUP_ID) {
                 return group.name;
             }
             const parent = groupById.get(group.parentId);
@@ -483,7 +483,7 @@ export class ConnectionUI {
         return [
             {
                 displayName: LocalizedConstants.ConnectionDialog.default,
-                value: rootId,
+                value: ConnectionConfig.ROOT_GROUP_ID,
             },
             {
                 displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
@@ -511,7 +511,7 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = await self._connectionStore.getProfilePickListItems(false);
+        let profiles = await self._connectionStore.getProfilePickListItems();
         let profile = await self.selectProfileForRemoval(profiles);
         let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
 
