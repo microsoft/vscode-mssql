@@ -118,6 +118,7 @@ suite("projectUtils Tests", () => {
         } as GetProjectPropertiesResult);
 
         const result = await readProjectProperties(mockSqlProjectsService, projectPath);
+
         expect(result).to.exist;
         expect(result?.dacpacOutputPath).to.exist;
 
