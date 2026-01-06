@@ -1163,7 +1163,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
         <note>{0} is the error message from the connection attempt</note>
-        <target state="new">Connection failed: {0}</target>
+        <target state="translated">Сбой подключения: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
@@ -2064,6 +2064,10 @@ Error:
         <source xml:lang="en">Export to Excel</source>
         <target state="translated">Экспорт в Excel</target>
       </trans-unit>
+      <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
+        <source xml:lang="en">Export to JSON</source>
+        <target state="new">Export to JSON</target>
+      </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
         <target state="translated">Экспорт в формат, разделенный табуляциями</target>
@@ -2195,6 +2199,11 @@ Error:
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Не удалось установить подключение с идентификатором "{0}". Проверьте сведения о подключении и сетевую доступность.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
+        <source xml:lang="en">Failed to export results: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to export results: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
@@ -2685,6 +2694,10 @@ Error:
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">Выделить ресурсоемкую операцию</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
+        <source xml:lang="en">Highlights</source>
+        <target state="translated">Моменты</target>
+      </trans-unit>
       <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
         <source xml:lang="en">Hostname</source>
         <target state="translated">Имя узла</target>
@@ -2883,6 +2896,10 @@ Error:
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
         <target state="translated">Дополнительные сведения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
+        <source xml:lang="en">Learn more</source>
+        <target state="translated">Подробнее</target>
       </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
@@ -3924,7 +3941,7 @@ Error:
       <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
         <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
         <note>{0} is the server name</note>
-        <target state="new">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</target>
+        <target state="translated">Профиль загружен, но подключение не удалось установить автоматически. Создайте подключение к {0} и повторите попытку.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -4207,6 +4224,11 @@ Error:
         <source xml:lang="en">Results copied to clipboard</source>
         <target state="translated">Результаты скопированы в буфер обмена</target>
       </trans-unit>
+      <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
+        <source xml:lang="en">Results exported successfully to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="new">Results exported successfully to {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">Повторить</target>
@@ -4249,7 +4271,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
         <source xml:lang="en">Row deleted.</source>
-        <target state="new">Row deleted.</target>
+        <target state="translated">Строка удалена.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
@@ -5491,6 +5513,10 @@ Query: {2}</source>
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Обнаружены предупреждения. Проверьте изменения.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
+        <source xml:lang="en">Watch demo</source>
+        <target state="translated">Посмотреть ролик</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
         <target state="translated">Смотреть демонстрации на YouTube</target>
@@ -5510,10 +5536,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">Что мы можем улучшить?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
-        <source xml:lang="en">What's new in this release</source>
-        <target state="translated">Что нового в этом выпуске</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>

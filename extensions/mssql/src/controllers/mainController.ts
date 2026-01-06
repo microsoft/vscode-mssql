@@ -80,6 +80,7 @@ import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { buildChatAgentConnectPrompt } from "../copilot/tools/toolsUtils";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
 import { ListTablesTool } from "../copilot/tools/listTablesTool";
@@ -487,6 +488,7 @@ export default class MainController implements vscode.Disposable {
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
+                        databaseName &&
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
@@ -500,7 +502,7 @@ export default class MainController implements vscode.Disposable {
                     if (chatCommand) {
                         vscode.commands.executeCommand(
                             chatCommand,
-                            `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                            buildChatAgentConnectPrompt(connectionCredentials),
                         );
                     } else {
                         // Fallback or error handling
@@ -573,8 +575,12 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
+                this._vscodeWrapper,
             );
-            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.dacFxService = new DacFxService(
+                SqlToolsServerClient.instance,
+                this.sqlTasksService,
+            );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
@@ -2763,9 +2769,7 @@ export default class MainController implements vscode.Disposable {
 
         // 2. Handle connections that have been added, removed, or reparented in OE
         let configConnections =
-            await this.connectionManager.connectionStore.connectionConfig.getConnections(
-                true /* alsoGetFromWorkspace */,
-            );
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
         let objectExplorerConnections = this._objectExplorerProvider.connections;
 
         let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);

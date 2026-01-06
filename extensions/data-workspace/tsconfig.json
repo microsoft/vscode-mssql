@@ -1,0 +1,27 @@
+{
+	"compileOnSave": true,
+	"compilerOptions": {
+		"outDir": "./out",
+		"module": "CommonJS",
+		"target": "ES2022",
+		"lib": ["ES2022"],
+		"sourceMap": true,
+		"noUnusedParameters": false,
+		"downlevelIteration": true,
+		"allowUnusedLabels": false,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true,
+		"rootDir": ".",
+		"types": [
+			"node"
+		]
+	},
+	"include": [
+		"src/**/*",
+		"../../typings/vscode-mssql.d.ts",
+		"../../typings/dataworkspace.d.ts",
+		"../../typings/azdata.d.ts",
+		"../../typings/azdata.proposed.d.ts"
+	],
+	"exclude": ["node_modules", "out"]
+}

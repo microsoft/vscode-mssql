@@ -121,9 +121,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.error(`No target node provided - OperationId: ${this.operationId}`);
             endActivity.endFailed(
                 new Error("No target node provided for table explorer"),
-                true,
-                undefined,
-                undefined,
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -188,9 +188,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             endActivity.endFailed(
                 new Error("Failed to initialize table explorer"),
-                true,
-                undefined,
-                undefined,
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -293,9 +293,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to commit changes"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -373,9 +373,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to load subset"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -450,9 +450,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to create row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -570,9 +570,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to delete row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -714,9 +714,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to update cell"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -843,9 +843,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to revert cell"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -974,9 +974,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to revert row"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1046,9 +1046,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 endActivity.endFailed(
                     new Error("Failed to generate script"),
-                    true,
-                    undefined,
-                    undefined,
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1151,6 +1151,105 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             state.currentPage = payload.pageNumber;
 
             this.logger.info(`Current page set to: ${payload.pageNumber}`);
+
+            return state;
+        });
+
+        this.registerReducer("saveResults", async (state, payload) => {
+            this.logger.info(
+                `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.SaveResults,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    format: payload.format,
+                },
+            );
+
+            try {
+                const { headers, rows } = payload.data;
+                let defaultExt: string;
+                let filters: { [name: string]: string[] };
+
+                switch (payload.format) {
+                    case "csv":
+                        defaultExt = "csv";
+                        filters = { "CSV Files": ["csv"], "All Files": ["*"] };
+                        break;
+                    case "json":
+                        defaultExt = "json";
+                        filters = { "JSON Files": ["json"], "All Files": ["*"] };
+                        break;
+                    case "excel":
+                        defaultExt = "xlsx";
+                        filters = { "Excel Files": ["xlsx"], "All Files": ["*"] };
+                        break;
+                    default:
+                        throw new Error(`Unsupported format: ${payload.format}`);
+                }
+
+                // Show save dialog
+                const uri = await vscode.window.showSaveDialog({
+                    defaultUri: vscode.Uri.file(`${state.tableName}-export.${defaultExt}`),
+                    filters: filters,
+                });
+
+                if (uri) {
+                    // Use backend serialization service to generate and save the file
+                    const result = await this._tableExplorerService.serializeData(
+                        uri.fsPath,
+                        payload.format,
+                        headers,
+                        rows,
+                    );
+
+                    if (result.succeeded) {
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
+                        );
+
+                        this.logger.info(
+                            `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
+                        );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            format: payload.format,
+                            rowCount: rows.length.toString(),
+                        });
+                    } else {
+                        throw new Error(result.messages || "Serialization failed");
+                    }
+                } else {
+                    this.logger.info("Save dialog cancelled by user");
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Error saving results: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to save results"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.exportFailed(getErrorMessage(error)),
+                );
+            }
 
             return state;
         });

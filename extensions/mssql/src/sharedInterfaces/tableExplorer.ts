@@ -208,6 +208,7 @@ export interface TableExplorerContextProps {
     copyScriptToClipboard: () => void;
     toggleScriptPane: () => void;
     setCurrentPage: (pageNumber: number) => void;
+    saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
 }
 
 export interface TableExplorerReducers {
@@ -223,4 +224,15 @@ export interface TableExplorerReducers {
     copyScriptToClipboard: {};
     toggleScriptPane: {};
     setCurrentPage: { pageNumber: number };
+    saveResults: { format: SupportedSaveFormats; data: ExportData };
 }
+
+export interface ExportData {
+    headers: string[];
+    rows: string[][];
+}
+
+/**
+ * Supported file formats for exporting table data.
+ */
+export type SupportedSaveFormats = "csv" | "json" | "excel";

@@ -1566,6 +1566,33 @@ export class Connection {
         });
     };
 
+    public static orphanedConnectionGroupsWarning = (groupNames: string) => {
+        return l10n.t({
+            message:
+                "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
+            args: [groupNames],
+            comment: ["{0} is the comma separated list of connection group names"],
+        });
+    };
+
+    public static orphanedConnectionsWarning = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.",
+            args: [connectionDisplayNames.join(", ")],
+            comment: ["{0} is the comma separated list of connection display names"],
+        });
+    };
+
+    public static multipleRootGroupsFoundError = (rootId: string) => {
+        return l10n.t({
+            message:
+                "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+            args: [rootId],
+            comment: ["{0} is the root id"],
+        });
+    };
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:
@@ -2374,11 +2401,27 @@ export class TableExplorer {
     public static Save = l10n.t("Save");
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
+
+    public static exportSuccessful = (filePath: string) =>
+        l10n.t({
+            message: "Results exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+
+    public static exportFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to export results: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
+    public static watchDemo = l10n.t("Watch demo");
+    public static learnMore = l10n.t("Learn more");
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");

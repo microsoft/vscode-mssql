@@ -6,6 +6,8 @@
 import { getConnectionDisplayName } from "../../models/connectionInfo";
 import { ConnectionInfo } from "../../controllers/connectionManager";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { IConnectionProfile } from "../../models/interfaces";
+import { removeUndefinedProperties } from "../../utils/utils";
 
 /**
  * Gets a user-friendly display name for a connection, or a fallback placeholder if connection info is not available.
@@ -24,4 +26,18 @@ export function getDisplayNameForTool(connInfo: ConnectionInfo | undefined): str
         // "connection-123 (ID: connection-123)"
         return loc.unknownConnection;
     }
+}
+
+export function buildChatAgentConnectPrompt(connectionProfile: IConnectionProfile): string {
+    const connectTarget = removeUndefinedProperties({
+        profileId: connectionProfile.id,
+        profileName:
+            connectionProfile.profileName && connectionProfile.profileName.trim() !== ""
+                ? connectionProfile.profileName
+                : undefined,
+        serverName: connectionProfile.server,
+        database: connectionProfile.database || undefined,
+    });
+
+    return `Connect to ${JSON.stringify(connectTarget)}`;
 }

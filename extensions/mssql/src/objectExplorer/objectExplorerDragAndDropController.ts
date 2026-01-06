@@ -15,6 +15,7 @@ import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 
 interface ObjectExplorerDragMetadata {
     name: string;
@@ -92,7 +93,7 @@ export class ObjectExplorerDragAndDropController
                     if (target === undefined) {
                         targetInfo = {
                             label: "ROOT",
-                            id: this.connectionStore.rootGroupId,
+                            id: ConnectionConfig.ROOT_GROUP_ID,
                         };
                     } else {
                         targetInfo = {
