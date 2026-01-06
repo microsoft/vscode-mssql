@@ -92,3 +92,15 @@ export interface FileTreeNode {
     name: string;
     fullPath: string;
 }
+
+//#region File Browser Webview Interfaces
+
+export interface FileBrowserState {
+    ownerUri: string;
+    fileTree: FileTree;
+    fileFilters: string[];
+    showFoldersOnly: boolean;
+    selectedPath: string;
+}
+
+//#endregion
