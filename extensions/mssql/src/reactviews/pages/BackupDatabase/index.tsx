@@ -7,12 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { BackupDatabaseStateProvider } from "./backupDatabaseStateProvider";
 import { BackupDatabasePage } from "./backupDatabasePage";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
+    <VscodeWebviewProvider>
         <BackupDatabaseStateProvider>
             <BackupDatabasePage />
         </BackupDatabaseStateProvider>
-    </VscodeWebviewProvider2>,
+    </VscodeWebviewProvider>,
 );

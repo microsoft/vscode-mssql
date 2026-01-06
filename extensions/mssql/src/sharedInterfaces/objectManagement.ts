@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from "vscode-languageclient";
-import { FormEvent, FormItemSpec, FormReducers, FormState } from "./form";
+import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ApiStatus } from "./webview";
 import { TaskExecutionMode } from "./task";
 
@@ -165,19 +165,9 @@ export interface BackupInfo {
     tailLogBackup: boolean;
 
     /**
-     * Description for a particular backup set
-     */
-    backupSetDescription: string;
-
-    /**
      * Number of days before a backup set can be overwritten
      */
     retainDays: number;
-
-    /**
-     * Date and time when the backup set expires
-     */
-    expirationDate: Date;
 
     /**
      * Backup compression option
@@ -228,6 +218,7 @@ export class BackupDatabaseState
     defaultBackupFolder: string = "";
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
+    defaultBackupName: string = "";
 }
 
 export interface BackupDatabaseNode {
@@ -239,24 +230,17 @@ export interface BackupDatabaseNode {
 
 export interface BackupDatabaseReducers extends FormReducers<BackupDatabaseFormState> {
     /**
-     * Handles form-related actions and state updates.
-     */
-    formAction: {
-        event: FormEvent<BackupDatabaseFormState>;
-    };
-    /**
      * Gets the database information associated with the backup operation
      */
     backupDatabase: {};
 }
 
-export interface BackupDatabaseProvider {
-    /**
-     * Handles form-related actions and state updates.
-     * @param event The form event containing the action and data.
-     */
-    formAction(event: FormEvent<BackupDatabaseFormState>): void;
-
+export interface BackupDatabaseProvider
+    extends FormContextProps<
+        BackupDatabaseFormState,
+        BackupDatabaseState,
+        BackupDatabaseFormItemSpec
+    > {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -287,6 +271,9 @@ export interface BackupDatabaseFormState {
     continueOnError: boolean;
     transactionLog: LogOption;
     retainDays: number;
+    encryptionEnabled: boolean;
+    encryptionAlgorithm: EncryptionAlgorithm;
+    encryptorName: string;
 }
 
 export enum BackupType {
@@ -367,6 +354,26 @@ export enum MediaSet {
 export enum LogOption {
     Truncate = "Truncate",
     BackupTail = "BackupTail",
+}
+
+export enum EncryptionAlgorithm {
+    AES128 = "AES 128",
+    AES192 = "AES 192",
+    AES256 = "AES 256",
+    TripleDES = "Triple DES",
+}
+
+export function getEncryptionAlgorithmNumber(algorithm: EncryptionAlgorithm): number {
+    switch (algorithm) {
+        case EncryptionAlgorithm.AES128:
+            return 0;
+        case EncryptionAlgorithm.AES192:
+            return 1;
+        case EncryptionAlgorithm.AES256:
+            return 2;
+        case EncryptionAlgorithm.TripleDES:
+            return 3;
+    }
 }
 
 //#endregion

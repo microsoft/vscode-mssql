@@ -9,7 +9,7 @@ import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
-import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { BackupDatabaseForm } from "./backupDatabaseForm";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -37,12 +37,11 @@ const useStyles = makeStyles({
 export const BackupDatabasePage = () => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
+    const state = context?.state;
 
-    if (!context) {
+    if (!context || !state) {
         return;
     }
-
-    const state = useBackupDatabaseSelector((s) => s);
 
     const renderMainContent = () => {
         switch (state?.loadState) {
@@ -56,16 +55,7 @@ export const BackupDatabasePage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return (<div className={classes.spinnerDiv}>
-                    <label>{state?.databaseNode?.label}</label>
-                    <button
-                        onClick={() => {
-                            console.log("Button clicked for:", state?.databaseNode?.label);
-                            context.backupDatabase()
-                            // You can replace this with any action you want
-                        }}>
-                    </button>
-                </div>);
+                return <BackupDatabaseForm />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

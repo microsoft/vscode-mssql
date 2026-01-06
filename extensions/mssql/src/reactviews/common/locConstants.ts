@@ -1415,6 +1415,7 @@ export class LocConstants {
     public get backupDatabase() {
         return {
             loadingBackupDatabase: l10n.t("Loading backup database..."),
+            backup: l10n.t("Backup"),
         };
     }
 }

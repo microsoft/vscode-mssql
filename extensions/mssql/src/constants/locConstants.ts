@@ -2466,7 +2466,7 @@ export class BackupDatabase {
     public static backupCompression = l10n.t("Set backup Compression");
     public static useDefault = l10n.t("Use the default server setting");
     public static compressBackup = l10n.t("Compress backup");
-    public static doNotCompressBackup = l10n.t("Do not compress backup")
+    public static doNotCompressBackup = l10n.t("Do not compress backup");
     public static append = l10n.t("Append to the existing backup set");
     public static overwrite = l10n.t("Overwrite all existing backup sets");
     public static create = l10n.t("Backup to a new media set");
@@ -2479,4 +2479,7 @@ export class BackupDatabase {
     public static truncateLog = l10n.t("Truncate the transaction log");
     public static backupTail = l10n.t("Backup the tail of the log");
     public static retainDays = l10n.t("Set backup retain days");
+    public static enableEncryption = l10n.t("Use encryption for this backup");
+    public static encryptionAlgorithm = l10n.t("Encryption Algorithm");
+    public static encryptionType = l10n.t("Encryption Type");
 }

@@ -9,37 +9,38 @@ import {
     BackupDatabaseState,
 } from "../../../sharedInterfaces/objectManagement";
 import { FormEvent } from "../../../sharedInterfaces/form";
-import { ReactNode, createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
-import { WebviewRpc } from "../../common/rpc";
+import { ReactNode, createContext } from "react";
+import { getCoreRPCs } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
-export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
-    extensionRpc: WebviewRpc<BackupDatabaseReducers>;
-}
 
-const BackupDatabaseContext = createContext<BackupDatabaseContextProps | undefined>(undefined);
+const BackupDatabaseContext = createContext<BackupDatabaseProvider | undefined>(undefined);
 
 interface BackupDatabaseProviderProps {
     children: ReactNode;
 }
 
 const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<BackupDatabaseState, BackupDatabaseReducers>();
-
-    const value = useMemo<BackupDatabaseContextProps>(
-        () => ({
-            ...getCoreRPCs2(extensionRpc),
-            formAction: (event: FormEvent<BackupDatabaseFormState>) =>
-                extensionRpc.action("formAction", { event }),
-            backupDatabase: () => extensionRpc.action("backupDatabase"),
-            extensionRpc,
-        }),
-        [extensionRpc],
-    );
+    const webviewState = useVscodeWebview<BackupDatabaseState, BackupDatabaseReducers>();
 
     return (
-        <BackupDatabaseContext.Provider value={value}>{children}</BackupDatabaseContext.Provider>
+        <BackupDatabaseContext.Provider
+            value={{
+                state: webviewState?.state as any,
+                themeKind: webviewState?.themeKind,
+                keyBindings: webviewState?.keyBindings,
+                ...getCoreRPCs(webviewState),
+                formAction: function (event): void {
+                    webviewState?.extensionRpc.action("formAction", {
+                        event: event as FormEvent<BackupDatabaseFormState>,
+                    });
+                },
+                backupDatabase: function (): void {
+                    webviewState?.extensionRpc.action("backupDatabase", {});
+                },
+            }}>
+            {children}
+        </BackupDatabaseContext.Provider>
     );
 };
 
