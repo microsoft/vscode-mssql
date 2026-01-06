@@ -2462,8 +2462,21 @@ export class BackupDatabase {
     public static transactionLog = l10n.t("Transaction Log");
     public static copyOnly = l10n.t("Copy-only Backup");
     public static saveToUrl = l10n.t("Save backup to URL");
+    public static backupFiles = l10n.t("Backup Files");
     public static backupCompression = l10n.t("Set backup Compression");
     public static useDefault = l10n.t("Use the default server setting");
     public static compressBackup = l10n.t("Compress backup");
     public static doNotCompressBackup = l10n.t("Do not compress backup")
+    public static append = l10n.t("Append to the existing backup set");
+    public static overwrite = l10n.t("Overwrite all existing backup sets");
+    public static create = l10n.t("Backup to a new media set");
+    public static backupMediaSet = l10n.t("Set backup Media Set");
+    public static newMediaSetName = l10n.t("New media set name");
+    public static newMediaSetDescription = l10n.t("New media set description");
+    public static performChecksum = l10n.t("Perform checksum before writing to media");
+    public static verifyBackup = l10n.t("Verify backup when finished");
+    public static continueOnError = l10n.t("Continue on error");
+    public static truncateLog = l10n.t("Truncate the transaction log");
+    public static backupTail = l10n.t("Backup the tail of the log");
+    public static retainDays = l10n.t("Set backup retain days");
 }

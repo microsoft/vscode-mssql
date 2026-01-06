@@ -12,6 +12,13 @@ export interface ObjectManagementService {
     /**
      * Backup a database.
      * @param connectionUri The URI of the server connection.
+     * @returns A response containing backup configuration information.
+     */
+    getBackupConfigInfo(connectionUri: string): Thenable<BackupConfigInfoResponse>;
+
+    /**
+     * Backup a database.
+     * @param connectionUri The URI of the server connection.
      * @param backupInfo Various settings for how to backup the database.
      * @param taskMode Whether to run the backup operation, generate a script for it, or both.
      * @returns A response indicating if the backup or scripting operation started successfully.
@@ -24,6 +31,7 @@ export interface ObjectManagementService {
 }
 
 //#region Sql Tools Service Interfaces
+
 export namespace BackupRequest {
     export const type = new RequestType<BackupParams, BackupResponse, void, void>("backup/backup");
 }
@@ -39,9 +47,27 @@ export interface BackupResponse {
     taskId: number;
 }
 
+export namespace BackupConfigInfoRequest {
+    export const type = new RequestType<
+        DefaultDatabaseInfoParams,
+        BackupConfigInfoResponse,
+        void,
+        void
+    >("backup/backupconfiginfo");
+}
+
+export interface DefaultDatabaseInfoParams {
+    ownerUri: string;
+}
+
+export interface BackupConfigInfoResponse {
+    backupConfigInfo: BackupConfigInfo;
+}
+
 //#endregion
 
 //#region Backup Database
+
 export interface BackupInfo {
     /**
      * Name of the database to perform backup
@@ -179,6 +205,17 @@ export interface BackupInfo {
     encryptorName: string;
 }
 
+export interface BackupConfigInfo {
+    recoveryModel: string;
+    defaultBackupFolder: string;
+    backupEncryptors: BackupEncryptor[];
+}
+
+export interface BackupEncryptor {
+    encryptorType: number;
+    encryptorName: string;
+}
+
 export class BackupDatabaseState
     implements FormState<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec>
 {
@@ -188,6 +225,9 @@ export class BackupDatabaseState
     formState: BackupDatabaseFormState = {} as BackupDatabaseFormState;
     formComponents: Partial<Record<keyof BackupDatabaseFormState, BackupDatabaseFormItemSpec>> = {};
     formErrors: string[] = [];
+    defaultBackupFolder: string = "";
+    backupEncryptors: BackupEncryptor[] = [];
+    recoveryModel: string = "";
 }
 
 export interface BackupDatabaseNode {
@@ -225,39 +265,47 @@ export interface BackupDatabaseProvider {
 
 export interface BackupDatabaseFormItemSpec
     extends FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec> {
+    isAdvancedOption?: boolean;
     componentWidth: string;
 }
 
 export interface BackupDatabaseFormState {
     backupName: string;
-    recoveryModel: RecoveryModel;
     backupType: BackupType;
     copyOnly: boolean;
     saveToUrl: boolean;
-    backupFiles: string[];
+    // TODO: remove when implementing sql server file browser
+    backupFilePath: string;
+    // TODO: add when implementing sql server file browser
+    // backupFiles: string[];
     backupCompression: BackupCompression;
-    encryptionEnabled: boolean;
-    backupToExistingMediaSet: boolean;
-    existingMediaSetBackupMethod: ExistingMediaSetBackupMethod;
-    newMediaSetName: string;
-    newMediaSetDescription: string;
+    mediaSet: MediaSet;
+    mediaSetName: string;
+    mediaSetDescription: string;
     performChecksum: boolean;
     verifyBackup: boolean;
     continueOnError: boolean;
-    logOption: LogOption;
+    transactionLog: LogOption;
     retainDays: number;
 }
 
-export enum RecoveryModel {
+export enum BackupType {
     Full = "Full",
-    BulkLogged = "BulkLogged",
-    Simple = "Simple",
+    Differential = "Differential",
+    TransactionLog = "TransactionLog",
 }
 
-export enum BackupType {
-    Full = 0,
-    Differential = 1,
-    TransactionLog = 2,
+export function getBackupTypeNumber(backupType: BackupType): number {
+    switch (backupType) {
+        case BackupType.Full:
+            return 0;
+        case BackupType.Differential:
+            return 1;
+        case BackupType.TransactionLog:
+            return 2;
+        default:
+            return 0;
+    }
 }
 
 export enum BackupComponent {
@@ -266,7 +314,7 @@ export enum BackupComponent {
 }
 
 /**
- * Backup phisical device type: https://docs.microsoft.com/en-us/dotnet/api/microsoft.sqlserver.management.smo.backupdevicetype
+ * Backup physical device type: https://docs.microsoft.com/en-us/dotnet/api/microsoft.sqlserver.management.smo.backupdevicetype
  */
 export enum PhysicalDeviceType {
     Disk = 2,
@@ -292,14 +340,28 @@ export enum MediaDeviceType {
 }
 
 export enum BackupCompression {
-    Default = 0,
-    Compress = 1,
-    NoCompression = 2,
+    Default = "Default",
+    Compress = "Compress",
+    NoCompression = "NoCompression",
 }
 
-export enum ExistingMediaSetBackupMethod {
+export function getBackupCompressionNumber(compression: BackupCompression): number {
+    switch (compression) {
+        case BackupCompression.Default:
+            return 0;
+        case BackupCompression.Compress:
+            return 1;
+        case BackupCompression.NoCompression:
+            return 2;
+        default:
+            return 0;
+    }
+}
+
+export enum MediaSet {
     Append = "Append",
     Overwrite = "Overwrite",
+    Create = "Create",
 }
 
 export enum LogOption {

@@ -219,6 +219,9 @@
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
+      <source xml:lang="en">Append to the existing backup set</source>
+    </trans-unit>
     <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
       <source xml:lang="en">Application Intent</source>
     </trans-unit>
@@ -377,6 +380,25 @@
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
+      <source xml:lang="en">Backup Database - {0}</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++88c034e88df7490dfba55dcc2b7bb315853dfd7c098859b0ffc57305276067a0">
+      <source xml:lang="en">Backup Files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8915311eca19414aaa965b09dc2d3837b11600b7ddef68a3aaf3a0d304b052a8">
+      <source xml:lang="en">Backup Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162">
+      <source xml:lang="en">Backup Type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c29bc3a4b89534cd7d948252743e5d9efa498244ba82fb6839a8ceaa26b12c41">
+      <source xml:lang="en">Backup the tail of the log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
+      <source xml:lang="en">Backup to a new media set</source>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -413,6 +435,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
       <source xml:lang="en">Building {0}...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
+      <source xml:lang="en">Bulk-logged</source>
     </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
@@ -745,6 +770,9 @@
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
+      <source xml:lang="en">Compress backup</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
@@ -937,6 +965,9 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
+    <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
+      <source xml:lang="en">Continue on error</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
       <source xml:lang="en">Copied</source>
     </trans-unit>
@@ -978,6 +1009,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
+      <source xml:lang="en">Copy-only Backup</source>
     </trans-unit>
     <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
       <source xml:lang="en">Copying results...</source>
@@ -1221,6 +1255,9 @@
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
+      <source xml:lang="en">Differential</source>
+    </trans-unit>
     <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
       <source xml:lang="en">Directory not found</source>
     </trans-unit>
@@ -1271,6 +1308,9 @@
     <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
       <source xml:lang="en">Distinct Count: {0}</source>
       <note>{0} is the distinct count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
+      <source xml:lang="en">Do not compress backup</source>
     </trans-unit>
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -1941,6 +1981,9 @@
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
+      <source xml:lang="en">Full</source>
+    </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
@@ -2598,6 +2641,12 @@
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
     </trans-unit>
+    <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
+      <source xml:lang="en">New media set description</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14b597fbf3bcf6c5c2d537614aacd0fc0ad22c1a5fee4bec6f2d9fedf0591d38">
+      <source xml:lang="en">New media set name</source>
+    </trans-unit>
     <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
       <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
     </trans-unit>
@@ -2886,6 +2935,9 @@
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
+      <source xml:lang="en">Overwrite all existing backup sets</source>
+    </trans-unit>
     <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
       <source xml:lang="en">PNG</source>
     </trans-unit>
@@ -2931,6 +2983,9 @@
     <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
+      <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
     <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
@@ -3137,6 +3192,9 @@
     </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
+    </trans-unit>
+    <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
+      <source xml:lang="en">Recovery Model</source>
     </trans-unit>
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
@@ -3422,6 +3480,9 @@
       <source xml:lang="en">Save as JSON ({0})</source>
       <note>{0} is the keyboard shortcut for saving as JSON</note>
     </trans-unit>
+    <trans-unit id="++CODE++96b1b8cd908066c11a95c7b3c5aa3e0147264f999df87e8ced6d0b240f571c9a">
+      <source xml:lang="en">Save backup to URL</source>
+    </trans-unit>
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
     </trans-unit>
@@ -3638,6 +3699,15 @@
     <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
       <source xml:lang="en">Set Null</source>
     </trans-unit>
+    <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
+      <source xml:lang="en">Set backup Compression</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bca4fc1556903cc77b0daab4e8adb79cb8d7435918696efb33f6252f5858f935">
+      <source xml:lang="en">Set backup Media Set</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
+      <source xml:lang="en">Set backup retain days</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
       <source xml:lang="en">Setting up</source>
     </trans-unit>
@@ -3732,6 +3802,9 @@
     </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
+      <source xml:lang="en">Simple</source>
     </trans-unit>
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
@@ -4085,6 +4158,12 @@
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
+      <source xml:lang="en">Transaction Log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
+      <source xml:lang="en">Truncate the transaction log</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
     </trans-unit>
@@ -4154,6 +4233,9 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
+      <source xml:lang="en">Use the default server setting</source>
+    </trans-unit>
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
       <note>{0} is the connect command</note>
@@ -4190,6 +4272,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
+      <source xml:lang="en">Verify backup when finished</source>
     </trans-unit>
     <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
       <source xml:lang="en">Very Dissatisfied</source>

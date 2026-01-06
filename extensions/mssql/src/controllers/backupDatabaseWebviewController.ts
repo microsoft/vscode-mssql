@@ -14,6 +14,10 @@ import {
     BackupDatabaseState,
     BackupInfo,
     BackupType,
+    getBackupCompressionNumber,
+    getBackupTypeNumber,
+    LogOption,
+    MediaSet,
     ObjectManagementService,
     PhysicalDeviceType,
 } from "../sharedInterfaces/objectManagement";
@@ -22,6 +26,8 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FormWebviewController } from "../forms/formWebviewController";
 import * as LocConstants from "../constants/locConstants";
 import { TaskExecutionMode } from "../sharedInterfaces/task";
+import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
+import { simple } from "../constants/constants";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -62,6 +68,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             nodePath: this.databaseNode.nodePath,
             nodeStatus: this.databaseNode.nodeStatus,
         };
+
+        const backupConfigInfo = (
+            await this.objectManagementService.getBackupConfigInfo(this.databaseNode.sessionId)
+        )?.backupConfigInfo;
+        this.state.defaultBackupFolder = backupConfigInfo.defaultBackupFolder;
+        this.state.backupEncryptors = backupConfigInfo.backupEncryptors;
+        this.state.recoveryModel = backupConfigInfo.recoveryModel;
+        this.state.formComponents = this.setBackupDatabaseFormComponents();
+
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
@@ -76,9 +91,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             };
             const testBackupInfo: BackupInfo = {
                 databaseName: this.databaseNode.label.toString(),
-                backupType: BackupType.Full,
-                backupComponent: BackupComponent.Database,
-                backupDeviceType: PhysicalDeviceType.Disk,
+                backupType: getBackupTypeNumber(BackupType.Full),
+                backupComponent: BackupComponent.Database, // always database for this scenario
+                backupDeviceType: PhysicalDeviceType.Disk, // always disk or URL
                 selectedFiles: undefined,
                 backupsetName: backupName,
                 selectedFileGroup: undefined,
@@ -97,7 +112,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 backupSetDescription: "",
                 retainDays: 0,
                 expirationDate: undefined,
-                compressionOption: BackupCompression.Default,
+                compressionOption: getBackupCompressionNumber(BackupCompression.Default),
                 verifyBackupRequired: false,
                 encryptionAlgorithm: 0,
                 encryptorType: undefined,
@@ -121,7 +136,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof BackupDatabaseFormState)[];
     }
 
-    /*  private setBackupDatabaseFormComponents(): Record<
+    private setBackupDatabaseFormComponents(): Record<
         string,
         FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec>
     > {
@@ -140,18 +155,11 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.backupName,
             }),
 
-            recoveryModel: createFormItem({
-                type: FormItemType.Dropdown,
-                propertyName: "recoveryModel",
-                label: LocConstants.BackupDatabase.recoveryModel,
-                options: this.getRecoveryModelOptions(),
-            }),
-
             backupType: createFormItem({
                 type: FormItemType.Dropdown,
                 propertyName: "backupType",
                 label: LocConstants.BackupDatabase.backupType,
-                options: this.getBackupTypeOptions(),
+                options: this.getTypeOptions(),
             }),
 
             copyOnly: createFormItem({
@@ -160,100 +168,89 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.copyOnly,
             }),
 
-            saveToUrl: createFormItem({
-                type: FormItemType.Checkbox,
-                propertyName: "saveToUrl",
-                label: LocConstants.BackupDatabase.saveToUrl,
+            backupFilePath: createFormItem({
+                type: FormItemType.Input,
+                propertyName: "backupFilePath",
+                label: LocConstants.BackupDatabase.backupFiles,
             }),
+
+            // TODO: add when implementing URL backups
+            // saveToUrl: createFormItem({
+            //     type: FormItemType.Checkbox,
+            //     propertyName: "saveToUrl",
+            //     label: LocConstants.BackupDatabase.saveToUrl,
+            // }),
 
             backupCompression: createFormItem({
                 type: FormItemType.Dropdown,
                 propertyName: "backupCompression",
                 label: LocConstants.BackupDatabase.backupCompression,
-                options: this.getBackupCompressionOptions(),
-            }),
-
-            profileName: createFormItem({
-                type: FormItemType.Input,
-                propertyName: "profileName",
-                label: ConnectionDialog.profileName,
-                tooltip: ConnectionDialog.profileNameTooltip,
-                placeholder: ConnectionDialog.profileNamePlaceholder,
-            }),
-
-            containerName: createFormItem({
-                type: FormItemType.Input,
-                propertyName: "containerName",
-                label: LocalContainers.containerName,
+                options: this.getCompressionOptions(),
                 isAdvancedOption: true,
-                tooltip: LocalContainers.containerNameTooltip,
-                placeholder: LocalContainers.containerNamePlaceholder,
             }),
 
-            port: createFormItem({
-                type: FormItemType.Input,
-                propertyName: "port",
-                label: LocalContainers.port,
+            mediaSet: createFormItem({
+                type: FormItemType.Dropdown,
+                propertyName: "mediaSet",
+                label: LocConstants.BackupDatabase.backupMediaSet,
+                options: this.getMediaSetOptions(),
                 isAdvancedOption: true,
-                tooltip: LocalContainers.portTooltip,
-                placeholder: LocalContainers.portPlaceholder,
             }),
 
-            hostname: createFormItem({
+            mediaSetName: createFormItem({
                 type: FormItemType.Input,
-                propertyName: "hostname",
-                label: LocalContainers.hostname,
+                propertyName: "mediaSetName",
+                label: LocConstants.BackupDatabase.newMediaSetName,
                 isAdvancedOption: true,
-                tooltip: LocalContainers.hostnameTooltip,
-                placeholder: LocalContainers.hostnamePlaceholder,
             }),
 
-            acceptEula: createFormItem({
+            mediaSetDescription: createFormItem({
+                type: FormItemType.Input,
+                propertyName: "mediaSetDescription",
+                label: LocConstants.BackupDatabase.newMediaSetDescription,
+                isAdvancedOption: true,
+            }),
+
+            performChecksum: createFormItem({
                 type: FormItemType.Checkbox,
-                propertyName: "acceptEula",
-                label: `<span>
-                            ${Common.accept}
-                            <a
-                                href="https://go.microsoft.com/fwlink/?LinkId=746388"
-                                target="_blank"
-                            >
-                                ${LocalContainers.termsAndConditions}
-                            </a>
-                        </span>`,
-                required: true,
-                tooltip: LocalContainers.acceptSqlServerEulaTooltip,
-                componentWidth: "600px",
-                validate(_, value) {
-                    return value
-                        ? { isValid: true, validationMessage: "" }
-                        : {
-                              isValid: false,
-                              validationMessage: LocalContainers.acceptSqlServerEula,
-                          };
-                },
+                propertyName: "performChecksum",
+                label: LocConstants.BackupDatabase.performChecksum,
+                isAdvancedOption: true,
+            }),
+
+            verifyBackup: createFormItem({
+                type: FormItemType.Checkbox,
+                propertyName: "verifyBackup",
+                label: LocConstants.BackupDatabase.verifyBackup,
+                isAdvancedOption: true,
+            }),
+
+            continueOnError: createFormItem({
+                type: FormItemType.Checkbox,
+                propertyName: "continueOnError",
+                label: LocConstants.BackupDatabase.continueOnError,
+                isAdvancedOption: true,
+            }),
+
+            transactionLog: createFormItem({
+                type: FormItemType.Dropdown,
+                propertyName: "transactionLog",
+                label: LocConstants.BackupDatabase.transactionLog,
+                options: this.getTransactionLogOptions(),
+                isAdvancedOption: true,
+            }),
+
+            retainDays: createFormItem({
+                type: FormItemType.Input,
+                propertyName: "retainDays",
+                label: LocConstants.BackupDatabase.retainDays,
+                isAdvancedOption: true,
             }),
         };
     }
 
-    private getRecoveryModelOptions(): FormItemOptions[] {
-        return [
-            {
-                displayName: LocConstants.BackupDatabase.full,
-                value: RecoveryModel.Full,
-            },
-            {
-                displayName: LocConstants.BackupDatabase.bulkLogged,
-                value: RecoveryModel.BulkLogged,
-            },
-            {
-                displayName: LocConstants.BackupDatabase.simple,
-                value: RecoveryModel.Simple,
-            },
-        ];
-    }
-
-    private getBackupTypeOptions(): FormItemOptions[] {
-        return [
+    private getTypeOptions(): FormItemOptions[] {
+        const backupTypeOptions: FormItemOptions[] = [
             {
                 displayName: LocConstants.BackupDatabase.full,
                 value: BackupType.Full,
@@ -262,14 +259,19 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 displayName: LocConstants.BackupDatabase.differential,
                 value: BackupType.Differential,
             },
-            {
+        ];
+
+        // Only add Transaction Log option if the database is not in Simple recovery model
+        if (this.state.recoveryModel !== simple) {
+            backupTypeOptions.push({
                 displayName: LocConstants.BackupDatabase.transactionLog,
                 value: BackupType.TransactionLog,
-            },
-        ];
+            });
+        }
+        return backupTypeOptions;
     }
 
-    private getBackupCompressionOptions(): FormItemOptions[] {
+    private getCompressionOptions(): FormItemOptions[] {
         return [
             {
                 displayName: LocConstants.BackupDatabase.useDefault,
@@ -285,5 +287,34 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             },
         ];
     }
-        */
+
+    private getMediaSetOptions(): FormItemOptions[] {
+        return [
+            {
+                displayName: LocConstants.BackupDatabase.append,
+                value: MediaSet.Append,
+            },
+            {
+                displayName: LocConstants.BackupDatabase.overwrite,
+                value: MediaSet.Overwrite,
+            },
+            {
+                displayName: LocConstants.BackupDatabase.create,
+                value: MediaSet.Create,
+            },
+        ];
+    }
+
+    private getTransactionLogOptions(): FormItemOptions[] {
+        return [
+            {
+                displayName: LocConstants.BackupDatabase.truncateLog,
+                value: LogOption.Truncate,
+            },
+            {
+                displayName: LocConstants.BackupDatabase.backupTail,
+                value: LogOption.BackupTail,
+            },
+        ];
+    }
 }
