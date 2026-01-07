@@ -103,4 +103,63 @@ export interface FileBrowserState {
     selectedPath: string;
 }
 
+export interface FileBrowserReducers {
+    /**
+     * Opens the file browser
+     */
+    openFileBrowser: {
+        ownerUri: string;
+        expandPath: string;
+        fileFilters: string[];
+        showFoldersOnly: boolean;
+    };
+
+    /**
+     * Expands a node in the file tree
+     */
+    expandNode: { ownerUri: string; nodePath: string };
+
+    /**
+     * Closes the file browser
+     */
+    closeFileBrowser: { ownerUri: string };
+
+    toggleFileBrowserDialog: { shouldOpen: boolean };
+}
+
+export interface FileBrowserProvider {
+    /**
+     * Opens the file browser
+     * @param ownerUri the connection uri
+     * @param expandPath the default path to expand
+     * @param fileFilters the file filters to apply
+     * @param showFoldersOnly  whether to show folders only
+     */
+    openFileBrowser(
+        ownerUri: string,
+        expandPath: string,
+        fileFilters: string[],
+        showFoldersOnly: boolean,
+    ): void;
+
+    /**
+     * Expands a node in the file tree
+     * @param ownerUri the connection uri
+     * @param nodePath the path of the node to expand
+     */
+    expandNode(ownerUri: string, nodePath: string): void;
+
+    /**
+     * Closes the file browser
+     * @param ownerUri the connection uri
+     */
+    closeFileBrowser(ownerUri: string): void;
+
+    /**
+     * Toggles the file browser dialog
+     * @param shouldOpen whether the dialog should be open
+     */
+    toggleFileBrowserDialog(shouldOpen: boolean): void;
+}
+
 //#endregion

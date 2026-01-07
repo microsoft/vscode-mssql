@@ -31,6 +31,7 @@ import * as LocConstants from "../constants/locConstants";
 import { TaskExecutionMode } from "../sharedInterfaces/task";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { defaultDatabase, simple } from "../constants/constants";
+import { FileBrowserService } from "../services/fileBrowserService";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -42,6 +43,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private objectManagementService: ObjectManagementService,
+        private fileBrowserService: FileBrowserService,
         private databaseNode: TreeNodeInfo,
     ) {
         super(
@@ -156,6 +158,49 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 TaskExecutionMode.execute,
             );
             console.log("Backup Result: ", JSON.stringify(backupResult));
+            return state;
+        });
+
+        // Maybe the file browser reducer logic in a shared file
+        this.registerReducer("openFileBrowser", async (state, payload) => {
+            const result = await this.fileBrowserService.openFileBrowser(
+                payload.ownerUri,
+                payload.expandPath,
+                payload.fileFilters,
+                payload.showFoldersOnly,
+            );
+            if (result && result.succeeded) {
+                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
+            }
+            return state;
+        });
+        this.registerReducer("expandNode", async (state, payload) => {
+            const result = await this.fileBrowserService.expandFilePath(
+                payload.ownerUri,
+                payload.nodePath,
+            );
+            if (result && result.succeeded) {
+                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
+            }
+            return state;
+        });
+        this.registerReducer("closeFileBrowser", async (state, payload) => {
+            const result = await this.fileBrowserService.closeFileBrowser(payload.ownerUri);
+            if (result && result.succeeded) {
+                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
+            }
+            return state;
+        });
+        this.registerReducer("toggleFileBrowserDialog", async (state, payload) => {
+            if (payload.shouldOpen) {
+                // Open the file browser dialog with the current file browser state
+                state.dialog = {
+                    type: "fileBrowser",
+                };
+            } else {
+                // Close the file browser dialog
+                state.dialog = undefined;
+            }
             return state;
         });
     }

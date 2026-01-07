@@ -7,6 +7,8 @@ import { RequestType } from "vscode-languageclient";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ApiStatus } from "./webview";
 import { TaskExecutionMode } from "./task";
+import { FileBrowserProvider, FileBrowserReducers, FileBrowserState } from "./fileBrowser";
+import { IDialogProps } from "./connectionDialog";
 
 export interface ObjectManagementService {
     /**
@@ -219,6 +221,8 @@ export class BackupDatabaseState
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
+    fileBrowserState: FileBrowserState = {} as FileBrowserState;
+    dialog: IDialogProps | undefined;
 }
 
 export interface BackupDatabaseNode {
@@ -228,7 +232,9 @@ export interface BackupDatabaseNode {
     nodeStatus: string;
 }
 
-export interface BackupDatabaseReducers extends FormReducers<BackupDatabaseFormState> {
+export interface BackupDatabaseReducers
+    extends FormReducers<BackupDatabaseFormState>,
+        FileBrowserReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -237,10 +243,11 @@ export interface BackupDatabaseReducers extends FormReducers<BackupDatabaseFormS
 
 export interface BackupDatabaseProvider
     extends FormContextProps<
-        BackupDatabaseFormState,
-        BackupDatabaseState,
-        BackupDatabaseFormItemSpec
-    > {
+            BackupDatabaseFormState,
+            BackupDatabaseState,
+            BackupDatabaseFormItemSpec
+        >,
+        FileBrowserProvider {
     /**
      * Gets the database information associated with the backup operation
      */

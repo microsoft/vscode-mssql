@@ -105,6 +105,7 @@ import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { ObjectManagementService } from "../services/objectManagementService";
+import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
  * The main controller class that initializes the extension
@@ -141,6 +142,8 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public objectManagementService: ObjectManagementService;
+    public fileBrowserService: FileBrowserService;
+    
     /**
      * The main controller constructor
      * @constructor
@@ -824,6 +827,8 @@ export default class MainController implements vscode.Disposable {
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
         this.objectManagementService = new ObjectManagementService(SqlToolsServerClient.instance);
+
+        this.fileBrowserService = new FileBrowserService(this._vscodeWrapper, SqlToolsServerClient.instance);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
@@ -1661,6 +1666,7 @@ export default class MainController implements vscode.Disposable {
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
+                            this.fileBrowserService,
                             node,
                         );
                         reactPanel.revealToForeground();

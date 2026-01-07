@@ -13,7 +13,6 @@ import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
-
 const BackupDatabaseContext = createContext<BackupDatabaseProvider | undefined>(undefined);
 
 interface BackupDatabaseProviderProps {
@@ -38,6 +37,35 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                 backupDatabase: function (): void {
                     webviewState?.extensionRpc.action("backupDatabase", {});
                 },
+                openFileBrowser: function (
+                    ownerUri: string,
+                    expandPath: string,
+                    fileFilters: string[],
+                    showFoldersOnly: boolean,
+                ): void {
+                    webviewState?.extensionRpc.action("openFileBrowser", {
+                        ownerUri,
+                        expandPath,
+                        fileFilters,
+                        showFoldersOnly,
+                    });
+                },
+                expandNode(ownerUri: string, nodePath: string): void {
+                    webviewState?.extensionRpc.action("expandNode", {
+                        ownerUri,
+                        nodePath,
+                    });
+                },
+                closeFileBrowser(ownerUri: string): void {
+                    webviewState?.extensionRpc.action("closeFileBrowser", {
+                        ownerUri,
+                    });
+                },
+                toggleFileBrowserDialog(shouldOpen: boolean): void {
+                    webviewState?.extensionRpc.action("toggleFileBrowserDialog", {
+                        shouldOpen,
+                    });
+                }
             }}>
             {children}
         </BackupDatabaseContext.Provider>
