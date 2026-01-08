@@ -1423,7 +1423,6 @@ export class LocConstants {
     public get fileBrowser() {
         return {
             fileBrowserTitle: l10n.t("Select a file"),
-            selectedFile: l10n.t("Selected Path"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
         };
