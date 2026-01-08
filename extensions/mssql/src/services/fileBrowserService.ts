@@ -160,18 +160,14 @@ export class FileBrowserService {
                 );
                 this._pendingFileBrowserExpands.delete(fileBrowserResult.ownerUri);
 
-                // since this starts with a node in the state file Tree, do updates in this iupdate the state file tree, or the funcitons local vairable
                 this.updateNodeChildren(
-                    this.fileBrowserState.fileTree.rootNode,
+                    this.fileBrowserState.fileTree.rootNode.children[0],
                     expandPath,
                     fileBrowserResult.children,
                 );
 
-                // you need to update the children of the expanded node in the file tree
                 this.fileBrowserState = {
                     ...this.fileBrowserState,
-                    // will file tree be updated with new children?
-                    selectedPath: expandPath,
                 };
 
                 return fileBrowserResult;
@@ -214,6 +210,7 @@ export class FileBrowserService {
     ): boolean {
         if (currentNode.fullPath === targetNodePath) {
             currentNode.children = children;
+            currentNode.isExpanded = true;
             return true;
         }
 

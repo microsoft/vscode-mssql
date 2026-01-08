@@ -312,6 +312,8 @@ export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
+export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
+export const allFileTypes = ["*.*"];
 
 
 // Deployment Constants

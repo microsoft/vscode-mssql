@@ -30,7 +30,12 @@ import { FormWebviewController } from "../forms/formWebviewController";
 import * as LocConstants from "../constants/locConstants";
 import { TaskExecutionMode } from "../sharedInterfaces/task";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
-import { defaultDatabase, simple } from "../constants/constants";
+import {
+    allFileTypes,
+    defaultBackupFileTypes,
+    defaultDatabase,
+    simple,
+} from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
@@ -100,6 +105,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             retainDays: 0,
         };
 
+        this.state.fileFilterOptions = [
+            {
+                displayName: LocConstants.BackupDatabase.backupFileTypes,
+                value: defaultBackupFileTypes,
+            },
+            {
+                displayName: LocConstants.BackupDatabase.allFiles,
+                value: allFileTypes,
+            },
+        ];
+
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
@@ -167,6 +183,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 payload.ownerUri,
                 payload.expandPath,
                 payload.fileFilters,
+                payload.changeFilter,
                 payload.showFoldersOnly,
             );
             if (result && result.succeeded) {
@@ -184,6 +201,10 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             }
             return state;
         });
+        this.registerReducer("submitFilePath", async (state, payload) => {
+            state.fileBrowserState.selectedPath = payload.selectedPath;
+            return state;
+        });
         this.registerReducer("closeFileBrowser", async (state, payload) => {
             const result = await this.fileBrowserService.closeFileBrowser(payload.ownerUri);
             if (result && result.succeeded) {
@@ -191,8 +212,22 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             }
             return state;
         });
+
         this.registerReducer("toggleFileBrowserDialog", async (state, payload) => {
             if (payload.shouldOpen) {
+                if (!state.fileBrowserState) {
+                    console.log("Getting file browser state");
+                    // Initialize file browser state if not already done
+                    const result = await this.fileBrowserService.openFileBrowser(
+                        this.state.databaseNode.nodeUri,
+                        this.state.defaultBackupFolder,
+                        defaultBackupFileTypes,
+                        false,
+                    );
+                    if (result && result.succeeded) {
+                        state.fileBrowserState = this.fileBrowserService.fileBrowserState;
+                    }
+                }
                 // Open the file browser dialog with the current file browser state
                 state.dialog = {
                     type: "fileBrowser",

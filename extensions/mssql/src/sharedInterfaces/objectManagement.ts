@@ -7,7 +7,12 @@ import { RequestType } from "vscode-languageclient";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ApiStatus } from "./webview";
 import { TaskExecutionMode } from "./task";
-import { FileBrowserProvider, FileBrowserReducers, FileBrowserState } from "./fileBrowser";
+import {
+    FileBrowserProvider,
+    FileBrowserReducers,
+    FileBrowserState,
+    FileTypeOption,
+} from "./fileBrowser";
 import { IDialogProps } from "./connectionDialog";
 
 export interface ObjectManagementService {
@@ -221,7 +226,8 @@ export class BackupDatabaseState
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
-    fileBrowserState: FileBrowserState = {} as FileBrowserState;
+    fileBrowserState: FileBrowserState | undefined;
+    fileFilterOptions: FileTypeOption[] = [];
     dialog: IDialogProps | undefined;
 }
 

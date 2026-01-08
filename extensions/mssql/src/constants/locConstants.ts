@@ -2482,4 +2482,6 @@ export class BackupDatabase {
     public static enableEncryption = l10n.t("Use encryption for this backup");
     public static encryptionAlgorithm = l10n.t("Encryption Algorithm");
     public static encryptionType = l10n.t("Encryption Type");
+    public static backupFileTypes = l10n.t("Backup Files (*.bak, *.log, *.trn)");
+    public static allFiles = l10n.t("All Files (*.*)");
 }

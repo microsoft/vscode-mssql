@@ -14,6 +14,8 @@ import {
     BackupDatabaseProvider,
     BackupDatabaseState,
 } from "../../../sharedInterfaces/objectManagement";
+import { FileBrowserDialog } from "../FileBrowser/FileBrowserDialog";
+import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -95,7 +97,17 @@ export const BackupDatabaseForm: React.FC = () => {
     return (
         <div>
             <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>{renderFormFields()}</div>
+                <div className={classes.formDiv}>
+                    {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (
+                        <FileBrowserDialog
+                            state={state.fileBrowserState}
+                            provider={context as FileBrowserProvider}
+                            fileTypeOptions={state.fileFilterOptions}
+                            closeDialog={() => context.toggleFileBrowserDialog(false)}
+                        />
+                    )}
+                    {renderFormFields()}
+                </div>
                 <div className={classes.bottomDiv}>
                     <hr style={{ background: tokens.colorNeutralBackground2 }} />
                     <Button
@@ -104,6 +116,13 @@ export const BackupDatabaseForm: React.FC = () => {
                         onClick={() => handleSubmit()}
                         appearance="primary">
                         {locConstants.backupDatabase.backup}
+                    </Button>
+                    <Button
+                        className={classes.button}
+                        type="submit"
+                        onClick={() => context.toggleFileBrowserDialog(true)}
+                        appearance="primary">
+                        Browse Files
                     </Button>
                 </div>
             </div>

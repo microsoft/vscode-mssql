@@ -111,6 +111,7 @@ export interface FileBrowserReducers {
         ownerUri: string;
         expandPath: string;
         fileFilters: string[];
+        changeFilter: boolean;
         showFoldersOnly: boolean;
     };
 
@@ -118,6 +119,11 @@ export interface FileBrowserReducers {
      * Expands a node in the file tree
      */
     expandNode: { ownerUri: string; nodePath: string };
+
+    /**
+     * Submits the selected file path
+     */
+    submitFilePath: { selectedPath: string };
 
     /**
      * Closes the file browser
@@ -133,12 +139,14 @@ export interface FileBrowserProvider {
      * @param ownerUri the connection uri
      * @param expandPath the default path to expand
      * @param fileFilters the file filters to apply
+     * @param changeFilter whether to change the filter
      * @param showFoldersOnly  whether to show folders only
      */
     openFileBrowser(
         ownerUri: string,
         expandPath: string,
         fileFilters: string[],
+        changeFilter: boolean,
         showFoldersOnly: boolean,
     ): void;
 
@@ -148,6 +156,12 @@ export interface FileBrowserProvider {
      * @param nodePath the path of the node to expand
      */
     expandNode(ownerUri: string, nodePath: string): void;
+
+    /**
+     * Submits the selected file path
+     * @param selectedPath the selected file path
+     */
+    submitFilePath(selectedPath: string): void;
 
     /**
      * Closes the file browser
@@ -160,6 +174,11 @@ export interface FileBrowserProvider {
      * @param shouldOpen whether the dialog should be open
      */
     toggleFileBrowserDialog(shouldOpen: boolean): void;
+}
+
+export interface FileTypeOption {
+    displayName: string;
+    value: string[];
 }
 
 //#endregion

@@ -62,6 +62,7 @@ export class LocConstants {
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
             warning: l10n.t("Warning"),
+            loading: l10n.t("Loading"),
         };
     }
 
@@ -1416,6 +1417,15 @@ export class LocConstants {
         return {
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
+        };
+    }
+
+    public get fileBrowser() {
+        return {
+            fileBrowserTitle: l10n.t("Select a file"),
+            selectedFile: l10n.t("Selected Path"),
+            selectedPath: l10n.t("Selected Path"),
+            filesOfType: l10n.t("Files of Type"),
         };
     }
 }

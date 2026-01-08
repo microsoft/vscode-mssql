@@ -41,12 +41,14 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                     ownerUri: string,
                     expandPath: string,
                     fileFilters: string[],
+                    changeFilter: boolean,
                     showFoldersOnly: boolean,
                 ): void {
                     webviewState?.extensionRpc.action("openFileBrowser", {
                         ownerUri,
                         expandPath,
                         fileFilters,
+                        changeFilter,
                         showFoldersOnly,
                     });
                 },
@@ -54,6 +56,11 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                     webviewState?.extensionRpc.action("expandNode", {
                         ownerUri,
                         nodePath,
+                    });
+                },
+                submitFilePath(selectedPath: string): void {
+                    webviewState?.extensionRpc.action("submitFilePath", {
+                        selectedPath,
                     });
                 },
                 closeFileBrowser(ownerUri: string): void {
@@ -65,7 +72,7 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                     webviewState?.extensionRpc.action("toggleFileBrowserDialog", {
                         shouldOpen,
                     });
-                }
+                },
             }}>
             {children}
         </BackupDatabaseContext.Provider>
