@@ -4513,4 +4513,810 @@
       <source xml:lang="en">👋 I&apos;m GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</source>
     </trans-unit>
   </body></file>
+  <file original="package" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="mssql.addObjectExplorer">
+      <source xml:lang="en">Add Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups.create">
+      <source xml:lang="en">Add Connection Group</source>
+    </trans-unit>
+    <trans-unit id="mssql.addAadAccount">
+      <source xml:lang="en">Add Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.deviceCode.description">
+      <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
+      <source xml:lang="en">Always Encrypted</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.executionTimeout">
+      <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.analyzeQueryPerformance">
+      <source xml:lang="en">Analyze Query Performance</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
+      <source xml:lang="en">Application Intent</source>
+    </trans-unit>
+    <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
+      <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.autoRevealResultsPanel">
+      <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when &apos;Open Results in Tab&apos; is enabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
+      <source xml:lang="en">Azure MFA</source>
+    </trans-unit>
+    <trans-unit id="mssql.cancelQuery">
+      <source xml:lang="en">Cancel Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.changeConnection">
+      <source xml:lang="en">Change Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.changeDatabase">
+      <source xml:lang="en">Change Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.chooseLanguageFlavor">
+      <source xml:lang="en">Choose SQL handler for this file</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
+      <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
+    </trans-unit>
+    <trans-unit id="mssql.chooseAuthMethod">
+      <source xml:lang="en">Chooses which Authentication method to use</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+      <source xml:lang="en">Clear All Connection Sharing Permissions</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearAllQueryHistory">
+      <source xml:lang="en">Clear All Query History</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearFilters">
+      <source xml:lang="en">Clear Filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearAzureAccountTokenCache">
+      <source xml:lang="en">Clear Microsoft Entra account token cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.clearPooledConnections">
+      <source xml:lang="en">Clear Pooled Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
+      <source xml:lang="en">Command Timeout</source>
+    </trans-unit>
+    <trans-unit id="mssql.connect">
+      <source xml:lang="en">Connect</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
+      <source xml:lang="en">Connect to a SQL Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
+      <source xml:lang="en">Connection Dialog</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.connectionTimeoutLabel">
+      <source xml:lang="en">Connection Timeout</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups">
+      <source xml:lang="en">Connection groups</source>
+    </trans-unit>
+    <trans-unit id="mssql.connections">
+      <source xml:lang="en">Connection profiles defined in &apos;User Settings&apos; are shown under &apos;MS SQL: Connect&apos; command in the command palette.</source>
+    </trans-unit>
+    <trans-unit id="extension.connections">
+      <source xml:lang="en">Connections</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
+      <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyAll">
+      <source xml:lang="en">Copy All</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyObjectName">
+      <source xml:lang="en">Copy Object Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyConnectionString">
+      <source xml:lang="en">Copy as Connection String</source>
+    </trans-unit>
+    <trans-unit id="mssql.createAzureFunction">
+      <source xml:lang="en">Create Azure Function with SQL binding</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
+      <source xml:lang="en">Create a Table with Table Designer</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
+      <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
+    </trans-unit>
+    <trans-unit id="mssql.dacpacDialog.launch">
+      <source xml:lang="en">Data-tier Application (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+      <source xml:lang="en">Default view mode for query results display.</source>
+    </trans-unit>
+    <trans-unit id="mssql.deleteQueryHistory">
+      <source xml:lang="en">Delete</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups.delete">
+      <source xml:lang="en">Delete Connection Group</source>
+    </trans-unit>
+    <trans-unit id="mssql.deleteContainer">
+      <source xml:lang="en">Delete Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.dacpacDialog.deploy">
+      <source xml:lang="en">Deploy DACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.disableActualPlan">
+      <source xml:lang="en">Disable Actual Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
+      <source xml:lang="en">Disable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
+      <source xml:lang="en">Disable automatic column sizing</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
+      <source xml:lang="en">Disabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.disconnect">
+      <source xml:lang="en">Disconnect</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+      <source xml:lang="en">Display results in a formatted text format.</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+      <source xml:lang="en">Display results in a tabular grid format (default)</source>
+    </trans-unit>
+    <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
+      <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
+      <source xml:lang="en">Do not show prompts to enable UI-based features</source>
+    </trans-unit>
+    <trans-unit id="mssql.editConnection">
+      <source xml:lang="en">Edit Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups.edit">
+      <source xml:lang="en">Edit Connection Group</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+      <source xml:lang="en">Edit Connection Sharing Permissions</source>
+    </trans-unit>
+    <trans-unit id="mssql.tableExplorer">
+      <source xml:lang="en">Edit Data (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableActualPlan">
+      <source xml:lang="en">Enable Actual Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.enableGroupBySchema">
+      <source xml:lang="en">Enable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.title">
+      <source xml:lang="en">Enable Modern Features</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableRichExperiences">
+      <source xml:lang="en">Enable Modern Features</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.alwaysEncryptedParameterization">
+      <source xml:lang="en">Enable Parameterization for Always Encrypted</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableQueryHistoryCapture">
+      <source xml:lang="en">Enable Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.ansiDefaults">
+      <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.ansiNulls">
+      <source xml:lang="en">Enable SET ANSI_NULLS</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.ansiNullDefaultOn">
+      <source xml:lang="en">Enable SET ANSI_NULL_DFLT_ON</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.ansiPadding">
+      <source xml:lang="en">Enable SET ANSI_PADDING</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.ansiWarnings">
+      <source xml:lang="en">Enable SET ANSI_WARNINGS</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.arithAbort">
+      <source xml:lang="en">Enable SET ARITHABORT option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.cursorCloseOnCommit">
+      <source xml:lang="en">Enable SET CURSOR_CLOSE_ON_COMMIT</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.deadlockPriority">
+      <source xml:lang="en">Enable SET DEADLOCK_PRIORITY option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.implicitTransactions">
+      <source xml:lang="en">Enable SET IMPLICIT_TRANSACTIONS</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.lockTimeout">
+      <source xml:lang="en">Enable SET LOCK TIMEOUT option (in milliseconds)</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.noCount">
+      <source xml:lang="en">Enable SET NOCOUNT option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.noExec">
+      <source xml:lang="en">Enable SET NOEXEC option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.parseOnly">
+      <source xml:lang="en">Enable SET PARSEONLY option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.queryGovernorCostLimit">
+      <source xml:lang="en">Enable SET QUERY_GOVERNOR_COST_LIMIT</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.quotedIdentifier">
+      <source xml:lang="en">Enable SET QUOTED_IDENTIFIER</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.statisticsIO">
+      <source xml:lang="en">Enable SET STATISTICS IO option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.statisticsTime">
+      <source xml:lang="en">Enable SET STATISTICS TIME option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.transactionIsolationLevel">
+      <source xml:lang="en">Enable SET TRANSACTION ISOLATION LEVEL option</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.xactAbortOn">
+      <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
+    </trans-unit>
+    <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+      <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
+      <source xml:lang="en">Enable modern features in MSSQL</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
+      <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.&#10;[Enable New Experiences](command:mssql.enableRichExperiences)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
+      <source xml:lang="en">Enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableRichExperiences.description">
+      <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableConnectionPooling">
+      <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableExperimentalFeatures.description">
+      <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableSqlAuthenticationProvider">
+      <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
+    </trans-unit>
+    <trans-unit id="mssql.showEstimatedPlan">
+      <source xml:lang="en">Estimated Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.runCurrentStatement">
+      <source xml:lang="en">Execute Current Statement</source>
+    </trans-unit>
+    <trans-unit id="mssql.runQuery">
+      <source xml:lang="en">Execute Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.explainQuery">
+      <source xml:lang="en">Explain Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.dacpacDialog.export">
+      <source xml:lang="en">Export BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.dacpacDialog.extract">
+      <source xml:lang="en">Extract DACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.description">
+      <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
+    </trans-unit>
+    <trans-unit id="mssql.filterNode">
+      <source xml:lang="en">Filter</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
+      <source xml:lang="en">Filter your Object Explorer Tree</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.title">
+      <source xml:lang="en">Get Started with MSSQL for Visual Studio Code</source>
+    </trans-unit>
+    <trans-unit id="mssql.showGettingStarted">
+      <source xml:lang="en">Getting Started Guide</source>
+    </trans-unit>
+    <trans-unit id="mssql.dacpacDialog.import">
+      <source xml:lang="en">Import BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.editorSubmenu">
+      <source xml:lang="en">MSSQL Copilot</source>
+    </trans-unit>
+    <trans-unit id="mssql.Configuration">
+      <source xml:lang="en">MSSQL configuration</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.description">
+      <source xml:lang="en">Make a new connection to a SQL database, or edit existing connections with the connection dialog.&#10;You can connect to a database by entering your connection information, using a connection string, or browsing your Azure subscriptions.&#10;[Open Connection Dialog](command:mssql.addObjectExplorer)</source>
+    </trans-unit>
+    <trans-unit id="mssql.manageProfiles">
+      <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.maxXmlCharsToStore">
+      <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.maxCharsToStore">
+      <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+    </trans-unit>
+    <trans-unit id="mssql.logFilesRemovalLimit">
+      <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.setRowCount">
+      <source xml:lang="en">Maximum number of rows to return before the server stops processing your query.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.textSize">
+      <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+    </trans-unit>
+    <trans-unit id="mssql.editTable">
+      <source xml:lang="en">Modify Table</source>
+    </trans-unit>
+    <trans-unit id="mssql.newDeployment">
+      <source xml:lang="en">New Deployment</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerNewQuery">
+      <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.newQuery">
+      <source xml:lang="en">New Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.newTable">
+      <source xml:lang="en">New Table</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.title">
+      <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
+    </trans-unit>
+    <trans-unit id="mssql.logRetentionMinutes">
+      <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
+    </trans-unit>
+    <trans-unit id="mssql.queryHistoryLimit">
+      <source xml:lang="en">Number of query history entries to show in the Query History view</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.altText">
+      <source xml:lang="en">Object Explorer filters</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
+      <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
+    </trans-unit>
+    <trans-unit id="mssql.openChangelog">
+      <source xml:lang="en">Open Changelog</source>
+    </trans-unit>
+    <trans-unit id="mssql.openExecutionPlanFile">
+      <source xml:lang="en">Open Execution Plan File</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.newQueryWithConnection">
+      <source xml:lang="en">Open New Query and Connect</source>
+    </trans-unit>
+    <trans-unit id="mssql.openQueryHistory">
+      <source xml:lang="en">Open Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.commandPaletteQueryHistory">
+      <source xml:lang="en">Open Query History in Command Palette</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+      <source xml:lang="en">Open in Copilot Agent mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabase">
+      <source xml:lang="en">Open in Copilot Ask mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.pauseQueryHistoryCapture">
+      <source xml:lang="en">Pause Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.preventAutoExecuteScript">
+      <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="mssql.authCodeGrant.description">
+      <source xml:lang="en">Prompts users to sign in using their browser.</source>
+    </trans-unit>
+    <trans-unit id="extension.queryHistory">
+      <source xml:lang="en">Query History</source>
+    </trans-unit>
+    <trans-unit id="extension.queryResult">
+      <source xml:lang="en">Query Results</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
+      <source xml:lang="en">Query editor and query results pane</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
+      <source xml:lang="en">Query plan visualization</source>
+    </trans-unit>
+    <trans-unit id="mssql.refreshObjectExplorerNode">
+      <source xml:lang="en">Refresh</source>
+    </trans-unit>
+    <trans-unit id="mssql.rebuildIntelliSenseCache">
+      <source xml:lang="en">Refresh IntelliSense Cache</source>
+    </trans-unit>
+    <trans-unit id="mssql.removeObjectExplorerNode">
+      <source xml:lang="en">Remove</source>
+    </trans-unit>
+    <trans-unit id="mssql.removeAadAccount">
+      <source xml:lang="en">Remove Microsoft Entra Account</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
+      <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="mssql.revealQueryResult">
+      <source xml:lang="en">Reveal Query Result</source>
+    </trans-unit>
+    <trans-unit id="mssql.copilot.rewriteQuery">
+      <source xml:lang="en">Rewrite Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.runQueryHistory">
+      <source xml:lang="en">Run Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
+      <source xml:lang="en">Run a SQL Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
+      <source xml:lang="en">SQL Container Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
+      <source xml:lang="en">SQL Container Version</source>
+    </trans-unit>
+    <trans-unit id="mssql.sqlScriptsSubmenu">
+      <source xml:lang="en">SQL Scripts</source>
+    </trans-unit>
+    <trans-unit id="mssql.schemaCompare">
+      <source xml:lang="en">Schema Compare</source>
+    </trans-unit>
+    <trans-unit id="mssql.schemaDesigner">
+      <source xml:lang="en">Schema Designer</source>
+    </trans-unit>
+    <trans-unit id="mssql.scriptAlter">
+      <source xml:lang="en">Script as Alter</source>
+    </trans-unit>
+    <trans-unit id="mssql.scriptCreate">
+      <source xml:lang="en">Script as Create</source>
+    </trans-unit>
+    <trans-unit id="mssql.scriptDelete">
+      <source xml:lang="en">Script as Drop</source>
+    </trans-unit>
+    <trans-unit id="mssql.scriptExecute">
+      <source xml:lang="en">Script as Execute</source>
+    </trans-unit>
+    <trans-unit id="mssql.scriptSelect">
+      <source xml:lang="en">Select Top 1000</source>
+    </trans-unit>
+    <trans-unit id="mssql.selectedAzureSubscriptions">
+      <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.userFeedback">
+      <source xml:lang="en">Send Feedback</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsFontFamily">
+      <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsFontSize">
+      <source xml:lang="en">Set the font size for the results grid; set to blank to use the editor size</source>
+    </trans-unit>
+    <trans-unit id="mssql.shortcuts">
+      <source xml:lang="en">Shortcuts related to the results window</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.displayBitAsNumber">
+      <source xml:lang="en">Should BIT columns be displayed as numbers (1 or 0)? If false, BIT columns will be displayed as &apos;true&apos; or &apos;false&apos;</source>
+    </trans-unit>
+    <trans-unit id="mssql.intelliSense.enableIntelliSense">
+      <source xml:lang="en">Should IntelliSense be enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.intelliSense.enableErrorChecking">
+      <source xml:lang="en">Should IntelliSense error checking be enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.intelliSense.enableQuickInfo">
+      <source xml:lang="en">Should IntelliSense quick info be enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.intelliSense.enableSuggestions">
+      <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.piiLogging">
+      <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
+    </trans-unit>
+    <trans-unit id="mssql.enableQueryHistoryFeature">
+      <source xml:lang="en">Should Query History feature be enabled</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
+      <source xml:lang="en">Should column definitions be aligned?</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.datatypeCasing">
+      <source xml:lang="en">Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.keywordCasing">
+      <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+    </trans-unit>
+    <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
+      <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
+    </trans-unit>
+    <trans-unit id="mssql.persistQueryResultTabs">
+      <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
+      <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.showChangelogOnUpdate">
+      <source xml:lang="en">Show changelog after extension updates</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
+      <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
+      <source xml:lang="en">Sort and Filter Query Results</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.altText">
+      <source xml:lang="en">Sort and filter options for query results</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
+      <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.sqlEndpoint">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.startContainer">
+      <source xml:lang="en">Start Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.startQueryHistoryCapture">
+      <source xml:lang="en">Start Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.stopContainer">
+      <source xml:lang="en">Stop Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
+      <source xml:lang="en">Table Designer</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+      <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment">
+      <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.color">
+      <source xml:lang="en">The color of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.description">
+      <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+      <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+    </trans-unit>
+    <trans-unit id="mssql.maxRecentConnections">
+      <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.name">
+      <source xml:lang="en">The name of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.expandTimeout">
+      <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.groupId">
+      <source xml:lang="en">The unique identifier for the connection group this connection profile belongs to.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.id">
+      <source xml:lang="en">The unique identifier for the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroup.parentId">
+      <source xml:lang="en">The unique identifier for the parent connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.id">
+      <source xml:lang="en">The unique identifier for this connection profile.</source>
+    </trans-unit>
+    <trans-unit id="mssql.legacySetting.deprecationMessage">
+      <source xml:lang="en">This setting will be removed in a future release.</source>
+    </trans-unit>
+    <trans-unit id="mssql.toggleSqlCmd">
+      <source xml:lang="en">Toggle SQLCMD Mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.messagesDefaultOpen">
+      <source xml:lang="en">True for the messages pane to be open by default; false for closed</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.description">
+      <source xml:lang="en">Understand what your query is doing by viewing the query plan.&#10;See the estimated plan without running the query, or view the actual query plan after running the query by toggling the buttons at the top of a query editor window.</source>
+    </trans-unit>
+    <trans-unit id="mssql.chooseDatabase">
+      <source xml:lang="en">Use Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
+      <source xml:lang="en">Use column headers and data to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
+      <source xml:lang="en">Use only column headers to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
+      <source xml:lang="en">Use only row data to size columns automatically</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
+      <source xml:lang="en">Visualize a Query Plan</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.enableConnectionColor">
+      <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder&apos;s color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
+      <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.groupBySchema">
+      <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
+      <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
+      <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as the default behavior.</source>
+    </trans-unit>
+    <trans-unit id="mssql.walkthroughs.getStarted.description">
+      <source xml:lang="en">Your first steps for connecting to and developing with a SQL database</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsCsv.textIdentifier">
+      <source xml:lang="en">[Optional] Character used for enclosing text fields when saving results as CSV</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsCsv.lineSeparator">
+      <source xml:lang="en">[Optional] Character(s) used for separating rows when saving results as CSV</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyRemoveNewLine">
+      <source xml:lang="en">[Optional] Configuration options for copying multi-line results from the Results View</source>
+    </trans-unit>
+    <trans-unit id="mssql.copyIncludeHeaders">
+      <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
+    </trans-unit>
+    <trans-unit id="mssql.splitPaneSelection">
+      <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.applicationIntent">
+      <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsCsv.delimiter">
+      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
+    </trans-unit>
+    <trans-unit id="mssql.ignorePlatformWarning">
+      <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsCsv.encoding">
+      <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.currentLanguage">
+      <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.containerName">
+      <source xml:lang="en">[Optional] Indicates the name of local docker container the connection is on</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.emptyPasswordInput">
+      <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.typeSystemVersion">
+      <source xml:lang="en">[Optional] Indicates which server type the provider will expose through the DataReader.</source>
+    </trans-unit>
+    <trans-unit id="mssql.logDebugInfo">
+      <source xml:lang="en">[Optional] Log debug output to the VS Code console (Help -&gt; Toggle Developer Tools)</source>
+    </trans-unit>
+    <trans-unit id="mssql.tracingLevel">
+      <source xml:lang="en">[Optional] Log level for backend services. Azure Data Studio generates a file name every time it starts and if the file already exists the logs entries are appended to that file. For cleanup of old log files see logRetentionMinutes and logFilesRemovalLimit settings. The default tracingLevel does not log much. Changing verbosity could lead to extensive logging and disk space requirements for the logs. Error includes Critical, Warning includes Error, Information includes Warning and Verbose includes Information</source>
+    </trans-unit>
+    <trans-unit id="mssql.showBatchTime">
+      <source xml:lang="en">[Optional] Should execution time be shown for individual batches</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.profileName">
+      <source xml:lang="en">[Optional] Specify a custom name for this connection profile to easily browse and search in the command palette of Visual Studio Code.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.authenticationType">
+      <source xml:lang="en">[Optional] Specify the SQL Server authentication type.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.database">
+      <source xml:lang="en">[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically &apos;master&apos;.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.connectRetryInterval">
+      <source xml:lang="en">[Optional] Specify the delay between attempts to restore connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.commandTimeout">
+      <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a command to execute before terminating the attempt and generating an error. The default value is 30 seconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.connectTimeout">
+      <source xml:lang="en">[Optional] Specify the length of time in seconds to wait for a connection to the server before terminating connection attempt and generating an error. The default value is 30 seconds.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.maxPoolSize">
+      <source xml:lang="en">[Optional] Specify the maximum number of connections allowed in the pool.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.loadBalanceTimeout">
+      <source xml:lang="en">[Optional] Specify the minimum amount of time in seconds for this connection to live in the pool before being removed/deleted.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.minPoolSize">
+      <source xml:lang="en">[Optional] Specify the minimum number of connections allowed in the pool.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.applicationName">
+      <source xml:lang="en">[Optional] Specify the name of the application used for SQL Server to log (default: &apos;vscode-mssql&apos;).</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.attachDbFilename">
+      <source xml:lang="en">[Optional] Specify the name of the primary file, including the full path name, of an attachable database.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.workstationId">
+      <source xml:lang="en">[Optional] Specify the name of the workstation connecting to SQL Server.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.failoverPartner">
+      <source xml:lang="en">[Optional] Specify the name or network address of the instance of SQL Server that acts as a failover partner.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.connectRetryCount">
+      <source xml:lang="en">[Optional] Specify the number of attempts to restore connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.password">
+      <source xml:lang="en">[Optional] Specify the password for SQL Server authentication. If password is not specified or already saved, when you connect, you will be asked again.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.port">
+      <source xml:lang="en">[Optional] Specify the port number to connect to.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.packetSize">
+      <source xml:lang="en">[Optional] Specify the size in bytes of the network packets to communicate with SQL Server.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.user">
+      <source xml:lang="en">[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.connectionString">
+      <source xml:lang="en">[Optional] The ADO.NET connection string to use for the connection. Overrides any other options given in this connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.replication">
+      <source xml:lang="en">[Optional] Used by SQL Server in replication.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.encrypt">
+      <source xml:lang="en">[Optional] When &apos;Mandatory&apos; or &apos;Strict&apos;, SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed. When set to &apos;Strict&apos;, SQL Server uses TDS 8.0 for all data transfer between the client and server. &apos;Strict&apos; is supported on SQL Server 2022 onwards.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.multipleActiveResultSets">
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, multiple result sets can be returned and read from on connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.trustServerCertificate">
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set &apos;false&apos; for Azure SQL Database connection.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.pooling">
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.multiSubnetFailover">
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.savePassword">
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the password for SQL Server authentication is saved in the secure store of your operating system such as KeyChain in MacOS or Secure Store in Windows.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.persistSecurityInfo">
+      <source xml:lang="en">[Optional] When set to false, security-sensitive information, such as the password, is not returned as part of the connection if the connection is open or has ever been in an open state.</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.hostNameInCertificate">
+      <source xml:lang="en">[Optional] When specified (and encrypt=Mandatory and trustServerCertificate=false), SQL Server uses provided hostname for validating trust with the server certificate.</source>
+    </trans-unit>
+    <trans-unit id="mssql.saveAsCsv.includeHeaders">
+      <source xml:lang="en">[Optional] When true, column headers are included when saving results as CSV</source>
+    </trans-unit>
+    <trans-unit id="mssql.connection.server">
+      <source xml:lang="en">[Required] Specify the server name to connect to. Use &apos;hostname instance&apos; or &apos;&lt;server&gt;.database.windows.net&apos; for Azure SQL Database.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.authenticationTypeLabel">
+      <source xml:lang="en">auth</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.databaseLabel">
+      <source xml:lang="en">database</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.portLabel">
+      <source xml:lang="en">port</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
+      <source xml:lang="en">server</source>
+    </trans-unit>
+    <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
+      <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. &apos;, mycolumn2&apos; instead of at the end e.g. &apos;mycolumn1,&apos;</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
+      <source xml:lang="en">user</source>
+    </trans-unit>
+  </body></file>
 </xliff>
