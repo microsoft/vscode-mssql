@@ -106,7 +106,8 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
                             />
                         </div>
                     </DialogTitle>
-                    <DialogContent style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
+                    <DialogContent
+                        style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
                         <Textarea
                             value={currentCommand}
                             readOnly

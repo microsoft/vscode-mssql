@@ -976,14 +976,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     SourceFile: dacpacPath,
                 };
 
+                // Determine if publishing to container (no connection string available yet)
+                const isContainerTarget =
+                    this.state.formState.publishTarget === PublishTarget.LocalContainer;
+
                 // Pass connection string if available, otherwise pass server and database name
                 if (this._connectionString) {
                     commandLineArguments.TargetConnectionString = this._connectionString;
                 } else {
-                    // Fallback to server and database name when connection string is not yet available
-                    // (e.g., when profile is loading connection in background)
-                    if (this.state.formState.serverName) {
-                        commandLineArguments.TargetServerName = this.state.formState.serverName;
+                    // For container targets, use a placeholder server name that will be removed from output
+                    // For other targets, use the actual server name if available
+                    if (this.state.formState.serverName || isContainerTarget) {
+                        commandLineArguments[constants.TargetServerName] =
+                            this.state.formState.serverName || "localhost";
                     }
                     if (this.state.formState.databaseName) {
                         commandLineArguments.TargetDatabaseName = this.state.formState.databaseName;
@@ -1009,7 +1014,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     return Loc.FailedToGenerateSqlPackageCommand(result.errorMessage);
                 }
 
-                return result.command || "";
+                let command = result.command || "";
+
+                // For container targets, remove the server name from the command since it's not yet determined
+                if (isContainerTarget && command) {
+                    const pattern = new RegExp(`\\/${constants.TargetServerName}:"[^"]*"`, "gi");
+                    command = command
+                        .replace(pattern, "")
+                        .replace(/\s{2,}/g, " ")
+                        .trim();
+                }
+
+                return command;
             } catch (error) {
                 // Log and send telemetry for unexpected errors
                 this.logger.error("Failed to generate SqlPackage command:", error);
