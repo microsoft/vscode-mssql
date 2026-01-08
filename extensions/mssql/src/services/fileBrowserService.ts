@@ -10,7 +10,7 @@ export class FileBrowserService {
     fileBrowserState: fb.FileBrowserState;
 
     /**
-     * Map of pending session creations
+     * Map of pending opens
      */
     private _pendingFileBrowserOpens: Map<string, Deferred<fb.FileBrowserOpenResponse>> = new Map<
         string,

@@ -267,5 +267,4 @@
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
-    "mssql.backupDatabase": "Backup Database (Preview)"
 }

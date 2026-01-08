@@ -753,10 +753,6 @@
                 {
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
-                },
-                {
-                    "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && mssql.experimentalFeaturesEnabled"
                 }
             ],
             "commandPalette": [
@@ -827,10 +823,6 @@
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/"
-                },
-                {
-                    "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && mssql.experimentalFeaturesEnabled"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -1322,11 +1314,6 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.backupDatabase",
-                "title": "%mssql.backupDatabase%",
                 "category": "MS SQL"
             }
         ],

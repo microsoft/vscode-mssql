@@ -128,7 +128,6 @@ export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
-export const cmdBackupDatabase = "mssql.backupDatabase";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -312,7 +311,6 @@ export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
-export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const allFileTypes = ["*.*"];
 
 

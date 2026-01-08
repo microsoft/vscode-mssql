@@ -103,8 +103,6 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
-import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
-import { ObjectManagementService } from "../services/objectManagementService";
 import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
@@ -141,7 +139,6 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
-    public objectManagementService: ObjectManagementService;
     public fileBrowserService: FileBrowserService;
     
     /**
@@ -825,8 +822,6 @@ export default class MainController implements vscode.Disposable {
          * Good candidate for dependency injection.
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
-
-        this.objectManagementService = new ObjectManagementService(SqlToolsServerClient.instance);
 
         this.fileBrowserService = new FileBrowserService(this._vscodeWrapper, SqlToolsServerClient.instance);
 
@@ -1654,22 +1649,6 @@ export default class MainController implements vscode.Disposable {
                             focus: true,
                             expand: true,
                         });
-                    },
-                ),
-            );
-
-            this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdBackupDatabase,
-                    async (node: TreeNodeInfo) => {
-                        const reactPanel = new BackupDatabaseWebviewController(
-                            this._context,
-                            this._vscodeWrapper,
-                            this.objectManagementService,
-                            this.fileBrowserService,
-                            node,
-                        );
-                        reactPanel.revealToForeground();
                     },
                 ),
             );

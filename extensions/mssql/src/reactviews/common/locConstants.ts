@@ -1413,13 +1413,6 @@ export class LocConstants {
         };
     }
 
-    public get backupDatabase() {
-        return {
-            loadingBackupDatabase: l10n.t("Loading backup database..."),
-            backup: l10n.t("Backup"),
-        };
-    }
-
     public get fileBrowser() {
         return {
             fileBrowserTitle: l10n.t("Select a file"),
