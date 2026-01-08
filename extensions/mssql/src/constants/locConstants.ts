@@ -1417,6 +1417,9 @@ export class PublishProject {
     public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
         return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
     }
+    public static DacpacPathNotFound = l10n.t(
+        "DACPAC path not found. Please build the project first.",
+    );
 }
 
 export class SchemaCompare {

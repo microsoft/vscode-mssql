@@ -336,6 +336,7 @@ export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
 export const DacpacExtension = ".dacpac";
+export const SqlPackagePublishAction = "Publish";
 export const dotnet = "dotnet";
 export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";

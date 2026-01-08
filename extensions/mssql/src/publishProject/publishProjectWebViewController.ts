@@ -22,7 +22,7 @@ import {
     PublishTarget,
     GenerateSqlPackageCommandRequest,
 } from "../sharedInterfaces/publishDialog";
-import { SqlPackageService } from "../languageservice/sqlPackageService";
+import { SqlPackageService } from "../services/sqlPackageService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
@@ -966,12 +966,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
 
                 if (!dacpacPath) {
-                    throw new Error("DACPAC path not found. Please build the project first.");
+                    this.logger.error("DACPAC path not found for SqlPackage command generation");
+                    throw new Error(Loc.DacpacPathNotFound);
                 }
 
                 // Build arguments object matching CommandLineArguments structure expected by backend
                 const commandLineArguments: mssql.SqlPackageCommandLineArguments = {
-                    Action: "Publish" as mssql.CommandLineToolAction,
+                    Action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
                     SourceFile: dacpacPath,
                 };
 
@@ -1010,7 +1011,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 return result.command || "";
             } catch (error) {
-                // Return error message for unexpected errors
+                // Log and send telemetry for unexpected errors
+                this.logger.error("Failed to generate SqlPackage command:", error);
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.GenerateSqlPackageCommand,
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
+                    false,
+                );
                 return Loc.FailedToGenerateSqlPackageCommand(getErrorMessage(error));
             }
         });

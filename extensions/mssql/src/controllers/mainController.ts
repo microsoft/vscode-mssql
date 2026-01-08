@@ -34,7 +34,7 @@ import { AzureAccountService } from "../services/azureAccountService";
 import { AzureResourceService } from "../services/azureResourceService";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
-import { SqlPackageService } from "../languageservice/sqlPackageService";
+import { SqlPackageService } from "../services/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";

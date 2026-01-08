@@ -1721,6 +1721,7 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

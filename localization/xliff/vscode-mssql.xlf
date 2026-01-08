@@ -1087,6 +1087,9 @@
       <source xml:lang="en">DACPAC extracted successfully to &apos;{0}&apos;</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
+      <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
     </trans-unit>
