@@ -37,6 +37,9 @@ import {
     simple,
 } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { registerFileBrowserReducers } from "./fileBrowserUtils";
+import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -79,10 +82,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             nodeStatus: this.databaseNode.nodeStatus,
         };
 
+        this.state.ownerUri = this.databaseNode.sessionId;
+
         const backupConfigInfo = (
             await this.objectManagementService.getBackupConfigInfo(this.databaseNode.sessionId)
         )?.backupConfigInfo;
-        this.state.defaultBackupFolder = backupConfigInfo.defaultBackupFolder;
+        this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
         this.state.backupEncryptors = backupConfigInfo.backupEncryptors;
         this.state.recoveryModel = backupConfigInfo.recoveryModel;
 
@@ -91,13 +96,21 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         // Set default form state values
         this.state.formState = {
-            ...this.state.formState,
             backupName: this.state.defaultBackupName,
             backupType: BackupType.Full,
-            backupFilePath: `${this.state.defaultBackupFolder}/${this.state.defaultBackupName}.bak`,
-            mediaSet: MediaSet.Append,
+            copyOnly: false,
+            saveToUrl: false,
+            backupFilePath: `${this.state.defaultFileBrowserExpandPath}/${this.state.defaultBackupName}.bak`,
+            backupFiles: [],
             backupCompression: BackupCompression.Default,
+            mediaSet: MediaSet.Append,
+            mediaSetName: "",
+            mediaSetDescription: "",
+            performChecksum: false,
+            verifyBackup: false,
+            continueOnError: false,
             transactionLog: LogOption.Truncate,
+            encryptionEnabled: false,
             encryptionAlgorithm: EncryptionAlgorithm.AES128,
             encryptorName: this.state.backupEncryptors.length
                 ? this.state.backupEncryptors[0].encryptorName
@@ -153,8 +166,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 formatMedia: createNewMediaSet,
                 initialize: createNewMediaSet || overwriteMediaSet,
                 skipTapeHeader: createNewMediaSet,
-                mediaName: createNewMediaSet ? state.formState.mediaSetName : "",
-                mediaDescription: createNewMediaSet ? state.formState.mediaSetDescription : "",
+                mediaName: state.formState.mediaSetName,
+                mediaDescription: state.formState.mediaSetDescription,
                 checksum: state.formState.performChecksum,
                 continueAfterError: state.formState.continueOnError,
                 logTruncation: state.formState.transactionLog === LogOption.Truncate,
@@ -177,65 +190,16 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             return state;
         });
 
-        // Maybe the file browser reducer logic in a shared file
-        this.registerReducer("openFileBrowser", async (state, payload) => {
-            const result = await this.fileBrowserService.openFileBrowser(
-                payload.ownerUri,
-                payload.expandPath,
-                payload.fileFilters,
-                payload.changeFilter,
-                payload.showFoldersOnly,
-            );
-            if (result && result.succeeded) {
-                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
-            }
-            return state;
-        });
-        this.registerReducer("expandNode", async (state, payload) => {
-            const result = await this.fileBrowserService.expandFilePath(
-                payload.ownerUri,
-                payload.nodePath,
-            );
-            if (result && result.succeeded) {
-                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
-            }
-            return state;
-        });
-        this.registerReducer("submitFilePath", async (state, payload) => {
-            state.fileBrowserState.selectedPath = payload.selectedPath;
-            return state;
-        });
-        this.registerReducer("closeFileBrowser", async (state, payload) => {
-            const result = await this.fileBrowserService.closeFileBrowser(payload.ownerUri);
-            if (result && result.succeeded) {
-                state.fileBrowserState = this.fileBrowserService.fileBrowserState;
-            }
-            return state;
-        });
+        registerFileBrowserReducers(
+            this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
+            this.fileBrowserService,
+            false,
+            defaultBackupFileTypes,
+        );
 
-        this.registerReducer("toggleFileBrowserDialog", async (state, payload) => {
-            if (payload.shouldOpen) {
-                if (!state.fileBrowserState) {
-                    console.log("Getting file browser state");
-                    // Initialize file browser state if not already done
-                    const result = await this.fileBrowserService.openFileBrowser(
-                        this.state.databaseNode.nodeUri,
-                        this.state.defaultBackupFolder,
-                        defaultBackupFileTypes,
-                        false,
-                    );
-                    if (result && result.succeeded) {
-                        state.fileBrowserState = this.fileBrowserService.fileBrowserState;
-                    }
-                }
-                // Open the file browser dialog with the current file browser state
-                state.dialog = {
-                    type: "fileBrowser",
-                };
-            } else {
-                // Close the file browser dialog
-                state.dialog = undefined;
-            }
+        // Override default file browser submitFilePath reducer
+        this.registerReducer("submitFilePath", async (state, payload) => {
+            state.formState.backupFiles.push(payload.selectedPath);
             return state;
         });
     }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
+import { IDialogProps } from "./connectionDialog";
 
 //#region Sql Tools Service Interfaces
 export namespace FileBrowserOpenRequest {
@@ -94,6 +95,13 @@ export interface FileTreeNode {
 }
 
 //#region File Browser Webview Interfaces
+
+export type FileBrowserWebviewState = {
+    fileBrowserState: FileBrowserState;
+    dialog: IDialogProps | undefined;
+    ownerUri: string;
+    defaultFileBrowserExpandPath: string;
+};
 
 export interface FileBrowserState {
     ownerUri: string;

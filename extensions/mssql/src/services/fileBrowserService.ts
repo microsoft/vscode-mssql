@@ -195,7 +195,7 @@ export class FileBrowserService {
                 ownerUri: connectionUri,
             };
             const result = await this._client.sendRequest(fb.FileBrowserCloseRequest.type, params);
-            this.fileBrowserState = {} as fb.FileBrowserState;
+            this.fileBrowserState = undefined;
             return result;
         } catch (e) {
             this._client.logger.error(e);

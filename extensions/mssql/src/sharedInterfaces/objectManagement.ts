@@ -222,13 +222,16 @@ export class BackupDatabaseState
     formState: BackupDatabaseFormState = {} as BackupDatabaseFormState;
     formComponents: Partial<Record<keyof BackupDatabaseFormState, BackupDatabaseFormItemSpec>> = {};
     formErrors: string[] = [];
-    defaultBackupFolder: string = "";
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
-    fileBrowserState: FileBrowserState | undefined;
+
+    // File browser properties
     fileFilterOptions: FileTypeOption[] = [];
+    fileBrowserState: FileBrowserState | undefined;
+    defaultFileBrowserExpandPath: string = "";
     dialog: IDialogProps | undefined;
+    ownerUri: string = "";
 }
 
 export interface BackupDatabaseNode {
@@ -274,7 +277,7 @@ export interface BackupDatabaseFormState {
     // TODO: remove when implementing sql server file browser
     backupFilePath: string;
     // TODO: add when implementing sql server file browser
-    // backupFiles: string[];
+    backupFiles: string[];
     backupCompression: BackupCompression;
     mediaSet: MediaSet;
     mediaSetName: string;
