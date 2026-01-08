@@ -40,6 +40,8 @@ import { FileBrowserService } from "../services/fileBrowserService";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -200,6 +202,10 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
             state.formState.backupFiles.push(payload.selectedPath);
+            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
+                isOpen: "true",
+            });
+
             return state;
         });
     }

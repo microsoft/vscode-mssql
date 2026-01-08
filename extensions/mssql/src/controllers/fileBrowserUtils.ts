@@ -2,6 +2,8 @@ import { allFileTypes } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 export function registerFileBrowserReducers<TResult>(
     controller: ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, TResult>,
@@ -19,6 +21,14 @@ export function registerFileBrowserReducers<TResult>(
         );
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
+            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserOpen);
+        } else {
+            sendErrorEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserOpen,
+                new Error(result ? result.message : "Unknown error"),
+                false, // includeErrorMessage
+            );
         }
         return state;
     });
@@ -26,17 +36,34 @@ export function registerFileBrowserReducers<TResult>(
         const result = await fileBrowserService.expandFilePath(payload.ownerUri, payload.nodePath);
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
+            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserExpand);
+        } else {
+            sendErrorEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserExpand,
+                new Error(result ? result.message : "Unknown error"),
+                false, // includeErrorMessage
+            );
         }
         return state;
     });
     controller.registerReducer("submitFilePath", async (state, payload) => {
         state.fileBrowserState.selectedPath = payload.selectedPath;
+        sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserSubmitFilePath);
         return state;
     });
     controller.registerReducer("closeFileBrowser", async (state, payload) => {
         const result = await fileBrowserService.closeFileBrowser(payload.ownerUri);
         if (result && result.succeeded) {
             state.fileBrowserState = fileBrowserService.fileBrowserState;
+            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserClose);
+        } else {
+            sendErrorEvent(
+                TelemetryViews.FileBrowser,
+                TelemetryActions.FileBrowserClose,
+                new Error(result ? result.message : "Unknown error"),
+                false, // includeErrorMessage
+            );
         }
         return state;
     });
@@ -53,6 +80,21 @@ export function registerFileBrowserReducers<TResult>(
                 );
                 if (result && result.succeeded) {
                     state.fileBrowserState = fileBrowserService.fileBrowserState;
+                    sendActionEvent(
+                        TelemetryViews.FileBrowser,
+                        TelemetryActions.FileBrowserDialog,
+                        { isOpen: "true" },
+                    );
+                } else {
+                    sendErrorEvent(
+                        TelemetryViews.FileBrowser,
+                        TelemetryActions.FileBrowserDialog,
+                        new Error(result ? result.message : "Unknown error"),
+                        false, // includeErrorMessage
+                        undefined,
+                        undefined,
+                        { isOpen: "true" },
+                    );
                 }
             }
             // Open the file browser dialog with the current file browser state
@@ -62,6 +104,9 @@ export function registerFileBrowserReducers<TResult>(
         } else {
             // Close the file browser dialog
             state.dialog = undefined;
+            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
+                isOpen: "false",
+            });
         }
         return state;
     });

@@ -144,6 +144,9 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ae05840acdd06389f12106699a3e0a576640acff674dba36b6f0c4720913361">
+      <source xml:lang="en">All Files (*.*)</source>
+    </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
     </trans-unit>
@@ -380,12 +383,18 @@
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
+      <source xml:lang="en">Backup</source>
+    </trans-unit>
     <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
       <source xml:lang="en">Backup Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++88c034e88df7490dfba55dcc2b7bb315853dfd7c098859b0ffc57305276067a0">
       <source xml:lang="en">Backup Files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d95d004ad14bd593baeab8b9f19836c13acb2782cd809abf208de46785f072ab">
+      <source xml:lang="en">Backup Files (*.bak, *.log, *.trn)</source>
     </trans-unit>
     <trans-unit id="++CODE++8915311eca19414aaa965b09dc2d3837b11600b7ddef68a3aaf3a0d304b052a8">
       <source xml:lang="en">Backup Name</source>
@@ -1374,6 +1383,12 @@
     <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
       <source xml:lang="en">Encrypt</source>
     </trans-unit>
+    <trans-unit id="++CODE++72755d6de33db86f1e980be9946b7c4a5cc5016a0379064a01e53517545ed913">
+      <source xml:lang="en">Encryption Algorithm</source>
+    </trans-unit>
+    <trans-unit id="++CODE++147619fd8c347750fc7e29190e49b931098d6f0fb3ac37369df8dafc3a8ae27a">
+      <source xml:lang="en">Encryption Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++ac8fee089cebcddef6529d9c8b467120173dbd02a46992ecbaf62fe25c925ae0">
       <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable &apos;Trust server certificate&apos; in the connection dialog.</source>
     </trans-unit>
@@ -1862,6 +1877,9 @@
     </trans-unit>
     <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
       <source xml:lang="en">Files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
+      <source xml:lang="en">Files of Type</source>
     </trans-unit>
     <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
       <source xml:lang="en">Filter</source>
@@ -3603,6 +3621,9 @@
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
+      <source xml:lang="en">Select a file</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
     </trans-unit>
@@ -3660,6 +3681,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e45e850e5552217009a64f5c87e898720561d6263867b0cebfc6f770aff9810">
+      <source xml:lang="en">Selected Path</source>
     </trans-unit>
     <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
       <source xml:lang="en">Server</source>
@@ -4232,6 +4256,9 @@
     </trans-unit>
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
+      <source xml:lang="en">Use encryption for this backup</source>
     </trans-unit>
     <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
       <source xml:lang="en">Use the default server setting</source>
