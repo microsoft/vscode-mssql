@@ -315,7 +315,6 @@ export const simple = "Simple";
 export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const allFileTypes = ["*.*"];
 
-
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";

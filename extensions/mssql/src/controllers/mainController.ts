@@ -143,7 +143,7 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public objectManagementService: ObjectManagementService;
     public fileBrowserService: FileBrowserService;
-    
+
     /**
      * The main controller constructor
      * @constructor

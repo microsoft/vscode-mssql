@@ -1,5 +1,17 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
+import {
+    FileBrowserCloseRequest,
+    FileBrowserExpandNotification,
+    FileBrowserExpandRequest,
+    FileBrowserOpenNotification,
+    FileBrowserOpenRequest,
+} from "../models/contracts/fileBrowser";
 import { Logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import * as fb from "../sharedInterfaces/fileBrowser";
@@ -29,11 +41,11 @@ export class FileBrowserService {
         this._client = _client;
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "FileBrowserService");
 
-        this._client.onNotification(fb.FileBrowserOpenNotification.type, (e) =>
+        this._client.onNotification(FileBrowserOpenNotification.type, (e) =>
             this.handleFileBrowserOpenNotification(e),
         );
 
-        this._client.onNotification(fb.FileBrowserExpandNotification.type, (e) =>
+        this._client.onNotification(FileBrowserExpandNotification.type, (e) =>
             this.handleFileBrowserExpandNotification(e),
         );
     }
@@ -92,7 +104,7 @@ export class FileBrowserService {
         );
 
         const openFileBrowserResponse = await this._client.sendRequest(
-            fb.FileBrowserOpenRequest.type,
+            FileBrowserOpenRequest.type,
             openFileBrowserParams,
         );
 
@@ -148,7 +160,7 @@ export class FileBrowserService {
         );
 
         const expandFileBrowserResponse = await this._client.sendRequest(
-            fb.FileBrowserExpandRequest.type,
+            FileBrowserExpandRequest.type,
             expandFileBrowserParams,
         );
 
@@ -194,7 +206,7 @@ export class FileBrowserService {
             let params: fb.FileBrowserCloseParams = {
                 ownerUri: connectionUri,
             };
-            const result = await this._client.sendRequest(fb.FileBrowserCloseRequest.type, params);
+            const result = await this._client.sendRequest(FileBrowserCloseRequest.type, params);
             this.fileBrowserState = undefined;
             return result;
         } catch (e) {

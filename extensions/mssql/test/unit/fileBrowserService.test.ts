@@ -9,13 +9,15 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FileBrowserService } from "../../src/services/fileBrowserService";
 import {
-    FileBrowserCloseRequest,
-    FileBrowserExpandRequest,
     FileBrowserExpandResponse,
-    FileBrowserOpenRequest,
     FileBrowserOpenResponse,
     FileTree,
 } from "../../src/sharedInterfaces/fileBrowser";
+import {
+    FileBrowserCloseRequest,
+    FileBrowserExpandRequest,
+    FileBrowserOpenRequest,
+} from "../../src/models/contracts/fileBrowser";
 import { Deferred } from "../../src/protocol";
 import { FileBrowserCloseResponse } from "azdata";
 

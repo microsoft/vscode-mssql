@@ -253,9 +253,10 @@ suite("File Browser Utilities", () => {
             message: "Failed to open file browser",
         } as FileBrowserOpenResponse);
 
-        await mockFileBrowserController["_reducerHandlers"].get(
-            "toggleFileBrowserDialog",
-        )(mockState, { shouldOpen: true }); 
+        await mockFileBrowserController["_reducerHandlers"].get("toggleFileBrowserDialog")(
+            mockState,
+            { shouldOpen: true },
+        );
 
         expect(openStub).to.have.been.calledOnce;
 
