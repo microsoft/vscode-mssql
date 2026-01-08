@@ -3,21 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-languageclient";
 import { IDialogProps } from "./connectionDialog";
 
 //#region Sql Tools Service Interfaces
-export namespace FileBrowserOpenRequest {
-    export const type = new RequestType<FileBrowserOpenParams, boolean, void, void>(
-        "filebrowser/open",
-    );
-}
-
-export namespace FileBrowserOpenNotification {
-    export const type = new NotificationType<FileBrowserOpenResponse, void>(
-        "filebrowser/opencomplete",
-    );
-}
 
 export interface FileBrowserOpenParams {
     ownerUri: string;
@@ -35,18 +23,6 @@ export interface FileBrowserOpenResponse {
     message: string;
 }
 
-export namespace FileBrowserExpandRequest {
-    export const type = new RequestType<FileBrowserExpandParams, boolean, void, void>(
-        "filebrowser/expand",
-    );
-}
-
-export namespace FileBrowserExpandNotification {
-    export const type = new NotificationType<FileBrowserExpandResponse, void>(
-        "filebrowser/expandcomplete",
-    );
-}
-
 export interface FileBrowserExpandParams {
     ownerUri: string;
     // Path to expand
@@ -59,15 +35,6 @@ export interface FileBrowserExpandResponse {
     children: FileTreeNode[];
     succeeded: boolean;
     message: string;
-}
-
-export namespace FileBrowserCloseRequest {
-    export const type = new RequestType<
-        FileBrowserCloseParams,
-        FileBrowserCloseResponse,
-        void,
-        void
-    >("filebrowser/close");
 }
 
 export interface FileBrowserCloseParams {

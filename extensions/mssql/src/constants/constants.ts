@@ -313,7 +313,6 @@ export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
 
-
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";

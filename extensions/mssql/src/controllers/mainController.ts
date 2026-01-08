@@ -140,7 +140,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
-    
+
     /**
      * The main controller constructor
      * @constructor
@@ -823,7 +823,10 @@ export default class MainController implements vscode.Disposable {
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
-        this.fileBrowserService = new FileBrowserService(this._vscodeWrapper, SqlToolsServerClient.instance);
+        this.fileBrowserService = new FileBrowserService(
+            this._vscodeWrapper,
+            SqlToolsServerClient.instance,
+        );
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(

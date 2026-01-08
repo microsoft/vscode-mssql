@@ -205,8 +205,8 @@ export const FileBrowserDialog = ({
                     <DialogActions>
                         <Button
                             appearance="primary"
-                            onClick={() => {
-                                handleSubmit();
+                            onClick={async () => {
+                                await handleSubmit();
                             }}>
                             {Loc.common.select}
                         </Button>
