@@ -26,27 +26,13 @@ const useStyles = makeStyles({
     nav: {
         borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
         backgroundColor: tokens.colorNeutralBackground2,
-        padding: tokens.spacingVerticalS,
         boxSizing: "border-box",
-    },
-    navButton: {
-        justifyContent: "flex-start",
-        width: "100%",
-        columnGap: tokens.spacingHorizontalS,
     },
     content: {
         flex: 1,
         minWidth: 0,
         height: "100%",
-    },
-    dabPlaceholder: {
-        height: "100%",
-        width: "100%",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--vscode-foreground)",
-        fontSize: tokens.fontSizeBase400,
     },
 });
 
@@ -76,7 +62,6 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            className={classes.navButton}
                             icon={<FluentIcons.TableRegular />}
                             onClick={() =>
                                 setActiveView(
@@ -92,7 +77,6 @@ const MainLayout = () => {
                                     ? "primary"
                                     : "subtle"
                             }
-                            className={classes.navButton}
                             icon={<FluentIcons.DatabaseSearch24Regular />}
                             onClick={() =>
                                 setActiveView(SchemaDesigner.SchemaDesignerActiveView.Dab)
@@ -107,6 +91,9 @@ const MainLayout = () => {
                         style={{
                             height: "100%",
                             width: "100%",
+                            flex: 1,
+                            minWidth: 0,
+                            maxWidth: "100%",
                             display:
                                 activeView ===
                                 SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
@@ -119,6 +106,9 @@ const MainLayout = () => {
                         style={{
                             height: "100%",
                             width: "100%",
+                            flex: 1,
+                            minWidth: 0,
+                            maxWidth: "100%",
                             display:
                                 activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
                                     ? "block"

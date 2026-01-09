@@ -72,6 +72,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 display: "flex",
                 flexDirection: "column",
                 position: "relative",
+                minWidth: 0,
+                maxWidth: "100%",
             }}>
             <SchemaDesignerFindTableWidget parentRef={divRef} />
             {children}
@@ -88,6 +90,8 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
             display: "flex",
             flexDirection: "column",
             position: "relative",
+            minWidth: 0,
+            maxWidth: "100%",
         }}>
         {children}
     </div>
