@@ -561,4 +561,72 @@ suite("ConnectionManager Tests", () => {
             expect(result.tenantId).to.equal("tenant456");
         });
     });
+
+    suite("handlePasswordBasedCredentials", () => {
+        let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+        let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
+        let testConnectionManager: ConnectionManager;
+
+        setup(() => {
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
+
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+
+            testConnectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                mockPrompter,
+                mockLogger,
+            );
+
+            testConnectionManager.connectionStore = mockConnectionStore;
+            (testConnectionManager as any)._connectionUI = mockConnectionUI;
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test("skips lookup and prompt when emptyPasswordInput is already set", async () => {
+            const creds = {
+                server: "testServer",
+                authenticationType: "SqlLogin",
+                password: "",
+                emptyPasswordInput: true,
+            } as unknown as IConnectionProfile;
+
+            mockConnectionStore.lookupPassword.resolves("should-not-be-used");
+            mockConnectionUI.promptForPassword.resolves("should-not-be-used");
+
+            const result = await testConnectionManager.handlePasswordBasedCredentials(creds);
+
+            expect(result).to.be.true;
+            expect(mockConnectionStore.lookupPassword).to.not.have.been.called;
+            expect(mockConnectionUI.promptForPassword).to.not.have.been.called;
+            expect(creds.password).to.equal("");
+        });
+
+        test("prompts once, allows empty password, and sets flag", async () => {
+            const creds = {
+                server: "testServer",
+                authenticationType: "SqlLogin",
+                password: "",
+                azureAccountToken: "token",
+                emptyPasswordInput: false,
+            } as unknown as IConnectionProfile;
+
+            mockConnectionStore.lookupPassword.resolves(undefined);
+            mockConnectionUI.promptForPassword.resolves("");
+
+            const result = await testConnectionManager.handlePasswordBasedCredentials(creds);
+
+            expect(result).to.be.true;
+            expect(mockConnectionStore.lookupPassword).to.have.been.calledOnce;
+            expect(mockConnectionUI.promptForPassword).to.have.been.calledOnce;
+            expect(creds.emptyPasswordInput).to.be.true;
+            expect(creds.password).to.equal("");
+            expect(creds.azureAccountToken).to.be.undefined;
+        });
+    });
 });
