@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Button, makeStyles, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { locConstants } from "../../common/locConstants";
@@ -16,6 +16,9 @@ import {
 } from "../../../sharedInterfaces/objectManagement";
 import { FileBrowserDialog } from "../FileBrowser/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
+import { Image, Text } from "@fluentui/react-components";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -49,7 +52,15 @@ const useStyles = makeStyles({
         flexDirection: "row",
         gap: "0.5rem",
     },
+    header: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+    },
 });
+
+const databaseIconLight = require("../../../../media/database_light.svg");
+const databaseIconDark = require("../../../../media/database_dark.svg");
 
 export const BackupDatabaseForm: React.FC = () => {
     const classes = useStyles();
@@ -60,35 +71,41 @@ export const BackupDatabaseForm: React.FC = () => {
     if (!context || !state) {
         return;
     }
+
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const { formComponents } = state;
 
     const renderFormFields = () =>
-        Object.values(formComponents).map((component, index) => (
-            <div
-                key={index}
-                style={
-                    component.componentWidth
-                        ? {
-                              width: component.componentWidth,
-                              maxWidth: component.componentWidth,
-                              whiteSpace: "normal", // allows wrapping
-                              overflowWrap: "break-word", // breaks long words if needed
-                              wordBreak: "break-word",
-                          }
-                        : {}
-                }>
-                <FormField<
-                    BackupDatabaseFormState,
-                    BackupDatabaseState,
-                    BackupDatabaseFormItemSpec,
-                    BackupDatabaseProvider
-                >
-                    context={context}
-                    component={component}
-                    idx={index}
-                />
-            </div>
-        ));
+        Object.values(formComponents)
+            .filter(
+                (component): component is BackupDatabaseFormItemSpec => !component.isAdvancedOption,
+            )
+            .map((component, index) => (
+                <div
+                    key={index}
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
+                    <FormField<
+                        BackupDatabaseFormState,
+                        BackupDatabaseState,
+                        BackupDatabaseFormItemSpec,
+                        BackupDatabaseProvider
+                    >
+                        context={context}
+                        component={component}
+                        idx={index}
+                    />
+                </div>
+            ));
 
     const handleSubmit = async () => {
         await context.backupDatabase();
@@ -98,6 +115,29 @@ export const BackupDatabaseForm: React.FC = () => {
         <div>
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
+                    <div className={classes.header}>
+                        <Image
+                            style={{
+                                padding: "10px",
+                            }}
+                            src={
+                                context?.themeKind === ColorThemeKind.Light
+                                    ? databaseIconLight
+                                    : databaseIconDark
+                            }
+                            alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                            height={60}
+                            width={60}
+                        />
+                        <Text
+                            size={500}
+                            style={{
+                                lineHeight: "60px",
+                            }}
+                            weight="medium">
+                            {`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                        </Text>
+                    </div>
                     {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (
                         <FileBrowserDialog
                             state={state.fileBrowserState}
@@ -108,8 +148,18 @@ export const BackupDatabaseForm: React.FC = () => {
                     )}
                     {renderFormFields()}
                 </div>
+                <AdvancedOptionsDrawer
+                    isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                    setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                />
                 <div className={classes.bottomDiv}>
                     <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                    <Button
+                        onClick={(_event) => {
+                            setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                        }}>
+                        {locConstants.backupDatabase.advanced}
+                    </Button>
                     <Button
                         className={classes.button}
                         type="submit"

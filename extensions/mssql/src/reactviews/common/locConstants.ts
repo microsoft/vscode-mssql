@@ -63,6 +63,7 @@ export class LocConstants {
             back: l10n.t("Back"),
             warning: l10n.t("Warning"),
             loading: l10n.t("Loading"),
+            general: l10n.t("General"),
         };
     }
 
@@ -1417,6 +1418,9 @@ export class LocConstants {
         return {
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
+            advanced: l10n.t("Advanced"),
+            advancedBackupOptions: l10n.t("Advanced Backup Options"),
+            searchOptions: l10n.t("Search options"),
         };
     }
 

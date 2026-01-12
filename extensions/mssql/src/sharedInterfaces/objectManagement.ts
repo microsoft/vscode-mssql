@@ -265,7 +265,6 @@ export interface BackupDatabaseProvider
 
 export interface BackupDatabaseFormItemSpec
     extends FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec> {
-    isAdvancedOption?: boolean;
     componentWidth: string;
 }
 

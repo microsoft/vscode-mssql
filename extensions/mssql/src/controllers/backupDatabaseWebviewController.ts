@@ -269,6 +269,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.backupCompression,
                 options: this.getCompressionOptions(),
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.compression,
             }),
 
             mediaSet: createFormItem({
@@ -277,6 +278,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.backupMediaSet,
                 options: this.getMediaSetOptions(),
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.media,
             }),
 
             mediaSetName: createFormItem({
@@ -284,6 +286,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "mediaSetName",
                 label: LocConstants.BackupDatabase.newMediaSetName,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.media,
             }),
 
             mediaSetDescription: createFormItem({
@@ -291,6 +294,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "mediaSetDescription",
                 label: LocConstants.BackupDatabase.newMediaSetDescription,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.media,
             }),
 
             performChecksum: createFormItem({
@@ -298,6 +302,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "performChecksum",
                 label: LocConstants.BackupDatabase.performChecksum,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.reliability,
             }),
 
             verifyBackup: createFormItem({
@@ -305,6 +310,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "verifyBackup",
                 label: LocConstants.BackupDatabase.verifyBackup,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.reliability,
             }),
 
             continueOnError: createFormItem({
@@ -312,6 +318,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "continueOnError",
                 label: LocConstants.BackupDatabase.continueOnError,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.reliability,
             }),
 
             transactionLog: createFormItem({
@@ -320,6 +327,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.transactionLog,
                 options: this.getTransactionLogOptions(),
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.transactionLog,
             }),
 
             retainDays: createFormItem({
@@ -327,6 +335,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "retainDays",
                 label: LocConstants.BackupDatabase.retainDays,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.expiration,
             }),
 
             encryptionEnabled: createFormItem({
@@ -334,6 +343,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "encryptionEnabled",
                 label: LocConstants.BackupDatabase.enableEncryption,
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.encryption,
             }),
 
             encryptionAlgorithm: createFormItem({
@@ -342,6 +352,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.encryptionAlgorithm,
                 options: this.getEncryptionAlgorithmOptions(),
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.encryption,
             }),
 
             encryptorName: createFormItem({
@@ -350,6 +361,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.encryptionType,
                 options: this.getEncryptorNameOptions(),
                 isAdvancedOption: true,
+                advancedGroupName: LocConstants.BackupDatabase.encryption,
             }),
         };
     }
