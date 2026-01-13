@@ -1309,9 +1309,9 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const params: mssql.SqlPackageCommandParams = {
             commandLineArguments: {
-                Action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
-                SourceFile: "c:/test/project.dacpac",
-                TargetConnectionString:
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                sourceFile: "c:/test/project.dacpac",
+                targetConnectionString:
                     "Server=localhost;Database=TestDB;User Id=sa;Password=Test123;",
             },
             deploymentOptions: undefined,
@@ -1357,10 +1357,10 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const params: mssql.SqlPackageCommandParams = {
             commandLineArguments: {
-                Action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
-                SourceFile: "c:/test/project.dacpac",
-                TargetServerName: "myserver.database.windows.net",
-                TargetDatabaseName: "TestDB",
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                sourceFile: "c:/test/project.dacpac",
+                targetServerName: "myserver.database.windows.net",
+                targetDatabaseName: "TestDB",
             },
             deploymentOptions: undefined,
             variables: {},
@@ -1401,7 +1401,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Call with missing required parameters to trigger error
         const params: mssql.SqlPackageCommandParams = {
             commandLineArguments: {
-                Action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
                 // Intentionally missing SourceFile to get error
             },
             deploymentOptions: undefined,

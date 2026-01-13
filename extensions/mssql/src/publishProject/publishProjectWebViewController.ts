@@ -972,8 +972,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 // Build arguments object matching CommandLineArguments structure expected by backend
                 const commandLineArguments: mssql.SqlPackageCommandLineArguments = {
-                    Action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
-                    SourceFile: dacpacPath,
+                    action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                    sourceFile: dacpacPath,
                 };
 
                 // Determine if publishing to container (no connection string available yet)
@@ -982,7 +982,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 // Pass connection string if available, otherwise pass server and database name
                 if (this._connectionString) {
-                    commandLineArguments.TargetConnectionString = this._connectionString;
+                    commandLineArguments.targetConnectionString = this._connectionString;
                 } else {
                     // For container targets, use a placeholder server name that will be removed from output
                     // For other targets, use the actual server name if available
@@ -991,13 +991,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             this.state.formState.serverName || "localhost";
                     }
                     if (this.state.formState.databaseName) {
-                        commandLineArguments.TargetDatabaseName = this.state.formState.databaseName;
+                        commandLineArguments.targetDatabaseName = this.state.formState.databaseName;
                     }
                 }
 
                 // Pass publish profile path if available
                 if (this.state.formState.publishProfilePath) {
-                    commandLineArguments.Profile = this.state.formState.publishProfilePath;
+                    commandLineArguments.profile = this.state.formState.publishProfilePath;
                 }
 
                 // Call SQL Tools Service to generate the command
