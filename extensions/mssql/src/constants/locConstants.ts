@@ -1834,6 +1834,64 @@ export class MssqlChatAgent {
     };
     public static unknownConnection = l10n.t("Unknown Connection");
     public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
+    public static schemaDesignerToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on the schema designer?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on schema designer",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open a schema designer first using /showSchema.",
+    );
+    public static schemaDesignerAddTableSuccess = l10n.t(
+        "Table added to schema designer successfully.",
+    );
+    public static schemaDesignerAddTableFailed = l10n.t("Failed to add table to schema designer.");
+    public static schemaDesignerUpdateTableSuccess = l10n.t(
+        "Table updated in schema designer successfully.",
+    );
+    public static schemaDesignerUpdateTableFailed = l10n.t(
+        "Failed to update table in schema designer.",
+    );
+    public static schemaDesignerDeleteTableSuccess = l10n.t(
+        "Table deleted from schema designer successfully.",
+    );
+    public static schemaDesignerDeleteTableFailed = l10n.t(
+        "Failed to delete table from schema designer.",
+    );
+    public static schemaDesignerReplaceSchemaSuccess = l10n.t(
+        "Schema designer updated successfully.",
+    );
+    public static schemaDesignerReplaceSchemaFailed = l10n.t("Failed to update schema designer.");
+    public static schemaDesignerGetSchemaSuccess = l10n.t(
+        "Schema designer state retrieved successfully.",
+    );
+    public static schemaDesignerMissingSchema = l10n.t(
+        "Missing schema payload for replace_schema operation.",
+    );
+    public static schemaDesignerMissingTable = l10n.t(
+        "Missing table payload for update_table operation.",
+    );
+    public static schemaDesignerMissingDeleteTableTarget = l10n.t(
+        "Missing table target for delete_table operation. Provide tableId or tableName+schemaName.",
+    );
+    public static schemaDesignerUnknownOperation = (operation: string) => {
+        return l10n.t({
+            message:
+                "Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
     public static getConnectionDetailsToolConfirmationMessage = (
         displayName: string,

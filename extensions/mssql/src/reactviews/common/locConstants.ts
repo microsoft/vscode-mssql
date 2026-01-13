@@ -739,6 +739,26 @@ export class LocConstants {
                     args: [tableName],
                     comment: ["{0} is the table name"],
                 }),
+            schemaDesignerNotInitialized: l10n.t("Schema designer is not initialized."),
+            invalidTablePayload: l10n.t(
+                "Invalid table payload. Expected table with columns array.",
+            ),
+            failedToAddTable: l10n.t("Failed to add table."),
+            failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToDeleteTable: l10n.t("Failed to delete table."),
+            tableIdAlreadyExists: l10n.t("Table id already exists."),
+            foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
+            foreignKeyMappingLengthMismatch: l10n.t(
+                "Foreign key column mappings must be the same length.",
+            ),
+            invalidForeignKey: l10n.t("Invalid foreign key."),
+            tableMustHaveColumns: l10n.t("Table must include at least one column."),
+            schemaNotAvailable: (schema: string) =>
+                l10n.t({
+                    message: "Schema '{0}' is not available.",
+                    args: [schema],
+                    comment: ["{0} is the schema name"],
+                }),
             referencedTableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Referenced table '{0}' not found",

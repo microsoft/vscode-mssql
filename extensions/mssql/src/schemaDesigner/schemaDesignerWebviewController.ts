@@ -366,4 +366,71 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         }
         super.dispose();
     }
+
+    /**
+     * Adds a new table to the schema designer.
+     * @param tableName Optional name for the new table
+     * @param schemaName Optional schema name
+     */
+    public async addTable(
+        tableName?: string,
+        schemaName?: string,
+        table?: SchemaDesigner.Table,
+    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.AddTableRequest.type, {
+            tableName,
+            schemaName,
+            table,
+        });
+    }
+
+    /**
+     * Updates an existing table in the schema designer.
+     */
+    public async updateTable(
+        table: SchemaDesigner.Table,
+    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.UpdateTableRequest.type, {
+            table,
+        });
+    }
+
+    /**
+     * Deletes a table from the schema designer.
+     */
+    public async deleteTable(params: {
+        tableId?: string;
+        tableName?: string;
+        schemaName?: string;
+    }): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.DeleteTableRequest.type, params);
+    }
+
+    /**
+     * Gets the current schema state from the webview.
+     */
+    public async getSchemaState(): Promise<SchemaDesigner.Schema> {
+        await this.whenWebviewReady();
+        const result = await this.sendRequest(SchemaDesigner.GetSchemaStateRequest.type, undefined);
+        return result.schema;
+    }
+
+    /**
+     * Replaces the schema model in the webview with a new schema.
+     */
+    public async replaceSchemaState(
+        schema: SchemaDesigner.Schema,
+        keepPositions: boolean = true,
+        focusTableId?: string,
+    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.ReplaceSchemaRequest.type, {
+            schema,
+            keepPositions,
+            focusTableId,
+        });
+    }
 }

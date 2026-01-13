@@ -454,4 +454,82 @@ export namespace SchemaDesigner {
             "initializeSchemaDesigner",
         );
     }
+
+    export interface GetSchemaStateResponse {
+        schema: Schema;
+    }
+
+    export namespace GetSchemaStateRequest {
+        export const type = new RequestType<void, GetSchemaStateResponse, void>("getSchemaState");
+    }
+
+    export interface SchemaDesignerOperationResponse {
+        success: boolean;
+        message?: string;
+        schema?: Schema;
+    }
+
+    /**
+     * Parameters for adding a table directly to the schema designer
+     */
+    export interface AddTableParams {
+        tableName?: string;
+        schemaName?: string;
+        table?: Table;
+    }
+
+    /**
+     * Request sent from extension to webview to add a new table
+     */
+    export namespace AddTableRequest {
+        export const type = new RequestType<AddTableParams, SchemaDesignerOperationResponse, void>(
+            "addTable",
+        );
+    }
+
+    export interface UpdateTableParams {
+        table: Table;
+    }
+
+    export namespace UpdateTableRequest {
+        export const type = new RequestType<
+            UpdateTableParams,
+            SchemaDesignerOperationResponse,
+            void
+        >("updateTable");
+    }
+
+    export interface DeleteTableParams {
+        tableId?: string;
+        tableName?: string;
+        schemaName?: string;
+    }
+
+    export namespace DeleteTableRequest {
+        export const type = new RequestType<
+            DeleteTableParams,
+            SchemaDesignerOperationResponse,
+            void
+        >("deleteTable");
+    }
+
+    /**
+     * Parameters for replacing the schema designer state with a new schema model
+     */
+    export interface ReplaceSchemaParams {
+        schema: Schema;
+        keepPositions?: boolean;
+        focusTableId?: string;
+    }
+
+    /**
+     * Request sent from extension to webview to replace the schema model
+     */
+    export namespace ReplaceSchemaRequest {
+        export const type = new RequestType<
+            ReplaceSchemaParams,
+            SchemaDesignerOperationResponse,
+            void
+        >("replaceSchema");
+    }
 }

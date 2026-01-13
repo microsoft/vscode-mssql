@@ -19,6 +19,11 @@ export class SchemaDesignerWebviewManager {
     private schemaDesigners: Map<string, SchemaDesignerWebviewController> = new Map();
     private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem> = new Map();
 
+    /**
+     * Reference to the most recently created/accessed schema designer (for POC purposes)
+     */
+    private _activeDesigner: SchemaDesignerWebviewController | undefined;
+
     public static getInstance(): SchemaDesignerWebviewManager {
         if (!this.instance) {
             this.instance = new SchemaDesignerWebviewManager();
@@ -28,6 +33,17 @@ export class SchemaDesignerWebviewManager {
 
     private constructor() {
         // Private constructor to prevent instantiation
+    }
+
+    /**
+     * Gets the currently active schema designer (most recently accessed).
+     * Returns undefined if no designer is active.
+     */
+    public getActiveDesigner(): SchemaDesignerWebviewController | undefined {
+        if (this._activeDesigner?.isDisposed) {
+            this._activeDesigner = undefined;
+        }
+        return this._activeDesigner;
     }
 
     /**
@@ -143,6 +159,8 @@ export class SchemaDesignerWebviewManager {
             });
             this.schemaDesigners.set(key, schemaDesigner);
         }
-        return this.schemaDesigners.get(key)!;
+        const designer = this.schemaDesigners.get(key)!;
+        this._activeDesigner = designer; // Track the active designer for POC
+        return designer;
     }
 }
