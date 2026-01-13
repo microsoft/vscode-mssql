@@ -22,14 +22,15 @@ import {
     TreeItemLayout,
     Label,
 } from "@fluentui/react-components";
-import { locConstants as Loc } from "../../common/locConstants";
-import { KeyCode } from "../../common/keys";
+import { locConstants as Loc } from "./locConstants";
+import { KeyCode } from "./keys";
 import {
     FileBrowserProvider,
     FileBrowserState,
+    FileTree,
     FileTreeNode,
     FileTypeOption,
-} from "../../../sharedInterfaces/fileBrowser";
+} from "../../sharedInterfaces/fileBrowser";
 import { useState } from "react";
 
 const useStyles = makeStyles({
@@ -69,24 +70,25 @@ const useStyles = makeStyles({
 });
 
 export const FileBrowserDialog = ({
-    state,
+    ownerUri,
+    defaultFilePath,
+    fileTree,
     provider,
     fileTypeOptions,
     closeDialog,
+    showFoldersOnly,
 }: {
-    state: FileBrowserState;
+    ownerUri: string;
+    defaultFilePath: string;
+    fileTree: FileTree;
     provider: FileBrowserProvider;
     fileTypeOptions: FileTypeOption[];
     closeDialog: () => void;
+    showFoldersOnly: boolean;
 }) => {
     const classes = useStyles();
 
-    if (!state || !provider) {
-        return;
-    }
-
-    const [selectedPath, setSelectedPath] = useState<string>(state.selectedPath);
-    const defaultFilePath = state.selectedPath;
+    const [selectedPath, setSelectedPath] = useState<string>(defaultFilePath);
 
     // get default expanded nodes for Tree component by spltting defaultFilePath
     const getDefaultExpandedNodes = (): string[] => {
@@ -110,7 +112,7 @@ export const FileBrowserDialog = ({
     const [openItems, setOpenItems] = useState<string[]>(defaultExpandedNodes);
 
     const handleExpandNode = async (node: FileTreeNode) => {
-        await provider.expandNode(state.ownerUri, node.fullPath);
+        await provider.expandNode(ownerUri, node.fullPath);
     };
 
     const handleNodeClick = (node: FileTreeNode) => {
@@ -124,11 +126,11 @@ export const FileBrowserDialog = ({
         if (!filterOption) return;
 
         provider.openFileBrowser(
-            state.ownerUri,
+            ownerUri,
             defaultFilePath,
             filterOption.value,
             true,
-            state.showFoldersOnly,
+            showFoldersOnly,
         );
 
         // reset expanded nodes to default in tree
@@ -142,7 +144,7 @@ export const FileBrowserDialog = ({
     };
 
     const handleDialogClose = async () => {
-        await provider.closeFileBrowser(state.ownerUri);
+        await provider.closeFileBrowser(ownerUri);
         closeDialog();
     };
 
@@ -171,7 +173,7 @@ export const FileBrowserDialog = ({
                                 setOpenItems(openItemValues);
                             }}>
                             {renderTreeItem(
-                                state.fileTree.rootNode.children[0],
+                                fileTree.rootNode.children[0],
                                 handleExpandNode,
                                 handleNodeClick,
                             )}
@@ -185,7 +187,7 @@ export const FileBrowserDialog = ({
                                 }}
                             />
                         </div>
-                        {!state.showFoldersOnly && ( // only show file filter if showing files instead of just folders
+                        {!showFoldersOnly && ( // only show file filter if showing files instead of just folders
                             <div className={classes.formRow}>
                                 <Label>{Loc.fileBrowser.filesOfType}</Label>
                                 <Dropdown
