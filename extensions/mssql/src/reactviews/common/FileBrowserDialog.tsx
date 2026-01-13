@@ -26,7 +26,6 @@ import { locConstants as Loc } from "./locConstants";
 import { KeyCode } from "./keys";
 import {
     FileBrowserProvider,
-    FileBrowserState,
     FileTree,
     FileTreeNode,
     FileTypeOption,
