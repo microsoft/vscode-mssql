@@ -170,6 +170,13 @@ export const BackupDatabaseForm: React.FC = () => {
                     <Button
                         className={classes.button}
                         type="submit"
+                        onClick={() => context.openBackupScript()}
+                        appearance="primary">
+                        {locConstants.backupDatabase.script}
+                    </Button>
+                    <Button
+                        className={classes.button}
+                        type="submit"
                         onClick={() => context.toggleFileBrowserDialog(true)}
                         appearance="primary">
                         Browse Files

@@ -138,56 +138,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("backupDatabase", async (state, _payload) => {
-            const backupPathDevices: Record<string, number> = {
-                [state.formState.backupFilePath]: PhysicalDeviceType.Disk,
-            };
-            const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
-            const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
-
-            let encryptor: BackupEncryptor = {
-                encryptorType: undefined,
-                encryptorName: "",
-            };
-            if (state.formState.encryptionEnabled) {
-                encryptor = this.state.backupEncryptors.find(
-                    (be) => be.encryptorName === state.formState.encryptorName,
-                );
-            }
-
-            const backupInfo: BackupInfo = {
-                databaseName: this.databaseNode.label.toString(),
-                backupType: getBackupTypeNumber(state.formState.backupType),
-                backupComponent: BackupComponent.Database, // always database for this scenario
-                backupDeviceType: PhysicalDeviceType.Disk, // always disk or URL
-                selectedFiles: undefined,
-                backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
-                selectedFileGroup: undefined,
-                backupPathDevices: backupPathDevices,
-                backupPathList: [state.formState.backupFilePath],
-                isCopyOnly: state.formState.copyOnly,
-                formatMedia: createNewMediaSet,
-                initialize: createNewMediaSet || overwriteMediaSet,
-                skipTapeHeader: createNewMediaSet,
-                mediaName: state.formState.mediaSetName,
-                mediaDescription: state.formState.mediaSetDescription,
-                checksum: state.formState.performChecksum,
-                continueAfterError: state.formState.continueOnError,
-                logTruncation: state.formState.transactionLog === LogOption.Truncate,
-                tailLogBackup: state.formState.transactionLog === LogOption.BackupTail,
-                retainDays: state.formState.retainDays,
-                compressionOption: getBackupCompressionNumber(state.formState.backupCompression),
-                verifyBackupRequired: state.formState.verifyBackup,
-                encryptionAlgorithm: getEncryptionAlgorithmNumber(
-                    state.formState.encryptionAlgorithm,
-                ),
-                encryptorType: encryptor.encryptorType,
-                encryptorName: encryptor.encryptorName,
-            };
-            const backupResult = await this.objectManagementService.backupDatabase(
-                state.databaseNode.nodeUri,
-                backupInfo,
-                TaskExecutionMode.execute,
-            );
+            const backupResult = await this.backupHelper(TaskExecutionMode.execute, state);
             console.log("Backup Result: ", JSON.stringify(backupResult));
             return state;
         });
@@ -206,6 +157,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 isOpen: "true",
             });
 
+            return state;
+        });
+
+        this.registerReducer("openBackupScript", async (state, _payload) => {
+            const backupResult = await this.backupHelper(TaskExecutionMode.script, state);
+            console.log("Backup Script Result: ", JSON.stringify(backupResult));
             return state;
         });
     }
@@ -464,5 +421,56 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             displayName: be.encryptorName,
             value: be.encryptorName,
         }));
+    }
+
+    private async backupHelper(mode: TaskExecutionMode, state: BackupDatabaseState) {
+        const backupPathDevices: Record<string, number> = {
+            [state.formState.backupFilePath]: PhysicalDeviceType.Disk,
+        };
+        const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
+        const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
+
+        let encryptor: BackupEncryptor = {
+            encryptorType: undefined,
+            encryptorName: "",
+        };
+        if (state.formState.encryptionEnabled) {
+            encryptor = this.state.backupEncryptors.find(
+                (be) => be.encryptorName === state.formState.encryptorName,
+            );
+        }
+
+        const backupInfo: BackupInfo = {
+            databaseName: this.databaseNode.label.toString(),
+            backupType: getBackupTypeNumber(state.formState.backupType),
+            backupComponent: BackupComponent.Database, // always database for this scenario
+            backupDeviceType: PhysicalDeviceType.Disk, // always disk or URL
+            selectedFiles: undefined,
+            backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
+            selectedFileGroup: undefined,
+            backupPathDevices: backupPathDevices,
+            backupPathList: [state.formState.backupFilePath],
+            isCopyOnly: state.formState.copyOnly,
+            formatMedia: createNewMediaSet,
+            initialize: createNewMediaSet || overwriteMediaSet,
+            skipTapeHeader: createNewMediaSet,
+            mediaName: state.formState.mediaSetName,
+            mediaDescription: state.formState.mediaSetDescription,
+            checksum: state.formState.performChecksum,
+            continueAfterError: state.formState.continueOnError,
+            logTruncation: state.formState.transactionLog === LogOption.Truncate,
+            tailLogBackup: state.formState.transactionLog === LogOption.BackupTail,
+            retainDays: state.formState.retainDays,
+            compressionOption: getBackupCompressionNumber(state.formState.backupCompression),
+            verifyBackupRequired: state.formState.verifyBackup,
+            encryptionAlgorithm: getEncryptionAlgorithmNumber(state.formState.encryptionAlgorithm),
+            encryptorType: encryptor.encryptorType,
+            encryptorName: encryptor.encryptorName,
+        };
+        return await this.objectManagementService.backupDatabase(
+            state.databaseNode.nodeUri,
+            backupInfo,
+            mode,
+        );
     }
 }

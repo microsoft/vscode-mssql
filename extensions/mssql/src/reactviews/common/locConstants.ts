@@ -1418,6 +1418,7 @@ export class LocConstants {
         return {
             loadingBackupDatabase: l10n.t("Loading backup database..."),
             backup: l10n.t("Backup"),
+            script: l10n.t("Script"),
             advanced: l10n.t("Advanced"),
             advancedBackupOptions: l10n.t("Advanced Backup Options"),
             searchOptions: l10n.t("Search options"),

@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-languageclient";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ApiStatus } from "./webview";
 import { TaskExecutionMode } from "./task";
@@ -39,10 +38,6 @@ export interface ObjectManagementService {
 
 //#region Sql Tools Service Interfaces
 
-export namespace BackupRequest {
-    export const type = new RequestType<BackupParams, BackupResponse, void, void>("backup/backup");
-}
-
 export interface BackupParams {
     ownerUri: string;
     BackupInfo: BackupInfo;
@@ -52,15 +47,6 @@ export interface BackupParams {
 export interface BackupResponse {
     success: boolean;
     taskId: number;
-}
-
-export namespace BackupConfigInfoRequest {
-    export const type = new RequestType<
-        DefaultDatabaseInfoParams,
-        BackupConfigInfoResponse,
-        void,
-        void
-    >("backup/backupconfiginfo");
 }
 
 export interface DefaultDatabaseInfoParams {
@@ -248,6 +234,11 @@ export interface BackupDatabaseReducers
      * Gets the database information associated with the backup operation
      */
     backupDatabase: {};
+
+    /**
+     * Opens the generated backup script in a new editor window
+     */
+    openBackupScript: {};
 }
 
 export interface BackupDatabaseProvider
@@ -261,6 +252,11 @@ export interface BackupDatabaseProvider
      * Gets the database information associated with the backup operation
      */
     backupDatabase(): void;
+
+    /**
+     * Opens the generated backup script in a new editor window
+     */
+    openBackupScript(): void;
 }
 
 export interface BackupDatabaseFormItemSpec

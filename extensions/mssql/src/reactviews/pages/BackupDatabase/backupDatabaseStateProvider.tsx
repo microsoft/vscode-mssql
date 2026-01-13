@@ -37,6 +37,9 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                 backupDatabase: function (): void {
                     webviewState?.extensionRpc.action("backupDatabase", {});
                 },
+                openBackupScript: function (): void {
+                    webviewState?.extensionRpc.action("openBackupScript", {});
+                },
                 openFileBrowser: function (
                     ownerUri: string,
                     expandPath: string,

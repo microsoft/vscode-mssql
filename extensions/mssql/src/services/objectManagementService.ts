@@ -6,14 +6,13 @@
 import { TaskExecutionMode } from "azdata";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
-    BackupConfigInfoRequest,
     BackupConfigInfoResponse,
     BackupInfo,
     BackupParams,
-    BackupRequest,
     BackupResponse,
     DefaultDatabaseInfoParams,
 } from "../sharedInterfaces/objectManagement";
+import { BackupConfigInfoRequest, BackupRequest } from "../models/contracts/backup";
 
 export class ObjectManagementService implements ObjectManagementService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
