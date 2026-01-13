@@ -4,8 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
-import { FormField } from "../../common/forms/form.component";
+import {
+    Button,
+    Card,
+    Field,
+    Input,
+    makeStyles,
+    Radio,
+    RadioGroup,
+    tokens,
+} from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import {
@@ -19,6 +27,16 @@ import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
 import { Image, Text } from "@fluentui/react-components";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { AzureIcon20 } from "../../common/icons/fluentIcons";
+import {
+    Dismiss20Regular,
+    DocumentAdd24Regular,
+    DocumentEdit24Regular,
+    Edit20Regular,
+    Save20Regular,
+} from "@fluentui/react-icons";
+import { url } from "../../../constants/constants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -57,6 +75,43 @@ const useStyles = makeStyles({
         flexDirection: "row",
         alignItems: "center",
     },
+    saveOption: {
+        display: "flex",
+        alignItems: "center",
+    },
+    fileDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+    },
+    fileButtons: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "8px",
+    },
+    cardDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        padding: "10px",
+    },
+    cardHeader: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "4px",
+        alignItems: "center",
+        marginBottom: "10px",
+    },
+    headerActions: {
+        display: "flex",
+        gap: "4px",
+        marginLeft: "auto",
+    },
+    cardField: {
+        display: "grid",
+        gridTemplateColumns: "125px 1fr",
+        padding: "10px",
+    },
 });
 
 const databaseIconLight = require("../../../../media/database_light.svg");
@@ -64,6 +119,7 @@ const databaseIconDark = require("../../../../media/database_dark.svg");
 
 export const BackupDatabaseForm: React.FC = () => {
     const classes = useStyles();
+    const formStyles = useFormStyles();
     const context = useContext(BackupDatabaseContext);
 
     const state = context?.state;
@@ -77,9 +133,7 @@ export const BackupDatabaseForm: React.FC = () => {
 
     const renderFormFields = () =>
         Object.values(formComponents)
-            .filter(
-                (component): component is BackupDatabaseFormItemSpec => !component.isAdvancedOption,
-            )
+            .filter((component) => !component.groupName)
             .map((component, index) => (
                 <div
                     key={index}
@@ -106,6 +160,82 @@ export const BackupDatabaseForm: React.FC = () => {
                     />
                 </div>
             ));
+
+    const renderBackupSaveToUrlFields = () =>
+        Object.values(formComponents)
+            .filter((component) => component.groupName === url)
+            .map((component, index) => (
+                <div
+                    key={index}
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
+                    <FormField<
+                        BackupDatabaseFormState,
+                        BackupDatabaseState,
+                        BackupDatabaseFormItemSpec,
+                        BackupDatabaseProvider
+                    >
+                        context={context}
+                        component={component}
+                        idx={index}
+                    />
+                </div>
+            ));
+
+    const renderBackupFiles = () =>
+        state.backupFiles.map((file) => {
+            return (
+                <Card className={classes.cardDiv} key={file.fileName}>
+                    <div className={classes.cardHeader}>
+                        {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}
+                        <Text size={400} style={{ marginLeft: "4px" }}>
+                            {file.isExisting
+                                ? locConstants.backupDatabase.existingFile
+                                : locConstants.backupDatabase.newFile}
+                        </Text>
+                        <div className={classes.headerActions}>
+                            <Button
+                                appearance="subtle"
+                                icon={<Edit20Regular />}
+                                title={locConstants.backupDatabase.browseForPath}
+                                aria-label={locConstants.backupDatabase.browseForPath}
+                            />
+                            <Button
+                                appearance="subtle"
+                                icon={<Dismiss20Regular />}
+                                title={locConstants.backupDatabase.removeFile}
+                                aria-label={locConstants.backupDatabase.removeFile}
+                            />
+                        </div>
+                    </div>
+                    <div className={classes.cardField}>
+                        <Text>{locConstants.backupDatabase.folderPath}</Text>
+                        {file.isExisting ? (
+                            <Text>{file.filePath}</Text>
+                        ) : (
+                            <Input value={file.filePath} />
+                        )}
+                    </div>
+                    <div className={classes.cardField}>
+                        <Text>{locConstants.backupDatabase.fileName}</Text>
+                        {file.isExisting ? (
+                            <Text>{file.fileName}</Text>
+                        ) : (
+                            <Input value={file.fileName} />
+                        )}
+                    </div>
+                </Card>
+            );
+        });
 
     const handleSubmit = async () => {
         await context.backupDatabase();
@@ -147,6 +277,69 @@ export const BackupDatabaseForm: React.FC = () => {
                         />
                     )}
                     {renderFormFields()}
+                    <div className={formStyles.formComponentDiv}>
+                        <Field
+                            label={locConstants.backupDatabase.backupLocation}
+                            orientation="horizontal">
+                            <RadioGroup
+                                onChange={(_, data) => {
+                                    context.setSaveLocation(
+                                        data.value === locConstants.backupDatabase.saveToUrl,
+                                    );
+                                }}
+                                value={
+                                    context.state.saveToUrl
+                                        ? locConstants.backupDatabase.saveToUrl
+                                        : locConstants.backupDatabase.saveToDisk
+                                }>
+                                <Radio
+                                    value={locConstants.backupDatabase.saveToDisk}
+                                    label={
+                                        <div className={classes.saveOption}>
+                                            <Save20Regular style={{ marginRight: "8px" }} />
+                                            {locConstants.backupDatabase.saveToDisk}
+                                        </div>
+                                    }
+                                />
+                                <Radio
+                                    value={locConstants.backupDatabase.saveToUrl}
+                                    label={
+                                        <div className={classes.saveOption}>
+                                            <AzureIcon20 style={{ marginRight: "8px" }} />
+                                            {locConstants.backupDatabase.saveToUrl}
+                                        </div>
+                                    }
+                                />
+                            </RadioGroup>
+                        </Field>
+                    </div>
+                    {state.saveToUrl ? (
+                        renderBackupSaveToUrlFields()
+                    ) : (
+                        <div className={formStyles.formComponentDiv}>
+                            <Field
+                                label={locConstants.backupDatabase.backupFiles}
+                                orientation="horizontal">
+                                <div className={classes.fileDiv}>
+                                    {renderBackupFiles()}
+                                    <div className={classes.fileButtons}>
+                                        <Button
+                                            className={classes.button}
+                                            type="submit"
+                                            appearance="secondary">
+                                            {locConstants.backupDatabase.createNew}
+                                        </Button>
+                                        <Button
+                                            className={classes.button}
+                                            type="submit"
+                                            appearance="secondary">
+                                            {locConstants.backupDatabase.chooseExisting}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Field>
+                        </div>
+                    )}
                 </div>
                 <AdvancedOptionsDrawer
                     isAdvancedDrawerOpen={isAdvancedDrawerOpen}

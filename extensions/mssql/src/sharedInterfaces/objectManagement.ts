@@ -211,6 +211,8 @@ export class BackupDatabaseState
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
+    saveToUrl: boolean = false;
+    backupFiles: BackupFile[] = [];
 
     // File browser properties
     fileFilterOptions: FileTypeOption[] = [];
@@ -239,6 +241,14 @@ export interface BackupDatabaseReducers
      * Opens the generated backup script in a new editor window
      */
     openBackupScript: {};
+
+    /**
+     * Sets the backup save location.
+     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
+     */
+    setSaveLocation: {
+        saveToUrl: boolean;
+    };
 }
 
 export interface BackupDatabaseProvider
@@ -257,6 +267,12 @@ export interface BackupDatabaseProvider
      * Opens the generated backup script in a new editor window
      */
     openBackupScript(): void;
+
+    /**
+     * Sets the backup save location.
+     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
+     */
+    setSaveLocation(saveToUrl: boolean): void;
 }
 
 export interface BackupDatabaseFormItemSpec
@@ -268,11 +284,6 @@ export interface BackupDatabaseFormState {
     backupName: string;
     backupType: BackupType;
     copyOnly: boolean;
-    saveToUrl: boolean;
-    // TODO: remove when implementing sql server file browser
-    backupFilePath: string;
-    // TODO: add when implementing sql server file browser
-    backupFiles: string[];
     backupCompression: BackupCompression;
     mediaSet: MediaSet;
     mediaSetName: string;
@@ -285,6 +296,12 @@ export interface BackupDatabaseFormState {
     encryptionEnabled: boolean;
     encryptionAlgorithm: EncryptionAlgorithm;
     encryptorName: string;
+}
+
+export interface BackupFile {
+    filePath: string;
+    fileName: string;
+    isExisting: boolean;
 }
 
 export enum BackupType {

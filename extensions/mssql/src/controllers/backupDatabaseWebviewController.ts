@@ -96,14 +96,24 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         this.state.formComponents = this.setBackupDatabaseFormComponents();
         this.state.defaultBackupName = `${this.databaseNode.label.toString()}_${new Date().toISOString().slice(0, 19)}`;
 
+        this.state.backupFiles = [
+            {
+                filePath: `${this.state.defaultFileBrowserExpandPath}`,
+                fileName: `${this.state.defaultBackupName}.bak`,
+                isExisting: true,
+            },
+            {
+                filePath: `${this.state.defaultFileBrowserExpandPath}`,
+                fileName: `${this.state.defaultBackupName}.bak`,
+                isExisting: false,
+            },
+        ];
+
         // Set default form state values
         this.state.formState = {
             backupName: this.state.defaultBackupName,
             backupType: BackupType.Full,
             copyOnly: false,
-            saveToUrl: false,
-            backupFilePath: `${this.state.defaultFileBrowserExpandPath}/${this.state.defaultBackupName}.bak`,
-            backupFiles: [],
             backupCompression: BackupCompression.Default,
             mediaSet: MediaSet.Append,
             mediaSetName: "",
@@ -138,8 +148,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("backupDatabase", async (state, _payload) => {
-            const backupResult = await this.backupHelper(TaskExecutionMode.execute, state);
-            console.log("Backup Result: ", JSON.stringify(backupResult));
+            await this.backupHelper(TaskExecutionMode.execute, state);
             return state;
         });
 
@@ -152,7 +161,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
-            state.formState.backupFiles.push(payload.selectedPath);
+            state.backupFiles[payload.selectedPath] = PhysicalDeviceType.Disk;
             sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
                 isOpen: "true",
             });
@@ -161,8 +170,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("openBackupScript", async (state, _payload) => {
-            const backupResult = await this.backupHelper(TaskExecutionMode.script, state);
-            console.log("Backup Script Result: ", JSON.stringify(backupResult));
+            await this.backupHelper(TaskExecutionMode.script, state);
+            return state;
+        });
+
+        this.registerReducer("setSaveLocation", async (state, payload) => {
+            state.saveToUrl = payload.saveToUrl;
             return state;
         });
     }
@@ -207,26 +220,13 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.copyOnly,
             }),
 
-            backupFilePath: createFormItem({
-                type: FormItemType.Input,
-                propertyName: "backupFilePath",
-                label: LocConstants.BackupDatabase.backupFiles,
-            }),
-
-            // TODO: add when implementing URL backups
-            // saveToUrl: createFormItem({
-            //     type: FormItemType.Checkbox,
-            //     propertyName: "saveToUrl",
-            //     label: LocConstants.BackupDatabase.saveToUrl,
-            // }),
-
             backupCompression: createFormItem({
                 type: FormItemType.Dropdown,
                 propertyName: "backupCompression",
                 label: LocConstants.BackupDatabase.backupCompression,
                 options: this.getCompressionOptions(),
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.compression,
+                groupName: LocConstants.BackupDatabase.compression,
             }),
 
             mediaSet: createFormItem({
@@ -235,7 +235,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.backupMediaSet,
                 options: this.getMediaSetOptions(),
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.media,
+                groupName: LocConstants.BackupDatabase.media,
             }),
 
             mediaSetName: createFormItem({
@@ -243,7 +243,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "mediaSetName",
                 label: LocConstants.BackupDatabase.newMediaSetName,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.media,
+                groupName: LocConstants.BackupDatabase.media,
             }),
 
             mediaSetDescription: createFormItem({
@@ -251,7 +251,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "mediaSetDescription",
                 label: LocConstants.BackupDatabase.newMediaSetDescription,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.media,
+                groupName: LocConstants.BackupDatabase.media,
             }),
 
             performChecksum: createFormItem({
@@ -259,7 +259,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "performChecksum",
                 label: LocConstants.BackupDatabase.performChecksum,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.reliability,
+                groupName: LocConstants.BackupDatabase.reliability,
             }),
 
             verifyBackup: createFormItem({
@@ -267,7 +267,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "verifyBackup",
                 label: LocConstants.BackupDatabase.verifyBackup,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.reliability,
+                groupName: LocConstants.BackupDatabase.reliability,
             }),
 
             continueOnError: createFormItem({
@@ -275,7 +275,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "continueOnError",
                 label: LocConstants.BackupDatabase.continueOnError,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.reliability,
+                groupName: LocConstants.BackupDatabase.reliability,
             }),
 
             transactionLog: createFormItem({
@@ -284,7 +284,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.transactionLog,
                 options: this.getTransactionLogOptions(),
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.transactionLog,
+                groupName: LocConstants.BackupDatabase.transactionLog,
             }),
 
             retainDays: createFormItem({
@@ -292,7 +292,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "retainDays",
                 label: LocConstants.BackupDatabase.retainDays,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.expiration,
+                groupName: LocConstants.BackupDatabase.expiration,
             }),
 
             encryptionEnabled: createFormItem({
@@ -300,7 +300,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 propertyName: "encryptionEnabled",
                 label: LocConstants.BackupDatabase.enableEncryption,
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.encryption,
+                groupName: LocConstants.BackupDatabase.encryption,
             }),
 
             encryptionAlgorithm: createFormItem({
@@ -309,7 +309,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.encryptionAlgorithm,
                 options: this.getEncryptionAlgorithmOptions(),
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.encryption,
+                groupName: LocConstants.BackupDatabase.encryption,
             }),
 
             encryptorName: createFormItem({
@@ -318,7 +318,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.encryptionType,
                 options: this.getEncryptorNameOptions(),
                 isAdvancedOption: true,
-                advancedGroupName: LocConstants.BackupDatabase.encryption,
+                groupName: LocConstants.BackupDatabase.encryption,
             }),
         };
     }
@@ -424,9 +424,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     }
 
     private async backupHelper(mode: TaskExecutionMode, state: BackupDatabaseState) {
-        const backupPathDevices: Record<string, number> = {
-            [state.formState.backupFilePath]: PhysicalDeviceType.Disk,
-        };
         const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
         const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
 
@@ -440,16 +437,21 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             );
         }
 
+        const backupPathDevices: Record<string, PhysicalDeviceType> = {};
+        for (const file of state.backupFiles) {
+            backupPathDevices[`${file.filePath}/${file.fileName}`] = PhysicalDeviceType.Disk;
+        }
+
         const backupInfo: BackupInfo = {
             databaseName: this.databaseNode.label.toString(),
             backupType: getBackupTypeNumber(state.formState.backupType),
             backupComponent: BackupComponent.Database, // always database for this scenario
-            backupDeviceType: PhysicalDeviceType.Disk, // always disk or URL
+            backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
             selectedFiles: undefined,
             backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
             selectedFileGroup: undefined,
             backupPathDevices: backupPathDevices,
-            backupPathList: [state.formState.backupFilePath],
+            backupPathList: state.backupFiles.map((file) => `${file.filePath}/${file.fileName}`),
             isCopyOnly: state.formState.copyOnly,
             formatMedia: createNewMediaSet,
             initialize: createNewMediaSet || overwriteMediaSet,

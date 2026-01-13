@@ -1422,6 +1422,18 @@ export class LocConstants {
             advanced: l10n.t("Advanced"),
             advancedBackupOptions: l10n.t("Advanced Backup Options"),
             searchOptions: l10n.t("Search options"),
+            saveToUrl: l10n.t("Save to URL"),
+            saveToDisk: l10n.t("Save to Disk"),
+            backupLocation: l10n.t("Backup Location"),
+            backupFiles: l10n.t("Backup Files"),
+            createNew: l10n.t("Create New"),
+            chooseExisting: l10n.t("Choose Existing"),
+            folderPath: l10n.t("Folder Path"),
+            fileName: l10n.t("File Name"),
+            existingFile: l10n.t("Existing File"),
+            newFile: l10n.t("New File"),
+            browseForPath: l10n.t("Browse forvpath"),
+            removeFile: l10n.t("Remove file"),
         };
     }
 

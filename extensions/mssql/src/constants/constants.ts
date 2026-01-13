@@ -314,6 +314,8 @@ export const x64 = "x64";
 export const simple = "Simple";
 export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const allFileTypes = ["*.*"];
+export const disk = "Disk";
+export const url = "URL";
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

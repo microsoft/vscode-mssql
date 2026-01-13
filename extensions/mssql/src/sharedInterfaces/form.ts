@@ -93,7 +93,7 @@ export interface FormItemSpec<
     /**
      * The name of the advanced options group this item belongs to
      */
-    advancedGroupName?: string;
+    groupName?: string;
 }
 
 export interface FormItemValidationState {

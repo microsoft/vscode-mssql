@@ -53,7 +53,7 @@ export const AdvancedOptionsDrawer = ({
         )
         .reduce(
             (acc, component) => {
-                const group = component.advancedGroupName ?? locConstants.common.general;
+                const group = component.groupName ?? locConstants.common.general;
                 if (!acc[group]) {
                     acc[group] = [];
                 }
