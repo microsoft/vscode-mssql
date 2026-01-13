@@ -424,13 +424,15 @@ export class ProjectsController {
 			problemMatcher: constants.problemMatcher
 		};
 
-		// Create a new task with the definition and shell executable
+		// Create a new task with the definition and process executable
 		vscodeTask = new vscode.Task(
 			taskDefinition,
 			vscode.TaskScope.Workspace,
 			taskDefinition.label,
 			taskDefinition.type,
-			new vscode.ShellExecution(taskDefinition.command, args, { cwd: project.projectFolderPath }),
+			new vscode.ProcessExecution(taskDefinition.command, args, {
+				cwd: project.projectFolderPath
+			}),
 			taskDefinition.problemMatcher
 		);
 

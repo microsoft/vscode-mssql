@@ -206,7 +206,7 @@ export class SqlDatabaseProjectTaskProvider implements vscode.TaskProvider {
 		// Build the argument list instead of a single shell command string
 		const args: string[] = [
 			constants.build,
-			definition.filePath, // vscode shell execution handles the quotes around the file path
+			definition.filePath,
 			...buildArgs
 		];
 
@@ -214,8 +214,8 @@ export class SqlDatabaseProjectTaskProvider implements vscode.TaskProvider {
 			args.push(constants.runCodeAnalysisParam);
 		}
 
-		// Create the ShellExecution with command and args
-		const shellExec = new vscode.ShellExecution(constants.dotnet, args, {
+		// Create the ProcessExecution with command and args
+		const processExec = new vscode.ProcessExecution(constants.dotnet, args, {
 			cwd: definition.workspaceFolder?.uri.fsPath
 		});
 
@@ -225,7 +225,7 @@ export class SqlDatabaseProjectTaskProvider implements vscode.TaskProvider {
 			definition.workspaceFolder ?? vscode.TaskScope.Workspace,
 			taskName,
 			constants.sqlProjTaskType,
-			shellExec,
+			processExec,
 			constants.problemMatcher
 		);
 		task.group = vscode.TaskGroup.Build;
