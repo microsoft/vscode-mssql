@@ -14,9 +14,11 @@ import {
 } from "../../../sharedInterfaces/publishDialog";
 import { FormEvent } from "../../../sharedInterfaces/form";
 import * as mssql from "vscode-mssql";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 export interface PublishProjectContextProps extends PublishProjectProvider {
     extensionRpc: WebviewRpc<PublishDialogReducers>;
+    themeKind?: ColorThemeKind;
 }
 
 // Optional payload for publishNow future expansion
@@ -29,7 +31,10 @@ export const PublishProjectContext = createContext<PublishProjectContextProps | 
 export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview2<PublishDialogState, PublishDialogReducers>();
+    const { extensionRpc, themeKind } = useVscodeWebview2<
+        PublishDialogState,
+        PublishDialogReducers
+    >();
 
     const value = useMemo<PublishProjectContextProps>(
         () => ({
@@ -49,8 +54,9 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
                 extensionRpc.action("updateSqlCmdVariables", { variables }),
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
             extensionRpc,
+            themeKind,
         }),
-        [extensionRpc],
+        [extensionRpc, themeKind],
     );
 
     return (

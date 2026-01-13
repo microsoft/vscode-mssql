@@ -1055,6 +1055,7 @@ export class LocConstants {
 
     public get publishProject() {
         return {
+            publishProject: l10n.t("Publish Project"),
             SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
