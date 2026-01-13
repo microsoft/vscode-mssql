@@ -48,7 +48,7 @@ const useStyles = makeStyles({
 export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void }) => {
     const classes = useStyles();
     const armReferenceLink =
-        "https://learn.microsoft.com/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-2025?view=sql-server-ver17";
+        "https://learn.microsoft.com/en-us/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-2025?view=sql-server-ver17";
 
     return (
         <Dialog open={true /* standalone dialog always open*/}>
