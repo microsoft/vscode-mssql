@@ -16,7 +16,7 @@ import { ConnectionSection } from "./components/ConnectionSection";
 import { DialogMessage } from "../../common/dialogMessage";
 import { SqlCmdVariablesSection } from "./components/sqlCmdVariablesSection";
 import { AdvancedDeploymentOptionsDrawer } from "./components/advancedDeploymentOptionsDrawer";
-import { DialogHeader } from "../../common/components/dialogHeader.component";
+import { DialogHeader } from "../../common/dialogHeader.component";
 
 const publishProjectIconLight = require("../../../../media/PublishProjectHeader_light.svg");
 const publishProjectIconDark = require("../../../../media/PublishProjectHeader_dark.svg");

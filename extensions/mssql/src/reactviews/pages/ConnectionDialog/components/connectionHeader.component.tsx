@@ -6,7 +6,7 @@
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
-import { DialogHeader } from "../../../common/components/dialogHeader.component";
+import { DialogHeader } from "../../../common/dialogHeader.component";
 
 const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");

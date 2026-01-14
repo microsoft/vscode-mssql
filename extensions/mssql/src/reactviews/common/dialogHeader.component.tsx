@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Image, Text } from "@fluentui/react-components";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ColorThemeKind } from "../../sharedInterfaces/webview";
 
 interface DialogHeaderProps {
     iconLight: string;
