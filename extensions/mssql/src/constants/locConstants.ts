@@ -2462,6 +2462,10 @@ export class BackupDatabase {
     public static transactionLog = l10n.t("Transaction Log");
     public static copyOnly = l10n.t("Copy-only Backup");
     public static saveToUrl = l10n.t("Save backup to URL");
+    public static azureAccount = l10n.t("Azure Account");
+    public static tenant = l10n.t("Tenant");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
     public static backupFiles = l10n.t("Backup Files");
     public static compression = l10n.t("Compression");
     public static backupCompression = l10n.t("Set backup Compression");

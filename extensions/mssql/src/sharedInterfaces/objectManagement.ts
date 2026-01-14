@@ -45,7 +45,7 @@ export interface BackupParams {
 }
 
 export interface BackupResponse {
-    success: boolean;
+    result: boolean;
     taskId: number;
 }
 
@@ -330,6 +330,12 @@ export interface BackupDatabaseFormState {
     encryptionEnabled: boolean;
     encryptionAlgorithm: EncryptionAlgorithm;
     encryptorName: string;
+
+    // Save to Azure URL fields
+    accountId: string;
+    tenantId: string;
+    subscriptionId: string;
+    storageAccountId: string;
 }
 
 export interface BackupFile {

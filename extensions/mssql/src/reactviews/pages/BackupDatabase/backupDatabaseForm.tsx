@@ -64,11 +64,6 @@ const useStyles = makeStyles({
     formDiv: {
         flexGrow: 1,
     },
-    buttonContent: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "0.5rem",
-    },
     header: {
         display: "flex",
         flexDirection: "row",
@@ -110,6 +105,21 @@ const useStyles = makeStyles({
         display: "grid",
         gridTemplateColumns: "125px 1fr",
         padding: "10px",
+    },
+    buttonDiv: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: "8px",
+    },
+    leftButtonDiv: {
+        display: "flex",
+        alignItems: "center",
+    },
+    rightButtonDiv: {
+        display: "flex",
+        gap: "8px",
+        alignItems: "center",
     },
 });
 
@@ -398,26 +408,34 @@ export const BackupDatabaseForm: React.FC = () => {
             />
             <div className={classes.bottomDiv}>
                 <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                <Button
-                    onClick={(_event) => {
-                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                    }}>
-                    {locConstants.backupDatabase.advanced}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => handleSubmit()}
-                    appearance="primary">
-                    {locConstants.backupDatabase.backup}
-                </Button>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => context.openBackupScript()}
-                    appearance="primary">
-                    {locConstants.backupDatabase.script}
-                </Button>
+                <div className={classes.buttonDiv}>
+                    <div className={classes.leftButtonDiv}>
+                        <Button
+                            className={classes.button}
+                            appearance="secondary"
+                            onClick={(_event) => {
+                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                            }}>
+                            {locConstants.backupDatabase.advanced}
+                        </Button>
+                    </div>
+                    <div className={classes.rightButtonDiv}>
+                        <Button
+                            className={classes.button}
+                            type="submit"
+                            onClick={() => handleSubmit()}
+                            appearance="primary">
+                            {locConstants.backupDatabase.backup}
+                        </Button>
+                        <Button
+                            className={classes.button}
+                            type="submit"
+                            onClick={() => context.openBackupScript()}
+                            appearance="primary">
+                            {locConstants.backupDatabase.script}
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     );

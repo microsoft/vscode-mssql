@@ -968,6 +968,8 @@
     "New File": "New File",
     "Browse forvpath": "Browse forvpath",
     "Remove file": "Remove file",
+    "Please choose at least one backup file": "Please choose at least one backup file",
+    "Please choose a unique backup file name": "Please choose a unique backup file name",
     "Select a file": "Select a file",
     "Selected Path": "Selected Path",
     "Files of Type": "Files of Type",

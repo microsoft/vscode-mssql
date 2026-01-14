@@ -628,4 +628,19 @@ export function extractFromResourceId(resourceId: string, property: string): str
     return resourceId.substring(startIndex, endIndex);
 }
 
+export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): string {
+    if (accountId === "" || tenants.length === 0) return "";
+
+    // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+    const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(accountId);
+
+    // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
+    // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
+    return tenants.some((t) => t.tenantId === homeTenantId)
+        ? homeTenantId
+        : tenants.length > 0
+          ? tenants[0].tenantId
+          : "";
+}
+
 //#endregion
