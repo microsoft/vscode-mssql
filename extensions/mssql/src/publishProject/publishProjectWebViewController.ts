@@ -30,6 +30,7 @@ import {
     readProjectProperties,
     validateSqlCmdVariables,
     getSqlServerContainerTagsForTargetVersion,
+    updateDatabaseInConnectionString,
 } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
@@ -44,7 +45,6 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { localhost, sa, sqlAuthentication, azureMfa } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -442,12 +442,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Register connection gives us a real connection URI that can be used for DacFx operations
         const connectionProfile = {
-            server: `${localhost},${validatedPort}`,
+            server: `${constants.localhost},${validatedPort}`,
             profileName: validatedContainerName,
             savePassword: true,
             emptyPasswordInput: false,
-            authenticationType: sqlAuthentication,
-            user: sa,
+            authenticationType: constants.sqlAuthentication,
+            user: constants.sa,
             password: dockerProfile.password,
             trustServerCertificate: true,
         } as IConnectionProfile;
@@ -982,7 +982,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 // Pass connection string if available, otherwise pass server and database name
                 if (this._connectionString) {
-                    commandLineArguments.targetConnectionString = this._connectionString;
+                    // Replace the database name in the connection string with the actual database from the form
+                    // This ensures SqlPackage command uses the correct target database instead of master/connection made on any database
+                    let connectionString = updateDatabaseInConnectionString(
+                        this._connectionString,
+                        this.state.formState.databaseName,
+                    );
+                    commandLineArguments.targetConnectionString = connectionString;
                 } else {
                     // For container targets, use a placeholder server name that will be removed from output
                     // For other targets, use the actual server name if available
@@ -1061,7 +1067,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Ensure accountId is present for Azure MFA connections before connecting
             let profileMatched = true;
-            if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
+            if (
+                connectionInfo.authenticationType === constants.azureMfa &&
+                !connectionInfo.accountId
+            ) {
                 profileMatched =
                     await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
                 if (!profileMatched) {
