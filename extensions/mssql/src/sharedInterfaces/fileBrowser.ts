@@ -105,7 +105,12 @@ export interface FileBrowserReducers {
      */
     closeFileBrowser: { ownerUri: string };
 
-    toggleFileBrowserDialog: { shouldOpen: boolean };
+    /**
+     * Toggles the file browser dialog
+     * @param foldersOnly whether to show folders only
+     * @param shouldOpen whether the dialog should be open
+     */
+    toggleFileBrowserDialog: { foldersOnly: boolean; shouldOpen: boolean };
 }
 
 export interface FileBrowserProvider {
@@ -146,9 +151,10 @@ export interface FileBrowserProvider {
 
     /**
      * Toggles the file browser dialog
+     * @param foldersOnly whether to show folders only
      * @param shouldOpen whether the dialog should be open
      */
-    toggleFileBrowserDialog(shouldOpen: boolean): void;
+    toggleFileBrowserDialog(foldersOnly: boolean, shouldOpen: boolean): void;
 }
 
 export interface FileTypeOption {
