@@ -916,6 +916,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
+            schemaDesignerNavLabel: l10n.t("Schema Designer"),
+            dabNavLabel: l10n.t("DAB"),
         };
     }
 

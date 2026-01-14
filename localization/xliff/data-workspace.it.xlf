@@ -4,45 +4,45 @@
     <body>
       <trans-unit id="projects.showNotAddedProjectsInWorkspacePrompt">
         <source xml:lang="en">Always show information message when the current workspace folders contain projects that have not been added to the workspace's projects.</source>
-        <target state="new">Always show information message when the current workspace folders contain projects that have not been added to the workspace's projects.</target>
+        <target state="translated">Mostra sempre un messaggio informativo quando le cartelle dell'area di lavoro correnti contengono progetti che non sono stati aggiunti ai progetti dell'area di lavoro.</target>
       </trans-unit>
       <trans-unit id="close-workspace-command">
         <source xml:lang="en">Close Workspace</source>
-        <target state="new">Close Workspace</target>
+        <target state="translated">Chiudi area di lavoro</target>
       </trans-unit>
       <trans-unit id="projects-view-no-workspace-content">
         <source xml:lang="en">Create new or open existing to get started.
 [Create new](command:projects.new)
 [Open existing](command:projects.openExisting)
 To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</source>
-        <target state="new">Create new or open existing to get started.
-[Create new](command:projects.new)
-[Open existing](command:projects.openExisting)
-To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</target>
+        <target state="translated">Per iniziare, creare un nuovo progetto o aprirne uno esistente.
+[Crea nuovo](comando: projects.new)
+[Apri esistente](comando: projects.openExisting)
+Per altre informazioni sui progetti [vedere la documentazione](https://aka.ms/azuredatastudio-projects).</target>
       </trans-unit>
       <trans-unit id="main-view-name">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">Progetti di database</target>
       </trans-unit>
       <trans-unit id="data-workspace-view-container-name">
         <source xml:lang="en">Database Projects</source>
-        <target state="new">Database Projects</target>
+        <target state="translated">Progetti di database</target>
       </trans-unit>
       <trans-unit id="projects.defaultProjectSaveLocation">
         <source xml:lang="en">Full path to folder where new projects are saved by default.</source>
-        <target state="new">Full path to folder where new projects are saved by default.</target>
+        <target state="translated">Percorso completo della cartella in cui vengono salvati i nuovi progetti per impostazione predefinita.</target>
       </trans-unit>
       <trans-unit id="projects.excludedProjectsDescription">
         <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
-        <target state="new">List of projects in the workspace to exclude from the projects viewlet</target>
+        <target state="translated">Elenco dei progetti nell'area di lavoro da escludere dal viewlet dei progetti</target>
       </trans-unit>
       <trans-unit id="manage-project-command">
         <source xml:lang="en">Manage</source>
-        <target state="new">Manage</target>
+        <target state="translated">Gestisci</target>
       </trans-unit>
       <trans-unit id="new-command">
         <source xml:lang="en">New</source>
-        <target state="new">New</target>
+        <target state="translated">Nuovo</target>
       </trans-unit>
       <trans-unit id="projects-view-no-project-content">
         <source xml:lang="en">No projects open in current workspace.
@@ -50,23 +50,23 @@ To learn more about projects [read our docs](https://aka.ms/azuredatastudio-proj
 [Open existing](command:projects.openExisting)
 To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).
 </source>
-        <target state="new">No projects open in current workspace.
-[Create new](command:projects.new)
-[Open existing](command:projects.openExisting)
-To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).
+        <target state="translated">Nessun progetto aperto nell'area di lavoro corrente.
+[Crea nuovo](comando: projects.new)
+[Apri esistente](comando: projects.openExisting)
+Per altre informazioni sui progetti [vedere la documentazione](https://aka.ms/azuredatastudio-projects).
 </target>
       </trans-unit>
       <trans-unit id="open-existing-command">
         <source xml:lang="en">Open existing</source>
-        <target state="new">Open existing</target>
+        <target state="translated">Apri esistente</target>
       </trans-unit>
       <trans-unit id="refresh-workspace-command">
         <source xml:lang="en">Refresh</source>
-        <target state="new">Refresh</target>
+        <target state="translated">Aggiorna</target>
       </trans-unit>
       <trans-unit id="remove-project-command">
         <source xml:lang="en">Remove Project</source>
-        <target state="new">Remove Project</target>
+        <target state="translated">Rimuovi progetto</target>
       </trans-unit>
     </body>
   </file>

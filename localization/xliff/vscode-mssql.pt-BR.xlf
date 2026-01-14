@@ -1401,6 +1401,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Customize keyboard shortcuts</source>
         <target state="translated">Personalizar atalhos de teclado</target>
       </trans-unit>
+      <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
+        <source xml:lang="en">DAB</source>
+        <target state="new">DAB</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">DACPAC implantado com sucesso</target>
@@ -2066,7 +2070,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
         <source xml:lang="en">Export to JSON</source>
-        <target state="new">Export to JSON</target>
+        <target state="translated">Exportar para JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
         <source xml:lang="en">Export to tab delimited</source>
@@ -2203,7 +2207,7 @@ Erro:
       <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
         <source xml:lang="en">Failed to export results: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to export results: {0}</target>
+        <target state="translated">Falha ao exportar resultados: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
@@ -3322,6 +3326,11 @@ Erro:
         <source xml:lang="en">Move to Root</source>
         <target state="translated">Mover para Raiz</target>
       </trans-unit>
+      <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
+        <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
+        <note>{0} is the root id</note>
+        <target state="translated">Foram encontrados vários grupos de conexões com a ID "{0}".  Exclua ou renomeie todos eles, exceto um em Usuário/Global settings.json e reinicie a extensão.</target>
+      </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
         <target state="translated">Meus Dados</target>
@@ -3663,6 +3672,16 @@ Erro:
       <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
         <source xml:lang="en">On Update Action</source>
         <target state="translated">Na Ação de Atualização</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
+        <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
+        <note>{0} is the comma separated list of connection group names</note>
+        <target state="translated">Um ou mais grupos de conexões fazem referência a grupos pai que não existem e foram ignorados: {0}. Atualize o arquivo de configurações para corrigir essas entradas.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
+        <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
+        <note>{0} is the comma separated list of connection display names</note>
+        <target state="translated">Um ou mais grupos de referência de conexões que não existem e foram ignorados: {0}. Atualize as configurações de conexão para corrigir essas entradas.</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
@@ -4227,7 +4246,7 @@ Erro:
       <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
         <source xml:lang="en">Results exported successfully to {0}</source>
         <note>{0} is the file path</note>
-        <target state="new">Results exported successfully to {0}</target>
+        <target state="translated">Resultados exportados com sucesso para {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>

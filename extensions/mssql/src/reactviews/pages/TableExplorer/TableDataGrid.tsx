@@ -243,7 +243,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     sortable: true,
                     filterable: true,
                     resizable: true,
-                    minWidth: 98,
+                    minWidth: 180,
                     type: "string",
                     filter: {
                         model: FluentCompoundFilter,
