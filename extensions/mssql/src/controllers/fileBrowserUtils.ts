@@ -13,7 +13,6 @@ import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry"
 export function registerFileBrowserReducers<TResult>(
     controller: ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, TResult>,
     fileBrowserService: FileBrowserService,
-    showFoldersOnly?: boolean,
     fileBrowserFilters?: string[],
 ): void {
     controller.registerReducer("openFileBrowser", async (state, payload) => {
@@ -81,10 +80,9 @@ export function registerFileBrowserReducers<TResult>(
                     state.defaultFileBrowserExpandPath,
                     fileBrowserFilters || allFileTypes,
                     false, // changeFilter
-                    showFoldersOnly,
+                    payload.foldersOnly,
                 );
                 if (result && result.succeeded) {
-                    state.fileBrowserState = fileBrowserService.fileBrowserState;
                     sendActionEvent(
                         TelemetryViews.FileBrowser,
                         TelemetryActions.FileBrowserDialog,
@@ -102,6 +100,9 @@ export function registerFileBrowserReducers<TResult>(
                     );
                 }
             }
+            state.fileBrowserState = fileBrowserService.fileBrowserState;
+            state.fileBrowserState.showFoldersOnly = payload.foldersOnly;
+
             // Open the file browser dialog with the current file browser state
             state.dialog = {
                 type: "fileBrowser",

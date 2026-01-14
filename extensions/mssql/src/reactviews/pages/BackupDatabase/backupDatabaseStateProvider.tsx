@@ -45,6 +45,11 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         saveToUrl,
                     });
                 },
+                removeBackupFile: function (filePath: string): void {
+                    webviewState?.extensionRpc.action("removeBackupFile", {
+                        filePath,
+                    });
+                },
                 openFileBrowser: function (
                     ownerUri: string,
                     expandPath: string,
@@ -76,9 +81,17 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         ownerUri,
                     });
                 },
-                toggleFileBrowserDialog(shouldOpen: boolean): void {
+                toggleFileBrowserDialog(foldersOnly: boolean, shouldOpen: boolean): void {
                     webviewState?.extensionRpc.action("toggleFileBrowserDialog", {
+                        foldersOnly,
                         shouldOpen,
+                    });
+                },
+                handleFileChange(index, newValue, isFolderChange) {
+                    webviewState?.extensionRpc.action("handleFileChange", {
+                        index,
+                        newValue,
+                        isFolderChange,
                     });
                 },
             }}>

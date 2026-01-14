@@ -106,7 +106,6 @@ import { Logger } from "../models/logger";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { ObjectManagementService } from "../services/objectManagementService";
 import { FileBrowserService } from "../services/fileBrowserService";
-import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
  * The main controller class that initializes the extension
@@ -143,7 +142,6 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public objectManagementService: ObjectManagementService;
-    public fileBrowserService: FileBrowserService;
     public fileBrowserService: FileBrowserService;
 
     /**

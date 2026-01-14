@@ -55,8 +55,8 @@ const useStyles = makeStyles({
         padding: "10px",
     },
     treeDiv: {
-        height: "500px",
-        minHeight: "250px",
+        height: "40vh",
+        minHeight: "400px",
         overflowY: "scroll",
         marginBottom: "15px",
     },

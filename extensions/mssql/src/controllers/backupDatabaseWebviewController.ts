@@ -40,8 +40,6 @@ import { FileBrowserService } from "../services/fileBrowserService";
 import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
-import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -94,17 +92,11 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         this.state.recoveryModel = backupConfigInfo.recoveryModel;
 
         this.state.formComponents = this.setBackupDatabaseFormComponents();
-        this.state.defaultBackupName = `${this.databaseNode.label.toString()}_${new Date().toISOString().slice(0, 19)}`;
+        this.state.defaultBackupName = this.getDefaultBackupFileName(this.state);
 
         this.state.backupFiles = [
             {
-                filePath: `${this.state.defaultFileBrowserExpandPath}`,
-                fileName: `${this.state.defaultBackupName}.bak`,
-                isExisting: true,
-            },
-            {
-                filePath: `${this.state.defaultFileBrowserExpandPath}`,
-                fileName: `${this.state.defaultBackupName}.bak`,
+                filePath: `${this.state.defaultFileBrowserExpandPath}/${this.state.defaultBackupName}`,
                 isExisting: false,
             },
         ];
@@ -155,17 +147,25 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         registerFileBrowserReducers(
             this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
             this.fileBrowserService,
-            false,
             defaultBackupFileTypes,
         );
 
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
-            state.backupFiles[payload.selectedPath] = PhysicalDeviceType.Disk;
-            sendActionEvent(TelemetryViews.FileBrowser, TelemetryActions.FileBrowserDialog, {
-                isOpen: "true",
-            });
+            const isExisting = payload.selectedPath.includes(".");
+            // Folder selected, generate default backup name
+            if (!isExisting) {
+                const defaultFileName = this.getDefaultBackupFileName(state);
+                payload.selectedPath = `${payload.selectedPath}/${defaultFileName}`;
+            }
 
+            const paths = state.backupFiles.map((f) => f.filePath);
+            if (!paths.includes(payload.selectedPath)) {
+                state.backupFiles.push({
+                    filePath: payload.selectedPath,
+                    isExisting: isExisting,
+                });
+            }
             return state;
         });
 
@@ -176,6 +176,27 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         this.registerReducer("setSaveLocation", async (state, payload) => {
             state.saveToUrl = payload.saveToUrl;
+            return state;
+        });
+
+        this.registerReducer("removeBackupFile", async (state, payload) => {
+            state.backupFiles = state.backupFiles.filter(
+                (file) => file.filePath !== payload.filePath,
+            );
+            return state;
+        });
+
+        this.registerReducer("handleFileChange", async (state, payload) => {
+            const currentFilePath = state.backupFiles[payload.index].filePath;
+            let newFilePath: string = "";
+            if (payload.isFolderChange) {
+                newFilePath = `${payload.newValue}/${currentFilePath.substring(
+                    currentFilePath.lastIndexOf("/") + 1,
+                )}`;
+            } else {
+                newFilePath = `${currentFilePath.substring(0, currentFilePath.lastIndexOf("/") + 1)}${payload.newValue}`;
+            }
+            state.backupFiles[payload.index].filePath = newFilePath;
             return state;
         });
     }
@@ -439,7 +460,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         const backupPathDevices: Record<string, PhysicalDeviceType> = {};
         for (const file of state.backupFiles) {
-            backupPathDevices[`${file.filePath}/${file.fileName}`] = PhysicalDeviceType.Disk;
+            backupPathDevices[file.filePath] = PhysicalDeviceType.Disk;
         }
 
         const backupInfo: BackupInfo = {
@@ -451,7 +472,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
             selectedFileGroup: undefined,
             backupPathDevices: backupPathDevices,
-            backupPathList: state.backupFiles.map((file) => `${file.filePath}/${file.fileName}`),
+            backupPathList: state.backupFiles.map((file) => file.filePath),
             isCopyOnly: state.formState.copyOnly,
             formatMedia: createNewMediaSet,
             initialize: createNewMediaSet || overwriteMediaSet,
@@ -474,5 +495,14 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             backupInfo,
             mode,
         );
+    }
+
+    private getDefaultBackupFileName(state): string {
+        const newFiles = state.backupFiles.filter((file) => !file.isExisting);
+        let name = this.databaseNode.label.toString();
+        if (newFiles.length > 0) {
+            name += `_${newFiles.length}`;
+        }
+        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
     }
 }

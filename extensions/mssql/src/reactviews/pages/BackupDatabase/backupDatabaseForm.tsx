@@ -22,7 +22,7 @@ import {
     BackupDatabaseProvider,
     BackupDatabaseState,
 } from "../../../sharedInterfaces/objectManagement";
-import { FileBrowserDialog } from "../FileBrowser/FileBrowserDialog";
+import { FileBrowserDialog } from "../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
 import { Image, Text } from "@fluentui/react-components";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
@@ -33,7 +33,6 @@ import {
     Dismiss20Regular,
     DocumentAdd24Regular,
     DocumentEdit24Regular,
-    Edit20Regular,
     Save20Regular,
 } from "@fluentui/react-icons";
 import { url } from "../../../constants/constants";
@@ -129,6 +128,7 @@ export const BackupDatabaseForm: React.FC = () => {
     }
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+
     const { formComponents } = state;
 
     const renderFormFields = () =>
@@ -192,9 +192,9 @@ export const BackupDatabaseForm: React.FC = () => {
             ));
 
     const renderBackupFiles = () =>
-        state.backupFiles.map((file) => {
+        state.backupFiles.map((file, index) => {
             return (
-                <Card className={classes.cardDiv} key={file.fileName}>
+                <Card className={classes.cardDiv} key={file.filePath}>
                     <div className={classes.cardHeader}>
                         {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}
                         <Text size={400} style={{ marginLeft: "4px" }}>
@@ -205,32 +205,48 @@ export const BackupDatabaseForm: React.FC = () => {
                         <div className={classes.headerActions}>
                             <Button
                                 appearance="subtle"
-                                icon={<Edit20Regular />}
-                                title={locConstants.backupDatabase.browseForPath}
-                                aria-label={locConstants.backupDatabase.browseForPath}
-                            />
-                            <Button
-                                appearance="subtle"
                                 icon={<Dismiss20Regular />}
                                 title={locConstants.backupDatabase.removeFile}
                                 aria-label={locConstants.backupDatabase.removeFile}
+                                onClick={() => handleRemoveFile(file.filePath)}
                             />
                         </div>
                     </div>
                     <div className={classes.cardField}>
                         <Text>{locConstants.backupDatabase.folderPath}</Text>
                         {file.isExisting ? (
-                            <Text>{file.filePath}</Text>
+                            <Text>{getFolderNameFromPath(file.filePath)}</Text>
                         ) : (
-                            <Input value={file.filePath} />
+                            <Field required={true}>
+                                <Input
+                                    value={getFolderNameFromPath(file.filePath)}
+                                    onChange={(e) => {
+                                        context.handleFileChange(index, e.target.value, true);
+                                    }}
+                                />
+                            </Field>
                         )}
                     </div>
                     <div className={classes.cardField}>
                         <Text>{locConstants.backupDatabase.fileName}</Text>
                         {file.isExisting ? (
-                            <Text>{file.fileName}</Text>
+                            <Text>{getFileNameFromPath(file.filePath)}</Text>
                         ) : (
-                            <Input value={file.fileName} />
+                            <Field
+                                validationMessage={
+                                    isFileNameValid(file.filePath)
+                                        ? ""
+                                        : locConstants.backupDatabase.chooseUniqueFile
+                                }
+                                required={true}
+                                validationState={isFileNameValid(file.filePath) ? "none" : "error"}>
+                                <Input
+                                    value={getFileNameFromPath(file.filePath)}
+                                    onChange={(e) => {
+                                        context.handleFileChange(index, e.target.value, false);
+                                    }}
+                                />
+                            </Field>
                         )}
                     </div>
                 </Card>
@@ -241,140 +257,167 @@ export const BackupDatabaseForm: React.FC = () => {
         await context.backupDatabase();
     };
 
+    const handleRemoveFile = async (filePath: string) => {
+        await context.removeBackupFile(filePath);
+    };
+
+    const getFileValidationMessage = () => {
+        if (state.backupFiles.length === 0) {
+            return locConstants.backupDatabase.chooseAtLeastOneFile;
+        }
+        return "";
+    };
+
+    const isFileNameValid = (filePath: string) => {
+        const files = state.backupFiles.filter((file) => file.filePath === filePath);
+        return files.length <= 1;
+    };
+
+    const getFolderNameFromPath = (filePath: string) => {
+        const lastSlashIndex = filePath.lastIndexOf("/");
+        return filePath.substring(0, lastSlashIndex);
+    };
+
+    const getFileNameFromPath = (filePath: string) => {
+        const lastSlashIndex = filePath.lastIndexOf("/");
+        return filePath.substring(lastSlashIndex + 1);
+    };
+
     return (
-        <div>
-            <div className={classes.outerDiv}>
-                <div className={classes.formDiv}>
-                    <div className={classes.header}>
-                        <Image
-                            style={{
-                                padding: "10px",
+        <div className={classes.outerDiv}>
+            <div className={classes.formDiv}>
+                <div className={classes.header}>
+                    <Image
+                        style={{
+                            padding: "10px",
+                        }}
+                        src={
+                            context?.themeKind === ColorThemeKind.Light
+                                ? databaseIconLight
+                                : databaseIconDark
+                        }
+                        alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                        height={60}
+                        width={60}
+                    />
+                    <Text
+                        size={500}
+                        style={{
+                            lineHeight: "60px",
+                        }}
+                        weight="medium">
+                        {`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                    </Text>
+                </div>
+                {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (
+                    <FileBrowserDialog
+                        ownerUri={state.ownerUri}
+                        defaultFilePath={state.defaultFileBrowserExpandPath}
+                        fileTree={state.fileBrowserState.fileTree}
+                        showFoldersOnly={state.fileBrowserState.showFoldersOnly}
+                        provider={context as FileBrowserProvider}
+                        fileTypeOptions={state.fileFilterOptions}
+                        closeDialog={() => context.toggleFileBrowserDialog(false, false)}
+                    />
+                )}
+                {renderFormFields()}
+                <div className={formStyles.formComponentDiv}>
+                    <Field
+                        label={locConstants.backupDatabase.backupLocation}
+                        orientation="horizontal">
+                        <RadioGroup
+                            onChange={(_, data) => {
+                                context.setSaveLocation(
+                                    data.value === locConstants.backupDatabase.saveToUrl,
+                                );
                             }}
-                            src={
-                                context?.themeKind === ColorThemeKind.Light
-                                    ? databaseIconLight
-                                    : databaseIconDark
-                            }
-                            alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
-                            height={60}
-                            width={60}
-                        />
-                        <Text
-                            size={500}
-                            style={{
-                                lineHeight: "60px",
-                            }}
-                            weight="medium">
-                            {`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
-                        </Text>
-                    </div>
-                    {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (
-                        <FileBrowserDialog
-                            state={state.fileBrowserState}
-                            provider={context as FileBrowserProvider}
-                            fileTypeOptions={state.fileFilterOptions}
-                            closeDialog={() => context.toggleFileBrowserDialog(false)}
-                        />
-                    )}
-                    {renderFormFields()}
+                            value={
+                                context.state.saveToUrl
+                                    ? locConstants.backupDatabase.saveToUrl
+                                    : locConstants.backupDatabase.saveToDisk
+                            }>
+                            <Radio
+                                value={locConstants.backupDatabase.saveToDisk}
+                                label={
+                                    <div className={classes.saveOption}>
+                                        <Save20Regular style={{ marginRight: "8px" }} />
+                                        {locConstants.backupDatabase.saveToDisk}
+                                    </div>
+                                }
+                            />
+                            <Radio
+                                value={locConstants.backupDatabase.saveToUrl}
+                                label={
+                                    <div className={classes.saveOption}>
+                                        <AzureIcon20 style={{ marginRight: "8px" }} />
+                                        {locConstants.backupDatabase.saveToUrl}
+                                    </div>
+                                }
+                            />
+                        </RadioGroup>
+                    </Field>
+                </div>
+                {state.saveToUrl ? (
+                    renderBackupSaveToUrlFields()
+                ) : (
                     <div className={formStyles.formComponentDiv}>
                         <Field
-                            label={locConstants.backupDatabase.backupLocation}
+                            label={locConstants.backupDatabase.backupFiles}
+                            validationMessage={getFileValidationMessage()}
+                            required={true}
+                            validationState={getFileValidationMessage() == "" ? "none" : "error"}
                             orientation="horizontal">
-                            <RadioGroup
-                                onChange={(_, data) => {
-                                    context.setSaveLocation(
-                                        data.value === locConstants.backupDatabase.saveToUrl,
-                                    );
-                                }}
-                                value={
-                                    context.state.saveToUrl
-                                        ? locConstants.backupDatabase.saveToUrl
-                                        : locConstants.backupDatabase.saveToDisk
-                                }>
-                                <Radio
-                                    value={locConstants.backupDatabase.saveToDisk}
-                                    label={
-                                        <div className={classes.saveOption}>
-                                            <Save20Regular style={{ marginRight: "8px" }} />
-                                            {locConstants.backupDatabase.saveToDisk}
-                                        </div>
-                                    }
-                                />
-                                <Radio
-                                    value={locConstants.backupDatabase.saveToUrl}
-                                    label={
-                                        <div className={classes.saveOption}>
-                                            <AzureIcon20 style={{ marginRight: "8px" }} />
-                                            {locConstants.backupDatabase.saveToUrl}
-                                        </div>
-                                    }
-                                />
-                            </RadioGroup>
+                            <div className={classes.fileDiv}>
+                                {renderBackupFiles()}
+                                <div className={classes.fileButtons}>
+                                    <Button
+                                        className={classes.button}
+                                        type="submit"
+                                        appearance="secondary"
+                                        onClick={() => context.toggleFileBrowserDialog(true, true)}>
+                                        {locConstants.backupDatabase.createNew}
+                                    </Button>
+                                    <Button
+                                        className={classes.button}
+                                        type="submit"
+                                        appearance="secondary"
+                                        onClick={() =>
+                                            context.toggleFileBrowserDialog(false, true)
+                                        }>
+                                        {locConstants.backupDatabase.chooseExisting}
+                                    </Button>
+                                </div>
+                            </div>
                         </Field>
                     </div>
-                    {state.saveToUrl ? (
-                        renderBackupSaveToUrlFields()
-                    ) : (
-                        <div className={formStyles.formComponentDiv}>
-                            <Field
-                                label={locConstants.backupDatabase.backupFiles}
-                                orientation="horizontal">
-                                <div className={classes.fileDiv}>
-                                    {renderBackupFiles()}
-                                    <div className={classes.fileButtons}>
-                                        <Button
-                                            className={classes.button}
-                                            type="submit"
-                                            appearance="secondary">
-                                            {locConstants.backupDatabase.createNew}
-                                        </Button>
-                                        <Button
-                                            className={classes.button}
-                                            type="submit"
-                                            appearance="secondary">
-                                            {locConstants.backupDatabase.chooseExisting}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </Field>
-                        </div>
-                    )}
-                </div>
-                <AdvancedOptionsDrawer
-                    isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                    setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-                />
-                <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                    <Button
-                        onClick={(_event) => {
-                            setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                        }}>
-                        {locConstants.backupDatabase.advanced}
-                    </Button>
-                    <Button
-                        className={classes.button}
-                        type="submit"
-                        onClick={() => handleSubmit()}
-                        appearance="primary">
-                        {locConstants.backupDatabase.backup}
-                    </Button>
-                    <Button
-                        className={classes.button}
-                        type="submit"
-                        onClick={() => context.openBackupScript()}
-                        appearance="primary">
-                        {locConstants.backupDatabase.script}
-                    </Button>
-                    <Button
-                        className={classes.button}
-                        type="submit"
-                        onClick={() => context.toggleFileBrowserDialog(true)}
-                        appearance="primary">
-                        Browse Files
-                    </Button>
-                </div>
+                )}
+            </div>
+            <AdvancedOptionsDrawer
+                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+            />
+            <div className={classes.bottomDiv}>
+                <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                <Button
+                    onClick={(_event) => {
+                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                    }}>
+                    {locConstants.backupDatabase.advanced}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => handleSubmit()}
+                    appearance="primary">
+                    {locConstants.backupDatabase.backup}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => context.openBackupScript()}
+                    appearance="primary">
+                    {locConstants.backupDatabase.script}
+                </Button>
             </div>
         </div>
     );

@@ -81,7 +81,7 @@ suite("File Browser Utilities", () => {
         let openFileBrowserStub = sinon.stub(mockFileBrowserService, "openFileBrowser").resolves({
             succeeded: true,
         } as FileBrowserOpenResponse);
-        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, false, []);
+        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, []);
 
         const mockInitialState: FileBrowserWebviewState = {
             fileBrowserState: {
@@ -129,7 +129,7 @@ suite("File Browser Utilities", () => {
             succeeded: true,
         } as FileBrowserExpandResponse);
 
-        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, false, []);
+        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, []);
 
         const mockState: FileBrowserWebviewState = {
             fileBrowserState: { ownerUri: "testUri" } as FileBrowserState,
@@ -229,7 +229,7 @@ suite("File Browser Utilities", () => {
             succeeded: true,
         } as FileBrowserOpenResponse);
 
-        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, false, []);
+        registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, []);
 
         const mockState: FileBrowserWebviewState = {
             fileBrowserState: undefined,
@@ -241,10 +241,11 @@ suite("File Browser Utilities", () => {
         // Open dialog
         const openResult = await mockFileBrowserController["_reducerHandlers"].get(
             "toggleFileBrowserDialog",
-        )(mockState, { shouldOpen: true });
+        )(mockState, { foldersOnly: false, shouldOpen: true });
 
         expect(openStub).to.have.been.calledOnce;
         expect(openResult.dialog).to.deep.equal({ type: "fileBrowser" });
+        expect(mockState.fileBrowserState.showFoldersOnly).to.be.false;
 
         openStub.restore();
 
@@ -255,15 +256,16 @@ suite("File Browser Utilities", () => {
 
         await mockFileBrowserController["_reducerHandlers"].get("toggleFileBrowserDialog")(
             mockState,
-            { shouldOpen: true },
+            { foldersOnly: true, shouldOpen: true },
         );
 
         expect(openStub).to.have.been.calledOnce;
+        expect(mockState.fileBrowserState.showFoldersOnly).to.be.true;
 
         // Close dialog
         const closeResult = await mockFileBrowserController["_reducerHandlers"].get(
             "toggleFileBrowserDialog",
-        )(mockState, { shouldOpen: false });
+        )(mockState, { foldersOnly: false, shouldOpen: false });
 
         expect(closeResult.dialog).to.be.undefined;
 

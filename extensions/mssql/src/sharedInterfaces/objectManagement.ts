@@ -249,6 +249,26 @@ export interface BackupDatabaseReducers
     setSaveLocation: {
         saveToUrl: boolean;
     };
+
+    /**
+     * Removes a backup file from the list
+     * @param filePath The file path to remove
+     */
+    removeBackupFile: {
+        filePath: string;
+    };
+
+    /**
+     * Handles changes to backup file paths
+     * @param index The index of the backup file being changed
+     * @param newValue The new value for the backup file path
+     * @param isFolderChange Indicates whether the change is for the folder path or the file name
+     */
+    handleFileChange: {
+        index: number;
+        newValue: string;
+        isFolderChange: boolean;
+    };
 }
 
 export interface BackupDatabaseProvider
@@ -273,6 +293,20 @@ export interface BackupDatabaseProvider
      * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
      */
     setSaveLocation(saveToUrl: boolean): void;
+
+    /**
+     *  Removes a backup file from the list
+     * @param filePath  The file path to remove
+     */
+    removeBackupFile(filePath: string): void;
+
+    /**
+     *  Handles changes to backup file paths
+     * @param index    The index of the backup file being changed
+     * @param newValue  The new value for the backup file path
+     * @param isFolderChange  Indicates whether the change is for the folder path or the file name
+     */
+    handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
 }
 
 export interface BackupDatabaseFormItemSpec
@@ -300,7 +334,6 @@ export interface BackupDatabaseFormState {
 
 export interface BackupFile {
     filePath: string;
-    fileName: string;
     isExisting: boolean;
 }
 

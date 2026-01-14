@@ -64,7 +64,6 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
-            loading: l10n.t("Loading"),
         };
     }
 
@@ -1437,6 +1436,8 @@ export class LocConstants {
             newFile: l10n.t("New File"),
             browseForPath: l10n.t("Browse forvpath"),
             removeFile: l10n.t("Remove file"),
+            chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
+            chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
         };
     }
 
@@ -1448,13 +1449,6 @@ export class LocConstants {
         };
     }
 
-    public get fileBrowser() {
-        return {
-            fileBrowserTitle: l10n.t("Select a file"),
-            selectedPath: l10n.t("Selected Path"),
-            filesOfType: l10n.t("Files of Type"),
-        };
-    }
 }
 
 export let locConstants = LocConstants.getInstance();
