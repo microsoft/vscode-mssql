@@ -293,13 +293,13 @@
     min-width: 180px !important;
 }
 
-#tableExplorerGrid .slick-header-menu .slick-menu-item {
+#tableExplorerGrid .slick-header-menu > div > li {
     background-color: transparent !important;
     color: var(--vscode-menu-foreground) !important;
-    padding: 4px 20px 4px 30px !important;
-    line-height: 22px !important;
+    padding: 2px 20px 2px 30px !important;
+    height: 34px !important;
     font-size: 13px !important;
-    border: none !important;
+    border: 1px solid transparent !important;
     cursor: pointer !important;
     position: relative !important;
     display: flex !important;
