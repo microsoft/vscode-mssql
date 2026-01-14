@@ -39,6 +39,7 @@ export enum TelemetryViews {
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
+    FileBrowser = "FileBrowser",
 }
 
 export enum TelemetryActions {
@@ -194,6 +195,11 @@ export enum TelemetryActions {
     SendNotification = "SendNotification",
     onNotification = "onNotification",
     RefreshEntraToken = "RefreshEntraToken",
+    FileBrowserOpen = "FileBrowserOpen",
+    FileBrowserExpand = "FileBrowserExpand",
+    FileBrowserClose = "FileBrowserClose",
+    FileBrowserDialog = "FileBrowserDialog",
+    FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
 }
 
 /**

@@ -103,6 +103,7 @@ import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWe
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
+import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
  * The main controller class that initializes the extension
@@ -138,6 +139,7 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
+    public fileBrowserService: FileBrowserService;
 
     /**
      * The main controller constructor
@@ -820,6 +822,11 @@ export default class MainController implements vscode.Disposable {
          * Good candidate for dependency injection.
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+        this.fileBrowserService = new FileBrowserService(
+            this._vscodeWrapper,
+            SqlToolsServerClient.instance,
+        );
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
