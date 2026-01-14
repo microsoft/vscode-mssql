@@ -159,11 +159,6 @@
         "category": "%sqlDatabaseProjects.displayName%"
       },
       {
-        "command": "sqlDatabaseProjects.publish",
-        "title": "%sqlDatabaseProjects.publish%",
-        "category": "%sqlDatabaseProjects.displayName%"
-      },
-      {
         "command": "sqlDatabaseProjects.publishDialog",
         "title": "%sqlDatabaseProjects.publishDialog%",
         "category": "%sqlDatabaseProjects.displayName%"
@@ -319,10 +314,6 @@
           "when": "false"
         },
         {
-          "command": "sqlDatabaseProjects.publish",
-          "when": "false"
-        },
-        {
           "command": "sqlDatabaseProjects.publishDialog",
           "when": "false"
         },
@@ -405,13 +396,8 @@
           "group": "1_dbProjectsFirst@2"
         },
         {
-          "command": "sqlDatabaseProjects.publish",
-          "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && (azdataAvailable || !(config.sqlDatabaseProjects.enablePreviewFeatures || config.mssql.enableExperimentalFeatures))",
-          "group": "1_dbProjectsFirst@3"
-        },
-        {
           "command": "sqlDatabaseProjects.publishDialog",
-          "when": "!azdataAvailable && view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && (config.sqlDatabaseProjects.enablePreviewFeatures || config.mssql.enableExperimentalFeatures)",
+          "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
           "group": "1_dbProjectsFirst@3"
         },
         {
