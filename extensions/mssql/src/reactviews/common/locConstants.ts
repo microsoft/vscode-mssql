@@ -64,6 +64,7 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
+            loading: l10n.t("Loading"),
         };
     }
 
@@ -918,6 +919,8 @@ export class LocConstants {
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
             showTableRelationships: l10n.t("Show table relationships"),
+            schemaDesignerNavLabel: l10n.t("Schema Designer"),
+            dabNavLabel: l10n.t("DAB"),
         };
     }
 
@@ -1434,6 +1437,14 @@ export class LocConstants {
             newFile: l10n.t("New File"),
             browseForPath: l10n.t("Browse forvpath"),
             removeFile: l10n.t("Remove file"),
+        };
+    }
+
+    public get fileBrowser() {
+        return {
+            fileBrowserTitle: l10n.t("Select a file"),
+            selectedPath: l10n.t("Selected Path"),
+            filesOfType: l10n.t("Files of Type"),
         };
     }
 

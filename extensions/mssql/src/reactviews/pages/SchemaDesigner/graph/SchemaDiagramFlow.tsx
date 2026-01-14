@@ -242,7 +242,7 @@ export const SchemaDesignerFlow = () => {
     };
 
     return (
-        <div style={{ width: "100vw", height: "100vh" }}>
+        <div style={{ width: "100%", height: "100%" }}>
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
                 nodes={schemaNodes}
