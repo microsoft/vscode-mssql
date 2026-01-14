@@ -130,6 +130,33 @@ export namespace Dab {
     // ============================================
 
     /**
+     * Request to initialize DAB state from current schema
+     */
+    export interface InitializeDabParams {
+        /**
+         * Tables from the schema designer
+         */
+        tables: SchemaDesigner.Table[];
+        /**
+         * Available schema names
+         */
+        schemaNames: string[];
+    }
+
+    export interface InitializeDabResponse {
+        /**
+         * Initial DAB configuration with default settings
+         */
+        config: DabConfig;
+    }
+
+    export namespace InitializeDabRequest {
+        export const type = new RequestType<InitializeDabParams, InitializeDabResponse, void>(
+            "dab/initialize",
+        );
+    }
+
+    /**
      * Request to generate and preview the DAB config file
      */
     export interface GenerateConfigParams {
@@ -182,33 +209,6 @@ export namespace Dab {
     export namespace GenerateAndRunRequest {
         export const type = new RequestType<GenerateAndRunParams, GenerateAndRunResponse, void>(
             "dab/generateAndRun",
-        );
-    }
-
-    /**
-     * Request to initialize DAB state from current schema
-     */
-    export interface InitializeDabParams {
-        /**
-         * Tables from the schema designer
-         */
-        tables: SchemaDesigner.Table[];
-        /**
-         * Available schema names
-         */
-        schemaNames: string[];
-    }
-
-    export interface InitializeDabResponse {
-        /**
-         * Initial DAB configuration with default settings
-         */
-        config: DabConfig;
-    }
-
-    export namespace InitializeDabRequest {
-        export const type = new RequestType<InitializeDabParams, InitializeDabResponse, void>(
-            "dab/initialize",
         );
     }
 

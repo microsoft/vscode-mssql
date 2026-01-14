@@ -918,6 +918,30 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
+            // DAB (Data API Builder) strings
+            dabTitle: l10n.t("Data API Builder Configuration"),
+            apiType: l10n.t("API Type"),
+            restApi: l10n.t("REST API"),
+            graphql: l10n.t("GraphQL"),
+            both: l10n.t("Both"),
+            entityEndpoints: l10n.t("Entity Endpoints"),
+            allSchemas: l10n.t("All Schemas"),
+            nOfMEnabled: (enabled: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} enabled",
+                    args: [enabled, total],
+                    comment: [
+                        "{0} is the number of enabled entities",
+                        "{1} is the total number of entities",
+                    ],
+                }),
+            create: l10n.t("Create"),
+            read: l10n.t("Read"),
+            update: l10n.t("Update"),
+            entityNameDescription: l10n.t("Entity name used in API routes"),
+            viewConfig: l10n.t("View Config"),
+            generateAndRun: l10n.t("Generate & Run"),
+            backToSchema: l10n.t("Back to Schema"),
         };
     }
 

@@ -50,6 +50,9 @@
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
     </trans-unit>
+    <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
+      <source xml:lang="en">API Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
       <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
@@ -143,6 +146,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
+      <source xml:lang="en">All Schemas</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -374,6 +380,9 @@
     <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
       <source xml:lang="en">Back</source>
     </trans-unit>
+    <trans-unit id="++CODE++760bb46db5b9f7594d6a52062c3f044fac1a2dc55ec95bfd659eb345bd1425fa">
+      <source xml:lang="en">Back to Schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
     </trans-unit>
@@ -389,6 +398,9 @@
     </trans-unit>
     <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
       <source xml:lang="en">Block this extension from accessing your connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
+      <source xml:lang="en">Both</source>
     </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
@@ -1093,6 +1105,9 @@
     <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
       <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
+      <source xml:lang="en">Data API Builder Configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
     </trans-unit>
@@ -1399,6 +1414,12 @@
     </trans-unit>
     <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
       <source xml:lang="en">Enter the path for the output file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
+      <source xml:lang="en">Entity Endpoints</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
+      <source xml:lang="en">Entity name used in API routes</source>
     </trans-unit>
     <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
       <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -1950,6 +1971,9 @@
     <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
       <source xml:lang="en">General Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f">
+      <source xml:lang="en">Generate &amp; Run</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
@@ -2016,6 +2040,9 @@
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
       <note>{0} is the part input
 {1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ee27322554e46143c3c56f419fc28b71a445380e4e5af7332aabdb87c7d0ec26">
+      <source xml:lang="en">GraphQL</source>
     </trans-unit>
     <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
       <source xml:lang="en">Greater Than</source>
@@ -3111,6 +3138,12 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
+    <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
+      <source xml:lang="en">REST API</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
+      <source xml:lang="en">Read</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
       <source xml:lang="en">Read docs</source>
     </trans-unit>
@@ -4197,6 +4230,9 @@
     <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
       <source xml:lang="en">Very Satisfied</source>
     </trans-unit>
+    <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
+      <source xml:lang="en">View Config</source>
+    </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
@@ -4429,6 +4465,11 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3ef00338ebd8d4ad962c1b804e194944c187eb4890f8ee839bf9586732068bdc">
+      <source xml:lang="en">{0} of {1} enabled</source>
+      <note>{0} is the number of enabled entities
+{1} is the total number of entities</note>
     </trans-unit>
     <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
       <source xml:lang="en">{0} of {1} tenants</source>
