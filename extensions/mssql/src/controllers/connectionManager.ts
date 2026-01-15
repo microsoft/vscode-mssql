@@ -52,6 +52,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
+import { checkIfConnectionIsDockerContainer } from "../deployment/dockerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1170,6 +1171,24 @@ export default class ConnectionManager {
      */
     public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
         await this.connectionStore.saveProfilePasswordIfNeeded(profile);
+    }
+
+    public async checkForDockerConnection(profile: IConnectionProfile): Promise<string> {
+        if (!profile.containerName) {
+            const serverInfo = this.getServerInfo(profile);
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
+            if (containerName) {
+                profile.containerName = containerName;
+                // if the connection is a docker container, make sure to set the container name for future use
+                await this.connectionStore.saveProfile(profile);
+                return containerName;
+            }
+        }
+        return "";
     }
 
     /**
