@@ -577,9 +577,14 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.globalSearch",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -985,6 +990,11 @@
             {
                 "command": "mssql.tableExplorer",
                 "title": "%mssql.tableExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.globalSearch",
+                "title": "%mssql.globalSearch%",
                 "category": "MS SQL"
             },
             {

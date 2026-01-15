@@ -99,6 +99,7 @@ import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { GlobalSearchWebViewController } from "../globalSearch/globalSearchWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
@@ -1512,6 +1513,12 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdGlobalSearch, async (node: any) =>
+                    this.onGlobalSearch(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdSchemaCompareOpenFromCommandPalette,
                     async () => {
@@ -2633,6 +2640,16 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    public async onGlobalSearch(node?: any): Promise<void> {
+        const globalSearchWebView = new GlobalSearchWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            node,
+        );
+
+        globalSearchWebView.revealToForeground();
     }
 
     /**

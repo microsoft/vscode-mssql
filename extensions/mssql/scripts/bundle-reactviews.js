@@ -29,6 +29,7 @@ const config = {
         changePassword: "src/reactviews/pages/ChangePassword/index.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
+        globalSearch: "src/reactviews/pages/GlobalSearch/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
     },
     bundle: true,
