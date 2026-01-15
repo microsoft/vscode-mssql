@@ -35,7 +35,7 @@ export const DACPAC_EXTENSION = ".dacpac";
 export const BACPAC_EXTENSION = ".bacpac";
 
 // View ID constant for NPS survey
-const DACPAC_DIALOG_VIEW_ID = "dacpacDialog";
+const DACPAC_DIALOG_VIEW_ID = "DacpacDialog";
 
 /**
  * Controller for the DacpacDialog webview.
