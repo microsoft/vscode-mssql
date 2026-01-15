@@ -62,10 +62,7 @@ export const GlobalSearchToolbar: React.FC<GlobalSearchToolbarProps> = ({
         };
     }, [searchValue, context]);
 
-    const handleSearchChange = (
-        _event: React.ChangeEvent<HTMLInputElement>,
-        data: { value: string },
-    ) => {
+    const handleSearchChange = (_event: unknown, data: { value: string }) => {
         onSearchChange(data.value);
     };
 
