@@ -4776,6 +4776,9 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
+    <trans-unit id="mssql.globalSearch">
+      <source xml:lang="en">Global Search</source>
+    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
