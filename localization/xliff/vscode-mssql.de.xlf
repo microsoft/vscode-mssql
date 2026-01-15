@@ -1270,6 +1270,10 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">Code kopieren und Webseite öffnen</target>
       </trans-unit>
+      <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
+        <source xml:lang="en">Copy command to clipboard</source>
+        <target state="new">Copy command to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
         <target state="translated">Verbindungszeichenfolge in Zwischenablage kopieren</target>
@@ -1422,6 +1426,10 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
         <note>{0} is the file path</note>
         <target state="translated">DACPAC wurde erfolgreich extrahiert nach „{0}“</target>
+      </trans-unit>
+      <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
+        <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+        <target state="new">DACPAC path not found. Please build the project first.</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -2217,6 +2225,10 @@ Fehler:
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">Fehler beim Abrufen von Benutzertoken.</target>
       </trans-unit>
+      <trans-unit id="++CODE++241834c43f110abedd551f363f4ea866f360fe552cd16f8cec31ab975738c57c">
+        <source xml:lang="en">Failed to generate SqlPackage command: {0}</source>
+        <target state="new">Failed to generate SqlPackage command: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
         <source xml:lang="en">Failed to generate publish script: '{0}'</source>
         <note>{0} is the error message returned from the generate script operation</note>
@@ -2563,6 +2575,10 @@ Fehler:
       <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
         <source xml:lang="en">Generate script to deploy changes to target</source>
         <target state="translated">Skript zum Bereitstellen von Änderungen am Ziel generieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
+        <source xml:lang="en">Generate sqlpackage command</source>
+        <target state="new">Generate sqlpackage command</target>
       </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
@@ -4828,6 +4844,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Show full error message</source>
         <target state="translated">Vollständige Fehlermeldung anzeigen</target>
       </trans-unit>
+      <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
+        <source xml:lang="en">Show masked command (hides sensitive information)</source>
+        <target state="new">Show masked command (hides sensitive information)</target>
+      </trans-unit>
       <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
         <source xml:lang="en">Show password</source>
         <target state="translated">Kennwort anzeigen</target>
@@ -4841,6 +4861,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
         <target state="translated">Tabellenbeziehungen anzeigen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
+        <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
+        <target state="new">Show unmasked command (reveals sensitive information)</target>
       </trans-unit>
       <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
         <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
@@ -4947,6 +4971,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
         <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
         <target state="translated">Gibt an, ob die Spalte einen NULL-Wert aufweisen darf.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
+        <source xml:lang="en">SqlPackage Command</source>
+        <target state="new">SqlPackage Command</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
