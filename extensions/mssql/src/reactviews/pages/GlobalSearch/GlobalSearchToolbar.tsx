@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
     makeStyles,
     shorthands,
@@ -32,18 +32,17 @@ const useStyles = makeStyles({
     },
 });
 
-interface GlobalSearchToolbarProps {
-    searchValue: string;
-    onSearchChange: (value: string) => void;
-}
-
-export const GlobalSearchToolbar: React.FC<GlobalSearchToolbarProps> = ({
-    searchValue,
-    onSearchChange,
-}) => {
+export const GlobalSearchToolbar: React.FC = () => {
     const classes = useStyles();
     const context = useGlobalSearchContext();
+
+    // Keep search input state local to this component to avoid parent re-renders
+    const [localSearchValue, setLocalSearchValue] = useState("");
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Store context.search in a ref so we don't need it in useEffect dependencies
+    const searchFnRef = useRef(context.search);
+    searchFnRef.current = context.search;
 
     // Debounce search - trigger backend search after 300ms of no typing
     useEffect(() => {
@@ -52,7 +51,7 @@ export const GlobalSearchToolbar: React.FC<GlobalSearchToolbarProps> = ({
         }
 
         debounceTimerRef.current = setTimeout(() => {
-            context.search(searchValue);
+            searchFnRef.current(localSearchValue);
         }, 300);
 
         return () => {
@@ -60,20 +59,20 @@ export const GlobalSearchToolbar: React.FC<GlobalSearchToolbarProps> = ({
                 clearTimeout(debounceTimerRef.current);
             }
         };
-    }, [searchValue, context]);
+    }, [localSearchValue]);
 
-    const handleSearchChange = (_event: unknown, data: { value: string }) => {
-        onSearchChange(data.value);
-    };
+    const handleSearchChange = useCallback((_event: unknown, data: { value: string }) => {
+        setLocalSearchValue(data.value);
+    }, []);
 
-    const handleClear = () => {
-        onSearchChange("");
+    const handleClear = useCallback(() => {
+        setLocalSearchValue("");
         context.clearSearch();
-    };
+    }, [context]);
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         context.refreshResults();
-    };
+    }, [context]);
 
     return (
         <div className={classes.toolbar}>
@@ -81,11 +80,11 @@ export const GlobalSearchToolbar: React.FC<GlobalSearchToolbarProps> = ({
                 <SearchBox
                     className={classes.searchBox}
                     placeholder="Search database objects..."
-                    value={searchValue}
+                    value={localSearchValue}
                     onChange={handleSearchChange}
                     size="medium"
                 />
-                {searchValue && (
+                {localSearchValue && (
                     <Tooltip content="Clear search" relationship="label">
                         <Button
                             appearance="subtle"

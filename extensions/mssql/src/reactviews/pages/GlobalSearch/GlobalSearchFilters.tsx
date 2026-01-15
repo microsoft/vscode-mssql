@@ -60,7 +60,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const GlobalSearchFilters: React.FC = () => {
+export const GlobalSearchFilters: React.FC = React.memo(() => {
     const classes = useStyles();
     const context = useGlobalSearchContext();
 
@@ -152,4 +152,4 @@ export const GlobalSearchFilters: React.FC = () => {
             </div>
         </div>
     );
-};
+});

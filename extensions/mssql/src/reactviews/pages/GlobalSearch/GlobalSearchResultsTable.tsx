@@ -93,7 +93,7 @@ const getTypeIcon = (type: MetadataType): React.ReactNode => {
     }
 };
 
-export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> = ({ results }) => {
+export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> = React.memo(({ results }) => {
     const classes = useStyles();
     const context = useGlobalSearchContext();
 
@@ -182,7 +182,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
             </DataGrid>
         </div>
     );
-};
+});
 
 interface ActionsMenuProps {
     item: SearchResultItem;

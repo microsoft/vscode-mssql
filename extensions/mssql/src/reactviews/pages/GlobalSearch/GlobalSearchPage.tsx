@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 import {
     makeStyles,
     shorthands,
@@ -108,13 +108,6 @@ export const GlobalSearchPage: React.FC = () => {
     const totalResultCount = useGlobalSearchSelector((s) => s.totalResultCount);
     const isSearching = useGlobalSearchSelector((s) => s.isSearching);
 
-    // Local state for search input (debounced)
-    const [searchInput, setSearchInput] = useState("");
-
-    const handleSearchInputChange = useCallback((value: string) => {
-        setSearchInput(value);
-    }, []);
-
     // Loading state
     if (loadStatus === ApiStatus.Loading) {
         return (
@@ -159,10 +152,7 @@ export const GlobalSearchPage: React.FC = () => {
                         </span>
                     </div>
                 </div>
-                <GlobalSearchToolbar
-                    searchValue={searchInput}
-                    onSearchChange={handleSearchInputChange}
-                />
+                <GlobalSearchToolbar />
             </div>
 
             {/* Main content area */}
