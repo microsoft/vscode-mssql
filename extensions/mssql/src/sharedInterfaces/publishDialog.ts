@@ -8,7 +8,6 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
-import { RequestType } from "vscode-jsonrpc";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
