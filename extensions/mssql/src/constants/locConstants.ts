@@ -2420,6 +2420,55 @@ export class TableExplorer {
         });
 }
 
+export class AzureDataStudioMigration {
+    public static PageTitle = l10n.t("Azure Data Studio Migration");
+    public static SelectConfigFileDialogTitle = l10n.t(
+        "Locate an Azure Data Studio settings.json file to import",
+    );
+    public static ConnectionStatusReady = l10n.t("Ready");
+    public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
+    public static ConnectionStatusAlreadyImported = (connectionId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing connection with ID {0}",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+
+    public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing group with ID {0}",
+            args: [groupId],
+            comment: ["{0} is the group ID"],
+        });
+    public static connectionIssueMissingSqlPassword = (username: string) =>
+        l10n.t({
+            message: "Enter the SQL Login password for user '{0}'.",
+            args: [username],
+            comment: ["{0} is the SQL Login username"],
+        });
+    public static connectionIssueMissingAzureAccount = (username: string) =>
+        l10n.t({
+            message: "Sign in with Entra ID '{0}'.",
+            args: [username],
+            comment: ["{0} is the Entra ID username"],
+        });
+
+    public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
+    public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
+
+    public static importProgressSuccessMessage = l10n.t(
+        "Import complete. You can close this dialog.",
+    );
+    public static importProgressErrorMessage = (error: string) =>
+        l10n.t({
+            message: "Import failed: {0}",
+            args: [error],
+            comment: ["{0} is the error message returned from the import helper."],
+        });
+}
+
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
