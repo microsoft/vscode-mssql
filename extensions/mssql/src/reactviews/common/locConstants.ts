@@ -942,6 +942,22 @@ export class LocConstants {
             viewConfig: l10n.t("View Config"),
             generateAndRun: l10n.t("Generate & Run"),
             backToSchema: l10n.t("Back to Schema"),
+            // DAB Advanced Settings Dialog
+            advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
+            entityName: l10n.t("Entity Name"),
+            entityNameHelp: l10n.t("Used in API routes and responses"),
+            authorizationRole: l10n.t("Authorization Role"),
+            authorizationRoleHelp: l10n.t("Define who can access this endpoint"),
+            anonymous: l10n.t("Anonymous"),
+            anonymousDescription: l10n.t("No authentication required"),
+            authenticated: l10n.t("Authenticated"),
+            authenticatedDescription: l10n.t("Requires user authentication"),
+            customRestPath: l10n.t("Custom REST Path"),
+            customRestPathHelp: l10n.t("Optional - Override default api/entityName path"),
+            customGraphQLType: l10n.t("Custom GraphQL Type"),
+            customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
+            applyChanges: l10n.t("Apply Changes"),
+            sourceTable: l10n.t("Source Table"),
         };
     }
 

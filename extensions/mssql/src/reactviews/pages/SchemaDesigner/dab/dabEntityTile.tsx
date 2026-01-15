@@ -5,8 +5,10 @@
 
 import { Button, Checkbox, makeStyles, Text, tokens } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
+import { useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { Dab } from "../../../../sharedInterfaces/dab";
+import { DabEntitySettingsDialog } from "./dabEntitySettingsDialog";
 
 const useStyles = makeStyles({
     tile: {
@@ -79,16 +81,17 @@ interface DabEntityTileProps {
     entity: Dab.DabEntityConfig;
     onToggleEnabled: (isEnabled: boolean) => void;
     onToggleAction: (action: Dab.EntityAction, isEnabled: boolean) => void;
-    onOpenSettings: () => void;
+    onUpdateSettings: (settings: Dab.EntityAdvancedSettings) => void;
 }
 
 export function DabEntityTile({
     entity,
     onToggleEnabled,
     onToggleAction,
-    onOpenSettings,
+    onUpdateSettings,
 }: DabEntityTileProps) {
     const classes = useStyles();
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
     const actionLabels: Record<Dab.EntityAction, string> = {
         [Dab.EntityAction.Create]: locConstants.schemaDesigner.create,
@@ -105,48 +108,63 @@ export function DabEntityTile({
     ];
 
     return (
-        <div className={`${classes.tile} ${!entity.isEnabled ? classes.tileDisabled : ""}`}>
-            {/* Header row with checkbox, table name, and settings */}
-            <div className={classes.headerRow}>
-                <div className={classes.headerLeft}>
-                    <Checkbox
-                        checked={entity.isEnabled}
-                        onChange={(_, data) => onToggleEnabled(data.checked === true)}
+        <>
+            <div className={`${classes.tile} ${!entity.isEnabled ? classes.tileDisabled : ""}`}>
+                {/* Header row with checkbox, table name, and settings */}
+                <div className={classes.headerRow}>
+                    <div className={classes.headerLeft}>
+                        <Checkbox
+                            checked={entity.isEnabled}
+                            onChange={(_, data) => onToggleEnabled(data.checked === true)}
+                        />
+                        <Text className={classes.tableName}>
+                            {entity.advancedSettings.entityName}
+                        </Text>
+                        <Text className={classes.separator}>&#8226;</Text>
+                        <Text className={classes.schemaTableName}>
+                            {entity.schemaName}.{entity.tableName}
+                        </Text>
+                    </div>
+                    <Button
+                        appearance="subtle"
+                        icon={<FluentIcons.Settings16Regular />}
+                        size="small"
+                        className={classes.settingsButton}
+                        onClick={() => setSettingsDialogOpen(true)}
+                        title={locConstants.schemaCompare.settings}
                     />
-                    <Text className={classes.tableName}>{entity.tableName}</Text>
-                    <Text className={classes.separator}>&#8226;</Text>
-                    <Text className={classes.schemaTableName}>
-                        {entity.schemaName}.{entity.tableName}
-                    </Text>
                 </div>
-                <Button
-                    appearance="subtle"
-                    icon={<FluentIcons.Settings16Regular />}
-                    size="small"
-                    className={classes.settingsButton}
-                    onClick={onOpenSettings}
-                    title={locConstants.schemaCompare.settings}
-                />
+
+                {/* Description */}
+                <Text className={classes.description}>
+                    {locConstants.schemaDesigner.entityNameDescription}
+                </Text>
+
+                {/* CRUD actions row */}
+                <div className={classes.actionsRow}>
+                    {allActions.map((action) => (
+                        <Checkbox
+                            key={action}
+                            className={classes.actionCheckbox}
+                            label={actionLabels[action]}
+                            checked={entity.enabledActions.includes(action)}
+                            disabled={!entity.isEnabled}
+                            onChange={(_, data) => onToggleAction(action, data.checked === true)}
+                        />
+                    ))}
+                </div>
             </div>
 
-            {/* Description */}
-            <Text className={classes.description}>
-                {locConstants.schemaDesigner.entityNameDescription}
-            </Text>
-
-            {/* CRUD actions row */}
-            <div className={classes.actionsRow}>
-                {allActions.map((action) => (
-                    <Checkbox
-                        key={action}
-                        className={classes.actionCheckbox}
-                        label={actionLabels[action]}
-                        checked={entity.enabledActions.includes(action)}
-                        disabled={!entity.isEnabled}
-                        onChange={(_, data) => onToggleAction(action, data.checked === true)}
-                    />
-                ))}
-            </div>
-        </div>
+            {/* Settings Dialog */}
+            <DabEntitySettingsDialog
+                entity={entity}
+                open={settingsDialogOpen}
+                onOpenChange={setSettingsDialogOpen}
+                onApply={(settings) => {
+                    onUpdateSettings(settings);
+                    setSettingsDialogOpen(false);
+                }}
+            />
+        </>
     );
 }

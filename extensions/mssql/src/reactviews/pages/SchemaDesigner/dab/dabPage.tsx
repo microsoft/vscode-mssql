@@ -56,6 +56,7 @@ export const DabPage = () => {
         isInitialized,
         toggleDabEntity,
         toggleDabEntityAction,
+        updateDabEntitySettings,
         dabSchemaFilter,
     } = context;
 
@@ -126,10 +127,9 @@ export const DabPage = () => {
                                 onToggleAction={(action, isEnabled) =>
                                     toggleDabEntityAction(entity.id, action, isEnabled)
                                 }
-                                onOpenSettings={() => {
-                                    // Settings dialog will be implemented later
-                                    console.log("Open settings for entity:", entity.id);
-                                }}
+                                onUpdateSettings={(settings) =>
+                                    updateDabEntitySettings(entity.id, settings)
+                                }
                             />
                         ))}
                     </div>
