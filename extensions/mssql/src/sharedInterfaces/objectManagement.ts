@@ -13,6 +13,8 @@ import {
     FileTypeOption,
 } from "./fileBrowser";
 import { IDialogProps } from "./connectionDialog";
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 
 export interface ObjectManagementService {
     /**
@@ -214,6 +216,14 @@ export class BackupDatabaseState
     saveToUrl: boolean = false;
     backupFiles: BackupFile[] = [];
 
+    // Azure
+    azureContextStatus: ApiStatus = ApiStatus.NotStarted;
+    tenants: AzureTenant[] = [];
+    subscriptions: AzureSubscription[] = [];
+    storageAccounts: StorageAccount[] = [];
+    blobContainers: BlobContainer[] = [];
+    azureErrorMesssage: string = "";
+
     // File browser properties
     fileFilterOptions: FileTypeOption[] = [];
     fileBrowserState: FileBrowserState | undefined;
@@ -269,6 +279,11 @@ export interface BackupDatabaseReducers
         newValue: string;
         isFolderChange: boolean;
     };
+
+    /**
+     * Sets the Azure context for backup to URL operations
+     */
+    setAzureContext: {};
 }
 
 export interface BackupDatabaseProvider
@@ -307,6 +322,11 @@ export interface BackupDatabaseProvider
      * @param isFolderChange  Indicates whether the change is for the folder path or the file name
      */
     handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
+
+    /**
+     * Sets the Azure context for backup to URL operations
+     */
+    setAzureContext(): void;
 }
 
 export interface BackupDatabaseFormItemSpec
@@ -336,6 +356,7 @@ export interface BackupDatabaseFormState {
     tenantId: string;
     subscriptionId: string;
     storageAccountId: string;
+    blobContainerId: string;
 }
 
 export interface BackupFile {

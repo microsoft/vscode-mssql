@@ -12,6 +12,7 @@ import {
     makeStyles,
     Radio,
     RadioGroup,
+    Spinner,
     tokens,
 } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
@@ -25,7 +26,7 @@ import {
 import { FileBrowserDialog } from "../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
 import { Image, Text } from "@fluentui/react-components";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { AzureIcon20 } from "../../common/icons/fluentIcons";
@@ -36,6 +37,7 @@ import {
     Save20Regular,
 } from "@fluentui/react-icons";
 import { url } from "../../../constants/constants";
+import { azureLogoColor } from "../ConnectionDialog/azureBrowsePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -120,6 +122,19 @@ const useStyles = makeStyles({
         display: "flex",
         gap: "8px",
         alignItems: "center",
+    },
+    icon: {
+        width: "75px",
+        height: "75px",
+        marginBottom: "10px",
+    },
+    azureLoadingContainer: {
+        marginTop: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        paddingTop: "20px",
     },
 });
 
@@ -337,9 +352,12 @@ export const BackupDatabaseForm: React.FC = () => {
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
-                                context.setSaveLocation(
-                                    data.value === locConstants.backupDatabase.saveToUrl,
-                                );
+                                const isSaveToUrl =
+                                    data.value === locConstants.backupDatabase.saveToUrl;
+                                context.setSaveLocation(isSaveToUrl);
+                                if (isSaveToUrl) {
+                                    context.setAzureContext();
+                                }
                             }}
                             value={
                                 context.state.saveToUrl
@@ -368,14 +386,26 @@ export const BackupDatabaseForm: React.FC = () => {
                     </Field>
                 </div>
                 {state.saveToUrl ? (
-                    renderBackupSaveToUrlFields()
+                    state.azureContextStatus === ApiStatus.Loaded ? (
+                        renderBackupSaveToUrlFields()
+                    ) : (
+                        <div className={classes.azureLoadingContainer}>
+                            <img
+                                className={classes.icon}
+                                src={azureLogoColor()}
+                                alt={locConstants.azure.loadingAzureAccounts}
+                            />
+                            <div>{locConstants.azure.loadingAzureAccounts}</div>
+                            <Spinner size="large" style={{ marginTop: "10px" }} />
+                        </div>
+                    )
                 ) : (
                     <div className={formStyles.formComponentDiv}>
                         <Field
                             label={locConstants.backupDatabase.backupFiles}
                             validationMessage={getFileValidationMessage()}
                             required={true}
-                            validationState={getFileValidationMessage() == "" ? "none" : "error"}
+                            validationState={getFileValidationMessage() === "" ? "none" : "error"}
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
                                 {renderBackupFiles()}

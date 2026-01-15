@@ -136,7 +136,7 @@ suite("Azure Helpers", () => {
             const subscriptions =
                 await azureHelpers.VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
             expect(subscriptions).to.have.lengthOf(1);
-            expect(subscriptions[0].displayName).to.equal(mockSubscriptions[0].name);
+            expect(subscriptions[0].name).to.equal(mockSubscriptions[0].name);
         });
     });
 

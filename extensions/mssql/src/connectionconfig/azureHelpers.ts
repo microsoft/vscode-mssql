@@ -28,7 +28,6 @@ import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
-import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     Database,
@@ -39,6 +38,12 @@ import {
     TrackedResource,
 } from "@azure/arm-sql";
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
+import {
+    BlobContainer,
+    StorageAccount,
+    StorageAccountsListKeysResponse,
+    StorageManagementClient,
+} from "@azure/arm-storage";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -186,15 +191,12 @@ export class VsCodeAzureHelper {
      */
     public static async getSubscriptionsForTenant(
         tenant: AzureTenant,
-    ): Promise<IMssqlAzureSubscription[]> {
+    ): Promise<AzureSubscription[]> {
         const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
         const allSubs = await auth.getSubscriptions(false);
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
-        return subs.map((sub) => ({
-            subscriptionId: sub.subscriptionId,
-            displayName: sub.name,
-        }));
+        return subs;
     }
 
     public static async fetchSqlResourcesForSubscription<
@@ -275,6 +277,54 @@ export class VsCodeAzureHelper {
         );
 
         return Array.from(sqlDbMap.values()).concat(Array.from(miMap.values()));
+    }
+
+    public static async fetchStorageAccountsForSubscription(
+        sub: AzureSubscription,
+    ): Promise<StorageAccount[]> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        return listAllIterator(storage.storageAccounts.list());
+    }
+
+    public static async fetchBlobContainersForStorageAccount(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+    ): Promise<BlobContainer[]> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const storageAccountResourceGroup = extractFromResourceId(
+            storageAccount.id,
+            "resourceGroups",
+        );
+
+        // get resource group for storage account
+        return listAllIterator(
+            storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
+        );
+    }
+
+    public static async getStorageAccountKeys(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+    ): Promise<StorageAccountsListKeysResponse> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const storageAccountResourceGroup = extractFromResourceId(
+            storageAccount.id,
+            "resourceGroups",
+        );
+
+        return await storage.storageAccounts.listKeys(
+            storageAccountResourceGroup,
+            storageAccount.name,
+        );
     }
 
     private static populateManagedInstanceMap(

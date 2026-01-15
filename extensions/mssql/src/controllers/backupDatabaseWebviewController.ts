@@ -20,6 +20,7 @@ import {
     getBackupTypeNumber,
     getEncryptionAlgorithmNumber,
     LogOption,
+    MediaDeviceType,
     MediaSet,
     ObjectManagementService,
     PhysicalDeviceType,
@@ -48,6 +49,11 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { BackupResponse } from "azdata";
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { StorageAccount } from "@azure/arm-storage";
+import { getCloudProviderSettings } from "../azure/providerSettings";
+import { AzureBlobService } from "../models/contracts/azureBlob";
+import { nextYear } from "../utils/utils";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -60,6 +66,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         private objectManagementService: ObjectManagementService,
         private fileBrowserService: FileBrowserService,
+        private azureBlobService: AzureBlobService,
         private databaseNode: TreeNodeInfo,
     ) {
         super(
@@ -108,50 +115,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             },
         ];
 
-        // Azure context
-        const azureActionButtons = await this.getAzureActionButton(this.state);
-
-        const azureAccounts = await VsCodeAzureHelper.getAccounts();
-        const azureAccountOptions = azureAccounts.map((account) => ({
-            displayName: account.label,
-            value: account.id,
-        }));
-
-        const defaultAccountId = azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "";
-        let defaultTenantId = "";
-        let tenantOptions: FormItemOptions[] = [];
-        if (defaultAccountId !== "") {
-            const tenants = await VsCodeAzureHelper.getTenantsForAccount(defaultAccountId);
-
-            tenantOptions = tenants.map((tenant) => ({
-                displayName: tenant.displayName,
-                value: tenant.tenantId,
-            }));
-
-            defaultTenantId = getDefaultTenantId(defaultAccountId, tenants);
-        }
-
-        let defaultSubscriptionId = "";
-        const subscriptionOptions: FormItemOptions[] = [];
-        if (defaultTenantId !== "") {
-            const tenant = await VsCodeAzureHelper.getTenant(defaultAccountId, defaultTenantId);
-            const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
-            subscriptions.forEach((subscription) => {
-                subscriptionOptions.push({
-                    displayName: subscription.displayName,
-                    value: subscription.subscriptionId,
-                });
-            });
-            defaultSubscriptionId =
-                subscriptionOptions.length > 0 ? subscriptionOptions[0].value : "";
-        }
-
-        this.state.formComponents = this.setBackupDatabaseFormComponents(
-            azureAccountOptions,
-            azureActionButtons,
-            tenantOptions,
-            subscriptionOptions,
-        );
+        this.state.formComponents = this.setBackupDatabaseFormComponents();
 
         // Set default form state values
         this.state.formState = {
@@ -172,10 +136,11 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 ? this.state.backupEncryptors[0].encryptorName
                 : undefined,
             retainDays: 0,
-            accountId: defaultAccountId,
-            tenantId: defaultTenantId,
-            subscriptionId: defaultSubscriptionId,
+            accountId: "",
+            tenantId: "",
+            subscriptionId: "",
             storageAccountId: "",
+            blobContainerId: "",
         };
 
         this.state.fileFilterOptions = [
@@ -195,16 +160,64 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     }
 
     private registerRpcHandlers() {
+        this.registerReducer("formAction", async (state, payload) => {
+            if (payload.event.isAction) {
+                const component = state.formComponents[payload.event.propertyName];
+                if (component && component.actionButtons) {
+                    const actionButton = component.actionButtons.find(
+                        (b) => b.id === payload.event.value,
+                    );
+                    if (actionButton?.callback) {
+                        await actionButton.callback();
+                    }
+                }
+            } else {
+                (state.formState[
+                    payload.event.propertyName
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = payload.event.value;
+                if (payload.event.propertyName === "accountId") {
+                    state = await this.loadAzureComponents(state);
+                }
+                if (payload.event.propertyName === "tenantId") {
+                    const tenant = state.tenants.find((t) => t.tenantId === payload.event.value);
+                    state = await this.loadSubscriptionComponent(state, tenant);
+                    state = await this.loadStorageAccountComponent(state, state.subscriptions[0]);
+                    state = await this.loadBlobContainerComponent(
+                        state,
+                        state.subscriptions[0],
+                        state.storageAccounts[0],
+                    );
+                } else if (payload.event.propertyName === "subscriptionId") {
+                    const subscription = state.subscriptions.find(
+                        (s) => s.subscriptionId === payload.event.value,
+                    );
+                    state = await this.loadStorageAccountComponent(state, subscription);
+                    state = await this.loadBlobContainerComponent(
+                        state,
+                        subscription,
+                        state.storageAccounts[0],
+                    );
+                } else if (payload.event.propertyName === "storageAccountId") {
+                    const storageAccount = state.storageAccounts.find(
+                        (sa) => sa.id === payload.event.value,
+                    );
+                    const subscription = state.subscriptions.find(
+                        (s) => s.subscriptionId === state.formState.subscriptionId,
+                    );
+                    state = await this.loadBlobContainerComponent(
+                        state,
+                        subscription,
+                        storageAccount,
+                    );
+                }
+            }
+            return state;
+        });
         this.registerReducer("backupDatabase", async (state, _payload) => {
             await this.backupHelper(TaskExecutionMode.execute, state);
             return state;
         });
-
-        registerFileBrowserReducers(
-            this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
-            this.fileBrowserService,
-            defaultBackupFileTypes,
-        );
 
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
@@ -255,6 +268,33 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             state.backupFiles[payload.index].filePath = newFilePath;
             return state;
         });
+
+        this.registerReducer("setAzureContext", async (state, _payload) => {
+            // only set azure context if it has not already been set
+            if (state.azureContextStatus !== ApiStatus.NotStarted) return;
+
+            const accountComponent = state.formComponents["accountId"];
+            const azureAccounts = await VsCodeAzureHelper.getAccounts();
+            const azureAccountOptions = azureAccounts.map((account) => ({
+                displayName: account.label,
+                value: account.id,
+            }));
+            state.formState.accountId = azureAccounts.length > 0 ? azureAccounts[0].id : "";
+
+            accountComponent.options = azureAccountOptions;
+            accountComponent.actionButtons = await this.getAzureActionButton(this.state);
+
+            await this.loadAzureComponents(state);
+
+            state.azureContextStatus = ApiStatus.Loaded;
+            return state;
+        });
+
+        registerFileBrowserReducers(
+            this as ReactWebviewPanelController<FileBrowserWebviewState, FileBrowserReducers, any>,
+            this.fileBrowserService,
+            defaultBackupFileTypes,
+        );
     }
 
     async updateItemVisibility() {}
@@ -265,12 +305,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof BackupDatabaseFormState)[];
     }
 
-    private setBackupDatabaseFormComponents(
-        azureAccountOptions: FormItemOptions[],
-        azureActionButtons: FormItemActionButton[],
-        tenantOptions: FormItemOptions[],
-        subscriptionOptions: FormItemOptions[],
-    ): Record<
+    private setBackupDatabaseFormComponents(): Record<
         string,
         FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec>
     > {
@@ -307,9 +342,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.azureAccount,
                 required: true,
                 type: FormItemType.Dropdown,
-                options: azureAccountOptions,
+                options: [],
                 placeholder: LocConstants.ConnectionDialog.selectAnAccount,
-                actionButtons: azureActionButtons,
+                actionButtons: [],
                 isAdvancedOption: false,
                 groupName: url,
             }),
@@ -319,7 +354,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.ConnectionDialog.tenantId,
                 required: true,
                 type: FormItemType.Dropdown,
-                options: tenantOptions,
+                options: [],
                 placeholder: LocConstants.ConnectionDialog.selectATenant,
                 groupName: url,
             }),
@@ -329,8 +364,28 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.subscription,
                 required: true,
                 type: FormItemType.SearchableDropdown,
-                options: subscriptionOptions,
+                options: [],
                 placeholder: LocConstants.BackupDatabase.selectASubscription,
+                groupName: url,
+            }),
+
+            storageAccountId: createFormItem({
+                propertyName: "storageAccountId",
+                label: LocConstants.BackupDatabase.storageAccount,
+                required: true,
+                type: FormItemType.SearchableDropdown,
+                options: [],
+                placeholder: LocConstants.BackupDatabase.selectAStorageAccount,
+                groupName: url,
+            }),
+
+            blobContainerId: createFormItem({
+                propertyName: "blobContainerId",
+                label: LocConstants.BackupDatabase.blobContainer,
+                required: true,
+                type: FormItemType.SearchableDropdown,
+                options: [],
+                placeholder: LocConstants.BackupDatabase.selectABlobContainer,
                 groupName: url,
             }),
 
@@ -554,9 +609,46 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             );
         }
 
-        const backupPathDevices: Record<string, PhysicalDeviceType> = {};
-        for (const file of state.backupFiles) {
-            backupPathDevices[file.filePath] = PhysicalDeviceType.Disk;
+        const backupPathDevices: Record<string, MediaDeviceType> = {};
+        const backupPathList: string[] = [];
+        if (state.saveToUrl) {
+            const accountEndpoint =
+                getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(
+                    "https://",
+                    "",
+                );
+            const subscription = state.subscriptions.find(
+                (s) => s.subscriptionId === state.formState.subscriptionId,
+            );
+            const storageAccount = state.storageAccounts.find(
+                (sa) => sa.id === state.formState.storageAccountId,
+            );
+            const blobContainer = state.blobContainers.find(
+                (bc) => bc.id === state.formState.blobContainerId,
+            );
+
+            const blobContainerUrl = `https://${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
+            const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
+            backupPathDevices[backupUrl] = MediaDeviceType.Url;
+            backupPathList.push(backupUrl);
+
+            const key = (
+                await VsCodeAzureHelper.getStorageAccountKeys(subscription, storageAccount)
+            ).keys[0].value;
+
+            const sasResponse = await this.azureBlobService.createSas(
+                state.ownerUri,
+                blobContainerUrl,
+                key,
+                storageAccount.name,
+                nextYear(),
+            );
+            console.log("SAS Response: ", sasResponse);
+        } else {
+            for (const file of state.backupFiles) {
+                backupPathDevices[file.filePath] = MediaDeviceType.File;
+                backupPathList.push(file.filePath);
+            }
         }
 
         const backupInfo: BackupInfo = {
@@ -568,7 +660,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
             selectedFileGroup: undefined,
             backupPathDevices: backupPathDevices,
-            backupPathList: state.backupFiles.map((file) => file.filePath),
+            backupPathList: backupPathList,
             isCopyOnly: state.formState.copyOnly,
             formatMedia: createNewMediaSet,
             initialize: createNewMediaSet || overwriteMediaSet,
@@ -637,38 +729,131 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         return actionButtons;
     }
 
-    private async loadComponentsAfterSignIn(state: BackupDatabaseState) {
+    private async loadComponentsAfterSignIn(
+        state: BackupDatabaseState,
+    ): Promise<BackupDatabaseState> {
+        if (!state) return;
+        state = await this.loadAzureComponents(state);
+
+        const accountComponent = state.formComponents["accountId"];
+        accountComponent.actionButtons = await this.getAzureActionButton(state);
+        return state;
+    }
+
+    private async loadAzureComponents(state: BackupDatabaseState): Promise<BackupDatabaseState> {
         // Reload tenant options
+        state = await this.loadTenantComponent(state);
+
+        const defaultTenant = state.tenants.find((t) => t.tenantId === state.formState.tenantId);
+
+        if (!defaultTenant) return state;
+
+        // Reload subscription options
+        state = await this.loadSubscriptionComponent(state, defaultTenant);
+
+        if (state.subscriptions.length === 0) return state;
+
+        // Reload storage account options
+        state = await this.loadStorageAccountComponent(
+            state,
+            state.subscriptions[0], // use first subscription
+        );
+
+        if (state.storageAccounts.length === 0) return state;
+
+        try {
+            // Reload blob container options
+            state = await this.loadBlobContainerComponent(
+                state,
+                state.subscriptions[0], // use first subscription
+                state.storageAccounts[0], // use first storage account
+            );
+        } catch (error) {
+            state.blobContainers = [];
+            console.error("Error loading blob containers: ", error);
+        }
+
+        state.formState.tenantId = state.tenants[0]?.tenantId ?? "";
+        state.formState.subscriptionId = state.subscriptions[0]?.subscriptionId ?? "";
+        state.formState.storageAccountId = state.storageAccounts[0]?.id ?? "";
+        state.formState.blobContainerId = state.blobContainers[0]?.id ?? "";
+
+        return state;
+    }
+
+    private async loadTenantComponent(state: BackupDatabaseState): Promise<BackupDatabaseState> {
         const tenantComponent = state.formComponents["tenantId"];
         const tenants = await VsCodeAzureHelper.getTenantsForAccount(state.formState.accountId);
         const tenantOptions = tenants.map((tenant) => ({
             displayName: tenant.displayName,
             value: tenant.tenantId,
         }));
-        if (tenantComponent) {
-            tenantComponent.options = tenantOptions;
-            if (
-                tenantOptions.length > 0 &&
-                !tenantOptions.find((t) => t.value === state.formState.tenantId)
-            ) {
-                // if expected tenantId is not in the list of tenants, set it to the first tenant
-                state.formState.tenantId = getDefaultTenantId(state.formState.accountId, tenants);
-            }
-        }
+        tenantComponent.options = tenantOptions;
 
+        state.formState.tenantId = getDefaultTenantId(state.formState.accountId, tenants);
+
+        state.tenants = tenants;
+
+        return state;
+    }
+
+    private async loadSubscriptionComponent(
+        state: BackupDatabaseState,
+        tenant: AzureTenant,
+    ): Promise<BackupDatabaseState> {
         const subscriptionComponent = state.formComponents["subscriptionId"];
-        const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(
-            await VsCodeAzureHelper.getTenant(state.formState.accountId, state.formState.tenantId),
-        );
+        const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
         const subscriptionOptions = subscriptions.map((subscription) => ({
-            displayName: subscription.displayName,
+            displayName: subscription.name,
             value: subscription.subscriptionId,
         }));
         subscriptionComponent.options = subscriptionOptions;
         state.formState.subscriptionId =
             subscriptionOptions.length > 0 ? subscriptionOptions[0].value : "";
 
-        const accountComponent = state.formComponents["accountId"];
-        accountComponent.actionButtons = await this.getAzureActionButton(state);
+        state.subscriptions = subscriptions;
+        return state;
+    }
+
+    private async loadStorageAccountComponent(
+        state: BackupDatabaseState,
+        subscription: AzureSubscription,
+    ): Promise<BackupDatabaseState> {
+        const storageAccountComponent = state.formComponents["storageAccountId"];
+        const storageAccounts =
+            await VsCodeAzureHelper.fetchStorageAccountsForSubscription(subscription);
+        const storageAccountOptions = storageAccounts.map((account) => ({
+            displayName: account.name,
+            value: account.id,
+        }));
+        storageAccountComponent.options = storageAccountOptions;
+        state.formState.storageAccountId =
+            storageAccountOptions.length > 0 ? storageAccountOptions[0].value : "";
+
+        state.storageAccounts = storageAccounts;
+        return state;
+    }
+
+    private async loadBlobContainerComponent(
+        state: BackupDatabaseState,
+        subscription: AzureSubscription,
+        storageAccount: StorageAccount,
+    ): Promise<BackupDatabaseState> {
+        const blobContainerComponent = state.formComponents["blobContainerId"];
+        const blobContainers = await VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+            subscription,
+            storageAccount,
+        );
+        const blobContainerOptions = blobContainers.map((container) => ({
+            displayName: container.name,
+            value: container.id,
+        }));
+        blobContainerComponent.options = blobContainerOptions;
+        state.formState.blobContainerId =
+            blobContainerOptions.length > 0 ? blobContainerOptions[0].value : "";
+
+        state.blobContainers = blobContainers;
+
+        return state;
     }
 }

@@ -135,6 +135,9 @@
     <trans-unit id="++CODE++9f088dbebd6c3c70a5ddbc2c943b11e4ca9acea5757b0b4f2b32479f0dbb747e">
       <source xml:lang="en">Advanced</source>
     </trans-unit>
+    <trans-unit id="++CODE++6630a9b9edd3bcc11353a201a5cbfa499d925cdc660c9928deb123c36e9356db">
+      <source xml:lang="en">Advanced Backup Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
       <source xml:lang="en">Advanced Connection Settings</source>
     </trans-unit>
@@ -396,6 +399,9 @@
     <trans-unit id="++CODE++d95d004ad14bd593baeab8b9f19836c13acb2782cd809abf208de46785f072ab">
       <source xml:lang="en">Backup Files (*.bak, *.log, *.trn)</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e6366fc532db7e72acafa9a571366c241f4f09ce49b8b29e193abb62a228cf9">
+      <source xml:lang="en">Backup Location</source>
+    </trans-unit>
     <trans-unit id="++CODE++8915311eca19414aaa965b09dc2d3837b11600b7ddef68a3aaf3a0d304b052a8">
       <source xml:lang="en">Backup Name</source>
     </trans-unit>
@@ -432,6 +438,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43">
+      <source xml:lang="en">Browse forvpath</source>
     </trans-unit>
     <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
       <source xml:lang="en">Browse...</source>
@@ -592,6 +601,9 @@
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d7f20b4a7223bae862f00b4d5e41f37ededf7d987dba4546b315d891c5fbe08">
+      <source xml:lang="en">Choose Existing</source>
     </trans-unit>
     <trans-unit id="++CODE++61f2371ac2547488417f83422706e0e6c12b3c12f5f3595e90da91cbb167c174">
       <source xml:lang="en">Choose Query History</source>
@@ -781,6 +793,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
       <source xml:lang="en">Compress backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
+      <source xml:lang="en">Compression</source>
     </trans-unit>
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
@@ -1061,6 +1076,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
       <source xml:lang="en">Create Local SQL Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7b9e9c24d91045f8c962555a202142d52b17612a92c38abec3c987b8d6f8540">
+      <source xml:lang="en">Create New</source>
     </trans-unit>
     <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
       <source xml:lang="en">Create New Connection Group</source>
@@ -1386,6 +1404,9 @@
     <trans-unit id="++CODE++4f03bf1cdf8e7d1882e5198384139c078fa527857e7371ac6cb2d030dede15a3">
       <source xml:lang="en">Encrypt</source>
     </trans-unit>
+    <trans-unit id="++CODE++82f4e719a19ce7e573734543f366f55117e4048116b3892adcd1831fb1775d8f">
+      <source xml:lang="en">Encryption</source>
+    </trans-unit>
     <trans-unit id="++CODE++72755d6de33db86f1e980be9946b7c4a5cc5016a0379064a01e53517545ed913">
       <source xml:lang="en">Encryption Algorithm</source>
     </trans-unit>
@@ -1591,6 +1612,9 @@
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++859c9843542764a8185f1dc3e112f6ea20c204778a2cfb11060b09e8c031027e">
+      <source xml:lang="en">Existing File</source>
+    </trans-unit>
     <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
       <source xml:lang="en">Existing SQL server</source>
     </trans-unit>
@@ -1608,6 +1632,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
+      <source xml:lang="en">Expiration</source>
     </trans-unit>
     <trans-unit id="++CODE++94138882fa79d94e5c8eb6335f75a2e88f4f1cffbe0ea7b598dd0c9fad748470">
       <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</source>
@@ -1869,6 +1896,9 @@
     <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
       <source xml:lang="en">File</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
+      <source xml:lang="en">File Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
       <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
     </trans-unit>
@@ -1951,6 +1981,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
+      <source xml:lang="en">Folder Path</source>
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
@@ -2541,6 +2574,9 @@
     <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
       <source xml:lang="en">Maximize panel size</source>
     </trans-unit>
+    <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
+      <source xml:lang="en">Media</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
@@ -2640,6 +2676,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
       <source xml:lang="en">New Deployment</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d23b5dc621538f6e3dac847e868d61e638c742d361594bc0e804f1f0d9d9cbc8">
+      <source xml:lang="en">New File</source>
     </trans-unit>
     <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
       <source xml:lang="en">New Foreign Key</source>
@@ -3014,11 +3053,17 @@
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
+    <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
+      <source xml:lang="en">Please choose a unique backup file name</source>
+    </trans-unit>
     <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
       <source xml:lang="en">Please choose a unique name for the container</source>
     </trans-unit>
     <trans-unit id="++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e">
       <source xml:lang="en">Please choose a unique name for the profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5710fb22e6b1b30694e0f530d89f7a30e532b8d281db9f53b7a8437034653d6c">
+      <source xml:lang="en">Please choose at least one backup file</source>
     </trans-unit>
     <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
       <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
@@ -3237,6 +3282,9 @@
     <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
       <source xml:lang="en">Refresh dataset</source>
     </trans-unit>
+    <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
+      <source xml:lang="en">Reliability</source>
+    </trans-unit>
     <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
       <source xml:lang="en">Reload Visual Studio Code</source>
     </trans-unit>
@@ -3248,6 +3296,9 @@
     </trans-unit>
     <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
       <source xml:lang="en">Remove Sort</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
+      <source xml:lang="en">Remove file</source>
     </trans-unit>
     <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
       <source xml:lang="en">Remove filter</source>
@@ -3510,6 +3561,12 @@
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
     </trans-unit>
+    <trans-unit id="++CODE++a701a23564bced0d11aff79b9a763c7762b296c9c77fead713abfa0267cd8ca3">
+      <source xml:lang="en">Save to Disk</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27f768bff5493669f3ea47f271ac8cbc1f64712b84067a3d52598d5fed8fc55e">
+      <source xml:lang="en">Save to URL</source>
+    </trans-unit>
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
     </trans-unit>
@@ -3570,6 +3627,9 @@
     <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
       <source xml:lang="en">Search for database objects...</source>
     </trans-unit>
+    <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
+      <source xml:lang="en">Search options</source>
+    </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
     </trans-unit>
@@ -3629,6 +3689,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed19c10287619e289e998f2c861e139754820af50b549c527483425879ea3bf0">
+      <source xml:lang="en">Select a subscription</source>
     </trans-unit>
     <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
       <source xml:lang="en">Select a tenant</source>

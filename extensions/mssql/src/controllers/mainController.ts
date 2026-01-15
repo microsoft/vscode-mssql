@@ -106,6 +106,7 @@ import { Logger } from "../models/logger";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { ObjectManagementService } from "../services/objectManagementService";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { AzureBlobService } from "../services/azureBlobService";
 
 /**
  * The main controller class that initializes the extension
@@ -134,6 +135,7 @@ export default class MainController implements vscode.Disposable {
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
+    public azureBlobService: AzureBlobService;
     public tableDesignerService: TableDesignerService;
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
@@ -597,6 +599,7 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
+            this.azureBlobService = new AzureBlobService(SqlToolsServerClient.instance);
 
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
@@ -828,7 +831,10 @@ export default class MainController implements vscode.Disposable {
 
         this.objectManagementService = new ObjectManagementService(SqlToolsServerClient.instance);
 
-        this.fileBrowserService = new FileBrowserService(this._vscodeWrapper, SqlToolsServerClient.instance);
+        this.fileBrowserService = new FileBrowserService(
+            this._vscodeWrapper,
+            SqlToolsServerClient.instance,
+        );
 
         this.fileBrowserService = new FileBrowserService(
             this._vscodeWrapper,
@@ -1672,6 +1678,7 @@ export default class MainController implements vscode.Disposable {
                             this._vscodeWrapper,
                             this.objectManagementService,
                             this.fileBrowserService,
+                            this.azureBlobService,
                             node,
                         );
                         reactPanel.revealToForeground();

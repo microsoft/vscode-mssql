@@ -2464,6 +2464,10 @@ export class BackupDatabase {
     public static saveToUrl = l10n.t("Save backup to URL");
     public static azureAccount = l10n.t("Azure Account");
     public static tenant = l10n.t("Tenant");
+    public static storageAccount = l10n.t("Storage Account");
+    public static selectAStorageAccount = l10n.t("Select a storage account");
+    public static blobContainer = l10n.t("Blob Container");
+    public static selectABlobContainer = l10n.t("Select a blob container");
     public static subscription = l10n.t("Subscription");
     public static selectASubscription = l10n.t("Select a subscription");
     public static backupFiles = l10n.t("Backup Files");
