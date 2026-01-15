@@ -7,12 +7,19 @@ import * as constants from "../constants/constants";
 import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
+import { RequestType } from "vscode-jsonrpc";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
     ExistingServer = "existingServer",
     LocalContainer = "localContainer",
     NewAzureServer = "newAzureServer",
+}
+
+// Masking mode for SqlPackage command generation
+export enum MaskMode {
+    Masked = "Masked",
+    Unmasked = "Unmasked",
 }
 
 /**
@@ -139,4 +146,14 @@ export interface PublishProjectProvider {
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
+    generateSqlPackageCommand(maskMode?: MaskMode): Promise<string>;
+}
+
+/**
+ * Request to generate a sqlpackage command string from the backend.
+ */
+export namespace GenerateSqlPackageCommandRequest {
+    export const type = new RequestType<{ maskMode?: MaskMode }, string, void>(
+        "generateSqlPackageCommand",
+    );
 }

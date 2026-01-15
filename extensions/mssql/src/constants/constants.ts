@@ -337,11 +337,16 @@ export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
 export const DacpacExtension = ".dacpac";
+export const SqlPackagePublishAction = "Publish";
+export const TargetServerName = "TargetServerName";
 export const dotnet = "dotnet";
 export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+// Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
+export const catalogPairPattern =
+    /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;
 
 // DacFx operation IDs (as reported by SQL Tools Service via taskOperation field)
 export const operationIdExportBacpac = "ExportOperation";

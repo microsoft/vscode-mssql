@@ -375,6 +375,31 @@ export async function parsePublishProfileXml(
 }
 
 /**
+ * Updates the database name in a SQL Server connection string.
+ * Replaces the "Initial Catalog" or "Database" parameter value while preserving the original quoting style.
+ * @param connectionString The connection string to update
+ * @param databaseName The new database name to use
+ * @returns The updated connection string with the new database name
+ */
+export function updateDatabaseInConnectionString(
+    connectionString: string,
+    databaseName: string,
+): string {
+    return connectionString.replace(
+        constants.catalogPairPattern,
+        (_match, lead, key, valDq, valSq) => {
+            const newVal =
+                valDq !== undefined
+                    ? `"${databaseName}"`
+                    : valSq !== undefined
+                      ? `'${databaseName}'`
+                      : databaseName;
+            return `${lead}${key}=${newVal}`;
+        },
+    );
+}
+
+/**
  * Validates that all SQLCMD variables have non-empty values.
  * @param sqlCmdVariables The SQLCMD variables object to validate
  * @returns true if all variables have non-empty values, false otherwise

@@ -11,6 +11,7 @@ import {
     PublishDialogState,
     IPublishForm,
     PublishProjectProvider,
+    GenerateSqlPackageCommandRequest,
 } from "../../../sharedInterfaces/publishDialog";
 import { FormEvent } from "../../../sharedInterfaces/form";
 import * as mssql from "vscode-mssql";
@@ -48,6 +49,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             updateSqlCmdVariables: (variables: { [key: string]: string }) =>
                 extensionRpc.action("updateSqlCmdVariables", { variables }),
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
+            generateSqlPackageCommand: (maskMode?: mssql.MaskMode) =>
+                extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type, { maskMode }),
             extensionRpc,
         }),
         [extensionRpc],

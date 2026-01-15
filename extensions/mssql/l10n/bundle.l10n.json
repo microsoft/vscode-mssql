@@ -727,6 +727,11 @@
     "Exclude Object Types": "Exclude Object Types",
     "SQLCMD Variables": "SQLCMD Variables",
     "Revert values to project defaults": "Revert values to project defaults",
+    "SqlPackage Command": "SqlPackage Command",
+    "Generate sqlpackage command": "Generate sqlpackage command",
+    "Copy command to clipboard": "Copy command to clipboard",
+    "Show unmasked command (reveals sensitive information)": "Show unmasked command (reveals sensitive information)",
+    "Show masked command (hides sensitive information)": "Show masked command (hides sensitive information)",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
@@ -1717,6 +1722,8 @@
         "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
         "comment": ["{0} is the server name"]
     },
+    "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

@@ -20,7 +20,9 @@ import {
     PublishFormContainerFields,
     PublishDialogState,
     PublishTarget,
+    GenerateSqlPackageCommandRequest,
 } from "../sharedInterfaces/publishDialog";
+import { SqlPackageService } from "../services/sqlPackageService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
@@ -28,6 +30,7 @@ import {
     readProjectProperties,
     validateSqlCmdVariables,
     getSqlServerContainerTagsForTargetVersion,
+    updateDatabaseInConnectionString,
 } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
@@ -42,7 +45,6 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { localhost, sa, sqlAuthentication, azureMfa } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -59,6 +61,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
+    private readonly _sqlPackageService?: SqlPackageService;
     private readonly _connectionManager: ConnectionManager;
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
@@ -72,6 +75,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         mainController: MainController,
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
+        sqlPackageService?: SqlPackageService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
@@ -123,6 +127,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
+        this._sqlPackageService = sqlPackageService;
         this._connectionManager = connectionManager;
         this._projectController = new ProjectController();
         this._mainController = mainController;
@@ -437,12 +442,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Register connection gives us a real connection URI that can be used for DacFx operations
         const connectionProfile = {
-            server: `${localhost},${validatedPort}`,
+            server: `${constants.localhost},${validatedPort}`,
             profileName: validatedContainerName,
             savePassword: true,
             emptyPasswordInput: false,
-            authenticationType: sqlAuthentication,
-            user: sa,
+            authenticationType: constants.sqlAuthentication,
+            user: constants.sa,
             password: dockerProfile.password,
             trustServerCertificate: true,
         } as IConnectionProfile;
@@ -807,6 +812,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 // Update connection fields after background connection completes
                                 this._connectionUri =
                                     connectionResult.connectionUri || this._connectionUri;
+                                this._connectionString =
+                                    connectionResult.connectionString || this._connectionString;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
                                         message: Loc.ProfileLoadedConnectionFailed(
@@ -952,16 +959,102 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
             },
         );
+
+        // Request handler to generate sqlpackage command string
+        this.onRequest(GenerateSqlPackageCommandRequest.type, async (params) => {
+            try {
+                const dacpacPath = this.state.projectProperties?.dacpacOutputPath;
+
+                if (!dacpacPath) {
+                    this.logger.error("DACPAC path not found for SqlPackage command generation");
+                    throw new Error(Loc.DacpacPathNotFound);
+                }
+
+                // Build arguments object matching CommandLineArguments structure expected by backend
+                const commandLineArguments: mssql.SqlPackageCommandLineArguments = {
+                    action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                    sourceFile: dacpacPath,
+                };
+
+                // Determine if publishing to container (no connection string available yet)
+                const isContainerTarget =
+                    this.state.formState.publishTarget === PublishTarget.LocalContainer;
+
+                // Pass connection string if available, otherwise pass server and database name
+                if (this._connectionString) {
+                    // Replace the database name in the connection string with the actual database from the form
+                    // This ensures SqlPackage command uses the correct target database instead of master/connection made on any database
+                    let connectionString = updateDatabaseInConnectionString(
+                        this._connectionString,
+                        this.state.formState.databaseName,
+                    );
+                    commandLineArguments.targetConnectionString = connectionString;
+                } else {
+                    // For container targets, use a placeholder server name that will be removed from output
+                    // For other targets, use the actual server name if available
+                    if (this.state.formState.serverName || isContainerTarget) {
+                        commandLineArguments[constants.TargetServerName] =
+                            this.state.formState.serverName || "localhost";
+                    }
+                    if (this.state.formState.databaseName) {
+                        commandLineArguments.targetDatabaseName = this.state.formState.databaseName;
+                    }
+                }
+
+                // Pass publish profile path if available
+                if (this.state.formState.publishProfilePath) {
+                    commandLineArguments.profile = this.state.formState.publishProfilePath;
+                }
+
+                // Call SQL Tools Service to generate the command
+                // Backend will handle all formatting, quoting, and command construction
+                const result = await this._sqlPackageService.generateSqlPackageCommand({
+                    commandLineArguments: commandLineArguments,
+                    deploymentOptions: this.state.deploymentOptions,
+                    variables: this.state.formState.sqlCmdVariables,
+                    maskMode: params?.maskMode,
+                });
+
+                if (!result.success) {
+                    // Return error message instead of throwing, so it can be displayed in the dialog
+                    return Loc.FailedToGenerateSqlPackageCommand(result.errorMessage);
+                }
+
+                let command = result.command || "";
+
+                // For container targets, remove the server name from the command since it's not yet determined
+                if (isContainerTarget && command) {
+                    const pattern = new RegExp(`\\/${constants.TargetServerName}:"[^"]*"`, "gi");
+                    command = command
+                        .replace(pattern, "")
+                        .replace(/\s{2,}/g, " ")
+                        .trim();
+                }
+
+                return command;
+            } catch (error) {
+                // Log and send telemetry for unexpected errors
+                this.logger.error("Failed to generate SqlPackage command:", error);
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.GenerateSqlPackageCommand,
+                    error instanceof Error ? error : new Error(getErrorMessage(error)),
+                    false,
+                );
+                return Loc.FailedToGenerateSqlPackageCommand(getErrorMessage(error));
+            }
+        });
     }
 
     /**
      * Connects to SQL Server using a connection string and populates the database dropdown.
      * This happens in the background when loading a publish profile.
      * @param connectionString The connection string from the publish profile
-     * @returns Object containing connectionUri if successful, or errorMessage if failed
+     * @returns Object containing connectionUri and connectionString if successful, or errorMessage if failed
      */
     private async connectAndPopulateDatabases(connectionString: string): Promise<{
         connectionUri?: string;
+        connectionString?: string;
         errorMessage?: string;
     }> {
         const fileUri = `mssql://publish-profile-${Utils.generateGuid()}`;
@@ -974,7 +1067,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Ensure accountId is present for Azure MFA connections before connecting
             let profileMatched = true;
-            if (connectionInfo.authenticationType === azureMfa && !connectionInfo.accountId) {
+            if (
+                connectionInfo.authenticationType === constants.azureMfa &&
+                !connectionInfo.accountId
+            ) {
                 profileMatched =
                     await this._connectionManager.ensureAccountIdForAzureMfa(connectionInfo);
                 if (!profileMatched) {
@@ -999,7 +1095,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }));
             }
 
-            return { connectionUri: fileUri };
+            // Get connection string for SqlPackage command generation and saving to publish profile
+            const retrievedConnectionString = await this._connectionManager.getConnectionString(
+                fileUri,
+                true, // includePassword
+                true, // includeApplicationName
+            );
+
+            return { connectionUri: fileUri, connectionString: retrievedConnectionString };
         } catch (error) {
             return { errorMessage: getErrorMessage(error) };
         }
