@@ -66,12 +66,9 @@ suite("DatabaseObjectSearchService Tests", () => {
         expect(result.objects.map((o) => o.name).sort()).to.deep.equal(
             ["Customers", "vTopCustomers"].sort(),
         );
-        expect(client.sendRequest).to.have.been.calledOnceWithExactly(
-            MetadataQueryRequest.type,
-            {
-                ownerUri: "test_uri",
-            },
-        );
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
+            ownerUri: "test_uri",
+        });
     });
 
     test("warmCache caches results and subsequent calls do not re-fetch", async () => {
@@ -90,12 +87,9 @@ suite("DatabaseObjectSearchService Tests", () => {
         await searchService.warmCache("uri1");
         await searchService.searchObjects("uri1", "thing");
 
-        expect(client.sendRequest).to.have.been.calledOnceWithExactly(
-            MetadataQueryRequest.type,
-            {
-                ownerUri: "uri1",
-            },
-        );
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
+            ownerUri: "uri1",
+        });
     });
 
     test("clearCache removes cached metadata", async () => {

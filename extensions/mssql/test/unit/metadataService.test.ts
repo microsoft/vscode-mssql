@@ -46,11 +46,8 @@ suite("Metadata Service Tests", () => {
         const metadata = await metadataService.getMetadata("test_uri");
 
         expect(metadata).to.deep.equal([]);
-        expect(client.sendRequest).to.have.been.calledOnceWithExactly(
-            MetadataQueryRequest.type,
-            {
-                ownerUri: "test_uri",
-            },
-        );
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
+            ownerUri: "test_uri",
+        });
     });
 });

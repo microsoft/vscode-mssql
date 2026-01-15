@@ -180,9 +180,7 @@ suite("localContainers logic", () => {
             dockerStep: 0,
         });
 
-        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(
-            ApiStatus.Loaded,
-        );
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Loaded);
         expect(newState.deploymentTypeState.currentDockerStep).to.equal(1);
         expect(sendActionEvent).to.have.been.called;
     });
@@ -206,9 +204,7 @@ suite("localContainers logic", () => {
             dockerStep: 0,
         });
 
-        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(
-            ApiStatus.Error,
-        );
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Error);
         expect(newState.deploymentTypeState.currentDockerStep).to.equal(0);
         expect(sendErrorEvent).to.have.been.called;
     });
@@ -285,9 +281,7 @@ suite("localContainers logic", () => {
         const newState = await (deploymentController as any).checkDockerProfile(state, {});
 
         // Assertions
-        expect(newState.deploymentTypeState.formValidationLoadState).to.equal(
-            ApiStatus.NotStarted,
-        );
+        expect(newState.deploymentTypeState.formValidationLoadState).to.equal(ApiStatus.NotStarted);
         expect(sendActionEvent).to.have.been.called;
     });
 

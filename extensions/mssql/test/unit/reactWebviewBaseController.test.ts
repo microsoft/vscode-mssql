@@ -100,18 +100,18 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should register default request handlers", () => {
-        expect(
-            onRequestStub,
-            "GetStateRequest handler is not registered",
-        ).to.have.been.calledWith(GetStateRequest.type(), sinon.match.any);
-        expect(
-            onRequestStub,
-            "ReducerRequest handler is not registered",
-        ).to.have.been.calledWith(ReducerRequest.type(), sinon.match.any);
-        expect(
-            onRequestStub,
-            "GetThemeRequest handler is not registered",
-        ).to.have.been.calledWith(GetThemeRequest.type, sinon.match.any);
+        expect(onRequestStub, "GetStateRequest handler is not registered").to.have.been.calledWith(
+            GetStateRequest.type(),
+            sinon.match.any,
+        );
+        expect(onRequestStub, "ReducerRequest handler is not registered").to.have.been.calledWith(
+            ReducerRequest.type(),
+            sinon.match.any,
+        );
+        expect(onRequestStub, "GetThemeRequest handler is not registered").to.have.been.calledWith(
+            GetThemeRequest.type,
+            sinon.match.any,
+        );
         expect(
             onRequestStub,
             "GetKeyBindingsConfigRequest handler is not registered",
@@ -202,12 +202,12 @@ suite("ReactWebviewController Tests", () => {
         controller.updateState({ count: 6 });
         expect(controller.state, "State is not updated correctly").to.deep.equal({ count: 6 });
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for async operations
-        expect(
-            sendNotificationStub,
-            "Notification is not sent correctly",
-        ).to.have.been.calledWith(StateChangeNotification.type(), {
-            count: 6,
-        });
+        expect(sendNotificationStub, "Notification is not sent correctly").to.have.been.calledWith(
+            StateChangeNotification.type(),
+            {
+                count: 6,
+            },
+        );
     });
 
     test("Should dispose properly", () => {

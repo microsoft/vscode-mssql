@@ -37,8 +37,10 @@ suite("Server Status View Tests", () => {
         serverStatusView.updateServiceDownloadingProgress(50);
         let statusBarItem = serverStatusView.statusBarItem;
         let progressText = "$(cloud-download) " + `${Constants.serviceDownloading} ... 50%`;
-        expect(statusBarItem.text, "Status bar item text should show the correct progress percentage")
-            .to.equal(progressText);
+        expect(
+            statusBarItem.text,
+            "Status bar item text should show the correct progress percentage",
+        ).to.equal(progressText);
         serverStatusView.dispose();
     });
 

@@ -134,8 +134,10 @@ suite("ReactWebviewPanelController", () => {
         expect(onDidReceiveMessageSpy, "onDidReceiveMessage should be called once").to.have.been
             .calledOnce;
         const onDidReceiveMessageHandler = onDidReceiveMessageSpy.firstCall.args[0];
-        expect(typeof onDidReceiveMessageHandler, "onDidReceiveMessage handler should be a function")
-            .to.equal("function");
+        expect(
+            typeof onDidReceiveMessageHandler,
+            "onDidReceiveMessage handler should be a function",
+        ).to.equal("function");
     });
 
     test("Should reveal the panel to the foreground", () => {
@@ -190,10 +192,8 @@ suite("ReactWebviewPanelController", () => {
         expect(restoreOption.run.calledOnce, "Restore option run should be called once").to.be.true;
 
         // Disposing the panel should not be called
-        expect(
-            (mockPanel.dispose as sinon.SinonStub).calledOnce,
-            "Panel should not be disposed",
-        ).to.be.false;
+        expect((mockPanel.dispose as sinon.SinonStub).calledOnce, "Panel should not be disposed").to
+            .be.false;
     });
 
     test("should dispose without showing restore prompt when showRestorePromptAfterClose is false", async () => {
@@ -218,16 +218,12 @@ suite("ReactWebviewPanelController", () => {
         await disposeHandler();
 
         // Expect showInformationMessage to not be called
-        expect(
-            showInformationMessageStub.calledOnce,
-            "showInformationMessage should not be called",
-        ).to.be.false;
+        expect(showInformationMessageStub.calledOnce, "showInformationMessage should not be called")
+            .to.be.false;
 
         // Disposing the panel should be called
-        expect(
-            (controller.dispose as sinon.SinonStub).calledOnce,
-            "Panel should be disposed",
-        ).to.be.true;
+        expect((controller.dispose as sinon.SinonStub).calledOnce, "Panel should be disposed").to.be
+            .true;
     });
 
     test("should set showRestorePromptAfterClose correctly via setter", () => {
@@ -287,7 +283,8 @@ suite("ReactWebviewPanelController", () => {
 
             await delay(50); // Give a moment for the promise completion check to occur
             expect(isCompleted, "dialogResult should a resolved promise").to.be.true;
-            expect(await controller.dialogResult, "dialogResult should be undefined").to.be.undefined;
+            expect(await controller.dialogResult, "dialogResult should be undefined").to.be
+                .undefined;
         });
 
         test("Should have dialogResult set when disposed after setting dialogResult", async () => {
