@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import { MetadataService } from "../../src/metadata/metadataService";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -12,6 +14,8 @@ import {
     MetadataQueryRequest,
     MetadataQueryResult,
 } from "../../src/models/contracts/metadata/metadataRequest";
+
+chai.use(sinonChai);
 
 suite("Metadata Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +46,7 @@ suite("Metadata Service Tests", () => {
         const metadata = await metadataService.getMetadata("test_uri");
 
         expect(metadata).to.deep.equal([]);
-        sinon.assert.calledOnceWithExactly(client.sendRequest, MetadataQueryRequest.type, {
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
             ownerUri: "test_uri",
         });
     });

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
 import * as sinon from "sinon";
 // eslint-disable-next-line custom-eslint-rules/banned-imports
 import { SelectionSummaryStats, ISlickRange } from "../../src/sharedInterfaces/queryResult";
@@ -64,7 +64,7 @@ suite("Query Result Selection Stats", () => {
         };
 
         const result = await selectionSummaryHelper([range], mockGrid, true);
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Non-numeric Range: only count/distinct/null stats are calculated", async () => {
@@ -81,7 +81,7 @@ suite("Query Result Selection Stats", () => {
         };
 
         const result = await selectionSummaryHelper([range], mockGrid, true);
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Mixed Range: numeric and non-numeric values handled correctly", async () => {
@@ -98,7 +98,7 @@ suite("Query Result Selection Stats", () => {
         };
 
         const result = await selectionSummaryHelper([range], mockGrid, true);
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Empty Range: returns default summary", async () => {
@@ -113,7 +113,7 @@ suite("Query Result Selection Stats", () => {
             removeSelectionStats: false,
             sum: 0,
         };
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Missing Column: returns default summary", async () => {
@@ -134,7 +134,7 @@ suite("Query Result Selection Stats", () => {
             removeSelectionStats: false,
             sum: 0,
         };
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Clear stats when isSelection is false", async () => {
@@ -150,7 +150,7 @@ suite("Query Result Selection Stats", () => {
             removeSelectionStats: true,
             sum: 0,
         };
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 
     test("Grid cell is missing: should skip without crashing", async () => {
@@ -171,6 +171,6 @@ suite("Query Result Selection Stats", () => {
             removeSelectionStats: false,
             sum: 0,
         };
-        assert.deepStrictEqual(result, expectedResult);
+        expect(result).to.deep.equal(expectedResult);
     });
 });
