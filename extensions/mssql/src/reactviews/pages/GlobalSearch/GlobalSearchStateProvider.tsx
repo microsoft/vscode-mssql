@@ -8,6 +8,8 @@ import {
     GlobalSearchWebViewState,
     GlobalSearchReducers,
     GlobalSearchContextProps,
+    SearchResultItem,
+    ObjectTypeFilters,
 } from "../../../sharedInterfaces/globalSearch";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { getCoreRPCs2 } from "../../common/utils";
@@ -24,7 +26,45 @@ export const GlobalSearchStateProvider: React.FC<{
     const commands = useMemo<GlobalSearchContextProps>(
         () => ({
             ...getCoreRPCs2(extensionRpc),
-            // Add context methods here as needed
+
+            // Search
+            search: (searchTerm: string): void => {
+                extensionRpc.action("search", { searchTerm });
+            },
+
+            clearSearch: (): void => {
+                extensionRpc.action("clearSearch", {});
+            },
+
+            // Filters
+            setDatabase: (database: string): void => {
+                extensionRpc.action("setDatabase", { database });
+            },
+
+            toggleObjectTypeFilter: (objectType: keyof ObjectTypeFilters): void => {
+                extensionRpc.action("toggleObjectTypeFilter", { objectType });
+            },
+
+            // Object Actions
+            scriptObject: (
+                object: SearchResultItem,
+                scriptType: "CREATE" | "DROP" | "SELECT",
+            ): void => {
+                extensionRpc.action("scriptObject", { object, scriptType });
+            },
+
+            copyObjectName: (object: SearchResultItem): void => {
+                extensionRpc.action("copyObjectName", { object });
+            },
+
+            // Data refresh
+            refreshDatabases: (): void => {
+                extensionRpc.action("refreshDatabases", {});
+            },
+
+            refreshResults: (): void => {
+                extensionRpc.action("refreshResults", {});
+            },
         }),
         [extensionRpc],
     );

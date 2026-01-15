@@ -98,6 +98,7 @@ import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest"
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { GlobalSearchWebViewController } from "../globalSearch/globalSearchWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
@@ -128,6 +129,7 @@ export default class MainController implements vscode.Disposable {
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
     public tableExplorerService: ITableExplorerService;
+    public metadataService: IMetadataService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -577,6 +579,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
+            this.metadataService = new MetadataService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -2646,6 +2649,8 @@ export default class MainController implements vscode.Disposable {
         const globalSearchWebView = new GlobalSearchWebViewController(
             this._context,
             this._vscodeWrapper,
+            this.metadataService,
+            this._connectionMgr,
             node,
         );
 
