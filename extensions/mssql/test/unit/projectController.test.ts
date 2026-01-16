@@ -142,10 +142,11 @@ suite("ProjectController Tests", () => {
         expect(taskArg.definition.type).to.equal(constants.sqlProjBuildTaskType);
 
         // Verify build arguments for SDK-style project (should NOT include NETCoreTargetsPath)
-        const shellExec = taskArg.execution as vscode.ShellExecution;
-        const args = shellExec.args as string[];
+        const processExec = taskArg.execution as vscode.ProcessExecution;
+        const args = processExec.args as string[];
         const argsString = args.join(" ");
 
+        expect(processExec.process).to.equal(constants.dotnet);
         expect(args[0]).to.equal(constants.build);
         expect(args[1]).to.equal(projectFilePath);
         expect(args).to.include("/p:NetCoreBuild=true");
@@ -170,8 +171,8 @@ suite("ProjectController Tests", () => {
 
         // Assert - Only verify the difference: Legacy-style SHOULD include NETCoreTargetsPath
         const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
-        const shellExec = taskArg.execution as vscode.ShellExecution;
-        const args = shellExec.args as string[];
+        const processExec = taskArg.execution as vscode.ProcessExecution;
+        const args = processExec.args as string[];
         const argsString = args.join(" ");
 
         expect(argsString).to.include("NETCoreTargetsPath");
@@ -200,8 +201,8 @@ suite("ProjectController Tests", () => {
         expect(executeTaskStub).to.have.been.calledOnce;
 
         const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
-        const shellExec = taskArg.execution as vscode.ShellExecution;
-        const args = shellExec.args as string[];
+        const processExec = taskArg.execution as vscode.ProcessExecution;
+        const args = processExec.args as string[];
         const argsString = args.join(" ");
 
         // Verify path is included in build arguments
@@ -261,8 +262,8 @@ suite("ProjectController Tests", () => {
         expect(executeTaskStub).to.have.been.calledOnce;
 
         const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
-        const shellExec = taskArg.execution as vscode.ShellExecution;
-        const args = shellExec.args as string[];
+        const processExec = taskArg.execution as vscode.ProcessExecution;
+        const args = processExec.args as string[];
         const argsString = args.join(" ");
 
         // Verify path is included in build arguments

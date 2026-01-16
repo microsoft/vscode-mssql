@@ -400,6 +400,11 @@ export class Project implements ISqlProject {
 
 		if (result.scripts?.length > 0) { // empty array from SqlToolsService is deserialized as null
 			for (var path of result.scripts) {
+				// Skip glob patterns - they should be expanded by the backend
+				// MSBuild globs can include: *, **, ?, [abc], [a-z], [!abc]
+				if (path.includes('*') || path.includes('?') || path.includes('[')) {
+					continue;
+				}
 				noneItemEntries.push(this.createFileProjectEntry(path, EntryType.File));
 			}
 		}

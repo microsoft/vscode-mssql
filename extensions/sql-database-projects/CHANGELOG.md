@@ -6,6 +6,15 @@ All notable changes to the SQL Database Projects extension will be documented in
 
 ## [Unreleased]
 
+## [1.5.6] - 2026-01-28
+
+- Added a new 'Target platform' selector when creating an Azure SQL database project.
+- Added an icon and 'Publish Project' header to the Publish (preview) dialog.
+- Resolved an issue where SQL project telemetry events were not being captured consistently.
+- Fixed a macOS issue where the new Publish (preview) dialog could not locate the DACPAC file.
+- Fixed a problem where selecting 'View changes in schema compare' from 'Update project from database' did not automatically launch Schema Compare.
+- Resolved a build failure that occurred when the Windows terminal default profile was set to Git Bash.
+
 ## [1.5.5] - 2025-11-18
 
 - Adds support for targeting SQL Server 2025 in SQL projects.
