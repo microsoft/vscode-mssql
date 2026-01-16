@@ -267,6 +267,13 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
                 if (group) {
                     group.selected = payload.selected;
+
+                    // select or deselect all connections in the group
+                    state.connections.forEach((connection) => {
+                        if (connection.profile.groupId === group.group.id) {
+                            connection.selected = payload.selected;
+                        }
+                    });
                 }
             } else {
                 // set selection for all groups
