@@ -3,21 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    Textarea,
-} from "@fluentui/react-components";
 import { Copy24Regular, Eye24Regular, EyeOff24Regular } from "@fluentui/react-icons";
 import { useState, useEffect } from "react";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContextProps } from "../publishProjectStateProvider";
 import { MaskMode } from "../../../../sharedInterfaces/publishDialog";
+import { TextViewDialog } from "../../../common/textViewDialog";
+import { getErrorMessage } from "../../../common/utils";
 
 interface SqlPackageCommandDialogProps {
     isOpen: boolean;
@@ -36,6 +28,7 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
     const [maskedCommand, setMaskedCommand] = useState<string>("");
     const [unmaskedCommand, setUnmaskedCommand] = useState<string>("");
     const [isShowingMasked, setIsShowingMasked] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     // Clear cache when dialog closes
     useEffect(() => {
@@ -43,22 +36,38 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
             setMaskedCommand("");
             setUnmaskedCommand("");
             setIsShowingMasked(true);
+            setErrorMessage("");
         }
     }, [isOpen]);
 
     // Fetch masked command when dialog opens
     useEffect(() => {
-        if (isOpen && !maskedCommand) {
+        if (isOpen && !maskedCommand && !errorMessage) {
             publishContext
                 .generateSqlPackageCommand(MaskMode.Masked)
-                .then((cmd) => setMaskedCommand(cmd))
-                .catch((err) => console.error("Error fetching masked command:", err));
+                .then((result) => {
+                    if (!result.success) {
+                        setErrorMessage(result.errorMessage);
+                        setMaskedCommand("");
+                    } else {
+                        setMaskedCommand(result.command || "");
+                        setErrorMessage("");
+                    }
+                })
+                .catch((err) => {
+                    console.error("Error fetching masked command:", err);
+                    setErrorMessage(getErrorMessage(err));
+                });
         }
-    }, [isOpen, maskedCommand, publishContext]);
+    }, [isOpen, maskedCommand, errorMessage, publishContext]);
 
     const handleCopySqlPackageCommand = async () => {
         const command = isShowingMasked ? maskedCommand : unmaskedCommand;
-        await navigator.clipboard.writeText(command);
+        try {
+            await navigator.clipboard.writeText(command);
+        } catch (error) {
+            console.error("Failed to copy SqlPackage command:", error);
+        }
     };
 
     const handleToggleMaskMode = async () => {
@@ -69,8 +78,20 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
         if (!newShowMasked && !unmaskedCommand) {
             publishContext
                 .generateSqlPackageCommand(MaskMode.Unmasked)
-                .then((cmd) => setUnmaskedCommand(cmd))
-                .catch((err) => console.error("Error fetching unmasked command:", err));
+                .then((result) => {
+                    if (!result.success) {
+                        setErrorMessage(result.errorMessage);
+                        setUnmaskedCommand("");
+                    } else {
+                        setUnmaskedCommand(result.command || "");
+                        // Clear any previous errors when successfully fetching
+                        setErrorMessage("");
+                    }
+                })
+                .catch((err) => {
+                    console.error("Error fetching unmasked command:", err);
+                    setErrorMessage(getErrorMessage(err));
+                });
         }
     };
 
@@ -79,55 +100,35 @@ export const SqlPackageCommandDialog: React.FC<SqlPackageCommandDialogProps> = (
     const eyeTooltip = isShowingMasked ? loc.showUnmaskedCommand : loc.showMaskedCommand;
 
     return (
-        <Dialog open={isOpen}>
-            <DialogSurface>
-                <DialogBody>
-                    <DialogTitle
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}>
-                        <span>{loc.SqlPackageCommandTitle}</span>
-                        <div style={{ display: "flex", gap: "4px" }}>
-                            <Button
-                                appearance="transparent"
-                                size="small"
-                                icon={eyeIcon}
-                                onClick={handleToggleMaskMode}
-                                title={eyeTooltip}
-                            />
-                            <Button
-                                appearance="transparent"
-                                size="small"
-                                icon={<Copy24Regular />}
-                                onClick={handleCopySqlPackageCommand}
-                                title={loc.copySqlPackageCommandToClipboard}
-                            />
-                        </div>
-                    </DialogTitle>
-                    <DialogContent
-                        style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
-                        <Textarea
-                            value={currentCommand}
-                            readOnly
-                            resize="none"
-                            style={{
-                                height: "100%",
-                                minHeight: "300px",
-                                fontFamily: "var(--vscode-editor-font-family, monospace)",
-                                fontSize: "var(--vscode-editor-font-size, 13px)",
-                            }}
-                            aria-label={loc.SqlPackageCommandTitle}
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button appearance="secondary" onClick={onClose}>
-                            {commonLoc.close}
-                        </Button>
-                    </DialogActions>
-                </DialogBody>
-            </DialogSurface>
-        </Dialog>
+        <TextViewDialog
+            isOpen={isOpen}
+            onClose={onClose}
+            title={loc.SqlPackageCommandTitle}
+            text={currentCommand}
+            readOnly={true}
+            textareaHeight="300px"
+            autoFocus={true}
+            ariaLabel={loc.SqlPackageCommandTitle}
+            errorMessage={errorMessage}
+            headerButtons={[
+                {
+                    icon: eyeIcon,
+                    title: eyeTooltip,
+                    onClick: handleToggleMaskMode,
+                },
+                {
+                    icon: <Copy24Regular />,
+                    title: loc.copySqlPackageCommandToClipboard,
+                    onClick: handleCopySqlPackageCommand,
+                },
+            ]}
+            actions={[
+                {
+                    label: commonLoc.close,
+                    appearance: "secondary",
+                    onClick: onClose,
+                },
+            ]}
+        />
     );
 };

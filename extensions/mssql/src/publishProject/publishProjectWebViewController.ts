@@ -1015,23 +1015,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     maskMode: params?.maskMode,
                 });
 
-                if (!result.success) {
-                    // Return error message instead of throwing, so it can be displayed in the dialog
-                    return Loc.FailedToGenerateSqlPackageCommand(result.errorMessage);
-                }
-
-                let command = result.command || "";
-
                 // For container targets, remove the server name from the command since it's not yet determined
-                if (isContainerTarget && command) {
+                if (isContainerTarget && result.command) {
                     const pattern = new RegExp(`\\/${constants.TargetServerName}:"[^"]*"`, "gi");
-                    command = command
+                    result.command = result.command
                         .replace(pattern, "")
                         .replace(/\s{2,}/g, " ")
                         .trim();
                 }
 
-                return command;
+                return result;
             } catch (error) {
                 // Log and send telemetry for unexpected errors
                 this.logger.error("Failed to generate SqlPackage command:", error);
@@ -1041,7 +1034,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     error instanceof Error ? error : new Error(getErrorMessage(error)),
                     false,
                 );
-                return Loc.FailedToGenerateSqlPackageCommand(getErrorMessage(error));
+                return {
+                    success: false,
+                    command: "",
+                    errorMessage: Loc.FailedToGenerateSqlPackageCommand(getErrorMessage(error)),
+                };
             }
         });
     }

@@ -146,14 +146,16 @@ export interface PublishProjectProvider {
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
-    generateSqlPackageCommand(maskMode?: MaskMode): Promise<string>;
+    generateSqlPackageCommand(maskMode?: MaskMode): Promise<mssql.SqlPackageCommandResult>;
 }
 
 /**
  * Request to generate a sqlpackage command string from the backend.
  */
 export namespace GenerateSqlPackageCommandRequest {
-    export const type = new RequestType<{ maskMode?: MaskMode }, string, void>(
-        "generateSqlPackageCommand",
-    );
+    export const type = new RequestType<
+        { maskMode?: MaskMode },
+        mssql.SqlPackageCommandResult,
+        void
+    >("generateSqlPackageCommand");
 }
