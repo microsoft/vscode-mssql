@@ -229,6 +229,14 @@ suite("File Browser Utilities", () => {
             succeeded: true,
         } as FileBrowserOpenResponse);
 
+        mockFileBrowserService.fileBrowserState = {
+            ownerUri: "testUri",
+            showFoldersOnly: false,
+            fileFilters: [],
+            fileTree: undefined,
+            selectedPath: "",
+        } as FileBrowserState;
+
         registerFileBrowserReducers(mockFileBrowserController, mockFileBrowserService, []);
 
         const mockState: FileBrowserWebviewState = {
@@ -253,6 +261,8 @@ suite("File Browser Utilities", () => {
             succeeded: false,
             message: "Failed to open file browser",
         } as FileBrowserOpenResponse);
+
+        mockState.fileBrowserState = undefined;
 
         await mockFileBrowserController["_reducerHandlers"].get("toggleFileBrowserDialog")(
             mockState,
