@@ -682,7 +682,7 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 className={classes.databaseColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.database ??
-                                                                    "",
+                                                                        "",
                                                                     {
                                                                         emptyTooltip:
                                                                             LocMigration.connectionValueMissing,
