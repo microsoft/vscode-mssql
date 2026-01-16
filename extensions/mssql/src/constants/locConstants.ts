@@ -2432,16 +2432,14 @@ export class AzureDataStudioMigration {
         connectionId: string,
     ) =>
         l10n.t({
-            message:
-                "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})",
+            message: "Connection with the same ID is already imported: {0} (ID: {1})",
             args: [connectionDisplayName, connectionId],
             comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
 
     public static ConnectionGroupStatusAlreadyImported = (groupName: string, groupId: string) =>
         l10n.t({
-            message:
-                "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})",
+            message: "Connection group with the same ID is already imported: {0} (ID: {1})",
             args: [groupName, groupId],
             comment: ["{0} is the group name", "{1} is the group ID"],
         });
