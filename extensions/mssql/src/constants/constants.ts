@@ -71,6 +71,9 @@ export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdCreateDatabase = "mssql.createDatabase";
+export const cmdDropDatabase = "mssql.dropDatabase";
+export const cmdRenameDatabase = "mssql.renameDatabase";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -174,6 +177,10 @@ export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const createDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
+export const dropDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
