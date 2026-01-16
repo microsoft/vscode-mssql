@@ -272,6 +272,7 @@ export class SqlTasksService {
             } else {
                 // Show generic completion message for tasks without custom handlers
                 const lastMessage =
+                    taskProgressInfo.message &&
                     taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
                         ? taskProgressInfo.message
                         : taskInfo.lastMessage;
