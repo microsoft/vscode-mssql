@@ -121,6 +121,7 @@
     "mssql.copyIncludeHeaders": "[Optional] Configuration options for copying results from the Results View",
     "mssql.copyRemoveNewLine": "[Optional] Configuration options for copying multi-line results from the Results View",
     "mssql.showBatchTime": "[Optional] Should execution time be shown for individual batches",
+    "mssql.showBatchMessages": "[Optional] Show batch start and completion messages including 'Started executing query at...' and 'Commands completed successfully' messages.",
     "mssql.splitPaneSelection": "[Optional] Configuration options for which column new result panes should open in",
     "mssql.preventAutoExecuteScript": "Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.",
     "mssql.format.alignColumnDefinitionsInColumns": "Should column definitions be aligned?",
