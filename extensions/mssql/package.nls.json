@@ -269,5 +269,6 @@
     "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)",
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
+    "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates"
 }

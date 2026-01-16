@@ -34,6 +34,7 @@ import { AzureAccountService } from "../services/azureAccountService";
 import { AzureResourceService } from "../services/azureResourceService";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { SqlPackageService } from "../services/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import { ObjectManagementService } from "../services/objectManagementService";
@@ -104,6 +105,7 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 
@@ -131,6 +133,7 @@ export default class MainController implements vscode.Disposable {
     public dacFxService: DacFxService;
     public objectManagementService: ObjectManagementService;
     public schemaCompareService: SchemaCompareService;
+    public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
@@ -330,6 +333,18 @@ export default class MainController implements vscode.Disposable {
                     this._vscodeWrapper,
                 );
                 await changelogController.revealToForeground();
+            });
+            this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
+            this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
+                const migrationController = new AzureDataStudioMigrationWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                    this.connectionManager.connectionStore,
+                    this.connectionManager.connectionStore.connectionConfig,
+                    this.azureAccountService,
+                );
+
+                migrationController.revealToForeground();
             });
 
             this._context.subscriptions.push(
@@ -588,6 +603,7 @@ export default class MainController implements vscode.Disposable {
             );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
@@ -2863,6 +2879,7 @@ export default class MainController implements vscode.Disposable {
             this,
             this.sqlProjectsService,
             this.dacFxService,
+            this.sqlPackageService,
             deploymentOptions.defaultDeploymentOptions,
         );
 

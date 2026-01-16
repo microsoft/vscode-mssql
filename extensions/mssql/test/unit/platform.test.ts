@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import { expect } from "chai";
 import { Runtime, PlatformInformation, LinuxDistribution } from "../../src/models/platform";
 
@@ -16,7 +15,7 @@ function getPlatform(): Promise<Runtime> {
 suite("Platform Tests", () => {
     test("getCurrentPlatform should return valid value", (done) => {
         void getPlatform().then((platform) => {
-            assert.notEqual(platform, Runtime.Unknown);
+            expect(platform).to.not.equal(Runtime.Unknown);
             done();
         });
     });
@@ -80,7 +79,7 @@ suite("Platform Tests", () => {
     test("Compute no RID for OSX with 32-bit architecture", () => {
         const platformInfo = new PlatformInformation("darwin", "x86");
 
-        expect(platformInfo.runtimeId, undefined);
+        expect(platformInfo.runtimeId).to.equal(undefined);
     });
 
     test("Compute default RID for linux distro with no ID_LIKE", () => {

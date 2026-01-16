@@ -39,6 +39,7 @@ export enum TelemetryViews {
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
+    AzureDataStudioMigration = "AzureDataStudioMigration",
 }
 
 export enum TelemetryActions {
@@ -95,6 +96,7 @@ export enum TelemetryActions {
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
     PublishProjectConnectionError = "PublishProjectConnection",
+    GenerateSqlPackageCommand = "GenerateSqlPackageCommand",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
@@ -194,6 +196,7 @@ export enum TelemetryActions {
     SendNotification = "SendNotification",
     onNotification = "onNotification",
     RefreshEntraToken = "RefreshEntraToken",
+    ImportConfig = "ImportConfig",
 }
 
 /**

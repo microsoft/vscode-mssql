@@ -215,6 +215,16 @@
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">Ordre alphabétique</target>
       </trans-unit>
+      <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
+        <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Already imported.  Importing again will replace the existing connection with ID {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
+        <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
+        <note>{0} is the group ID</note>
+        <target state="new">Already imported.  Importing again will replace the existing group with ID {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
         <source xml:lang="en">Alter</source>
         <target state="translated">Modifier</target>
@@ -368,6 +378,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">Êtes-vous sûr(e) ?</target>
       </trans-unit>
+      <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
+        <source xml:lang="en">Auth type</source>
+        <target state="new">Auth type</target>
+      </trans-unit>
       <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
         <source xml:lang="en">Authentication</source>
         <target state="translated">Authentification</target>
@@ -448,6 +462,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Octroi de code Azure</target>
       </trans-unit>
+      <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
+        <source xml:lang="en">Azure Data Studio Migration</source>
+        <target state="new">Azure Data Studio Migration</target>
+      </trans-unit>
+      <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
+        <source xml:lang="en">Azure Data Studio settings file</source>
+        <target state="new">Azure Data Studio settings file</target>
+      </trans-unit>
       <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Code d’appareil Azure</target>
@@ -519,6 +541,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Brightness</source>
         <target state="translated">Luminosité</target>
       </trans-unit>
+      <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
+        <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+        <target state="new">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
+        <source xml:lang="en">Browse</source>
+        <target state="new">Browse</target>
+      </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Parcourir Azure</target>
@@ -530,6 +560,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">Parcourir Fabric</target>
+      </trans-unit>
+      <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
+        <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
+        <target state="new">Browse to Azure Data Studio settings.json</target>
       </trans-unit>
       <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
         <source xml:lang="en">Browse...</source>
@@ -890,6 +924,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Collapse all groups</source>
         <target state="translated">Réduire tous les groupes</target>
       </trans-unit>
+      <trans-unit id="++CODE++a85ebf45b79818fe0f9459bd61eb48e03ea0b9668381e94448c7c100b1e25d8d">
+        <source xml:lang="en">Collapse connection groups</source>
+        <target state="new">Collapse connection groups</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
+        <source xml:lang="en">Collapse connections</source>
+        <target state="new">Collapse connections</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
         <target state="translated">Couleur</target>
@@ -1165,6 +1207,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <note>{0} is the error message from the connection attempt</note>
         <target state="translated">Nous n’avons pas pu établir la connexion : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
+        <source xml:lang="en">Connection groups to import</source>
+        <target state="new">Connection groups to import</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
         <target state="translated">La connexion n’est pas active. Établissez une connexion avant d’effectuer cette action.</target>
@@ -1201,6 +1247,18 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Connexion avec l’ID « {0} » introuvable. Vérifiez que l’ID de connexion existe.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
+        <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
+        <target state="new">Connections in groups that are not selected will be moved under the root.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b82cef69876e86ca650b86a01403a1993737b15871e7e4216363213573d600f3">
+        <source xml:lang="en">Connections needing attention</source>
+        <target state="new">Connections needing attention</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
+        <source xml:lang="en">Connections to import</source>
+        <target state="new">Connections to import</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1269,6 +1327,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">Copier le code et ouvrir la page web</target>
+      </trans-unit>
+      <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
+        <source xml:lang="en">Copy command to clipboard</source>
+        <target state="new">Copy command to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
@@ -1422,6 +1484,10 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
         <note>{0} is the file path</note>
         <target state="translated">DACPAC a été correctement extrait dans « {0} »</target>
+      </trans-unit>
+      <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
+        <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+        <target state="new">DACPAC path not found. Please build the project first.</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1832,6 +1898,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Enter profile name</source>
         <target state="translated">Entrer le nom du profil</target>
       </trans-unit>
+      <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
+        <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
+        <note>{0} is the SQL Login username</note>
+        <target state="new">Enter the SQL Login password for user '{0}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
         <source xml:lang="en">Enter the path for the output file</source>
         <target state="translated">Saisissez le chemin d'accès au fichier de sortie</target>
@@ -2036,6 +2107,14 @@ Erreur :
         <source xml:lang="en">Expand all groups</source>
         <target state="translated">Développer tous les groupes</target>
       </trans-unit>
+      <trans-unit id="++CODE++de60696021738b970e35e0ce59d441a5dc7eadd336ac90d3db9de15a6e4318a2">
+        <source xml:lang="en">Expand connection groups</source>
+        <target state="new">Expand connection groups</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
+        <source xml:lang="en">Expand connections</source>
+        <target state="new">Expand connections</target>
+      </trans-unit>
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Développer le volet Propriétés</target>
@@ -2216,6 +2295,10 @@ Erreur :
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">La récupération des jetons utilisateur a échoué.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++241834c43f110abedd551f363f4ea866f360fe552cd16f8cec31ab975738c57c">
+        <source xml:lang="en">Failed to generate SqlPackage command: {0}</source>
+        <target state="new">Failed to generate SqlPackage command: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
         <source xml:lang="en">Failed to generate publish script: '{0}'</source>
@@ -2564,6 +2647,10 @@ Erreur :
         <source xml:lang="en">Generate script to deploy changes to target</source>
         <target state="translated">Générer un script pour déployer les changements sur la cible</target>
       </trans-unit>
+      <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
+        <source xml:lang="en">Generate sqlpackage command</source>
+        <target state="new">Generate sqlpackage command</target>
+      </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
         <target state="translated">Génération du rapport. Cela peut prendre du temps...</target>
@@ -2751,6 +2838,23 @@ Erreur :
         <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
         <target state="translated">Importer un fichier .bacpac dans une base de données nouvelle ou vide</target>
       </trans-unit>
+      <trans-unit id="++CODE++e06eac7e7960029aa3e9849f6e1d9316e9bf7f143c1fb634dd0a2b3391e373f1">
+        <source xml:lang="en">Import anyway</source>
+        <target state="new">Import anyway</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e8e2a40f8096590ad749613dff43e0ffb3a0dae652f82c93d12d1248b1e28b8">
+        <source xml:lang="en">Import complete. You can close this dialog.</source>
+        <target state="new">Import complete. You can close this dialog.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
+        <source xml:lang="en">Import failed: {0}</source>
+        <note>{0} is the error message returned from the import helper.</note>
+        <target state="new">Import failed: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
+        <source xml:lang="en">Import selected</source>
+        <target state="new">Import selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
         <target state="translated">Importance</target>
@@ -2758,6 +2862,10 @@ Erreur :
       <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
         <source xml:lang="en">Importing BACPAC...</source>
         <target state="translated">Importation de BACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
+        <source xml:lang="en">Importing selections</source>
+        <target state="new">Importing selections</target>
       </trans-unit>
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
@@ -3169,6 +3277,10 @@ Erreur :
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Conteneur de base de données SQL Server local</target>
       </trans-unit>
+      <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
+        <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
+        <target state="new">Locate an Azure Data Studio settings.json file to import</target>
+      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Emplacement</target>
@@ -3347,6 +3459,10 @@ Erreur :
         <source xml:lang="en">Name of the primary key.</source>
         <target state="translated">Nom de la clé primaire.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
+        <source xml:lang="en">Needs attention</source>
+        <target state="new">Needs attention</target>
+      </trans-unit>
       <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
         <source xml:lang="en">New Azure SQL logical server (Preview)</source>
         <target state="translated">Nouveau serveur logique Azure SQL (préversion)</target>
@@ -3468,6 +3584,10 @@ Erreur :
         <note>{0} is the connection ID</note>
         <target state="translated">Aucune connexion trouvée pour \connectionId : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++062ed1eb39f94280e66412038f4fe1971935cfefdde249136051b69c28ed683b">
+        <source xml:lang="en">No connection groups were found in the file.</source>
+        <target state="new">No connection groups were found in the file.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
         <source xml:lang="en">No connection information found</source>
         <target state="translated">Désolé, aucune information de connexion trouvée</target>
@@ -3483,6 +3603,10 @@ Erreur :
       <trans-unit id="++CODE++17f0b82ed4308509b67351b92fb3e2892fa54bae44e90f88811c90938aef0c20">
         <source xml:lang="en">No connections available. Please create a connection first.</source>
         <target state="translated">Aucune connexion disponible. Veuillez d'abord établir une connexion.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
+        <source xml:lang="en">No connections were found in the file.</source>
+        <target state="new">No connections were found in the file.</target>
       </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
@@ -3962,6 +4086,10 @@ Erreur :
         <note>{0} is the server name</note>
         <target state="translated">Le profil chargé, mais nous n’avons pas pu établir la connexion automatiquement. Veuillez créer une connexion à {0}, puis réessayez.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d3663280e101b56ddfbbcb0b124e7b19ac07da8d1691fcef6138356fdc2f8ac3">
+        <source xml:lang="en">Profile name</source>
+        <target state="new">Profile name</target>
+      </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
         <target state="translated">Profil supprimé</target>
@@ -4085,6 +4213,10 @@ Erreur :
       <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
         <source xml:lang="en">Read the documentation</source>
         <target state="translated">Lire la documentation</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
+        <source xml:lang="en">Ready</source>
+        <target state="new">Ready</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -4633,6 +4765,10 @@ Requête : {2}</target>
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">Sélectionner schéma cible</target>
       </trans-unit>
+      <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
+        <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
+        <target state="new">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</target>
+      </trans-unit>
       <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
         <source xml:lang="en">Select a Workspace</source>
         <target state="translated">Sélectionner un espace de travail</target>
@@ -4667,6 +4803,10 @@ Requête : {2}</target>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
         <target state="translated">Sélectionner un {0} pour le filtrage</target>
       </trans-unit>
+      <trans-unit id="++CODE++6dd7b48a3fb195b4a52c7d60e9f3b179113b489c9412a881a41abf06da3df7e2">
+        <source xml:lang="en">Select account</source>
+        <target state="new">Select account</target>
+      </trans-unit>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
         <target state="translated">Sélectionner tout</target>
@@ -4678,6 +4818,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">Sélectionner un compte</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
+        <source xml:lang="en">Select an account for authentication</source>
+        <target state="new">Select an account for authentication</target>
       </trans-unit>
       <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
@@ -4701,6 +4845,14 @@ Requête : {2}</target>
         <note>{0} is the extension name</note>
         <target state="translated">Sélectionner une nouvelle autorisation pour l’extension : « {0} »</target>
       </trans-unit>
+      <trans-unit id="++CODE++a387a608fae904e256b03c48e16889d585f52ddd5dfbceccf00959b34f384031">
+        <source xml:lang="en">Select or clear all connection groups</source>
+        <target state="new">Select or clear all connection groups</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a55cdaf558e3df25a1e10c4967be5c53e2a9e2b74ba13f61aa4fc8ee866d03e9">
+        <source xml:lang="en">Select or clear all connections</source>
+        <target state="new">Select or clear all connections</target>
+      </trans-unit>
       <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
         <source xml:lang="en">Select package file</source>
         <target state="translated">Sélectionner le fichier du package</target>
@@ -4712,6 +4864,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
         <target state="translated">Sélectionner des abonnements</target>
+      </trans-unit>
+      <trans-unit id="++CODE++816fb2b1f45f1228327db6df7e553f728b2074ca7897d2b506a881d6a7e5f6f6">
+        <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
+        <target state="new">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
         <source xml:lang="en">Select the SQL Server Container Image</source>
@@ -4828,6 +4984,10 @@ Requête : {2}</target>
         <source xml:lang="en">Show full error message</source>
         <target state="translated">Afficher le message d’erreur complet</target>
       </trans-unit>
+      <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
+        <source xml:lang="en">Show masked command (hides sensitive information)</source>
+        <target state="new">Show masked command (hides sensitive information)</target>
+      </trans-unit>
       <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
         <source xml:lang="en">Show password</source>
         <target state="translated">Afficher le mot de passe</target>
@@ -4841,6 +5001,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
         <target state="translated">Afficher les relations de tableau</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
+        <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
+        <target state="new">Show unmasked command (reveals sensitive information)</target>
       </trans-unit>
       <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
         <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
@@ -4876,6 +5040,11 @@ Requête : {2}</target>
         <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
         <target state="translated">Connectez-vous à votre abonnement Azure avec un code d’appareil. Utilisez-le dans les configurations où la commande Se connecter ne fonctionne pas</target>
       </trans-unit>
+      <trans-unit id="++CODE++20d9a35f003953d841cd3280e559c97fd36197414fb054f5416d12f3cbbbd9d9">
+        <source xml:lang="en">Sign in with Entra ID '{0}'.</source>
+        <note>{0} is the Entra ID username</note>
+        <target state="new">Sign in with Entra ID '{0}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
         <target state="translated">Se connecter à Azure</target>
@@ -4887,6 +5056,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
         <source xml:lang="en">Sign into Fabric</source>
         <target state="translated">Se connecter à Fabric</target>
+      </trans-unit>
+      <trans-unit id="++CODE++057a95531cc67517faa38f1129b6721abe884696ec9d937a8b600721d4548f9e">
+        <source xml:lang="en">Sign into additional accounts</source>
+        <target state="new">Sign into additional accounts</target>
       </trans-unit>
       <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
         <source xml:lang="en">Sign into tenant</source>
@@ -4903,6 +5076,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
         <source xml:lang="en">Smart performance</source>
         <target state="translated">Performances intelligentes</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a4fc5133409f8a143e806d9a71b88a9a32029c885589a0df6b63de5fac3e6e74">
+        <source xml:lang="en">Some selections still need information</source>
+        <target state="new">Some selections still need information</target>
       </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
@@ -4947,6 +5124,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
         <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
         <target state="translated">Spécifie si la colonne peut avoir une valeur NULL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
+        <source xml:lang="en">SqlPackage Command</source>
+        <target state="new">SqlPackage Command</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
@@ -4993,6 +5174,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
         <source xml:lang="en">Starts with</source>
         <target state="translated">Commence par</target>
+      </trans-unit>
+      <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
+        <source xml:lang="en">Status</source>
+        <target state="new">Status</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -5298,6 +5483,10 @@ Requête : {2}</target>
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">Une erreur s’est produite lors de la mise à jour du projet</target>
       </trans-unit>
+      <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
+        <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
+        <target state="new">This connection does not have a display name in Azure Data Studio.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
         <target state="translated">Le nom de cette base de données est déjà utilisé. Veuillez choisir un autre nom.</target>
@@ -5305,6 +5494,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
         <target state="translated">Ce message n’a pas pu être traité. Si ce problème persiste, veuillez vérifier les journaux et ouvrir un problème sur GitHub.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
+        <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
+        <target state="new">This value was not provided in the Azure Data Studio settings file.</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -5345,6 +5538,16 @@ Requête : {2}</target>
       <trans-unit id="++CODE++c8c86447a74a9d36167b90e7c4359908771623e1bb592636feb58962bdee02f1">
         <source xml:lang="en">Toggle pre-header row</source>
         <target state="translated">Activer ou désactiver la ligne de pré-en-tête</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d4d6138cf85c51e38656f86216b716e449fe20eb0d14ea074601e691241bedb">
+        <source xml:lang="en">Toggle selection for {0}</source>
+        <note>{0} is the connection display name</note>
+        <target state="new">Toggle selection for {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++909717fe342b115370e475a3dde87aa1db0db4fa6012b92b3a87386b6654e236">
+        <source xml:lang="en">Toggle selection for {0}</source>
+        <note>{0} is the connection group name</note>
+        <target state="new">Toggle selection for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
@@ -5405,9 +5608,17 @@ Requête : {2}</target>
         <source xml:lang="en">Unknown Connection</source>
         <target state="translated">Connexion inconnue</target>
       </trans-unit>
+      <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
+        <source xml:lang="en">Unknown account</source>
+        <target state="new">Unknown account</target>
+      </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
         <target state="translated">Erreur inconnue</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
+        <source xml:lang="en">Unknown tenant ID</source>
+        <target state="new">Unknown tenant ID</target>
       </trans-unit>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
@@ -5460,6 +5671,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
         <source xml:lang="en">User</source>
         <target state="translated">Utilisateur(-trice)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7967e089a7b94464ee1b0c6d4b8271e99bcf36f9e5481e40a5eec5c5a5108d01">
+        <source xml:lang="en">User ID</source>
+        <target state="new">User ID</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -5596,6 +5811,10 @@ Requête : {2}</target>
         <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
         <note>{0} is the version number of the MSSQL extension</note>
         <target state="translated">Vous voyez ce message, car vous avez mis à jour l’extension MSSQL vers la version {0}.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23b87eb718db2dfbfebcae9b02f46ba7667d28ffd03dc40a119768f278a9191a">
+        <source xml:lang="en">You can continue, but you may need to edit these connections later before connecting.</source>
+        <target state="new">You can continue, but you may need to edit these connections later before connecting.</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -5771,6 +5990,12 @@ Requête : {2}</target>
         <note>{0} is the number of accounts</note>
         <target state="translated">{0} comptes</target>
       </trans-unit>
+      <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
+        <source xml:lang="en">{0} color swatch ({1})</source>
+        <note>{0} is the connection group name
+{1} is the color value applied to the group</note>
+        <target state="new">{0} color swatch ({1})</target>
+      </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
         <note>{0} is the number of columns</note>
@@ -5811,6 +6036,18 @@ Requête : {2}</target>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
         <target state="translated">{0} sur {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51e6bdbb52f5fe3271eb11b24de7b07440a59a88f0df6bfc9b620179db64c925">
+        <source xml:lang="en">{0} of {1} connection groups selected.</source>
+        <note>{0} is the number of groups selected for import
+{1} is the total number of groups detected</note>
+        <target state="new">{0} of {1} connection groups selected.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ccee9fb40a58a704c946e7e55b257c5b2ed5ad5019d515454aa79160149b56e">
+        <source xml:lang="en">{0} of {1} connections selected</source>
+        <note>{0} is the number of connections selected for import
+{1} is the total number of connections detected</note>
+        <target state="new">{0} of {1} connections selected</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
@@ -6358,6 +6595,10 @@ Vous pouvez vous connecter à une base de données en entrant vos informations d
       <trans-unit id="mssql.query.textSize">
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Taille maximale des données text et ntext retournées par une instruction SELECT</target>
+      </trans-unit>
+      <trans-unit id="mssql.openAzureDataStudioMigration">
+        <source xml:lang="en">Migrate from Azure Data Studio</source>
+        <target state="new">Migrate from Azure Data Studio</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Modify Table</source>
