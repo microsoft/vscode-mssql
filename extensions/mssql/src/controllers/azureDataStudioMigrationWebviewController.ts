@@ -53,8 +53,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
-    private _existingConnectionIds: Set<string> = new Set<string>();
-    private _existingGroupIds: Set<string> = new Set<string>();
+    private _existingConnectionIds: Map<string, string> = new Map<string, string>();
+    private _existingGroupIds: Map<string, string> = new Map<string, string>();
     private _entraAuthAccounts: IAccount[] = [];
 
     constructor(
@@ -359,7 +359,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         try {
             const validGroupIds = new Set<string>([
-                ...this._existingGroupIds,
+                ...this._existingGroupIds.keys(),
                 ...selectedGroups.keys(),
             ]);
 
@@ -576,11 +576,12 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         if (this._existingConnectionIds.has(connection.profile.id)) {
             connection.status = MigrationStatus.AlreadyImported;
             connection.statusMessage = AzureDataStudioMigration.ConnectionStatusAlreadyImported(
+                this._existingConnectionIds.get(connection.profile.id)!,
                 connection.profile.id,
             );
         } else {
             connection.status = MigrationStatus.Ready;
-            connection.statusMessage = AzureDataStudioMigration.ConnectionStatusReady;
+            connection.statusMessage = AzureDataStudioMigration.ImportStatusReady;
 
             if (connection.profile.authenticationType === AuthenticationType.SqlLogin) {
                 if (!connection.profile.password?.length) {
@@ -634,11 +635,12 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             connectionGroup.status = MigrationStatus.AlreadyImported;
             connectionGroup.statusMessage =
                 AzureDataStudioMigration.ConnectionGroupStatusAlreadyImported(
+                    this._existingGroupIds.get(connectionGroup.group.id),
                     connectionGroup.group.id,
                 );
         } else {
             connectionGroup.status = MigrationStatus.Ready;
-            connectionGroup.statusMessage = "";
+            connectionGroup.statusMessage = AzureDataStudioMigration.ImportStatusReady;
         }
 
         connectionGroup.selected = connectionGroup.status === MigrationStatus.Ready;
@@ -809,10 +811,12 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
     private async loadExistingConfigItems(): Promise<void> {
         const connections = await this.connectionConfig.getConnections();
-        this._existingConnectionIds = new Set(connections.map((conn) => conn.id));
+        this._existingConnectionIds = new Map(
+            connections.map((conn) => [conn.id, getConnectionDisplayName(conn)]),
+        );
 
         const connectionGroups = await this.connectionConfig.getGroups();
-        this._existingGroupIds = new Set(connectionGroups.map((group) => group.id));
+        this._existingGroupIds = new Map(connectionGroups.map((group) => [group.id, group.name]));
     }
 
     private mapAccountsToOptions(accounts: IAccount[]): EntraAccountOption[] {

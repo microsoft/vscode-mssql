@@ -2421,26 +2421,29 @@ export class TableExplorer {
 }
 
 export class AzureDataStudioMigration {
-    public static PageTitle = l10n.t("Azure Data Studio Migration - Connections");
+    public static PageTitle = l10n.t("Azure Data Studio Migration");
     public static SelectConfigFileDialogTitle = l10n.t(
         "Locate an Azure Data Studio settings.json file to import",
     );
-    public static ConnectionStatusReady = l10n.t("Ready");
+    public static ImportStatusReady = l10n.t("Ready for import");
     public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
-    public static ConnectionStatusAlreadyImported = (connectionId: string) =>
+    public static ConnectionStatusAlreadyImported = (
+        connectionDisplayName: string,
+        connectionId: string,
+    ) =>
         l10n.t({
             message:
-                "Already imported.  Importing again will replace the existing connection with ID {0}",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+                "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})",
+            args: [connectionDisplayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
 
-    public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
+    public static ConnectionGroupStatusAlreadyImported = (groupName: string, groupId: string) =>
         l10n.t({
             message:
-                "Already imported.  Importing again will replace the existing group with ID {0}",
-            args: [groupId],
-            comment: ["{0} is the group ID"],
+                "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})",
+            args: [groupName, groupId],
+            comment: ["{0} is the group name", "{1} is the group ID"],
         });
     public static connectionIssueMissingSqlPassword = (username: string) =>
         l10n.t({

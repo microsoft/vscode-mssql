@@ -353,6 +353,9 @@
     <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
       <source xml:lang="en">Azure Data Studio Migration</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
+      <source xml:lang="en">Azure Data Studio Migration - Connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
       <source xml:lang="en">Azure Data Studio settings file</source>
     </trans-unit>

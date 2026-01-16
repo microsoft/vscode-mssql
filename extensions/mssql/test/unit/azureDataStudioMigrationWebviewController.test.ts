@@ -440,6 +440,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         expect(
             azureReady.statusMessage,
             "Ready Azure connection should surface the ready message",
-        ).to.equal(AzureDataStudioMigration.ConnectionStatusReady);
+        ).to.equal(AzureDataStudioMigration.ImportStatusReady);
     });
 });

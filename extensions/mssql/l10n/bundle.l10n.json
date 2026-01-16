@@ -2248,6 +2248,7 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready": "Ready",
     "Needs attention": "Needs attention",

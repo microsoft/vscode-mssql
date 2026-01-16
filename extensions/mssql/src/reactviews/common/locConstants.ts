@@ -1404,7 +1404,7 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration"),
+            title: l10n.t("Azure Data Studio Migration - Connections"),
             subtitle: l10n.t(
                 "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
