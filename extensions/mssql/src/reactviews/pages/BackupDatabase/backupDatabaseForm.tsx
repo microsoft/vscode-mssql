@@ -7,6 +7,7 @@ import { useContext, useState } from "react";
 import {
     Button,
     Card,
+    Dropdown,
     Field,
     Input,
     makeStyles,
@@ -136,6 +137,11 @@ const useStyles = makeStyles({
         textAlign: "center",
         paddingTop: "20px",
     },
+    formLoadingLabel: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
 });
 
 const databaseIconLight = require("../../../../media/database_light.svg");
@@ -189,32 +195,52 @@ export const BackupDatabaseForm: React.FC = () => {
     const renderBackupSaveToUrlFields = () =>
         Object.values(formComponents)
             .filter((component) => component.groupName === url)
-            .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
-                    <FormField<
-                        BackupDatabaseFormState,
-                        BackupDatabaseState,
-                        BackupDatabaseFormItemSpec,
-                        BackupDatabaseProvider
-                    >
-                        context={context}
-                        component={component}
-                        idx={index}
-                    />
-                </div>
-            ));
+            .map((component, index) => {
+                const loadStatus = state.azureComponentStatuses[component.propertyName];
+                // Trigger loading only if not started or loaded
+                if (loadStatus === ApiStatus.NotStarted) {
+                    handleLoadAzureComponents();
+                }
+
+                return loadStatus === ApiStatus.Loaded || loadStatus === ApiStatus.Error ? (
+                    <div
+                        key={index}
+                        style={
+                            component.componentWidth
+                                ? {
+                                      width: component.componentWidth,
+                                      maxWidth: component.componentWidth,
+                                      whiteSpace: "normal", // allows wrapping
+                                      overflowWrap: "break-word", // breaks long words if needed
+                                      wordBreak: "break-word",
+                                  }
+                                : {}
+                        }>
+                        <FormField<
+                            BackupDatabaseFormState,
+                            BackupDatabaseState,
+                            BackupDatabaseFormItemSpec,
+                            BackupDatabaseProvider
+                        >
+                            context={context}
+                            component={component}
+                            idx={index}
+                        />
+                    </div>
+                ) : (
+                    <Field
+                        key={index}
+                        label={
+                            <div className={classes.formLoadingLabel}>
+                                <Text>{component.label}</Text>
+                                <Spinner size="tiny" />
+                            </div>
+                        }
+                        className={formStyles.formComponentDiv}>
+                        <Dropdown size="small" placeholder={locConstants.backupDatabase.loading} />
+                    </Field>
+                );
+            });
 
     const renderBackupFiles = () =>
         state.backupFiles.map((file, index) => {
@@ -308,6 +334,16 @@ export const BackupDatabaseForm: React.FC = () => {
         return filePath.substring(lastSlashIndex + 1);
     };
 
+    const handleLoadAzureComponents = () => {
+        const azureComponents = Object.keys(state.azureComponentStatuses);
+        const azureComponentToLoad = azureComponents.find(
+            (component) => state.azureComponentStatuses[component] === ApiStatus.NotStarted,
+        );
+        if (azureComponentToLoad) {
+            context.loadAzureComponent(azureComponentToLoad);
+        }
+    };
+
     return (
         <div className={classes.outerDiv}>
             <div className={classes.formDiv}>
@@ -356,7 +392,8 @@ export const BackupDatabaseForm: React.FC = () => {
                                     data.value === locConstants.backupDatabase.saveToUrl;
                                 context.setSaveLocation(isSaveToUrl);
                                 if (isSaveToUrl) {
-                                    context.setAzureContext();
+                                    // Start loading the first Azure component (Account) when switching to Save to URL
+                                    context.loadAzureComponent("accountId");
                                 }
                             }}
                             value={
@@ -386,7 +423,7 @@ export const BackupDatabaseForm: React.FC = () => {
                     </Field>
                 </div>
                 {state.saveToUrl ? (
-                    state.azureContextStatus === ApiStatus.Loaded ? (
+                    state.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
                         renderBackupSaveToUrlFields()
                     ) : (
                         <div className={classes.azureLoadingContainer}>
@@ -453,16 +490,16 @@ export const BackupDatabaseForm: React.FC = () => {
                         <Button
                             className={classes.button}
                             type="submit"
-                            onClick={() => handleSubmit()}
+                            onClick={() => context.openBackupScript()}
                             appearance="primary">
-                            {locConstants.backupDatabase.backup}
+                            {locConstants.backupDatabase.script}
                         </Button>
                         <Button
                             className={classes.button}
                             type="submit"
-                            onClick={() => context.openBackupScript()}
+                            onClick={() => handleSubmit()}
                             appearance="primary">
-                            {locConstants.backupDatabase.script}
+                            {locConstants.backupDatabase.backup}
                         </Button>
                     </div>
                 </div>

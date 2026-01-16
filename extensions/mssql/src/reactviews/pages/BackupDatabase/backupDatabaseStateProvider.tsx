@@ -94,8 +94,10 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         isFolderChange,
                     });
                 },
-                setAzureContext() {
-                    webviewState?.extensionRpc.action("setAzureContext", {});
+                loadAzureComponent(componentName: string): void {
+                    webviewState?.extensionRpc.action("loadAzureComponent", {
+                        componentName,
+                    });
                 },
             }}>
             {children}

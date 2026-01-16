@@ -217,12 +217,11 @@ export class BackupDatabaseState
     backupFiles: BackupFile[] = [];
 
     // Azure
-    azureContextStatus: ApiStatus = ApiStatus.NotStarted;
     tenants: AzureTenant[] = [];
     subscriptions: AzureSubscription[] = [];
     storageAccounts: StorageAccount[] = [];
     blobContainers: BlobContainer[] = [];
-    azureErrorMesssage: string = "";
+    azureComponentStatuses: Record<string, ApiStatus> = {};
 
     // File browser properties
     fileFilterOptions: FileTypeOption[] = [];
@@ -281,9 +280,9 @@ export interface BackupDatabaseReducers
     };
 
     /**
-     * Sets the Azure context for backup to URL operations
+     * Loads the specified Azure component for backup to URL operations
      */
-    setAzureContext: {};
+    loadAzureComponent: {componentName: string};
 }
 
 export interface BackupDatabaseProvider
@@ -324,9 +323,10 @@ export interface BackupDatabaseProvider
     handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
 
     /**
-     * Sets the Azure context for backup to URL operations
+     * Loads the specified Azure component for backup to URL operations
+     * @param componentName  The name of the Azure component to load
      */
-    setAzureContext(): void;
+    loadAzureComponent(componentName: string): void;
 }
 
 export interface BackupDatabaseFormItemSpec

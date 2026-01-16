@@ -1438,6 +1438,7 @@ export class LocConstants {
             removeFile: l10n.t("Remove file"),
             chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
             chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
+            loading: l10n.t("Loading..."),
         };
     }
 
@@ -1448,7 +1449,6 @@ export class LocConstants {
             filesOfType: l10n.t("Files of Type"),
         };
     }
-
 }
 
 export let locConstants = LocConstants.getInstance();

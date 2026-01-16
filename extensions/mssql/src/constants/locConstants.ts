@@ -2497,4 +2497,8 @@ export class BackupDatabase {
     public static encryptionType = l10n.t("Encryption Type");
     public static backupFileTypes = l10n.t("Backup Files (*.bak, *.log, *.trn)");
     public static allFiles = l10n.t("All Files (*.*)");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noStorageAccountsFound = l10n.t("No storage accounts found");
+    public static noBlobContainersFound = l10n.t("No blob containers found");
 }
