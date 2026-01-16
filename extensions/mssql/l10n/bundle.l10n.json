@@ -948,7 +948,7 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
-    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
     "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
     "Azure Data Studio settings file": "Azure Data Studio settings file",
     "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
@@ -2248,17 +2248,17 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
-    "Ready": "Ready",
+    "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
-    "Already imported.  Importing again will replace the existing connection with ID {0}/{0} is the connection ID": {
-        "message": "Already imported.  Importing again will replace the existing connection with ID {0}",
-        "comment": ["{0} is the connection ID"]
+    "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Already imported.  Importing again will replace the existing group with ID {0}/{0} is the group ID": {
-        "message": "Already imported.  Importing again will replace the existing group with ID {0}",
-        "comment": ["{0} is the group ID"]
+    "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})/{0} is the group name{1} is the group ID": {
+        "message": "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})",
+        "comment": ["{0} is the group name", "{1} is the group ID"]
     },
     "Enter the SQL Login password for user '{0}'./{0} is the SQL Login username": {
         "message": "Enter the SQL Login password for user '{0}'.",

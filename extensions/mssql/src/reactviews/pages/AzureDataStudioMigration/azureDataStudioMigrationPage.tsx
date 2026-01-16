@@ -10,6 +10,7 @@ import {
     Field,
     InfoLabel,
     Input,
+    Image,
     Subtitle2,
     Table,
     TableBody,
@@ -52,6 +53,8 @@ import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
 import { ImportWarningDialog } from "./components/importWarningDialog";
 import { ImportProgressDialog } from "./components/importProgressDialog";
+
+const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
 export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
@@ -359,10 +362,23 @@ export const AzureDataStudioMigrationPage = () => {
             <div className={classes.layout}>
                 {dialogContent}
                 <div className={classes.header}>
-                    <Title3 as="h1">{LocMigration.title}</Title3>
-                    <Body1 as="p" className={`${classes.summaryText} ${classes.headerSubtitle}`}>
-                        {LocMigration.subtitle}
-                    </Body1>
+                    <div className={classes.headerRow}>
+                        <Image
+                            className={classes.headerIcon}
+                            src={azureDataStudioIcon}
+                            alt={Loc.connectionDialog.importFromAzureDataStudio}
+                        />
+                        <div className={classes.headerText}>
+                            <Title3 as="h1" className={classes.headerTitle}>
+                                {LocMigration.title}
+                            </Title3>
+                            <Body1
+                                as="p"
+                                className={`${classes.summaryText} ${classes.headerSubtitle}`}>
+                                {LocMigration.subtitle}
+                            </Body1>
+                        </div>
+                    </div>
                     <div className={classes.configRow}>
                         <Field
                             className={classes.configField}
@@ -666,7 +682,7 @@ export const AzureDataStudioMigrationPage = () => {
                                                                 className={classes.databaseColumn}>
                                                                 {renderTruncatedCell(
                                                                     connection.profile.database ??
-                                                                        "",
+                                                                    "",
                                                                     {
                                                                         emptyTooltip:
                                                                             LocMigration.connectionValueMissing,
@@ -737,8 +753,28 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "4px",
     },
+    headerRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+    },
+    headerIcon: {
+        width: "64px",
+        height: "64px",
+    },
+    headerText: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        justifyContent: "center",
+    },
+    headerTitle: {
+        marginTop: "20px",
+        marginBottom: "0px",
+    },
     headerSubtitle: {
-        margin: 0,
+        marginTop: "0px",
+        marginBottom: "20px",
     },
     configField: {
         flex: "1 1 520px",

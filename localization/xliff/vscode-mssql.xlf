@@ -162,13 +162,15 @@
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
     </trans-unit>
-    <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
-      <note>{0} is the connection ID</note>
+    <trans-unit id="++CODE++4b00ebd281b52de56d10e2203b03d350ad3b1ad848730635f9987c27bc3dea09">
+      <source xml:lang="en">Already imported.  Importing again will replace the existing connection &apos;{0}&apos; with the same ID ({1})</source>
+      <note>{0} is the connection display name
+{1} is the connection ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
-      <note>{0} is the group ID</note>
+    <trans-unit id="++CODE++e49d0e43fadd2f998b4aff22ebc0c87cafa85e1fd39d35fe73f38ed9a2d1ab5f">
+      <source xml:lang="en">Already imported.  Importing again will replace the existing group &apos;{0}&apos; with the same ID ({1})</source>
+      <note>{0} is the group name
+{1} is the group ID</note>
     </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
@@ -3226,8 +3228,8 @@
     <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
       <source xml:lang="en">Read the documentation</source>
     </trans-unit>
-    <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
-      <source xml:lang="en">Ready</source>
+    <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
+      <source xml:lang="en">Ready for import</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
