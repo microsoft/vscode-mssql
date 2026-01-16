@@ -1015,7 +1015,6 @@
     "<default>": "<default>",
     "Auth type": "Auth type",
     "User ID": "User ID",
-    "Status": "Status",
     "Toggle selection for {0}/{0} is the connection display name": {
         "message": "Toggle selection for {0}",
         "comment": ["{0} is the connection display name"]
