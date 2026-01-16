@@ -4142,6 +4142,10 @@ Error:
         <source xml:lang="en">Publish Profile</source>
         <target state="translated">发布配置文件</target>
       </trans-unit>
+      <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
+        <source xml:lang="en">Publish Project</source>
+        <target state="new">Publish Project</target>
+      </trans-unit>
       <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
         <source xml:lang="en">Publish Project (Preview)</source>
         <target state="translated">发布项目(预览版)</target>
