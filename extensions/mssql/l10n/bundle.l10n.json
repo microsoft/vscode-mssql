@@ -2252,12 +2252,12 @@
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
-    "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})/{0} is the connection display name{1} is the connection ID": {
-        "message": "Already imported.  Importing again will replace the existing connection '{0}' with the same ID ({1})",
+    "Connection with the same ID is already imported: {0} (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Connection with the same ID is already imported: {0} (ID: {1})",
         "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})/{0} is the group name{1} is the group ID": {
-        "message": "Already imported.  Importing again will replace the existing group '{0}' with the same ID ({1})",
+    "Connection group with the same ID is already imported: {0} (ID: {1})/{0} is the group name{1} is the group ID": {
+        "message": "Connection group with the same ID is already imported: {0} (ID: {1})",
         "comment": ["{0} is the group name", "{1} is the group ID"]
     },
     "Enter the SQL Login password for user '{0}'./{0} is the SQL Login username": {

@@ -162,16 +162,6 @@
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
     </trans-unit>
-    <trans-unit id="++CODE++4b00ebd281b52de56d10e2203b03d350ad3b1ad848730635f9987c27bc3dea09">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing connection &apos;{0}&apos; with the same ID ({1})</source>
-      <note>{0} is the connection display name
-{1} is the connection ID</note>
-    </trans-unit>
-    <trans-unit id="++CODE++e49d0e43fadd2f998b4aff22ebc0c87cafa85e1fd39d35fe73f38ed9a2d1ab5f">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing group &apos;{0}&apos; with the same ID ({1})</source>
-      <note>{0} is the group name
-{1} is the group ID</note>
-    </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
@@ -927,6 +917,11 @@
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
     </trans-unit>
+    <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
+      <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
+      <note>{0} is the group name
+{1} is the group ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
     </trans-unit>
@@ -958,6 +953,11 @@
     <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2f3daf0cd0f2a34f9d404145647a7a71178161552fe7dc9acba74d5b8d14cc49">
+      <source xml:lang="en">Connection with the same ID is already imported: {0} (ID: {1})</source>
+      <note>{0} is the connection display name
+{1} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
       <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
