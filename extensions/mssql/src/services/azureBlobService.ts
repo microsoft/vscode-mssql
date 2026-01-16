@@ -12,6 +12,16 @@ import {
 
 export class AzureBlobService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
+
+    /**
+     * Creates a Shared Access Signature (SAS) for a blob container, and save the credentials in the connection.
+     * @param ownerUri The connection URI
+     * @param blobContainerUri The URI of the blob container
+     * @param blobContainerKey The key of the blob container
+     * @param storageAccountName  The name of the storage account
+     * @param expirationDate The expiration date of the SAS
+     * @returns A response containing the generated SAS.
+     */
     async createSas(
         ownerUri: string,
         blobContainerUri: string,

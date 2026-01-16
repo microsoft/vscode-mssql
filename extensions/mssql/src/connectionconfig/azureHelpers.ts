@@ -279,6 +279,11 @@ export class VsCodeAzureHelper {
         return Array.from(sqlDbMap.values()).concat(Array.from(miMap.values()));
     }
 
+    /**
+     * Fetches the storage accounts for a given subscription.
+     * @param sub The subscription to fetch storage accounts for.
+     * @returns A list of storage accounts.
+     */
     public static async fetchStorageAccountsForSubscription(
         sub: AzureSubscription,
     ): Promise<StorageAccount[]> {
@@ -289,6 +294,12 @@ export class VsCodeAzureHelper {
         return listAllIterator(storage.storageAccounts.list());
     }
 
+    /**
+     * Fetches the blob containers for a given storage account.
+     * @param sub The subscription to fetch blob containers for.
+     * @param storageAccount The storage account to fetch blob containers for.
+     * @returns A list of blob containers.
+     */
     public static async fetchBlobContainersForStorageAccount(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
@@ -308,6 +319,12 @@ export class VsCodeAzureHelper {
         );
     }
 
+    /**
+     * Gets the storage account keys for a given storage account.
+     * @param sub The subscription to fetch storage account keys for.
+     * @param storageAccount The storage account to fetch keys for.
+     * @returns A list of storage account keys.
+     */
     public static async getStorageAccountKeys(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
@@ -678,6 +695,12 @@ export function extractFromResourceId(resourceId: string, property: string): str
     return resourceId.substring(startIndex, endIndex);
 }
 
+/**
+ * Gets the default tenant ID for the given account and tenants.
+ * @param accountId The account ID.
+ * @param tenants The list of tenants for the account.
+ * @returns The default tenant ID.
+ */
 export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): string {
     if (accountId === "" || tenants.length === 0) return "";
 

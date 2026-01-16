@@ -130,7 +130,6 @@ export interface TaskCompletionHandler {
  */
 export class SqlTasksService {
     private _activeTasks = new Map<string, ActiveTaskInfo>();
-    private _taskResults = new Map<string, TaskProgressInfo>();
     private _completionHandlers = new Map<string, TaskCompletionHandler>();
 
     constructor(
@@ -241,7 +240,6 @@ export class SqlTasksService {
             if (taskProgressInfo.status === TaskStatus.Canceled) {
                 taskInfo.completionPromise.reject(new Error("Task cancelled"));
             } else {
-                this._taskResults.set(taskProgressInfo.taskId, taskProgressInfo);
                 taskInfo.completionPromise.resolve();
             }
 
@@ -272,6 +270,8 @@ export class SqlTasksService {
                     void this._vscodeWrapper.showInformationMessage(successMessage);
                 }
             } else {
+                // Show generic completion message for tasks without custom handlers
+                // Safely get the last message to show in the completion notification
                 let lastMessage = taskInfo.lastMessage;
 
                 if (taskProgressInfo.message) {
