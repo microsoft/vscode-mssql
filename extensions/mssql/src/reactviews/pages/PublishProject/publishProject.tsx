@@ -17,7 +17,10 @@ import { DialogMessage } from "../../common/dialogMessage";
 import { SqlCmdVariablesSection } from "./components/sqlCmdVariablesSection";
 import { SqlPackageCommandSection } from "./components/sqlPackageCommandSection";
 import { AdvancedDeploymentOptionsDrawer } from "./components/advancedDeploymentOptionsDrawer";
+import { DialogHeader } from "../../common/dialogHeader.component";
 
+const publishProjectIconLight = require("../../../../media/PublishProjectHeader_light.svg");
+const publishProjectIconDark = require("../../../../media/PublishProjectHeader_dark.svg");
 const useStyles = makeStyles({
     rightButton: {
         width: "150px",
@@ -50,6 +53,13 @@ function PublishProjectDialog() {
     }
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
+            <DialogHeader
+                iconLight={publishProjectIconLight}
+                iconDark={publishProjectIconDark}
+                title={loc.publishProject}
+                themeKind={context.themeKind}
+            />
+
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {formMessage && (
                     <div>
