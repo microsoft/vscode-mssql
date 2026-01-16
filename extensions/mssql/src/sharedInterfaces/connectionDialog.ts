@@ -109,7 +109,8 @@ export interface IDialogProps {
         | "loadFromConnectionString"
         | "createConnectionGroup"
         | "changePassword"
-        | "armSql2025Error";
+        | "armSql2025Error"
+        | "fileBrowser";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
