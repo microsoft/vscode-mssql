@@ -28,7 +28,6 @@ import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
-import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     Database,
@@ -39,6 +38,12 @@ import {
     TrackedResource,
 } from "@azure/arm-sql";
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
+import {
+    BlobContainer,
+    StorageAccount,
+    StorageAccountsListKeysResponse,
+    StorageManagementClient,
+} from "@azure/arm-storage";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -186,15 +191,12 @@ export class VsCodeAzureHelper {
      */
     public static async getSubscriptionsForTenant(
         tenant: AzureTenant,
-    ): Promise<IMssqlAzureSubscription[]> {
+    ): Promise<AzureSubscription[]> {
         const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
         const allSubs = await auth.getSubscriptions(false);
         // Filter subscriptions by tenant
         const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
-        return subs.map((sub) => ({
-            subscriptionId: sub.subscriptionId,
-            displayName: sub.name,
-        }));
+        return subs;
     }
 
     public static async fetchSqlResourcesForSubscription<
@@ -275,6 +277,71 @@ export class VsCodeAzureHelper {
         );
 
         return Array.from(sqlDbMap.values()).concat(Array.from(miMap.values()));
+    }
+
+    /**
+     * Fetches the storage accounts for a given subscription.
+     * @param sub The subscription to fetch storage accounts for.
+     * @returns A list of storage accounts.
+     */
+    public static async fetchStorageAccountsForSubscription(
+        sub: AzureSubscription,
+    ): Promise<StorageAccount[]> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        return listAllIterator(storage.storageAccounts.list());
+    }
+
+    /**
+     * Fetches the blob containers for a given storage account.
+     * @param sub The subscription to fetch blob containers for.
+     * @param storageAccount The storage account to fetch blob containers for.
+     * @returns A list of blob containers.
+     */
+    public static async fetchBlobContainersForStorageAccount(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+    ): Promise<BlobContainer[]> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const storageAccountResourceGroup = extractFromResourceId(
+            storageAccount.id,
+            "resourceGroups",
+        );
+
+        // get resource group for storage account
+        return listAllIterator(
+            storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
+        );
+    }
+
+    /**
+     * Gets the storage account keys for a given storage account.
+     * @param sub The subscription to fetch storage account keys for.
+     * @param storageAccount The storage account to fetch keys for.
+     * @returns A list of storage account keys.
+     */
+    public static async getStorageAccountKeys(
+        sub: AzureSubscription,
+        storageAccount: StorageAccount,
+    ): Promise<StorageAccountsListKeysResponse> {
+        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const storageAccountResourceGroup = extractFromResourceId(
+            storageAccount.id,
+            "resourceGroups",
+        );
+
+        return await storage.storageAccounts.listKeys(
+            storageAccountResourceGroup,
+            storageAccount.name,
+        );
     }
 
     private static populateManagedInstanceMap(
@@ -626,6 +693,27 @@ export function extractFromResourceId(resourceId: string, property: string): str
     }
 
     return resourceId.substring(startIndex, endIndex);
+}
+
+/**
+ * Gets the default tenant ID for the given account and tenants.
+ * @param accountId The account ID.
+ * @param tenants The list of tenants for the account.
+ * @returns The default tenant ID.
+ */
+export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): string {
+    if (accountId === "" || tenants.length === 0) return "";
+
+    // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+    const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(accountId);
+
+    // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
+    // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
+    return tenants.some((t) => t.tenantId === homeTenantId)
+        ? homeTenantId
+        : tenants.length > 0
+          ? tenants[0].tenantId
+          : "";
 }
 
 //#endregion

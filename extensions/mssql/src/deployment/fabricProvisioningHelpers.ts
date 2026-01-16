@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
@@ -30,7 +30,6 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { UserSurvey } from "../nps/userSurvey";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
@@ -754,21 +753,6 @@ export function updateFabricProvisioningState(
 ) {
     deploymentController.state.deploymentTypeState = newState;
     deploymentController.updateState(deploymentController.state);
-}
-
-export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): string {
-    if (accountId === "" || tenants.length === 0) return "";
-
-    // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
-    const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(accountId);
-
-    // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
-    // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
-    return tenants.some((t) => t.tenantId === homeTenantId)
-        ? homeTenantId
-        : tenants.length > 0
-          ? tenants[0].tenantId
-          : "";
 }
 
 export function handleCreateDatabase(

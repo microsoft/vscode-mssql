@@ -204,3 +204,15 @@ export function formatXml(xml: string): string {
         }
     }
 }
+
+/**
+ * This function adds one year to the current date and returns it in the UTC format.
+ * It's used to pass an expiration date argument to the create shared access signature RPC.
+ * It returns the date in the UTC format for locale time zone independence.
+ * @returns next year's UTC date
+ */
+export function nextYear(): string {
+    const today = new Date();
+    const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+    return nextYear.toUTCString();
+}
