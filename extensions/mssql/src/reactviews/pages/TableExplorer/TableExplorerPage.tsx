@@ -136,7 +136,6 @@ export const TableExplorerPage: React.FC = () => {
                                             ref={gridRef}
                                             resultSet={resultSet}
                                             themeKind={themeKind}
-                                            pageSize={50}
                                             currentRowCount={currentRowCount}
                                             failedCells={failedCells}
                                             deletedRows={deletedRows}
