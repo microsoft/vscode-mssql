@@ -11,6 +11,19 @@ import * as locConstants from "../constants/locConstants";
 export const changelogConfig: ChangelogWebviewState = {
     changes: [
         {
+            title: "Migrate Connections from Azure Data Studio",
+            description:
+                "Migrate your connections and connection groups from Azure Data Studio to MSSQL.",
+            icon: "azureDataStudio.svg",
+            actions: [
+                {
+                    label: locConstants.Changelog.tryIt,
+                    type: "command",
+                    value: constants.cmdOpenAzureDataStudioMigration,
+                },
+            ],
+        },
+        {
             title: "Edit Data (Preview)",
             description:
                 "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
