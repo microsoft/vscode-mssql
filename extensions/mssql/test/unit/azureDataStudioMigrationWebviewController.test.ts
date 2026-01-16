@@ -239,7 +239,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
     });
 
     test("importHelper saves selected groups and connections", async () => {
-        controller["_existingGroupIds"] = new Set(["existing-group"]);
+        controller["_existingGroupIds"] = new Map([["existing-group-id", "Existing Group Name"]]);
         controller["_entraAuthAccounts"] = [
             {
                 key: { id: "acct-1" } as IAccount["key"],
@@ -367,7 +367,9 @@ suite("AzureDataStudioMigrationWebviewController", () => {
     });
 
     test("updateConnectionStatus reflects sql password and Entra account requirements", () => {
-        controller["_existingConnectionIds"] = new Set(["existing-conn"]);
+        controller["_existingConnectionIds"] = new Map([
+            ["existing-conn-id", "Existing Connection Name"],
+        ]);
         controller["_entraAuthAccounts"] = [
             {
                 key: { id: "acct-1" } as IAccount["key"],
@@ -384,7 +386,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         const alreadyImported = controller["updateConnectionStatus"]({
             profileName: "Existing",
             profile: {
-                id: "existing-conn",
+                id: "existing-conn-id",
                 authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile,
             status: MigrationStatus.Ready,
