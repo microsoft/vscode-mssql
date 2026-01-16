@@ -126,6 +126,8 @@ const useStyles = makeStyles({
         borderRadius: "12px",
         border: "1px solid var(--vscode-editorWidget-border)",
         padding: "15px",
+        paddingRight: "64px",
+        position: "relative",
     },
     changeTitle: {
         margin: 0,
@@ -140,6 +142,19 @@ const useStyles = makeStyles({
         display: "flex",
         flexWrap: "wrap",
         gap: "16px",
+    },
+    changeIconContainer: {
+        position: "absolute",
+        right: "16px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    changeIcon: {
+        width: "48px",
+        height: "48px",
     },
     sidebarStack: {
         display: "flex",
@@ -180,6 +195,10 @@ const useStyles = makeStyles({
         gap: "10px",
     },
 });
+
+const changelogIcons: Record<string, string> = {
+    "azureDataStudio.svg": require("../../media/azureDataStudio.svg"),
+};
 
 export const ChangelogPage = () => {
     const classes = useStyles();
@@ -323,6 +342,10 @@ export const ChangelogPage = () => {
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
                         {changes.map((change, index) => {
+                            const changeIcon = change.icon
+                                ? changelogIcons[change.icon]
+                                : undefined;
+
                             return (
                                 <Card
                                     key={`${change.title}-${index}`}
@@ -365,6 +388,15 @@ export const ChangelogPage = () => {
                                                     );
                                                 }
                                             })}
+                                        </div>
+                                    )}
+                                    {changeIcon && (
+                                        <div className={classes.changeIconContainer}>
+                                            <img
+                                                className={classes.changeIcon}
+                                                src={changeIcon}
+                                                alt=""
+                                            />
                                         </div>
                                     )}
                                 </Card>

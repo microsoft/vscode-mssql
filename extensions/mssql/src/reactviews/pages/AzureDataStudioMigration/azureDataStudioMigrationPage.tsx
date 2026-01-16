@@ -10,6 +10,7 @@ import {
     Field,
     InfoLabel,
     Input,
+    Image,
     Subtitle2,
     Table,
     TableBody,
@@ -52,6 +53,8 @@ import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
 import { ImportWarningDialog } from "./components/importWarningDialog";
 import { ImportProgressDialog } from "./components/importProgressDialog";
+
+const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
 export const AzureDataStudioMigrationPage = () => {
     const LocMigration = Loc.azureDataStudioMigration;
@@ -188,18 +191,6 @@ export const AzureDataStudioMigrationPage = () => {
         );
     };
 
-    const renderGroupStatusIcon = (
-        status: AdsMigrationConnectionGroup["status"],
-        tooltip: string,
-    ) => {
-        return renderStatusIcon(status, tooltip);
-    };
-
-    const renderConnectionStatusIcon = (
-        status: AdsMigrationConnection["status"],
-        tooltip: string,
-    ) => renderStatusIcon(status, tooltip);
-
     const renderTruncatedCell = (
         rawValue: string,
         options?: {
@@ -285,6 +276,8 @@ export const AzureDataStudioMigrationPage = () => {
             return undefined;
         }
 
+        const isAlreadyImported = connection.status === "alreadyImported";
+
         return (
             <Tooltip content={connection.statusMessage} relationship="label">
                 <div>
@@ -294,6 +287,7 @@ export const AzureDataStudioMigrationPage = () => {
                             value={connection.profile.password ?? ""}
                             onChange={(_, data) => handleEnterPassword(connectionId, data.value)}
                             placeholder={LocMigration.enterPassword}
+                            disabled={isAlreadyImported}
                             contentAfter={
                                 <Button
                                     appearance="transparent"
@@ -315,6 +309,7 @@ export const AzureDataStudioMigrationPage = () => {
                                             ? Loc.common.hidePassword
                                             : Loc.common.showPassword
                                     }
+                                    disabled={isAlreadyImported}
                                     onClick={() => togglePasswordVisibility(connectionId)}
                                 />
                             }
@@ -324,7 +319,8 @@ export const AzureDataStudioMigrationPage = () => {
                         <Button
                             onClick={() => {
                                 handleEntraSignIn(connectionId);
-                            }}>
+                            }}
+                            disabled={isAlreadyImported}>
                             {Loc.connectionDialog.selectAnAccount}
                         </Button>
                     )}
@@ -359,10 +355,23 @@ export const AzureDataStudioMigrationPage = () => {
             <div className={classes.layout}>
                 {dialogContent}
                 <div className={classes.header}>
-                    <Title3 as="h1">{LocMigration.title}</Title3>
-                    <Body1 as="p" className={`${classes.summaryText} ${classes.headerSubtitle}`}>
-                        {LocMigration.subtitle}
-                    </Body1>
+                    <div className={classes.headerRow}>
+                        <Image
+                            className={classes.headerIcon}
+                            src={azureDataStudioIcon}
+                            alt={Loc.connectionDialog.importFromAzureDataStudio}
+                        />
+                        <div className={classes.headerText}>
+                            <Title3 as="h1" className={classes.headerTitle}>
+                                {LocMigration.title}
+                            </Title3>
+                            <Body1
+                                as="p"
+                                className={`${classes.summaryText} ${classes.headerSubtitle}`}>
+                                {LocMigration.subtitle}
+                            </Body1>
+                        </div>
+                    </div>
                     <div className={classes.configRow}>
                         <Field
                             className={classes.configField}
@@ -473,58 +482,74 @@ export const AzureDataStudioMigrationPage = () => {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {connectionGroups.map((group) => (
-                                                    <TableRow key={group.group.id}>
-                                                        <TableCell className={classes.narrowColumn}>
-                                                            <Checkbox
-                                                                checked={group.selected}
-                                                                onChange={(_, data) =>
-                                                                    toggleConnectionGroup(
-                                                                        group.group.id,
-                                                                        !!data.checked,
-                                                                    )
-                                                                }
-                                                                aria-label={LocMigration.groupSelectionToggle(
-                                                                    group.group.name,
-                                                                )}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell
-                                                            className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
-                                                            {renderGroupStatusIcon(
-                                                                group.status,
-                                                                group.statusMessage,
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell
-                                                            className={classes.groupNameColumn}>
-                                                            {group.group.name}
-                                                        </TableCell>
-                                                        <TableCell
-                                                            className={classes.groupColorColumn}>
-                                                            {group.group.color ? (
-                                                                <Tooltip
-                                                                    content={LocMigration.groupColorSwatch(
-                                                                        group.group.name,
-                                                                        group.group.color,
-                                                                    )}
-                                                                    relationship="label">
-                                                                    <div
-                                                                        className={
-                                                                            classes.colorSwatch
+                                                {connectionGroups.map((group) => {
+                                                    const isAlreadyImported =
+                                                        group.status === "alreadyImported";
+                                                    return (
+                                                        <TableRow
+                                                            key={group.group.id}
+                                                            className={
+                                                                isAlreadyImported
+                                                                    ? classes.dimmedRow
+                                                                    : undefined
+                                                            }>
+                                                            <TableCell
+                                                                className={classes.narrowColumn}>
+                                                                {!isAlreadyImported && (
+                                                                    <Checkbox
+                                                                        checked={group.selected}
+                                                                        onChange={(_, data) =>
+                                                                            toggleConnectionGroup(
+                                                                                group.group.id,
+                                                                                !!data.checked,
+                                                                            )
                                                                         }
-                                                                        style={{
-                                                                            backgroundColor:
-                                                                                group.group.color,
-                                                                        }}
+                                                                        aria-label={LocMigration.groupSelectionToggle(
+                                                                            group.group.name,
+                                                                        )}
                                                                     />
-                                                                </Tooltip>
-                                                            ) : (
-                                                                <Text>—</Text>
-                                                            )}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={`${classes.narrowColumn} ${classes.statusColumnHeader}`}>
+                                                                {renderStatusIcon(
+                                                                    group.status,
+                                                                    group.statusMessage,
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={classes.groupNameColumn}>
+                                                                {group.group.name}
+                                                            </TableCell>
+                                                            <TableCell
+                                                                className={
+                                                                    classes.groupColorColumn
+                                                                }>
+                                                                {group.group.color ? (
+                                                                    <Tooltip
+                                                                        content={LocMigration.groupColorSwatch(
+                                                                            group.group.name,
+                                                                            group.group.color,
+                                                                        )}
+                                                                        relationship="label">
+                                                                        <div
+                                                                            className={
+                                                                                classes.colorSwatch
+                                                                            }
+                                                                            style={{
+                                                                                backgroundColor:
+                                                                                    group.group
+                                                                                        .color,
+                                                                            }}
+                                                                        />
+                                                                    </Tooltip>
+                                                                ) : (
+                                                                    <Text>—</Text>
+                                                                )}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })}
                                             </TableBody>
                                         </Table>
                                     </div>
@@ -619,26 +644,39 @@ export const AzureDataStudioMigrationPage = () => {
                                                         getConnectionId(connection);
                                                     const displayName =
                                                         connection.profileName ?? "";
+                                                    const isAlreadyImported =
+                                                        connection.status === "alreadyImported";
                                                     return (
-                                                        <TableRow key={connectionId}>
+                                                        <TableRow
+                                                            key={connectionId}
+                                                            className={
+                                                                isAlreadyImported
+                                                                    ? classes.dimmedRow
+                                                                    : undefined
+                                                            }>
                                                             <TableCell
                                                                 className={classes.narrowColumn}>
-                                                                <Checkbox
-                                                                    checked={connection.selected}
-                                                                    onChange={(_, data) =>
-                                                                        toggleConnection(
-                                                                            connectionId,
-                                                                            !!data.checked,
-                                                                        )
-                                                                    }
-                                                                    aria-label={LocMigration.connectionSelectionToggle(
-                                                                        displayName || connectionId,
-                                                                    )}
-                                                                />
+                                                                {!isAlreadyImported && (
+                                                                    <Checkbox
+                                                                        checked={
+                                                                            connection.selected
+                                                                        }
+                                                                        onChange={(_, data) =>
+                                                                            toggleConnection(
+                                                                                connectionId,
+                                                                                !!data.checked,
+                                                                            )
+                                                                        }
+                                                                        aria-label={LocMigration.connectionSelectionToggle(
+                                                                            displayName ||
+                                                                                connectionId,
+                                                                        )}
+                                                                    />
+                                                                )}
                                                             </TableCell>
                                                             <TableCell
                                                                 className={classes.narrowColumn}>
-                                                                {renderConnectionStatusIcon(
+                                                                {renderStatusIcon(
                                                                     connection.status,
                                                                     connection.statusMessage,
                                                                 )}
@@ -737,8 +775,31 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "4px",
     },
+    headerRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+    },
+    headerIcon: {
+        width: "64px",
+        height: "64px",
+    },
+    headerText: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        justifyContent: "center",
+    },
+    headerTitle: {
+        marginTop: "20px",
+        marginBottom: "0px",
+    },
     headerSubtitle: {
-        margin: 0,
+        marginTop: "0px",
+        marginBottom: "20px",
+    },
+    dimmedRow: {
+        color: "var(--vscode-disabledForeground)",
     },
     configField: {
         flex: "1 1 520px",

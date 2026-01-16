@@ -352,6 +352,7 @@ export class LocConstants {
             errorLoadingDatabases: l10n.t("Error loading databases"),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
+            importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
         };
     }
 
@@ -1403,7 +1404,7 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration"),
+            title: l10n.t("Azure Data Studio Migration - Connections"),
             subtitle: l10n.t(
                 "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
