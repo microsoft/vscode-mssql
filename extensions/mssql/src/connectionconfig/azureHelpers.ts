@@ -287,11 +287,16 @@ export class VsCodeAzureHelper {
     public static async fetchStorageAccountsForSubscription(
         sub: AzureSubscription,
     ): Promise<StorageAccount[]> {
-        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-        });
+        try {
+            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
 
-        return listAllIterator(storage.storageAccounts.list());
+            return listAllIterator(storage.storageAccounts.list());
+        } catch (error) {
+            console.error("Error fetching storage accounts for subscription:", error);
+            return [];
+        }
     }
 
     /**
@@ -304,19 +309,24 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
         storageAccount: StorageAccount,
     ): Promise<BlobContainer[]> {
-        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-        });
+        try {
+            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
 
-        const storageAccountResourceGroup = extractFromResourceId(
-            storageAccount.id,
-            "resourceGroups",
-        );
+            const storageAccountResourceGroup = extractFromResourceId(
+                storageAccount.id,
+                "resourceGroups",
+            );
 
-        // get resource group for storage account
-        return listAllIterator(
-            storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
-        );
+            // get resource group for storage account
+            return listAllIterator(
+                storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
+            );
+        } catch (error) {
+            console.error("Error fetching blob containers for storage account:", error);
+            return [];
+        }
     }
 
     /**
@@ -329,19 +339,24 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
         storageAccount: StorageAccount,
     ): Promise<StorageAccountsListKeysResponse> {
-        const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-        });
+        try {
+            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+            });
 
-        const storageAccountResourceGroup = extractFromResourceId(
-            storageAccount.id,
-            "resourceGroups",
-        );
+            const storageAccountResourceGroup = extractFromResourceId(
+                storageAccount.id,
+                "resourceGroups",
+            );
 
-        return await storage.storageAccounts.listKeys(
-            storageAccountResourceGroup,
-            storageAccount.name,
-        );
+            return await storage.storageAccounts.listKeys(
+                storageAccountResourceGroup,
+                storageAccount.name,
+            );
+        } catch (error) {
+            console.error("Error fetching storage account keys:", error);
+            return {};
+        }
     }
 
     private static populateManagedInstanceMap(
