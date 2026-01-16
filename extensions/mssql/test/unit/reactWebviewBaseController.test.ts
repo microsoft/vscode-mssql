@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
@@ -27,6 +29,8 @@ import {
     StateChangeNotification,
 } from "../../src/sharedInterfaces/webview";
 import * as Constants from "../../src/constants/constants";
+
+chai.use(sinonChai);
 
 const DEMO_BINDING = {
     "mssql.shortcut": {
@@ -92,88 +96,85 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should initialize with initial state", () => {
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 0 },
-            "State is not initialized correctly",
-        );
+        expect(controller.state, "State is not initialized correctly").to.deep.equal({ count: 0 });
     });
 
     test("Should register default request handlers", () => {
-        assert.ok(
-            onRequestStub.calledWith(GetStateRequest.type(), sinon.match.any),
-            "GetStateRequest handler is not registered",
+        expect(onRequestStub, "GetStateRequest handler is not registered").to.have.been.calledWith(
+            GetStateRequest.type(),
+            sinon.match.any,
         );
-        assert.ok(
-            onRequestStub.calledWith(ReducerRequest.type(), sinon.match.any),
-            "ReducerRequest handler is not registered",
+        expect(onRequestStub, "ReducerRequest handler is not registered").to.have.been.calledWith(
+            ReducerRequest.type(),
+            sinon.match.any,
         );
-        assert.ok(
-            onRequestStub.calledWith(GetThemeRequest.type, sinon.match.any),
-            "GetThemeRequest handler is not registered",
+        expect(onRequestStub, "GetThemeRequest handler is not registered").to.have.been.calledWith(
+            GetThemeRequest.type,
+            sinon.match.any,
         );
-        assert.ok(
-            onRequestStub.calledWith(GetKeyBindingsConfigRequest.type, sinon.match.any),
+        expect(
+            onRequestStub,
             "GetKeyBindingsConfigRequest handler is not registered",
-        );
-        assert.ok(
-            onRequestStub.calledWith(GetLocalizationRequest.type, sinon.match.any),
+        ).to.have.been.calledWith(GetKeyBindingsConfigRequest.type, sinon.match.any);
+        expect(
+            onRequestStub,
             "GetLocalizationRequest handler is not registered",
-        );
-        assert.ok(
-            onRequestStub.calledWith(ExecuteCommandRequest.type, sinon.match.any),
+        ).to.have.been.calledWith(GetLocalizationRequest.type, sinon.match.any);
+        expect(
+            onRequestStub,
             "ExecuteCommandRequest handler is not registered",
-        );
-        assert.ok(
-            onNotificationStub.calledWith(LoadStatsNotification.type, sinon.match.any),
+        ).to.have.been.calledWith(ExecuteCommandRequest.type, sinon.match.any);
+        expect(
+            onNotificationStub,
             "LoadStatsNotification handler is not registered",
-        );
-        assert.ok(
-            onNotificationStub.calledWith(SendActionEventNotification.type, sinon.match.any),
+        ).to.have.been.calledWith(LoadStatsNotification.type, sinon.match.any);
+        expect(
+            onNotificationStub,
             "SendActionEventNotification handler is not registered",
-        );
-        assert.ok(
-            onNotificationStub.calledWith(SendErrorEventNotification.type, sinon.match.any),
+        ).to.have.been.calledWith(SendActionEventNotification.type, sinon.match.any);
+        expect(
+            onNotificationStub,
             "SendErrorEventNotification handler is not registered",
-        );
+        ).to.have.been.calledWith(SendErrorEventNotification.type, sinon.match.any);
     });
 
     test("Should send initial keybindings notification", () => {
-        assert.ok(
-            sendNotificationStub.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING),
+        expect(
+            sendNotificationStub,
             "Initial keybindings notification not sent",
-        );
-        assert.ok(onDidChangeConfigurationStub.calledOnce, "Configuration listener not registered");
+        ).to.have.been.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING);
+        expect(onDidChangeConfigurationStub, "Configuration listener not registered").to.have.been
+            .calledOnce;
     });
 
     test("Should notify keybindings when configuration changes", () => {
         sendNotificationStub.resetHistory();
         const handler = configChangeHandlers[0];
-        assert.ok(handler, "Configuration change handler not registered");
+        expect(handler, "Configuration change handler not registered").to.exist;
         handler({
             affectsConfiguration: (section: string) => section === Constants.configShortcuts,
         } as vscode.ConfigurationChangeEvent);
 
-        assert.ok(
-            sendNotificationStub.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING),
+        expect(
+            sendNotificationStub,
             "Keybindings change notification not sent",
-        );
+        ).to.have.been.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING);
     });
 
     test("GetKeyBindingsConfigRequest returns current configuration", async () => {
         const requestCall = onRequestStub
             .getCalls()
             .find((call) => call.args[0] === GetKeyBindingsConfigRequest.type);
-        assert.ok(requestCall, "GetKeyBindingsConfigRequest handler not registered");
+        expect(requestCall, "GetKeyBindingsConfigRequest handler not registered").to.exist;
         const handler = requestCall.args[1];
         const result = await handler();
-        assert.deepStrictEqual(result, DEMO_BINDING);
+        expect(result).to.deep.equal(DEMO_BINDING);
     });
 
     test("readKeyBindingsConfig returns empty object when configuration missing", () => {
         getConfigurationStub.callsFake(() => undefined as unknown as vscode.WorkspaceConfiguration);
         const result = (controller as any).readKeyBindingsConfig();
-        assert.deepStrictEqual(result, {});
+        expect(result).to.deep.equal({});
     });
 
     test("should register a new reducer", () => {
@@ -183,29 +184,29 @@ suite("ReactWebviewController Tests", () => {
 
         controller.registerReducer("increment", reducer);
         const reducers = (controller as any)._reducerHandlers;
-        assert.ok(reducers.has("increment"), "Reducer is not registered");
+        expect(reducers.has("increment"), "Reducer is not registered").to.be.true;
     });
 
     test("Should post notification to webview", () => {
         controller.postMessage({ type: MessageType.Notification, method: "test" });
-        assert.ok(
-            controller._webview.postMessage.calledWith({
-                type: MessageType.Notification,
-                method: "test",
-            }),
+        expect(
+            controller._webview.postMessage,
             "Notification is not sent correctly",
-        );
+        ).to.have.been.calledWith({
+            type: MessageType.Notification,
+            method: "test",
+        });
     });
 
     test("Should update state and send notification to webview", async () => {
         controller.updateState({ count: 6 });
-        assert.deepStrictEqual(controller.state, { count: 6 }, "State is not updated correctly");
+        expect(controller.state, "State is not updated correctly").to.deep.equal({ count: 6 });
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for async operations
-        assert.ok(
-            sendNotificationStub.calledWith(StateChangeNotification.type(), {
+        expect(sendNotificationStub, "Notification is not sent correctly").to.have.been.calledWith(
+            StateChangeNotification.type(),
+            {
                 count: 6,
-            }),
-            "Notification is not sent correctly",
+            },
         );
     });
 
@@ -215,19 +216,19 @@ suite("ReactWebviewController Tests", () => {
         };
         (controller as any)._disposables.push(disposable);
         controller.dispose();
-        assert.ok(disposable.dispose.calledOnce, "Disposables are not disposed");
+        expect(disposable.dispose, "Disposables are not disposed").to.have.been.calledOnce;
     });
 
     test("Should not post message if disposed", () => {
         controller.dispose();
         controller.postMessage({ type: MessageType.Notification, method: "test" });
-        assert.ok(
-            !controller._webview.postMessage.calledWith({
+        expect(
+            controller._webview.postMessage.calledWith({
                 type: MessageType.Notification,
                 method: "test",
             }),
             "Message is posted after dispose",
-        );
+        ).to.be.false;
     });
 
     test("Should setup theming and handle theme change", () => {
@@ -243,19 +244,17 @@ suite("ReactWebviewController Tests", () => {
             });
             (controller as any).initializeBase();
 
-            assert.ok(
-                sendNotificationStub.calledWith(
-                    ColorThemeChangeNotification.type,
-                    vscode.window.activeColorTheme.kind,
-                ),
+            expect(sendNotificationStub).to.have.been.calledWith(
+                ColorThemeChangeNotification.type,
+                vscode.window.activeColorTheme.kind,
             );
 
             themeChangedCallback({ kind: 3 });
 
-            assert.ok(
-                sendNotificationStub.calledWith(ColorThemeChangeNotification.type, 3),
+            expect(
+                sendNotificationStub,
                 "Theme change notification is not sent correctly",
-            );
+            ).to.have.been.calledWith(ColorThemeChangeNotification.type, 3);
         } finally {
             (vscode.window.onDidChangeActiveColorTheme as any) = originalOnChangeActiveColorTheme;
         }
@@ -266,13 +265,11 @@ suite("ReactWebviewController Tests", () => {
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         (controller as any)._getWebview().asWebviewUri = webviewUriStub;
         const html = controller["_getHtmlTemplate"]();
-        assert.ok(html.includes("testSource.css"), "CSS file is not included");
-        assert.ok(html.includes("testSource.js"), "JS file is not included");
-        assert.ok(html.includes('nonce="test-nonce"'), "Nonce is not included");
-        assert.ok(
-            html.includes('<base href="https://example.com//">'),
-            "Base href is not included",
-        );
+        expect(html.includes("testSource.css"), "CSS file is not included").to.be.true;
+        expect(html.includes("testSource.js"), "JS file is not included").to.be.true;
+        expect(html.includes('nonce="test-nonce"'), "Nonce is not included").to.be.true;
+        expect(html.includes('<base href="https://example.com//">'), "Base href is not included").to
+            .be.true;
     });
 });
 
