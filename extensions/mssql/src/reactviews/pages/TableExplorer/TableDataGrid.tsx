@@ -62,7 +62,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         {
             resultSet,
             themeKind,
-            pageSize = 100,
+            pageSize = 50,
             failedCells,
             deletedRows,
             onDeleteRow,
