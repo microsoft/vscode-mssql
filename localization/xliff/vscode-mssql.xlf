@@ -2178,6 +2178,9 @@
       <source xml:lang="en">Import failed: {0}</source>
       <note>{0} is the error message returned from the import helper.</note>
     </trans-unit>
+    <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
+      <source xml:lang="en">Import from Azure Data Studio</source>
+    </trans-unit>
     <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
       <source xml:lang="en">Import selected</source>
     </trans-unit>

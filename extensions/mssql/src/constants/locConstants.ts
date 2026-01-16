@@ -2421,7 +2421,7 @@ export class TableExplorer {
 }
 
 export class AzureDataStudioMigration {
-    public static PageTitle = l10n.t("Azure Data Studio Migration");
+    public static PageTitle = l10n.t("Azure Data Studio Migration - Connections");
     public static SelectConfigFileDialogTitle = l10n.t(
         "Locate an Azure Data Studio settings.json file to import",
     );

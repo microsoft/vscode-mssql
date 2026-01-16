@@ -45,6 +45,8 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     dialog: undefined,
 };
 
+const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "azureDataStudioMigration";
+
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
     AzureDataStudioMigrationWebviewState,
     AzureDataStudioMigrationReducers
@@ -66,8 +68,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         super(
             context,
             vscodeWrapper,
-            "azureDataStudioMigration",
-            "azureDataStudioMigration",
+            AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
+            AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
             initialState,
             {
                 title: AzureDataStudioMigration.PageTitle,

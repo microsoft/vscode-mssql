@@ -301,6 +301,7 @@
     "Error loading workspaces": "Error loading workspaces",
     "Error loading databases": "Error loading databases",
     "Connection Authentication": "Connection Authentication",
+    "Import from Azure Data Studio": "Import from Azure Data Studio",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Azure Account": "Azure Account",
