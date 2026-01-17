@@ -282,7 +282,7 @@ export interface BackupDatabaseReducers
     /**
      * Loads the specified Azure component for backup to URL operations
      */
-    loadAzureComponent: {componentName: string};
+    loadAzureComponent: { componentName: string };
 }
 
 export interface BackupDatabaseProvider

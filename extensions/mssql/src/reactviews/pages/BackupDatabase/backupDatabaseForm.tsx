@@ -159,7 +159,7 @@ export const BackupDatabaseForm: React.FC = () => {
     }
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
+    const [fileErrors, setFileErrors] = useState<number[]>([]);
     const { formComponents } = state;
 
     const renderFormFields = () =>
@@ -233,7 +233,7 @@ export const BackupDatabaseForm: React.FC = () => {
                         label={
                             <div className={classes.formLoadingLabel}>
                                 <Text>{component.label}</Text>
-                                <Spinner size="tiny" />
+                                <Spinner size="extra-tiny" />
                             </div>
                         }
                         className={formStyles.formComponentDiv}>
@@ -268,11 +268,33 @@ export const BackupDatabaseForm: React.FC = () => {
                         {file.isExisting ? (
                             <Text>{getFolderNameFromPath(file.filePath)}</Text>
                         ) : (
-                            <Field required={true}>
+                            <Field
+                                required
+                                validationState={
+                                    getFolderNameFromPath(file.filePath).trim() === ""
+                                        ? "error"
+                                        : "none"
+                                }
+                                validationMessage={
+                                    getFolderNameFromPath(file.filePath).trim() === ""
+                                        ? locConstants.backupDatabase.folderPathRequired
+                                        : ""
+                                }>
                                 <Input
                                     value={getFolderNameFromPath(file.filePath)}
                                     onChange={(e) => {
                                         context.handleFileChange(index, e.target.value, true);
+                                        if (e.target.value.trim() !== "") {
+                                            setFileErrors(
+                                                fileErrors.filter(
+                                                    (fileIndex) => fileIndex !== index,
+                                                ),
+                                            );
+                                        } else {
+                                            if (!fileErrors.includes(index)) {
+                                                setFileErrors([...fileErrors, index]);
+                                            }
+                                        }
                                     }}
                                 />
                             </Field>
@@ -284,17 +306,31 @@ export const BackupDatabaseForm: React.FC = () => {
                             <Text>{getFileNameFromPath(file.filePath)}</Text>
                         ) : (
                             <Field
-                                validationMessage={
-                                    isFileNameValid(file.filePath)
-                                        ? ""
-                                        : locConstants.backupDatabase.chooseUniqueFile
-                                }
-                                required={true}
-                                validationState={isFileNameValid(file.filePath) ? "none" : "error"}>
+                                validationMessage={getFileNameErrorMessage(file.filePath)}
+                                required
+                                validationState={
+                                    getFileNameErrorMessage(file.filePath) === "" ? "none" : "error"
+                                }>
                                 <Input
                                     value={getFileNameFromPath(file.filePath)}
                                     onChange={(e) => {
+                                        const newPath = `${getFolderNameFromPath(
+                                            state.backupFiles[index].filePath,
+                                        )}/${e.target.value}`;
+
                                         context.handleFileChange(index, e.target.value, false);
+
+                                        if (getFileNameErrorMessage(newPath) === "") {
+                                            setFileErrors(
+                                                fileErrors.filter(
+                                                    (fileIndex) => fileIndex !== index,
+                                                ),
+                                            );
+                                        } else {
+                                            if (!fileErrors.includes(index)) {
+                                                setFileErrors([...fileErrors, index]);
+                                            }
+                                        }
                                     }}
                                 />
                             </Field>
@@ -319,9 +355,11 @@ export const BackupDatabaseForm: React.FC = () => {
         return "";
     };
 
-    const isFileNameValid = (filePath: string) => {
+    const getFileNameErrorMessage = (filePath: string) => {
+        const fileName = getFileNameFromPath(filePath);
+        if (fileName.trim() === "") return locConstants.backupDatabase.fileNameRequired;
         const files = state.backupFiles.filter((file) => file.filePath === filePath);
-        return files.length <= 1;
+        return files.length <= 1 ? "" : locConstants.backupDatabase.chooseUniqueFile;
     };
 
     const getFolderNameFromPath = (filePath: string) => {
@@ -335,6 +373,8 @@ export const BackupDatabaseForm: React.FC = () => {
     };
 
     const handleLoadAzureComponents = () => {
+        if (!context || !state) return;
+
         const azureComponents = Object.keys(state.azureComponentStatuses);
         const azureComponentToLoad = azureComponents.find(
             (component) => state.azureComponentStatuses[component] === ApiStatus.NotStarted,
@@ -497,6 +537,14 @@ export const BackupDatabaseForm: React.FC = () => {
                         <Button
                             className={classes.button}
                             type="submit"
+                            disabled={
+                                state.formErrors.length > 0 || // disable if there are form errors
+                                (!state.saveToUrl && state.backupFiles.length === 0) || // disable if no backup files selected and backing up to disk
+                                (!state.saveToUrl && fileErrors.length > 0) || // disable if there are file errors and backing up to disk
+                                (state.saveToUrl &&
+                                    state.azureComponentStatuses["blobContainerId"] !==
+                                        ApiStatus.Loaded) // disable if backup is to url and the azure components aren't loaded
+                            }
                             onClick={() => handleSubmit()}
                             appearance="primary">
                             {locConstants.backupDatabase.backup}

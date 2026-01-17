@@ -1439,6 +1439,8 @@ export class LocConstants {
             chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
             chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
             loading: l10n.t("Loading..."),
+            folderPathRequired: l10n.t("Folder path is required"),
+            fileNameRequired: l10n.t("File name is required"),
         };
     }
 

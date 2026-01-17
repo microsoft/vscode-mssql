@@ -174,7 +174,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                         (b) => b.id === payload.event.value,
                     );
                     if (actionButton?.callback) {
-                        await actionButton.callback();
+                        void actionButton.callback();
                     }
                 }
             } else {
@@ -190,38 +190,22 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                     // Reload necessary dependent components
                     state = this.reloadAzureComponents(state, payload.event.propertyName);
                 }
+                state.formErrors = await this.validateForm(
+                    state.formState,
+                    payload.event.propertyName,
+                    payload.event.updateValidation,
+                );
             }
             return state;
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
-            await this.backupHelper(TaskExecutionMode.execute, state);
-            return state;
-        });
-
-        // Override default file browser submitFilePath reducer
-        this.registerReducer("submitFilePath", async (state, payload) => {
-            // Check if an existing file was selected
-            const isExisting = payload.selectedPath.includes(".");
-
-            // Folder selected, generate default backup name
-            if (!isExisting) {
-                const defaultFileName = this.getDefaultBackupFileName(state);
-                payload.selectedPath = `${payload.selectedPath}/${defaultFileName}`;
-            }
-
-            const paths = state.backupFiles.map((f) => f.filePath);
-            if (!paths.includes(payload.selectedPath)) {
-                state.backupFiles.push({
-                    filePath: payload.selectedPath,
-                    isExisting: isExisting,
-                });
-            }
+            void this.backupHelper(TaskExecutionMode.execute, state);
             return state;
         });
 
         this.registerReducer("openBackupScript", async (state, _payload) => {
-            await this.backupHelper(TaskExecutionMode.script, state);
+            void this.backupHelper(TaskExecutionMode.script, state);
             return state;
         });
 
@@ -254,22 +238,34 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         this.registerReducer("loadAzureComponent", async (state, payload) => {
             // only set azure context if it has not already been set
             if (state.azureComponentStatuses[payload.componentName] !== ApiStatus.NotStarted)
-                return;
+                return state;
 
             switch (payload.componentName) {
                 case "accountId":
-                    return await this.loadAccountComponent(state);
+                    state = await this.loadAccountComponent(state);
+                    break;
                 case "tenantId":
-                    return await this.loadTenantComponent(state);
+                    state = await this.loadTenantComponent(state);
+                    break;
                 case "subscriptionId":
-                    return await this.loadSubscriptionComponent(state);
+                    state = await this.loadSubscriptionComponent(state);
+                    break;
                 case "storageAccountId":
-                    return await this.loadStorageAccountComponent(state);
+                    state = await this.loadStorageAccountComponent(state);
+                    break;
                 case "blobContainerId":
-                    return await this.loadBlobContainerComponent(state);
-                default:
+                    state = await this.loadBlobContainerComponent(state);
                     break;
             }
+
+            state.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
+
+            state.formErrors = await this.validateForm(
+                state.formState,
+                payload.componentName as keyof BackupDatabaseFormState,
+                true,
+            );
+
             return state;
         });
 
@@ -278,8 +274,131 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             this.fileBrowserService,
             defaultBackupFileTypes,
         );
+
+        // Override default file browser submitFilePath reducer
+        this.registerReducer("submitFilePath", async (state, payload) => {
+            // Check if an existing file was selected
+            const isExisting = payload.selectedPath.includes(".");
+
+            // Folder selected, generate default backup name
+            if (!isExisting) {
+                const defaultFileName = this.getDefaultBackupFileName(state);
+                payload.selectedPath = `${payload.selectedPath}/${defaultFileName}`;
+            }
+
+            const paths = state.backupFiles.map((f) => f.filePath);
+            if (!paths.includes(payload.selectedPath)) {
+                state.backupFiles.push({
+                    filePath: payload.selectedPath,
+                    isExisting: isExisting,
+                });
+            }
+            return state;
+        });
     }
 
+    private getDefaultBackupFileName(state): string {
+        const newFiles = state.backupFiles.filter((file) => !file.isExisting);
+        let name = this.databaseNode.label.toString();
+        if (newFiles.length > 0) {
+            name += `_${newFiles.length}`;
+        }
+        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
+    }
+
+    private async backupHelper(
+        mode: TaskExecutionMode,
+        state: BackupDatabaseState,
+    ): Promise<BackupResponse> {
+        const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
+        const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
+
+        let encryptor: BackupEncryptor = {
+            encryptorType: undefined,
+            encryptorName: "",
+        };
+        if (state.formState.encryptionEnabled) {
+            encryptor = this.state.backupEncryptors.find(
+                (be) => be.encryptorName === state.formState.encryptorName,
+            );
+        }
+
+        const backupPathDevices: Record<string, MediaDeviceType> = {};
+        const backupPathList: string[] = [];
+        if (state.saveToUrl) {
+            const accountEndpoint =
+                getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(
+                    "https://",
+                    "",
+                );
+            const subscription = state.subscriptions.find(
+                (s) => s.subscriptionId === state.formState.subscriptionId,
+            );
+            const storageAccount = state.storageAccounts.find(
+                (sa) => sa.id === state.formState.storageAccountId,
+            );
+            const blobContainer = state.blobContainers.find(
+                (bc) => bc.id === state.formState.blobContainerId,
+            );
+
+            const blobContainerUrl = `https://${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
+            const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
+            backupPathDevices[backupUrl] = MediaDeviceType.Url;
+            backupPathList.push(backupUrl);
+
+            const key = (
+                await VsCodeAzureHelper.getStorageAccountKeys(subscription, storageAccount)
+            ).keys[0].value;
+
+            void this.azureBlobService.createSas(
+                state.ownerUri,
+                blobContainerUrl,
+                key,
+                storageAccount.name,
+                nextYear(),
+            );
+        } else {
+            for (const file of state.backupFiles) {
+                backupPathDevices[file.filePath] = MediaDeviceType.File;
+                backupPathList.push(file.filePath);
+            }
+        }
+
+        const backupInfo: BackupInfo = {
+            databaseName: this.databaseNode.label.toString(),
+            backupType: getBackupTypeNumber(state.formState.backupType),
+            backupComponent: BackupComponent.Database, // always database for this scenario
+            backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
+            selectedFiles: undefined,
+            backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
+            selectedFileGroup: undefined,
+            backupPathDevices: backupPathDevices,
+            backupPathList: backupPathList,
+            isCopyOnly: state.formState.copyOnly,
+            formatMedia: createNewMediaSet,
+            initialize: createNewMediaSet || overwriteMediaSet,
+            skipTapeHeader: createNewMediaSet,
+            mediaName: state.formState.mediaSetName,
+            mediaDescription: state.formState.mediaSetDescription,
+            checksum: state.formState.performChecksum,
+            continueAfterError: state.formState.continueOnError,
+            logTruncation: state.formState.transactionLog === LogOption.Truncate,
+            tailLogBackup: state.formState.transactionLog === LogOption.BackupTail,
+            retainDays: state.formState.retainDays,
+            compressionOption: getBackupCompressionNumber(state.formState.backupCompression),
+            verifyBackupRequired: state.formState.verifyBackup,
+            encryptionAlgorithm: getEncryptionAlgorithmNumber(state.formState.encryptionAlgorithm),
+            encryptorType: encryptor.encryptorType,
+            encryptorName: encryptor.encryptorName,
+        };
+        return this.objectManagementService.backupDatabase(
+            state.databaseNode.nodeUri,
+            backupInfo,
+            mode,
+        );
+    }
+
+    //#region Form Helpers
     async updateItemVisibility() {}
 
     protected getActiveFormComponents(
@@ -330,6 +449,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 actionButtons: [],
                 isAdvancedOption: false,
                 groupName: url,
+                validate(state, value) {
+                    const isValid = value !== "" || !state.saveToUrl;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.azureAccountIsRequired,
+                    };
+                },
             }),
 
             tenantId: createFormItem({
@@ -340,6 +468,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 options: [],
                 placeholder: LocConstants.ConnectionDialog.selectATenant,
                 groupName: url,
+                validate(state, value) {
+                    const isValid = value !== "" || !state.saveToUrl;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.tenantIsRequired,
+                    };
+                },
             }),
 
             subscriptionId: createFormItem({
@@ -350,6 +487,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 options: [],
                 placeholder: LocConstants.BackupDatabase.selectASubscription,
                 groupName: url,
+                validate(state, value) {
+                    const isValid = value !== "" || !state.saveToUrl;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.subscriptionIsRequired,
+                    };
+                },
             }),
 
             storageAccountId: createFormItem({
@@ -360,6 +506,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 options: [],
                 placeholder: LocConstants.BackupDatabase.selectAStorageAccount,
                 groupName: url,
+                validate(state, value) {
+                    const isValid = value !== "" || !state.saveToUrl;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.storageAccountIsRequired,
+                    };
+                },
             }),
 
             blobContainerId: createFormItem({
@@ -370,6 +525,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 options: [],
                 placeholder: LocConstants.BackupDatabase.selectABlobContainer,
                 groupName: url,
+                validate(state, value) {
+                    const isValid = value !== "" || !state.saveToUrl;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.blobContainerIsRequired,
+                    };
+                },
             }),
 
             backupCompression: createFormItem({
@@ -575,108 +739,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         }));
     }
 
-    private getDefaultBackupFileName(state): string {
-        const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = this.databaseNode.label.toString();
-        if (newFiles.length > 0) {
-            name += `_${newFiles.length}`;
-        }
-        return name + `_${new Date().toISOString().slice(0, 19)}.bak`;
-    }
-
-    private async backupHelper(
-        mode: TaskExecutionMode,
-        state: BackupDatabaseState,
-    ): Promise<BackupResponse> {
-        const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
-        const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
-
-        let encryptor: BackupEncryptor = {
-            encryptorType: undefined,
-            encryptorName: "",
-        };
-        if (state.formState.encryptionEnabled) {
-            encryptor = this.state.backupEncryptors.find(
-                (be) => be.encryptorName === state.formState.encryptorName,
-            );
-        }
-
-        const backupPathDevices: Record<string, MediaDeviceType> = {};
-        const backupPathList: string[] = [];
-        if (state.saveToUrl) {
-            const accountEndpoint =
-                getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(
-                    "https://",
-                    "",
-                );
-            const subscription = state.subscriptions.find(
-                (s) => s.subscriptionId === state.formState.subscriptionId,
-            );
-            const storageAccount = state.storageAccounts.find(
-                (sa) => sa.id === state.formState.storageAccountId,
-            );
-            const blobContainer = state.blobContainers.find(
-                (bc) => bc.id === state.formState.blobContainerId,
-            );
-
-            const blobContainerUrl = `https://${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
-            const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
-            backupPathDevices[backupUrl] = MediaDeviceType.Url;
-            backupPathList.push(backupUrl);
-
-            const key = (
-                await VsCodeAzureHelper.getStorageAccountKeys(subscription, storageAccount)
-            ).keys[0].value;
-
-            const sasResponse = await this.azureBlobService.createSas(
-                state.ownerUri,
-                blobContainerUrl,
-                key,
-                storageAccount.name,
-                nextYear(),
-            );
-            console.log("SAS Response: ", sasResponse);
-        } else {
-            for (const file of state.backupFiles) {
-                backupPathDevices[file.filePath] = MediaDeviceType.File;
-                backupPathList.push(file.filePath);
-            }
-        }
-
-        const backupInfo: BackupInfo = {
-            databaseName: this.databaseNode.label.toString(),
-            backupType: getBackupTypeNumber(state.formState.backupType),
-            backupComponent: BackupComponent.Database, // always database for this scenario
-            backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
-            selectedFiles: undefined,
-            backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
-            selectedFileGroup: undefined,
-            backupPathDevices: backupPathDevices,
-            backupPathList: backupPathList,
-            isCopyOnly: state.formState.copyOnly,
-            formatMedia: createNewMediaSet,
-            initialize: createNewMediaSet || overwriteMediaSet,
-            skipTapeHeader: createNewMediaSet,
-            mediaName: state.formState.mediaSetName,
-            mediaDescription: state.formState.mediaSetDescription,
-            checksum: state.formState.performChecksum,
-            continueAfterError: state.formState.continueOnError,
-            logTruncation: state.formState.transactionLog === LogOption.Truncate,
-            tailLogBackup: state.formState.transactionLog === LogOption.BackupTail,
-            retainDays: state.formState.retainDays,
-            compressionOption: getBackupCompressionNumber(state.formState.backupCompression),
-            verifyBackupRequired: state.formState.verifyBackup,
-            encryptionAlgorithm: getEncryptionAlgorithmNumber(state.formState.encryptionAlgorithm),
-            encryptorType: encryptor.encryptorType,
-            encryptorName: encryptor.encryptorName,
-        };
-        return this.objectManagementService.backupDatabase(
-            state.databaseNode.nodeUri,
-            backupInfo,
-            mode,
-        );
-    }
-
+    //#endregion
+    //#region Azure Loading and Helpers
     private async getAzureActionButton(
         state: BackupDatabaseState,
     ): Promise<FormItemActionButton[]> {
@@ -691,7 +755,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             id: "azureSignIn",
             callback: async () => {
                 // Force sign in prompt
-                await VsCodeAzureHelper.signIn(true);
+                void VsCodeAzureHelper.signIn(true);
 
                 const accountsComponent = state.formComponents[accountFormComponentId];
 
@@ -724,7 +788,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         accountComponent.options = azureAccountOptions;
         accountComponent.actionButtons = await this.getAzureActionButton(state);
-        state.azureComponentStatuses["accountId"] = ApiStatus.Loaded;
 
         return state;
     }
@@ -749,7 +812,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         state.formState.tenantId = getDefaultTenantId(state.formState.accountId, tenants);
         state.tenants = tenants;
-        state.azureComponentStatuses["tenantId"] = ApiStatus.Loaded;
 
         return state;
     }
@@ -778,7 +840,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             : LocConstants.BackupDatabase.noSubscriptionsFound;
 
         state.subscriptions = subscriptions;
-        state.azureComponentStatuses["subscriptionId"] = ApiStatus.Loaded;
 
         return state;
     }
@@ -812,7 +873,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             ? LocConstants.BackupDatabase.selectAStorageAccount
             : LocConstants.BackupDatabase.noStorageAccountsFound;
 
-        state.azureComponentStatuses["storageAccountId"] = ApiStatus.Loaded;
         return state;
     }
 
@@ -844,12 +904,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         blobContainerComponent.options = blobContainerOptions;
         state.formState.blobContainerId =
             blobContainerOptions.length > 0 ? blobContainerOptions[0].value : "";
+
         blobContainerComponent.placeholder = blobContainerOptions.length
             ? LocConstants.BackupDatabase.selectABlobContainer
             : LocConstants.BackupDatabase.noBlobContainersFound;
 
         state.blobContainers = blobContainers;
-        state.azureComponentStatuses["blobContainerId"] = ApiStatus.Loaded;
         return state;
     }
 
@@ -867,4 +927,5 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         }
         return state;
     }
+    //#endregion
 }
