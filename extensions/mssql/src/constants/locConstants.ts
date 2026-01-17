@@ -2485,9 +2485,15 @@ export class BackupDatabase {
     public static append = l10n.t("Append to the existing backup set");
     public static overwrite = l10n.t("Overwrite all existing backup sets");
     public static create = l10n.t("Backup to a new media set");
+    public static unavailableForBackupsToExistingFiles = l10n.t(
+        "Unavailable for backups to existing files",
+    );
+    public static pleaseChooseValidMediaOption = l10n.t("Please choose a valid media option");
     public static backupMediaSet = l10n.t("Set backup Media Set");
     public static newMediaSetName = l10n.t("New media set name");
+    public static mediaSetNameIsRequired = l10n.t("Media set name is required");
     public static newMediaSetDescription = l10n.t("New media set description");
+    public static mediaSetDescriptionIsRequired = l10n.t("Media set description is required");
     public static reliability = l10n.t("Reliability");
     public static performChecksum = l10n.t("Perform checksum before writing to media");
     public static verifyBackup = l10n.t("Verify backup when finished");

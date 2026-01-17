@@ -27,6 +27,8 @@ import {
     BackupDatabaseFormState,
     BackupDatabaseProvider,
     BackupDatabaseState,
+    BackupType,
+    MediaSet,
 } from "../../../sharedInterfaces/objectManagement";
 
 export const AdvancedOptionsDrawer = ({
@@ -37,12 +39,13 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(BackupDatabaseContext);
+    const state = context?.state;
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>([]);
     const accordionStyles = useAccordionStyles();
 
-    if (context === undefined) {
-        return undefined;
+    if (!context || !state) {
+        return;
     }
 
     const advancedOptionsByGroup: Record<string, BackupDatabaseFormItemSpec[]> = Object.values(
@@ -73,6 +76,27 @@ export const AdvancedOptionsDrawer = ({
             return true;
         }
     }
+
+    const shouldShowGroup = (groupName: string): boolean => {
+        switch (groupName) {
+            case locConstants.backupDatabase.transactionLog:
+                return state.formState.backupType === BackupType.TransactionLog;
+            case locConstants.backupDatabase.encryption:
+                return state.backupEncryptors.length > 0;
+            default:
+                return true;
+        }
+    };
+
+    const shouldShowComponent = (componentName: string): boolean => {
+        switch (componentName) {
+            case "mediaName":
+            case "mediaDescription":
+                return state.formState.mediaSet == MediaSet.Create;
+            default:
+                return true;
+        }
+    };
 
     return (
         <OverlayDrawer
@@ -125,32 +149,42 @@ export const AdvancedOptionsDrawer = ({
                             : userOpenedSections
                     }>
                     {Object.entries(advancedOptionsByGroup)
-                        .filter(([_advancedGroupName, options]) => options.some((option) => isOptionVisible(option)))
-                        .map(([advancedGroupName, options], groupIndex) => (
-                            <AccordionItem
-                                value={advancedGroupName}
-                                key={groupIndex}
-                                className={accordionStyles.accordionItem}>
-                                <AccordionHeader>{advancedGroupName}</AccordionHeader>
-                                <AccordionPanel>
-                                    {options
-                                        .filter((option) => isOptionVisible(option))
-                                        .map((option, idx) => (
-                                            <FormField<
-                                                BackupDatabaseFormState,
-                                                BackupDatabaseState,
-                                                BackupDatabaseFormItemSpec,
-                                                BackupDatabaseProvider
-                                            >
-                                                key={idx}
-                                                context={context}
-                                                component={option}
-                                                idx={idx}
-                                            />
-                                        ))}
-                                </AccordionPanel>
-                            </AccordionItem>
-                        ))}
+                        .filter(([_advancedGroupName, options]) =>
+                            options.some((option) => isOptionVisible(option)),
+                        )
+                        .map(
+                            ([advancedGroupName, options], groupIndex) =>
+                                shouldShowGroup(advancedGroupName) && (
+                                    <AccordionItem
+                                        value={advancedGroupName}
+                                        key={groupIndex}
+                                        className={accordionStyles.accordionItem}>
+                                        <AccordionHeader>{advancedGroupName}</AccordionHeader>
+                                        <AccordionPanel>
+                                            {options
+                                                .filter((option) => isOptionVisible(option))
+                                                .map(
+                                                    (option, idx) =>
+                                                        shouldShowComponent(
+                                                            option.propertyName,
+                                                        ) && (
+                                                            <FormField<
+                                                                BackupDatabaseFormState,
+                                                                BackupDatabaseState,
+                                                                BackupDatabaseFormItemSpec,
+                                                                BackupDatabaseProvider
+                                                            >
+                                                                key={idx}
+                                                                context={context}
+                                                                component={option}
+                                                                idx={idx}
+                                                            />
+                                                        ),
+                                                )}
+                                        </AccordionPanel>
+                                    </AccordionItem>
+                                ),
+                        )}
                 </Accordion>
             </DrawerBody>
         </OverlayDrawer>

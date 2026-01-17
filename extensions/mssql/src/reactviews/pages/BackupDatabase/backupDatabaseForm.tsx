@@ -340,6 +340,36 @@ export const BackupDatabaseForm: React.FC = () => {
             );
         });
 
+    const renderMediaFields = () =>
+        Object.values(formComponents)
+            .filter((component) => component.groupName == locConstants.backupDatabase.media)
+            .map((component, index) => (
+                <div
+                    key={index}
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
+                    <FormField<
+                        BackupDatabaseFormState,
+                        BackupDatabaseState,
+                        BackupDatabaseFormItemSpec,
+                        BackupDatabaseProvider
+                    >
+                        context={context}
+                        component={component}
+                        idx={index}
+                    />
+                </div>
+            ));
+
     const handleSubmit = async () => {
         await context.backupDatabase();
     };
@@ -506,6 +536,7 @@ export const BackupDatabaseForm: React.FC = () => {
                                 </div>
                             </div>
                         </Field>
+                        {!state.formComponents["mediaSet"]?.isAdvancedOption && renderMediaFields()}
                     </div>
                 )}
             </div>

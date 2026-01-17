@@ -95,7 +95,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             nodeStatus: this.databaseNode.nodeStatus,
         };
 
-        this.state.ownerUri = this.databaseNode.sessionId;
+        this.state.ownerUri = `${this.databaseNode.sessionId}_database:${this.databaseNode.label.toString()}`;
 
         const backupConfigInfo = (
             await this.objectManagementService.getBackupConfigInfo(this.databaseNode.sessionId)
@@ -190,11 +190,18 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                     // Reload necessary dependent components
                     state = this.reloadAzureComponents(state, payload.event.propertyName);
                 }
-                state.formErrors = await this.validateForm(
+                const formErrors = await this.validateForm(
                     state.formState,
                     payload.event.propertyName,
-                    payload.event.updateValidation,
+                    true,
                 );
+                if (formErrors.length > 0) {
+                    state.formErrors.push(payload.event.propertyName);
+                } else {
+                    state.formErrors = state.formErrors.filter(
+                        (e) => e !== payload.event.propertyName,
+                    );
+                }
             }
             return state;
         });
@@ -211,6 +218,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         this.registerReducer("setSaveLocation", async (state, payload) => {
             state.saveToUrl = payload.saveToUrl;
+            state.formErrors = [];
             return state;
         });
 
@@ -218,6 +226,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             state.backupFiles = state.backupFiles.filter(
                 (file) => file.filePath !== payload.filePath,
             );
+            state = this.setMediaOptionsIfExistingFiles(state);
             return state;
         });
 
@@ -260,12 +269,16 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
             state.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
 
-            state.formErrors = await this.validateForm(
+            const formErrors = await this.validateForm(
                 state.formState,
                 payload.componentName as keyof BackupDatabaseFormState,
                 true,
             );
-
+            if (formErrors.length > 0) {
+                state.formErrors.push(payload.componentName);
+            } else {
+                state.formErrors = state.formErrors.filter((e) => e !== payload.componentName);
+            }
             return state;
         });
 
@@ -293,6 +306,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                     isExisting: isExisting,
                 });
             }
+
+            state = this.setMediaOptionsIfExistingFiles(state);
+
             return state;
         });
     }
@@ -552,6 +568,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 options: this.getMediaSetOptions(),
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
+                validate(state, value) {
+                    const isValid =
+                        !state.backupFiles.some((file) => file.isExisting) ||
+                        value === MediaSet.Create;
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.pleaseChooseValidMediaOption,
+                    };
+                },
             }),
 
             mediaSetName: createFormItem({
@@ -560,6 +587,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.newMediaSetName,
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
+                validate(state, value) {
+                    const isValid =
+                        !state.backupFiles.some((file) => file.isExisting) ||
+                        value.toString().trim() !== "";
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.mediaSetNameIsRequired,
+                    };
+                },
             }),
 
             mediaSetDescription: createFormItem({
@@ -568,6 +606,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 label: LocConstants.BackupDatabase.newMediaSetDescription,
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
+                validate(state, value) {
+                    const isValid =
+                        !state.backupFiles.some((file) => file.isExisting) ||
+                        value.toString().trim() !== "";
+                    return {
+                        isValid: isValid,
+                        validationMessage: isValid
+                            ? ""
+                            : LocConstants.BackupDatabase.mediaSetDescriptionIsRequired,
+                    };
+                },
             }),
 
             performChecksum: createFormItem({
@@ -681,21 +730,64 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         ];
     }
 
-    private getMediaSetOptions(): FormItemOptions[] {
+    private getMediaSetOptions(isCreate?: boolean): FormItemOptions[] {
         return [
             {
                 displayName: LocConstants.BackupDatabase.append,
                 value: MediaSet.Append,
+                color: isCreate ? "colorNeutralForegroundDisabled" : "",
+                description: isCreate
+                    ? LocConstants.BackupDatabase.unavailableForBackupsToExistingFiles
+                    : "",
+                icon: isCreate ? "Warning20Regular" : "",
             },
             {
                 displayName: LocConstants.BackupDatabase.overwrite,
                 value: MediaSet.Overwrite,
+                color: isCreate ? "colorNeutralForegroundDisabled" : "",
+                description: isCreate
+                    ? LocConstants.BackupDatabase.unavailableForBackupsToExistingFiles
+                    : "",
+                icon: isCreate ? "Warning20Regular" : "",
             },
             {
                 displayName: LocConstants.BackupDatabase.create,
                 value: MediaSet.Create,
             },
         ];
+    }
+
+    private setMediaOptionsIfExistingFiles(state: BackupDatabaseState): BackupDatabaseState {
+        const mediaSetComponent = state.formComponents["mediaSet"];
+        const mediaSetNameComponent = state.formComponents["mediaSetName"];
+        const mediaSetDescriptionComponent = state.formComponents["mediaSetDescription"];
+
+        const setByExistingFiles = !mediaSetComponent.isAdvancedOption;
+
+        if (state.backupFiles.some((file) => file.isExisting)) {
+            state.formState.mediaSet = MediaSet.Create;
+            mediaSetComponent.isAdvancedOption = false;
+            mediaSetComponent.options = this.getMediaSetOptions(true);
+
+            mediaSetNameComponent.isAdvancedOption = false;
+            mediaSetNameComponent.required = true;
+
+            mediaSetDescriptionComponent.isAdvancedOption = false;
+            mediaSetDescriptionComponent.required = true;
+        } else {
+            if (setByExistingFiles) {
+                state.formState.mediaSet = MediaSet.Append;
+            }
+            mediaSetComponent.isAdvancedOption = true;
+            mediaSetComponent.options = this.getMediaSetOptions();
+
+            mediaSetNameComponent.isAdvancedOption = true;
+            mediaSetNameComponent.required = false;
+
+            mediaSetDescriptionComponent.isAdvancedOption = true;
+            mediaSetDescriptionComponent.required = false;
+        }
+        return state;
     }
 
     private getTransactionLogOptions(): FormItemOptions[] {

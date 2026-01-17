@@ -1441,6 +1441,9 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             folderPathRequired: l10n.t("Folder path is required"),
             fileNameRequired: l10n.t("File name is required"),
+            transactionLog: l10n.t("Transaction Log"),
+            encryption: l10n.t("Encryption"),
+            media: l10n.t("Media"),
         };
     }
 
