@@ -414,6 +414,37 @@ export const BackupDatabaseForm: React.FC = () => {
         }
     };
 
+    const shouldDisableBackupButton = () => {
+        const isUrlBackup = state.saveToUrl;
+
+        const requiredComponents = Object.values(formComponents).filter((component) => {
+            if (!component.required) {
+                return false;
+            }
+
+            return isUrlBackup ? component.groupName === url : component.groupName !== url;
+        });
+
+        const hasMissingRequiredValue = requiredComponents.some((component) => {
+            const value = state.formState[component.propertyName as keyof typeof state.formState];
+            return value === undefined || value === null || value === "";
+        });
+
+        const hasFormErrors = state.formErrors.length > 0;
+        const hasNoBackupFiles = !isUrlBackup && state.backupFiles.length === 0;
+        const hasFileErrors = !isUrlBackup && fileErrors.length > 0;
+        const isAzureNotReady =
+            isUrlBackup && state.azureComponentStatuses["blobContainerId"] !== ApiStatus.Loaded;
+
+        return (
+            hasMissingRequiredValue ||
+            hasFormErrors ||
+            hasNoBackupFiles ||
+            hasFileErrors ||
+            isAzureNotReady
+        );
+    };
+
     return (
         <div className={classes.outerDiv}>
             <div className={classes.formDiv}>
@@ -568,14 +599,7 @@ export const BackupDatabaseForm: React.FC = () => {
                         <Button
                             className={classes.button}
                             type="submit"
-                            disabled={
-                                state.formErrors.length > 0 || // disable if there are form errors
-                                (!state.saveToUrl && state.backupFiles.length === 0) || // disable if no backup files selected and backing up to disk
-                                (!state.saveToUrl && fileErrors.length > 0) || // disable if there are file errors and backing up to disk
-                                (state.saveToUrl &&
-                                    state.azureComponentStatuses["blobContainerId"] !==
-                                        ApiStatus.Loaded) // disable if backup is to url and the azure components aren't loaded
-                            }
+                            disabled={shouldDisableBackupButton()}
                             onClick={() => handleSubmit()}
                             appearance="primary">
                             {locConstants.backupDatabase.backup}

@@ -182,16 +182,14 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                     // Reload necessary dependent components
                     state = this.reloadAzureComponents(state, payload.event.propertyName);
                 }
-                const formErrors = await this.validateForm(
-                    state.formState,
-                    payload.event.propertyName,
-                    true,
-                );
-                if (formErrors.length > 0) {
+                const componentFormError = (
+                    await this.validateForm(state.formState, payload.event.propertyName, true)
+                )[0];
+                if (componentFormError) {
                     state.formErrors.push(payload.event.propertyName);
                 } else {
                     state.formErrors = state.formErrors.filter(
-                        (e) => e !== payload.event.propertyName,
+                        (formError) => formError !== payload.event.propertyName,
                     );
                 }
             }
@@ -261,16 +259,6 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
             state.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
 
-            const formErrors = await this.validateForm(
-                state.formState,
-                payload.componentName as keyof BackupDatabaseFormState,
-                true,
-            );
-            if (formErrors.length > 0) {
-                state.formErrors.push(payload.componentName);
-            } else {
-                state.formErrors = state.formErrors.filter((e) => e !== payload.componentName);
-            }
             return state;
         });
 
