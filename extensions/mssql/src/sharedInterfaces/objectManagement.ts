@@ -206,7 +206,8 @@ export class BackupDatabaseState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
-    databaseNode: BackupDatabaseNode = {} as BackupDatabaseNode;
+    ownerUri: string = "";
+    databaseName: string = "";
     formState: BackupDatabaseFormState = {} as BackupDatabaseFormState;
     formComponents: Partial<Record<keyof BackupDatabaseFormState, BackupDatabaseFormItemSpec>> = {};
     formErrors: string[] = [];
@@ -228,7 +229,6 @@ export class BackupDatabaseState
     fileBrowserState: FileBrowserState | undefined;
     defaultFileBrowserExpandPath: string = "";
     dialog: IDialogProps | undefined;
-    ownerUri: string = "";
 }
 
 export interface BackupDatabaseNode {

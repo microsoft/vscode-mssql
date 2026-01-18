@@ -1342,6 +1342,7 @@ export default class MainController implements vscode.Disposable {
                 async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    console.log(this._connectionMgr.getConnectionInfoFromUri("test"));
 
                     if (
                         databaseName !== connectionCredentials.database &&
@@ -1673,15 +1674,38 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdBackupDatabase,
                     async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        let ownerUri = node.sessionId;
+                        if (node.nodeType === Constants.databaseString) {
+                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
+
+                            // Create a new temp connection for the database if we are not already connected
+                            await this.connectionManager.connect(databaseConnectionUri, {
+                                ...node.connectionProfile,
+                                database: databaseName,
+                            });
+
+                            ownerUri = databaseConnectionUri;
+                        }
+
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
                             this.objectManagementService,
                             this.fileBrowserService,
                             this.azureBlobService,
-                            node,
+                            ownerUri,
+                            databaseName,
                         );
                         reactPanel.revealToForeground();
+
+                        // Disconnect the temp database connection when the backup panel is closed
+                        reactPanel.onDisposed(() => {
+                            if (ownerUri !== node.sessionId) {
+                                this.connectionManager.disconnect(ownerUri);
+                            }
+                        });
                     },
                 ),
             );

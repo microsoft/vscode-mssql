@@ -757,7 +757,7 @@
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && mssql.experimentalFeaturesEnabled"
+                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/ && mssql.experimentalFeaturesEnabled"
                 }
             ],
             "commandPalette": [

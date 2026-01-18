@@ -427,7 +427,7 @@ export const BackupDatabaseForm: React.FC = () => {
                                 ? databaseIconLight
                                 : databaseIconDark
                         }
-                        alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                        alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseName}`}
                         height={60}
                         width={60}
                     />
@@ -437,7 +437,7 @@ export const BackupDatabaseForm: React.FC = () => {
                             lineHeight: "60px",
                         }}
                         weight="medium">
-                        {`${locConstants.backupDatabase.backup} - ${context.state.databaseNode.label}`}
+                        {`${locConstants.backupDatabase.backup} - ${context.state.databaseName}`}
                     </Text>
                 </div>
                 {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (

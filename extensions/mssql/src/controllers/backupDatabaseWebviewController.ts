@@ -26,7 +26,6 @@ import {
     PhysicalDeviceType,
 } from "../sharedInterfaces/objectManagement";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FormWebviewController } from "../forms/formWebviewController";
 import * as LocConstants from "../constants/locConstants";
 import { TaskExecutionMode } from "../sharedInterfaces/task";
@@ -65,7 +64,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         private objectManagementService: ObjectManagementService,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
-        private databaseNode: TreeNodeInfo,
+        private ownerUri: string,
+        private databaseName: string,
     ) {
         super(
             context,
@@ -74,9 +74,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             "backupDatabase",
             new BackupDatabaseState(),
             {
-                title: LocConstants.BackupDatabase.backupDatabaseTitle(
-                    databaseNode.label.toString(),
-                ),
+                title: LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
                 viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
@@ -88,17 +86,11 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     }
 
     private async initialize() {
-        this.state.databaseNode = {
-            label: this.databaseNode.label.toString(),
-            nodeUri: this.databaseNode.sessionId,
-            nodePath: this.databaseNode.nodePath,
-            nodeStatus: this.databaseNode.nodeStatus,
-        };
-
-        this.state.ownerUri = `${this.databaseNode.sessionId}_database:${this.databaseNode.label.toString()}`;
+        this.state.databaseName = this.databaseName;
+        this.state.ownerUri = this.ownerUri;
 
         const backupConfigInfo = (
-            await this.objectManagementService.getBackupConfigInfo(this.databaseNode.sessionId)
+            await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
         )?.backupConfigInfo;
         this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
         this.state.backupEncryptors = backupConfigInfo.backupEncryptors;
@@ -313,9 +305,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         });
     }
 
-    private getDefaultBackupFileName(state): string {
+    private getDefaultBackupFileName(state: BackupDatabaseState): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
-        let name = this.databaseNode.label.toString();
+        let name = state.databaseName;
         if (newFiles.length > 0) {
             name += `_${newFiles.length}`;
         }
@@ -381,7 +373,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         }
 
         const backupInfo: BackupInfo = {
-            databaseName: this.databaseNode.label.toString(),
+            databaseName: state.databaseName,
             backupType: getBackupTypeNumber(state.formState.backupType),
             backupComponent: BackupComponent.Database, // always database for this scenario
             backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
@@ -407,11 +399,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             encryptorType: encryptor.encryptorType,
             encryptorName: encryptor.encryptorName,
         };
-        return this.objectManagementService.backupDatabase(
-            state.databaseNode.nodeUri,
-            backupInfo,
-            mode,
-        );
+        return this.objectManagementService.backupDatabase(state.ownerUri, backupInfo, mode);
     }
 
     //#region Form Helpers
@@ -697,7 +685,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         ];
 
         // If the database is not master, then add Differential option
-        if (this.databaseNode.label.toString() !== defaultDatabase) {
+        if (this.state.databaseName !== defaultDatabase) {
             backupTypeOptions.push({
                 displayName: LocConstants.BackupDatabase.differential,
                 value: BackupType.Differential,
