@@ -547,7 +547,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
         <source xml:lang="en">Browse</source>
-        <target state="new">Browse</target>
+        <target state="translated">Explorar</target>
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
@@ -1330,7 +1330,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
         <source xml:lang="en">Copy command to clipboard</source>
-        <target state="new">Copy command to clipboard</target>
+        <target state="translated">Copiar el comando en el Portapapeles</target>
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
@@ -4216,7 +4216,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
         <source xml:lang="en">Ready</source>
-        <target state="new">Ready</target>
+        <target state="translated">Listo</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -5177,7 +5177,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
         <source xml:lang="en">Status</source>
-        <target state="new">Status</target>
+        <target state="translated">Estado</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
