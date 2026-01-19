@@ -1318,6 +1318,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.profiler.launch",
+                "title": "Launch Profiler",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.openAzureDataStudioMigration",
                 "title": "%mssql.openAzureDataStudioMigration%",
                 "category": "MS SQL"

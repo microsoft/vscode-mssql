@@ -2499,3 +2499,80 @@ export class Proxy {
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
 }
+
+export class Profiler {
+    public static failedToLaunchProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to launch profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noSavedConnections = l10n.t("No saved connections found. Please create a connection first.");
+
+    public static failedToConnect = l10n.t("Failed to connect to the server.");
+
+    public static connectionError = (error: string) =>
+        l10n.t({
+            message: "Connection error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noConnectionAvailable = l10n.t("No connection available. Please connect to a server first.");
+
+    public static failedToStartProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to start profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noTemplatesAvailable = l10n.t("No profiler templates available.");
+
+    public static engineLabel = (engineType: string) =>
+        l10n.t({
+            message: "Engine: {0}",
+            args: [engineType],
+            comment: ["{0} is the engine type"],
+        });
+
+    public static selectTemplate = l10n.t("Select a profiler template");
+
+    public static newSessionSelectTemplate = l10n.t("New Profiler Session: Select Template");
+
+    public static enterSessionName = l10n.t("Enter a name for the profiler session");
+
+    public static sessionNamePlaceholder = l10n.t("e.g., MyProfilerSession");
+
+    public static newSessionEnterName = l10n.t("New Profiler Session: Enter Name");
+
+    public static sessionNameEmpty = l10n.t("Session name cannot be empty.");
+
+    public static sessionNameTooLong = (maxLength: number) =>
+        l10n.t({
+            message: "Session name cannot exceed {0} characters.",
+            args: [maxLength],
+            comment: ["{0} is the maximum length"],
+        });
+
+    public static sessionNameInvalidChars = l10n.t(
+        "Session name contains invalid characters. Please use only letters, numbers, spaces, hyphens, and underscores.",
+    );
+
+    public static sessionCreationTimedOut = l10n.t("Session creation timed out.");
+
+    public static sessionCreatedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' created successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+
+    public static failedToCreateSession = (error: string) =>
+        l10n.t({
+            message: "Failed to create profiler session: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+}

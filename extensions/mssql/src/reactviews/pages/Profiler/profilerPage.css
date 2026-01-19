@@ -1,0 +1,159 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.profiler-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Toolbar styles */
+.profiler-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
+    flex-shrink: 0;
+}
+
+.profiler-toolbar-view-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+}
+
+.profiler-toolbar-label {
+    font-size: 12px;
+    color: var(--vscode-foreground);
+}
+
+.profiler-toolbar-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    padding-left: 16px;
+}
+
+.profiler-toolbar-session-name {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profiler-toolbar-status {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+}
+
+.profiler-toolbar-event-count {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Grid container */
+.profiler-grid-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+    margin: 8px;
+    margin-top: 0;
+    width: calc(100% - 16px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* SlickGrid theme variables using --slick- prefix for proper dark mode support */
+#profilerGrid {
+    /* Main grid colors */
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-grid-header-background: var(--vscode-editor-background);
+    --slick-grid-header-text-color: var(--vscode-foreground);
+    --slick-grid-header-column-width: auto;
+    --slick-header-row-border-color: var(--vscode-panel-border);
+
+    /* Border colors */
+    --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-left: 0;
+
+    /* Column picker colors */
+    --slick-column-picker-background-color: var(--vscode-menu-background);
+    --slick-column-picker-item-color: var(--vscode-menu-foreground);
+    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-column-picker-border-color: var(--vscode-menu-border);
+
+    /* Scrollbar colors */
+    --slick-scrollbar-background: var(--vscode-scrollbar-background);
+    --slick-scrollbar-thumb-background: var(--vscode-scrollbarSlider-background);
+    --slick-scrollbar-thumb-hover-background: var(--vscode-scrollbarSlider-hoverBackground);
+    --slick-scrollbar-thumb-active-background: var(--vscode-scrollbarSlider-activeBackground);
+
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Auto-hide scrollbars when not needed */
+#profilerGrid .slick-viewport {
+    overflow: auto !important;
+}
+
+/* Ensure internal grid structure fills container */
+#profilerGrid .slick-pane {
+    flex: 1;
+}
+
+#profilerGrid .slick-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide scrollbars when content fits */
+#profilerGrid .slick-viewport::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    border-radius: 7px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+}
+
+
