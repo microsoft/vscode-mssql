@@ -1844,6 +1844,10 @@
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
+      <source xml:lang="en">Failed to open XEL file: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
@@ -3744,6 +3748,9 @@
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++4038481a4f47ff6cd0e2588e478445f51b534f9dff846e347054f4513d632576">
+      <source xml:lang="en">Select XEL File to Open</source>
+    </trans-unit>
     <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
       <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
     </trans-unit>
@@ -4568,6 +4575,14 @@
     </trans-unit>
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d54d8b04a95544dcb95541710cf0a9c8ca786d27f921116d7fbf44fe6d80b372">
+      <source xml:lang="en">XEL file &apos;{0}&apos; opened successfully</source>
+      <note>{0} is the file name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7b99adde1eb29c82fcc2852bf3ce4854ce096a7781ab842e954f73ab67b389b7">
+      <source xml:lang="en">XEL file session error: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
