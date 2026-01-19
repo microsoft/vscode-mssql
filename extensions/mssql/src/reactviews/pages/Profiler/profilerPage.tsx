@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import {
-    SlickgridReact,
-    SlickgridReactInstance,
-    Column,
-    GridOption,
-} from "slickgrid-react";
+import { SlickgridReact, SlickgridReactInstance, Column, GridOption } from "slickgrid-react";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
@@ -37,9 +32,7 @@ let notificationHandlersRegistered = false;
 export const ProfilerPage: React.FC = () => {
     const totalRowCount = useProfilerSelector((s) => s.totalRowCount ?? 0);
     const clearGeneration = useProfilerSelector((s) => s.clearGeneration ?? 0);
-    const sessionState = useProfilerSelector(
-        (s) => s.sessionState ?? SessionState.NotStarted,
-    );
+    const sessionState = useProfilerSelector((s) => s.sessionState ?? SessionState.NotStarted);
     const viewConfig = useProfilerSelector((s) => s.viewConfig);
     const viewId = useProfilerSelector((s) => s.viewId);
     const availableViews = useProfilerSelector((s) => s.availableViews);
@@ -301,7 +294,7 @@ export const ProfilerPage: React.FC = () => {
     const handleNewSession = () => {
         // The extension will handle showing quick picks for template and session name
         // We just need to signal that the user wants to create a new session
-        createSession("", ""); // Empty values signal to extension to show quick picks
+        void createSession("", ""); // Empty values signal to extension to show quick picks
     };
 
     const handleSelectSession = (sessionId: string) => {
@@ -310,16 +303,16 @@ export const ProfilerPage: React.FC = () => {
 
     const handleStart = () => {
         if (selectedSessionId) {
-            startSession(selectedSessionId);
+            void startSession(selectedSessionId);
         }
     };
 
     const handlePauseResume = () => {
-        pauseResume();
+        void pauseResume();
     };
 
     const handleStop = () => {
-        stop();
+        void stop();
     };
 
     const handleClear = () => {
@@ -327,7 +320,7 @@ export const ProfilerPage: React.FC = () => {
     };
 
     const handleViewChange = (newViewId: string) => {
-        changeView(newViewId);
+        void changeView(newViewId);
     };
 
     const handleAutoScrollToggle = () => {

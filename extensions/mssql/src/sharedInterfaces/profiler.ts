@@ -194,4 +194,3 @@ export namespace ProfilerNotifications {
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
 }
- 

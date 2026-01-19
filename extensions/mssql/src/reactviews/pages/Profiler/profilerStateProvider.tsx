@@ -53,22 +53,34 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         extensionRpc?.action("stop", {});
     }, [extensionRpc]);
 
-    const createSession = useCallback(async (templateId: string, sessionName: string) => {
-        extensionRpc?.action("createSession", { templateId, sessionName });
-    }, [extensionRpc]);
+    const createSession = useCallback(
+        async (templateId: string, sessionName: string) => {
+            extensionRpc?.action("createSession", { templateId, sessionName });
+        },
+        [extensionRpc],
+    );
 
-    const startSession = useCallback(async (sessionId: string) => {
-        extensionRpc?.action("startSession", { sessionId });
-    }, [extensionRpc]);
+    const startSession = useCallback(
+        async (sessionId: string) => {
+            extensionRpc?.action("startSession", { sessionId });
+        },
+        [extensionRpc],
+    );
 
-    const selectSession = useCallback((sessionId: string) => {
-        extensionRpc?.action("selectSession", { sessionId });
-    }, [extensionRpc]);
+    const selectSession = useCallback(
+        (sessionId: string) => {
+            extensionRpc?.action("selectSession", { sessionId });
+        },
+        [extensionRpc],
+    );
 
-    const clearEvents = useCallback((localRowCount: number) => {
-        // Clear events from 0 to localRowCount in the RingBuffer
-        extensionRpc?.action("clearEvents", { localRowCount });
-    }, [extensionRpc]);
+    const clearEvents = useCallback(
+        (localRowCount: number) => {
+            // Clear events from 0 to localRowCount in the RingBuffer
+            extensionRpc?.action("clearEvents", { localRowCount });
+        },
+        [extensionRpc],
+    );
 
     const changeView = useCallback(
         async (viewId: string) => {
@@ -101,8 +113,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
-            }}
-        >
+            }}>
             {children}
         </ProfilerContext.Provider>
     );

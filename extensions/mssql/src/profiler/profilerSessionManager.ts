@@ -258,14 +258,14 @@ export class ProfilerSessionManager {
      * @param sessionId - The session ID to remove
      * @returns True if the session was removed, false if not found
      */
-    removeSession(sessionId: string): boolean {
+    async removeSession(sessionId: string): Promise<boolean> {
         const session = this._sessions.get(sessionId);
         if (!session) {
             return false;
         }
 
         // Dispose the session
-        session.dispose();
+        await session.dispose();
 
         this._ownerUriIndex.delete(session.ownerUri);
         this._sessions.delete(sessionId);
@@ -277,7 +277,7 @@ export class ProfilerSessionManager {
      * @param ownerUri - The connection URI
      * @returns True if the session was removed, false if not found
      */
-    removeSessionByOwnerUri(ownerUri: string): boolean {
+    async removeSessionByOwnerUri(ownerUri: string): Promise<boolean> {
         const sessionId = this._ownerUriIndex.get(ownerUri);
         if (!sessionId) {
             return false;

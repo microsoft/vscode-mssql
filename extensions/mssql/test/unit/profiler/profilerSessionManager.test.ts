@@ -68,8 +68,8 @@ suite("ProfilerSessionManager Tests", () => {
         manager = new ProfilerSessionManager(mockProfilerService);
     });
 
-    teardown(() => {
-        manager.dispose();
+    teardown(async () => {
+        await manager.dispose();
     });
 
     suite("sessions property", () => {
@@ -194,33 +194,33 @@ suite("ProfilerSessionManager Tests", () => {
     });
 
     suite("removeSession", () => {
-        test("should remove session by ID", () => {
+        test("should remove session by ID", async () => {
             manager.createSession(defaultOptions);
 
-            const result = manager.removeSession("session-1");
+            const result = await manager.removeSession("session-1");
 
             expect(result).to.be.true;
             expect(manager.sessionCount).to.equal(0);
         });
 
-        test("should return false for non-existent session", () => {
-            const result = manager.removeSession("non-existent");
+        test("should return false for non-existent session", async () => {
+            const result = await manager.removeSession("non-existent");
             expect(result).to.be.false;
         });
 
-        test("should dispose session when removing", () => {
+        test("should dispose session when removing", async () => {
             const session = manager.createSession(defaultOptions);
             session.start();
 
-            manager.removeSession("session-1");
+            await manager.removeSession("session-1");
 
             // Session is disposed (handlers cleaned up) - we can verify the session is no longer in the manager
             expect(manager.hasSession("session-1")).to.be.false;
         });
 
-        test("should remove ownerUri index", () => {
+        test("should remove ownerUri index", async () => {
             manager.createSession(defaultOptions);
-            manager.removeSession("session-1");
+            await manager.removeSession("session-1");
 
             const session = manager.getSessionByOwnerUri(defaultOptions.ownerUri);
             expect(session).to.be.undefined;
@@ -228,17 +228,17 @@ suite("ProfilerSessionManager Tests", () => {
     });
 
     suite("removeSessionByOwnerUri", () => {
-        test("should remove session by ownerUri", () => {
+        test("should remove session by ownerUri", async () => {
             manager.createSession(defaultOptions);
 
-            const result = manager.removeSessionByOwnerUri(defaultOptions.ownerUri);
+            const result = await manager.removeSessionByOwnerUri(defaultOptions.ownerUri);
 
             expect(result).to.be.true;
             expect(manager.sessionCount).to.equal(0);
         });
 
-        test("should return false for non-existent ownerUri", () => {
-            const result = manager.removeSessionByOwnerUri("non-existent");
+        test("should return false for non-existent ownerUri", async () => {
+            const result = await manager.removeSessionByOwnerUri("non-existent");
             expect(result).to.be.false;
         });
     });
@@ -410,7 +410,7 @@ suite("ProfilerSessionManager Tests", () => {
     });
 
     suite("clear", () => {
-        test("should remove all sessions", () => {
+        test("should remove all sessions", async () => {
             manager.createSession(defaultOptions);
             manager.createSession({
                 ...defaultOptions,
@@ -418,16 +418,16 @@ suite("ProfilerSessionManager Tests", () => {
                 ownerUri: "profiler://test/connection2",
             });
 
-            manager.clear();
+            await manager.clear();
 
             expect(manager.sessionCount).to.equal(0);
         });
 
-        test("should dispose all sessions when clearing", () => {
+        test("should dispose all sessions when clearing", async () => {
             const session = manager.createSession(defaultOptions);
             session.start();
 
-            manager.clear();
+            await manager.clear();
 
             // Sessions are disposed and removed
             expect(manager.sessionCount).to.equal(0);
@@ -435,10 +435,10 @@ suite("ProfilerSessionManager Tests", () => {
     });
 
     suite("dispose", () => {
-        test("should clear all sessions", () => {
+        test("should clear all sessions", async () => {
             manager.createSession(defaultOptions);
 
-            manager.dispose();
+            await manager.dispose();
 
             expect(manager.sessionCount).to.equal(0);
         });
