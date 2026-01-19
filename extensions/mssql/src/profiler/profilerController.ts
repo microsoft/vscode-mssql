@@ -544,7 +544,6 @@ export class ProfilerController {
 
             // Set up the webview controller with the session reference
             webviewController.setCurrentSession(session);
-            webviewController.setReadOnlyMode(true); // Mark as read-only in UI
 
             // Set up event handlers on the session
             session.onEventsReceived((events) => {

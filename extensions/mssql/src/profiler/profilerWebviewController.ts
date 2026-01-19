@@ -377,6 +377,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 sessionState,
                 sessionName: session.sessionName,
                 totalRowCount: session.events.size, // Reset to actual buffer size
+                readOnly: session.readOnly, // Set readOnly from session property
             };
         } else {
             this.state = {
@@ -385,6 +386,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 sessionState: SessionState.NotStarted,
                 sessionName: undefined,
                 totalRowCount: 0,
+                readOnly: false, // Clear readOnly when no session
             };
         }
         this.updateStatusBar();
@@ -630,16 +632,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.state = {
             ...this.state,
             selectedSessionId: sessionId,
-        };
-    }
-
-    /**
-     * Set the read-only mode for file-based sessions
-     */
-    public setReadOnlyMode(readOnly: boolean): void {
-        this.state = {
-            ...this.state,
-            readOnly: readOnly,
         };
     }
 }
