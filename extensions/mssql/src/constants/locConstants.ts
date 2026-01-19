@@ -2558,6 +2558,27 @@ export class Profiler {
             comment: ["{0} is the session name"],
         });
 
+    // XEL file support
+    public static selectXelFileTitle = l10n.t("Select XEL File to Open");
+    public static failedToOpenXelFile = (error: string) =>
+        l10n.t({
+            message: "Failed to open XEL file: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static xelFileOpened = (fileName: string) =>
+        l10n.t({
+            message: "XEL file '{0}' opened successfully",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileSessionError = (errorMessage: string) =>
+        l10n.t({
+            message: "XEL file session error: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
     // Status bar
     public static statusBarNoSession = l10n.t("Profiler: No session");
     public static statusBarTooltip = l10n.t("Profiler Session Status");

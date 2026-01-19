@@ -41,6 +41,7 @@ export const ProfilerPage: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const readOnly = useProfilerSelector((s) => s.readOnly ?? false);
 
     const {
         pauseResume,
@@ -338,6 +339,7 @@ export const ProfilerPage: React.FC = () => {
                 selectedSessionId={selectedSessionId}
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
+                readOnly={readOnly}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}

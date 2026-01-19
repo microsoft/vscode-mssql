@@ -106,6 +106,8 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
+    /** Whether the session is read-only (file-based) */
+    readOnly?: boolean;
 }
 
 /**

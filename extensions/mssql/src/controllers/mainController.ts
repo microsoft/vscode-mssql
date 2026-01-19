@@ -645,6 +645,17 @@ export default class MainController implements vscode.Disposable {
             );
             vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
+            // Register XEL file custom editor provider
+            const xelProviderInstance = new this.ProfilerXelCustomEditorProvider(
+                this._context,
+                this._vscodeWrapper,
+                this.profilerController,
+            );
+            vscode.window.registerCustomEditorProvider(
+                "mssql.profilerXelView",
+                xelProviderInstance,
+            );
+
             const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
@@ -2983,6 +2994,32 @@ export default class MainController implements vscode.Disposable {
                 planContents,
                 docName,
             );
+        }
+    };
+
+    private ProfilerXelCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
+        constructor(
+            public context: vscode.ExtensionContext,
+            public vscodeWrapper: VscodeWrapper,
+            public profilerController: ProfilerController,
+        ) {
+            this.context = context;
+            this.vscodeWrapper = vscodeWrapper;
+            this.profilerController = profilerController;
+        }
+
+        public async resolveCustomTextEditor(document: vscode.TextDocument): Promise<void> {
+            await this.onOpenXelFile(document);
+        }
+
+        public async onOpenXelFile(document: vscode.TextDocument) {
+            const filePath = document.uri.fsPath;
+
+            // Close the text editor
+            vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+
+            // Launch profiler for the file
+            await this.profilerController.launchProfilerForFile(filePath);
         }
     };
 }

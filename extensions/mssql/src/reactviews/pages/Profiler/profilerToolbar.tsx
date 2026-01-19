@@ -44,6 +44,8 @@ export interface ProfilerToolbarProps {
     autoScroll: boolean;
     /** Whether a session is being created */
     isCreatingSession?: boolean;
+    /** Whether the session is read-only (file-based) */
+    readOnly?: boolean;
     /** Callback when new session is requested */
     onNewSession: () => void;
     /** Callback when session is selected */
@@ -71,6 +73,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     selectedSessionId,
     autoScroll,
     isCreatingSession,
+    readOnly,
     onNewSession,
     onSelectSession,
     onStart,
@@ -167,7 +170,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         aria-label={loc.stop}
                         icon={<Stop24Regular />}
                         onClick={onStop}
-                        disabled={isStopped}>
+                        disabled={isStopped || readOnly}>
                         {loc.stop}
                     </ToolbarButton>
                 </Tooltip>
@@ -186,7 +189,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         aria-label={isRunning ? loc.pause : loc.resume}
                         icon={pauseResumeIcon}
                         onClick={onPauseResume}
-                        disabled={isStopped}>
+                        disabled={isStopped || readOnly}>
                         {isRunning ? loc.pause : loc.resume}
                     </ToolbarButton>
                 </Tooltip>
@@ -198,7 +201,8 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                     <ToolbarButton
                         aria-label={loc.clear}
                         icon={<EraserRegular />}
-                        onClick={onClear}>
+                        onClick={onClear}
+                        disabled={readOnly}>
                         {loc.clear}
                     </ToolbarButton>
                 </Tooltip>
@@ -241,7 +245,8 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         icon={<ArrowDown24Regular />}
                         checked={autoScroll}
                         onClick={onAutoScrollToggle}
-                        size="small">
+                        size="small"
+                        disabled={readOnly}>
                         {loc.autoScroll}
                     </ToggleButton>
                 </Tooltip>

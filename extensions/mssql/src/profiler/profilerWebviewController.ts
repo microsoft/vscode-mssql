@@ -632,4 +632,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             selectedSessionId: sessionId,
         };
     }
+
+    /**
+     * Set the read-only mode for file-based sessions
+     */
+    public setReadOnlyMode(readOnly: boolean): void {
+        this.state = {
+            ...this.state,
+            readOnly: readOnly,
+        };
+    }
 }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
@@ -44,6 +45,18 @@ export class ProfilerController {
                 } catch (e) {
                     this._logger.error(`Command error: ${e}`);
                     vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+                }
+            }),
+        );
+
+        // Open XEL file command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.profiler.openXelFile", async () => {
+                try {
+                    await this.openXelFile();
+                } catch (e) {
+                    this._logger.error(`Command error: ${e}`);
+                    vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
                 }
             }),
         );
@@ -444,6 +457,155 @@ export class ProfilerController {
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+        }
+    }
+
+    /**
+     * Prompts the user to select a .xel file and opens it in the profiler.
+     */
+    public async openXelFile(): Promise<void> {
+        this._logger.verbose("Opening XEL file...");
+
+        try {
+            // Prompt user to select a .xel file
+            const fileUri = await vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                filters: {
+                    "Extended Events Files": ["xel"],
+                },
+                title: LocProfiler.selectXelFileTitle,
+            });
+
+            if (!fileUri || fileUri.length === 0) {
+                this._logger.verbose("User cancelled file selection");
+                return;
+            }
+
+            const filePath = fileUri[0].fsPath;
+            this._logger.verbose(`Selected XEL file: ${filePath}`);
+
+            // Launch profiler for the file
+            await this.launchProfilerForFile(filePath);
+        } catch (e) {
+            this._logger.error(`Error opening XEL file: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+        }
+    }
+
+    /**
+     * Launches the profiler UI for a specific .xel file.
+     * @param filePath - Path to the .xel file
+     */
+    public async launchProfilerForFile(filePath: string): Promise<void> {
+        this._logger.verbose(`Launching profiler for file: ${filePath}`);
+
+        try {
+            // Extract file name from path for display
+            const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1);
+
+            // Create a unique URI for this file session (no server connection needed)
+            const fileUri = `profiler://file/${Utils.generateGuid()}`;
+            this._logger.verbose(`Created file session URI: ${fileUri}`);
+
+            // Create the webview to display events from the file
+            const webviewController = new ProfilerWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this._sessionManager,
+                [], // No available sessions for file-based profiling
+                fileName, // Display the file name
+                "Standard_OnPrem", // templateId (used for view config)
+            );
+
+            // Track this webview controller
+            const webviewId = Utils.generateGuid();
+            this._webviewControllers.set(webviewId, webviewController);
+
+            // Remove from tracking when disposed
+            const originalDispose = webviewController.dispose.bind(webviewController);
+            webviewController.dispose = () => {
+                this._webviewControllers.delete(webviewId);
+                originalDispose();
+            };
+
+            // Create a ProfilerSession for the file
+            const sessionId = Utils.generateGuid();
+            const session = this._sessionManager.createSession({
+                id: sessionId,
+                ownerUri: fileUri,
+                sessionName: filePath, // Use full path as session name for backend
+                sessionType: SessionType.File,
+                templateName: "File",
+                readOnly: true, // File sessions are always read-only
+            });
+            this._logger.verbose(`Created file session: id=${sessionId}`);
+
+            // Set up the webview controller with the session reference
+            webviewController.setCurrentSession(session);
+            webviewController.setReadOnlyMode(true); // Mark as read-only in UI
+
+            // Set up event handlers on the session
+            session.onEventsReceived((events) => {
+                this._logger.verbose(
+                    `Events received: ${events.length} events from file for session ${sessionId}`,
+                );
+                webviewController.notifyNewEvents(events.length);
+            });
+
+            session.onEventsRemoved((events) => {
+                const sequenceNumbers = events.map((e) => e.eventNumber).join(", ");
+                this._logger.verbose(
+                    `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for session ${sessionId}`,
+                );
+                webviewController.notifyRowsRemoved(events);
+            });
+
+            session.onSessionStopped((errorMessage) => {
+                this._logger.verbose(`File session ${sessionId} stopped notification received`);
+                if (errorMessage) {
+                    this._logger.error(`File session stopped with error: ${errorMessage}`);
+                    vscode.window.showErrorMessage(
+                        LocProfiler.xelFileSessionError(errorMessage),
+                    );
+                }
+                webviewController.setSessionState(SessionState.Stopped);
+            });
+
+            // Set up webview event handlers for toolbar actions
+            webviewController.setEventHandlers({
+                onCreateSession: async () => {
+                    // Allow creating new live sessions from file view
+                    await this.handleCreateSession(webviewController);
+                },
+                onStartSession: async (selectedSessionId: string) => {
+                    // Allow starting live sessions from file view
+                    await this.startSession(selectedSessionId, webviewController);
+                },
+                onPauseResume: async () => {
+                    // No-op for file sessions (read-only)
+                    this._logger.verbose("Pause/Resume not supported for file sessions");
+                },
+                onStop: async () => {
+                    // No-op for file sessions (read-only)
+                    this._logger.verbose("Stop not supported for file sessions");
+                },
+                onViewChange: (viewId: string) => {
+                    this._logger.verbose(`View changed to: ${viewId}`);
+                },
+            });
+
+            // Start reading from the file
+            await this._sessionManager.startProfilingSession(sessionId);
+            webviewController.setSessionState(SessionState.Running);
+            webviewController.setSessionName(fileName);
+
+            this._logger.verbose("File profiler UI created successfully");
+            vscode.window.showInformationMessage(LocProfiler.xelFileOpened(fileName));
+        } catch (e) {
+            this._logger.error(`Error launching profiler for file: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
         }
     }
 

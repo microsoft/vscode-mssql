@@ -328,6 +328,16 @@
                     }
                 ],
                 "priority": "default"
+            },
+            {
+                "viewType": "mssql.profilerXelView",
+                "displayName": "SQL Server Profiler",
+                "selector": [
+                    {
+                        "filenamePattern": "*.xel"
+                    }
+                ],
+                "priority": "default"
             }
         ],
         "languages": [
@@ -1320,6 +1330,11 @@
             {
                 "command": "mssql.profiler.launch",
                 "title": "Launch Profiler",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.openXelFile",
+                "title": "Open XEL File in Profiler",
                 "category": "MS SQL"
             },
             {
