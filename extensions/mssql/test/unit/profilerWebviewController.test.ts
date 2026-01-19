@@ -8,7 +8,7 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { ProfilerWebviewController } from "../../src/controllers/profilerWebviewController";
+import { ProfilerWebviewController } from "../../src/profiler/profilerWebviewController";
 import * as profiler from "../../src/sharedInterfaces/profiler";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";

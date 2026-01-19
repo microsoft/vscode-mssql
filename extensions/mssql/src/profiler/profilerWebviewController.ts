@@ -6,8 +6,8 @@
 import * as profiler from "../sharedInterfaces/profiler";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
+import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export class ProfilerWebviewController extends ReactWebviewPanelController<
     profiler.ProfilerWebviewState,
