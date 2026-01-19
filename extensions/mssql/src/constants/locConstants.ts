@@ -2482,6 +2482,97 @@ export class Changelog {
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
 }
 
+export class Profiler {
+    // Error messages
+    public static failedToLaunchProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to launch profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToStartProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to start profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToCreateSession = (error: string) =>
+        l10n.t({
+            message: "Failed to create profiler session: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static connectionError = (error: string) =>
+        l10n.t({
+            message: "Connection error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToConnect = l10n.t("Failed to connect to the selected server.");
+    public static noConnectionAvailable = l10n.t("No profiler connection available");
+    public static noSavedConnections = l10n.t(
+        "No saved connections found. Please create a connection first.",
+    );
+    public static noTemplatesAvailable = l10n.t("No profiler templates available");
+    public static sessionCreationTimedOut = l10n.t("Session creation timed out");
+
+    // Validation messages
+    public static sessionNameEmpty = l10n.t("Session name cannot be empty");
+    public static sessionNameTooLong = (maxLength: number) =>
+        l10n.t({
+            message: "Session name must be {0} characters or less",
+            args: [maxLength],
+            comment: ["{0} is the maximum length"],
+        });
+    public static sessionNameInvalidChars = l10n.t(
+        "Session name can only contain letters, numbers, underscores, and hyphens",
+    );
+
+    // Quick pick and input prompts
+    public static selectTemplate = l10n.t("Select a profiler template");
+    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static enterSessionName = l10n.t("Enter a name for the new profiler session");
+    public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
+    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static engineLabel = (engineType: string) =>
+        l10n.t({
+            message: "Engine: {0}",
+            args: [engineType],
+            comment: ["{0} is the engine type"],
+        });
+
+    // Success messages
+    public static sessionCreatedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' created successfully. Starting profiling...",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static profilerReady = l10n.t(
+        "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
+    );
+    public static stoppingSession = (sessionName: string) =>
+        l10n.t({
+            message: 'Stopping profiler session "{0}"...',
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+
+    // Status bar
+    public static statusBarNoSession = l10n.t("Profiler: No session");
+    public static statusBarTooltip = l10n.t("Profiler Session Status");
+    public static stateRunning = l10n.t("Running");
+    public static statePaused = l10n.t("Paused");
+    public static stateStopped = l10n.t("Stopped");
+    public static stateNotStarted = l10n.t("Not Started");
+    public static eventsCount = (count: number) =>
+        l10n.t({
+            message: "{0} events",
+            args: [count],
+            comment: ["{0} is the number of events"],
+        });
+}
+
 export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
