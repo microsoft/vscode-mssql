@@ -348,4 +348,60 @@ suite("ProfilerSession Tests", () => {
             expect(session.viewConfig).to.deep.equal(newConfig);
         });
     });
+
+    suite("File Session Tests", () => {
+        const fileSessionOptions: ProfilerSessionOptions = {
+            id: "file-session-1",
+            ownerUri: "profiler://file/test",
+            sessionName: "/test/path/to/events.xel",
+            sessionType: SessionType.File,
+            templateName: "File",
+            readOnly: true,
+        };
+
+        test("should create file session with readOnly flag", () => {
+            // File sessions should return canPause: false
+            (mockProfilerService.startProfiling as sinon.SinonStub).resolves({
+                uniqueSessionId: "test-file-session-id",
+                canPause: false,
+            });
+
+            const session = new ProfilerSession(fileSessionOptions, mockProfilerService);
+
+            expect(session.sessionType).to.equal(SessionType.File);
+            expect(session.readOnly).to.be.true;
+        });
+
+        test("should use LocalFile profiling type when starting file session", async () => {
+            // File sessions should return canPause: false
+            (mockProfilerService.startProfiling as sinon.SinonStub).resolves({
+                uniqueSessionId: "test-file-session-id",
+                canPause: false,
+            });
+
+            const session = new ProfilerSession(fileSessionOptions, mockProfilerService);
+
+            await session.startProfiling();
+
+            expect((mockProfilerService.startProfiling as sinon.SinonStub).calledOnce).to.be.true;
+            const callArgs = (mockProfilerService.startProfiling as sinon.SinonStub).firstCall.args;
+
+            // Third argument should be ProfilingSessionType.LocalFile (value 1)
+            expect(callArgs[2]).to.equal(1); // ProfilingSessionType.LocalFile
+        });
+
+        test("file session should have canPause set to false after starting", async () => {
+            // File sessions should return canPause: false
+            (mockProfilerService.startProfiling as sinon.SinonStub).resolves({
+                uniqueSessionId: "test-file-session-id",
+                canPause: false,
+            });
+
+            const session = new ProfilerSession(fileSessionOptions, mockProfilerService);
+
+            await session.startProfiling();
+
+            expect(session.canPause).to.be.false;
+        });
+    });
 });
