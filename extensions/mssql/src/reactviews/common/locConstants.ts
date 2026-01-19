@@ -1520,6 +1520,56 @@ export class LocConstants {
             close: l10n.t("Close"),
         };
     }
+
+    public get profiler() {
+        return {
+            // Toolbar buttons
+            newSession: l10n.t("New Session"),
+            creatingSession: l10n.t("Creating..."),
+            start: l10n.t("Start"),
+            stop: l10n.t("Stop"),
+            pause: l10n.t("Pause"),
+            resume: l10n.t("Resume"),
+            clear: l10n.t("Clear"),
+            autoScroll: l10n.t("Auto-scroll"),
+
+            // Toolbar labels
+            selectSessionLabel: l10n.t("Select Session:"),
+            viewLabel: l10n.t("View:"),
+            selectASession: l10n.t("Select a session..."),
+
+            // Tooltips
+            creatingSessionTooltip: l10n.t("Creating session..."),
+            createNewSessionTooltip: l10n.t("Create a new profiling session"),
+            noTemplatesAvailableTooltip: l10n.t("No templates available"),
+            selectSessionFirstTooltip: l10n.t("Select a session first"),
+            startSessionTooltip: l10n.t("Start profiling session"),
+            stopSessionTooltip: l10n.t("Stop session"),
+            sessionNotRunningTooltip: l10n.t("Session not running"),
+            pauseEventCollectionTooltip: l10n.t("Pause event collection"),
+            pausedClickToResumeTooltip: l10n.t("Paused - click to resume"),
+            notRunningTooltip: l10n.t("Not running"),
+            clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
+            autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
+            autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+
+            // Session states
+            stateRunning: l10n.t("Running"),
+            statePaused: l10n.t("Paused"),
+            stateStopped: l10n.t("Stopped"),
+            stateNotStarted: l10n.t("Not Started"),
+
+            // Status bar
+            noSession: l10n.t("Profiler: No session"),
+            sessionStatusTooltip: l10n.t("Profiler Session Status"),
+            eventsCount: (count: number) =>
+                l10n.t({
+                    message: "{0} events",
+                    args: [count],
+                    comment: ["{0} is the number of events"],
+                }),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

@@ -1021,6 +1021,38 @@
         "comment": ["{0} is the version number of the MSSQL extension"]
     },
     "Don't show this again": "Don't show this again",
+    "New Session": "New Session",
+    "Creating...": "Creating...",
+    "Start": "Start",
+    "Pause": "Pause",
+    "Resume": "Resume",
+    "Auto-scroll": "Auto-scroll",
+    "Select Session:": "Select Session:",
+    "View:": "View:",
+    "Select a session...": "Select a session...",
+    "Creating session...": "Creating session...",
+    "Create a new profiling session": "Create a new profiling session",
+    "No templates available": "No templates available",
+    "Select a session first": "Select a session first",
+    "Start profiling session": "Start profiling session",
+    "Stop session": "Stop session",
+    "Session not running": "Session not running",
+    "Pause event collection": "Pause event collection",
+    "Paused - click to resume": "Paused - click to resume",
+    "Not running": "Not running",
+    "Clear all events (keeps session running)": "Clear all events (keeps session running)",
+    "Auto-scroll enabled": "Auto-scroll enabled",
+    "Auto-scroll disabled": "Auto-scroll disabled",
+    "Running": "Running",
+    "Paused": "Paused",
+    "Stopped": "Stopped",
+    "Not Started": "Not Started",
+    "Profiler: No session": "Profiler: No session",
+    "Profiler Session Status": "Profiler Session Status",
+    "{0} events/{0} is the number of events": {
+        "message": "{0} events",
+        "comment": ["{0} is the number of events"]
+    },
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -2282,6 +2314,51 @@
     "Read the documentation": "Read the documentation",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
+    "Failed to launch profiler: {0}/{0} is the error message": {
+        "message": "Failed to launch profiler: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to start profiler: {0}/{0} is the error message": {
+        "message": "Failed to start profiler: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to create profiler session: {0}/{0} is the error message": {
+        "message": "Failed to create profiler session: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Connection error: {0}/{0} is the error message": {
+        "message": "Connection error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to connect to the selected server.": "Failed to connect to the selected server.",
+    "No profiler connection available": "No profiler connection available",
+    "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
+    "No profiler templates available": "No profiler templates available",
+    "Session creation timed out": "Session creation timed out",
+    "Session name cannot be empty": "Session name cannot be empty",
+    "Session name must be {0} characters or less/{0} is the maximum length": {
+        "message": "Session name must be {0} characters or less",
+        "comment": ["{0} is the maximum length"]
+    },
+    "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
+    "Select a profiler template": "Select a profiler template",
+    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "Enter a name for the new profiler session": "Enter a name for the new profiler session",
+    "MyProfilerSession": "MyProfilerSession",
+    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "Engine: {0}/{0} is the engine type": {
+        "message": "Engine: {0}",
+        "comment": ["{0} is the engine type"]
+    },
+    "Profiler session '{0}' created successfully. Starting profiling.../{0} is the session name": {
+        "message": "Profiler session '{0}' created successfully. Starting profiling...",
+        "comment": ["{0} is the session name"]
+    },
+    "Profiler ready. Select a session from the dropdown and click Start to begin profiling.": "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
+    "Stopping profiler session \"{0}\".../{0} is the session name": {
+        "message": "Stopping profiler session \"{0}\"...",
+        "comment": ["{0} is the session name"]
+    },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
