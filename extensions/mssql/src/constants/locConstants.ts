@@ -2575,4 +2575,32 @@ export class Profiler {
             args: [error],
             comment: ["{0} is the error message"],
         });
+
+    public static profilerReady = l10n.t("Profiler is ready to start.");
+
+    public static stoppingSession = l10n.t("Stopping session...");
+
+    public static stateRunning = l10n.t("Running");
+
+    public static statePaused = l10n.t("Paused");
+
+    public static stateStopped = l10n.t("Stopped");
+
+    public static stateNotStarted = l10n.t("Not Started");
+
+    public static eventsCount = (count: number) =>
+        l10n.t({
+            message: "{0} events",
+            args: [count],
+            comment: ["{0} is the event count"],
+        });
+
+    public static statusBarNoSession = l10n.t("No active session");
+
+    public static statusBarTooltip = (sessionName: string, state: string) =>
+        l10n.t({
+            message: "Profiler: {0} ({1})",
+            args: [sessionName, state],
+            comment: ["{0} is the session name", "{1} is the state"],
+        });
 }
