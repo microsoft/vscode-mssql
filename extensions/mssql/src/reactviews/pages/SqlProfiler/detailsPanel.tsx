@@ -21,7 +21,7 @@ import {
 } from "@fluentui/react-icons";
 import { ProfilerContext } from "./profilerStateProvider";
 import { useProfilerSelector } from "./profilerSelector";
-import { ProfilerState, ProfilerEvent } from "../../../sharedInterfaces/profiler";
+import { ProfilerState } from "../../../sharedInterfaces/profiler";
 
 const useStyles = makeStyles({
     detailsPanel: {
@@ -132,7 +132,7 @@ export const DetailsPanel = () => {
         context?.openInEditor(textData, "sql");
     };
 
-    const handleTabSelect = (_: any, data: { value: string }) => {
+    const handleTabSelect = (_: any, data: any) => {
         context?.switchTab(data.value as "text" | "details");
     };
 

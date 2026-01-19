@@ -350,7 +350,7 @@ suite("ProfilerWebviewController - Accessibility and Edge Cases", () => {
         openTextDocumentStub.resolves({} as vscode.TextDocument);
         showTextDocumentStub.resolves({} as vscode.TextEditor);
 
-        const result = await controller["_reducerHandlers"].get("openInEditor")(
+        await controller["_reducerHandlers"].get("openInEditor")(
             controller.state,
             mockPayload,
         );
