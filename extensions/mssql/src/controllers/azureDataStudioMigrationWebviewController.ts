@@ -25,8 +25,8 @@ import {
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
@@ -387,17 +387,23 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
         this.updateState(state);
 
-        sendActionEvent(
+        const activity = startActivity(
             TelemetryViews.AzureDataStudioMigration,
             TelemetryActions.ImportConfig,
-            {},
+            undefined, // correlationId
+            undefined,
             {
                 connectionCount: selectedConnections.length,
                 groupCount: selectedGroups.size,
+                incompleteConnectionCount: selectedConnections.filter(
+                    (conn) => conn.status === MigrationStatus.NeedsAttention,
+                ).length,
             },
         );
 
         try {
+            activity.update({ step: "1_importingGroups" });
+
             const validGroupIds = new Set<string>([
                 ...this._existingGroupIds.keys(),
                 ...selectedGroups.keys(),
@@ -415,6 +421,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
                 await this.connectionConfig.addGroup(groupToAdd);
             }
+
+            activity.update({ step: "2_importingConnections" });
 
             for (const connection of selectedConnections) {
                 const connectionToAdd: interfaces.IConnectionProfile = {
@@ -448,6 +456,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     message: AzureDataStudioMigration.importProgressSuccessMessage,
                 },
             } as ImportProgressDialogProps;
+
+            activity.end(ActivityStatus.Succeeded);
         } catch (err) {
             this.state.dialog = {
                 status: {
@@ -458,17 +468,18 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 },
             } as ImportProgressDialogProps;
 
-            sendErrorEvent(
-                TelemetryViews.AzureDataStudioMigration,
-                TelemetryActions.ImportConfig,
+            activity.endFailed(
                 err,
-                true,
-                undefined,
-                undefined,
-                undefined,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                undefined, // additionalProperties
                 {
                     connectionCount: selectedConnections.length,
                     groupCount: selectedGroups.size,
+                    incompleteConnectionCount: selectedConnections.filter(
+                        (conn) => conn.status === MigrationStatus.NeedsAttention,
+                    ).length,
                 },
             );
         }
