@@ -6,10 +6,8 @@
 import { useContext, useState } from "react";
 import {
     Button,
-    Card,
     Dropdown,
     Field,
-    Input,
     makeStyles,
     Radio,
     RadioGroup,
@@ -31,14 +29,10 @@ import { ApiStatus, ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { AzureIcon20 } from "../../common/icons/fluentIcons";
-import {
-    Dismiss20Regular,
-    DocumentAdd24Regular,
-    DocumentEdit24Regular,
-    Save20Regular,
-} from "@fluentui/react-icons";
+import { Save20Regular } from "@fluentui/react-icons";
 import { url } from "../../../constants/constants";
 import { azureLogoColor } from "../ConnectionDialog/azureBrowsePage";
+import { BackupFileCard } from "./backupFileCard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -85,29 +79,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         gap: "8px",
-    },
-    cardDiv: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        padding: "10px",
-    },
-    cardHeader: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "4px",
-        alignItems: "center",
-        marginBottom: "10px",
-    },
-    headerActions: {
-        display: "flex",
-        gap: "4px",
-        marginLeft: "auto",
-    },
-    cardField: {
-        display: "grid",
-        gridTemplateColumns: "125px 1fr",
-        padding: "10px",
     },
     buttonDiv: {
         display: "flex",
@@ -218,104 +189,6 @@ export const BackupDatabaseForm: React.FC = () => {
                 );
             });
 
-    const renderBackupFiles = () =>
-        state.backupFiles.map((file, index) => {
-            return (
-                <Card className={classes.cardDiv} key={file.filePath}>
-                    <div className={classes.cardHeader}>
-                        {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}
-                        <Text size={400} style={{ marginLeft: "4px" }}>
-                            {file.isExisting
-                                ? locConstants.backupDatabase.existingFile
-                                : locConstants.backupDatabase.newFile}
-                        </Text>
-                        <div className={classes.headerActions}>
-                            <Button
-                                appearance="subtle"
-                                icon={<Dismiss20Regular />}
-                                title={locConstants.backupDatabase.removeFile}
-                                aria-label={locConstants.backupDatabase.removeFile}
-                                onClick={() => handleRemoveFile(file.filePath)}
-                            />
-                        </div>
-                    </div>
-                    <div className={classes.cardField}>
-                        <Text>{locConstants.backupDatabase.folderPath}</Text>
-                        {file.isExisting ? (
-                            <Text>{getFolderNameFromPath(file.filePath)}</Text>
-                        ) : (
-                            <Field
-                                required
-                                validationState={
-                                    getFolderNameFromPath(file.filePath).trim() === ""
-                                        ? "error"
-                                        : "none"
-                                }
-                                validationMessage={
-                                    getFolderNameFromPath(file.filePath).trim() === ""
-                                        ? locConstants.backupDatabase.folderPathRequired
-                                        : ""
-                                }>
-                                <Input
-                                    value={getFolderNameFromPath(file.filePath)}
-                                    onChange={(e) => {
-                                        context.handleFileChange(index, e.target.value, true);
-                                        if (e.target.value.trim() !== "") {
-                                            setFileErrors(
-                                                fileErrors.filter(
-                                                    (fileIndex) => fileIndex !== index,
-                                                ),
-                                            );
-                                        } else {
-                                            if (!fileErrors.includes(index)) {
-                                                setFileErrors([...fileErrors, index]);
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Field>
-                        )}
-                    </div>
-                    <div className={classes.cardField}>
-                        <Text>{locConstants.backupDatabase.fileName}</Text>
-                        {file.isExisting ? (
-                            <Text>{getFileNameFromPath(file.filePath)}</Text>
-                        ) : (
-                            <Field
-                                validationMessage={getFileNameErrorMessage(file.filePath)}
-                                required
-                                validationState={
-                                    getFileNameErrorMessage(file.filePath) === "" ? "none" : "error"
-                                }>
-                                <Input
-                                    value={getFileNameFromPath(file.filePath)}
-                                    onChange={(e) => {
-                                        const newPath = `${getFolderNameFromPath(
-                                            state.backupFiles[index].filePath,
-                                        )}/${e.target.value}`;
-
-                                        context.handleFileChange(index, e.target.value, false);
-
-                                        if (getFileNameErrorMessage(newPath) === "") {
-                                            setFileErrors(
-                                                fileErrors.filter(
-                                                    (fileIndex) => fileIndex !== index,
-                                                ),
-                                            );
-                                        } else {
-                                            if (!fileErrors.includes(index)) {
-                                                setFileErrors([...fileErrors, index]);
-                                            }
-                                        }
-                                    }}
-                                />
-                            </Field>
-                        )}
-                    </div>
-                </Card>
-            );
-        });
-
     const renderMediaFields = () =>
         Object.values(formComponents)
             .filter((component) => component.groupName == locConstants.backupDatabase.media)
@@ -338,34 +211,6 @@ export const BackupDatabaseForm: React.FC = () => {
         await context.backupDatabase();
     };
 
-    const handleRemoveFile = async (filePath: string) => {
-        await context.removeBackupFile(filePath);
-    };
-
-    const getFileValidationMessage = () => {
-        if (state.backupFiles.length === 0) {
-            return locConstants.backupDatabase.chooseAtLeastOneFile;
-        }
-        return "";
-    };
-
-    const getFileNameErrorMessage = (filePath: string) => {
-        const fileName = getFileNameFromPath(filePath);
-        if (fileName.trim() === "") return locConstants.backupDatabase.fileNameRequired;
-        const files = state.backupFiles.filter((file) => file.filePath === filePath);
-        return files.length <= 1 ? "" : locConstants.backupDatabase.chooseUniqueFile;
-    };
-
-    const getFolderNameFromPath = (filePath: string) => {
-        const lastSlashIndex = filePath.lastIndexOf("/");
-        return filePath.substring(0, lastSlashIndex);
-    };
-
-    const getFileNameFromPath = (filePath: string) => {
-        const lastSlashIndex = filePath.lastIndexOf("/");
-        return filePath.substring(lastSlashIndex + 1);
-    };
-
     const handleLoadAzureComponents = () => {
         if (!context || !state) return;
 
@@ -378,7 +223,11 @@ export const BackupDatabaseForm: React.FC = () => {
         }
     };
 
-    const shouldDisableBackupButton = () => {
+    const getFileValidationMessage = (): string => {
+        return state.backupFiles.length > 0 ? "" : locConstants.backupDatabase.chooseAtLeastOneFile;
+    };
+
+    const shouldDisableBackupButton = (): boolean => {
         const isUrlBackup = state.saveToUrl;
 
         const requiredComponents = Object.values(formComponents).filter((component) => {
@@ -510,7 +359,15 @@ export const BackupDatabaseForm: React.FC = () => {
                             validationState={getFileValidationMessage() === "" ? "none" : "error"}
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
-                                {renderBackupFiles()}
+                                {state.backupFiles.map((file, index) => (
+                                    <BackupFileCard
+                                        key={file.filePath}
+                                        file={file}
+                                        index={index}
+                                        fileErrors={fileErrors}
+                                        setFileErrors={setFileErrors}
+                                    />
+                                ))}
                                 <div className={classes.fileButtons}>
                                     <Button
                                         className={classes.button}
