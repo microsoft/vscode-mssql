@@ -49,7 +49,7 @@ suite("ProfilerSessionManager Tests", () => {
         return {
             id: uuidv4(),
             eventNumber: nextEventNumber++,
-            timestamp: Date.now(),
+            timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",
             textData: "SELECT * FROM users",
             databaseName: "TestDB",

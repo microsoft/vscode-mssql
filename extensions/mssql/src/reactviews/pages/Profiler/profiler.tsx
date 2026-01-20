@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import { SlickgridReact, SlickgridReactInstance, Column, GridOption } from "slickgrid-react";
+import { SlickgridReact, SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
 import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
@@ -28,6 +28,49 @@ const EMPTY_DATASET: never[] = [];
 
 /** Module-level flag to ensure handlers are registered only once per webview lifecycle */
 let notificationHandlersRegistered = false;
+
+/**
+ * Formatter for optional numeric fields - shows empty string for undefined/null
+ */
+const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
+    if (value === undefined || value === null) {
+        return "";
+    }
+    return String(value);
+};
+
+/**
+ * Fields that should use the timestamp formatter (using built-in Formatters.date with custom format)
+ */
+const TIMESTAMP_FIELDS = ["timestamp"];
+
+/**
+ * Date format for timestamp columns - includes milliseconds using Tempo format tokens
+ * Format: YYYY-MM-DD HH:mm:ss.SSS
+ */
+const TIMESTAMP_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS";
+
+/**
+ * Fields that should use the optional number formatter (may be undefined)
+ */
+const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
+
+/**
+ * Gets the appropriate formatter configuration for a field
+ * Returns an object with formatter and optional params
+ */
+function getFormatterConfig(field: string): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
+    if (TIMESTAMP_FIELDS.includes(field)) {
+        return {
+            formatter: Formatters.date,
+            params: { dateFormat: TIMESTAMP_DATE_FORMAT },
+        };
+    }
+    if (OPTIONAL_NUMBER_FIELDS.includes(field)) {
+        return { formatter: optionalNumberFormatter };
+    }
+    return undefined;
+}
 
 // Inject SlickGrid styles once
 let stylesInjected = false;
@@ -277,19 +320,26 @@ export const Profiler: React.FC = () => {
         }
 
         return [
-            ...viewConfig.columns.map((col) => ({
-                id: col.field,
-                name: col.header,
-                field: col.field,
-                width: col.width,
-                sortable: col.sortable ?? true,
-                filterable: col.filterable ?? false,
-                resizable: true,
-                minWidth: 50,
-                excludeFromColumnPicker: true,
-                excludeFromGridMenu: true,
-                excludeFromHeaderMenu: true,
-            })),
+            ...viewConfig.columns.map((col) => {
+                const formatterConfig = getFormatterConfig(col.field);
+                return {
+                    id: col.field,
+                    name: col.header,
+                    field: col.field,
+                    width: col.width,
+                    sortable: col.sortable ?? true,
+                    filterable: col.filterable ?? false,
+                    resizable: true,
+                    minWidth: 50,
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
+                    ...(formatterConfig && {
+                        formatter: formatterConfig.formatter,
+                        ...(formatterConfig.params && { params: formatterConfig.params }),
+                    }),
+                };
+            }),
         ];
     }, [viewConfig]);
 
@@ -309,6 +359,7 @@ export const Profiler: React.FC = () => {
             enableColumnPicker: false, // Hide column picker menu
             enableGridMenu: false, // Hide grid menu (hamburger menu)
             enableHeaderMenu: false, // Hide header menu (column hide/show)
+            enableAutoTooltip: true, // Enable tooltips to show cell values on hover
             rowHeight: 25,
             headerRowHeight: 30,
             showHeaderRow: false,

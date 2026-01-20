@@ -66,7 +66,7 @@ suite("ProfilerSession Tests", () => {
         return {
             id: "test-event-id",
             eventNumber: 1,
-            timestamp: Date.now(),
+            timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",
             textData: "SELECT * FROM users",
             databaseName: "TestDB",
@@ -207,11 +207,11 @@ suite("ProfilerSession Tests", () => {
         test("should update lastEventTimestamp when adding event", () => {
             const session = createSession();
             session.start();
-            const timestamp = Date.now();
+            const timestamp = new Date();
 
             session.addEvent(createTestEvent({ timestamp }));
 
-            expect(session.lastEventTimestamp).to.equal(timestamp);
+            expect(session.lastEventTimestamp).to.equal(timestamp.getTime());
         });
 
         test("should not add events when paused", () => {
@@ -418,7 +418,7 @@ suite("ProfilerSession Tests", () => {
             const session = createSession();
             session.start();
 
-            session.addEvent(createTestEvent({ timestamp: 12345 }));
+            session.addEvent(createTestEvent({ timestamp: new Date(12345) }));
             expect(session.lastEventTimestamp).to.equal(12345);
 
             session.clearEventsRange(1);

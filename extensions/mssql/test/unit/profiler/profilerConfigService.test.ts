@@ -178,7 +178,7 @@ suite("ProfilerConfigService Tests", () => {
         const createTestEvent = (overrides: Partial<EventRow> = {}): EventRow => ({
             id: "test-uuid-123",
             eventNumber: 1,
-            timestamp: Date.now(),
+            timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",
             textData: "SELECT * FROM users",
             databaseName: "TestDB",
@@ -292,7 +292,7 @@ suite("ProfilerConfigService Tests", () => {
                 ],
             };
 
-            const testTimestamp = new Date("2024-01-15T10:30:00.000Z").getTime();
+            const testTimestamp = new Date("2024-01-15T10:30:00.000Z");
             const event = createTestEvent({ timestamp: testTimestamp });
             const viewRow = configService.convertEventToViewRow(event, view);
 
@@ -311,7 +311,7 @@ suite("ProfilerConfigService Tests", () => {
                 {
                     id: "uuid-1",
                     eventNumber: 1,
-                    timestamp: Date.now(),
+                    timestamp: new Date(),
                     eventClass: "Event1",
                     textData: "SELECT 1",
                     databaseName: "DB1",
@@ -325,7 +325,7 @@ suite("ProfilerConfigService Tests", () => {
                 {
                     id: "uuid-2",
                     eventNumber: 2,
-                    timestamp: Date.now(),
+                    timestamp: new Date(),
                     eventClass: "Event2",
                     textData: "SELECT 2",
                     databaseName: "DB2",
