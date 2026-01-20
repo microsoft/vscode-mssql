@@ -1346,7 +1346,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project");
+    public static Title = l10n.t("Publish Project (Preview)");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");

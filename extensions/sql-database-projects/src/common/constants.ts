@@ -709,3 +709,8 @@ export function errorRenamingFile(source: string, destination: string, error: st
 export const unhandledMoveNode = l10n.t("Unhandled node type for move");
 
 //#endregion
+
+//#region tasks.json
+export const updatingExistingTasksJson = l10n.t("A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.");
+export const sqlProjectBuildTaskLabel = 'sqlproj: Build';
+//#endregion
