@@ -695,6 +695,9 @@
     <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
       <source xml:lang="en">Close Script Pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
+      <source xml:lang="en">Close details panel</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
     </trans-unit>
@@ -1000,6 +1003,9 @@
     <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
       <source xml:lang="en">Copied</source>
     </trans-unit>
+    <trans-unit id="++CODE++d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11">
+      <source xml:lang="en">Copied to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>
@@ -1038,6 +1044,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1b145c1fedde6b3a445206c1a5cdce5a5545f2392793095b07c41a62a01c123">
+      <source xml:lang="en">Copy text data to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
@@ -1295,6 +1304,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
+      <source xml:lang="en">Details tab - displays all event properties</source>
     </trans-unit>
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
@@ -1604,6 +1616,9 @@
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
     </trans-unit>
+    <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
+      <source xml:lang="en">Event properties list</source>
+    </trans-unit>
     <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
       <source xml:lang="en">Excel</source>
     </trans-unit>
@@ -1853,6 +1868,10 @@
     </trans-unit>
     <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
       <source xml:lang="en">Failed to open script: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
+      <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
@@ -2606,6 +2625,9 @@
     <trans-unit id="++CODE++bfb44e231009293c2b2333bb7d0e9e5c0c79294bbb1c6a42c3471892ef016229">
       <source xml:lang="en">Maximize Panel Size</source>
     </trans-unit>
+    <trans-unit id="++CODE++d0dc4d4fffaa64f945179fe8a9e183b128196f798714a40a1ab8aacc822de3cf">
+      <source xml:lang="en">Maximize details panel</source>
+    </trans-unit>
     <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
       <source xml:lang="en">Maximize panel size</source>
     </trans-unit>
@@ -2832,6 +2854,9 @@
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
+      <source xml:lang="en">No event selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
@@ -2887,6 +2912,9 @@
     </trans-unit>
     <trans-unit id="++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4">
       <source xml:lang="en">No tenants are currently signed in.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5c2455f3e05fab4c5019daf09573a5885446d59adc75e85406fb1e9336eb48d">
+      <source xml:lang="en">No text data available</source>
     </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
@@ -3019,6 +3047,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
+      <source xml:lang="en">Open text data in a new editor</source>
     </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
@@ -3318,6 +3349,9 @@
     </trans-unit>
     <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
       <source xml:lang="en">Read the documentation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
+      <source xml:lang="en">Read-only SQL text editor</source>
     </trans-unit>
     <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
       <source xml:lang="en">Ready</source>
@@ -4232,8 +4266,14 @@
     <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
       <source xml:lang="en">Testing connection profile...</source>
     </trans-unit>
+    <trans-unit id="++CODE++71988c4d8e0803ba4519f0b2864c1331c14a1890bf8694e251379177bfedb5c3">
+      <source xml:lang="en">Text</source>
+    </trans-unit>
     <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
       <source xml:lang="en">Text View</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33c3b491fa743d2c355067a31dceaf799d4baaef0778d786cf5aafa5406ecf47">
+      <source xml:lang="en">Text tab - displays SQL text data</source>
     </trans-unit>
     <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -5237,6 +5277,9 @@
     </trans-unit>
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
+    </trans-unit>
+    <trans-unit id="extension.profilerDetails">
+      <source xml:lang="en">Profiler Event Details</source>
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>

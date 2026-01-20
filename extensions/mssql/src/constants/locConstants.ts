@@ -2571,6 +2571,14 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
+
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class Proxy {

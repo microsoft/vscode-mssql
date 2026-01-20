@@ -566,12 +566,22 @@ export class ProfilerSession {
         const eventNumber =
             event.eventNumber ?? eventNumberFromValues ?? this._eventNumberCounter++;
 
+        // Extract text data from various possible field names used by XEvents
+        // Common field names: sql_text, statement, batch_text, options_text, query_text
+        const textData =
+            event.values["sql_text"] ||
+            event.values["statement"] ||
+            event.values["batch_text"] ||
+            event.values["options_text"] ||
+            event.values["query_text"] ||
+            "";
+
         return {
             id,
             eventNumber,
             timestamp: new Date(event.timestamp).getTime(),
             eventClass: event.name,
-            textData: event.values["sql_text"] || event.values["statement"] || "",
+            textData,
             databaseName: event.values["database_name"] || "",
             spid: parseInt(event.values["session_id"] || "0", 10),
             duration: parseInt(event.values["duration"] || "0", 10),

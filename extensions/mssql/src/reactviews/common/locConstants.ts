@@ -1568,6 +1568,29 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of events"],
                 }),
+
+            // Details panel
+            detailsPanel: {
+                textTab: l10n.t("Text"),
+                detailsTab: l10n.t("Details"),
+                openInEditor: l10n.t("Open in Editor"),
+                copy: l10n.t("Copy"),
+                maximize: l10n.t("Maximize"),
+                restore: l10n.t("Restore"),
+                close: l10n.t("Close"),
+                noEventSelected: l10n.t("No event selected"),
+                noTextData: l10n.t("No text data available"),
+                openInEditorTooltip: l10n.t("Open text data in a new editor"),
+                copyTooltip: l10n.t("Copy text data to clipboard"),
+                maximizeTooltip: l10n.t("Maximize details panel"),
+                restoreTooltip: l10n.t("Restore panel size"),
+                closeTooltip: l10n.t("Close details panel"),
+                textTabAriaLabel: l10n.t("Text tab - displays SQL text data"),
+                detailsTabAriaLabel: l10n.t("Details tab - displays all event properties"),
+                editorAriaLabel: l10n.t("Read-only SQL text editor"),
+                propertiesListAriaLabel: l10n.t("Event properties list"),
+                copiedToClipboard: l10n.t("Copied to clipboard"),
+            },
         };
     }
 }

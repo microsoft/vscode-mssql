@@ -33,6 +33,7 @@
     "extension.connections": "Connections",
     "extension.queryHistory": "Query History",
     "extension.queryResult": "Query Results",
+    "extension.profilerDetails": "Profiler Event Details",
     "mssql.connect": "Connect",
     "mssql.disconnect": "Disconnect",
     "mssql.manageProfiles": "Manage Connection Profiles",

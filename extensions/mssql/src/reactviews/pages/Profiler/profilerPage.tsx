@@ -52,6 +52,7 @@ export const ProfilerPage: React.FC = () => {
         changeView,
         toggleAutoScroll,
         fetchRows,
+        selectRow,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
@@ -327,6 +328,47 @@ export const ProfilerPage: React.FC = () => {
         toggleAutoScroll();
     };
 
+    // Handle row selection (click or keyboard navigation) to show details in the panel
+    const handleRowSelection = useCallback(
+        (rowIndex: number) => {
+            if (!reactGridRef.current?.dataView) {
+                return;
+            }
+
+            const dataView = reactGridRef.current.dataView;
+            const item = dataView.getItem(rowIndex);
+
+            if (item && item.id) {
+                selectRow(item.id);
+            }
+        },
+        [selectRow],
+    );
+
+    // Handle row click to show details in the panel
+    const handleRowClick = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
+
+    // Handle active cell change (keyboard navigation) to show details in the panel
+    const handleActiveCellChanged = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args || args.row === undefined || args.row === null) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
+
     return (
         <div className="profiler-container">
             <ProfilerToolbar
@@ -355,6 +397,8 @@ export const ProfilerPage: React.FC = () => {
                     dataset={EMPTY_DATASET}
                     onReactGridCreated={(e) => reactGridReady(e.detail)}
                     onScroll={handleScroll}
+                    onClick={handleRowClick}
+                    onActiveCellChanged={handleActiveCellChanged}
                 />
             </div>
         </div>

@@ -30,6 +30,8 @@ export interface ProfilerRpcMethods {
     toggleAutoScroll: () => void;
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
+    /** Select a row to show details in the panel */
+    selectRow: (rowId: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -100,6 +102,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const selectRow = useCallback(
+        (rowId: string) => {
+            extensionRpc?.action("selectRow", { rowId });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -113,6 +122,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
+                selectRow,
             }}>
             {children}
         </ProfilerContext.Provider>
