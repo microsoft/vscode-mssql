@@ -12,7 +12,6 @@ import { getDefaultPublishDeploymentOptions, getVscodeMssqlApi } from '../common
 import { IConnectionInfo, IFireWallRuleError } from 'vscode-mssql';
 import { getPublishServerName } from './utils';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
-import { DBProjectConfigurationKey } from '../tools/netcoreTool';
 import { ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
 
 /**
