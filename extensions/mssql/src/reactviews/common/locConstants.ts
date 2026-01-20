@@ -353,6 +353,7 @@ export class LocConstants {
             errorLoadingDatabases: l10n.t("Error loading databases"),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
+            importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
         };
     }
 
@@ -1404,7 +1405,7 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration"),
+            title: l10n.t("Azure Data Studio Migration - Connections"),
             subtitle: l10n.t(
                 "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
@@ -1484,11 +1485,11 @@ export class LocConstants {
             authenticationColumn: l10n.t("Authentication"),
             enterPassword: l10n.t("Enter password"),
             importButtonLabel: l10n.t("Import selected"),
-            importWarningDialogTitle: l10n.t("Some selections still need information"),
+            importWarningDialogTitle: l10n.t("Connection Import Warning"),
             importWarningDialogMessage: l10n.t(
-                "You can continue, but you may need to edit these connections later before connecting.",
+                "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.",
             ),
-            importWarningConnectionsHeader: l10n.t("Connections needing attention"),
+            importWarningConnectionsHeader: l10n.t("Incomplete or orphaned connections"),
             importWarningProceed: l10n.t("Import anyway"),
             importProgressDialogTitle: l10n.t("Importing selections"),
             entraSignInAccountLabel: l10n.t("Account"),

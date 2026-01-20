@@ -2425,22 +2425,23 @@ export class AzureDataStudioMigration {
     public static SelectConfigFileDialogTitle = l10n.t(
         "Locate an Azure Data Studio settings.json file to import",
     );
-    public static ConnectionStatusReady = l10n.t("Ready");
+    public static ImportStatusReady = l10n.t("Ready for import");
     public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
-    public static ConnectionStatusAlreadyImported = (connectionId: string) =>
+    public static ConnectionStatusAlreadyImported = (
+        connectionDisplayName: string,
+        connectionId: string,
+    ) =>
         l10n.t({
-            message:
-                "Already imported.  Importing again will replace the existing connection with ID {0}",
-            args: [connectionId],
-            comment: ["{0} is the connection ID"],
+            message: "Connection with the same ID is already imported: {0} (ID: {1})",
+            args: [connectionDisplayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
         });
 
-    public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
+    public static ConnectionGroupStatusAlreadyImported = (groupName: string, groupId: string) =>
         l10n.t({
-            message:
-                "Already imported.  Importing again will replace the existing group with ID {0}",
-            args: [groupId],
-            comment: ["{0} is the group ID"],
+            message: "Connection group with the same ID is already imported: {0} (ID: {1})",
+            args: [groupName, groupId],
+            comment: ["{0} is the group name", "{1} is the group ID"],
         });
     public static connectionIssueMissingSqlPassword = (username: string) =>
         l10n.t({
@@ -2467,6 +2468,10 @@ export class AzureDataStudioMigration {
             args: [error],
             comment: ["{0} is the error message returned from the import helper."],
         });
+
+    public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
+        "This connection's group has not been selected, so this connection will be imported the root.",
+    );
 }
 
 export class Changelog {
