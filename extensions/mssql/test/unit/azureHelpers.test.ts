@@ -323,6 +323,7 @@ suite("Azure Helpers", () => {
                 mockSubscriptions[0],
                 clientStub as unknown as armStorage.StorageManagementClient,
             );
+            expect.fail("Expected fetchStorageAccountsForSubscription to throw");
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
@@ -367,6 +368,7 @@ suite("Azure Helpers", () => {
                 mockAzureResources.storageAccount,
                 clientStub as unknown as armStorage.StorageManagementClient,
             );
+            expect.fail("Expected fetchBlobContainersForStorageAccount to throw");
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
@@ -414,6 +416,7 @@ suite("Azure Helpers", () => {
                 mockAzureResources.storageAccount,
                 clientStub as unknown as armStorage.StorageManagementClient,
             )) as armStorage.StorageAccountsListKeysResponse;
+            expect.fail("Expected getStorageAccountKeys to throw");
         } catch (e) {
             expect(e.message).to.equal("Test error");
         }
