@@ -1107,7 +1107,7 @@ export class LocConstants {
             deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
-            dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerHeader: l10n.t("Create a local Docker SQL Server"),
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),

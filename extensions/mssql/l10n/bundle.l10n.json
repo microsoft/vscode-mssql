@@ -751,7 +751,7 @@
     "New SQL database": "New SQL database",
     "Choose an option to provision a database": "Choose an option to provision a database",
     "Local SQL Server database container": "Local SQL Server database container",
-    "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
+    "Create a local Docker SQL Server": "Create a local Docker SQL Server",
     "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
     "Create a SQL database in Fabric (Preview)": "Create a SQL database in Fabric (Preview)",
     "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
