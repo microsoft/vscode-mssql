@@ -20,6 +20,11 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "8px",
         padding: "10px",
+        width: "425px",
+        height: "180px",
+    },
+    cardContent: {
+        padding: "10px",
     },
     cardHeader: {
         display: "flex",
@@ -35,7 +40,7 @@ const useStyles = makeStyles({
     },
     cardField: {
         display: "grid",
-        gridTemplateColumns: "125px 1fr",
+        gridTemplateColumns: "150px 1fr",
         padding: "10px",
     },
 });
@@ -83,89 +88,95 @@ export const BackupFileCard = ({
 
     return (
         <Card className={classes.cardDiv} key={file.filePath}>
-            <div className={classes.cardHeader}>
-                {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}
-                <Text size={400} style={{ marginLeft: "4px" }}>
-                    {file.isExisting
-                        ? locConstants.backupDatabase.existingFile
-                        : locConstants.backupDatabase.newFile}
-                </Text>
-                <div className={classes.headerActions}>
-                    <Button
-                        appearance="subtle"
-                        icon={<Dismiss20Regular />}
-                        title={locConstants.backupDatabase.removeFile}
-                        aria-label={locConstants.backupDatabase.removeFile}
-                        onClick={() => handleRemoveFile(file.filePath)}
-                    />
+            <div className={classes.cardContent}>
+                <div className={classes.cardHeader}>
+                    {file.isExisting ? <DocumentEdit24Regular /> : <DocumentAdd24Regular />}
+                    <Text size={400} style={{ marginLeft: "4px" }}>
+                        {file.isExisting
+                            ? locConstants.backupDatabase.existingFile
+                            : locConstants.backupDatabase.newFile}
+                    </Text>
+                    <div className={classes.headerActions}>
+                        <Button
+                            appearance="subtle"
+                            icon={<Dismiss20Regular />}
+                            title={locConstants.backupDatabase.removeFile}
+                            aria-label={locConstants.backupDatabase.removeFile}
+                            onClick={() => handleRemoveFile(file.filePath)}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className={classes.cardField}>
-                <Text>{locConstants.backupDatabase.folderPath}</Text>
-                {file.isExisting ? (
-                    <Text>{getFolderNameFromPath(file.filePath)}</Text>
-                ) : (
-                    <Field
-                        required
-                        validationState={
-                            getFolderNameFromPath(file.filePath).trim() === "" ? "error" : "none"
-                        }
-                        validationMessage={
-                            getFolderNameFromPath(file.filePath).trim() === ""
-                                ? locConstants.backupDatabase.folderPathRequired
-                                : ""
-                        }>
-                        <Input
-                            value={getFolderNameFromPath(file.filePath)}
-                            onChange={(e) => {
-                                context.handleFileChange(index, e.target.value, true);
-                                if (e.target.value.trim() !== "") {
-                                    setFileErrors(
-                                        fileErrors.filter((fileIndex) => fileIndex !== index),
-                                    );
-                                } else {
-                                    if (!fileErrors.includes(index)) {
-                                        setFileErrors([...fileErrors, index]);
+                <div className={classes.cardField}>
+                    <Text>{locConstants.backupDatabase.folderPath}</Text>
+                    {file.isExisting ? (
+                        <Text style={{ paddingBottom: "15px" }}>
+                            {getFolderNameFromPath(file.filePath)}
+                        </Text>
+                    ) : (
+                        <Field
+                            required
+                            validationState={
+                                getFolderNameFromPath(file.filePath).trim() === ""
+                                    ? "error"
+                                    : "none"
+                            }
+                            validationMessage={
+                                getFolderNameFromPath(file.filePath).trim() === ""
+                                    ? locConstants.backupDatabase.folderPathRequired
+                                    : ""
+                            }>
+                            <Input
+                                value={getFolderNameFromPath(file.filePath)}
+                                onChange={(e) => {
+                                    context.handleFileChange(index, e.target.value, true);
+                                    if (e.target.value.trim() !== "") {
+                                        setFileErrors(
+                                            fileErrors.filter((fileIndex) => fileIndex !== index),
+                                        );
+                                    } else {
+                                        if (!fileErrors.includes(index)) {
+                                            setFileErrors([...fileErrors, index]);
+                                        }
                                     }
-                                }
-                            }}
-                        />
-                    </Field>
-                )}
-            </div>
-            <div className={classes.cardField}>
-                <Text>{locConstants.backupDatabase.fileName}</Text>
-                {file.isExisting ? (
-                    <Text>{getFileNameFromPath(file.filePath)}</Text>
-                ) : (
-                    <Field
-                        validationMessage={getFileNameErrorMessage(file.filePath)}
-                        required
-                        validationState={
-                            getFileNameErrorMessage(file.filePath) === "" ? "none" : "error"
-                        }>
-                        <Input
-                            value={getFileNameFromPath(file.filePath)}
-                            onChange={(e) => {
-                                const newPath = `${getFolderNameFromPath(
-                                    state.backupFiles[index].filePath,
-                                )}/${e.target.value}`;
+                                }}
+                            />
+                        </Field>
+                    )}
+                </div>
+                <div className={classes.cardField}>
+                    <Text>{locConstants.backupDatabase.fileName}</Text>
+                    {file.isExisting ? (
+                        <Text>{getFileNameFromPath(file.filePath)}</Text>
+                    ) : (
+                        <Field
+                            validationMessage={getFileNameErrorMessage(file.filePath)}
+                            required
+                            validationState={
+                                getFileNameErrorMessage(file.filePath) === "" ? "none" : "error"
+                            }>
+                            <Input
+                                value={getFileNameFromPath(file.filePath)}
+                                onChange={(e) => {
+                                    const newPath = `${getFolderNameFromPath(
+                                        state.backupFiles[index].filePath,
+                                    )}/${e.target.value}`;
 
-                                context.handleFileChange(index, e.target.value, false);
+                                    context.handleFileChange(index, e.target.value, false);
 
-                                if (getFileNameErrorMessage(newPath) === "") {
-                                    setFileErrors(
-                                        fileErrors.filter((fileIndex) => fileIndex !== index),
-                                    );
-                                } else {
-                                    if (!fileErrors.includes(index)) {
-                                        setFileErrors([...fileErrors, index]);
+                                    if (getFileNameErrorMessage(newPath) === "") {
+                                        setFileErrors(
+                                            fileErrors.filter((fileIndex) => fileIndex !== index),
+                                        );
+                                    } else {
+                                        if (!fileErrors.includes(index)) {
+                                            setFileErrors([...fileErrors, index]);
+                                        }
                                     }
-                                }
-                            }}
-                        />
-                    </Field>
-                )}
+                                }}
+                            />
+                        </Field>
+                    )}
+                </div>
             </div>
         </Card>
     );

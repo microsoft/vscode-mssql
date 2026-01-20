@@ -187,6 +187,7 @@ export const xml = "xml";
 export const json = "json";
 export const queryPlan = "Query Plan";
 export const queryPlanXmlStart = "<ShowPlanXML";
+export const https = "https://";
 
 /**
  * Azure Firewall rule name convention is specified here:

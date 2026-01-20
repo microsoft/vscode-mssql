@@ -90,9 +90,12 @@ export const AdvancedOptionsDrawer = ({
 
     const shouldShowComponent = (componentName: string): boolean => {
         switch (componentName) {
-            case "mediaName":
-            case "mediaDescription":
+            case "mediaSetName":
+            case "mediaSetDescription":
                 return state.formState.mediaSet == MediaSet.Create;
+            case "encryptionAlgorithm":
+            case "encryptorName":
+                return state.formState.encryptionEnabled;
             default:
                 return true;
         }
@@ -177,6 +180,7 @@ export const AdvancedOptionsDrawer = ({
                                                                 key={idx}
                                                                 context={context}
                                                                 component={option}
+                                                                props={option.componentProps ?? {}}
                                                                 idx={idx}
                                                             />
                                                         ),

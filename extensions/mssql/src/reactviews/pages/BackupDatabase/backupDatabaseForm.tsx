@@ -42,23 +42,20 @@ const useStyles = makeStyles({
         marginLeft: "5px",
         marginRight: "5px",
         padding: "8px",
-        width: "500px",
         whiteSpace: "nowrap",
-        minWidth: "800px",
-        height: "80vh",
+        width: "650px",
+        height: "100%",
     },
     button: {
         height: "32px",
         width: "160px",
     },
-    advancedOptionsDiv: {
-        marginLeft: "24px",
-    },
     bottomDiv: {
-        bottom: 0,
+        marginTop: "auto",
         paddingBottom: "50px",
     },
     formDiv: {
+        padding: "10px",
         flexGrow: 1,
     },
     header: {
@@ -79,6 +76,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         gap: "8px",
+        marginLeft: "10px",
     },
     buttonDiv: {
         display: "flex",
@@ -113,6 +111,12 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "8px",
     },
+    fileList: {
+        display: "flex",
+        flexDirection: "column",
+        padding: "10px",
+        gap: "8px",
+    },
 });
 
 const databaseIconLight = require("../../../../media/database_light.svg");
@@ -120,7 +124,6 @@ const databaseIconDark = require("../../../../media/database_dark.svg");
 
 export const BackupDatabaseForm: React.FC = () => {
     const classes = useStyles();
-    const formStyles = useFormStyles();
     const context = useContext(BackupDatabaseContext);
 
     const state = context?.state;
@@ -129,6 +132,7 @@ export const BackupDatabaseForm: React.FC = () => {
         return;
     }
 
+    const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const [fileErrors, setFileErrors] = useState<number[]>([]);
     const { formComponents } = state;
@@ -137,7 +141,10 @@ export const BackupDatabaseForm: React.FC = () => {
         Object.values(formComponents)
             .filter((component) => !component.groupName)
             .map((component, index) => (
-                <div key={index}>
+                <div
+                    key={index}
+                    className={formStyles.formComponentDiv}
+                    style={{ padding: "10px" }}>
                     <FormField<
                         BackupDatabaseFormState,
                         BackupDatabaseState,
@@ -162,7 +169,10 @@ export const BackupDatabaseForm: React.FC = () => {
                 }
 
                 return loadStatus === ApiStatus.Loaded || loadStatus === ApiStatus.Error ? (
-                    <div key={index}>
+                    <div
+                        key={index}
+                        className={formStyles.formComponentDiv}
+                        style={{ padding: "10px" }}>
                         <FormField<
                             BackupDatabaseFormState,
                             BackupDatabaseState,
@@ -183,7 +193,8 @@ export const BackupDatabaseForm: React.FC = () => {
                                 <Spinner size="extra-tiny" />
                             </div>
                         }
-                        className={formStyles.formComponentDiv}>
+                        className={formStyles.formComponentDiv}
+                        style={{ padding: "10px", marginLeft: "8px" }}>
                         <Dropdown size="small" placeholder={locConstants.backupDatabase.loading} />
                     </Field>
                 );
@@ -296,7 +307,9 @@ export const BackupDatabaseForm: React.FC = () => {
                     />
                 )}
                 {renderFormFields()}
-                <div className={formStyles.formComponentDiv}>
+                <div
+                    className={formStyles.formComponentDiv}
+                    style={{ padding: "10px", marginLeft: "8px" }}>
                     <Field
                         label={locConstants.backupDatabase.backupLocation}
                         orientation="horizontal">
@@ -351,7 +364,9 @@ export const BackupDatabaseForm: React.FC = () => {
                         </div>
                     )
                 ) : (
-                    <div className={formStyles.formComponentDiv}>
+                    <div
+                        className={formStyles.formComponentDiv}
+                        style={{ padding: "10px", marginLeft: "8px" }}>
                         <Field
                             label={locConstants.backupDatabase.backupFiles}
                             validationMessage={getFileValidationMessage()}
@@ -359,15 +374,17 @@ export const BackupDatabaseForm: React.FC = () => {
                             validationState={getFileValidationMessage() === "" ? "none" : "error"}
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
-                                {state.backupFiles.map((file, index) => (
-                                    <BackupFileCard
-                                        key={file.filePath}
-                                        file={file}
-                                        index={index}
-                                        fileErrors={fileErrors}
-                                        setFileErrors={setFileErrors}
-                                    />
-                                ))}
+                                <div className={classes.fileList}>
+                                    {state.backupFiles.map((file, index) => (
+                                        <BackupFileCard
+                                            key={file.filePath}
+                                            file={file}
+                                            index={index}
+                                            fileErrors={fileErrors}
+                                            setFileErrors={setFileErrors}
+                                        />
+                                    ))}
+                                </div>
                                 <div className={classes.fileButtons}>
                                     <Button
                                         className={classes.button}

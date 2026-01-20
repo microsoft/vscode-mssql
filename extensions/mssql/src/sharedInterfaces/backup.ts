@@ -335,6 +335,11 @@ export interface BackupDatabaseFormItemSpec
      * The name of the advanced options group this item belongs to
      */
     groupName?: string;
+
+    /**
+     * Misc props for the form item component
+     */
+    componentProps?: any;
 }
 
 export interface BackupDatabaseFormState {

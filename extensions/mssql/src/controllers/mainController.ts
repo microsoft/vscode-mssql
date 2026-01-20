@@ -1702,6 +1702,8 @@ export default class MainController implements vscode.Disposable {
                             const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
 
                             // Create a new temp connection for the database if we are not already connected
+                            // This lets sts know the context of the database we are backing up; otherwise,
+                            // sts will assume the master database context
                             await this.connectionManager.connect(databaseConnectionUri, {
                                 ...node.connectionProfile,
                                 database: databaseName,
