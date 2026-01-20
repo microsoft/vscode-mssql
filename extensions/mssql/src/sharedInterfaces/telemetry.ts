@@ -40,6 +40,7 @@ export enum TelemetryViews {
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
+    FileBrowser = "FileBrowser",
 }
 
 export enum TelemetryActions {
@@ -197,6 +198,11 @@ export enum TelemetryActions {
     onNotification = "onNotification",
     RefreshEntraToken = "RefreshEntraToken",
     ImportConfig = "ImportConfig",
+    FileBrowserOpen = "FileBrowserOpen",
+    FileBrowserExpand = "FileBrowserExpand",
+    FileBrowserClose = "FileBrowserClose",
+    FileBrowserDialog = "FileBrowserDialog",
+    FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
 }
 
 /**
