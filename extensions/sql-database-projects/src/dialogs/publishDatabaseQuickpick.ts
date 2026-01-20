@@ -247,13 +247,12 @@ export async function launchPublishTargetOption(project: Project): Promise<const
 	let options;
 
 	if (target === constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure)) {
-		options = [constants.publishToAzureEmulator, constants.publishToExistingServer(logicalServerName)]
-
-		// only show "Publish to New Azure Server" option if preview features are enabled
-		const enablePreviewFeatures = vscode.workspace.getConfiguration(DBProjectConfigurationKey).get(constants.enablePreviewFeaturesKey);
-		if (enablePreviewFeatures) {
-			options.push(constants.publishToNewAzureServer);
-		}
+		// All options are now available by default
+		options = [
+			constants.publishToAzureEmulator, 
+			constants.publishToExistingServer(logicalServerName),
+			constants.publishToNewAzureServer
+		];
 	} else {
 		options = [constants.publishToDockerContainer(name), constants.publishToExistingServer(logicalServerName)];
 	}

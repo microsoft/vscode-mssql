@@ -579,7 +579,7 @@
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
@@ -589,7 +589,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_tableActions@1"
                 },
                 {
@@ -831,23 +831,23 @@
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "when": "true"
                 },
                 {
                     "command": "mssql.dacpacDialog.deploy",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "when": "true"
                 },
                 {
                     "command": "mssql.dacpacDialog.extract",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "when": "true"
                 },
                 {
                     "command": "mssql.dacpacDialog.import",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "when": "true"
                 },
                 {
                     "command": "mssql.dacpacDialog.export",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "when": "true"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
@@ -1360,7 +1360,7 @@
             "properties": {
                 "mssql.enableExperimentalFeatures": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },

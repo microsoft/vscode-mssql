@@ -63,6 +63,7 @@
         "properties": {
           "sqlDatabaseProjects.enablePreviewFeatures": {
 						"type": "boolean",
+						"default": true,
 						"description": "%sqlDatabaseProjects.enablePreviewFeatures%"
 					},
           "sqlDatabaseProjects.dotnetSDK Location": {
