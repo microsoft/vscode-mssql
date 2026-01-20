@@ -120,6 +120,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         browseTarget,
                     });
                 },
+                signIntoAzureTenantForBrowse: function (): void {
+                    webviewContext.extensionRpc.action("signIntoAzureTenantForBrowse");
+                },
                 selectAzureAccount: (accountId: string) => {
                     webviewContext.extensionRpc.action("selectAzureAccount", {
                         accountId,

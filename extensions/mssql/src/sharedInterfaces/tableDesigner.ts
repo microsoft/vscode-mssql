@@ -713,6 +713,7 @@ export interface TableDesignerWebviewState {
     tabStates?: DesignerTabStates;
     propertiesPaneData?: PropertiesPaneData;
     publishingError?: string;
+    initializationError?: string;
 }
 
 export interface DesignerView {

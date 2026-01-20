@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
@@ -17,6 +16,9 @@ import {
     QueryExecuteBatchNotificationParams,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetResult,
+    CopyResults2Request,
+    CancelCopy2Notification,
+    CopyType,
 } from "../../src/models/contracts/queryExecute";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
@@ -86,7 +88,7 @@ suite("Query Runner tests", () => {
 
     test("Constructs properly", () => {
         let queryRunner = createQueryRunner("", "");
-        assert.equal(typeof queryRunner !== undefined, true);
+        expect(queryRunner).to.not.be.undefined;
     });
 
     test("Handles Query Request Result Properly", async () => {
@@ -123,8 +125,8 @@ suite("Query Runner tests", () => {
         expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
 
         // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
-        assert.equal(queryRunner.isExecutingQuery, true);
-        assert.equal(queryRunner.totalElapsedMilliseconds, 0);
+        expect(queryRunner.isExecutingQuery).to.equal(true);
+        expect(queryRunner.totalElapsedMilliseconds).to.equal(0);
     });
 
     test("Handles Query Request Error Properly", async () => {
@@ -156,16 +158,15 @@ suite("Query Runner tests", () => {
         try {
             await queryRunner.runQuery(standardSelection);
             // If we reach here, the test should fail because we expected an error
-            assert.fail("Expected runQuery to throw an error");
+            expect.fail("Expected runQuery to throw an error");
         } catch (error) {
             // Then:
             // ... The view status should have started and stopped
             expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
             expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
             expect(testStatusView.executedQuery).to.have.been.called;
-
             // ... The query runner should not be running a query
-            assert.strictEqual(queryRunner.isExecutingQuery, false);
+            expect(queryRunner.isExecutingQuery).to.equal(false);
         }
     });
 
@@ -195,8 +196,8 @@ suite("Query Runner tests", () => {
         queryRunner.handleBatchStart(batchStart);
 
         // Then: It should store the batch, messages and emit a batch start
-        assert.equal(queryRunner.batchSets.indexOf(batchStart.batchSummary), 0);
-        assert.ok(queryRunner.batchSetMessages[batchStart.batchSummary.id]);
+        expect(queryRunner.batchSets.indexOf(batchStart.batchSummary)).to.equal(0);
+        expect(queryRunner.batchSetMessages[batchStart.batchSummary.id]).to.be.ok;
     });
 
     function testBatchCompleteNotification(sendBatchTime: boolean): void {
@@ -247,25 +248,23 @@ suite("Query Runner tests", () => {
         queryRunner.handleBatchComplete(batchComplete);
 
         // Then: It should the remainder of the information and emit a batch complete notification
-        assert.equal(queryRunner.batchSets.length, 1);
+        expect(queryRunner.batchSets.length).to.equal(1);
         let storedBatch = queryRunner.batchSets[0];
-        assert.equal(storedBatch.executionElapsed, elapsedTimeString);
-        assert.equal(
-            typeof storedBatch.executionEnd,
+        expect(storedBatch.executionElapsed).to.equal(elapsedTimeString);
+        expect(typeof storedBatch.executionEnd).to.equal(
             typeof batchComplete.batchSummary.executionEnd,
         );
-        assert.equal(
-            typeof storedBatch.executionStart,
+        expect(typeof storedBatch.executionStart).to.equal(
             typeof batchComplete.batchSummary.executionStart,
         );
-        assert.equal(storedBatch.hasError, batchComplete.batchSummary.hasError);
+        expect(storedBatch.hasError).to.equal(batchComplete.batchSummary.hasError);
 
         // ... Messages should be empty since batch time messages are stored separately
-        assert.equal(queryRunner.batchSetMessages[queryRunner.batchSets[0].id].length, 0);
+        expect(queryRunner.batchSetMessages[queryRunner.batchSets[0].id].length).to.equal(0);
 
         // ... Result sets should not be set by the batch complete notification
-        assert.equal(typeof storedBatch.resultSetSummaries, typeof []);
-        assert.equal(storedBatch.resultSetSummaries.length, 0);
+        expect(typeof storedBatch.resultSetSummaries).to.equal(typeof []);
+        expect(storedBatch.resultSetSummaries.length).to.equal(0);
     }
 
     test("Notification - Batch Complete no message", () => {
@@ -308,9 +307,8 @@ suite("Query Runner tests", () => {
 
         // Then:
         // ... The pre-existing batch should contain the result set we got back
-        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 1);
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[0],
+        expect(queryRunner.batchSets[0].resultSetSummaries.length).to.equal(1);
+        expect(queryRunner.batchSets[0].resultSetSummaries[0]).to.equal(
             resultSetComplete.resultSetSummary,
         );
     });
@@ -361,13 +359,11 @@ suite("Query Runner tests", () => {
 
         // Then:
         // ... There should be two results in the batch summary
-        assert.equal(queryRunner.batchSets[0].resultSetSummaries.length, 2);
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[0],
+        expect(queryRunner.batchSets[0].resultSetSummaries.length).to.equal(2);
+        expect(queryRunner.batchSets[0].resultSetSummaries[0]).to.equal(
             resultSetComplete1.resultSetSummary,
         );
-        assert.equal(
-            queryRunner.batchSets[0].resultSetSummaries[1],
+        expect(queryRunner.batchSets[0].resultSetSummaries[1]).to.equal(
             resultSetComplete2.resultSetSummary,
         );
     });
@@ -395,7 +391,7 @@ suite("Query Runner tests", () => {
         queryRunner.handleMessage(message);
 
         // ... Result set message cache contains one entry
-        assert.equal(queryRunner.batchSetMessages[message.message.batchId].length, 1);
+        expect(queryRunner.batchSetMessages[message.message.batchId].length).to.equal(1);
     });
 
     test("Notification - Query complete", () => {
@@ -431,8 +427,8 @@ suite("Query Runner tests", () => {
         expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
-        assert.equal(queryRunner.batchSets.length, 1);
-        assert.equal(queryRunner.isExecutingQuery, false);
+        expect(queryRunner.batchSets.length).to.equal(1);
+        expect(queryRunner.isExecutingQuery).to.equal(false);
     });
 
     test("Correctly handles subset", async () => {
@@ -473,7 +469,7 @@ suite("Query Runner tests", () => {
         queryRunner.uri = testuri;
 
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        assert.equal(result, testresult);
+        expect(result).to.equal(testresult);
     });
 
     test("Correctly handles error from subset request", async () => {
@@ -530,6 +526,270 @@ suite("Query Runner tests", () => {
         );
     });
 
+    suite("Copy Results", () => {
+        setup(() => {
+            // Stub vscode.window.withProgress to execute the task immediately
+            sandbox.stub(vscode.window, "withProgress").callsFake(async (_options, task) => {
+                const progress = {
+                    report: sandbox.stub(),
+                };
+                const tokenSource = new vscode.CancellationTokenSource();
+                await task(progress, tokenSource.token);
+            });
+        });
+
+        test("copyResults calls copyResults2 with correct CopyType", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    ownerUri: standardUri,
+                    batchIndex: 0,
+                    resultSetIndex: 0,
+                    copyType: CopyType.Text,
+                    includeHeaders: false,
+                }),
+            );
+        });
+
+        test("copyResults uses clipboard fallback when content is returned", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+            const expectedContent = "test\tdata\nrow1\trow2";
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({ content: expectedContent });
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(expectedContent);
+        });
+
+        test("copyResults does not call clipboard fallback when content is not returned", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResults(selection, 0, 0, false);
+
+            expect(testVscodeWrapper.clipboardWriteText).to.not.have.been.called;
+        });
+
+        test("copyResultsAsCsv calls copyResults2 with CSV CopyType", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            const csvConfig = {
+                delimiter: ",",
+                textIdentifier: '"',
+                lineSeperator: "\n",
+                encoding: "utf-8",
+                includeHeaders: true,
+            };
+            const configResult: { [key: string]: any } = {};
+            configResult[Constants.configSaveAsCsv] = csvConfig;
+            const config = stubs.createWorkspaceConfiguration(configResult);
+            (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResultsAsCsv(selection, 0, 0);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    copyType: CopyType.CSV,
+                    delimiter: ",",
+                    textIdentifier: '"',
+                }),
+            );
+        });
+
+        test("copyResultsAsJson calls copyResults2 with JSON CopyType", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResultsAsJson(selection, 0, 0);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    copyType: CopyType.JSON,
+                    includeHeaders: true,
+                }),
+            );
+        });
+
+        test("copyResultsAsInClause calls copyResults2 with IN CopyType", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResultsAsInClause(selection, 0, 0);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    copyType: CopyType.IN,
+                }),
+            );
+        });
+
+        test("copyResultsAsInsertInto calls copyResults2 with INSERT CopyType", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .resolves({});
+
+            await queryRunner.copyResultsAsInsertInto(selection, 0, 0);
+
+            expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+                CopyResults2Request.type,
+                sinon.match({
+                    copyType: CopyType.INSERT,
+                    includeHeaders: true,
+                }),
+            );
+        });
+
+        test("second copy operation cancels first operation", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+
+            // Make the first request take a long time
+            let resolveFirst: (value: any) => void;
+            const firstRequestPromise = new Promise((resolve) => {
+                resolveFirst = resolve;
+            });
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .onFirstCall()
+                .returns(firstRequestPromise)
+                .onSecondCall()
+                .resolves({ content: "second content" });
+
+            // Start the first copy operation
+            const firstCopyPromise = queryRunner.copyResults(selection, 0, 0, false);
+
+            // Start the second copy operation before the first one completes
+            const secondCopyPromise = queryRunner.copyResults(selection, 0, 0, false);
+
+            // Verify that a cancel notification was sent
+            expect(testSqlToolsServerClient.sendNotification).to.have.been.calledWith(
+                CancelCopy2Notification.type,
+            );
+
+            // Complete the first request
+            resolveFirst!({});
+
+            // Wait for both operations to complete
+            await Promise.all([firstCopyPromise, secondCopyPromise]);
+
+            // The second copy should have written to clipboard
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("second content");
+        });
+
+        test("copy operation handles errors gracefully", async () => {
+            const queryRunner = createQueryRunner();
+            const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
+            const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+
+            testSqlToolsServerClient.sendRequest
+                .withArgs(CopyResults2Request.type, sinon.match.object)
+                .rejects(new Error("Copy failed"));
+
+            try {
+                await queryRunner.copyResults(selection, 0, 0, false);
+            } catch {
+                // Expected to throw
+            }
+
+            expect(showErrorMessageStub).to.have.been.called;
+        });
+    });
+
+    suite("writeStringToClipboard", () => {
+        test("writes string to clipboard", async () => {
+            const queryRunner = createQueryRunner();
+            const testString = "test clipboard content";
+
+            await queryRunner.writeStringToClipboard(testString);
+
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+        });
+
+        test("sets LANG environment variable on macOS", async () => {
+            const queryRunner = createQueryRunner();
+            const testString = "test clipboard content";
+
+            // Save the original platform
+            const originalPlatform = process.platform;
+            const originalLang = process.env["LANG"];
+
+            // Mock macOS platform
+            Object.defineProperty(process, "platform", {
+                value: "darwin",
+                writable: true,
+            });
+            process.env["LANG"] = "original_lang";
+
+            await queryRunner.writeStringToClipboard(testString);
+
+            // Verify the clipboard was called
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+
+            // Restore original platform
+            Object.defineProperty(process, "platform", {
+                value: originalPlatform,
+                writable: true,
+            });
+            if (originalLang) {
+                process.env["LANG"] = originalLang;
+            }
+        });
+
+        test("handles empty string", async () => {
+            const queryRunner = createQueryRunner();
+
+            await queryRunner.writeStringToClipboard("");
+
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("");
+        });
+
+        test("handles special characters", async () => {
+            const queryRunner = createQueryRunner();
+            const specialContent = "Test\twith\ttabs\nAnd\nnewlines\rAnd\rCarriage returns";
+
+            await queryRunner.writeStringToClipboard(specialContent);
+
+            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(specialContent);
+        });
+    });
+
     function setupWorkspaceConfig(configResult: { [key: string]: any }): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
         (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
@@ -548,11 +808,11 @@ function setupStandardQueryRequestServiceMock(
     testSqlToolsServerClient.sendRequest
         .withArgs(QueryExecuteContracts.QueryExecuteRequest.type, sinon.match.object)
         .callsFake((_type, details: QueryExecuteParams) => {
-            assert.equal(details.ownerUri, standardUri);
-            assert.equal(details.querySelection.startLine, standardSelection.startLine);
-            assert.equal(details.querySelection.startColumn, standardSelection.startColumn);
-            assert.equal(details.querySelection.endLine, standardSelection.endLine);
-            assert.equal(details.querySelection.endColumn, standardSelection.endColumn);
+            expect(details.ownerUri).to.equal(standardUri);
+            expect(details.querySelection.startLine).to.equal(standardSelection.startLine);
+            expect(details.querySelection.startColumn).to.equal(standardSelection.startColumn);
+            expect(details.querySelection.endLine).to.equal(standardSelection.endLine);
+            expect(details.querySelection.endColumn).to.equal(standardSelection.endColumn);
             return returnCallback(_type, details);
         });
 }
@@ -561,6 +821,6 @@ function setupStandardQueryNotificationHandlerMock(
     testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>,
 ): void {
     testQueryNotificationHandler.registerRunner.callsFake((_qr, uri: string) => {
-        assert.equal(uri, standardUri);
+        expect(uri).to.equal(standardUri);
     });
 }

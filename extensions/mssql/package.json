@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.38.0",
+    "version": "1.39.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -162,6 +162,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^4.1.1",
         "@xmldom/xmldom": "^0.8.11",
+        "strip-json-comments": "^5.0.1",
         "axios": "^1.12.0",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -648,8 +649,13 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/",
                     "group": "5_MSSQL_tree@4"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/",
+                    "group": "5_MSSQL_tree@5"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -801,7 +807,11 @@
                 },
                 {
                     "command": "mssql.copyObjectName",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(Folder|Server|disconnectedServer)\\b)[^,]+/"
+                },
+                {
+                    "command": "mssql.copyConnectionString",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|disconnectedServer)\\b/"
                 },
                 {
                     "command": "mssql.runQueryHistory",
@@ -1171,6 +1181,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.copyConnectionString",
+                "title": "%mssql.copyConnectionString%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.addAadAccount",
                 "title": "%mssql.addAadAccount%",
                 "category": "MS SQL"
@@ -1300,6 +1315,11 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openAzureDataStudioMigration",
+                "title": "%mssql.openAzureDataStudioMigration%",
                 "category": "MS SQL"
             }
         ],
@@ -1684,6 +1704,7 @@
                         "event.resultGrid.expandSelectionUp": "shift+up",
                         "event.resultGrid.expandSelectionDown": "shift+down",
                         "event.resultGrid.openColumnMenu": "f3",
+                        "event.resultGrid.openFilterMenu": "",
                         "event.resultGrid.moveToRowStart": "ctrlcmd+left",
                         "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
                         "event.resultGrid.selectColumn": "ctrl+space",
@@ -1885,12 +1906,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.intelliSense.enableQuickInfo%",
-                    "scope": "window"
-                },
-                "mssql.intelliSense.lowerCaseSuggestions": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.intelliSense.lowerCaseSuggestions%",
                     "scope": "window"
                 },
                 "mssql.persistQueryResultTabs": {

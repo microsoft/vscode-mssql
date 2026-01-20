@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
 import { AzureController } from "../../src/azure/azureController";
@@ -13,6 +15,8 @@ import { stubTelemetry } from "./utils";
 import { FormItemOptions, FormItemType } from "../../src/sharedInterfaces/form";
 import * as fp from "../../src/sharedInterfaces/fabricProvisioning";
 import { Fabric } from "../../src/constants/locConstants";
+
+chai.use(sinonChai);
 
 suite("Fabric Provisioning logic", () => {
     let sandbox: sinon.SinonSandbox;
@@ -61,15 +65,15 @@ suite("Fabric Provisioning logic", () => {
             undefined,
         );
 
-        assert.strictEqual(state.loadState, ApiStatus.Loaded);
-        assert.strictEqual(state.formState.accountId, "account1");
-        assert.strictEqual(state.formState.tenantId, "tenant1");
-        assert.strictEqual(state.formState.groupId, "default");
-        assert.ok(state.formComponents.accountId);
-        assert.ok(state.formComponents.tenantId);
-        assert.ok(state.formComponents.groupId);
+        expect(state.loadState).to.equal(ApiStatus.Loaded);
+        expect(state.formState.accountId).to.equal("account1");
+        expect(state.formState.tenantId).to.equal("tenant1");
+        expect(state.formState.groupId).to.equal("default");
+        expect(state.formComponents.accountId).to.exist;
+        expect(state.formComponents.tenantId).to.exist;
+        expect(state.formComponents.groupId).to.exist;
 
-        assert.ok(sendActionEvent.calledOnce);
+        expect(sendActionEvent).to.have.been.calledOnce;
     });
 
     test("initializeFabricProvisioningState sets group id", async () => {
@@ -80,15 +84,15 @@ suite("Fabric Provisioning logic", () => {
             "testGroup",
         );
 
-        assert.strictEqual(state.loadState, ApiStatus.Loaded);
-        assert.strictEqual(state.formState.accountId, "account1");
-        assert.strictEqual(state.formState.tenantId, "tenant1");
-        assert.strictEqual(state.formState.groupId, "testGroup");
-        assert.ok(state.formComponents.accountId);
-        assert.ok(state.formComponents.tenantId);
-        assert.ok(state.formComponents.groupId);
+        expect(state.loadState).to.equal(ApiStatus.Loaded);
+        expect(state.formState.accountId).to.equal("account1");
+        expect(state.formState.tenantId).to.equal("tenant1");
+        expect(state.formState.groupId).to.equal("testGroup");
+        expect(state.formComponents.accountId).to.exist;
+        expect(state.formComponents.tenantId).to.exist;
+        expect(state.formComponents.groupId).to.exist;
 
-        assert.ok(sendActionEvent.calledOnce);
+        expect(sendActionEvent).to.have.been.calledOnce;
     });
 
     test("setFabricProvisioningFormComponents builds expected keys and validates fields", async () => {
@@ -116,93 +120,93 @@ suite("Fabric Provisioning logic", () => {
             "groupId",
         ];
 
-        assert.deepStrictEqual(Object.keys(formComponents), expectedKeys);
+        expect(Object.keys(formComponents)).to.deep.equal(expectedKeys);
 
         // accountId component
         const accountId = formComponents.accountId;
-        assert.strictEqual(accountId.propertyName, "accountId");
-        assert.strictEqual(accountId.required, true);
-        assert.strictEqual(accountId.type, FormItemType.Dropdown);
-        assert.strictEqual(accountId.options.length, 1);
-        assert.strictEqual(accountId.options[0].value, "account1");
-        assert.strictEqual(accountId.actionButtons.length, 1);
+        expect(accountId.propertyName).to.equal("accountId");
+        expect(accountId.required).to.equal(true);
+        expect(accountId.type).to.equal(FormItemType.Dropdown);
+        expect(accountId.options.length).to.equal(1);
+        expect(accountId.options[0].value).to.equal("account1");
+        expect(accountId.actionButtons.length).to.equal(1);
 
         // workspace component
         const workspace = formComponents.workspace;
-        assert.strictEqual(workspace.propertyName, "workspace");
-        assert.strictEqual(workspace.required, true);
-        assert.strictEqual(workspace.type, FormItemType.SearchableDropdown);
-        assert.ok(Array.isArray(workspace.options));
+        expect(workspace.propertyName).to.equal("workspace");
+        expect(workspace.required).to.equal(true);
+        expect(workspace.type).to.equal(FormItemType.SearchableDropdown);
+        expect(Array.isArray(workspace.options)).to.be.true;
 
         // databaseName component
         const dbName = formComponents.databaseName;
-        assert.strictEqual(dbName.propertyName, "databaseName");
-        assert.strictEqual(dbName.required, true);
-        assert.strictEqual(dbName.type, FormItemType.Input);
+        expect(dbName.propertyName).to.equal("databaseName");
+        expect(dbName.required).to.equal(true);
+        expect(dbName.type).to.equal(FormItemType.Input);
 
         // tenantId component
         const tenantId = formComponents.tenantId;
-        assert.strictEqual(tenantId.propertyName, "tenantId");
-        assert.strictEqual(tenantId.required, true);
-        assert.strictEqual(tenantId.type, FormItemType.Dropdown);
-        assert.strictEqual(tenantId.options.length, 1);
-        assert.strictEqual(tenantId.options[0].value, "tenant1");
+        expect(tenantId.propertyName).to.equal("tenantId");
+        expect(tenantId.required).to.equal(true);
+        expect(tenantId.type).to.equal(FormItemType.Dropdown);
+        expect(tenantId.options.length).to.equal(1);
+        expect(tenantId.options[0].value).to.equal("tenant1");
 
         // databaseDescription component
         const dbDesc = formComponents.databaseDescription;
-        assert.strictEqual(dbDesc.propertyName, "databaseDescription");
-        assert.strictEqual(dbDesc.required, false);
+        expect(dbDesc.propertyName).to.equal("databaseDescription");
+        expect(dbDesc.required).to.equal(false);
 
         // profileName component
         const profileName = formComponents.profileName;
-        assert.strictEqual(profileName.propertyName, "profileName");
-        assert.strictEqual(profileName.type, FormItemType.Input);
+        expect(profileName.propertyName).to.equal("profileName");
+        expect(profileName.type).to.equal(FormItemType.Input);
 
         // groupId component
         const groupId = formComponents.groupId;
-        assert.strictEqual(groupId.propertyName, "groupId");
-        assert.ok(Array.isArray(groupId.options));
+        expect(groupId.propertyName).to.equal("groupId");
+        expect(Array.isArray(groupId.options)).to.be.true;
 
         // Validation examples
         let result = accountId.validate({} as fp.FabricProvisioningState, "account1");
-        assert.strictEqual(result.isValid, true);
+        expect(result.isValid).to.equal(true);
         result = accountId.validate({} as fp.FabricProvisioningState, "");
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
 
         result = tenantId.validate({} as fp.FabricProvisioningState, "tenant1");
-        assert.strictEqual(result.isValid, true);
+        expect(result.isValid).to.equal(true);
         result = tenantId.validate({} as fp.FabricProvisioningState, "");
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
 
         result = dbName.validate(
             { databaseNamesInWorkspace: ["db1", "db2"] } as fp.FabricProvisioningState,
             "db1",
         );
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
         result = dbName.validate(
             { databaseNamesInWorkspace: ["db1", "db2"] } as fp.FabricProvisioningState,
             "db3",
         );
-        assert.strictEqual(result.isValid, true);
+        expect(result.isValid).to.equal(true);
         result = dbName.validate({} as fp.FabricProvisioningState, "");
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
 
         result = workspace.validate({} as fp.FabricProvisioningState, "");
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
         result = workspace.validate(
             {
                 workspacesWithPermissions: { workspace1: undefined },
             } as unknown as fp.FabricProvisioningState,
             "workspace1",
         );
-        assert.strictEqual(result.isValid, true);
+        expect(result.isValid).to.equal(true);
         result = workspace.validate(
             {
                 workspacesWithPermissions: {},
             } as unknown as fp.FabricProvisioningState,
             "workspace1",
         );
-        assert.strictEqual(result.isValid, false);
+        expect(result.isValid).to.equal(false);
     });
 
     test("loadComponentsAfterSignIn updates tenants, action buttons, and reloads components", async () => {
@@ -225,10 +229,10 @@ suite("Fabric Provisioning logic", () => {
         await fabricHelpers.loadComponentsAfterSignIn(deploymentController, logger);
         const tenantOptions = [{ displayName: "tenant1", value: "tenant1" }];
 
-        assert.deepStrictEqual(state.formComponents.tenantId.options, tenantOptions);
-        assert.strictEqual(state.formState.tenantId, "tenant1");
-        assert.deepStrictEqual(state.formErrors, ["tenantId"]);
-        assert.strictEqual(state.formComponents.accountId.actionButtons[0].id, "azureSignIn");
+        expect(state.formComponents.tenantId.options).to.deep.equal(tenantOptions);
+        expect(state.formState.tenantId).to.equal("tenant1");
+        expect(state.formErrors).to.deep.equal(["tenantId"]);
+        expect(state.formComponents.accountId.actionButtons[0].id).to.equal("azureSignIn");
     });
 
     test("reloadFabricComponents resets state and calls dependencies", async () => {
@@ -245,12 +249,12 @@ suite("Fabric Provisioning logic", () => {
         const result = await fabricHelpers.reloadFabricComponents(deploymentController, "tenant1");
 
         // Check that sets and arrays were reset
-        assert.deepStrictEqual(Array.from(result.userGroupIds), []);
-        assert.deepStrictEqual(result.workspaces, []);
-        assert.deepStrictEqual(result.databaseNamesInWorkspace, []);
+        expect(Array.from(result.userGroupIds)).to.deep.equal([]);
+        expect(result.workspaces).to.deep.equal([]);
+        expect(result.databaseNamesInWorkspace).to.deep.equal([]);
 
         // Check that updateFabricProvisioningState was called
-        assert.ok(updateStateStub.calledOnce);
+        expect(updateStateStub).to.have.been.calledOnce;
     });
 
     test("getWorkspaceOptions returns correct options based on permissions", () => {
@@ -279,14 +283,14 @@ suite("Fabric Provisioning logic", () => {
         const options = fabricHelpers.getWorkspaceOptions(state);
 
         // ws1 has permission
-        assert.strictEqual(options[0].value, "ws1");
-        assert.deepStrictEqual(options[0].color, "");
-        assert.strictEqual(options[0].description, "");
+        expect(options[0].value).to.equal("ws1");
+        expect(options[0].color).to.deep.equal("");
+        expect(options[0].description).to.equal("");
 
         // ws2 has no workspace permission
-        assert.strictEqual(options[1].value, "ws2");
-        assert.strictEqual(options[1].description, Fabric.insufficientWorkspacePermissions);
-        assert.strictEqual(options[1].icon, "Warning20Regular");
+        expect(options[1].value).to.equal("ws2");
+        expect(options[1].description).to.equal(Fabric.insufficientWorkspacePermissions);
+        expect(options[1].icon).to.equal("Warning20Regular");
     });
 
     test("getWorkspaces updates state with workspace options", async () => {

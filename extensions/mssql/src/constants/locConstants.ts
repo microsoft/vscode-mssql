@@ -684,6 +684,7 @@ export class ObjectExplorer {
             comment: ["{0} is the group name"],
         });
     }
+    public static ConnectionStringCopied = l10n.t("Connection string copied to clipboard");
 }
 
 export class ConnectionDialog {
@@ -748,6 +749,15 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unsupportedAuthType(authenticationType: string) {
+        return l10n.t({
+            message:
+                "Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.",
+            args: [authenticationType],
+            comment: ["{0} is the authentication type"],
+        });
+    }
 }
 
 export class FirewallRule {
@@ -1336,7 +1346,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project (Preview)");
+    public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
@@ -1397,8 +1407,18 @@ export class PublishProject {
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
-    public static ProfileLoadedConnectionFailed = l10n.t(
-        "Profile loaded but connection failed. Please connect to the server manually.",
+    public static ProfileLoadedConnectionFailed = (serverName: string) =>
+        l10n.t({
+            message:
+                "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
+        return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
+    }
+    public static DacpacPathNotFound = l10n.t(
+        "DACPAC path not found. Please build the project first.",
     );
 }
 
@@ -1487,6 +1507,12 @@ export class SchemaCompare {
             args: [diffEntryName],
             comment: ["{0} is the name of the entry"],
         });
+    public static connectionFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Connection failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message from the connection attempt"],
+        });
 }
 
 export class SchemaDesigner {
@@ -1540,6 +1566,33 @@ export class Connection {
                 "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
             args: [connectionId],
             comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static orphanedConnectionGroupsWarning = (groupNames: string) => {
+        return l10n.t({
+            message:
+                "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
+            args: [groupNames],
+            comment: ["{0} is the comma separated list of connection group names"],
+        });
+    };
+
+    public static orphanedConnectionsWarning = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.",
+            args: [connectionDisplayNames.join(", ")],
+            comment: ["{0} is the comma separated list of connection display names"],
+        });
+    };
+
+    public static multipleRootGroupsFoundError = (rootId: string) => {
+        return l10n.t({
+            message:
+                "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+            args: [rootId],
+            comment: ["{0} is the root id"],
         });
     };
 
@@ -2251,6 +2304,7 @@ export class TableExplorer {
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
+    public static rowDeletedSuccessfully = l10n.t("Row deleted.");
 
     public static title = (tableName: string) =>
         l10n.t({
@@ -2350,11 +2404,76 @@ export class TableExplorer {
     public static Save = l10n.t("Save");
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
+
+    public static exportSuccessful = (filePath: string) =>
+        l10n.t({
+            message: "Results exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+
+    public static exportFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to export results: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
+export class AzureDataStudioMigration {
+    public static PageTitle = l10n.t("Azure Data Studio Migration");
+    public static SelectConfigFileDialogTitle = l10n.t(
+        "Locate an Azure Data Studio settings.json file to import",
+    );
+    public static ConnectionStatusReady = l10n.t("Ready");
+    public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
+    public static ConnectionStatusAlreadyImported = (connectionId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing connection with ID {0}",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+
+    public static ConnectionGroupStatusAlreadyImported = (groupId: string) =>
+        l10n.t({
+            message:
+                "Already imported.  Importing again will replace the existing group with ID {0}",
+            args: [groupId],
+            comment: ["{0} is the group ID"],
+        });
+    public static connectionIssueMissingSqlPassword = (username: string) =>
+        l10n.t({
+            message: "Enter the SQL Login password for user '{0}'.",
+            args: [username],
+            comment: ["{0} is the SQL Login username"],
+        });
+    public static connectionIssueMissingAzureAccount = (username: string) =>
+        l10n.t({
+            message: "Sign in with Entra ID '{0}'.",
+            args: [username],
+            comment: ["{0} is the Entra ID username"],
+        });
+
+    public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
+    public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
+
+    public static importProgressSuccessMessage = l10n.t(
+        "Import complete. You can close this dialog.",
+    );
+    public static importProgressErrorMessage = (error: string) =>
+        l10n.t({
+            message: "Import failed: {0}",
+            args: [error],
+            comment: ["{0} is the error message returned from the import helper."],
+        });
 }
 
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
+    public static watchDemo = l10n.t("Watch demo");
+    public static learnMore = l10n.t("Learn more");
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");

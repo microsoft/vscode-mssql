@@ -47,6 +47,9 @@ export class ConnectionDialogWebviewState
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
+    public unauthenticatedAzureTenants: IUnauthenticatedAzureTenant[] = [];
+    public azureTenantStatus: IAzureTenantStatus[] = [];
+    public azureTenantSignInCounts: IAzureTenantSignInStatus | undefined;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
@@ -81,6 +84,24 @@ export interface IAzureTenant {
     name: string;
 }
 
+export interface IUnauthenticatedAzureTenant {
+    tenantId: string;
+    tenantName?: string;
+    accountId: string;
+    accountName: string;
+}
+
+export interface IAzureTenantSignInStatus {
+    totalTenants: number;
+    signedInTenants: number;
+}
+
+export interface IAzureTenantStatus {
+    accountId: string;
+    accountName: string;
+    signedInTenants: string[];
+}
+
 export interface IDialogProps {
     type:
         | "trustServerCert"
@@ -88,7 +109,8 @@ export interface IDialogProps {
         | "loadFromConnectionString"
         | "createConnectionGroup"
         | "changePassword"
-        | "armSql2025Error";
+        | "armSql2025Error"
+        | "fileBrowser";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -147,7 +169,6 @@ export interface ConnectionDialogFormItemSpec
         ConnectionDialogWebviewState,
         ConnectionDialogFormItemSpec
     > {
-    isAdvancedOption: boolean;
     optionCategory?: string;
     optionCategoryLabel?: string;
 }
@@ -222,6 +243,7 @@ export interface ConnectionDialogContextProps
     signIntoAzureForBrowse: (
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
     ) => void;
+    signIntoAzureTenantForBrowse: () => void;
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
     selectFabricWorkspace: (workspaceId: string) => void;
@@ -267,6 +289,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     signIntoAzureForBrowse: {
         browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
     };
+    signIntoAzureTenantForBrowse: {};
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
     selectFabricWorkspace: { workspaceId: string };

@@ -15,6 +15,7 @@ import sinonChai from "sinon-chai";
 import { ISelectionData } from "../../src/models/interfaces";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
+import store from "../../src/queryResult/singletonStore";
 
 const { expect } = chai;
 
@@ -462,5 +463,43 @@ suite("SqlOutputProvider Tests using mocks", () => {
             selection.startColumn,
             { includeActualExecutionPlanXml: false },
         );
+    });
+
+    test("initializeRunnerAndWebviewState clears grid state", async () => {
+        const uri = "test_uri";
+        const title = "test_title";
+        const deleteUriStateSpy = sandbox.spy(store, "deleteUriState");
+
+        // Stub createQueryRunner to return a dummy runner
+        const mockRunner = {
+            uri: uri,
+            runStatement: sandbox.stub().resolves(),
+            runQuery: sandbox.stub().resolves(),
+            isExecutingQuery: false,
+            resetHasCompleted: sandbox.stub(),
+            onStartFailed: sandbox.stub(),
+            onStart: sandbox.stub(),
+            onResultSetAvailable: sandbox.stub(),
+            onResultSetUpdated: sandbox.stub(),
+            onExecutionPlan: sandbox.stub(),
+            onSummaryChanged: sandbox.stub(),
+        } as unknown as QueryRunner;
+
+        sandbox.stub(contentProvider, "createQueryRunner").resolves(mockRunner);
+
+        // Stub _queryResultWebviewController methods to avoid errors
+        const webviewController = (contentProvider as any)._queryResultWebviewController;
+        sandbox.stub(webviewController, "addQueryResultState");
+        sandbox.stub(webviewController, "createPanelController").resolves();
+
+        // Call runCurrentStatement which calls initializeRunnerAndWebviewState
+        await contentProvider.runCurrentStatement(
+            statusViewInstance,
+            uri,
+            { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+            title,
+        );
+
+        expect(deleteUriStateSpy).to.have.been.calledWith(uri);
     });
 });

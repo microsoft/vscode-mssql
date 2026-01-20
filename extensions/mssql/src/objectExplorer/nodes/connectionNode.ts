@@ -44,7 +44,9 @@ const createConnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
 ): vscodeMssql.TreeNodeContextValue => {
     let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
-    if (connectionProfile.containerName) nodeSubType = dockerContainer;
+    if (connectionProfile.containerName) {
+        nodeSubType = dockerContainer;
+    }
     return {
         type: SERVER_NODE_CONNECTED,
         filterable: false,

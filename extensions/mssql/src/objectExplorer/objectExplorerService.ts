@@ -57,6 +57,7 @@ import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage } from "../utils/utils";
+import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -81,16 +82,15 @@ export class ObjectExplorerService {
     private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
         const result = [];
 
-        const rootId = this._connectionManager.connectionStore.rootGroupId;
-
-        if (!this._connectionGroupNodes.has(rootId)) {
+        if (!this._connectionGroupNodes.has(ConnectionConfig.ROOT_GROUP_ID)) {
             this._logger.verbose(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
         }
 
-        for (const child of this._connectionGroupNodes.get(rootId)?.children || []) {
+        for (const child of this._connectionGroupNodes.get(ConnectionConfig.ROOT_GROUP_ID)
+            ?.children || []) {
             result.push(child);
         }
 
@@ -367,7 +367,6 @@ export class ObjectExplorerService {
             },
         );
 
-        const rootId = this._connectionManager.connectionStore.rootGroupId;
         const serverGroups =
             await this._connectionManager.connectionStore.readAllConnectionGroups();
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
@@ -376,7 +375,7 @@ export class ObjectExplorerService {
         if (
             savedConnections.length === 0 &&
             serverGroups.length === 1 &&
-            serverGroups[0].id === rootId
+            serverGroups[0].id === ConnectionConfig.ROOT_GROUP_ID
         ) {
             this._logger.verbose(
                 "No saved connections or groups found. Showing add connection node.",
@@ -415,7 +414,7 @@ export class ObjectExplorerService {
         // Populate group hierarchy - add each group as a child to its parent
         for (const group of serverGroups) {
             // Skip the root group as it has no parent
-            if (group.id === rootId) {
+            if (group.id === ConnectionConfig.ROOT_GROUP_ID) {
                 continue;
             }
 
@@ -426,7 +425,7 @@ export class ObjectExplorerService {
                 if (parentNode && childNode) {
                     parentNode.addChild(childNode);
 
-                    if (parentNode.id !== rootId) {
+                    if (parentNode.id !== ConnectionConfig.ROOT_GROUP_ID) {
                         // set the parent node for the child group unless the parent is the root group
                         // parent property is used to
                         childNode.parentNode = parentNode;
@@ -457,11 +456,12 @@ export class ObjectExplorerService {
                 } else {
                     connectionNode = new ConnectionNode(
                         connection,
-                        groupNode.id === rootId ? undefined : groupNode,
+                        groupNode.id === ConnectionConfig.ROOT_GROUP_ID ? undefined : groupNode,
                     );
                 }
 
-                connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
+                connectionNode.parentNode =
+                    groupNode.id === ConnectionConfig.ROOT_GROUP_ID ? undefined : groupNode;
 
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);

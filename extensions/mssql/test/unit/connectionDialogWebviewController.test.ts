@@ -21,6 +21,7 @@ import {
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
+    ConnectionStringDialogProps,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
@@ -29,11 +30,13 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
     CredentialsQuickPickItemType,
+    IConnectionGroup,
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { IAccount } from "vscode-mssql";
+import { ConnectionDetails, IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
@@ -48,7 +51,9 @@ import {
     stubVscodeAzureHelperGetAccounts,
     mockServerName,
     mockUserName,
+    mockTenants,
 } from "./azureHelperStubs";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AzureController } from "../../src/azure/azureController";
@@ -60,6 +65,7 @@ import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
+import { deepClone } from "../../src/models/utils";
 
 chai.use(sinonChai);
 
@@ -72,12 +78,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
     let connectionUi: sinon.SinonStubbedInstance<ConnectionUI>;
     let mockObjectExplorerProvider: sinon.SinonStubbedInstance<ObjectExplorerProvider>;
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
-
-    const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -89,7 +94,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
-        groupId: TEST_ROOT_GROUP_ID,
+        groupId: ConnectionConfig.ROOT_GROUP_ID,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -112,17 +117,29 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         connectionStore = sandbox.createStubInstance(ConnectionStore);
+        connectionConfig = sandbox.createStubInstance(ConnectionConfig);
         connectionUi = sandbox.createStubInstance(ConnectionUI);
         azureAccountService = sandbox.createStubInstance(AzureAccountService);
         serviceClientMock = stubGetCapabilitiesRequest(sandbox);
 
+        sandbox.stub(connectionStore, "connectionConfig").get(() => connectionConfig);
         sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
         sandbox.stub(connectionManager, "connectionUI").get(() => connectionUi);
         sandbox.stub(connectionManager, "client").get(() => serviceClientMock);
 
+        connectionConfig.getGroupById.resolves({
+            id: ConnectionConfig.ROOT_GROUP_ID,
+            name: ConnectionConfig.ROOT_GROUP_ID,
+            configSource: vscode.ConfigurationTarget.Global,
+        } as IConnectionGroup);
+
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
-            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
+            {
+                id: ConnectionConfig.ROOT_GROUP_ID,
+                name: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
         ]);
 
         azureAccountService.getAccounts.resolves([
@@ -173,6 +190,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 server: "",
                 password: "",
                 user: "",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -248,6 +266,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 server: "SavedServer",
                 database: "SavedDatabase",
                 authenticationType: AuthenticationType.Integrated,
+                groupId: "test-group-id",
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
@@ -278,6 +297,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.SqlLogin,
                 user: "testUser",
                 password: "testPassword",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
@@ -441,6 +461,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     user: "testUser",
                     password: "testPassword",
                     authenticationType: AuthenticationType.SqlLogin,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionDialogProfile;
             });
 
@@ -638,6 +659,161 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.formMessage).to.not.be.undefined;
                 expect(controller.state.formMessage.message).to.equal(errorMessage);
                 expect(controller.state.dialog).to.be.undefined;
+            });
+        });
+
+        suite("loadFromConnectionString", () => {
+            async function runConnectionStringScenario(
+                mockOutput: ConnectionDetails,
+                errorMessage?: string,
+            ) {
+                const connectionString = "doesn't actually matter for this test";
+
+                if (errorMessage) {
+                    connectionManager.parseConnectionString.throws(new Error(errorMessage));
+                } else {
+                    connectionManager.parseConnectionString.resolves(mockOutput);
+                }
+
+                controller.state.dialog = {
+                    type: "loadFromConnectionString",
+                    connectionString: connectionString,
+                } as ConnectionStringDialogProps;
+
+                await controller["_reducerHandlers"].get("loadFromConnectionString")(
+                    controller.state,
+                    {
+                        connectionString: connectionString,
+                    },
+                );
+            }
+
+            test("should load connection details from connection string with SQL Auth", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        user: "myUser",
+                        password: "myPassword",
+                        authenticationType: AuthenticationType.SqlLogin,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.user).to.equal("myUser");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.SqlLogin,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should load connection details from connection string with Azure MFA", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: AuthenticationType.AzureMFA,
+                    },
+                } as ConnectionDetails;
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile.server).to.equal("myServer");
+                expect(controller.state.connectionProfile.database).to.equal("myDB");
+                expect(controller.state.connectionProfile.authenticationType).to.equal(
+                    AuthenticationType.AzureMFA,
+                );
+                expect(controller.state.dialog, "dialog should be closed").to.be.undefined;
+            });
+
+            test("should display error message if connection string has unsupported authentication type", async () => {
+                const parsedDetails = {
+                    options: {
+                        server: "myServer",
+                        database: "myDB",
+                        authenticationType: "ActiveDirectoryServicePrincipal", // unsupported
+                    },
+                } as ConnectionDetails;
+
+                const blankConnectionProfile = deepClone(controller.state.connectionProfile);
+
+                await runConnectionStringScenario(parsedDetails);
+
+                expect(controller.state.connectionProfile).to.deep.equal(
+                    blankConnectionProfile,
+                    "Connection profile should not be updated",
+                );
+                expect(
+                    (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
+                ).to.contain("ActiveDirectoryServicePrincipal");
+            });
+
+            test("should display error message if parsing connection string throws", async () => {
+                const errorMessage = "Parse error";
+                await runConnectionStringScenario(undefined, errorMessage);
+
+                expect(
+                    (controller.state.dialog as ConnectionStringDialogProps).connectionStringError,
+                ).to.contain(errorMessage);
+            });
+        });
+
+        test("signIntoAzureTenantForBrowse", async () => {
+            const fakeAuth = {} as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            const signInStub = sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "signIn")
+                .resolves(fakeAuth);
+            const signInToTenantStub = sandbox
+                .stub(AzureHelpers.VsCodeAzureAuth, "signInToTenant")
+                .resolves();
+            const loadAllAzureServersStub = sandbox
+                .stub(controller as any, "loadAllAzureServers")
+                .resolves();
+
+            await controller["_reducerHandlers"].get("signIntoAzureTenantForBrowse")(
+                controller.state,
+                {},
+            );
+
+            expect(signInStub).to.have.been.calledOnce;
+            expect(signInToTenantStub).to.have.been.calledOnceWithExactly(fakeAuth);
+            expect(loadAllAzureServersStub).to.have.been.calledOnceWithExactly(controller.state);
+        });
+
+        test("refreshUnauthenticatedTenants", async () => {
+            const unauthenticated = mockTenants[1];
+
+            const fakeAuth = {
+                getTenants: sandbox.stub().resolves([mockTenants[0], mockTenants[1]]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureAuth, "getUnauthenticatedTenants")
+                .resolves([unauthenticated]);
+
+            await controller["refreshUnauthenticatedTenants"](controller.state, fakeAuth);
+
+            expect(controller.state.unauthenticatedAzureTenants).to.have.lengthOf(1);
+            expect(controller.state.unauthenticatedAzureTenants[0]).to.include({
+                tenantId: unauthenticated.tenantId,
+                accountId: unauthenticated.account.id,
+            });
+
+            expect(controller.state.azureTenantStatus).to.deep.equal([
+                {
+                    accountId: mockTenants[0].account.id,
+                    accountName: mockTenants[0].account.label,
+                    signedInTenants: [mockTenants[0].displayName],
+                },
+            ]);
+
+            expect(controller.state.azureTenantSignInCounts).to.deep.equal({
+                totalTenants: 2,
+                signedInTenants: 1,
             });
         });
     });

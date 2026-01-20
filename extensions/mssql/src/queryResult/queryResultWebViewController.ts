@@ -363,11 +363,27 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     public async removePanel(uri: string): Promise<void> {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.delete(uri);
-            this._queryResultStateMap.delete(uri);
-            /**
-             * Remove the corresponding query runner on panel closed
-             */
-            await this._sqlOutputContentProvider.cleanupRunner(uri);
+
+            // Check if we should keep the state instead of cleaning up
+            const documentStillOpen = this.vscodeWrapper.textDocuments.some(
+                (doc) => doc.uri.toString(true) === uri,
+            );
+            const shouldKeepState =
+                documentStillOpen && !this.isOpenQueryResultsInTabByDefaultEnabled;
+
+            if (shouldKeepState) {
+                // Keep the state - only show in webview view if the document is active
+                const activeDocumentUri =
+                    this.vscodeWrapper.activeTextEditor?.document?.uri?.toString(true);
+                if (activeDocumentUri === uri && this.isVisible()) {
+                    this.state = this.getQueryResultState(uri);
+                }
+                // Otherwise just keep the state in the map for when the user switches back
+            } else {
+                // Clean up the state and query runner
+                this._queryResultStateMap.delete(uri);
+                await this._sqlOutputContentProvider.cleanupRunner(uri);
+            }
         }
     }
 
@@ -387,11 +403,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             // This should never happen
 
             const error = new Error(`No query result state found for uri ${uri}`);
-
             sendErrorEvent(
                 TelemetryViews.QueryResult,
                 TelemetryActions.GetQueryResultState,
-                error,
+                new Error(`No query result state found for uri`),
                 false, // includeErrorMessage
             );
 

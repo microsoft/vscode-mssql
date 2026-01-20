@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
+import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext, useEffect, useRef } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./designerResultPane";
 import { locConstants } from "../../common/locConstants";
+import { ErrorDialog } from "../../common/errorDialog";
 import {
     ImperativePanelHandle,
     Panel,
@@ -36,13 +36,6 @@ const useStyles = makeStyles({
         height: "100%",
         width: "100%",
         flexDirection: "column",
-    },
-    errorIcon: {
-        fontSize: "100px",
-        opacity: 0.5,
-    },
-    retryButton: {
-        marginTop: "10px",
     },
     resultPaneHandle: {
         position: "absolute",
@@ -140,6 +133,8 @@ export const TableDesigner = () => {
         }
     }, [context?.state.propertiesPaneData, context?.propertiesPaneResizeInfo.isMaximized]);
 
+    const isErrorState = tableDesignerState.apiState?.initializeState === designer.LoadState.Error;
+
     return (
         <div className={classes.root}>
             {tableDesignerState.apiState?.initializeState === designer.LoadState.Loading && (
@@ -150,14 +145,14 @@ export const TableDesigner = () => {
                     />
                 </div>
             )}
-            {tableDesignerState.apiState?.initializeState === designer.LoadState.Error && (
-                <div className={classes.pageContext}>
-                    <ErrorCircleRegular className={classes.errorIcon} />
-                    <div>{locConstants.tableDesigner.errorLoadingDesigner}</div>
-                    <Button className={classes.retryButton}>
-                        {locConstants.tableDesigner.retry}
-                    </Button>
-                </div>
+            {isErrorState && (
+                <ErrorDialog
+                    open={isErrorState}
+                    title={locConstants.tableDesigner.errorLoadingDesigner}
+                    message={tableDesignerState?.initializationError ?? ""}
+                    retryLabel={locConstants.tableDesigner.retry}
+                    onRetry={() => context.initializeTableDesigner()}
+                />
             )}
             {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>

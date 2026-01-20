@@ -195,6 +195,10 @@
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Tutte le autorizzazioni per consentire alle estensioni di accedere alle tue connessioni sono state cancellate.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b339f58d00ef993ac62d6cdf1341fd6dd3351e51031e9e04da27b34d4bb793ce">
+        <source xml:lang="en">All selected</source>
+        <target state="translated">Tutti selezionati</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">Consenti Null</target>
@@ -210,6 +214,16 @@
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">In ordine alfabetico</target>
+      </trans-unit>
+      <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
+        <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Importazione già eseguita.  Eseguendo di nuovo l'importazione, la connessione esistente con ID {0} verrà sostituita</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
+        <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
+        <note>{0} is the group ID</note>
+        <target state="translated">Importazione già eseguita.  Eseguendo di nuovo l'importazione, il gruppo esistente con ID {0} verrà sostituito</target>
       </trans-unit>
       <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
         <source xml:lang="en">Alter</source>
@@ -364,6 +378,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">Procedere?</target>
       </trans-unit>
+      <trans-unit id="++CODE++8ff1f9a47f14327a26fd3a548d2babeec226cb63828a0803433b4a34a19c09ff">
+        <source xml:lang="en">Auth type</source>
+        <target state="translated">Tipo di autenticazione</target>
+      </trans-unit>
       <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
         <source xml:lang="en">Authentication</source>
         <target state="translated">Autenticazione</target>
@@ -444,6 +462,14 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Concessione codice di Azure</target>
       </trans-unit>
+      <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
+        <source xml:lang="en">Azure Data Studio Migration</source>
+        <target state="translated">Migrazione di Azure Data Studio</target>
+      </trans-unit>
+      <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
+        <source xml:lang="en">Azure Data Studio settings file</source>
+        <target state="translated">File di impostazioni di Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Codice dispositivo di Azure</target>
@@ -515,6 +541,14 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Brightness</source>
         <target state="translated">Luminosità</target>
       </trans-unit>
+      <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
+        <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+        <target state="translated">Importare le connessioni salvate da Azure Data Studio nell'estensione MSSQL e scoprire esperienze familiari.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
+        <source xml:lang="en">Browse</source>
+        <target state="translated">Esplora</target>
+      </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Esplora Azure</target>
@@ -526,6 +560,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">Esplora infrastruttura</target>
+      </trans-unit>
+      <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
+        <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
+        <target state="translated">Selezionare il file settings.json di Azure Data Studio</target>
       </trans-unit>
       <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
         <source xml:lang="en">Browse...</source>
@@ -802,6 +840,18 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Clear Sort</source>
         <target state="translated">Cancella ordinamento</target>
       </trans-unit>
+      <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
+        <source xml:lang="en">Clear all filters</source>
+        <target state="translated">Cancella tutti i filtri</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1">
+        <source xml:lang="en">Clear all grouping</source>
+        <target state="translated">Cancella tutti i raggruppamenti</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64b1f96ecb4f24b2df07eb570a31246b394e2b09d4d19d942ed0f815c1c5c6be">
+        <source xml:lang="en">Clear all sorting</source>
+        <target state="translated">Cancella tutti gli ordinamenti</target>
+      </trans-unit>
       <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">Cancella la cache e aggiorna il token</target>
@@ -870,6 +920,18 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Collapse Workspace Explorer</source>
         <target state="translated">Comprimi Esplora aree di lavoro</target>
       </trans-unit>
+      <trans-unit id="++CODE++bbeecf3d3d08d6b405f2fce7ea90dd90c7d438d7a926329a86bffb5c8de96c55">
+        <source xml:lang="en">Collapse all groups</source>
+        <target state="translated">Comprimi tutti i gruppi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a85ebf45b79818fe0f9459bd61eb48e03ea0b9668381e94448c7c100b1e25d8d">
+        <source xml:lang="en">Collapse connection groups</source>
+        <target state="translated">Comprimere gruppi di connessione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
+        <source xml:lang="en">Collapse connections</source>
+        <target state="translated">Comprimere connessioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
         <target state="translated">Colore</target>
@@ -919,6 +981,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">Il nome della colonna non può essere vuoto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c56d46cc10135f393e52c47f8001e6235ecadc91f6ced732185c1679055aa79">
+        <source xml:lang="en">Column resize by content</source>
+        <target state="translated">Ridimensiona colonna in base al contenuto</target>
       </trans-unit>
       <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
         <source xml:lang="en">Column width must be at least {0} pixels.</source>
@@ -1136,6 +1202,15 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Connection error</source>
         <target state="translated">Errore di connessione</target>
       </trans-unit>
+      <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
+        <source xml:lang="en">Connection failed: {0}</source>
+        <note>{0} is the error message from the connection attempt</note>
+        <target state="translated">Connessione non riuscita: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
+        <source xml:lang="en">Connection groups to import</source>
+        <target state="translated">Gruppi di connessione da importare</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
         <target state="translated">La connessione non è attiva. Stabilire una connessione prima di eseguire questa azione.</target>
@@ -1160,6 +1235,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <note>{0} is the extension ID</note>
         <target state="translated">È necessaria l'autorizzazione per la condivisione della connessione per l'estensione: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
+        <source xml:lang="en">Connection string copied to clipboard</source>
+        <target state="translated">Stringa di connessione copiata negli appunti</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">È necessario specificare la stringa di connessione</target>
@@ -1169,6 +1248,18 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <note>{0} is the connection ID</note>
         <target state="translated">Connessione con ID "{0}" non trovata. Verificare che l'ID connessione esista.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
+        <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
+        <target state="translated">Le connessioni presenti in gruppi non selezionati verranno spostate in corrispondenza della radice.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b82cef69876e86ca650b86a01403a1993737b15871e7e4216363213573d600f3">
+        <source xml:lang="en">Connections needing attention</source>
+        <target state="translated">Connessioni che richiedono attenzione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
+        <source xml:lang="en">Connections to import</source>
+        <target state="translated">Connessioni da importare</target>
+      </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
         <target state="translated">Considera di aggiungere un nome per questa chiave esterna</target>
@@ -1176,10 +1267,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
         <source xml:lang="en">Container Name</source>
         <target state="translated">Nome contenitore</target>
-      </trans-unit>
-      <trans-unit id="++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572">
-        <source xml:lang="en">Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
-        <target state="translated">La creazione di contenitori non è supportata sul sistema. Il supporto ARM sarà disponibile a partire dall'immagine del contenitore SQL Server 2025 CU1.</target>
       </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
@@ -1240,6 +1327,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">Copiare il codice e aprire la pagina Web</target>
+      </trans-unit>
+      <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
+        <source xml:lang="en">Copy command to clipboard</source>
+        <target state="translated">Copia il comando negli Appunti</target>
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
@@ -1372,6 +1463,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Customize keyboard shortcuts</source>
         <target state="translated">Personalizzare i tasti di scelta rapida</target>
       </trans-unit>
+      <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
+        <source xml:lang="en">DAB</source>
+        <target state="translated">DAB</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">Distribuzione DACPAC eseguita correttamente</target>
@@ -1389,6 +1484,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
         <note>{0} is the file path</note>
         <target state="translated">DACPAC estratto correttamente in ''{0}''</target>
+      </trans-unit>
+      <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
+        <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+        <target state="translated">Percorso DACPAC non trovato. Compilare prima il progetto.</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1735,6 +1834,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Ends With</source>
         <target state="translated">Termina con</target>
       </trans-unit>
+      <trans-unit id="++CODE++fc203569fa858e0ef3d2644e417247d162f933f5e91db77c913471844e2f3ced">
+        <source xml:lang="en">Ends with</source>
+        <target state="translated">Termina con</target>
+      </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
         <target state="translated">Immettere la descrizione del database</target>
@@ -1795,6 +1898,11 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Enter profile name</source>
         <target state="translated">Immetti il nome profilo</target>
       </trans-unit>
+      <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
+        <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
+        <note>{0} is the SQL Login username</note>
+        <target state="translated">Immettere la password di accesso SQL per l'utente '{0}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
         <source xml:lang="en">Enter the path for the output file</source>
         <target state="translated">Inserire il percorso del file di output</target>
@@ -1802,6 +1910,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
         <target state="translated">La cancellazione della cache dei token di Entra è stata completata.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
+        <source xml:lang="en">Equal to</source>
+        <target state="translated">Uguale a</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1858,13 +1970,17 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Error loading Azure subscriptions.</source>
         <target state="translated">Errore durante il caricamento delle sottoscrizioni di Azure.</target>
       </trans-unit>
+      <trans-unit id="++CODE++28ec099944dfbabd99dd35f89ef90d8d7e06ee1707d429fb19c164673eadb4d7">
+        <source xml:lang="en">Error loading Schema Designer</source>
+        <target state="translated">Errore durante il caricamento di Progettazione schemi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0">
+        <source xml:lang="en">Error loading Table Designer</source>
+        <target state="translated">Errore durante il caricamento di Progettazione tabelle</target>
+      </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
         <target state="translated">Errore durante il caricamento dei database</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
-        <source xml:lang="en">Error loading designer</source>
-        <target state="translated">Errore durante il caricamento della finestra di progettazione</target>
       </trans-unit>
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
@@ -1987,6 +2103,18 @@ Errore:
         <source xml:lang="en">Expand Workspace Explorer</source>
         <target state="translated">Espandi Esplora aree di lavoro</target>
       </trans-unit>
+      <trans-unit id="++CODE++d2fc073e6098215896ebf6c1a31f09b47f966e3c1280eec921d00fb2fbdea336">
+        <source xml:lang="en">Expand all groups</source>
+        <target state="translated">Espandi tutti i gruppi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de60696021738b970e35e0ce59d441a5dc7eadd336ac90d3db9de15a6e4318a2">
+        <source xml:lang="en">Expand connection groups</source>
+        <target state="translated">Espandere i gruppi di connessione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
+        <source xml:lang="en">Expand connections</source>
+        <target state="translated">Espandere connessioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Espandere riquadro proprietà</target>
@@ -2010,6 +2138,26 @@ Errore:
       <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
         <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
         <target state="translated">Esportare lo schema e i dati da un database SQL in un file con estensione bacpac</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73194761249a0ab480df4f1fa38f32ed5b3adcd3a41c304c9aae9cd4e8661a05">
+        <source xml:lang="en">Export to CSV</source>
+        <target state="translated">Esporta in CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b4b9f7cd9a3ba50b51932300eb1556cac2635bca03b77058950aa0345d66bbf">
+        <source xml:lang="en">Export to Excel</source>
+        <target state="translated">Esporta in Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9a5f7a679be3491c633f828f30741103a02f65654b87470f4a17a23a7838fc3">
+        <source xml:lang="en">Export to JSON</source>
+        <target state="translated">Esporta in JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6d674141a1f7fa066558d560d375dacfcac4d3cc49647fd80b0c0008fdfd54d5">
+        <source xml:lang="en">Export to tab delimited</source>
+        <target state="translated">Esporta in una file con valori delimitati da tabulazioni</target>
+      </trans-unit>
+      <trans-unit id="++CODE++afcbbda58db9bb6a697a0d5558541c82d1f956426fcad621e37feb68d3b35fbb">
+        <source xml:lang="en">Export to text format</source>
+        <target state="translated">Esporta in formato testo</target>
       </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
@@ -2135,6 +2283,11 @@ Errore:
         <note>{0} is the connection ID</note>
         <target state="translated">Non è possibile stabilire una connessione con ID "{0}". Verificare i dettagli della connessione e la connettività di rete.</target>
       </trans-unit>
+      <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
+        <source xml:lang="en">Failed to export results: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Non è stato possibile esportare la risorsa: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
         <target state="translated">Non è stato possibile recuperare i tag del contenitore Docker: {0}</target>
@@ -2142,6 +2295,10 @@ Errore:
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">Non è stato possibile recuperare i token utente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++241834c43f110abedd551f363f4ea866f360fe552cd16f8cec31ab975738c57c">
+        <source xml:lang="en">Failed to generate SqlPackage command: {0}</source>
+        <target state="translated">Non è possibile generare il comando SqlPackage: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
         <source xml:lang="en">Failed to generate publish script: '{0}'</source>
@@ -2348,6 +2505,10 @@ Errore:
         <source xml:lang="en">Filter for any field...</source>
         <target state="translated">Filtra per qualsiasi campo...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
+        <source xml:lang="en">Filter shortcuts</source>
+        <target state="translated">Tasti di scelta rapida filtro</target>
+      </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
         <target state="translated">Trova</target>
@@ -2413,6 +2574,10 @@ Errore:
         <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object.</source>
         <target state="translated">Per dati numerici, il numero massimo di cifre decimali che è possibile archiviare in questo oggetto di database.</target>
       </trans-unit>
+      <trans-unit id="++CODE++647da5cac1ce93e913f21be22e9dcb571b96b96a9d7aa7eaa2bac2f2d0ccd5b8">
+        <source xml:lang="en">Force fit columns</source>
+        <target state="translated">Imponi adattamento colonne</target>
+      </trans-unit>
       <trans-unit id="++CODE++2390e8502ba64cd13706dd2af52d9983efe51a28984739601b0b86fbf7c65904">
         <source xml:lang="en">Foreign Column</source>
         <target state="translated">Colonna esterna</target>
@@ -2458,6 +2623,10 @@ Errore:
         <note>{0} is the number of connection profiles</note>
         <target state="translated">Trovati {0} profili di connessione salvati.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
+        <source xml:lang="en">Freeze columns</source>
+        <target state="translated">Blocca colonne</target>
+      </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
         <target state="translated">Generale</target>
@@ -2477,6 +2646,10 @@ Errore:
       <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
         <source xml:lang="en">Generate script to deploy changes to target</source>
         <target state="translated">Genera script per distribuire le modifiche nella destinazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
+        <source xml:lang="en">Generate sqlpackage command</source>
+        <target state="translated">Generare il comando sqlpackage</target>
       </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
@@ -2560,9 +2733,21 @@ Errore:
         <source xml:lang="en">Greater Than or Equals</source>
         <target state="translated">Maggiore o uguale a</target>
       </trans-unit>
+      <trans-unit id="++CODE++1fbcaddaa36260ff8a3c55cb7b0f95813cba07fbe56173e8a47a7099dcae75b6">
+        <source xml:lang="en">Greater than</source>
+        <target state="translated">Maggiore di</target>
+      </trans-unit>
+      <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
+        <source xml:lang="en">Greater than or equal to</source>
+        <target state="translated">Maggiore o uguale a</target>
+      </trans-unit>
       <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
         <source xml:lang="en">Grid View</source>
         <target state="translated">Visualizzazione Griglia</target>
+      </trans-unit>
+      <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
+        <source xml:lang="en">Group by</source>
+        <target state="translated">Raggruppa per</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -2580,6 +2765,10 @@ Errore:
         <source xml:lang="en">Hide Script</source>
         <target state="translated">Nascondi script</target>
       </trans-unit>
+      <trans-unit id="++CODE++c646b55d1fd317086a616548a2cc0b1606ecdc5a99bd2d3dcb43368fcb37ad30">
+        <source xml:lang="en">Hide column</source>
+        <target state="translated">Nascondi colonna</target>
+      </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
         <target state="translated">Nascondi messaggio di errore completo</target>
@@ -2595,6 +2784,10 @@ Errore:
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">Evidenzia operazione costosa</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e517828c3d88ea3e62b2169a626c32e39be2e7cf52e99f7e9d764af6859bbd0">
+        <source xml:lang="en">Highlights</source>
+        <target state="translated">Highlights</target>
       </trans-unit>
       <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
         <source xml:lang="en">Hostname</source>
@@ -2645,6 +2838,23 @@ Errore:
         <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
         <target state="translated">Importare un file con estensione bacpac in un database nuovo o vuoto</target>
       </trans-unit>
+      <trans-unit id="++CODE++e06eac7e7960029aa3e9849f6e1d9316e9bf7f143c1fb634dd0a2b3391e373f1">
+        <source xml:lang="en">Import anyway</source>
+        <target state="translated">Importare comunque</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e8e2a40f8096590ad749613dff43e0ffb3a0dae652f82c93d12d1248b1e28b8">
+        <source xml:lang="en">Import complete. You can close this dialog.</source>
+        <target state="translated">Importazione completata. È possibile chiudere questa finestra di dialogo.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
+        <source xml:lang="en">Import failed: {0}</source>
+        <note>{0} is the error message returned from the import helper.</note>
+        <target state="translated">Importazione non riuscita: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
+        <source xml:lang="en">Import selected</source>
+        <target state="translated">Importare selezionati</target>
+      </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
         <target state="translated">Importanza</target>
@@ -2652,6 +2862,10 @@ Errore:
       <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
         <source xml:lang="en">Importing BACPAC...</source>
         <target state="translated">Importazione di BACPAC in corso...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
+        <source xml:lang="en">Importing selections</source>
+        <target state="translated">Importazione delle selezioni</target>
       </trans-unit>
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
@@ -2795,6 +3009,10 @@ Errore:
         <source xml:lang="en">Learn More</source>
         <target state="translated">Altre informazioni</target>
       </trans-unit>
+      <trans-unit id="++CODE++1445799c033a2d17e2bad5d8610879e71ff0d73a8a3c2b932b43ad0449dac3a1">
+        <source xml:lang="en">Learn more</source>
+        <target state="translated">Altre informazioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
         <target state="translated">Altre informazioni sulle funzionalità di SQL Server 2025</target>
@@ -2822,6 +3040,14 @@ Errore:
       <trans-unit id="++CODE++f3efd3e5531c7b16003d81bb5085288ace97366792c480484895fd2583ca5842">
         <source xml:lang="en">Less Than or Equals</source>
         <target state="translated">Minore o uguale a</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23105bdfc3d62ed123bff7dd685f40015ddf25b49f2b9a895014acb9d8d40763">
+        <source xml:lang="en">Less than</source>
+        <target state="translated">Minore di</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ae1564a79ff31afebb08eb05fd9d31bcf9b616516c2a9deff4288695cf2c5240">
+        <source xml:lang="en">Less than or equal to</source>
+        <target state="translated">Minore di o uguale a</target>
       </trans-unit>
       <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
         <source xml:lang="en">Line {0}</source>
@@ -3051,6 +3277,10 @@ Errore:
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Contenitore del database di SQL Server locale</target>
       </trans-unit>
+      <trans-unit id="++CODE++a33a6dbd416ebaa5cdafa7c33ddc623bd52eb841a2206542a8f47b1d4eafa3b1">
+        <source xml:lang="en">Locate an Azure Data Studio settings.json file to import</source>
+        <target state="translated">Individuare un file settings.json di Azure Data Studio da importare</target>
+      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Posizione</target>
@@ -3208,6 +3438,11 @@ Errore:
         <source xml:lang="en">Move to Root</source>
         <target state="translated">Passa alla radice</target>
       </trans-unit>
+      <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
+        <source xml:lang="en">Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
+        <note>{0} is the root id</note>
+        <target state="translated">Sono stati trovati più gruppi di connessione con ID '{0}'.  Eliminarli o rinominarli tutti, ad eccezione di uno in User/Global settings.json, quindi riavviare l'estensione.</target>
+      </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
         <target state="translated">Dati personali</target>
@@ -3223,6 +3458,10 @@ Errore:
       <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
         <source xml:lang="en">Name of the primary key.</source>
         <target state="translated">Nome della chiave primaria.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
+        <source xml:lang="en">Needs attention</source>
+        <target state="translated">Richiede attenzione</target>
       </trans-unit>
       <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
         <source xml:lang="en">New Azure SQL logical server (Preview)</source>
@@ -3345,6 +3584,10 @@ Errore:
         <note>{0} is the connection ID</note>
         <target state="translated">Nessuna connessione trovata per connectionId: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++062ed1eb39f94280e66412038f4fe1971935cfefdde249136051b69c28ed683b">
+        <source xml:lang="en">No connection groups were found in the file.</source>
+        <target state="translated">Nessun gruppo di connessione trovato nel file.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
         <source xml:lang="en">No connection information found</source>
         <target state="translated">Nessuna informazione di connessione disponibile</target>
@@ -3360,6 +3603,10 @@ Errore:
       <trans-unit id="++CODE++17f0b82ed4308509b67351b92fb3e2892fa54bae44e90f88811c90938aef0c20">
         <source xml:lang="en">No connections available. Please create a connection first.</source>
         <target state="translated">Nessuna connessione disponibile. Creare prima una connessione.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
+        <source xml:lang="en">No connections were found in the file.</source>
+        <target state="translated">Nessuna connessione trovata nel file.</target>
       </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
@@ -3379,9 +3626,17 @@ Errore:
         <note>{0} is the name of the workspace</note>
         <target state="translated">Nessun database trovato nell'area di lavoro '{0}'.</target>
       </trans-unit>
+      <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
+        <source xml:lang="en">No elements found</source>
+        <target state="translated">Non sono stati trovati elementi</target>
+      </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
         <target state="translated">Nessun elemento</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
+        <source xml:lang="en">No matches found</source>
+        <target state="translated">Nessuna corrispondenza trovata</target>
       </trans-unit>
       <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
         <source xml:lang="en">No model found.</source>
@@ -3429,6 +3684,10 @@ Errore:
         <source xml:lang="en">No tenant selected</source>
         <target state="translated">Nessun tenant selezionato</target>
       </trans-unit>
+      <trans-unit id="++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4">
+        <source xml:lang="en">No tenants are currently signed in.</source>
+        <target state="translated">Nessun tenant attualmente connesso.</target>
+      </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">Nessuno strumento da elaborare.</target>
@@ -3468,6 +3727,14 @@ Errore:
       <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
         <source xml:lang="en">Not Starts With</source>
         <target state="translated">Non inizia con</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
+        <source xml:lang="en">Not contains</source>
+        <target state="translated">Non contiene</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c9a7c5601ef0cf94864a294ea116e414d2e0cf571ab03baabf79b726e1dcb294">
+        <source xml:lang="en">Not equal to</source>
+        <target state="translated">Diverso da</target>
       </trans-unit>
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
@@ -3529,6 +3796,16 @@ Errore:
       <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
         <source xml:lang="en">On Update Action</source>
         <target state="translated">Azione di aggiornamento</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d763983a073bc87ca923bb655d5bf3537e7afaaf07ef5f21a8a814550e24413">
+        <source xml:lang="en">One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.</source>
+        <note>{0} is the comma separated list of connection group names</note>
+        <target state="translated">Uno o più gruppi di connessione fanno riferimento a gruppi padre che non esistono e sono stati ignorati: {0}. Aggiornare il file di impostazioni per correggere queste voci.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c7a5472339eb3d2530ccd1114618d20e8905a539ef06edabfbe928ca30f287a">
+        <source xml:lang="en">One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.</source>
+        <note>{0} is the comma separated list of connection display names</note>
+        <target state="translated">Una o più connessioni fanno riferimento a gruppi che non esistono e sono stati ignorati: {0}. Aggiornare le impostazioni di connessione per correggere queste voci.</target>
       </trans-unit>
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
@@ -3634,6 +3911,10 @@ Errore:
       <trans-unit id="++CODE++f739807a9884bf6669e1185bac07658249fc43288b25fc4319a683d18b36a188">
         <source xml:lang="en">Package file</source>
         <target state="translated">File del pacchetto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
+        <source xml:lang="en">Page</source>
+        <target state="translated">Pagina</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -3780,6 +4061,10 @@ Errore:
         <source xml:lang="en">Privacy Statement</source>
         <target state="translated">Informativa sulla privacy</target>
       </trans-unit>
+      <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
+        <source xml:lang="en">Private</source>
+        <target state="translated">Privato</target>
+      </trans-unit>
       <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
         <source xml:lang="en">Processing include or exclude all differences operation.</source>
         <target state="translated">Elaborazione dell'operazione di inclusione o esclusione di tutte le differenze.</target>
@@ -3796,9 +4081,14 @@ Errore:
         <source xml:lang="en">Profile created successfully</source>
         <target state="translated">Il profilo è stato creato</target>
       </trans-unit>
-      <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
-        <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
-        <target state="translated">Profilo caricato, ma la connessione non riuscita. Connettersi al server manualmente.</target>
+      <trans-unit id="++CODE++b0d070ae80a582b478d83f8d81282ede72d99e81778076328e1c877c5a463f16">
+        <source xml:lang="en">Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.</source>
+        <note>{0} is the server name</note>
+        <target state="translated">Profilo caricato, ma non è stato possibile stabilire automaticamente la connessione. Creare una connessione a {0} e riprovare.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d3663280e101b56ddfbbcb0b124e7b19ac07da8d1691fcef6138356fdc2f8ac3">
+        <source xml:lang="en">Profile name</source>
+        <target state="translated">Nome profilo</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -3825,12 +4115,16 @@ Errore:
         <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
         <note>{0} is the proxy URL
 {1} is the error message</note>
-        <target state="new">Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}</target>
+        <target state="translated">Impostazioni proxy trovate, ma si è verificato un errore durante l'analisi dell'URL: ''{0}''.  Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione MSSQL.  Errore: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++c8c11bfcb5b3707da6e11caf47e9434acbf1519ea1dd552ebb9cd203ab8acc21">
         <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</source>
         <note>{0} is the proxy URL</note>
-        <target state="new">Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.</target>
+        <target state="translated">Impostazioni proxy trovate, ma senza un protocollo (ad esempio http://): '{0}'.  Potrebbero verificarsi problemi di connessione durante l'uso dell'estensione MSSQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
+        <source xml:lang="en">Public</source>
+        <target state="translated">Pubblico</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -3848,9 +4142,9 @@ Errore:
         <source xml:lang="en">Publish Profile</source>
         <target state="translated">Profilo di pubblicazione</target>
       </trans-unit>
-      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
-        <source xml:lang="en">Publish Project (Preview)</source>
-        <target state="translated">Pubblica progetto (anteprima)</target>
+      <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
+        <source xml:lang="en">Publish Project</source>
+        <target state="new">Publish Project</target>
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
@@ -3920,6 +4214,10 @@ Errore:
         <source xml:lang="en">Read the documentation</source>
         <target state="translated">Leggere la documentazione</target>
       </trans-unit>
+      <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
+        <source xml:lang="en">Ready</source>
+        <target state="translated">Pronto</target>
+      </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
         <target state="translated">Preparazione del contenitore per le connessioni.</target>
@@ -3966,6 +4264,10 @@ Errore:
         <source xml:lang="en">Refresh Credentials</source>
         <target state="translated">Aggiorna credenziali</target>
       </trans-unit>
+      <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
+        <source xml:lang="en">Refresh dataset</source>
+        <target state="translated">Aggiorna set di dati</target>
+      </trans-unit>
       <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
         <source xml:lang="en">Reload Visual Studio Code</source>
         <target state="translated">Ricarica Visual Studio Code</target>
@@ -3982,9 +4284,17 @@ Errore:
         <source xml:lang="en">Remove Sort</source>
         <target state="translated">Rimuovi ordinamento</target>
       </trans-unit>
+      <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
+        <source xml:lang="en">Remove filter</source>
+        <target state="translated">Rimuovi filtro</target>
+      </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
         <target state="translated">Rimuovi connessione recente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
+        <source xml:lang="en">Remove sort</source>
+        <target state="translated">Rimuovi ordinamento</target>
       </trans-unit>
       <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
         <source xml:lang="en">Remove {0}</source>
@@ -4065,6 +4375,11 @@ Errore:
         <source xml:lang="en">Results copied to clipboard</source>
         <target state="translated">Risultati copiati negli Appunti</target>
       </trans-unit>
+      <trans-unit id="++CODE++47c4e447deebe0e891365e8fc7bd3805ac17b8753bb83205ee77b7408103de61">
+        <source xml:lang="en">Results exported successfully to {0}</source>
+        <note>{0} is the file path</note>
+        <target state="translated">Risultati esportati correttamente in {0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">Riprova</target>
@@ -4104,6 +4419,10 @@ Errore:
       <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
         <source xml:lang="en">Row created.</source>
         <target state="translated">Riga creata.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e1bc7c26c53c918d01dedcacc525ec1f4c4f1f77395d22c9364fde74d2e43701">
+        <source xml:lang="en">Row deleted.</source>
+        <target state="translated">.Riga eliminata.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
@@ -4193,6 +4512,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
         <target state="translated">SQL Server non supporta i contenitori Windows. Passare ai contenitori Linux nelle impostazioni di Docker Desktop.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa9d43d3408d2b926cc81a65d48ab465911dbeecf89755eb0bb46c4a4ad61e04">
+        <source xml:lang="en">SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.</source>
+        <target state="translated">SQL Server non è supportato sui processori ARM, inclusi computer Windows e Apple basati su chip al silicio.</target>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
@@ -4406,10 +4729,6 @@ Query: {2}</target>
         <source xml:lang="en">Search...</source>
         <target state="translated">Ricerca...</target>
       </trans-unit>
-      <trans-unit id="++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d">
-        <source xml:lang="en">See</source>
-        <target state="translated">Vedere</target>
-      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">Seleziona</target>
@@ -4446,6 +4765,10 @@ Query: {2}</target>
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">Seleziona schema di destinazione</target>
       </trans-unit>
+      <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
+        <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
+        <target state="translated">Selezionare un account Microsoft Entra ID da usare con questa connessione.  Di seguito sono elencate le informazioni dell'account originale di Azure Data Studio, ma è possibile scegliere un account diverso.</target>
+      </trans-unit>
       <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
         <source xml:lang="en">Select a Workspace</source>
         <target state="translated">Seleziona un'area di lavoro</target>
@@ -4480,6 +4803,10 @@ Query: {2}</target>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
         <target state="translated">Selezionare un oggetto {0} per il filtro</target>
       </trans-unit>
+      <trans-unit id="++CODE++6dd7b48a3fb195b4a52c7d60e9f3b179113b489c9412a881a41abf06da3df7e2">
+        <source xml:lang="en">Select account</source>
+        <target state="translated">Seleziona account</target>
+      </trans-unit>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
         <target state="translated">Seleziona tutto</target>
@@ -4491,6 +4818,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">Scegli un account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
+        <source xml:lang="en">Select an account for authentication</source>
+        <target state="translated">Selezionare un account per l'autenticazione</target>
       </trans-unit>
       <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
@@ -4514,6 +4845,14 @@ Query: {2}</target>
         <note>{0} is the extension name</note>
         <target state="translated">Selezionare una nuova autorizzazione per l'estensione: "{0}"</target>
       </trans-unit>
+      <trans-unit id="++CODE++a387a608fae904e256b03c48e16889d585f52ddd5dfbceccf00959b34f384031">
+        <source xml:lang="en">Select or clear all connection groups</source>
+        <target state="translated">Selezionare o deselezionare tutti i gruppi di connessione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a55cdaf558e3df25a1e10c4967be5c53e2a9e2b74ba13f61aa4fc8ee866d03e9">
+        <source xml:lang="en">Select or clear all connections</source>
+        <target state="translated">Selezionare o deselezionare tutte le connessioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
         <source xml:lang="en">Select package file</source>
         <target state="translated">Seleziona file del pacchetto</target>
@@ -4525,6 +4864,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
         <target state="translated">Seleziona sottoscrizioni</target>
+      </trans-unit>
+      <trans-unit id="++CODE++816fb2b1f45f1228327db6df7e553f728b2074ca7897d2b506a881d6a7e5f6f6">
+        <source xml:lang="en">Select the Azure Data Studio settings.json file to scan for connection groups and connections.</source>
+        <target state="translated">Selezionare il file settings.json di Azure Data Studio per cercare gruppi di connessione e connessioni.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
         <source xml:lang="en">Select the SQL Server Container Image</source>
@@ -4641,6 +4984,10 @@ Query: {2}</target>
         <source xml:lang="en">Show full error message</source>
         <target state="translated">Mostra messaggio di errore completo</target>
       </trans-unit>
+      <trans-unit id="++CODE++8a4cdc1c1353b76118cc7e7eb513c9d9cb49db4012aec7b94b52971b4518edf4">
+        <source xml:lang="en">Show masked command (hides sensitive information)</source>
+        <target state="translated">Mostrare il comando mascherato (nasconde informazioni sensibili)</target>
+      </trans-unit>
       <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
         <source xml:lang="en">Show password</source>
         <target state="translated">Mostra password</target>
@@ -4654,6 +5001,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
         <source xml:lang="en">Show table relationships</source>
         <target state="translated">Mostra relazioni tra tabelle</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21f4e12097fa6a8459168abdff5195a6e91816c15089049ccd0742dd17f28c67">
+        <source xml:lang="en">Show unmasked command (reveals sensitive information)</source>
+        <target state="translated">Mostrare il comando non mascherato (rivela informazioni sensibili)</target>
       </trans-unit>
       <trans-unit id="++CODE++4ff3ea0e75d3a3da8e4fa737a7fce0eab8b7622e0cd027dd575c297724032694">
         <source xml:lang="en">Showing schema for connection '{0}' (ID: {1})</source>
@@ -4689,6 +5040,11 @@ Query: {2}</target>
         <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
         <target state="translated">Consente di accedere alla sottoscrizione di Azure con un codice dispositivo. Usare questa opzione nelle configurazioni in cui il comando Accedi non funziona</target>
       </trans-unit>
+      <trans-unit id="++CODE++20d9a35f003953d841cd3280e559c97fd36197414fb054f5416d12f3cbbbd9d9">
+        <source xml:lang="en">Sign in with Entra ID '{0}'.</source>
+        <note>{0} is the Entra ID username</note>
+        <target state="translated">Accedere con Entra ID '{0}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
         <source xml:lang="en">Sign into Azure</source>
         <target state="translated">Accedi ad Azure</target>
@@ -4700,6 +5056,14 @@ Query: {2}</target>
       <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
         <source xml:lang="en">Sign into Fabric</source>
         <target state="translated">Accedi a Fabric</target>
+      </trans-unit>
+      <trans-unit id="++CODE++057a95531cc67517faa38f1129b6721abe884696ec9d937a8b600721d4548f9e">
+        <source xml:lang="en">Sign into additional accounts</source>
+        <target state="translated">Accedere ad altri account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4146dd57d411314abbf0f10ece3c3400b4bfb5b55bb91b106b5fe21c5fb51b9">
+        <source xml:lang="en">Sign into tenant</source>
+        <target state="translated">Accedere al tenant</target>
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
@@ -4713,6 +5077,10 @@ Query: {2}</target>
         <source xml:lang="en">Smart performance</source>
         <target state="translated">Prestazioni intelligenti</target>
       </trans-unit>
+      <trans-unit id="++CODE++a4fc5133409f8a143e806d9a71b88a9a32029c885589a0df6b63de5fac3e6e74">
+        <source xml:lang="en">Some selections still need information</source>
+        <target state="translated">Alcune selezioni richiedono ancora informazioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
         <target state="translated">Ordina</target>
@@ -4723,6 +5091,14 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6">
         <source xml:lang="en">Sort Descending</source>
+        <target state="translated">Ordinamento decrescente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea">
+        <source xml:lang="en">Sort ascending</source>
+        <target state="translated">Ordinamento crescente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
+        <source xml:lang="en">Sort descending</source>
         <target state="translated">Ordinamento decrescente</target>
       </trans-unit>
       <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
@@ -4748,6 +5124,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
         <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
         <target state="translated">Specifica se la colonna può includere un valore NULL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
+        <source xml:lang="en">SqlPackage Command</source>
+        <target state="translated">Comando SqlPackage</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
@@ -4790,6 +5170,14 @@ Query: {2}</target>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
         <target state="translated">Inizia con</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
+        <source xml:lang="en">Starts with</source>
+        <target state="translated">Inizia con</target>
+      </trans-unit>
+      <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
+        <source xml:lang="en">Status</source>
+        <target state="translated">Stato</target>
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
@@ -4890,6 +5278,10 @@ Query: {2}</target>
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
         <target state="translated">Il passaggio ai contenitori Linux è stato annullato. SQL Server supporta solo contenitori Linux.</target>
       </trans-unit>
+      <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
+        <source xml:lang="en">Synchronous resize</source>
+        <target state="translated">Ridimensionamento sincrono</target>
+      </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
         <target state="translated">Tabella</target>
@@ -4969,10 +5361,6 @@ Query: {2}</target>
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
         <note>{0} is a url to learn more about the new features</note>
         <target state="translated">L'estensione MSSQL per VS Code introduce nuove funzionalità moderne per lo sviluppo di dati. Vuoi abilitarle? [Altre informazioni]({0})</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f">
-        <source xml:lang="en">The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).</source>
-        <target state="translated">L'immagine del contenitore SQL Server 2025 RTM non è compatibile con i sistemi basati su ARM (inclusi Windows ARM e Apple Silicon).</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -5095,6 +5483,10 @@ Query: {2}</target>
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">Errore durante l'aggiornamento del progetto</target>
       </trans-unit>
+      <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
+        <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
+        <target state="translated">Questa connessione non ha un nome visualizzato in Azure Data Studio.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
         <target state="translated">Questo nome di database è già in uso. Scegliere un nome diverso.</target>
@@ -5102,6 +5494,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
         <target state="translated">Non è stato possibile elaborare il messaggio. Se il problema persiste, controllare i log e aprire un ticket su GitHub.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
+        <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
+        <target state="translated">Questo valore non è stato specificato nel file di impostazioni di Azure Data Studio.</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -5111,6 +5507,10 @@ Query: {2}</target>
         <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
         <target state="translated">Per confrontare due schemi, seleziona prima lo schema di origine e quello di destinazione, quindi premi Confronta.</target>
       </trans-unit>
+      <trans-unit id="++CODE++500066c85e5ad619476a8235df0b22c1d1cb23a1104f6d78c0353a03f797a18d">
+        <source xml:lang="en">To continue, run SQL Server on a machine with a supported processor. Check </source>
+        <target state="translated">Per continuare, eseguire SQL Server su un computer con un processore supportato. Controlla </target>
+      </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
         <target state="translated">Per usare questo comando, aprire un file con estensione sql oppure impostare il linguaggio dell'editor su "SQL" o selezionare il testo T-SQL nell'editor SQL attivo.</target>
@@ -5119,9 +5519,35 @@ Query: {2}</target>
         <source xml:lang="en">To use this command, you must set the language to "SQL". Confirm to change language mode.</source>
         <target state="translated">Per usare questo comando, è necessario impostare il linguaggio su "SQL". Confermare per cambiare la modalità del linguaggio.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7f7e4a15a53ef424a17c5a29ba96b05d66d8fb6eb49fffe24fc86d970b50a7aa">
+        <source xml:lang="en">Toggle Sort</source>
+        <target state="translated">Attiva/Disattiva ordinamento</target>
+      </trans-unit>
       <trans-unit id="++CODE++0ffe6ba8fd16d1d71a8849f6707c1c14c97e7f110138c102351a5560a97a43b4">
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">Attiva/Disattiva descrizioni comando</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
+        <source xml:lang="en">Toggle dark mode</source>
+        <target state="translated">Attiva/disattiva modalità scura</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0205dc96a474c1b5b12fadd44fb599a3d78af60d697f6136e7e21a51d9f29579">
+        <source xml:lang="en">Toggle filter row</source>
+        <target state="translated">Attiva/disattiva riga filtro</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c8c86447a74a9d36167b90e7c4359908771623e1bb592636feb58962bdee02f1">
+        <source xml:lang="en">Toggle pre-header row</source>
+        <target state="translated">Attiva/disattiva riga pre-intestazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d4d6138cf85c51e38656f86216b716e449fe20eb0d14ea074601e691241bedb">
+        <source xml:lang="en">Toggle selection for {0}</source>
+        <note>{0} is the connection display name</note>
+        <target state="translated">Attivare/disattivare la selezione per {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++909717fe342b115370e475a3dde87aa1db0db4fa6012b92b3a87386b6654e236">
+        <source xml:lang="en">Toggle selection for {0}</source>
+        <note>{0} is the connection group name</note>
+        <target state="translated">Attivare/disattivare la selezione per {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
         <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
@@ -5170,13 +5596,29 @@ Query: {2}</target>
         <source xml:lang="en">Undo</source>
         <target state="translated">Annulla</target>
       </trans-unit>
+      <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
+        <source xml:lang="en">Unfreeze columns</source>
+        <target state="translated">Sblocca colonne</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
+        <source xml:lang="en">Unfreeze columns/rows</source>
+        <target state="translated">Sblocca colonne/righe</target>
+      </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
         <target state="translated">Connessione sconosciuta</target>
       </trans-unit>
+      <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
+        <source xml:lang="en">Unknown account</source>
+        <target state="translated">Account sconosciuto</target>
+      </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
         <target state="translated">Errore sconosciuto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
+        <source xml:lang="en">Unknown tenant ID</source>
+        <target state="translated">ID tenant sconosciuto</target>
       </trans-unit>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
@@ -5186,6 +5628,11 @@ Query: {2}</target>
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
         <target state="translated">Architettura non supportata per Docker: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fca84e49ac02af373521c99fb0ff436c7908bd09697d4ff09b570441e3d81d5">
+        <source xml:lang="en">Unsupported authentication type in connection string: {0}. Only SQL Login, Integrated, and Azure MFA authentication are supported.</source>
+        <note>{0} is the authentication type</note>
+        <target state="translated">Tipo di autenticazione non supportato nella stringa di connessione: {0}. Sono supportati solo account di accesso SQL e di autenticazione integrata o a più fattori di Azure.</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
@@ -5224,6 +5671,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
         <source xml:lang="en">User</source>
         <target state="translated">Utente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7967e089a7b94464ee1b0c6d4b8271e99bcf36f9e5481e40a5eec5c5a5108d01">
+        <source xml:lang="en">User ID</source>
+        <target state="translated">ID utente</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -5296,6 +5747,10 @@ Query: {2}</target>
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Avvisi rilevati. Rivedi le modifiche.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7e723ab8286a6853d1f6fc0a59d215824e9ab149d391667863d3d3d46e91ad6">
+        <source xml:lang="en">Watch demo</source>
+        <target state="translated">Guarda la demo</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
         <source xml:lang="en">Watch demos on YouTube</source>
         <target state="translated">Guarda demo su YouTube</target>
@@ -5315,10 +5770,6 @@ Query: {2}</target>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">Cosa possiamo fare per migliorare?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
-        <source xml:lang="en">What's new in this release</source>
-        <target state="translated">Novità di questa versione</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -5360,6 +5811,10 @@ Query: {2}</target>
         <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
         <note>{0} is the version number of the MSSQL extension</note>
         <target state="translated">Si riceve questo messaggio perché è stata aggiornata l'estensione MSSQL alla versione {0}.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23b87eb718db2dfbfebcae9b02f46ba7667d28ffd03dc40a119768f278a9191a">
+        <source xml:lang="en">You can continue, but you may need to edit these connections later before connecting.</source>
+        <target state="translated">È possibile continuare, ma potrebbe essere necessario modificare queste connessioni in un secondo momento prima di connettersi.</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -5448,9 +5903,9 @@ Query: {2}</target>
         <source xml:lang="en">encrypt</source>
         <target state="translated">crittografa</target>
       </trans-unit>
-      <trans-unit id="++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5">
-        <source xml:lang="en">for more details</source>
-        <target state="translated">per altri dettagli</target>
+      <trans-unit id="++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792">
+        <source xml:lang="en">for more information.</source>
+        <target state="translated">per altre informazioni.</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -5460,6 +5915,18 @@ Query: {2}</target>
         <source xml:lang="en">intelliSenseUpdated</source>
         <target state="translated">IntelliSense aggiornato</target>
       </trans-unit>
+      <trans-unit id="++CODE++5f3c4f8580d392e422e7c2f6802674ac27966c98d95c39696e4b2490168e5488">
+        <source xml:lang="en">items</source>
+        <target state="translated">elementi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++adabe6ca43999091b4cfc23c5eabb9f829e4cef26a5a4d0fd95674a97b948b4f">
+        <source xml:lang="en">items per page</source>
+        <target state="translated">Elementi per pagina</target>
+      </trans-unit>
+      <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
+        <source xml:lang="en">items selected</source>
+        <target state="translated">elementi selezionati</target>
+      </trans-unit>
       <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
         <source xml:lang="en">location</source>
         <target state="translated">posizione</target>
@@ -5467,6 +5934,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
         <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
         <target state="translated">Per usare questa funzionalità, è necessario macOS Sierra o versioni successive.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
+        <source xml:lang="en">of</source>
+        <target state="translated">di</target>
       </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
@@ -5484,6 +5955,10 @@ Query: {2}</target>
         <source xml:lang="en">test</source>
         <target state="translated">test</target>
       </trans-unit>
+      <trans-unit id="++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73">
+        <source xml:lang="en">the documentation </source>
+        <target state="translated">la documentazione </target>
+      </trans-unit>
       <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
         <source xml:lang="en">untitled</source>
         <target state="translated">senza nome</target>
@@ -5491,6 +5966,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">Aggiornamento di IntelliSense</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a48f10647cec7ba3f44b4b4623080abee3b5f7ffee7929db6581a2eee9b4f136">
+        <source xml:lang="en">x of y selected</source>
+        <target state="translated">x di y selezionati</target>
       </trans-unit>
       <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
         <source xml:lang="en">{0} (Current Account)</source>
@@ -5510,6 +5989,12 @@ Query: {2}</target>
         <source xml:lang="en">{0} accounts</source>
         <note>{0} is the number of accounts</note>
         <target state="translated">{0} account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
+        <source xml:lang="en">{0} color swatch ({1})</source>
+        <note>{0} is the connection group name
+{1} is the color value applied to the group</note>
+        <target state="translated">Campioni colore {0} ({1})</target>
       </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
@@ -5551,6 +6036,24 @@ Query: {2}</target>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
         <target state="translated">{0} di {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51e6bdbb52f5fe3271eb11b24de7b07440a59a88f0df6bfc9b620179db64c925">
+        <source xml:lang="en">{0} of {1} connection groups selected.</source>
+        <note>{0} is the number of groups selected for import
+{1} is the total number of groups detected</note>
+        <target state="translated">{0} gruppi di connessione di {1} selezionati.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ccee9fb40a58a704c946e7e55b257c5b2ed5ad5019d515454aa79160149b56e">
+        <source xml:lang="en">{0} of {1} connections selected</source>
+        <note>{0} is the number of connections selected for import
+{1} is the total number of connections detected</note>
+        <target state="translated">{0} connessioni di {1} selezionate</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
+        <source xml:lang="en">{0} of {1} tenants</source>
+        <note>{0} is the number of tenants with active sessions
+{1} is the total number of tenants</note>
+        <target state="translated">{0} tenant di {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
         <source xml:lang="en">{0} password doesn't match the confirmation password</source>
@@ -5707,7 +6210,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumnsMode">
         <source xml:lang="en">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</source>
-        <target state="new">Choose how result grid columns are automatically sized (headers + data, data only, or disable auto sizing).</target>
+        <target state="translated">Scegli come ridimensionare automaticamente le colonne della griglia dei risultati (intestazioni e dati, solo dati o disabilita ridimensionamento automatico).</target>
       </trans-unit>
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
@@ -5777,6 +6280,10 @@ Query: {2}</target>
         <source xml:lang="en">Copy Object Name</source>
         <target state="translated">Copia nome oggetto</target>
       </trans-unit>
+      <trans-unit id="mssql.copyConnectionString">
+        <source xml:lang="en">Copy as Connection String</source>
+        <target state="translated">Copia come stringa di connessione</target>
+      </trans-unit>
       <trans-unit id="mssql.createAzureFunction">
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">Creare una funzione di Azure con l'associazione SQL</target>
@@ -5825,7 +6332,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.disableAutoSizingEnumDescription">
         <source xml:lang="en">Disable automatic column sizing</source>
-        <target state="new">Disable automatic column sizing</target>
+        <target state="translated">Disabilita ridimensionamento automatico delle colonne</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
@@ -6089,6 +6596,10 @@ Puoi connetterti a un database immettendo le informazioni di connessione, usando
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Dimensioni massime dei dati di tipo text e ntext restituiti da un'istruzione SELECT</target>
       </trans-unit>
+      <trans-unit id="mssql.openAzureDataStudioMigration">
+        <source xml:lang="en">Migrate from Azure Data Studio</source>
+        <target state="translated">Effettuare la migrazione da Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Modify Table</source>
         <target state="translated">Modifica tabella</target>
@@ -6303,10 +6814,6 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Should IntelliSense suggestions be enabled</source>
         <target state="translated">Consente di indicare se i suggerimenti IntelliSense devono essere abilitati</target>
       </trans-unit>
-      <trans-unit id="mssql.intelliSense.lowerCaseSuggestions">
-        <source xml:lang="en">Should IntelliSense suggestions be lowercase</source>
-        <target state="translated">Consente di indicare se applicare la formattazione in lettere minuscole ai suggerimenti di IntelliSense</target>
-      </trans-unit>
       <trans-unit id="mssql.piiLogging">
         <source xml:lang="en">Should Personally Identifiable Information (PII) be logged in the Azure Logs output channel and the output channel log file.</source>
         <target state="translated">Le informazioni personali (PII) devono essere registrate nel canale di output dei Log di Azure e nel file di log del canale di output.</target>
@@ -6483,15 +6990,15 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderAndDataEnumDescription">
         <source xml:lang="en">Use column headers and data to size columns automatically</source>
-        <target state="new">Use column headers and data to size columns automatically</target>
+        <target state="translated">Usa intestazioni di colonna e dati per ridimensionare automaticamente le colonne</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useHeaderOnlyEnumDescription">
         <source xml:lang="en">Use only column headers to size columns automatically</source>
-        <target state="new">Use only column headers to size columns automatically</target>
+        <target state="translated">Usa solo le intestazioni di colonna per ridimensionare automaticamente le colonne</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.useDataOnlyEnumDescription">
         <source xml:lang="en">Use only row data to size columns automatically</source>
-        <target state="new">Use only row data to size columns automatically</target>
+        <target state="translated">Usa solo i dati delle righe per ridimensionare automaticamente le colonne</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

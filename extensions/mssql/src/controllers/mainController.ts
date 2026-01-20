@@ -34,6 +34,7 @@ import { AzureAccountService } from "../services/azureAccountService";
 import { AzureResourceService } from "../services/azureResourceService";
 import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { SqlPackageService } from "../services/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
@@ -79,6 +80,7 @@ import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { buildChatAgentConnectPrompt } from "../copilot/tools/toolsUtils";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
 import { ListTablesTool } from "../copilot/tools/listTablesTool";
@@ -100,8 +102,10 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
+import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
+import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
  * The main controller class that initializes the extension
@@ -126,6 +130,7 @@ export default class MainController implements vscode.Disposable {
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
+    public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
@@ -137,6 +142,7 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
+    public fileBrowserService: FileBrowserService;
 
     /**
      * The main controller constructor
@@ -326,6 +332,18 @@ export default class MainController implements vscode.Disposable {
                 );
                 await changelogController.revealToForeground();
             });
+            this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
+            this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
+                const migrationController = new AzureDataStudioMigrationWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                    this.connectionManager.connectionStore,
+                    this.connectionManager.connectionStore.connectionConfig,
+                    this.azureAccountService,
+                );
+
+                migrationController.revealToForeground();
+            });
 
             this._context.subscriptions.push(
                 vscode.languages.registerCodeLensProvider(
@@ -485,6 +503,7 @@ export default class MainController implements vscode.Disposable {
                     const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                     if (
+                        databaseName &&
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
@@ -498,7 +517,7 @@ export default class MainController implements vscode.Disposable {
                     if (chatCommand) {
                         vscode.commands.executeCommand(
                             chatCommand,
-                            `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                            buildChatAgentConnectPrompt(connectionCredentials),
                         );
                     } else {
                         // Fallback or error handling
@@ -571,10 +590,15 @@ export default class MainController implements vscode.Disposable {
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
                 this._sqlDocumentService,
+                this._vscodeWrapper,
             );
-            this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
+            this.dacFxService = new DacFxService(
+                SqlToolsServerClient.instance,
+                this.sqlTasksService,
+            );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
@@ -814,6 +838,11 @@ export default class MainController implements vscode.Disposable {
          * Good candidate for dependency injection.
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+        this.fileBrowserService = new FileBrowserService(
+            this._vscodeWrapper,
+            SqlToolsServerClient.instance,
+        );
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
@@ -1711,9 +1740,51 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node) {
+                        return;
+                    }
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
+                    }
+                },
+            ),
+        );
+
+        // Copy connection string command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyConnectionString,
+                async (node: TreeNodeInfo) => {
+                    if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                        node = this.objectExplorerTree.selection[0];
+                    }
+                    if (!node?.connectionProfile) {
+                        return;
+                    }
+                    if (
+                        node.context.type !== Constants.disconnectedServerNodeType &&
+                        node.context.type !== Constants.serverLabel
+                    ) {
+                        return;
+                    }
+
+                    const connectionDetails = this.connectionManager.createConnectionDetails(
+                        node.connectionProfile,
+                    );
+                    const connectionString = await this.connectionManager.getConnectionString(
+                        connectionDetails,
+                        true, // include password
+                        false, // Do not include application name
+                    );
+                    if (connectionString) {
+                        await vscode.env.clipboard.writeText(connectionString);
+                        await vscode.window.showInformationMessage(
+                            LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+                        );
                     }
                 },
             ),
@@ -2609,6 +2680,7 @@ export default class MainController implements vscode.Disposable {
             this,
             this.sqlProjectsService,
             this.dacFxService,
+            this.sqlPackageService,
             deploymentOptions.defaultDeploymentOptions,
         );
 
@@ -2717,9 +2789,7 @@ export default class MainController implements vscode.Disposable {
 
         // 2. Handle connections that have been added, removed, or reparented in OE
         let configConnections =
-            await this.connectionManager.connectionStore.connectionConfig.getConnections(
-                true /* alsoGetFromWorkspace */,
-            );
+            await this.connectionManager.connectionStore.connectionConfig.getConnections();
         let objectExplorerConnections = this._objectExplorerProvider.connections;
 
         let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);

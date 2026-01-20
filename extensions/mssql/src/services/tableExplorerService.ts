@@ -17,6 +17,13 @@ import {
     EditUpdateCellRequest,
 } from "../models/contracts/tableExplorer";
 import {
+    SerializeColumnInfo,
+    SerializeDbCellValue,
+    SerializeDataResult,
+    SerializeDataStartRequestParams,
+    SerializeStartRequest,
+} from "../models/contracts";
+import {
     EditCommitParams,
     EditCommitResult,
     EditCreateRowParams,
@@ -156,6 +163,22 @@ export interface ITableExplorerService {
      * @returns A promise that resolves to an EditScriptResult containing the generated scripts
      */
     generateScripts(ownerUri: string): Promise<EditScriptResult>;
+
+    /**
+     * Serializes data to a file in the specified format using the backend serialization service.
+     *
+     * @param filePath - The path where the serialized file will be saved
+     * @param format - The format to serialize to: "csv", "json", or "excel"
+     * @param headers - Array of column header names
+     * @param rows - 2D array of row data as strings
+     * @returns A promise that resolves to the serialization result
+     */
+    serializeData(
+        filePath: string,
+        format: string,
+        headers: string[],
+        rows: string[][],
+    ): Promise<SerializeDataResult>;
 }
 
 export class TableExplorerService implements ITableExplorerService {
@@ -434,6 +457,55 @@ export class TableExplorerService implements ITableExplorerService {
             };
 
             const result = await this._client.sendRequest(EditScriptRequest.type, params);
+
+            return result;
+        } catch (error) {
+            this._client.logger.error(getErrorMessage(error));
+            throw error;
+        }
+    }
+
+    /**
+     * Serializes data to a file in the specified format using the backend serialization service.
+     *
+     * @param filePath - The path where the serialized file will be saved
+     * @param format - The format to serialize to: "csv", "json", or "excel"
+     * @param headers - Array of column header names
+     * @param rows - 2D array of row data as strings
+     * @returns A promise that resolves to the serialization result
+     * @throws Will throw an error if the serialization request fails
+     */
+    public async serializeData(
+        filePath: string,
+        format: string,
+        headers: string[],
+        rows: string[][],
+    ): Promise<SerializeDataResult> {
+        try {
+            // Convert headers to SerializeColumnInfo array
+            const columns: SerializeColumnInfo[] = headers.map((header) => ({
+                name: header,
+                dataTypeName: "nvarchar", // Default type for string data
+            }));
+
+            // Convert string rows to SerializeDbCellValue format
+            const dbRows: SerializeDbCellValue[][] = rows.map((row) =>
+                row.map((cell) => ({
+                    displayValue: cell,
+                    isNull: cell === null || cell === "",
+                })),
+            );
+
+            const params: SerializeDataStartRequestParams = {
+                saveFormat: format,
+                filePath: filePath,
+                rows: dbRows,
+                columns: columns,
+                isLastBatch: true,
+                includeHeaders: true,
+            };
+
+            const result = await this._client.sendRequest(SerializeStartRequest.type, params);
 
             return result;
         } catch (error) {

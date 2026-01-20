@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscodeMssql from "vscode-mssql";
+import { IConnectionDialogProfile } from "./connectionDialog";
+
 export enum TelemetryViews {
     ObjectExplorer = "ObjectExplorer",
     CommandPalette = "CommandPalette",
@@ -36,6 +39,8 @@ export enum TelemetryViews {
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
     ChangelogPage = "ChangelogPage",
+    AzureDataStudioMigration = "AzureDataStudioMigration",
+    FileBrowser = "FileBrowser",
 }
 
 export enum TelemetryActions {
@@ -92,6 +97,7 @@ export enum TelemetryActions {
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
     PublishProjectConnectionError = "PublishProjectConnection",
+    GenerateSqlPackageCommand = "GenerateSqlPackageCommand",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
@@ -184,6 +190,19 @@ export enum TelemetryActions {
     ExecuteCommand = "ExecuteCommand",
     ChangelogDontShowAgain = "ChangelogDontShowAgain",
     CloseChangelog = "CloseChangelog",
+    OnRequest = "OnRequest",
+    CancelQuery = "CancelQuery",
+    GetResultRowsSubset = "GetResultRowsSubset",
+    CancelConnection = "CancelConnection",
+    SendNotification = "SendNotification",
+    onNotification = "onNotification",
+    RefreshEntraToken = "RefreshEntraToken",
+    ImportConfig = "ImportConfig",
+    FileBrowserOpen = "FileBrowserOpen",
+    FileBrowserExpand = "FileBrowserExpand",
+    FileBrowserClose = "FileBrowserClose",
+    FileBrowserDialog = "FileBrowserDialog",
+    FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
 }
 
 /**
@@ -194,6 +213,7 @@ export enum ActivityStatus {
     Pending = "Pending",
     Failed = "Failed",
     Canceled = "Canceled",
+    Retrying = "Retrying",
 }
 
 /**
@@ -203,6 +223,8 @@ export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**
@@ -215,6 +237,8 @@ export type FinishActivityFailed = (
     errorType?: string,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: IConnectionDialogProfile,
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**
@@ -223,6 +247,8 @@ export type FinishActivityFailed = (
 export type UpdateActivity = (
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
+    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
 /**

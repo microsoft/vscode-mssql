@@ -381,7 +381,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         await this.validateExtensionPermission(extensionId);
 
         const connections =
-            await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
+            await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
 
         if (!targetConnection) {
@@ -399,7 +399,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         await this.validateExtensionPermission(extensionId);
 
         const connections =
-            await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
+            await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
 
         if (!targetConnection) {
@@ -613,7 +613,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         await this.validateExtensionPermission(extensionId);
 
         const connections =
-            await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
+            await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
 
         if (!targetConnection) {

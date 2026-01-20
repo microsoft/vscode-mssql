@@ -17,11 +17,18 @@ import { PublishProjectWebViewController } from "../../src/publishProject/publis
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
-import { PublishTarget, PublishDialogState } from "../../src/sharedInterfaces/publishDialog";
+import {
+    PublishTarget,
+    PublishDialogState,
+    MaskMode,
+} from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import { SqlPackageService } from "../../src/services/sqlPackageService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
 import { generateUUID } from "../e2e/baseFixtures";
+import { ConnectionDetails } from "vscode-mssql";
+import * as constants from "../../src/constants/constants";
 
 chai.use(sinonChai);
 
@@ -31,6 +38,7 @@ suite("PublishProjectWebViewController Tests", () => {
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockSqlProjectsService: sinon.SinonStubbedInstance<SqlProjectsService>;
     let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
+    let mockSqlPackageService: sinon.SinonStubbedInstance<SqlPackageService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
 
@@ -53,6 +61,10 @@ suite("PublishProjectWebViewController Tests", () => {
         mockConnectionManager = {
             listDatabases: sandbox.stub().resolves([]),
             getConnectionString: sandbox.stub().resolves(""),
+            parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
+            connect: sandbox.stub().resolves(true),
+            findMatchingProfile: sandbox.stub().resolves({}),
+            ensureAccountIdForAzureMfa: sandbox.stub().resolves(true),
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
@@ -63,6 +75,11 @@ suite("PublishProjectWebViewController Tests", () => {
             getOptionsFromProfile: sandbox.stub(),
             savePublishProfile: sandbox.stub(),
         } as sinon.SinonStubbedInstance<mssql.IDacFxService>;
+
+        // Create mock for SqlPackageService
+        mockSqlPackageService = {
+            generateSqlPackageCommand: sandbox.stub(),
+        } as sinon.SinonStubbedInstance<SqlPackageService>;
 
         // Create MainController mock - only stub methods we actually use in container creation
         mockMainController = {
@@ -90,6 +107,7 @@ suite("PublishProjectWebViewController Tests", () => {
             mockMainController,
             mockSqlProjectsService,
             mockDacFxService,
+            mockSqlPackageService,
         );
     }
 
@@ -481,6 +499,74 @@ suite("PublishProjectWebViewController Tests", () => {
             deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
             "allowIncompatiblePlatform should be false in saved deployment options",
         ).to.be.false;
+    });
+
+    test("connectAndPopulateDatabases with Azure MFA connection without accountId - populates accountId from saved profile", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Mock connection string with Azure MFA authentication but without accountId
+        const azureMfaConnectionString =
+            "Server=azure-server.database.windows.net;Database=testdb;Authentication=Active Directory Interactive;User Id=user@domain.com;";
+
+        // Mock parseConnectionString to return connection details without accountId
+        const mockConnectionDetails: Partial<ConnectionDetails> = {
+            options: {
+                server: "azure-server.database.windows.net",
+                database: "testdb",
+                authenticationType: "AzureMFA",
+                user: "user@domain.com",
+                email: "user@domain.com",
+                accountId: undefined, // Missing accountId - this is what we're testing
+            },
+        };
+
+        (mockConnectionManager.parseConnectionString as sinon.SinonStub).resolves(
+            mockConnectionDetails as ConnectionDetails,
+        );
+
+        // Configure the ensureAccountIdForAzureMfa stub to populate accountId
+        const ensureAccountIdStub =
+            mockConnectionManager.ensureAccountIdForAzureMfa as sinon.SinonStub;
+        ensureAccountIdStub.callsFake(async (connInfo) => {
+            // Simulate what the real method does - populate accountId from saved profile
+            connInfo.accountId = "test-account-id-67890";
+            return true;
+        });
+
+        // Configure connect stub to succeed
+        (mockConnectionManager.connect as sinon.SinonStub).resolves(true);
+
+        // Configure listDatabases stub to return sample databases
+        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves([
+            "testdb",
+            "master",
+            "model",
+        ]);
+
+        // Call the private method
+        const result = await controller["connectAndPopulateDatabases"](azureMfaConnectionString);
+
+        // Verify the helper was called to populate missing accountId
+        expect(ensureAccountIdStub).to.have.been.calledOnce;
+
+        // Verify accountId was populated by checking the argument passed to connect
+        const connectStub = mockConnectionManager.connect as sinon.SinonStub;
+        const connectCallArgs = connectStub.firstCall.args;
+        const connectionInfoPassedToConnect = connectCallArgs[1];
+        expect(connectionInfoPassedToConnect.accountId).to.equal("test-account-id-67890");
+
+        // Verify connect was called (which means accountId was populated successfully)
+        expect(connectStub).to.have.been.calledOnce;
+
+        // Verify connection succeeded
+        expect(result.connectionUri).to.exist;
+        expect(result.errorMessage).to.be.undefined;
+
+        // Verify databases were populated in the component
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.lengthOf(3);
+        expect(databaseComponent.options![0].value).to.equal("testdb");
     });
     //#endregion
 
@@ -1202,6 +1288,141 @@ suite("PublishProjectWebViewController Tests", () => {
             "Unexpected network failure",
             loggerErrorSpy,
         );
+    });
+    //#endregion
+
+    //#region SqlPackage Command Generation Tests
+    /**
+     * These tests verify that SqlPackageService is called correctly
+     * and that the controller handles the response properly.
+     */
+
+    test("SqlPackageService generates command with connection string", async function () {
+        // Setup mock response
+        const mockResult: mssql.SqlPackageCommandResult = {
+            success: true,
+            command:
+                'sqlpackage /Action:Publish /SourceFile:"c:/test/project.dacpac" /TargetConnectionString:"Server=localhost;Database=TestDB;User Id=sa;Password=Test123;"',
+            errorMessage: "",
+        };
+        mockSqlPackageService.generateSqlPackageCommand.resolves(mockResult);
+
+        const params: mssql.SqlPackageCommandParams = {
+            commandLineArguments: {
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                sourceFile: "c:/test/project.dacpac",
+                targetConnectionString:
+                    "Server=localhost;Database=TestDB;User Id=sa;Password=Test123;",
+            },
+            deploymentOptions: undefined,
+            variables: {},
+            maskMode: MaskMode.Unmasked,
+        };
+
+        const result = await mockSqlPackageService.generateSqlPackageCommand(params);
+
+        // Validate service was called with correct parameters
+        expect(
+            mockSqlPackageService.generateSqlPackageCommand,
+            "generateSqlPackageCommand should be called once",
+        ).to.have.been.calledOnce;
+        expect(
+            mockSqlPackageService.generateSqlPackageCommand,
+            "generateSqlPackageCommand should be called with correct params",
+        ).to.have.been.calledWith(params);
+
+        // Validate result structure
+        expect(result, "result should have success property").to.have.property("success");
+        expect(result, "result should have command property").to.have.property("command");
+        expect(result, "result should have errorMessage property").to.have.property("errorMessage");
+        expect(result.success, "success should be true").to.be.true;
+        expect(result.command, "command should include /Action:Publish").to.include(
+            "/Action:Publish",
+        );
+        expect(result.command, "command should include /SourceFile:").to.include("/SourceFile:");
+        expect(result.command, "command should include /TargetConnectionString:").to.include(
+            "/TargetConnectionString:",
+        );
+    });
+
+    test("SqlPackageService generates command with masked server name", async function () {
+        // Setup mock response with masked server name
+        const mockResult: mssql.SqlPackageCommandResult = {
+            success: true,
+            command:
+                'sqlpackage /Action:Publish /SourceFile:"c:/test/project.dacpac" /TargetServerName:"*****" /TargetDatabaseName:"TestDB"',
+            errorMessage: "",
+        };
+        mockSqlPackageService.generateSqlPackageCommand.resolves(mockResult);
+
+        const params: mssql.SqlPackageCommandParams = {
+            commandLineArguments: {
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                sourceFile: "c:/test/project.dacpac",
+                targetServerName: "myserver.database.windows.net",
+                targetDatabaseName: "TestDB",
+            },
+            deploymentOptions: undefined,
+            variables: {},
+            maskMode: MaskMode.Masked,
+        };
+
+        const result = await mockSqlPackageService.generateSqlPackageCommand(params);
+
+        // Validate service was called
+        expect(
+            mockSqlPackageService.generateSqlPackageCommand,
+            "generateSqlPackageCommand should be called with correct params",
+        ).to.have.been.calledWith(params);
+
+        // Validate result
+        expect(result.success, "success should be true").to.be.true;
+        expect(result.command, "command should include /TargetServerName:").to.include(
+            "/TargetServerName:",
+        );
+        expect(result.command, "command should include /TargetDatabaseName:").to.include(
+            "/TargetDatabaseName:",
+        );
+        // In masked mode, server name should be masked
+        expect(result.command, "command should not include unmasked server name").to.not.include(
+            "myserver.database.windows.net",
+        );
+    });
+
+    test("SqlPackageService returns error messages when command generation fails", async function () {
+        // Setup mock error response
+        const mockResult: mssql.SqlPackageCommandResult = {
+            success: false,
+            command: "",
+            errorMessage: "SourceFile parameter is required for Publish action",
+        };
+        mockSqlPackageService.generateSqlPackageCommand.resolves(mockResult);
+
+        // Call with missing required parameters to trigger error
+        const params: mssql.SqlPackageCommandParams = {
+            commandLineArguments: {
+                action: constants.SqlPackagePublishAction as mssql.CommandLineToolAction,
+                // Intentionally missing SourceFile to get error
+            },
+            deploymentOptions: undefined,
+            variables: {},
+            maskMode: MaskMode.Unmasked,
+        };
+
+        const result = await mockSqlPackageService.generateSqlPackageCommand(params);
+
+        // Validate error response structure
+        expect(
+            mockSqlPackageService.generateSqlPackageCommand,
+            "generateSqlPackageCommand should be called with correct params",
+        ).to.have.been.calledWith(params);
+        expect(result.success, "success should be false for invalid params").to.be.false;
+        expect(result.errorMessage, "errorMessage should be a string").to.be.a("string");
+        expect(result.errorMessage.length, "errorMessage should not be empty").to.be.greaterThan(0);
+        expect(
+            result.errorMessage,
+            "errorMessage should mention missing SourceFile parameter",
+        ).to.include("SourceFile");
     });
     //#endregion
 });

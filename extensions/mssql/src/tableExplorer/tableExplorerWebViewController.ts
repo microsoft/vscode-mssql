@@ -121,9 +121,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.error(`No target node provided - OperationId: ${this.operationId}`);
             endActivity.endFailed(
                 new Error("No target node provided for table explorer"),
-                true,
-                undefined,
-                undefined,
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -187,10 +187,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.updateState();
 
             endActivity.endFailed(
-                new Error(`Failed to initialize table explorer: ${getErrorMessage(error)}`),
-                true,
-                undefined,
-                undefined,
+                new Error("Failed to initialize table explorer"),
+                true /* includeErrorMessage */,
+                undefined /* errorCode */,
+                undefined /* errorType */,
                 {
                     elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
@@ -292,10 +292,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to commit changes: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to commit changes"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -372,10 +372,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to load subset: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to load subset"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -449,10 +449,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to create row: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to create row"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -481,19 +481,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Check if this is a newly created row BEFORE calling the service
+            // The backend completely removes new rows (including decrementing NextRowId),
+            // so they cannot be reverted and should be removed from the UI immediately
+            const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.rowMarkedForRemoval,
-                );
-
-                // Remove from newRows tracking if it was a new row
-                state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
-
-                // Add to deletedRows tracking (keep row visible but marked as deleted)
-                if (!state.deletedRows.includes(payload.rowId)) {
-                    state.deletedRows = [...state.deletedRows, payload.rowId];
-                }
 
                 // Remove all failed cells for this row
                 if (state.failedCells) {
@@ -516,14 +510,52 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
                 }
 
-                this.showRestorePromptAfterClose = true;
+                if (isNewRow) {
+                    // For newly created rows, the backend completely removes them
+                    // Remove from newRows tracking and from resultSet immediately
+                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
-                // Update state to trigger re-render with deleted row styling
+                    if (state.resultSet) {
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.filter(
+                                (row) => row.id !== payload.rowId,
+                            ),
+                            rowCount: state.resultSet.rowCount - 1,
+                        };
+                    }
+
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowDeletedSuccessfully,
+                    );
+
+                    this.logger.info(
+                        `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
+                    );
+
+                    // Check if we still have unsaved changes
+                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                        this.showRestorePromptAfterClose = false;
+                    }
+                } else {
+                    // For existing rows, mark for deletion (keep visible but styled as deleted)
+                    if (!state.deletedRows.includes(payload.rowId)) {
+                        state.deletedRows = [...state.deletedRows, payload.rowId];
+                    }
+
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowMarkedForRemoval,
+                    );
+
+                    this.showRestorePromptAfterClose = true;
+
+                    this.logger.info(
+                        `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
+                    );
+                }
+
+                // Update state to trigger re-render
                 this.updateState();
-
-                this.logger.info(
-                    `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
-                );
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -537,10 +569,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to delete row: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to delete row"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -681,10 +713,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.updateState();
 
                 endActivity.endFailed(
-                    new Error(`Failed to update cell: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to update cell"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -810,10 +842,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert cell: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to revert cell"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -872,29 +904,58 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
                 }
 
-                // Update the row in the result set
-                if (state.resultSet && revertRowResult.row) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
-                    );
+                // Check if this was a newly created row (row will be null after revert)
+                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
 
-                    if (rowIndex !== -1) {
+                if (revertRowResult.row) {
+                    // Update the row in the result set (for existing rows that were modified)
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, idx) => {
+                                    if (idx === rowIndex) {
+                                        return revertRowResult.row;
+                                    }
+
+                                    return row;
+                                }),
+                            };
+
+                            this.updateState();
+
+                            this.logger.info(
+                                `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
+                            );
+                        }
+                    }
+                } else if (isNewRow) {
+                    // Row was a newly created row that was reverted - remove it from the UI
+                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                    if (state.resultSet) {
                         state.resultSet = {
                             ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, idx) => {
-                                if (idx === rowIndex) {
-                                    return revertRowResult.row;
-                                }
-
-                                return row;
-                            }),
+                            subset: state.resultSet.subset.filter(
+                                (row) => row.id !== payload.rowId,
+                            ),
+                            rowCount: state.resultSet.rowCount - 1,
                         };
+                    }
 
-                        this.updateState();
+                    this.updateState();
 
-                        this.logger.info(
-                            `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
-                        );
+                    this.logger.info(
+                        `Removed newly created row ${payload.rowId} from UI after revert`,
+                    );
+
+                    // Check if we still have unsaved changes
+                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                        this.showRestorePromptAfterClose = false;
                     }
                 }
 
@@ -912,10 +973,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to revert row: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to revert row"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -984,10 +1045,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.endFailed(
-                    new Error(`Failed to generate script: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
+                    new Error("Failed to generate script"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
                     {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
@@ -1090,6 +1151,105 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             state.currentPage = payload.pageNumber;
 
             this.logger.info(`Current page set to: ${payload.pageNumber}`);
+
+            return state;
+        });
+
+        this.registerReducer("saveResults", async (state, payload) => {
+            this.logger.info(
+                `Saving results as ${payload.format} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.SaveResults,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    format: payload.format,
+                },
+            );
+
+            try {
+                const { headers, rows } = payload.data;
+                let defaultExt: string;
+                let filters: { [name: string]: string[] };
+
+                switch (payload.format) {
+                    case "csv":
+                        defaultExt = "csv";
+                        filters = { "CSV Files": ["csv"], "All Files": ["*"] };
+                        break;
+                    case "json":
+                        defaultExt = "json";
+                        filters = { "JSON Files": ["json"], "All Files": ["*"] };
+                        break;
+                    case "excel":
+                        defaultExt = "xlsx";
+                        filters = { "Excel Files": ["xlsx"], "All Files": ["*"] };
+                        break;
+                    default:
+                        throw new Error(`Unsupported format: ${payload.format}`);
+                }
+
+                // Show save dialog
+                const uri = await vscode.window.showSaveDialog({
+                    defaultUri: vscode.Uri.file(`${state.tableName}-export.${defaultExt}`),
+                    filters: filters,
+                });
+
+                if (uri) {
+                    // Use backend serialization service to generate and save the file
+                    const result = await this._tableExplorerService.serializeData(
+                        uri.fsPath,
+                        payload.format,
+                        headers,
+                        rows,
+                    );
+
+                    if (result.succeeded) {
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.exportSuccessful(uri.fsPath),
+                        );
+
+                        this.logger.info(
+                            `Results saved to ${uri.fsPath} - OperationId: ${this.operationId}`,
+                        );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            format: payload.format,
+                            rowCount: rows.length.toString(),
+                        });
+                    } else {
+                        throw new Error(result.messages || "Serialization failed");
+                    }
+                } else {
+                    this.logger.info("Save dialog cancelled by user");
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Error saving results: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error("Failed to save results"),
+                    true /* includeErrorMessage */,
+                    undefined /* errorCode */,
+                    undefined /* errorType */,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.exportFailed(getErrorMessage(error)),
+                );
+            }
 
             return state;
         });

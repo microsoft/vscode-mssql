@@ -8,7 +8,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Explore and Learn
 
-[![MSSQL Extension Demo Playlist](https://github.com/Microsoft/vscode-mssql/raw/main/mssql/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
+[![MSSQL Extension Demo Playlist](https://raw.githubusercontent.com/microsoft/vscode-mssql/refs/heads/main/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
 
 -   [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
 -   [Read our blog posts](https://aka.ms/vscode-mssql-blogs): Learn from use cases, walkthroughs, and product updates
@@ -282,6 +282,7 @@ Customize keyboard shortcuts for query results, grid operations, and other actio
     "event.resultGrid.expandSelectionUp": "shift+up",
     "event.resultGrid.expandSelectionDown": "shift+down",
     "event.resultGrid.openColumnMenu": "f3",
+    "event.resultGrid.openFilterMenu": "",
     "event.resultGrid.moveToRowStart": "ctrlcmd+left",
     "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
     "event.resultGrid.selectColumn": "ctrl+space",
@@ -325,6 +326,7 @@ See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki
 - `extensions/` - all of the individual VS Code extensions
 - `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
 - `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
+- `extensions/data-workspace/` - Data Workspace extension providing project workspace management and coordination
 - `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
 
 ## Prerequisites
@@ -366,6 +368,21 @@ yarn package              # produces VSIX
 
 # Testing
 yarn test                 # run unit tests; NOT CURRENTLY WORKING
+```
+
+### Data Workspace Extension (`extensions/data-workspace/`)
+
+```bash
+cd extensions/data-workspace
+
+# Development
+yarn                      # install extension dependencies
+yarn watch                # continuous build
+yarn build                # one-off full build
+yarn package              # produces VSIX
+
+# Testing
+yarn test                 # run unit tests
 ```
 
 ## Debugging From The Root Workspace

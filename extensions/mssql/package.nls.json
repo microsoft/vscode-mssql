@@ -53,6 +53,7 @@
     "mssql.tableExplorer": "Edit Data (Preview)",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
+    "mssql.copyConnectionString": "Copy as Connection String",
     "mssql.addAadAccount": "Add Microsoft Entra Account",
     "mssql.removeAadAccount": "Remove Microsoft Entra Account",
     "mssql.clearAzureAccountTokenCache": "Clear Microsoft Entra account token cache",
@@ -139,7 +140,6 @@
     "mssql.intelliSense.enableSuggestions": "Should IntelliSense suggestions be enabled",
     "mssql.intelliSense.enableQuickInfo": "Should IntelliSense quick info be enabled",
     "mssql.enableQueryHistoryFeature": "Should Query History feature be enabled",
-    "mssql.intelliSense.lowerCaseSuggestions": "Should IntelliSense suggestions be lowercase",
     "mssql.persistQueryResultTabs": "Should query result selections and scroll positions be saved when switching tabs (may impact performance)",
     "mssql.queryHistoryLimit": "Number of query history entries to show in the Query History view",
     "mssql.autoDisableNonTSqlLanguageService": "Should language service be auto-disabled when extension detects Non-MSSQL files",
@@ -266,5 +266,6 @@
     "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)",
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
+    "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates"
 }

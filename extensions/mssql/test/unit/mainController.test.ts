@@ -12,11 +12,19 @@ import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { activateExtension, stubExtensionContext, stubVscodeWrapper } from "./utils";
+import {
+    activateExtension,
+    initializeIconUtils,
+    stubExtensionContext,
+    stubVscodeWrapper,
+} from "./utils";
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { HttpHelper } from "../../src/http/httpHelper";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import * as LocalizedConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -418,6 +426,304 @@ suite("MainController Tests", function () {
             } else {
                 expect(commands).to.not.include(Constants.cmdExportBacpac);
             }
+        });
+    });
+
+    suite("Copy Connection String Command", () => {
+        let clipboardWriteTextStub: sinon.SinonStub;
+        let showInformationMessageStub: sinon.SinonStub;
+
+        setup(() => {
+            initializeIconUtils();
+            clipboardWriteTextStub = sandbox.stub();
+            sandbox.stub(vscode.env, "clipboard").value({
+                writeText: clipboardWriteTextStub.resolves(),
+            });
+            showInformationMessageStub = sandbox
+                .stub(vscode.window, "showInformationMessage")
+                .resolves();
+        });
+
+        function createMockTreeNode(
+            nodeType: string,
+            connectionProfile?: IConnectionProfile,
+        ): TreeNodeInfo {
+            const baseProfile: IConnectionProfile =
+                connectionProfile ??
+                ({
+                    id: "test-id",
+                    profileName: "Test Profile",
+                    groupId: "test-group",
+                    savePassword: false,
+                    emptyPasswordInput: false,
+                    azureAuthType: 0,
+                    accountStore: undefined,
+                    server: "testServer",
+                    database: "testDb",
+                    user: "testUser",
+                } as IConnectionProfile);
+
+            return new TreeNodeInfo(
+                "Test Server",
+                { type: nodeType, filterable: false, hasFilters: false, subType: undefined },
+                vscode.TreeItemCollapsibleState.Collapsed,
+                "nodePath",
+                "ready",
+                nodeType,
+                "session",
+                baseProfile,
+                undefined as unknown as TreeNodeInfo,
+                [],
+                undefined,
+                undefined,
+                undefined,
+            );
+        }
+
+        test("cmdCopyConnectionString command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdCopyConnectionString);
+        });
+
+        test("copies connection string to clipboard for server node", async () => {
+            const testConnectionString = "Server=testServer;Database=testDb;User Id=testUser;";
+            connectionManager.createConnectionDetails.returns({} as any);
+            connectionManager.getConnectionString.resolves(testConnectionString);
+
+            const node = createMockTreeNode(Constants.serverLabel);
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
+
+            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
+            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
+            expect(connectionManager.getConnectionString).to.have.been.calledWith(
+                sinon.match.any,
+                true, // include password
+                false, // do not include application name
+            );
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
+            expect(showInformationMessageStub).to.have.been.calledOnceWith(
+                LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+            );
+        });
+
+        test("copies connection string to clipboard for disconnected server node", async () => {
+            const testConnectionString = "Server=testServer;Database=testDb;";
+            connectionManager.createConnectionDetails.returns({} as any);
+            connectionManager.getConnectionString.resolves(testConnectionString);
+
+            const node = createMockTreeNode(Constants.disconnectedServerNodeType);
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
+
+            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
+            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
+            expect(showInformationMessageStub).to.have.been.calledOnceWith(
+                LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+            );
+        });
+
+        test("does nothing when node has no connection profile", async () => {
+            const node = createMockTreeNode(Constants.serverLabel);
+            // Remove the connection profile
+            (node as any)._connectionProfile = undefined;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
+
+            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
+            expect(connectionManager.getConnectionString).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+            expect(showInformationMessageStub).to.not.have.been.called;
+        });
+
+        test("does nothing when node is not a server type", async () => {
+            // Use a different node type like "Database" or "Table"
+            const node = createMockTreeNode("Database");
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
+
+            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
+            expect(connectionManager.getConnectionString).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+            expect(showInformationMessageStub).to.not.have.been.called;
+        });
+
+        test("does nothing when getConnectionString returns empty string", async () => {
+            connectionManager.createConnectionDetails.returns({} as any);
+            connectionManager.getConnectionString.resolves("");
+
+            const node = createMockTreeNode(Constants.serverLabel);
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, node);
+
+            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
+            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+            expect(showInformationMessageStub).to.not.have.been.called;
+        });
+
+        test("uses tree selection when node is not provided", async () => {
+            const testConnectionString = "Server=testServer;Database=testDb;";
+            connectionManager.createConnectionDetails.returns({} as any);
+            connectionManager.getConnectionString.resolves(testConnectionString);
+
+            const node = createMockTreeNode(Constants.serverLabel);
+
+            // Mock the objectExplorerTree selection
+            mainController.objectExplorerTree = {
+                selection: [node],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
+
+            expect(connectionManager.createConnectionDetails).to.have.been.calledOnce;
+            expect(connectionManager.getConnectionString).to.have.been.calledOnce;
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith(testConnectionString);
+        });
+
+        test("does nothing when no node and no tree selection", async () => {
+            // Mock empty selection
+            mainController.objectExplorerTree = {
+                selection: [],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
+
+            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
+            expect(connectionManager.getConnectionString).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+        });
+
+        test("does nothing when no node and multiple selections", async () => {
+            const node1 = createMockTreeNode(Constants.serverLabel);
+            const node2 = createMockTreeNode(Constants.serverLabel);
+
+            // Mock multiple selection
+            mainController.objectExplorerTree = {
+                selection: [node1, node2],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyConnectionString, undefined);
+
+            expect(connectionManager.createConnectionDetails).to.not.have.been.called;
+            expect(connectionManager.getConnectionString).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+        });
+    });
+
+    suite("Copy Object Name Command", () => {
+        let clipboardWriteTextStub: sinon.SinonStub;
+
+        setup(() => {
+            initializeIconUtils();
+            // Stub the clipboard on the mainController's vscodeWrapper
+            clipboardWriteTextStub = sandbox.stub();
+            (mainController as any)._vscodeWrapper = {
+                clipboardWriteText: clipboardWriteTextStub.resolves(),
+            };
+        });
+
+        function createMockTreeNodeWithMetadata(
+            metadataTypeName: string,
+            schema: string,
+            name: string,
+        ): TreeNodeInfo {
+            const baseProfile: IConnectionProfile = {
+                id: "test-id",
+                profileName: "Test Profile",
+                groupId: "test-group",
+                savePassword: false,
+                emptyPasswordInput: false,
+                azureAuthType: 0,
+                accountStore: undefined,
+                server: "testServer",
+                database: "testDb",
+                user: "testUser",
+            } as IConnectionProfile;
+
+            return new TreeNodeInfo(
+                "Test Node",
+                { type: "Table", filterable: false, hasFilters: false, subType: undefined },
+                vscode.TreeItemCollapsibleState.None,
+                "nodePath",
+                "ready",
+                "Table",
+                "session",
+                baseProfile,
+                undefined as unknown as TreeNodeInfo,
+                [],
+                undefined,
+                { metadataTypeName, schema, name } as any,
+                undefined,
+            );
+        }
+
+        test("cmdCopyObjectName command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdCopyObjectName);
+        });
+
+        test("copies qualified name to clipboard for table node", async () => {
+            const node = createMockTreeNodeWithMetadata("Table", "dbo", "MyTable");
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[MyTable]");
+        });
+
+        test("copies qualified name to clipboard for stored procedure node", async () => {
+            const node = createMockTreeNodeWithMetadata("StoredProcedure", "dbo", "MyProc");
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[MyProc]");
+        });
+
+        test("copies simple name to clipboard for non-schema objects", async () => {
+            const node = createMockTreeNodeWithMetadata("Database", "", "MyDatabase");
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, node);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[MyDatabase]");
+        });
+
+        test("uses tree selection when node is not provided", async () => {
+            const node = createMockTreeNodeWithMetadata("Table", "dbo", "SelectedTable");
+
+            // Mock the objectExplorerTree selection
+            mainController.objectExplorerTree = {
+                selection: [node],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
+
+            expect(clipboardWriteTextStub).to.have.been.calledOnceWith("[dbo].[SelectedTable]");
+        });
+
+        test("does nothing when no node and no tree selection", async () => {
+            // Mock empty selection
+            mainController.objectExplorerTree = {
+                selection: [],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
+
+            expect(clipboardWriteTextStub).to.not.have.been.called;
+        });
+
+        test("does nothing when no node and multiple selections", async () => {
+            const node1 = createMockTreeNodeWithMetadata("Table", "dbo", "Table1");
+            const node2 = createMockTreeNodeWithMetadata("Table", "dbo", "Table2");
+
+            // Mock multiple selection
+            mainController.objectExplorerTree = {
+                selection: [node1, node2],
+            } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+            await vscode.commands.executeCommand(Constants.cmdCopyObjectName, undefined);
+
+            expect(clipboardWriteTextStub).to.not.have.been.called;
         });
     });
 });

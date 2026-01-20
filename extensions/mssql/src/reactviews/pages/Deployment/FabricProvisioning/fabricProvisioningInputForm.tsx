@@ -30,7 +30,10 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import {
+    renderColorSwatch,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
@@ -192,6 +195,9 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                         value: option.value,
                                     });
                                 }
+                            },
+                            renderDecoration: (option: SearchableDropdownOptions) => {
+                                return renderColorSwatch(option.color);
                             },
                         }}
                     />

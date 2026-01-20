@@ -14,6 +14,7 @@ import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
 import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { ErrorDialog } from "../../common/errorDialog";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -43,7 +44,16 @@ export const SchemaDesignerPage = () => {
                     <PanelResizeHandle className={classes.resizeHandle} />
                     <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
-                {!context.isInitialized && <LoadingOverlay />}
+                {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
+                {context?.initializationError && (
+                    <ErrorDialog
+                        open={!!context?.initializationError}
+                        title={locConstants.schemaDesigner.errorLoadingSchemaDesigner}
+                        message={context?.initializationError ?? ""}
+                        retryLabel={locConstants.schemaDesigner.retry}
+                        onRetry={context?.triggerInitialization}
+                    />
+                )}
             </MainLayout>
         </>
     );
@@ -62,6 +72,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 display: "flex",
                 flexDirection: "column",
                 position: "relative",
+                minWidth: 0,
+                maxWidth: "100%",
             }}>
             <SchemaDesignerFindTableWidget parentRef={divRef} />
             {children}
@@ -78,6 +90,8 @@ const GraphContainer = ({ children }: { children: React.ReactNode }) => (
             display: "flex",
             flexDirection: "column",
             position: "relative",
+            minWidth: 0,
+            maxWidth: "100%",
         }}>
         {children}
     </div>

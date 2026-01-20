@@ -145,6 +145,11 @@ export namespace SchemaDesigner {
         SET_DEFAULT = 3,
     }
 
+    export enum SchemaDesignerActiveView {
+        SchemaDesigner = "schemaDesigner",
+        Dab = "dab",
+    }
+
     /**
      * Represents a script for a table
      */
@@ -358,6 +363,8 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
+        enableDAB?: boolean;
+        activeView?: SchemaDesignerActiveView;
     }
 
     export interface ExportFileOptions {

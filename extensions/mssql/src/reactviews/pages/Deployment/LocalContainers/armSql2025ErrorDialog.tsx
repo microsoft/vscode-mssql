@@ -47,7 +47,8 @@ const useStyles = makeStyles({
 // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
 export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void }) => {
     const classes = useStyles();
-    const armReferenceLink = "https://aka.ms/sql-container-arm";
+    const armReferenceLink =
+        "https://learn.microsoft.com/sql/sql-server/install/hardware-and-software-requirements-for-installing-sql-server-2025?view=sql-server-ver17";
 
     return (
         <Dialog open={true /* standalone dialog always open*/}>
@@ -67,15 +68,14 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                     </DialogTitle>
                     <DialogContent className={classes.contentDiv}>
                         <Text className={classes.contentItem}>
-                            {Loc.localContainers.armErrorHeader}
-                        </Text>
-                        <Text className={classes.contentItem}>
                             {Loc.localContainers.armErrorDescription}
                         </Text>
                         <Text className={classes.contentItem}>
-                            {Loc.localContainers.see}{" "}
-                            <Link href={armReferenceLink}>{armReferenceLink}</Link>{" "}
-                            {Loc.localContainers.forMoreDetails}.
+                            {Loc.localContainers.toContinueCheck}
+                            <Link href={armReferenceLink}>
+                                {Loc.localContainers.theDocumentation}
+                            </Link>
+                            {Loc.localContainers.forMoreInformation}
                         </Text>
                     </DialogContent>
                     <DialogActions>

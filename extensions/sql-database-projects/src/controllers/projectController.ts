@@ -22,9 +22,9 @@ import { SqlDatabaseProjectTreeViewProvider } from './databaseProjectTreeViewPro
 import { FolderNode, FileNode } from '../models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
 import { ImportDataModel } from '../models/api/import';
-import { NetCoreTool, DotNetError, DBProjectConfigurationKey } from '../tools/netcoreTool';
+import { NetCoreTool, DotNetError } from '../tools/netcoreTool';
 import { BuildHelper } from '../tools/buildHelper';
-import { readPublishProfile, promptForSavingProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
+import { readPublishProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
 import { AddDatabaseReferenceDialog } from '../dialogs/addDatabaseReferenceDialog';
 import { ISystemDatabaseReferenceSettings, IDacpacReferenceSettings, IProjectReferenceSettings, INugetPackageReferenceSettings } from '../models/IDatabaseReferenceSettings';
 import { DatabaseReferenceTreeItem, SqlProjectReferenceTreeItem } from '../models/tree/databaseReferencesTreeItem';
@@ -33,8 +33,6 @@ import { UpdateProjectFromDatabaseDialog } from '../dialogs/updateProjectFromDat
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
 import { IconPathHelper } from '../common/iconHelper';
 import { DashboardData, PublishData, Status } from '../models/dashboardData/dashboardData';
-import { getPublishDatabaseSettings, launchPublishTargetOption } from '../dialogs/publishDatabaseQuickpick';
-import { launchCreateAzureServerQuickPick } from '../dialogs/deployDatabaseQuickpick';
 import { DeployService } from '../models/deploy/deployService';
 import { AddItemOptions, EntryType, GenerateProjectFromOpenApiSpecOptions, IDatabaseReferenceProjectEntry, ISqlProject, ItemType, SqlTargetPlatform } from 'sqldbproj';
 import { AutorestHelper } from '../tools/autorestHelper';
@@ -46,7 +44,6 @@ import { FileProjectEntry, SqlProjectReferenceProjectEntry } from '../models/pro
 import { UpdateProjectAction, UpdateProjectDataModel } from '../models/api/updateProject';
 import { AzureSqlClient } from '../models/deploy/azureSqlClient';
 import { ConnectionService } from '../models/connections/connectionService';
-import { getPublishToDockerSettings } from '../dialogs/publishToDockerQuickpick';
 import { SqlCmdVariableTreeItem } from '../models/tree/sqlcmdVariableTreeItem';
 import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
 
@@ -424,13 +421,15 @@ export class ProjectsController {
 			problemMatcher: constants.problemMatcher
 		};
 
-		// Create a new task with the definition and shell executable
+		// Create a new task with the definition and process executable
 		vscodeTask = new vscode.Task(
 			taskDefinition,
 			vscode.TaskScope.Workspace,
 			taskDefinition.label,
 			taskDefinition.type,
-			new vscode.ShellExecution(taskDefinition.command, args, { cwd: project.projectFolderPath }),
+			new vscode.ProcessExecution(taskDefinition.command, args, {
+				cwd: project.projectFolderPath
+			}),
 			taskDefinition.problemMatcher
 		);
 
@@ -541,68 +540,13 @@ export class ProjectsController {
 
 			return publishDatabaseDialog.waitForClose();
 		} else {
-			// If preview feature is enabled, use preview flow
-			const shouldUsePreview =
-				vscode.workspace.getConfiguration(DBProjectConfigurationKey).get<boolean>(constants.enablePreviewFeaturesKey) ||
-				vscode.workspace.getConfiguration(constants.mssqlConfigSectionKey).get<boolean>(constants.mssqlEnableExperimentalFeaturesKey);
-
-			if (shouldUsePreview) {
-				return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
-			} else {
-				return this.publishDatabase(project);
-			}
+			// Use the new publish dialog flow
+			return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
 		}
 	}
 
 	public getPublishDialog(project: Project): PublishDatabaseDialog {
 		return new PublishDatabaseDialog(project);
-	}
-
-	/**
-	* Create flow for Publishing a database using only VS Code-native APIs such as QuickPick
-	*/
-	private async publishDatabase(project: Project): Promise<void> {
-		const publishTarget = await launchPublishTargetOption(project);
-
-		// Return when user hits escape
-		if (!publishTarget) {
-			return undefined;
-		}
-
-		if (publishTarget === constants.PublishTargetType.docker) {
-			const publishToDockerSettings = await getPublishToDockerSettings(project);
-			void promptForSavingProfile(project, publishToDockerSettings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
-			if (!publishToDockerSettings) {
-				// User cancelled
-				return;
-			}
-			await this.publishToDockerContainer(project, publishToDockerSettings);
-		} else if (publishTarget === constants.PublishTargetType.newAzureServer) {
-			try {
-				const settings = await launchCreateAzureServerQuickPick(project, this.azureSqlClient);
-				void promptForSavingProfile(project, settings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
-				if (settings?.deploySettings && settings?.sqlDbSetting) {
-					await this.publishToNewAzureServer(project, settings);
-				}
-			} catch (error) {
-				void utils.showErrorMessageWithOutputChannel(constants.publishToNewAzureServerFailed, error, this._outputChannel);
-			}
-
-		} else {
-			let settings: ISqlProjectPublishSettings | undefined = await getPublishDatabaseSettings(project);
-
-			void promptForSavingProfile(project, settings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
-			if (settings) {
-				// 5. Select action to take
-				const action = await vscode.window.showQuickPick(
-					[constants.generateScriptButtonText, constants.publish],
-					{ title: constants.chooseAction, ignoreFocusOut: true });
-				if (!action) {
-					return;
-				}
-				await this.publishOrScriptProject(project, settings, action === constants.publish);
-			}
-		}
 	}
 
 	/**
