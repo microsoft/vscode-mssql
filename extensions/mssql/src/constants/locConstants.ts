@@ -2468,6 +2468,10 @@ export class AzureDataStudioMigration {
             args: [error],
             comment: ["{0} is the error message returned from the import helper."],
         });
+
+    public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
+        "This connection's group has not been selected, so this connection will be imported the root.",
+    );
 }
 
 export class Changelog {

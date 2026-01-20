@@ -444,4 +444,122 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             "Ready Azure connection should surface the ready message",
         ).to.equal(AzureDataStudioMigration.ImportStatusReady);
     });
+
+    test("group selection toggles all connections in the group", async () => {
+        const state: AzureDataStudioMigrationWebviewState = {
+            adsConfigPath: "",
+            connectionGroups: [
+                {
+                    group: { id: "group-1", name: "Group One" },
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: false,
+                },
+                {
+                    group: { id: "group-2", name: "Group Two" },
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: false,
+                },
+            ],
+            connections: [
+                {
+                    profile: {
+                        id: "conn-1",
+                        groupId: "group-1",
+                        authenticationType: AuthenticationType.Integrated,
+                    } as IConnectionDialogProfile,
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: true, // start with a mixed state for the group
+                },
+                {
+                    profile: {
+                        id: "conn-2",
+                        groupId: "group-1",
+                        authenticationType: AuthenticationType.Integrated,
+                    } as IConnectionDialogProfile,
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: false, // start with a mixed state for the group
+                },
+                {
+                    profile: {
+                        id: "conn-3",
+                        groupId: "group-1",
+                        authenticationType: AuthenticationType.Integrated,
+                    } as IConnectionDialogProfile,
+                    status: MigrationStatus.AlreadyImported,
+                    statusMessage: "",
+                    selected: false, // start with a mixed state for the group
+                },
+                {
+                    profile: {
+                        id: "conn-3",
+                        groupId: "group-2",
+                        authenticationType: AuthenticationType.Integrated,
+                    } as IConnectionDialogProfile,
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: false,
+                },
+            ],
+            dialog: undefined,
+        };
+
+        // Select group
+        await controller["_reducerHandlers"].get("setConnectionGroupSelections")!(state, {
+            groupId: "group-1",
+            selected: true,
+        });
+
+        expect(state.connectionGroups[0].selected, "Selected group should toggle").to.be.true;
+        expect(state.connections[0].selected, "Connections in selected group should toggle").to.be
+            .true;
+        expect(state.connections[1].selected, "Connections in selected group should toggle").to.be
+            .true;
+        expect(
+            state.connections[2].selected,
+            "Already imported connections should remain unselected",
+        ).to.be.false;
+        expect(
+            state.connections[3].selected,
+            "Connections outside the group should remain unchanged",
+        ).to.be.false;
+
+        // Deselect group
+        await controller["_reducerHandlers"].get("setConnectionGroupSelections")!(state, {
+            groupId: "group-1",
+            selected: false,
+        });
+
+        expect(state.connectionGroups[0].selected, "Deselected group should toggle").to.be.false;
+        expect(state.connections[0].selected, "Connections in deselected group should toggle").to.be
+            .false;
+        expect(state.connections[1].selected, "Connections in deselected group should toggle").to.be
+            .false;
+        expect(
+            state.connections[2].selected,
+            "Already imported connections should remain unselected",
+        ).to.be.false;
+
+        expect(
+            state.connections[3].selected,
+            "Connections outside the group should remain unchanged",
+        ).to.be.false;
+
+        // Validate that bulk selecting/deselecting groups doesn't change connection selection
+        state.connections.forEach((conn) => {
+            conn.selected = false;
+        });
+
+        await controller["_reducerHandlers"].get("setConnectionGroupSelections")!(state, {
+            selected: true,
+        });
+
+        expect(
+            state.connections.map((c) => c.selected),
+            "Bulk-selecting groups should not affect connection selection",
+        ).to.deep.equal([false, false, false, false]);
+    });
 });

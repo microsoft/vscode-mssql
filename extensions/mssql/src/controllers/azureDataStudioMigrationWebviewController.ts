@@ -56,6 +56,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
     private _existingConnectionIds: Map<string, string> = new Map<string, string>();
     private _existingGroupIds: Map<string, string> = new Map<string, string>();
     private _entraAuthAccounts: IAccount[] = [];
+    private _adsRootGroupIds: Set<string> = new Set<string>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -171,6 +172,13 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             return state;
         });
 
+        this.registerReducer("closeWindow", async (state) => {
+            await this.panel.dispose();
+            this.dispose();
+
+            return state;
+        });
+
         this.registerReducer("signIntoEntraAccount", async (state) => {
             if (!state.dialog || state.dialog.type !== "entraSignIn") {
                 return state;
@@ -270,7 +278,10 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
 
                     // select or deselect all connections in the group
                     state.connections.forEach((connection) => {
-                        if (connection.profile.groupId === group.group.id) {
+                        if (
+                            connection.profile.groupId === group.group.id &&
+                            connection.status !== MigrationStatus.AlreadyImported
+                        ) {
                             connection.selected = payload.selected;
                         }
                     });
@@ -307,10 +318,28 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         this.registerReducer("import", async (state) => {
             const warnings = [];
 
-            for (const connection of state.connections) {
-                if (connection.selected && connection.status === MigrationStatus.NeedsAttention) {
+            const selectedGroupIds = state.connectionGroups
+                .filter((group) => group.selected)
+                .map((group) => group.group.id);
+
+            const presentGroups = new Set<string>([
+                ...this._existingGroupIds.keys(),
+                ...selectedGroupIds,
+            ]);
+
+            for (const connection of state.connections.filter((c) => c.selected)) {
+                if (connection.status === MigrationStatus.NeedsAttention) {
                     warnings.push(
                         `${getConnectionDisplayName(connection.profile)}: ${connection.statusMessage}`,
+                    );
+                }
+
+                if (
+                    !presentGroups.has(connection.profile.groupId) &&
+                    !this._adsRootGroupIds.has(connection.profile.groupId)
+                ) {
+                    warnings.push(
+                        `${getConnectionDisplayName(connection.profile)}: ${AzureDataStudioMigration.groupNotSelectedWillBeMovedToRootWarning}`,
                     );
                 }
             }
@@ -505,8 +534,11 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             const raw = await fs.readFile(filePath, { encoding: "utf8" });
             const parsed = JSON.parse(stripJsonComments(raw)) as Record<string, unknown>;
 
-            const groups = this.parseConnectionGroups(parsed?.["datasource.connectionGroups"]);
+            const { groups, rootGroupIds } = this.parseConnectionGroups(
+                parsed?.["datasource.connectionGroups"],
+            );
             const migrationGroups = this.updateGroupStatuses(groups);
+            this._adsRootGroupIds = new Set<string>(rootGroupIds);
 
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
             const migrationConnections = this.updateConnectionStatuses(connections);
@@ -655,17 +687,22 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         return connectionGroup;
     }
 
-    private parseConnectionGroups(value: unknown): IConnectionGroup[] {
+    private parseConnectionGroups(value: unknown): {
+        groups: IConnectionGroup[];
+        rootGroupIds: string[];
+    } {
         if (!Array.isArray(value)) {
-            return [];
+            return { groups: [], rootGroupIds: [] };
         }
 
         const groups: IConnectionGroup[] = [];
         const rootGroupIds: string[] = [];
+
         for (const candidate of value) {
             const group = this.createGroup(candidate);
             if (group) {
                 if (group.name?.trim().toUpperCase() === "ROOT") {
+                    // save root ID separately to avoid adding to list of groups
                     rootGroupIds.push(group.id);
                 } else {
                     groups.push(group);
@@ -673,7 +710,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             }
         }
 
-        return groups;
+        return { groups, rootGroupIds };
     }
 
     private createGroup(candidate: unknown): IConnectionGroup | undefined {

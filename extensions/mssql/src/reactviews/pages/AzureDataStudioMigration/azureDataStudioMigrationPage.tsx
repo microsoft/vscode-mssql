@@ -263,6 +263,10 @@ export const AzureDataStudioMigrationPage = () => {
         extensionRpc.action("closeDialog");
     };
 
+    const handleCloseWindow = () => {
+        extensionRpc.action("closeWindow");
+    };
+
     const handleSignInDialogSubmit = (connectionId: string) => {
         extensionRpc.action("signIntoEntraAccount", { connectionId });
     };
@@ -346,7 +350,7 @@ export const AzureDataStudioMigrationPage = () => {
         ) : dialog?.type === "importProgress" ? (
             <ImportProgressDialog
                 dialog={dialog as ImportProgressDialogProps}
-                onDismiss={handleCloseDialog}
+                onDismiss={handleCloseWindow}
             />
         ) : undefined;
 
