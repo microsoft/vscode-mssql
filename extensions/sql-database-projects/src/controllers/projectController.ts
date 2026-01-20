@@ -22,7 +22,7 @@ import { SqlDatabaseProjectTreeViewProvider } from './databaseProjectTreeViewPro
 import { FolderNode, FileNode } from '../models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
 import { ImportDataModel } from '../models/api/import';
-import { NetCoreTool, DotNetError } from '../tools/netcoreTool';
+import { NetCoreTool, DotNetError, DBProjectConfigurationKey } from '../tools/netcoreTool';
 import { BuildHelper } from '../tools/buildHelper';
 import { readPublishProfile, promptForSavingProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
 import { AddDatabaseReferenceDialog } from '../dialogs/addDatabaseReferenceDialog';
