@@ -64,7 +64,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        private objectManagementService: BackupService,
+        private backupService: BackupService,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
         private ownerUri: string,
@@ -93,9 +93,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         this.state.ownerUri = this.ownerUri;
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
-        const backupConfigInfo = (
-            await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
-        )?.backupConfigInfo;
+        const backupConfigInfo = (await this.backupService.getBackupConfigInfo(this.state.ownerUri))
+            ?.backupConfigInfo;
         this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
         this.state.backupEncryptors = backupConfigInfo.backupEncryptors;
         this.state.recoveryModel = backupConfigInfo.recoveryModel;
@@ -432,7 +431,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             encryptorType: encryptor.encryptorType,
             encryptorName: encryptor.encryptorName,
         };
-        return this.objectManagementService.backupDatabase(state.ownerUri, backupInfo, mode);
+        return this.backupService.backupDatabase(state.ownerUri, backupInfo, mode);
     }
 
     //#region Form Helpers
@@ -1007,7 +1006,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         );
         const storageAccounts =
             await VsCodeAzureHelper.fetchStorageAccountsForSubscription(subscription);
-        // If an error occurred, set error state and return
+        // If an error occurred or no storage accounts found, set state and return
         if (storageAccounts instanceof Error || storageAccounts.length === 0) {
             storageAccountComponent.placeholder =
                 LocConstants.BackupDatabase.noStorageAccountsFound;
@@ -1058,7 +1057,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             subscription,
             storageAccount,
         );
-        // If an error occurred, set error state and return
+        // If an error occurred or no blob containers found, set state and return
         if (blobContainers instanceof Error || blobContainers.length === 0) {
             blobContainerComponent.placeholder = LocConstants.BackupDatabase.noBlobContainersFound;
             blobContainerComponent.options = [];
