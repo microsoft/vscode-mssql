@@ -2137,6 +2137,10 @@
     <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
       <source xml:lang="en">Generating Report. This may take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++477df2f898333747408b1de0e018c9395e977dede103a99aa0babeffc68398e1">
+      <source xml:lang="en">Generating SAS key failed: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
