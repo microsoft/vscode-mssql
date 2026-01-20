@@ -15,6 +15,7 @@ import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionTemplate } from "../models/contracts/profiler";
 import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import * as Constants from "../constants/constants";
 
 /**
  * Controller for the profiler feature.
@@ -126,12 +127,16 @@ export class ProfilerController {
 
             // Create a ProfilerSession for the selected session
             const sessionId = Utils.generateGuid();
+            const bufferCapacity = vscode.workspace
+                .getConfiguration(Constants.extensionConfigSectionName)
+                .get<number>(Constants.configProfilerEventBufferSize);
             const session = this._sessionManager.createSession({
                 id: sessionId,
                 ownerUri: this._profilerUri,
                 sessionName: sessionName,
                 sessionType: SessionType.Live,
                 templateName: "Standard",
+                bufferCapacity: bufferCapacity,
             });
             this._logger.verbose(
                 `Created ProfilerSession: id=${sessionId}, ownerUri=${this._profilerUri}`,

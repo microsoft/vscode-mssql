@@ -5169,6 +5169,9 @@
     <trans-unit id="mssql.query.maxCharsToStore">
       <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
+    <trans-unit id="mssql.profiler.eventBufferSize">
+      <source xml:lang="en">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</source>
+    </trans-unit>
     <trans-unit id="mssql.logFilesRemovalLimit">
       <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
     </trans-unit>

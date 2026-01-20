@@ -1440,6 +1440,14 @@
                     "description": "%mssql.maxRecentConnections%",
                     "scope": "window"
                 },
+                "mssql.profiler.eventBufferSize": {
+                    "type": "number",
+                    "default": 10000,
+                    "minimum": 1000,
+                    "maximum": 100000,
+                    "description": "%mssql.profiler.eventBufferSize%",
+                    "scope": "application"
+                },
                 "mssql.connectionGroups": {
                     "type": "array",
                     "description": "%mssql.connectionGroups%",
