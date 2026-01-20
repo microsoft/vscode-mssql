@@ -645,6 +645,15 @@ export default class MainController implements vscode.Disposable {
             );
             vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
+            // Register XEL file custom editor provider
+            const xelProviderInstance = new this.ProfilerXelCustomEditorProvider(
+                this.profilerController,
+            );
+            vscode.window.registerCustomEditorProvider(
+                "mssql.profilerXelView",
+                xelProviderInstance,
+            );
+
             const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
@@ -2983,6 +2992,40 @@ export default class MainController implements vscode.Disposable {
                 planContents,
                 docName,
             );
+        }
+    };
+
+    /**
+     * Custom editor provider for XEL files.
+     * Opens XEL files in the SQL Profiler UI in read-only mode.
+     * Uses CustomReadonlyEditorProvider since XEL files are binary.
+     */
+    private ProfilerXelCustomEditorProvider = class
+        implements vscode.CustomReadonlyEditorProvider<vscode.CustomDocument>
+    {
+        constructor(public profilerController: ProfilerController) {}
+
+        public async openCustomDocument(uri: vscode.Uri): Promise<vscode.CustomDocument> {
+            // Return a simple custom document - the actual file reading is done by the backend
+            return {
+                uri,
+                dispose: () => {
+                    // No cleanup needed
+                },
+            };
+        }
+
+        public async resolveCustomEditor(
+            document: vscode.CustomDocument,
+            webviewPanel: vscode.WebviewPanel,
+        ): Promise<void> {
+            const filePath = document.uri.fsPath;
+
+            // Dispose the webview panel since we'll use our own profiler UI
+            webviewPanel.dispose();
+
+            // Open the XEL file in the Profiler UI
+            await this.profilerController.openXelFile(filePath);
         }
     };
 }

@@ -1030,6 +1030,7 @@
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
+    "File (Read-Only)": "File (Read-Only)",
     "Creating session...": "Creating session...",
     "Create a new profiling session": "Create a new profiling session",
     "No templates available": "No templates available",
@@ -1043,10 +1044,17 @@
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",
+    "Not available for read-only file sessions": "Not available for read-only file sessions",
+    "Cannot change session while active": "Cannot change session while active",
+    "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection./{0} is the XEL file name": {
+        "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+        "comment": ["{0} is the XEL file name"]
+    },
     "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
     "Not Started": "Not Started",
+    "Read-Only": "Read-Only",
     "Profiler: No session": "Profiler: No session",
     "Profiler Session Status": "Profiler Session Status",
     "{0} events/{0} is the number of events": {
@@ -2335,6 +2343,13 @@
     "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
     "No profiler templates available": "No profiler templates available",
     "Session creation timed out": "Session creation timed out",
+    "Failed to open XEL file: {0}/{0} is the error message": {
+        "message": "Failed to open XEL file: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "The selected file is not a valid XEL file.": "The selected file is not a valid XEL file.",
+    "The XEL file was not found.": "The XEL file was not found.",
+    "Access to the XEL file was denied.": "Access to the XEL file was denied.",
     "Session name cannot be empty": "Session name cannot be empty",
     "Session name must be {0} characters or less/{0} is the maximum length": {
         "message": "Session name must be {0} characters or less",
@@ -2350,6 +2365,8 @@
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
     },
+    "Select XEL File": "Select XEL File",
+    "Extended Events Log Files": "Extended Events Log Files",
     "Profiler session '{0}' created successfully. Starting profiling.../{0} is the session name": {
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
@@ -2358,6 +2375,26 @@
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
+    },
+    "Loading XEL file: {0}/{0} is the file name": {
+        "message": "Loading XEL file: {0}",
+        "comment": ["{0} is the file name"]
+    },
+    "Loaded {1} events from {0}/{0} is the file name{1} is the event count": {
+        "message": "Loaded {1} events from {0}",
+        "comment": ["{0} is the file name", "{1} is the event count"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions./{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions.",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions/{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions",
+        "comment": ["{0} is the file name"]
+    },
+    "File: {0}/{0} is the file name": {
+        "message": "File: {0}",
+        "comment": ["{0} is the file name"]
     },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",

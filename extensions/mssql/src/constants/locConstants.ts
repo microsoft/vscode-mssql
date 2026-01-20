@@ -2516,6 +2516,17 @@ export class Profiler {
     public static noTemplatesAvailable = l10n.t("No profiler templates available");
     public static sessionCreationTimedOut = l10n.t("Session creation timed out");
 
+    // XEL file error messages
+    public static failedToOpenXelFile = (error: string) =>
+        l10n.t({
+            message: "Failed to open XEL file: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static invalidXelFile = l10n.t("The selected file is not a valid XEL file.");
+    public static xelFileNotFound = l10n.t("The XEL file was not found.");
+    public static xelFileAccessDenied = l10n.t("Access to the XEL file was denied.");
+
     // Validation messages
     public static sessionNameEmpty = l10n.t("Session name cannot be empty");
     public static sessionNameTooLong = (maxLength: number) =>
@@ -2540,6 +2551,8 @@ export class Profiler {
             args: [engineType],
             comment: ["{0} is the engine type"],
         });
+    public static selectXelFile = l10n.t("Select XEL File");
+    public static xelFileFilter = l10n.t("Extended Events Log Files");
 
     // Success messages
     public static sessionCreatedSuccessfully = (sessionName: string) =>
@@ -2557,6 +2570,32 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static loadingXelFile = (fileName: string) =>
+        l10n.t({
+            message: "Loading XEL file: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileLoaded = (fileName: string, eventCount: number) =>
+        l10n.t({
+            message: "Loaded {1} events from {0}",
+            args: [fileName, eventCount],
+            comment: ["{0} is the file name", "{1} is the event count"],
+        });
+    public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions.",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
 
     // Status bar
     public static statusBarNoSession = l10n.t("Profiler: No session");
@@ -2565,11 +2604,18 @@ export class Profiler {
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
     public static stateNotStarted = l10n.t("Not Started");
+    public static stateReadOnly = l10n.t("Read-Only");
     public static eventsCount = (count: number) =>
         l10n.t({
             message: "{0} events",
             args: [count],
             comment: ["{0} is the number of events"],
+        });
+    public static fileSessionLabel = (fileName: string) =>
+        l10n.t({
+            message: "File: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
         });
 }
 
