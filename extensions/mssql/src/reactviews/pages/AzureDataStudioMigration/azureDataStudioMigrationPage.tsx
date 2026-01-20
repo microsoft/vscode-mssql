@@ -45,6 +45,7 @@ import {
     EntraSignInDialogProps,
     ImportProgressDialogProps,
     ImportWarningDialogProps,
+    MigrationStatus,
 } from "../../../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType } from "../../../sharedInterfaces/connectionDialog";
 import { useAzureDataStudioMigrationSelector } from "./azureDataStudioMigrationSelector";
@@ -96,13 +97,17 @@ export const AzureDataStudioMigrationPage = () => {
     }, [state.dialog]);
 
     const groupSelection = useMemo(() => {
-        const total = connectionGroups.length;
+        const total = connectionGroups.filter(
+            (g) => g.status !== MigrationStatus.AlreadyImported,
+        ).length;
         const selected = connectionGroups.filter((group) => group.selected).length;
         return { total, selected };
     }, [connectionGroups]);
 
     const connectionSelection = useMemo(() => {
-        const total = connections.length;
+        const total = connections.filter(
+            (c) => c.status !== MigrationStatus.AlreadyImported,
+        ).length;
         const selected = connections.filter((connection) => connection.selected).length;
         return { total, selected };
     }, [connections]);
