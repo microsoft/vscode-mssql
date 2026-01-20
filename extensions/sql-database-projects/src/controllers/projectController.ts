@@ -22,9 +22,9 @@ import { SqlDatabaseProjectTreeViewProvider } from './databaseProjectTreeViewPro
 import { FolderNode, FileNode } from '../models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
 import { ImportDataModel } from '../models/api/import';
-import { NetCoreTool, DotNetError } from '../tools/netcoreTool';
+import { NetCoreTool, DotNetError, DBProjectConfigurationKey } from '../tools/netcoreTool';
 import { BuildHelper } from '../tools/buildHelper';
-import { readPublishProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
+import { readPublishProfile, promptForSavingProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
 import { AddDatabaseReferenceDialog } from '../dialogs/addDatabaseReferenceDialog';
 import { ISystemDatabaseReferenceSettings, IDacpacReferenceSettings, IProjectReferenceSettings, INugetPackageReferenceSettings } from '../models/IDatabaseReferenceSettings';
 import { DatabaseReferenceTreeItem, SqlProjectReferenceTreeItem } from '../models/tree/databaseReferencesTreeItem';
@@ -33,6 +33,8 @@ import { UpdateProjectFromDatabaseDialog } from '../dialogs/updateProjectFromDat
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
 import { IconPathHelper } from '../common/iconHelper';
 import { DashboardData, PublishData, Status } from '../models/dashboardData/dashboardData';
+import { getPublishDatabaseSettings, launchPublishTargetOption } from '../dialogs/publishDatabaseQuickpick';
+import { launchCreateAzureServerQuickPick } from '../dialogs/deployDatabaseQuickpick';
 import { DeployService } from '../models/deploy/deployService';
 import { AddItemOptions, EntryType, GenerateProjectFromOpenApiSpecOptions, IDatabaseReferenceProjectEntry, ISqlProject, ItemType, SqlTargetPlatform } from 'sqldbproj';
 import { AutorestHelper } from '../tools/autorestHelper';
@@ -44,6 +46,7 @@ import { FileProjectEntry, SqlProjectReferenceProjectEntry } from '../models/pro
 import { UpdateProjectAction, UpdateProjectDataModel } from '../models/api/updateProject';
 import { AzureSqlClient } from '../models/deploy/azureSqlClient';
 import { ConnectionService } from '../models/connections/connectionService';
+import { getPublishToDockerSettings } from '../dialogs/publishToDockerQuickpick';
 import { SqlCmdVariableTreeItem } from '../models/tree/sqlcmdVariableTreeItem';
 import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
 
@@ -244,12 +247,68 @@ export class ProjectsController {
 	}
 
 	/**
-	 * Adds a tasks.json file to the project
-	 * @param project project to add the tasks.json file to
+	 * Adds or updates a tasks.json file at the workspace level (not inside the project folder).
+	 * If the workspace already has a tasks.json, the SQL project build task is merged into it.
+	 * If no workspace folder is found, falls back to creating tasks.json inside the project folder.
+	 * @param project project to add the tasks.json file for
 	 * @param configureDefaultBuild whether to configure the default build task in tasks.json
 	 */
 	private async addTasksJsonFile(project: ISqlProject, configureDefaultBuild: boolean): Promise<void> {
-		await this.addFileToProjectFromTemplate(project, templates.get(ItemType.tasks), '.vscode/tasks.json', new Map([['ConfigureDefaultBuild', configureDefaultBuild.toString()]]));
+		// Find the workspace folder that contains the project
+		const projectUri = vscode.Uri.file(project.projectFilePath);
+		const workspaceFolder = vscode.workspace.getWorkspaceFolder(projectUri);
+
+		// Determine the target folder: workspace root if available, otherwise project folder
+		const targetFolder = workspaceFolder ? workspaceFolder.uri.fsPath : project.projectFolderPath;
+		const vscodeFolder = path.join(targetFolder, '.vscode');
+		const tasksJsonPath = path.join(vscodeFolder, 'tasks.json');
+
+		// Generate the new SQL project build task from template
+		const tasksTemplate = templates.get(ItemType.tasks);
+		const newTasksContent = templates.macroExpansion(tasksTemplate.templateScript, new Map([['ConfigureDefaultBuild', configureDefaultBuild.toString()]]));
+		const newTasksJson = JSON.parse(newTasksContent);
+
+		// Check if tasks.json already exists at workspace level
+		if (await utils.exists(tasksJsonPath)) {
+			// Read and parse existing tasks.json
+			try {
+				const existingContent = await fs.readFile(tasksJsonPath, 'utf8');
+				const existingTasksJson = JSON.parse(existingContent);
+
+				// Ensure tasks array exists
+				if (!existingTasksJson.tasks) {
+					existingTasksJson.tasks = [];
+				}
+
+				// Check if the SQL project build task already exists
+				const sqlBuildTaskExists = existingTasksJson.tasks.some(
+					(task: { label?: string; type?: string }) =>
+						task.label === constants.sqlProjectBuildTaskLabel ||
+						(task.label === 'Build' && task.type === 'shell')
+				);
+
+				if (!sqlBuildTaskExists) {
+					// Merge the new task(s) into existing tasks
+					existingTasksJson.tasks.push(...newTasksJson.tasks);
+
+					// Write back the merged tasks.json
+					await fs.writeFile(tasksJsonPath, JSON.stringify(existingTasksJson, null, '\t'), 'utf8');
+
+					// Show notification to user
+					void vscode.window.showInformationMessage(constants.updatingExistingTasksJson);
+				}
+				// If task already exists, do nothing
+			} catch (error) {
+				// If parsing fails, log error and skip
+				this._outputChannel.appendLine(`Error parsing existing tasks.json: ${error}`);
+			}
+		} else {
+			// Create new tasks.json at workspace level
+			await fs.mkdir(vscodeFolder, { recursive: true });
+			await fs.writeFile(tasksJsonPath, JSON.stringify(newTasksJson, null, '\t'), 'utf8');
+		}
+
+		// Note: We don't add tasks.json to the project's None items since it's at workspace level
 	}
 
 	private async addFileToProjectFromTemplate(project: ISqlProject, itemType: templates.ProjectScriptType, relativePath: string, expansionMacros: Map<string, string>): Promise<string> {
@@ -265,7 +324,6 @@ export class ProjectsController {
 				await project.addPostDeploymentScript(relativePath);
 				break;
 			case ItemType.publishProfile:
-			case ItemType.tasks: // tasks.json is not added to the build
 				await project.addNoneItem(relativePath);
 				break;
 			default: // a normal SQL object script
@@ -540,13 +598,68 @@ export class ProjectsController {
 
 			return publishDatabaseDialog.waitForClose();
 		} else {
-			// Use the new publish dialog flow
-			return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
+			// If preview feature is enabled, use preview flow
+			const shouldUsePreview =
+				vscode.workspace.getConfiguration(DBProjectConfigurationKey).get<boolean>(constants.enablePreviewFeaturesKey) ||
+				vscode.workspace.getConfiguration(constants.mssqlConfigSectionKey).get<boolean>(constants.mssqlEnableExperimentalFeaturesKey);
+
+			if (shouldUsePreview) {
+				return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
+			} else {
+				return this.publishDatabase(project);
+			}
 		}
 	}
 
 	public getPublishDialog(project: Project): PublishDatabaseDialog {
 		return new PublishDatabaseDialog(project);
+	}
+
+	/**
+	* Create flow for Publishing a database using only VS Code-native APIs such as QuickPick
+	*/
+	private async publishDatabase(project: Project): Promise<void> {
+		const publishTarget = await launchPublishTargetOption(project);
+
+		// Return when user hits escape
+		if (!publishTarget) {
+			return undefined;
+		}
+
+		if (publishTarget === constants.PublishTargetType.docker) {
+			const publishToDockerSettings = await getPublishToDockerSettings(project);
+			void promptForSavingProfile(project, publishToDockerSettings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
+			if (!publishToDockerSettings) {
+				// User cancelled
+				return;
+			}
+			await this.publishToDockerContainer(project, publishToDockerSettings);
+		} else if (publishTarget === constants.PublishTargetType.newAzureServer) {
+			try {
+				const settings = await launchCreateAzureServerQuickPick(project, this.azureSqlClient);
+				void promptForSavingProfile(project, settings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
+				if (settings?.deploySettings && settings?.sqlDbSetting) {
+					await this.publishToNewAzureServer(project, settings);
+				}
+			} catch (error) {
+				void utils.showErrorMessageWithOutputChannel(constants.publishToNewAzureServerFailed, error, this._outputChannel);
+			}
+
+		} else {
+			let settings: ISqlProjectPublishSettings | undefined = await getPublishDatabaseSettings(project);
+
+			void promptForSavingProfile(project, settings);		// not awaiting this call, because saving profile should not stop the actual publish workflow
+			if (settings) {
+				// 5. Select action to take
+				const action = await vscode.window.showQuickPick(
+					[constants.generateScriptButtonText, constants.publish],
+					{ title: constants.chooseAction, ignoreFocusOut: true });
+				if (!action) {
+					return;
+				}
+				await this.publishOrScriptProject(project, settings, action === constants.publish);
+			}
+		}
 	}
 
 	/**

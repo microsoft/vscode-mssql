@@ -8,10 +8,10 @@ All notable changes to the SQL Database Projects extension will be documented in
 
 ## [1.5.6] - 2026-01-28
 
-- Releasing the Publish dialog as GA, replacing the previous quickpick-based publish flow with an enhanced dialog experience.
 - Added a new 'Target platform' selector when creating an Azure SQL database project.
+- Added an icon and 'Publish Project' header to the Publish (preview) dialog.
 - Resolved an issue where SQL project telemetry events were not being captured consistently.
-- Fixed a macOS issue where the new Publish dialog could not locate the DACPAC file.
+- Fixed a macOS issue where the new Publish (preview) dialog could not locate the DACPAC file.
 - Fixed a problem where selecting 'View changes in schema compare' from 'Update project from database' did not automatically launch Schema Compare.
 - Resolved a build failure that occurred when the Windows terminal default profile was set to Git Bash.
 
