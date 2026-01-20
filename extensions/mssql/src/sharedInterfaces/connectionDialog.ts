@@ -169,7 +169,6 @@ export interface ConnectionDialogFormItemSpec
         ConnectionDialogWebviewState,
         ConnectionDialogFormItemSpec
     > {
-    isAdvancedOption: boolean;
     optionCategory?: string;
     optionCategoryLabel?: string;
 }
