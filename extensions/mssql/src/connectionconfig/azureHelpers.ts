@@ -282,20 +282,24 @@ export class VsCodeAzureHelper {
     /**
      * Fetches the storage accounts for a given subscription.
      * @param sub The subscription to fetch storage accounts for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of storage accounts.
      */
     public static async fetchStorageAccountsForSubscription(
         sub: AzureSubscription,
-    ): Promise<StorageAccount[]> {
+        storageClient?: StorageManagementClient,
+    ): Promise<StorageAccount[] | Error> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
             console.error("Error fetching storage accounts for subscription:", error);
-            return [];
+            return new Error(error.message);
         }
     }
 
@@ -303,16 +307,20 @@ export class VsCodeAzureHelper {
      * Fetches the blob containers for a given storage account.
      * @param sub The subscription to fetch blob containers for.
      * @param storageAccount The storage account to fetch blob containers for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of blob containers.
      */
     public static async fetchBlobContainersForStorageAccount(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
-    ): Promise<BlobContainer[]> {
+        storageClient?: StorageManagementClient,
+    ): Promise<BlobContainer[] | Error> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             const storageAccountResourceGroup = extractFromResourceId(
                 storageAccount.id,
@@ -325,7 +333,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching blob containers for storage account:", error);
-            return [];
+            return new Error(error.message);
         }
     }
 
@@ -333,16 +341,20 @@ export class VsCodeAzureHelper {
      * Gets the storage account keys for a given storage account.
      * @param sub The subscription to fetch storage account keys for.
      * @param storageAccount The storage account to fetch keys for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of storage account keys.
      */
     public static async getStorageAccountKeys(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
-    ): Promise<StorageAccountsListKeysResponse> {
+        storageClient?: StorageManagementClient,
+    ): Promise<StorageAccountsListKeysResponse | Error> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             const storageAccountResourceGroup = extractFromResourceId(
                 storageAccount.id,
@@ -355,7 +367,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching storage account keys:", error);
-            return {};
+            return new Error(error.message);
         }
     }
 

@@ -4,45 +4,43 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
+
 import { expect } from "chai";
+
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { AzureBlobService } from "../../src/services/azureBlobService";
-import { CreateSasRequest, CreateSasResponse } from "../../src/models/contracts/azureBlob";
+import { CreateSasRequest } from "../../src/models/contracts/azureBlob";
 
-suite("Azure Blob Service Tests", () => {
+chai.use(sinonChai);
+
+suite("AzureBlobService", () => {
     let sandbox: sinon.SinonSandbox;
-    let azureBlobService: AzureBlobService;
-    let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let service: AzureBlobService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
+        mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
 
-        azureBlobService = new AzureBlobService(sqlToolsClientStub);
+        service = new AzureBlobService(mockClient);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("createSas should successfully create a SAS token", async () => {
-        const ownerUri = "conn";
-        const blobContainerUri = "https://example.blob.core.windows.net/container";
-        const blobContainerKey = "key";
-        const storageAccountName = "examplestorage";
-        const expirationDate = "exampleDate";
+    test("createSas returns sas key", async () => {
+        mockClient.sendRequest.withArgs(CreateSasRequest.type, sinon.match.any).resolves(true);
 
-        sqlToolsClientStub.sendRequest
-            .withArgs(CreateSasRequest.type, sinon.match.any)
-            .resolves({ sharedAccessSignature: "sasToken" } as CreateSasResponse);
-
-        const result = await azureBlobService.createSas(
-            ownerUri,
-            blobContainerUri,
-            blobContainerKey,
-            storageAccountName,
-            expirationDate,
+        const result = await service.createSas(
+            "ownerUri",
+            "blobContainerUri",
+            "blobContainerKey",
+            "storageAccountName",
+            "expirationDate",
         );
-        expect(result).to.deep.equal({ sharedAccessSignature: "sasToken" });
+        expect(result).to.equal(true);
     });
 });

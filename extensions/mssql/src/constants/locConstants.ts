@@ -2567,4 +2567,11 @@ export class BackupDatabase {
     public static noSubscriptionsFound = l10n.t("No subscriptions found");
     public static noStorageAccountsFound = l10n.t("No storage accounts found");
     public static noBlobContainersFound = l10n.t("No blob containers found");
+    public static generatingSASKeyFailedWithError = (errorMessage: string) => {
+        return l10n.t({
+            message: "Generating SAS key failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
 }
