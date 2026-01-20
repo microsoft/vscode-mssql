@@ -374,5 +374,6 @@
   "Are you sure you want to move {0} to {1}?": "Are you sure you want to move {0} to {1}?",
   "Move": "Move",
   "Error when renaming file from {0} to {1}. Error: {2}": "Error when renaming file from {0} to {1}. Error: {2}",
-  "Unhandled node type for move": "Unhandled node type for move"
+  "Unhandled node type for move": "Unhandled node type for move",
+  "A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.": "A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file."
 }
