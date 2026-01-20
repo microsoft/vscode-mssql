@@ -22,7 +22,7 @@ import { SqlDatabaseProjectTreeViewProvider } from './databaseProjectTreeViewPro
 import { FolderNode, FileNode } from '../models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
 import { ImportDataModel } from '../models/api/import';
-import { NetCoreTool, DotNetError, DBProjectConfigurationKey } from '../tools/netcoreTool';
+import { NetCoreTool, DotNetError } from '../tools/netcoreTool';
 import { BuildHelper } from '../tools/buildHelper';
 import { readPublishProfile, promptForSavingProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
 import { AddDatabaseReferenceDialog } from '../dialogs/addDatabaseReferenceDialog';
@@ -598,17 +598,25 @@ export class ProjectsController {
 
 			return publishDatabaseDialog.waitForClose();
 		} else {
-			// If preview feature is enabled, use preview flow
-			const shouldUsePreview =
-				vscode.workspace.getConfiguration(DBProjectConfigurationKey).get<boolean>(constants.enablePreviewFeaturesKey) ||
-				vscode.workspace.getConfiguration(constants.mssqlConfigSectionKey).get<boolean>(constants.mssqlEnableExperimentalFeaturesKey);
-
-			if (shouldUsePreview) {
-				return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
-			} else {
-				return this.publishDatabase(project);
-			}
+			// Use the old quickpick-based publish flow
+			return this.publishDatabase(project);
 		}
+	}
+
+	/**
+	 * Builds and publishes a project using the new Publish Dialog (Preview)
+	 * @param treeNode a treeItem in a project's hierarchy, to be used to obtain a Project
+	 */
+	public async publishProjectDialog(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+	/**
+	 * Builds and publishes a project using the new Publish Dialog (Preview)
+	 * @param project Project to be built and published
+	 */
+	public async publishProjectDialog(project: Project): Promise<void>;
+	public async publishProjectDialog(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
+		const project: Project = await this.getProjectFromContext(context);
+		// Use the new publish dialog flow
+		return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
 	}
 
 	public getPublishDialog(project: Project): PublishDatabaseDialog {
