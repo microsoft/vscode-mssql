@@ -1228,11 +1228,11 @@
     <trans-unit id="sqlDatabaseProjects.properties">
       <source xml:lang="en">Properties</source>
     </trans-unit>
-    <trans-unit id="sqlDatabaseProjects.publishDialog">
-      <source xml:lang="en">Publish</source>
-    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.publish">
       <source xml:lang="en">Publish</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.publishDialog">
+      <source xml:lang="en">Publish (Preview)</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.rename">
       <source xml:lang="en">Rename</source>
