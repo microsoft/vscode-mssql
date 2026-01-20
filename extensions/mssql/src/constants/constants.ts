@@ -127,6 +127,7 @@ export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const piiLogging = "piiLogging";
@@ -313,8 +314,10 @@ export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
-export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const allFileTypes = ["*.*"];
+
+// Deployment Constants
+export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const disk = "Disk";
 export const url = "URL";
 
@@ -345,11 +348,16 @@ export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
 export const DacpacExtension = ".dacpac";
+export const SqlPackagePublishAction = "Publish";
+export const TargetServerName = "TargetServerName";
 export const dotnet = "dotnet";
 export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+// Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
+export const catalogPairPattern =
+    /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;
 
 // DacFx operation IDs (as reported by SQL Tools Service via taskOperation field)
 export const operationIdExportBacpac = "ExportOperation";

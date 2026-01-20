@@ -112,6 +112,8 @@
     "Get Started": "Get Started",
     "Back": "Back",
     "Warning": "Warning",
+    "Sign In": "Sign In",
+    "Loading": "Loading",
     "Loading": "Loading",
     "General": "General",
     "Clear All": "Clear All",
@@ -209,7 +211,6 @@
     "Fabric Account": "Fabric Account",
     "Select an account": "Select an account",
     "Account": "Account",
-    "Sign In": "Sign In",
     "Tenant ID": "Tenant ID",
     "Authentication Type": "Authentication Type",
     "Browse By": "Browse By",
@@ -722,6 +723,7 @@
         "comment": ["{0} is the name of the entry"]
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+    "Publish Project": "Publish Project",
     "Select Profile": "Select Profile",
     "Save As...": "Save As...",
     "Advanced Publish Options": "Advanced Publish Options",
@@ -729,6 +731,11 @@
     "Exclude Object Types": "Exclude Object Types",
     "SQLCMD Variables": "SQLCMD Variables",
     "Revert values to project defaults": "Revert values to project defaults",
+    "SqlPackage Command": "SqlPackage Command",
+    "Generate sqlpackage command": "Generate sqlpackage command",
+    "Copy command to clipboard": "Copy command to clipboard",
+    "Show unmasked command (reveals sensitive information)": "Show unmasked command (reveals sensitive information)",
+    "Show masked command (hides sensitive information)": "Show masked command (hides sensitive information)",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
@@ -943,6 +950,71 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+    "Azure Data Studio settings file": "Azure Data Studio settings file",
+    "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
+    "Browse to Azure Data Studio settings.json": "Browse to Azure Data Studio settings.json",
+    "Browse": "Browse",
+    "Connection groups to import": "Connection groups to import",
+    "{0} of {1} connection groups selected./{0} is the number of groups selected for import{1} is the total number of groups detected": {
+        "message": "{0} of {1} connection groups selected.",
+        "comment": [
+            "{0} is the number of groups selected for import",
+            "{1} is the total number of groups detected"
+        ]
+    },
+    "Connections in groups that are not selected will be moved under the root.": "Connections in groups that are not selected will be moved under the root.",
+    "No connection groups were found in the file.": "No connection groups were found in the file.",
+    "{0} color swatch ({1})/{0} is the connection group name{1} is the color value applied to the group": {
+        "message": "{0} color swatch ({1})",
+        "comment": [
+            "{0} is the connection group name",
+            "{1} is the color value applied to the group"
+        ]
+    },
+    "Select or clear all connection groups": "Select or clear all connection groups",
+    "Toggle selection for {0}/{0} is the connection group name": {
+        "message": "Toggle selection for {0}",
+        "comment": ["{0} is the connection group name"]
+    },
+    "Connections to import": "Connections to import",
+    "{0} of {1} connections selected/{0} is the number of connections selected for import{1} is the total number of connections detected": {
+        "message": "{0} of {1} connections selected",
+        "comment": [
+            "{0} is the number of connections selected for import",
+            "{1} is the total number of connections detected"
+        ]
+    },
+    "Select or clear all connections": "Select or clear all connections",
+    "No connections were found in the file.": "No connections were found in the file.",
+    "Profile name": "Profile name",
+    "<default>": "<default>",
+    "Auth type": "Auth type",
+    "User ID": "User ID",
+    "Status": "Status",
+    "Toggle selection for {0}/{0} is the connection display name": {
+        "message": "Toggle selection for {0}",
+        "comment": ["{0} is the connection display name"]
+    },
+    "Collapse connection groups": "Collapse connection groups",
+    "Expand connection groups": "Expand connection groups",
+    "Collapse connections": "Collapse connections",
+    "Expand connections": "Expand connections",
+    "This connection does not have a display name in Azure Data Studio.": "This connection does not have a display name in Azure Data Studio.",
+    "This value was not provided in the Azure Data Studio settings file.": "This value was not provided in the Azure Data Studio settings file.",
+    "Authentication": "Authentication",
+    "Enter password": "Enter password",
+    "Import selected": "Import selected",
+    "Some selections still need information": "Some selections still need information",
+    "You can continue, but you may need to edit these connections later before connecting.": "You can continue, but you may need to edit these connections later before connecting.",
+    "Connections needing attention": "Connections needing attention",
+    "Import anyway": "Import anyway",
+    "Importing selections": "Importing selections",
+    "Sign into additional accounts": "Sign into additional accounts",
+    "Select account": "Select account",
+    "Select an account for authentication": "Select an account for authentication",
+    "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.": "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
@@ -952,6 +1024,9 @@
         "comment": ["{0} is the version number of the MSSQL extension"]
     },
     "Don't show this again": "Don't show this again",
+    "Select a file": "Select a file",
+    "Selected Path": "Selected Path",
+    "Files of Type": "Files of Type",
     "Loading backup database...": "Loading backup database...",
     "Backup": "Backup",
     "Advanced Backup Options": "Advanced Backup Options",
@@ -1123,7 +1198,6 @@
     "Error: ": "Error: ",
     "Yes": "Yes",
     "No": "No",
-    "<default>": "<default>",
     "Connecting to: ": "Connecting to: ",
     "Error connecting to: ": "Error connecting to: ",
     "Error code: ": "Error code: ",
@@ -1681,7 +1755,6 @@
     "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
     "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
     "Container does not exist. Would you like to remove the connection?": "Container does not exist. Would you like to remove the connection?",
-    "Enter password": "Enter password",
     "Enter container name": "Enter container name",
     "Enter port": "Enter port",
     "Enter hostname": "Enter hostname",
@@ -1707,7 +1780,6 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
-    "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
@@ -1743,6 +1815,8 @@
         "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
         "comment": ["{0} is the server name"]
     },
+    "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -2023,7 +2097,6 @@
     "Failed to change database": "Failed to change database",
     "No active connection for database change": "No active connection for database change",
     "Connection Details": "Connection Details",
-    "Authentication": "Authentication",
     "Server Version": "Server Version",
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
@@ -2202,6 +2275,32 @@
     "Failed to export results: {0}/{0} is the error message": {
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
+    },
+    "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
+    "Ready": "Ready",
+    "Needs attention": "Needs attention",
+    "Already imported.  Importing again will replace the existing connection with ID {0}/{0} is the connection ID": {
+        "message": "Already imported.  Importing again will replace the existing connection with ID {0}",
+        "comment": ["{0} is the connection ID"]
+    },
+    "Already imported.  Importing again will replace the existing group with ID {0}/{0} is the group ID": {
+        "message": "Already imported.  Importing again will replace the existing group with ID {0}",
+        "comment": ["{0} is the group ID"]
+    },
+    "Enter the SQL Login password for user '{0}'./{0} is the SQL Login username": {
+        "message": "Enter the SQL Login password for user '{0}'.",
+        "comment": ["{0} is the SQL Login username"]
+    },
+    "Sign in with Entra ID '{0}'./{0} is the Entra ID username": {
+        "message": "Sign in with Entra ID '{0}'.",
+        "comment": ["{0} is the Entra ID username"]
+    },
+    "Unknown account": "Unknown account",
+    "Unknown tenant ID": "Unknown tenant ID",
+    "Import complete. You can close this dialog.": "Import complete. You can close this dialog.",
+    "Import failed: {0}/{0} is the error message returned from the import helper.": {
+        "message": "Import failed: {0}",
+        "comment": ["{0} is the error message returned from the import helper."]
     },
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",

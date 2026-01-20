@@ -271,15 +271,11 @@ export class SqlTasksService {
                 }
             } else {
                 // Show generic completion message for tasks without custom handlers
-                // Safely get the last message to show in the completion notification
-                let lastMessage = taskInfo.lastMessage;
-
-                if (taskProgressInfo.message) {
-                    lastMessage =
-                        taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
-                            ? taskProgressInfo.message
-                            : taskInfo.lastMessage;
-                }
+                const lastMessage =
+                    taskProgressInfo.message &&
+                    taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
+                        ? taskProgressInfo.message
+                        : taskInfo.lastMessage;
 
                 const taskMessage = lastMessage
                     ? localizedConstants.taskStatusWithNameAndMessage(

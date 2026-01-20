@@ -38,6 +38,16 @@ const useStyles = makeStyles({
         flexDirection: "row",
         paddingLeft: "20px",
     },
+    dialogSurfaceDiv: {
+        maxHeight: "75vh",
+        width: "60vw",
+        display: "flex",
+    },
+    dialogBodyDiv: {
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+    },
     titleText: {
         marginLeft: "8px",
         fontSize: "20px",
@@ -46,18 +56,17 @@ const useStyles = makeStyles({
     contentDiv: {
         display: "flex",
         flexDirection: "column",
+        flex: 1,
+        overflow: "hidden",
         padding: "15px",
-        height: "fit-content",
-        marginBottom: "10px",
-        paddingBottom: "10px",
+        width: "100%",
     },
     contentItem: {
         padding: "10px",
     },
     treeDiv: {
-        height: "40vh",
-        minHeight: "400px",
-        overflowY: "scroll",
+        flex: 1,
+        overflowY: "auto",
         marginBottom: "15px",
     },
     formRow: {
@@ -150,12 +159,13 @@ export const FileBrowserDialog = ({
     return (
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface
+                className={classes.dialogSurfaceDiv}
                 onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.key === KeyCode.Escape) {
                         closeDialog();
                     }
                 }}>
-                <DialogBody>
+                <DialogBody className={classes.dialogBodyDiv}>
                     <DialogTitle className={classes.titleDiv}>
                         <Text className={classes.titleText}>
                             {Loc.fileBrowser.fileBrowserTitle}
