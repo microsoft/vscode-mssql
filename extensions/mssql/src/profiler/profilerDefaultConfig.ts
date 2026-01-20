@@ -15,7 +15,12 @@ export const defaultProfilerConfig: ProfilerConfig = {
             id: "Standard View",
             name: "Standard View",
             columns: [
-                { field: "EventClass", header: "EventClass", width: 150, eventsMapped: ["name"] },
+                {
+                    field: "EventClass",
+                    header: "EventClass",
+                    width: 150,
+                    eventsMapped: ["eventClass", "name"],
+                },
                 {
                     field: "TextData",
                     header: "TextData",
@@ -81,7 +86,12 @@ export const defaultProfilerConfig: ProfilerConfig = {
             id: "TSQL View",
             name: "TSQL View",
             columns: [
-                { field: "EventClass", header: "EventClass", width: 150, eventsMapped: ["name"] },
+                {
+                    field: "EventClass",
+                    header: "EventClass",
+                    width: 150,
+                    eventsMapped: ["eventClass", "name"],
+                },
                 {
                     field: "TextData",
                     header: "TextData",
@@ -119,7 +129,12 @@ export const defaultProfilerConfig: ProfilerConfig = {
             id: "Tuning View",
             name: "Tuning View",
             columns: [
-                { field: "EventClass", header: "EventClass", width: 150, eventsMapped: ["name"] },
+                {
+                    field: "EventClass",
+                    header: "EventClass",
+                    width: 150,
+                    eventsMapped: ["eventClass", "name"],
+                },
                 {
                     field: "TextData",
                     header: "TextData",
@@ -164,7 +179,12 @@ export const defaultProfilerConfig: ProfilerConfig = {
             id: "TSQL_Locks View",
             name: "TSQL_Locks View",
             columns: [
-                { field: "EventClass", header: "EventClass", width: 150, eventsMapped: ["name"] },
+                {
+                    field: "EventClass",
+                    header: "EventClass",
+                    width: 150,
+                    eventsMapped: ["eventClass", "name"],
+                },
                 {
                     field: "TextData",
                     header: "TextData",
@@ -235,7 +255,12 @@ export const defaultProfilerConfig: ProfilerConfig = {
             id: "TSQL_Duration View",
             name: "TSQL_Duration View",
             columns: [
-                { field: "EventClass", header: "EventClass", width: 150, eventsMapped: ["name"] },
+                {
+                    field: "EventClass",
+                    header: "EventClass",
+                    width: 150,
+                    eventsMapped: ["eventClass", "name"],
+                },
                 { field: "Duration", header: "Duration", width: 150, eventsMapped: ["duration"] },
                 {
                     field: "TextData",
