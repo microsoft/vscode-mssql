@@ -288,7 +288,7 @@ export class VsCodeAzureHelper {
     public static async fetchStorageAccountsForSubscription(
         sub: AzureSubscription,
         storageClient?: StorageManagementClient,
-    ): Promise<StorageAccount[]> {
+    ): Promise<StorageAccount[] | Error> {
         try {
             const storage =
                 storageClient ??
@@ -299,7 +299,7 @@ export class VsCodeAzureHelper {
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
             console.error("Error fetching storage accounts for subscription:", error);
-            return [];
+            return new Error(error.message);
         }
     }
 
@@ -314,7 +314,7 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
         storageAccount: StorageAccount,
         storageClient?: StorageManagementClient,
-    ): Promise<BlobContainer[]> {
+    ): Promise<BlobContainer[] | Error> {
         try {
             const storage =
                 storageClient ??
@@ -333,7 +333,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching blob containers for storage account:", error);
-            return [];
+            return new Error(error.message);
         }
     }
 
@@ -348,7 +348,7 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
         storageAccount: StorageAccount,
         storageClient?: StorageManagementClient,
-    ): Promise<StorageAccountsListKeysResponse> {
+    ): Promise<StorageAccountsListKeysResponse | Error> {
         try {
             const storage =
                 storageClient ??
@@ -367,7 +367,7 @@ export class VsCodeAzureHelper {
             );
         } catch (error) {
             console.error("Error fetching storage account keys:", error);
-            return {};
+            return new Error(error.message);
         }
     }
 

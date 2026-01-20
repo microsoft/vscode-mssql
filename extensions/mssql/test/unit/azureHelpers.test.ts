@@ -304,7 +304,7 @@ suite("Azure Helpers", () => {
             .stub(armStorage, "StorageManagementClient")
             .callsFake(() => clientStub);
 
-        const result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+        let result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
             mockSubscriptions[0],
             clientStub as unknown as armStorage.StorageManagementClient,
         );
@@ -315,6 +315,19 @@ suite("Azure Helpers", () => {
             clientStub.storageAccounts.list.calledOnce,
             "storageAccounts.list should be called once",
         ).to.be.true;
+
+        clientStub.storageAccounts.list = sinon.stub().rejects(new Error("Test error"));
+
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+                mockSubscriptions[0],
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+        } catch (e) {
+            result = e;
+        }
+
+        expect((result as Error).message).to.equal("Test error");
 
         storageStub.restore();
         listStub.restore();
@@ -336,7 +349,7 @@ suite("Azure Helpers", () => {
 
         const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
 
-        const result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+        let result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
             mockSubscriptions[0],
             mockAzureResources.storageAccount,
             clientStub as unknown as armStorage.StorageManagementClient,
@@ -348,6 +361,19 @@ suite("Azure Helpers", () => {
             clientStub.blobContainers.list.calledOnce,
             "blobContainers.list should be called once",
         ).to.be.true;
+
+        clientStub.blobContainers.list = sinon.stub().rejects(new Error("Test error"));
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+        } catch (e) {
+            result = e;
+        }
+
+        expect((result as Error).message).to.equal("Test error");
 
         storageStub.restore();
         listStub.restore();
@@ -372,17 +398,27 @@ suite("Azure Helpers", () => {
             .stub(armStorage, "StorageManagementClient")
             .callsFake(() => clientStub);
 
-        const result = await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+        let result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
             mockSubscriptions[0],
             mockAzureResources.storageAccount,
             clientStub as unknown as armStorage.StorageManagementClient,
-        );
+        )) as armStorage.StorageAccountsListKeysResponse;
 
         expect(result.keys).to.deep.equal(mockKeys);
         expect(
             clientStub.storageAccounts.listKeys.calledOnce,
             "storageAccounts.listKeys should be called once",
         ).to.be.true;
+
+        clientStub.storageAccounts.listKeys = sinon.stub().rejects(new Error("Test error"));
+
+        result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            clientStub as unknown as armStorage.StorageManagementClient,
+        )) as armStorage.StorageAccountsListKeysResponse;
+
+        expect((result as Error).message).to.equal("Test error");
 
         storageStub.restore();
     });

@@ -211,7 +211,7 @@ export function formatXml(xml: string): string {
  * It returns the date in the UTC format for locale time zone independence.
  * @returns next year's UTC date
  */
-export function nextYear(): string {
+export function getExpirationDateForSas(): string {
     const today = new Date();
     const nextYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
     return nextYear.toUTCString();
