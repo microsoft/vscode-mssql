@@ -29,7 +29,7 @@ import {
     BackupDatabaseState,
     BackupType,
     MediaSet,
-} from "../../../sharedInterfaces/objectManagement";
+} from "../../../sharedInterfaces/backup";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,

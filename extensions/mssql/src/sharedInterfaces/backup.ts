@@ -5,7 +5,6 @@
 
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ApiStatus } from "./webview";
-import { TaskExecutionMode } from "./task";
 import {
     FileBrowserProvider,
     FileBrowserReducers,
@@ -15,8 +14,9 @@ import {
 import { IDialogProps } from "./connectionDialog";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
+import { TaskExecutionMode } from "./schemaCompare";
 
-export interface ObjectManagementService {
+export interface BackupService {
     /**
      * Backup a database.
      * @param connectionUri The URI of the server connection.
@@ -331,7 +331,10 @@ export interface BackupDatabaseProvider
 
 export interface BackupDatabaseFormItemSpec
     extends FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec> {
-    componentWidth: string;
+    /**
+     * The name of the advanced options group this item belongs to
+     */
+    groupName?: string;
 }
 
 export interface BackupDatabaseFormState {

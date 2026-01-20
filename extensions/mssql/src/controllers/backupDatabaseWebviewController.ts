@@ -22,13 +22,12 @@ import {
     LogOption,
     MediaDeviceType,
     MediaSet,
-    ObjectManagementService,
+    BackupService,
     PhysicalDeviceType,
-} from "../sharedInterfaces/objectManagement";
+} from "../sharedInterfaces/backup";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { FormWebviewController } from "../forms/formWebviewController";
 import * as LocConstants from "../constants/locConstants";
-import { TaskExecutionMode } from "../sharedInterfaces/task";
 import {
     FormItemActionButton,
     FormItemOptions,
@@ -51,6 +50,7 @@ import { BackupResponse } from "azdata";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { nextYear } from "../utils/utils";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -61,7 +61,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        private objectManagementService: ObjectManagementService,
+        private objectManagementService: BackupService,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
         private ownerUri: string,

@@ -23,7 +23,7 @@ import {
     BackupDatabaseFormState,
     BackupDatabaseProvider,
     BackupDatabaseState,
-} from "../../../sharedInterfaces/objectManagement";
+} from "../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
 import { Image, Text } from "@fluentui/react-components";
@@ -166,19 +166,7 @@ export const BackupDatabaseForm: React.FC = () => {
         Object.values(formComponents)
             .filter((component) => !component.groupName)
             .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
+                <div key={index}>
                     <FormField<
                         BackupDatabaseFormState,
                         BackupDatabaseState,
@@ -203,19 +191,7 @@ export const BackupDatabaseForm: React.FC = () => {
                 }
 
                 return loadStatus === ApiStatus.Loaded || loadStatus === ApiStatus.Error ? (
-                    <div
-                        key={index}
-                        style={
-                            component.componentWidth
-                                ? {
-                                      width: component.componentWidth,
-                                      maxWidth: component.componentWidth,
-                                      whiteSpace: "normal", // allows wrapping
-                                      overflowWrap: "break-word", // breaks long words if needed
-                                      wordBreak: "break-word",
-                                  }
-                                : {}
-                        }>
+                    <div key={index}>
                         <FormField<
                             BackupDatabaseFormState,
                             BackupDatabaseState,
@@ -344,19 +320,7 @@ export const BackupDatabaseForm: React.FC = () => {
         Object.values(formComponents)
             .filter((component) => component.groupName == locConstants.backupDatabase.media)
             .map((component, index) => (
-                <div
-                    key={index}
-                    style={
-                        component.componentWidth
-                            ? {
-                                  width: component.componentWidth,
-                                  maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
-                                  wordBreak: "break-word",
-                              }
-                            : {}
-                    }>
+                <div key={index}>
                     <FormField<
                         BackupDatabaseFormState,
                         BackupDatabaseState,

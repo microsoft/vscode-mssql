@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TaskExecutionMode } from "azdata";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     BackupConfigInfoResponse,
@@ -11,10 +10,11 @@ import {
     BackupParams,
     BackupResponse,
     DefaultDatabaseInfoParams,
-} from "../sharedInterfaces/objectManagement";
+} from "../sharedInterfaces/backup";
 import { BackupConfigInfoRequest, BackupRequest } from "../models/contracts/backup";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
-export class ObjectManagementService implements ObjectManagementService {
+export class BackupService implements BackupService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
     async getBackupConfigInfo(connectionUri: string): Promise<BackupConfigInfoResponse> {
         try {

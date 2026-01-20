@@ -89,11 +89,6 @@ export interface FormItemSpec<
      * Whether the form item is an advanced option
      */
     isAdvancedOption?: boolean;
-
-    /**
-     * The name of the advanced options group this item belongs to
-     */
-    groupName?: string;
 }
 
 export interface FormItemValidationState {

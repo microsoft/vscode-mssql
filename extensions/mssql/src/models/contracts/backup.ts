@@ -4,7 +4,7 @@ import {
     DefaultDatabaseInfoParams,
     BackupConfigInfoResponse,
     BackupResponse,
-} from "../../sharedInterfaces/objectManagement";
+} from "../../sharedInterfaces/backup";
 
 export namespace BackupRequest {
     export const type = new RequestType<BackupParams, BackupResponse, void, void>("backup/backup");

@@ -107,7 +107,7 @@ import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
-import { ObjectManagementService } from "../services/objectManagementService";
+import { BackupService } from "../services/backupService";
 import { AzureBlobService } from "../services/azureBlobService";
 
 /**
@@ -147,7 +147,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
-    public objectManagementService: ObjectManagementService;
+    public backupDatabaseService: BackupService;
 
     /**
      * The main controller constructor
@@ -850,7 +850,7 @@ export default class MainController implements vscode.Disposable {
             SqlToolsServerClient.instance,
         );
 
-        this.objectManagementService = new ObjectManagementService(SqlToolsServerClient.instance);
+        this.backupDatabaseService = new BackupService(SqlToolsServerClient.instance);
 
         this.fileBrowserService = new FileBrowserService(
             this._vscodeWrapper,
@@ -1713,7 +1713,7 @@ export default class MainController implements vscode.Disposable {
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
-                            this.objectManagementService,
+                            this.backupDatabaseService,
                             this.fileBrowserService,
                             this.azureBlobService,
                             ownerUri,

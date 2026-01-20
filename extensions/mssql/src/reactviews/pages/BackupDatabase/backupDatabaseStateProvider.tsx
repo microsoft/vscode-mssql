@@ -7,7 +7,7 @@ import {
     BackupDatabaseProvider,
     BackupDatabaseReducers,
     BackupDatabaseState,
-} from "../../../sharedInterfaces/objectManagement";
+} from "../../../sharedInterfaces/backup";
 import { FormEvent } from "../../../sharedInterfaces/form";
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
