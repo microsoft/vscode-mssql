@@ -356,6 +356,9 @@
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
     </trans-unit>
+    <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
+      <source xml:lang="en">Azure Account is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
       <source xml:lang="en">Azure Code Grant</source>
     </trans-unit>
@@ -441,6 +444,12 @@
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bf71473ff495ab4a9690ac9038833f16a653b91035bc92de727390d919f5854">
+      <source xml:lang="en">Blob Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f1cdbe727c1ab3c34a61ae29fff12d3ea8db8ff4950ab8f30fd9f4a72a8eb80c">
+      <source xml:lang="en">Blob Container is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
       <source xml:lang="en">Block this extension from accessing your connections</source>
     </trans-unit>
@@ -462,11 +471,11 @@
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
     </trans-unit>
-    <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
-      <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
-    </trans-unit>
     <trans-unit id="++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43">
       <source xml:lang="en">Browse forvpath</source>
+    </trans-unit>
+    <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
+      <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
     </trans-unit>
     <trans-unit id="++CODE++c58a6bd402efb06c3e7dfd6d68910412fee2dfc1788ae384dc123089ce912285">
       <source xml:lang="en">Browse...</source>
@@ -1965,6 +1974,9 @@
     <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
       <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
+      <source xml:lang="en">File name is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
       <source xml:lang="en">File not found</source>
     </trans-unit>
@@ -2050,6 +2062,9 @@
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
+      <source xml:lang="en">Folder path is required</source>
     </trans-unit>
     <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
       <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
@@ -2662,6 +2677,12 @@
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
     </trans-unit>
+    <trans-unit id="++CODE++0fc211b1b2a9e916917115a3ba1156a8c65bd2157d7a46c2d223565a38a40e0b">
+      <source xml:lang="en">Media set description is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
+      <source xml:lang="en">Media set name is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
@@ -2837,6 +2858,9 @@
     <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
       <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5a501b68d2cdd923a92baada7e109fff2c662ad392adf151f69f1f3d32e2180c">
+      <source xml:lang="en">No blob containers found</source>
+    </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
@@ -2917,14 +2941,23 @@
     <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
       <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
+      <source xml:lang="en">No storage accounts found</source>
+    </trans-unit>
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
+      <source xml:lang="en">No subscriptions found</source>
     </trans-unit>
     <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
       <source xml:lang="en">No tenant selected</source>
     </trans-unit>
     <trans-unit id="++CODE++85a7034216fdb297ac1ce5237fcc0ed0fc92d559a9ecc40cfb7a2963c13256b4">
       <source xml:lang="en">No tenants are currently signed in.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++51714413577c82c973b8393c564c859a63c4597383b9d1b6fee9b9cf54ba273e">
+      <source xml:lang="en">No tenants found</source>
     </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
@@ -3155,6 +3188,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e">
       <source xml:lang="en">Please choose a unique name for the profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e14d9a2aa98cae8c18c407f5dc4452e9f5085f152f6d7bd68ca7453192931b3">
+      <source xml:lang="en">Please choose a valid media option</source>
     </trans-unit>
     <trans-unit id="++CODE++5710fb22e6b1b30694e0f530d89f7a30e532b8d281db9f53b7a8437034653d6c">
       <source xml:lang="en">Please choose at least one backup file</source>
@@ -3781,6 +3817,9 @@
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
     </trans-unit>
+    <trans-unit id="++CODE++9573efb4cae60bea64a44f60c5b4cec045be244f211127eb0fd6d556d27449f1">
+      <source xml:lang="en">Select a blob container</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
       <source xml:lang="en">Select a connection group</source>
     </trans-unit>
@@ -3792,6 +3831,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
+      <source xml:lang="en">Select a storage account</source>
     </trans-unit>
     <trans-unit id="++CODE++ed19c10287619e289e998f2c861e139754820af50b549c527483425879ea3bf0">
       <source xml:lang="en">Select a subscription</source>
@@ -4116,6 +4158,12 @@
     <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
       <source xml:lang="en">Stopping Container...</source>
     </trans-unit>
+    <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
+      <source xml:lang="en">Storage Account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
+      <source xml:lang="en">Storage Account is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -4124,6 +4172,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4999c6c6c7badf456f5b0053b09a2076bdb2391a09ab10c9064a680f8f9a0b30">
       <source xml:lang="en">Subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47c88f5cd9d2cfc141f3799f4299a4630cd28556d91c7fed3f16ebb6bba69bd5">
+      <source xml:lang="en">Subscription is required</source>
     </trans-unit>
     <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
       <source xml:lang="en">Subtree Cost</source>
@@ -4233,6 +4284,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3db7232b2e9f0b74bad366312879cd89ee7bd3e6c5b737f358b7897907c6ab39">
       <source xml:lang="en">Tenant ID is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b016ef3b6c88a82c40b3db4426827509ba4dd87ad83462cecd2989f050f6eb7">
+      <source xml:lang="en">Tenant is required</source>
     </trans-unit>
     <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
       <source xml:lang="en">Terms &amp; Conditions</source>
@@ -4425,6 +4479,9 @@
     </trans-unit>
     <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
       <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
+      <source xml:lang="en">Unavailable for backups to existing files</source>
     </trans-unit>
     <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
       <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
