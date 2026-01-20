@@ -282,15 +282,19 @@ export class VsCodeAzureHelper {
     /**
      * Fetches the storage accounts for a given subscription.
      * @param sub The subscription to fetch storage accounts for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of storage accounts.
      */
     public static async fetchStorageAccountsForSubscription(
         sub: AzureSubscription,
+        storageClient?: StorageManagementClient,
     ): Promise<StorageAccount[]> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
@@ -303,16 +307,20 @@ export class VsCodeAzureHelper {
      * Fetches the blob containers for a given storage account.
      * @param sub The subscription to fetch blob containers for.
      * @param storageAccount The storage account to fetch blob containers for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of blob containers.
      */
     public static async fetchBlobContainersForStorageAccount(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
+        storageClient?: StorageManagementClient,
     ): Promise<BlobContainer[]> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             const storageAccountResourceGroup = extractFromResourceId(
                 storageAccount.id,
@@ -333,16 +341,20 @@ export class VsCodeAzureHelper {
      * Gets the storage account keys for a given storage account.
      * @param sub The subscription to fetch storage account keys for.
      * @param storageAccount The storage account to fetch keys for.
+     * @param storageClient storage client for testing purposes
      * @returns A list of storage account keys.
      */
     public static async getStorageAccountKeys(
         sub: AzureSubscription,
         storageAccount: StorageAccount,
+        storageClient?: StorageManagementClient,
     ): Promise<StorageAccountsListKeysResponse> {
         try {
-            const storage = new StorageManagementClient(sub.credential, sub.subscriptionId, {
-                endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-            });
+            const storage =
+                storageClient ??
+                new StorageManagementClient(sub.credential, sub.subscriptionId, {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                });
 
             const storageAccountResourceGroup = extractFromResourceId(
                 storageAccount.id,
