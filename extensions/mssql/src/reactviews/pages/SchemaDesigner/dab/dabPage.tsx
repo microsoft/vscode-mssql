@@ -8,6 +8,7 @@ import { useContext, useEffect, useMemo } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTile } from "./dabEntityTile";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 const useStyles = makeStyles({
     root: {
@@ -45,7 +46,11 @@ const useStyles = makeStyles({
     },
 });
 
-export const DabPage = () => {
+interface DabPageProps {
+    activeView?: SchemaDesigner.SchemaDesignerActiveView;
+}
+
+export const DabPage = ({ activeView }: DabPageProps) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
 
@@ -60,17 +65,22 @@ export const DabPage = () => {
         dabSchemaFilter,
     } = context;
 
-    // Initialize or sync DAB config when page mounts and schema is initialized
+    // Initialize DAB config when schema is first initialized
     useEffect(() => {
-        if (isInitialized) {
-            if (!dabConfig) {
-                initializeDabConfig();
-            } else {
-                // Incremental sync: add new tables, remove deleted ones, keep existing settings
-                syncDabConfigWithSchema();
-            }
+        if (isInitialized && !dabConfig) {
+            initializeDabConfig();
         }
-    }, [isInitialized]);
+    }, [isInitialized, dabConfig, initializeDabConfig]);
+
+    // Sync DAB config with schema when switching to DAB tab
+    useEffect(() => {
+        const isDabTabActive = activeView === SchemaDesigner.SchemaDesignerActiveView.Dab;
+
+        if (isInitialized && isDabTabActive && dabConfig) {
+            // Incremental sync: add new tables, remove deleted ones, keep existing settings
+            syncDabConfigWithSchema();
+        }
+    }, [activeView]);
 
     // Filter entities based on schema filter
     const filteredEntities = useMemo(() => {
