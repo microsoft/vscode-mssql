@@ -1726,7 +1726,7 @@ export default class MainController implements vscode.Disposable {
                         // Disconnect the temp database connection when the backup panel is closed
                         reactPanel.onDisposed(() => {
                             if (ownerUri !== node.sessionId) {
-                                this.connectionManager.disconnect(ownerUri);
+                                void this.connectionManager.disconnect(ownerUri);
                             }
                         });
                     },
