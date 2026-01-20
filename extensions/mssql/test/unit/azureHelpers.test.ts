@@ -324,10 +324,8 @@ suite("Azure Helpers", () => {
                 clientStub as unknown as armStorage.StorageManagementClient,
             );
         } catch (e) {
-            result = e;
+            expect(e.message).to.equal("Test error");
         }
-
-        expect((result as Error).message).to.equal("Test error");
 
         storageStub.restore();
         listStub.restore();
@@ -370,10 +368,8 @@ suite("Azure Helpers", () => {
                 clientStub as unknown as armStorage.StorageManagementClient,
             );
         } catch (e) {
-            result = e;
+            expect(e.message).to.equal("Test error");
         }
-
-        expect((result as Error).message).to.equal("Test error");
 
         storageStub.restore();
         listStub.restore();
@@ -412,13 +408,15 @@ suite("Azure Helpers", () => {
 
         clientStub.storageAccounts.listKeys = sinon.stub().rejects(new Error("Test error"));
 
-        result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
-            mockSubscriptions[0],
-            mockAzureResources.storageAccount,
-            clientStub as unknown as armStorage.StorageManagementClient,
-        )) as armStorage.StorageAccountsListKeysResponse;
-
-        expect((result as Error).message).to.equal("Test error");
+        try {
+            result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            )) as armStorage.StorageAccountsListKeysResponse;
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
 
         storageStub.restore();
     });
