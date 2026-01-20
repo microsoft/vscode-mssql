@@ -269,6 +269,9 @@ export const Profiler: React.FC = () => {
                     filterable: false,
                     resizable: true,
                     minWidth: 200,
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
                 },
             ];
         }
@@ -283,6 +286,9 @@ export const Profiler: React.FC = () => {
                 filterable: col.filterable ?? false,
                 resizable: true,
                 minWidth: 50,
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
             })),
         ];
     }, [viewConfig]);
@@ -300,6 +306,9 @@ export const Profiler: React.FC = () => {
             enableSorting: false,
             enableFiltering: false,
             enablePagination: false,
+            enableColumnPicker: false, // Hide column picker menu
+            enableGridMenu: false, // Hide grid menu (hamburger menu)
+            enableHeaderMenu: false, // Hide header menu (column hide/show)
             rowHeight: 25,
             headerRowHeight: 30,
             showHeaderRow: false,
