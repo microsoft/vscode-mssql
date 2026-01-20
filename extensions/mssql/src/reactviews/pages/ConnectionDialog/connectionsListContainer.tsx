@@ -151,8 +151,7 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {// state may not be initialized yet due to async loading of context
-                    context.state?.savedConnections.map((connection, index) => {
+                    {context.state?.savedConnections?.map((connection, index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
