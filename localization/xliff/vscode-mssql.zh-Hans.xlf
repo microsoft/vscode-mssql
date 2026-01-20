@@ -2472,6 +2472,10 @@ Error:
         <source xml:lang="en">Files</source>
         <target state="translated">文件</target>
       </trans-unit>
+      <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
+        <source xml:lang="en">Files of Type</source>
+        <target state="new">Files of Type</target>
+      </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
         <target state="translated">筛选器</target>
@@ -4146,6 +4150,10 @@ Error:
         <source xml:lang="en">Publish Project</source>
         <target state="new">Publish Project</target>
       </trans-unit>
+      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
+        <source xml:lang="en">Publish Project (Preview)</source>
+        <target state="translated">发布项目(预览版)</target>
+      </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
         <target state="translated">发布设置文件</target>
@@ -4781,6 +4789,10 @@ Query: {2}</source>
         <source xml:lang="en">Select a database</source>
         <target state="translated">选择数据库</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
+        <source xml:lang="en">Select a file</source>
+        <target state="new">Select a file</target>
+      </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
         <target state="translated">选择服务器</target>
@@ -4876,6 +4888,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">已成功移除所选 Microsoft Entra 帐户。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e45e850e5552217009a64f5c87e898720561d6263867b0cebfc6f770aff9810">
+        <source xml:lang="en">Selected Path</source>
+        <target state="new">Selected Path</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
