@@ -13,8 +13,6 @@ import {
     defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
-    localhost,
-    localhostIP,
     Platform,
     windowsDockerDesktopExecutable,
     x64,
@@ -131,6 +129,10 @@ export const COMMANDS = {
         command: "docker",
         args: ["ps", "-a", "--format", "{{.Names}}"],
     }),
+    GET_CONTAINER_NAME_FROM_ID: (containerId: string): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--filter", `id=${containerId}`, "--format", "{{.Names}}"],
+    }),
     INSPECT: (id: string): DockerCommand => ({
         command: "docker",
         args: ["inspect", sanitizeContainerInput(id)],
@@ -151,11 +153,11 @@ export const COMMANDS = {
             "-e",
             "ACCEPT_EULA=Y",
             "-e",
-            `SA_PASSWORD=${password}`,
+            `\'SA_PASSWORD=${password}\'`,
             "-p",
-            `${port}:${defaultPortNumber}`,
+            `\'${port}:${defaultPortNumber}\'`,
             "--name",
-            sanitizeContainerInput(name),
+            `\'${sanitizeContainerInput(name)}\'`,
         ];
 
         if (hostname) {
@@ -955,42 +957,17 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
 }
 
 /**
- * Finds a Docker container by checking if its exposed ports match the server name.
- * It inspects each container to find a match with the server name.
+ * Determines whether a connection is running inside a Docker container.
+ *
+ * Inspects the `machineName` from the connection's server info. For Docker connections,
+ * the machine name is set to the UUID corresponding to the container's ID.
+ *
+ * @param machineName The machine name hosting the connection, as reported in its server info.
  */
-async function findContainerByPort(containerIds: string[], serverName: string): Promise<string> {
-    if (serverName === localhost || serverName === localhostIP) {
-        serverName += `,${defaultPortNumber}`;
-    }
-    for (const id of containerIds) {
-        try {
-            const inspect = await execDockerCommand(COMMANDS.INSPECT_CONTAINER(id));
-            const ports = inspect.match(/"HostPort":\s*"(\d+)"/g);
-
-            if (ports?.some((p) => serverName.includes(p.match(/\d+/)?.[0] || ""))) {
-                const nameMatch = inspect.match(/"Name"\s*:\s*"\/([^"]+)"/);
-                if (nameMatch) return nameMatch[1];
-            }
-        } catch {
-            // skip container if inspection fails
-        }
-    }
-
-    return undefined;
-}
-
-/**
- * Checks if a connection is a Docker container by inspecting the server name.
- */
-export async function checkIfConnectionIsDockerContainer(serverName: string): Promise<string> {
-    if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return "";
-
+export async function checkIfConnectionIsDockerContainer(machineName: string): Promise<string> {
     try {
-        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINERS());
-        const containerIds = stdout.split("\n").filter(Boolean);
-        if (!containerIds.length) return undefined;
-
-        return await findContainerByPort(containerIds, serverName);
+        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINER_NAME_FROM_ID(machineName));
+        return stdout.trim();
     } catch {
         return undefined;
     }
