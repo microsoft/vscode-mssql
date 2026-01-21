@@ -25,11 +25,11 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public savePassword: boolean;
     public emptyPasswordInput: boolean;
     public azureAuthType: AzureAuthType;
-    public declare azureAccountToken: string | undefined;
-    public declare expiresOn: number | undefined;
+    declare public azureAccountToken: string | undefined;
+    declare public expiresOn: number | undefined;
     public accountStore: AccountStore;
-    public declare accountId: string;
-    public declare tenantId: string;
+    declare public accountId: string;
+    declare public tenantId: string;
 
     constructor(connectionCredentials?: ConnectionCredentials) {
         super();
