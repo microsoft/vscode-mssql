@@ -12,8 +12,8 @@ import {
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
-import { ArrowRight12Regular, Dismiss12Filled, Open16Regular } from "@fluentui/react-icons";
-import { useMemo, useState } from "react";
+import { ArrowRight12Regular, Dismiss12Filled } from "@fluentui/react-icons";
+import React, { useMemo, useState } from "react";
 
 import {
     ChangelogCommandRequest,
@@ -25,6 +25,7 @@ import {
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useChangelogSelector } from "./changelogSelector";
 import { locConstants, LocConstants } from "../../common/locConstants";
+import { getActionIcon } from "../../common/icons/iconUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -204,9 +205,8 @@ export const ChangelogPage = () => {
     const classes = useStyles();
     const { extensionRpc } = useVscodeWebview2();
     const state = useChangelogSelector((s) => s ?? {});
-    const changes = state?.changes ?? [];
-    const resources = state?.resources ?? [];
-    const walkthroughs = state?.walkthroughs ?? [];
+    const primaryContent = state?.primaryContent ?? [];
+    const sidebarContent = state?.sidebarContent ?? [];
 
     const [showBanner, setShowBanner] = useState(true);
 
@@ -241,11 +241,12 @@ export const ChangelogPage = () => {
             return description;
         }
 
-        const parts: (string | JSX.Element)[] = [];
+        const parts: (string | React.JSX.Element)[] = [];
         let lastIndex = 0;
         const regex = /\{code-snippet-(\d+)\}/g;
         let match;
 
+        // eslint-disable-next-line no-restricted-syntax
         while ((match = regex.exec(description)) !== null) {
             // Add text before the match
             if (match.index > lastIndex) {
@@ -341,7 +342,7 @@ export const ChangelogPage = () => {
                 <Title3 as="h2">{sectionTitles.highlightsSectionTitle}</Title3>
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
-                        {changes.map((change, index) => {
+                        {primaryContent.map((change, index) => {
                             const changeIcon = change.icon
                                 ? changelogIcons[change.icon]
                                 : undefined;
@@ -405,50 +406,36 @@ export const ChangelogPage = () => {
                     </div>
 
                     <div className={classes.sidebarStack}>
-                        <Card className={classes.sidebarCard}>
-                            <h3 className={classes.changeTitle}>
-                                {sectionTitles.resourcesSectionTitle}
-                            </h3>
-
-                            <div className={classes.list}>
-                                {resources.map((resource, index) => (
-                                    <Link
-                                        key={`${resource.label}-${index}`}
-                                        className={classes.listItem}
-                                        onClick={() => openLink(resource.url)}>
-                                        <Open16Regular />
-                                        {resource.label}
-                                    </Link>
-                                ))}
-                            </div>
-                        </Card>
-
-                        <Card className={classes.sidebarCard}>
-                            <h3 className={classes.changeTitle}>
-                                {sectionTitles.gettingStartedSectionTitle}
-                            </h3>
-                            <Text>{locConstants.changelog.gettingStartedDescription}</Text>
-                            <div className={classes.list}>
-                                {walkthroughs.map((walkthrough, index) => (
-                                    <Link
-                                        key={`${walkthrough.label}-${index}`}
-                                        className={classes.listItem}
-                                        onClick={async () => {
-                                            if (walkthrough.url) {
-                                                await openLink(walkthrough.url);
-                                            } else if (walkthrough.walkthroughId) {
-                                                await openWalkthrough(
-                                                    walkthrough.walkthroughId,
-                                                    walkthrough.stepId,
-                                                );
-                                            }
-                                        }}>
-                                        <Open16Regular />
-                                        {walkthrough.label}
-                                    </Link>
-                                ))}
-                            </div>
-                        </Card>
+                        {sidebarContent.map((entry) => (
+                            <Card className={classes.sidebarCard}>
+                                <h3 className={classes.changeTitle}>{entry.title}</h3>
+                                <Text>{entry.description}</Text>
+                                <div className={classes.list}>
+                                    {entry.actions?.map((action, index) => (
+                                        <>
+                                            {action.type === "link" && (
+                                                <Link
+                                                    key={`${action.label}-${index}`}
+                                                    className={classes.listItem}
+                                                    onClick={() => openLink(action.value)}>
+                                                    {getActionIcon(action.icon)}
+                                                    {action.label}
+                                                </Link>
+                                            )}
+                                            {action.type === "walkthrough" && (
+                                                <Link
+                                                    key={`${action.label}-${index}`}
+                                                    className={classes.listItem}
+                                                    onClick={() => openWalkthrough(action.value)}>
+                                                    {getActionIcon(action.icon)}
+                                                    {action.label}
+                                                </Link>
+                                            )}
+                                        </>
+                                    ))}
+                                </div>
+                            </Card>
+                        ))}
                     </div>
                 </div>
                 <div className={classes.footer}>

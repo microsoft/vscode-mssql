@@ -9,7 +9,7 @@ import * as constants from "../constants/constants";
 import * as locConstants from "../constants/locConstants";
 
 export const changelogConfig: ChangelogWebviewState = {
-    changes: [
+    primaryContent: [
         {
             title: "Azure Data Studio Connection Migration Toolkit",
             description:
@@ -108,36 +108,80 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
     ],
-    resources: [
+    sidebarContent: [
         {
-            label: locConstants.Changelog.watchDemosOnYoutube,
-            url: "https://aka.ms/vscode-mssql-demos",
+            title: "Resources",
+            description: "Explore tutorials, docs, and what's coming next.",
+            actions: [
+                {
+                    type: "link",
+                    label: locConstants.Changelog.watchDemosOnYoutube,
+                    value: "https://aka.ms/vscode-mssql-demos",
+                    icon: "VideoClipFilled",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.viewRoadmap,
+                    value: "https://aka.ms/vscode-mssql-roadmap",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.readTheDocumentation,
+                    value: "https://aka.ms/vscode-mssql-docs",
+                    icon: "BookOpenFilled",
+                },
+            ],
         },
         {
-            label: locConstants.Changelog.viewRoadmap,
-            url: "https://aka.ms/vscode-mssql-roadmap",
+            title: "Feedback",
+            description: "Help us improve by sharing your thoughts.",
+            actions: [
+                {
+                    type: "link",
+                    label: "Open a new bug",
+                    value: "https://aka.ms/vscode-mssql-bug",
+                    icon: "BugRegular",
+                },
+                {
+                    type: "link",
+                    label: "Request a new feature",
+                    value: "https://aka.ms/vscode-mssql-feature-request",
+                    icon: "LightbulbRegular",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.joinTheDiscussions,
+                    value: "https://aka.ms/vscode-mssql-discussions",
+                    icon: "ChatRegular",
+                },
+                {
+                    type: "link",
+                    label: "GitHub Copilot survey",
+                    value: "https://aka.ms/vscode-mssql-copilot-survey",
+                    icon: "ClipboardBulletListRegular",
+                },
+            ],
         },
         {
-            label: locConstants.Changelog.readTheDocumentation,
-            url: "https://aka.ms/vscode-mssql-docs",
-        },
-        {
-            label: locConstants.Changelog.joinTheDiscussions,
-            url: "https://aka.ms/vscode-mssql-discussions",
-        },
-    ],
-    walkthroughs: [
-        {
-            label: "MSSQL - VS Code walkthrough",
-            walkthroughId: `${constants.extensionId}#mssql.getStarted`,
-        },
-        {
-            label: "GitHub Copilot - VS Code walkthrough",
-            walkthroughId: `GitHub.copilot-chat#copilotWelcome`,
-        },
-        {
-            label: locConstants.Changelog.customizeKeyboardShortcuts,
-            url: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
+            title: "Getting Started",
+            description: "New to the MSSQL extension? Check out our quick-start guide.",
+            actions: [
+                {
+                    type: "walkthrough",
+                    label: "MSSQL - VS Code walkthrough",
+                    value: `${constants.extensionId}#mssql.getStarted`,
+                },
+                {
+                    type: "walkthrough",
+                    label: "GitHub Copilot - VS Code walkthrough",
+                    value: `GitHub.copilot-chat#copilotWelcome`,
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.customizeKeyboardShortcuts,
+                    value: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
+                },
+            ],
         },
     ],
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",

@@ -2482,7 +2482,7 @@ export class Changelog {
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
-    public static readTheDocumentation = l10n.t("Read the documentation");
+    public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
     public static joinTheDiscussions = l10n.t("Join the discussions");
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
 }
