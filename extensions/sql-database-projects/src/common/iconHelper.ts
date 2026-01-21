@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IconPath } from 'vscode';
 import type * as azdataType from 'azdata';
+
+type ThemedUriIconPath = { light: vscode.Uri; dark: vscode.Uri };
+type CommonIconPath = string | vscode.Uri | ThemedUriIconPath;
 
 // export interface IconPath {
 // 	dark: string;
@@ -14,36 +16,36 @@ import type * as azdataType from 'azdata';
 
 export class IconPathHelper {
 	private static extensionContext: vscode.ExtensionContext;
-	public static databaseProject: IconPath;
-	public static colorfulSqlProject: IconPath;
-	public static sqlEdgeProject: IconPath;
-	public static azureSqlDbProject: IconPath;
+	public static databaseProject: CommonIconPath;
+	public static colorfulSqlProject: CommonIconPath;
+	public static sqlEdgeProject: CommonIconPath;
+	public static azureSqlDbProject: CommonIconPath;
 
-	public static dataSourceGroup: IconPath;
-	public static dataSourceSql: IconPath;
+	public static dataSourceGroup: CommonIconPath;
+	public static dataSourceSql: CommonIconPath;
 
-	public static referenceGroup: IconPath;
-	public static referenceDatabase: IconPath;
+	public static referenceGroup: CommonIconPath;
+	public static referenceDatabase: CommonIconPath;
 
-	public static sqlCmdVariablesGroup: IconPath;
-	public static sqlCmdVariable: IconPath;
+	public static sqlCmdVariablesGroup: CommonIconPath;
+	public static sqlCmdVariable: CommonIconPath;
 
-	public static refresh: IconPath;
-	public static folder_blue: IconPath;
-	public static selectConnection: IconPath;
-	public static connect: IconPath;
+	public static refresh: CommonIconPath;
+	public static folder_blue: CommonIconPath;
+	public static selectConnection: CommonIconPath;
+	public static connect: CommonIconPath;
 
-	public static folder: IconPath;
+	public static folder: CommonIconPath;
 
-	public static add: IconPath;
-	public static build: IconPath;
-	public static publish: IconPath;
-	public static schemaCompare: IconPath;
-	public static targetPlatform: IconPath;
+	public static add: CommonIconPath;
+	public static build: CommonIconPath;
+	public static publish: CommonIconPath;
+	public static schemaCompare: CommonIconPath;
+	public static targetPlatform: CommonIconPath;
 
-	public static success: IconPath;
-	public static error: IconPath;
-	public static inProgress: IconPath;
+	public static success: CommonIconPath;
+	public static error: CommonIconPath;
+	public static inProgress: CommonIconPath;
 
 	public static dashboardSqlProj: azdataType.ThemedIconPath;
 

@@ -280,10 +280,10 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 await this.showColumnMenu(filterButtonEl);
                 this._grid.onHeaderClick.notify();
             });
+            this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
         }
         $filterButton.appendTo(args.node);
 
-        this._columnFilterButtonMapping.set(column.id!, filterButtonEl);
 
         let existingSort = this._columnSortStateMapping.get(column.id!);
         if (existingSort === undefined) {

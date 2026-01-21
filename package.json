@@ -3,12 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "description": "Monorepo for SQL Server extensions for Visual Studio Code",
+  "workspaces": [
+    "extensions/*"
+  ],
+  "resolutions": {
+    "@types/react": "18.3.27"
+  },
   "scripts": {
+    "build": "yarn workspaces run build",
+    "watch:mssql": "yarn workspace mssql watch",
+    "watch:data-workspace": "yarn workspace data-workspace-vscode watch",
+    "watch:sql-database-projects": "yarn workspace sql-database-projects-vscode watch",
+    "watch": "run-p -l watch:mssql watch:data-workspace watch:sql-database-projects",
     "localization": "node scripts/localization-extract.js",
     "prepare": "husky"
   },
   "devDependencies": {
     "@vscode/l10n-dev": "^0.0.35",
+    "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "husky": "^9.0.11"
   }
