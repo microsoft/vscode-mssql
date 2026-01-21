@@ -121,6 +121,16 @@ export const mockAzureResources = {
         location: "eastus2",
         kind: "StorageV2",
     } as GenericResourceExpanded,
+    storageAccount: {
+        name: "testStorageAccount",
+        location: "eastus2",
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorageAccount`,
+        type: "Microsoft.Storage/storageAccounts",
+    },
+    blobContainer: {
+        name: "testContainer",
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorageAccount/blobServices/default/containers/testContainer`,
+    },
 };
 
 export const mockSqlDbList = {
