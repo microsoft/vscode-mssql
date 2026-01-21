@@ -435,15 +435,7 @@ export function setLocalContainersFormComponents(
         acceptEula: createFormItem({
             type: FormItemType.Checkbox,
             propertyName: "acceptEula",
-            label: `<span>
-						${Common.accept}
-						<a
-							href="https://go.microsoft.com/fwlink/?LinkId=746388"
-							target="_blank"
-						>
-							${LocalContainers.termsAndConditions}
-						</a>
-					</span>`,
+            label: `<span>${Common.accept} <a href="https://go.microsoft.com/fwlink/?LinkId=746388" target="_blank">${LocalContainers.termsAndConditions}</a></span>`,
             required: true,
             tooltip: LocalContainers.acceptSqlServerEulaTooltip,
             componentWidth: "600px",
