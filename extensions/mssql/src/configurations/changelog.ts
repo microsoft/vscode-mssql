@@ -11,9 +11,9 @@ import * as locConstants from "../constants/locConstants";
 export const changelogConfig: ChangelogWebviewState = {
     changes: [
         {
-            title: "Migrate Connections from Azure Data Studio",
+            title: "Azure Data Studio Connection Migration Toolkit",
             description:
-                "Migrate your connections and connection groups from Azure Data Studio to MSSQL.",
+                "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
             icon: "azureDataStudio.svg",
             actions: [
                 {
@@ -21,13 +21,40 @@ export const changelogConfig: ChangelogWebviewState = {
                     type: "command",
                     value: constants.cmdOpenAzureDataStudioMigration,
                 },
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-ads-migration-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-january2026",
+                },
+            ],
+        },
+        {
+            title: "Backup Database",
+            description:
+                "Back up databases using a built-in, guided experience in the MSSQL extension. Quickly protect data databases as part of your normal workflow.",
+            codeSnippets: ["@mssql"],
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-backup-restore-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-january2026",
+                },
             ],
         },
         {
             title: "Edit Data (Preview)",
             description:
                 "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-            codeSnippets: ["@mssql"],
             actions: [
                 {
                     label: locConstants.Changelog.watchDemo,
@@ -37,81 +64,46 @@ export const changelogConfig: ChangelogWebviewState = {
                 {
                     label: locConstants.Changelog.learnMore,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-edit-data-blog",
+                    value: "https://aka.ms/vscode-mssql-edit-data",
                 },
             ],
         },
         {
-            title: "Fabric Browse / Provisioning (Preview)",
+            title: "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
             description:
-                "Browse Fabric workspaces and provision SQL databases directly from VS Code with a guided, developer-friendly flow.",
+                "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
             actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-fabric-db-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-fabric-blog",
-                },
-            ],
-        },
-        {
-            title: "Schema Designer (GA)",
-            description:
-                "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
-            actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-schema-designer-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-schema-designer",
-                },
-            ],
-        },
-        {
-            title: "Local SQL Server Container (GA)",
-            description:
-                "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
-            actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-container-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-containers",
-                },
-            ],
-        },
-        {
-            title: "GitHub Copilot integration (GA)",
-            description:
-                "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
-            actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-copilot-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-november2025",
-                },
                 {
                     label: locConstants.Changelog.tryIt,
                     type: "command",
-                    value: constants.cmdOpenGithubChat,
-                    args: [`@${constants.mssqlChatParticipantName} Hello!`],
+                    value: constants.cmdDacpacDialog,
+                },
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-dacpac-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-dacpac-docs",
+                },
+            ],
+        },
+        {
+            title: "SQL Database Projects – Publish Dialog (Preview)",
+            description:
+                "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
+            actions: [
+                {
+                    label: locConstants.Changelog.watchDemo,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-sqlproj-publish-demo",
+                },
+                {
+                    label: locConstants.Changelog.learnMore,
+                    type: "link",
+                    value: "https://aka.ms/vscode-mssql-sqlproj-publish-docs",
                 },
             ],
         },
