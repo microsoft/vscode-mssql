@@ -1,5 +1,4 @@
 {
-    // Root workspace settings so linting/formatting work when opening the repo at the root.
     "eslint.useFlatConfig": true,
     "eslint.validate": [
         "javascript",
@@ -15,9 +14,6 @@
     ],
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    // Let Prettier auto-discover the nearest config file (e.g. extensions/mssql/prettier.config.mjs)
-    // so per-extension configs apply when formatting files under that extension.
-    // Use Prettier across common file types.
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
@@ -45,21 +41,14 @@
     "[yaml]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    // Prettier options are defined in prettier.config.mjs.
-    // Don’t index built artifacts by default.
     "search.exclude": {
         "**/out": true,
         "**/dist": true,
         "**/coverage": true
     },
-    // Exclude node_modules from file watching to prevent duplicate test discovery.
-    // Yarn workspaces create symlinks in node_modules for workspace packages,
-    // which causes test runners to find the same tests twice.
     "files.watcherExclude": {
         "**/node_modules/**": true
     },
-    // Exclude node_modules from file discovery (findFiles) to prevent Extension Test Runner
-    // from finding duplicate .vscode-test.mjs files via Yarn workspace symlinks.
     "files.exclude": {
         "**/node_modules": true
     }

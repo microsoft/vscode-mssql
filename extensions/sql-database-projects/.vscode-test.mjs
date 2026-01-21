@@ -13,7 +13,6 @@ export default testCli.defineConfig([
         mocha: {
             ui: "tdd",
             timeout: 60_000,
-            // Preload module shims to mock azdata, dataworkspace, mssql modules
             require: [path.resolve(__dirname, "out/test/stubs/moduleShims.js")],
         },
     },

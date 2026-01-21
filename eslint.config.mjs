@@ -1,36 +1,33 @@
-// Root ESLint config for the monorepo.
-// Extension packages have their own ESLint configs; VS Code is configured to treat them as separate working directories.
-
 export default [
-  {
-    ignores: [
-      "**/node_modules/**",
-      "**/out/**",
-      "**/dist/**",
-      "**/coverage/**",
-      "**/.vscode-test/**",
-      "**/.yarn/**",
-    ],
-  },
-  {
-    files: ["scripts/**/*.js", "scripts/**/*.mjs", "*.js", "*.mjs"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
+    {
+        ignores: [
+            "**/node_modules/**",
+            "**/out/**",
+            "**/dist/**",
+            "**/coverage/**",
+            "**/.vscode-test/**",
+            "**/.yarn/**",
+        ],
     },
-    rules: {
-      eqeqeq: "warn",
-      "no-debugger": "warn",
-      "no-duplicate-imports": "error",
-      "no-eval": "warn",
-      "no-throw-literal": "warn",
+    {
+        files: ["scripts/**/*.js", "scripts/**/*.mjs", "*.js", "*.mjs"],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "module",
+        },
+        rules: {
+            eqeqeq: "warn",
+            "no-debugger": "warn",
+            "no-duplicate-imports": "error",
+            "no-eval": "warn",
+            "no-throw-literal": "warn",
+        },
     },
-  },
-  {
-    files: ["scripts/**/*.cjs"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "script",
+    {
+        files: ["scripts/**/*.cjs"],
+        languageOptions: {
+            ecmaVersion: "latest",
+            sourceType: "script",
+        },
     },
-  },
 ];
