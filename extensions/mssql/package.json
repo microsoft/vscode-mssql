@@ -719,6 +719,11 @@
                     "group": "inline@1"
                 },
                 {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
+                    "group": "inline@1"
+                },
+                {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "inline@1"
@@ -1045,7 +1050,8 @@
             {
                 "command": "mssql.createDatabase",
                 "title": "%mssql.createDatabase%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(add)"
             },
             {
                 "command": "mssql.dropDatabase",

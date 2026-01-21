@@ -8,7 +8,9 @@ import { ReactNode } from "react";
 
 const useStyles = makeStyles({
     page: {
-        minHeight: "100vh",
+        height: "100vh",
+        overflowY: "auto",
+        overflowX: "hidden",
         display: "flex",
         flexDirection: "column",
         backgroundColor: "var(--vscode-editor-background)",
