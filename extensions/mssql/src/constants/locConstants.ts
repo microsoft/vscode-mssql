@@ -31,6 +31,11 @@ export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
+export let newUserDialogTitle = l10n.t("New User");
+export let userPropertiesDialogTitle = l10n.t("User Properties");
+export let renameUserDialogTitle = l10n.t("Rename User");
+export let renameUserInputPlaceholder = l10n.t("Enter the new user name");
+export let userNameRequired = l10n.t("User name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -39,6 +44,18 @@ export let msgSelectDatabaseNodeToDrop = l10n.t(
 );
 export let msgSelectDatabaseNodeToRename = l10n.t(
     "Please select a database node in Object Explorer to rename.",
+);
+export let msgSelectUsersFolderToCreateUser = l10n.t(
+    "Please select the Users folder in Object Explorer to create a user.",
+);
+export let msgSelectUserNodeToEdit = l10n.t(
+    "Please select a user node in Object Explorer to open properties.",
+);
+export let msgSelectUserNodeToDrop = l10n.t(
+    "Please select a user node in Object Explorer to drop.",
+);
+export let msgSelectUserNodeToRename = l10n.t(
+    "Please select a user node in Object Explorer to rename.",
 );
 export function createDatabaseError(databaseName: string, errorMessage: string) {
     return l10n.t({
@@ -67,6 +84,34 @@ export function renameDatabaseError(
             "{1} is the new database name",
             "{2} is the error message",
         ],
+    });
+}
+
+export function renameUserError(userName: string, newUserName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to rename user '{0}' to '{1}'. {2}",
+        args: [userName, newUserName, errorMessage],
+        comment: [
+            "{0} is the current user name",
+            "{1} is the new user name",
+            "{2} is the error message",
+        ],
+    });
+}
+
+export function dropUserError(userName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to drop user '{0}'. {1}",
+        args: [userName, errorMessage],
+        comment: ["{0} is the user name", "{1} is the error message"],
+    });
+}
+
+export function dropUserAction(userName: string) {
+    return l10n.t({
+        message: "drop user '{0}'",
+        args: [userName],
+        comment: ["{0} is the user name"],
     });
 }
 
@@ -109,6 +154,9 @@ export function msgCancelQueryFailed(error: string) {
 export let msgCancelQueryNotRunning = l10n.t("Cannot cancel query as no query is running.");
 export let msgChooseDatabaseNotConnected = l10n.t(
     "No connection was found. Please connect to a server first.",
+);
+export let msgObjectManagementSearchNotSupported = l10n.t(
+    "Search is not supported for this object management dialog.",
 );
 export let msgChooseDatabasePlaceholder = l10n.t("Choose a database from the list below");
 export function msgConnectionError(errorNumber: number, errorMessage: string) {

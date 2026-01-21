@@ -29,6 +29,7 @@ const config = {
         changePassword: "src/reactviews/pages/ChangePassword/index.tsx",
         createDatabaseDialog: "src/reactviews/pages/ObjectManagement/createDatabaseIndex.tsx",
         dropDatabaseDialog: "src/reactviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
+        userDialog: "src/reactviews/pages/ObjectManagement/userIndex.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",

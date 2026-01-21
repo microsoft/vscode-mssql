@@ -6,6 +6,7 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import {
     DropDatabaseRequest,
+    DropObjectRequest,
     InitializeViewRequest,
     InitializeViewRequestParams,
     ObjectManagementSqlObject,
@@ -13,6 +14,8 @@ import {
     RenameObjectRequest,
     SaveObjectRequest,
     ScriptObjectRequest,
+    SearchObjectRequest,
+    SearchResultItem,
     DisposeViewRequest,
 } from "../models/contracts/objectManagement";
 
@@ -66,6 +69,20 @@ export class ObjectManagementService {
         });
     }
 
+    public async drop(
+        connectionUri: string,
+        objectType: string,
+        objectUrn: string,
+        throwIfNotExist?: boolean,
+    ): Promise<void> {
+        return this._client.sendRequest(DropObjectRequest.type, {
+            connectionUri,
+            objectType,
+            objectUrn,
+            throwIfNotExist,
+        });
+    }
+
     public async dropDatabase(
         connectionUri: string,
         database: string,
@@ -79,6 +96,22 @@ export class ObjectManagementService {
             dropConnections,
             deleteBackupHistory,
             generateScript,
+        });
+    }
+
+    public async search(
+        contextId: string,
+        objectTypes: string[],
+        searchText?: string,
+        schema?: string,
+        database?: string,
+    ): Promise<SearchResultItem[]> {
+        return this._client.sendRequest(SearchObjectRequest.type, {
+            contextId,
+            objectTypes,
+            searchText,
+            schema,
+            database,
         });
     }
 }

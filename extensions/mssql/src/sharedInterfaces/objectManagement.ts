@@ -8,6 +8,65 @@ import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 export enum ObjectManagementDialogType {
     CreateDatabase = "createDatabase",
     DropDatabase = "dropDatabase",
+    User = "user",
+}
+
+export type UserType =
+    | "LoginMapped"
+    | "WindowsUser"
+    | "SqlAuthentication"
+    | "AADAuthentication"
+    | "NoLoginAccess";
+
+export interface PermissionMetadata {
+    name: string;
+    displayName?: string;
+}
+
+export interface SecurableTypeMetadata {
+    name: string;
+    displayName?: string;
+    permissions?: PermissionMetadata[];
+}
+
+export interface SecurablePermissionItem {
+    permission: string;
+    grantor?: string;
+    grant?: boolean;
+    withGrant?: boolean;
+}
+
+export interface SecurablePermissions {
+    name: string;
+    schema?: string;
+    type: string;
+    permissions?: SecurablePermissionItem[];
+    effectivePermissions?: string[];
+}
+
+export interface UserInfo {
+    name: string;
+    type?: UserType;
+    loginName?: string;
+    password?: string;
+    defaultSchema?: string;
+    ownedSchemas?: string[];
+    databaseRoles?: string[];
+    defaultLanguage?: string;
+    securablePermissions?: SecurablePermissions[];
+}
+
+export interface UserViewModel {
+    serverName: string;
+    databaseName: string;
+    isNewObject: boolean;
+    user: UserInfo;
+    userTypes: UserType[];
+    schemas: string[];
+    logins: string[];
+    databaseRoles: string[];
+    languages: string[];
+    supportedSecurableTypes: SecurableTypeMetadata[];
 }
 
 export interface CreateDatabaseViewModel {
@@ -48,6 +107,8 @@ export interface DropDatabaseParams {
     deleteBackupHistory: boolean;
 }
 
+export type UserParams = UserInfo;
+
 export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.CreateDatabase;
@@ -56,6 +117,10 @@ export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.DropDatabase;
           model?: DropDatabaseViewModel;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.User;
+          model?: UserViewModel;
       };
 
 export interface ObjectManagementWebviewState {
@@ -72,7 +137,35 @@ export type ObjectManagementActionParams =
     | {
           dialogType: ObjectManagementDialogType.DropDatabase;
           params: DropDatabaseParams;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.User;
+          params: UserParams;
       };
+
+export interface ObjectManagementSearchParams {
+    objectTypes: string[];
+    searchText?: string;
+    schema?: string;
+    database?: string;
+}
+
+export interface ObjectManagementSearchActionParams {
+    dialogType: ObjectManagementDialogType;
+    params: ObjectManagementSearchParams;
+}
+
+export interface ObjectManagementSearchResultItem {
+    name: string;
+    schema?: string;
+    type?: string;
+}
+
+export interface ObjectManagementSearchResult {
+    success: boolean;
+    errorMessage?: string;
+    results?: ObjectManagementSearchResultItem[];
+}
 
 export interface ObjectManagementActionResult {
     success: boolean;
@@ -93,6 +186,14 @@ export namespace ObjectManagementScriptRequest {
         ObjectManagementActionResult,
         void
     >("objectManagementWebview/script");
+}
+
+export namespace ObjectManagementSearchRequest {
+    export const type = new RequestType<
+        ObjectManagementSearchActionParams,
+        ObjectManagementSearchResult,
+        void
+    >("objectManagementWebview/search");
 }
 
 export namespace ObjectManagementCancelNotification {

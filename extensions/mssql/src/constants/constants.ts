@@ -74,6 +74,10 @@ export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdCreateDatabase = "mssql.createDatabase";
 export const cmdDropDatabase = "mssql.dropDatabase";
 export const cmdRenameDatabase = "mssql.renameDatabase";
+export const cmdNewUser = "mssql.newUser";
+export const cmdUserProperties = "mssql.userProperties";
+export const cmdRenameUser = "mssql.renameUser";
+export const cmdDropUser = "mssql.dropUser";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -182,10 +186,15 @@ export const createDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
 export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
+export const createUserHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/create-user-transact-sql";
+export const alterUserHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/alter-user-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const databaseString = "Database";
+export const userString = "User";
 export const localizedTexts = "localizedTexts";
 export const ipAddressRegex =
     /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;

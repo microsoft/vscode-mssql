@@ -13,7 +13,9 @@ import {
     ScriptObjectRequest,
     DisposeViewRequest,
     RenameObjectRequest,
+    DropObjectRequest,
     DropDatabaseRequest,
+    SearchObjectRequest,
     ObjectManagementSqlObject,
 } from "../../src/models/contracts/objectManagement";
 
@@ -148,6 +150,52 @@ suite("ObjectManagementService Tests", () => {
             dropConnections: true,
             deleteBackupHistory: false,
             generateScript: true,
+        });
+    });
+
+    test("drop should send correct request", async () => {
+        sqlToolsClientStub.sendRequest.resolves();
+
+        await objectManagementService.drop(
+            "connection-uri",
+            "User",
+            "Server/Database[@Name='db']/User[@Name='test-user']",
+            true,
+        );
+
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+        const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
+        expect(type).to.equal(DropObjectRequest.type);
+        expect(params).to.deep.equal({
+            connectionUri: "connection-uri",
+            objectType: "User",
+            objectUrn: "Server/Database[@Name='db']/User[@Name='test-user']",
+            throwIfNotExist: true,
+        });
+    });
+
+    test("search should send correct request", async () => {
+        const expectedResponse = [{ name: "dbo.Table1", schema: "dbo", type: "Table" }];
+        sqlToolsClientStub.sendRequest.resolves(expectedResponse);
+
+        const result = await objectManagementService.search(
+            "context-id",
+            ["Table", "View"],
+            "Table1",
+            "dbo",
+            "test-db",
+        );
+
+        expect(result).to.deep.equal(expectedResponse);
+        expect(sqlToolsClientStub.sendRequest.calledOnce).to.be.true;
+        const [type, params] = sqlToolsClientStub.sendRequest.firstCall.args;
+        expect(type).to.equal(SearchObjectRequest.type);
+        expect(params).to.deep.equal({
+            contextId: "context-id",
+            objectTypes: ["Table", "View"],
+            searchText: "Table1",
+            schema: "dbo",
+            database: "test-db",
         });
     });
 });

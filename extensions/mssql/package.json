@@ -558,6 +558,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@2"
                 },
                 {
+                    "command": "mssql.newUser",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Users)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@3"
+                },
+                {
                     "command": "mssql.editConnection",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@2"
@@ -591,6 +596,21 @@
                     "command": "mssql.dropDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@4"
+                },
+                {
+                    "command": "mssql.userProperties",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(User)\\b/",
+                    "group": "2_MSSQL_userActions@1"
+                },
+                {
+                    "command": "mssql.renameUser",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(User)\\b/",
+                    "group": "2_MSSQL_userActions@2"
+                },
+                {
+                    "command": "mssql.dropUser",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(User)\\b/",
+                    "group": "2_MSSQL_userActions@3"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
@@ -1055,6 +1075,26 @@
             {
                 "command": "mssql.renameDatabase",
                 "title": "%mssql.renameDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.newUser",
+                "title": "%mssql.newUser%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.userProperties",
+                "title": "%mssql.userProperties%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.renameUser",
+                "title": "%mssql.renameUser%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.dropUser",
+                "title": "%mssql.dropUser%",
                 "category": "MS SQL"
             },
             {

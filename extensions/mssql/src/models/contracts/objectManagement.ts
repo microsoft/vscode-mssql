@@ -78,6 +78,19 @@ export namespace RenameObjectRequest {
     );
 }
 
+export interface DropObjectRequestParams {
+    connectionUri: string;
+    objectUrn: string;
+    objectType: string;
+    throwIfNotExist?: boolean;
+}
+
+export namespace DropObjectRequest {
+    export const type = new RequestType<DropObjectRequestParams, void, void, void>(
+        "objectManagement/drop",
+    );
+}
+
 export interface DropDatabaseRequestParams {
     connectionUri: string;
     database: string;
@@ -89,5 +102,25 @@ export interface DropDatabaseRequestParams {
 export namespace DropDatabaseRequest {
     export const type = new RequestType<DropDatabaseRequestParams, string, void, void>(
         "objectManagement/dropDatabase",
+    );
+}
+
+export interface SearchObjectRequestParams {
+    contextId: string;
+    objectTypes: string[];
+    searchText?: string;
+    schema?: string;
+    database?: string;
+}
+
+export interface SearchResultItem {
+    name: string;
+    schema?: string;
+    type?: string;
+}
+
+export namespace SearchObjectRequest {
+    export const type = new RequestType<SearchObjectRequestParams, SearchResultItem[], void, void>(
+        "objectManagement/search",
     );
 }

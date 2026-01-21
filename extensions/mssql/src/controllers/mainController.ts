@@ -51,6 +51,7 @@ import { ConnectionDialogWebviewController } from "../connectionconfig/connectio
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
 import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
 import { DropDatabaseWebviewController } from "./dropDatabaseWebviewController";
+import { UserWebviewController } from "./userWebviewController";
 import {
     DacpacDialogWebviewState,
     DacPacDialogOperationType,
@@ -1410,6 +1411,38 @@ export default class MainController implements vscode.Disposable {
             return undefined;
         };
 
+        const findDatabaseNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            let current = node;
+            while (current) {
+                if (current.nodeType === Constants.databaseString) {
+                    return current;
+                }
+                current = current.parentNode;
+            }
+            return undefined;
+        };
+
+        const findUsersFolderNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            let current = node;
+            while (current) {
+                if (
+                    current.context.type === Constants.folderLabel &&
+                    current.context.subType === "Users"
+                ) {
+                    return current;
+                }
+                current = current.parentNode;
+            }
+            return undefined;
+        };
+
+        const getNodeName = (node: TreeNodeInfo): string => {
+            if (node.metadata?.name) {
+                return node.metadata.name;
+            }
+            return typeof node.label === "string" ? node.label : node.label?.label ?? "";
+        };
+
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdCreateDatabase,
@@ -1576,6 +1609,261 @@ export default class MainController implements vscode.Disposable {
                                 newName,
                                 getErrorMessage(error),
                             ),
+                        );
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdNewUser,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    const usersFolderNode =
+                        targetNode &&
+                        targetNode.context.type === Constants.folderLabel &&
+                        targetNode.context.subType === "Users"
+                            ? targetNode
+                            : findUsersFolderNode(targetNode);
+                    const databaseNode = usersFolderNode?.parentNode ?? findDatabaseNode(targetNode);
+
+                    if (!usersFolderNode || !databaseNode) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectUsersFolderToCreateUser,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = databaseNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(databaseNode);
+                    const parentUrn =
+                        databaseNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
+
+                    const controller = new UserWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        undefined,
+                        true,
+                        LocalizedConstants.newUserDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const createdUser = await controller.dialogResult.promise;
+                    if (createdUser) {
+                        await refreshNodeChildren(usersFolderNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdUserProperties,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.userString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectUserNodeToEdit,
+                        );
+                        return;
+                    }
+
+                    const usersFolderNode = findUsersFolderNode(targetNode);
+                    const databaseNode = findDatabaseNode(targetNode);
+                    if (!usersFolderNode || !databaseNode) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectUserNodeToEdit,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const userName = getNodeName(targetNode);
+                    const objectUrn =
+                        targetNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']/User[@Name='${escapeSingleQuotes(
+                            userName,
+                        )}']`;
+                    const parentUrn =
+                        databaseNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
+
+                    const controller = new UserWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        objectUrn,
+                        false,
+                        LocalizedConstants.userPropertiesDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const updatedUser = await controller.dialogResult.promise;
+                    if (updatedUser) {
+                        await refreshNodeChildren(usersFolderNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRenameUser,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.userString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectUserNodeToRename,
+                        );
+                        return;
+                    }
+
+                    const userName = getNodeName(targetNode);
+                    const newName = await vscode.window.showInputBox({
+                        title: LocalizedConstants.renameUserDialogTitle,
+                        value: userName,
+                        placeHolder: LocalizedConstants.renameUserInputPlaceholder,
+                        validateInput: (value: string): string | undefined => {
+                            if (!value.trim()) {
+                                return LocalizedConstants.userNameRequired;
+                            }
+                            return undefined;
+                        },
+                    });
+
+                    if (!newName || newName === userName) {
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const objectUrn =
+                        targetNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']/User[@Name='${escapeSingleQuotes(
+                            userName,
+                        )}']`;
+
+                    try {
+                        await this.objectManagementService.rename(
+                            connectionUri,
+                            Constants.userString,
+                            objectUrn,
+                            newName,
+                        );
+                        const usersFolderNode = findUsersFolderNode(targetNode);
+                        if (usersFolderNode) {
+                            await refreshNodeChildren(usersFolderNode);
+                        }
+                    } catch (error) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.renameUserError(
+                                userName,
+                                newName,
+                                getErrorMessage(error),
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDropUser,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.userString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectUserNodeToDrop,
+                        );
+                        return;
+                    }
+
+                    const userName = getNodeName(targetNode);
+                    const confirmResult = await vscode.window.showWarningMessage(
+                        LocalizedConstants.Common.areYouSureYouWantTo(
+                            LocalizedConstants.dropUserAction(userName),
+                        ),
+                        { modal: true },
+                        LocalizedConstants.Common.delete,
+                    );
+                    if (confirmResult !== LocalizedConstants.Common.delete) {
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const objectUrn =
+                        targetNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']/User[@Name='${escapeSingleQuotes(
+                            userName,
+                        )}']`;
+
+                    try {
+                        await this.objectManagementService.drop(
+                            connectionUri,
+                            Constants.userString,
+                            objectUrn,
+                        );
+                        const usersFolderNode = findUsersFolderNode(targetNode);
+                        if (usersFolderNode) {
+                            await refreshNodeChildren(usersFolderNode);
+                        }
+                    } catch (error) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.dropUserError(userName, getErrorMessage(error)),
                         );
                     }
                 },

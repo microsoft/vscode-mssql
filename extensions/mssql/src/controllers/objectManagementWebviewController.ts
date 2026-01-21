@@ -10,6 +10,10 @@ import {
     ObjectManagementCancelNotification,
     ObjectManagementDialogType,
     ObjectManagementHelpNotification,
+    ObjectManagementSearchActionParams,
+    ObjectManagementSearchRequest,
+    ObjectManagementSearchResult,
+    ObjectManagementSearchParams,
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
     ObjectManagementWebviewState,
@@ -90,6 +94,14 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
         params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult>;
     protected abstract get helpLink(): string;
+    protected async handleSearch(
+        _params: ObjectManagementSearchParams,
+    ): Promise<ObjectManagementSearchResult> {
+        return {
+            success: false,
+            errorMessage: LocConstants.msgObjectManagementSearchNotSupported,
+        };
+    }
 
     protected start(): void {
         void this.initializeDialog();
@@ -148,6 +160,16 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
         return await this.handleScript(payload.params);
     }
 
+    private async handleSearchRequest(
+        payload: ObjectManagementSearchActionParams,
+    ): Promise<ObjectManagementSearchResult> {
+        if (payload.dialogType !== this.dialogType) {
+            return { success: false, errorMessage: LocConstants.msgObjectManagementUnknownDialog };
+        }
+
+        return await this.handleSearch(payload.params);
+    }
+
     private registerRpcHandlers(): void {
         this.onRequest(ObjectManagementSubmitRequest.type, async (params) => {
             return await this.handleSubmitRequest(params);
@@ -155,6 +177,10 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
 
         this.onRequest(ObjectManagementScriptRequest.type, async (params) => {
             return await this.handleScriptRequest(params);
+        });
+
+        this.onRequest(ObjectManagementSearchRequest.type, async (params) => {
+            return await this.handleSearchRequest(params);
         });
 
         this.onNotification(ObjectManagementCancelNotification.type, () => {
