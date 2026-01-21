@@ -17,15 +17,13 @@ export const mockSubscriptions = [
     {
         name: "Ten0Sub1",
         subscriptionId: "00000000-0000-0000-0000-111111111111",
-        credential: "credential-placeholder",
         tenantId: "00000000-0000-0000-0000-000000000000",
-    } as any,
+    },
     {
         name: "Ten1Sub1",
         subscriptionId: "11111111-0000-0000-0000-111111111111",
-        credential: "credential-placeholder",
         tenantId: "11111111-1111-1111-1111-111111111111",
-    } as any,
+    },
 ] as AzureSubscription[];
 
 export const mockAccounts = {
