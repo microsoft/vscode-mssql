@@ -1,4 +1,4 @@
-/*---------------------------------------------------------------------------------------------
+x; /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
@@ -8,8 +8,7 @@ import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
 export class LocalContainersState
-    implements
-        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
+    implements FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;

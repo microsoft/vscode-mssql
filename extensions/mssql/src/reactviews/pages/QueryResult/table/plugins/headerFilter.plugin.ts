@@ -284,7 +284,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
         $filterButton.appendTo(args.node);
 
-
         let existingSort = this._columnSortStateMapping.get(column.id!);
         if (existingSort === undefined) {
             existingSort = column.sorted ?? SortProperties.NONE;
