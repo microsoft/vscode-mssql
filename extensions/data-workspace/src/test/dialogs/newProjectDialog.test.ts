@@ -19,7 +19,7 @@ import { IProjectType } from "dataworkspace";
 // Tests commented out because dialogs use ADS-specific APIs (azdata.window.createModelViewDialog) that don't exist in VS Code
 // These need complete rewrites when dialogs are migrated to VS Code native UI (QuickPick, InputBox, etc.)
 suite("New Project Dialog", function (): void {
-  /*
+    /*
   this.afterEach(() => {
     sinon.restore();
   });

@@ -8,89 +8,89 @@ import * as vscode from "vscode";
 import { getAzdataApi } from "../common/utils";
 
 export interface Deferred<T> {
-  resolve: (result: T | Promise<T>) => void;
-  reject: (reason: any) => void;
+    resolve: (result: T | Promise<T>) => void;
+    reject: (reason: any) => void;
 }
 
 export abstract class DialogBase {
-  protected _toDispose: vscode.Disposable[] = [];
-  public dialogObject: azdataType.window.Dialog;
-  protected initDialogComplete: Deferred<void> | undefined;
-  protected initDialogPromise: Promise<void> = new Promise<void>(
-    (resolve, reject) => (this.initDialogComplete = { resolve, reject }),
-  );
-
-  constructor(
-    dialogTitle: string,
-    dialogName: string,
-    okButtonText: string,
-    dialogWidth: azdataType.window.DialogWidth = 600,
-  ) {
-    this.dialogObject = getAzdataApi()!.window.createModelViewDialog(
-      dialogTitle,
-      dialogName,
-      dialogWidth,
+    protected _toDispose: vscode.Disposable[] = [];
+    public dialogObject: azdataType.window.Dialog;
+    protected initDialogComplete: Deferred<void> | undefined;
+    protected initDialogPromise: Promise<void> = new Promise<void>(
+        (resolve, reject) => (this.initDialogComplete = { resolve, reject }),
     );
-    this.dialogObject.okButton.label = okButtonText;
-    this.register(this.dialogObject.cancelButton.onClick(() => this.onCancelButtonClicked()));
-    this.register(this.dialogObject.okButton.onClick(() => this.onOkButtonClicked()));
-    this.dialogObject.registerCloseValidator(async () => {
-      return this.validate();
-    });
-  }
 
-  protected abstract initialize(view: azdataType.ModelView): Promise<void>;
+    constructor(
+        dialogTitle: string,
+        dialogName: string,
+        okButtonText: string,
+        dialogWidth: azdataType.window.DialogWidth = 600,
+    ) {
+        this.dialogObject = getAzdataApi()!.window.createModelViewDialog(
+            dialogTitle,
+            dialogName,
+            dialogWidth,
+        );
+        this.dialogObject.okButton.label = okButtonText;
+        this.register(this.dialogObject.cancelButton.onClick(() => this.onCancelButtonClicked()));
+        this.register(this.dialogObject.okButton.onClick(() => this.onOkButtonClicked()));
+        this.dialogObject.registerCloseValidator(async () => {
+            return this.validate();
+        });
+    }
 
-  abstract validate(): Promise<boolean>;
+    protected abstract initialize(view: azdataType.ModelView): Promise<void>;
 
-  public async open(): Promise<void> {
-    const tab = getAzdataApi()!.window.createTab("");
-    tab.registerContent(async (view: azdataType.ModelView) => {
-      return this.initialize(view);
-    });
-    this.dialogObject.content = [tab];
-    getAzdataApi()!.window.openDialog(this.dialogObject);
-    await this.initDialogPromise;
-  }
+    abstract validate(): Promise<boolean>;
 
-  protected onCancelButtonClicked(): void {
-    this.dispose();
-  }
+    public async open(): Promise<void> {
+        const tab = getAzdataApi()!.window.createTab("");
+        tab.registerContent(async (view: azdataType.ModelView) => {
+            return this.initialize(view);
+        });
+        this.dialogObject.content = [tab];
+        getAzdataApi()!.window.openDialog(this.dialogObject);
+        await this.initDialogPromise;
+    }
 
-  private async onOkButtonClicked(): Promise<void> {
-    await this.onComplete();
-    this.dispose();
-  }
+    protected onCancelButtonClicked(): void {
+        this.dispose();
+    }
 
-  protected async onComplete(): Promise<void> {}
+    private async onOkButtonClicked(): Promise<void> {
+        await this.onComplete();
+        this.dispose();
+    }
 
-  protected dispose(): void {
-    this._toDispose.forEach((disposable) => disposable.dispose());
-  }
+    protected async onComplete(): Promise<void> {}
 
-  protected register(disposable: vscode.Disposable): void {
-    this._toDispose.push(disposable);
-  }
+    protected dispose(): void {
+        this._toDispose.forEach((disposable) => disposable.dispose());
+    }
 
-  protected showErrorMessage(message: string): void {
-    this.dialogObject.message = {
-      text: message,
-      level: getAzdataApi()!.window.MessageLevel.Error,
-    };
-  }
+    protected register(disposable: vscode.Disposable): void {
+        this._toDispose.push(disposable);
+    }
 
-  public getErrorMessage(): azdataType.window.DialogMessage | undefined {
-    return this.dialogObject.message;
-  }
+    protected showErrorMessage(message: string): void {
+        this.dialogObject.message = {
+            text: message,
+            level: getAzdataApi()!.window.MessageLevel.Error,
+        };
+    }
 
-  protected createHorizontalContainer(
-    view: azdataType.ModelView,
-    items: azdataType.Component[],
-  ): azdataType.FlexContainer {
-    return view.modelBuilder
-      .flexContainer()
-      .withItems(items, { CSSStyles: { "margin-right": "5px", "margin-bottom": "10px" } })
-      .withLayout({ flexFlow: "row", alignItems: "center" })
-      .component();
-  }
+    public getErrorMessage(): azdataType.window.DialogMessage | undefined {
+        return this.dialogObject.message;
+    }
+
+    protected createHorizontalContainer(
+        view: azdataType.ModelView,
+        items: azdataType.Component[],
+    ): azdataType.FlexContainer {
+        return view.modelBuilder
+            .flexContainer()
+            .withItems(items, { CSSStyles: { "margin-right": "5px", "margin-bottom": "10px" } })
+            .withLayout({ flexFlow: "row", alignItems: "center" })
+            .component();
+    }
 }

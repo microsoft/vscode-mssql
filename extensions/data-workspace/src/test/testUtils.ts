@@ -10,11 +10,11 @@ import { promises as fs } from "fs";
 import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
 
 export const testProjectType: IProjectType = {
-  id: "tp1",
-  description: "",
-  projectFileExtension: "testproj",
-  icon: "",
-  displayName: "test project",
+    id: "tp1",
+    description: "",
+    projectFileExtension: "testproj",
+    icon: "",
+    displayName: "test project",
 };
 
 /**
@@ -23,16 +23,16 @@ export const testProjectType: IProjectType = {
  * @param contents
  */
 export async function createProjectFile(fileExt: string, contents?: string): Promise<string> {
-  const filepath = generateUniqueProjectFilePath(fileExt);
-  await fs.writeFile(filepath, contents ?? "");
+    const filepath = generateUniqueProjectFilePath(fileExt);
+    await fs.writeFile(filepath, contents ?? "");
 
-  return filepath;
+    return filepath;
 }
 
 export function generateUniqueProjectFilePath(fileExt: string): string {
-  return path.join(os.tmpdir(), `TestProject_${new Date().getTime()}.${fileExt}`);
+    return path.join(os.tmpdir(), `TestProject_${new Date().getTime()}.${fileExt}`);
 }
 
 export function prettyPrintProviders(): string {
-  return `${ProjectProviderRegistry.providers.map((p) => `[${p.supportedProjectTypes.map((t) => t.id).join(", ")}]`).join("; ")}`;
+    return `${ProjectProviderRegistry.providers.map((p) => `[${p.supportedProjectTypes.map((t) => t.id).join(", ")}]`).join("; ")}`;
 }
