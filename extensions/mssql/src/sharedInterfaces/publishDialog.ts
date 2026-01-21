@@ -8,6 +8,7 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
+import { IConnectionDialogProfile } from "./connectionDialog";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -96,6 +97,9 @@ export interface PublishDialogState
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
+    availableConnections?: { connectionUri: string; profile: IConnectionDialogProfile }[];
+    selectedConnectionUri?: string;
+    isLoadingDatabases?: boolean;
 }
 
 /**
@@ -123,6 +127,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
     updateSqlCmdVariables: { variables: { [key: string]: string } };
     revertSqlCmdVariables: {};
+    connectToServer: { connectionUri: string };
 }
 
 /**
@@ -147,6 +152,7 @@ export interface PublishProjectProvider {
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
     generateSqlPackageCommand(maskMode?: MaskMode): Promise<mssql.SqlPackageCommandResult>;
+    connectToServer(connectionUri: string): void;
 }
 
 /**

@@ -169,17 +169,16 @@ export function renderDropdown(
     );
 }
 
-/*
- * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
- */
+// Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
 export function renderCombobox(
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
     freeform: boolean | undefined,
     onChange: (value: string) => void,
+    onOptionSelect?: (value: string) => void,
+    selectedOptionValue?: string,
 ) {
     if (!component || component.hidden) return undefined;
-    if (component.type !== FormItemType.Dropdown) return undefined;
     if (!freeform && !component.options) return undefined;
 
     return (
@@ -194,19 +193,36 @@ export function renderCombobox(
                 size="small"
                 freeform={freeform || false}
                 value={value || ""}
+                selectedOptions={selectedOptionValue ? [selectedOptionValue] : []}
                 placeholder={component.placeholder ?? ""}
                 onOptionSelect={(_, data) => {
                     if (data.optionValue) {
-                        onChange(data.optionValue);
+                        if (onOptionSelect) {
+                            onOptionSelect(data.optionValue);
+                        } else {
+                            onChange(data.optionValue);
+                        }
                     }
                 }}
                 onChange={(event) => {
-                    // Allow custom text input
+                    // Allow custom text input (for freeform mode or filtering)
                     onChange(event.currentTarget.value);
                 }}>
                 {component.options?.map(
-                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
-                        <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
+                    (
+                        opt: {
+                            value: string;
+                            displayName: string;
+                            color?: string;
+                            disabled?: boolean;
+                        },
+                        i: number,
+                    ) => (
+                        <Option
+                            key={opt.value + i}
+                            value={opt.value}
+                            text={opt.displayName}
+                            disabled={opt.disabled}>
                             {opt.displayName}
                         </Option>
                     ),

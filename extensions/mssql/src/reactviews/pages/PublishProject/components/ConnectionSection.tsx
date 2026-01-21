@@ -4,18 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState, useEffect } from "react";
-import { Button, makeStyles } from "@fluentui/react-components";
-import { PlugDisconnectedRegular } from "@fluentui/react-icons";
+import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import { renderInput, renderCombobox } from "./FormFieldComponents";
-import { PublishTarget } from "../../../../sharedInterfaces/publishDialog";
+import { renderCombobox } from "./FormFieldComponents";
+import { locConstants } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        gap: "16px",
+        gap: "8px",
         maxWidth: "640px",
         width: "100%",
     },
@@ -26,19 +25,73 @@ export const ConnectionSection: React.FC = () => {
     const styles = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
-    const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
-    const publishTarget = usePublishDialogSelector((s) => s.formState.publishTarget);
+    const selectedConnectionUri = usePublishDialogSelector((s) => s.selectedConnectionUri);
+    const isLoadingDatabases = usePublishDialogSelector((s) => s.isLoadingDatabases);
 
-    const [localServer, setLocalServer] = useState(serverValue || "");
+    const [localServerDisplay, setLocalServerDisplay] = useState("");
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
-    useEffect(() => setLocalServer(serverValue || ""), [serverValue]);
+    // Update local server display when selectedConnectionUri changes
+    useEffect(() => {
+        if (selectedConnectionUri && serverComponent?.options) {
+            const opt = serverComponent.options.find((o) => o.value === selectedConnectionUri);
+            setLocalServerDisplay(opt?.displayName || "");
+        } else {
+            setLocalServerDisplay("");
+        }
+    }, [selectedConnectionUri, serverComponent?.options]);
+
     useEffect(() => setLocalDatabase(databaseValue || ""), [databaseValue]);
 
     if (!publishCtx) {
         return undefined;
     }
+
+    // Add "Add Connection" option to the server options
+    const getServerComponentWithNewConnection = () => {
+        if (!serverComponent) return undefined;
+        return {
+            ...serverComponent,
+            options: [
+                {
+                    displayName: locConstants.publishProject.addConnection,
+                    value: locConstants.publishProject.addConnection,
+                },
+                ...(serverComponent.options || []),
+            ],
+        };
+    };
+
+    // Get database component with loading indicator option when loading
+    const getDatabaseComponentWithLoading = () => {
+        if (!databaseComponent) return undefined;
+        if (isLoadingDatabases) {
+            return {
+                ...databaseComponent,
+                options: [
+                    {
+                        displayName: locConstants.publishProject.loadingDatabases,
+                        value: locConstants.publishProject.loadingDatabases,
+                        disabled: true,
+                    },
+                ],
+            };
+        }
+        return databaseComponent;
+    };
+
+    const handleServerSelect = (value: string) => {
+        if (value === locConstants.publishProject.addConnection) {
+            publishCtx.openConnectionDialog();
+        } else {
+            publishCtx.connectToServer(value);
+        }
+    };
+
+    const handleServerInputChange = (value: string) => {
+        setLocalServerDisplay(value);
+    };
 
     const handleDatabaseChange = (value: string) => {
         setLocalDatabase(value);
@@ -53,24 +106,18 @@ export const ConnectionSection: React.FC = () => {
 
     return (
         <div className={styles.root}>
-            {renderInput(serverComponent, localServer, publishCtx, {
-                readOnly: true,
-                contentAfter: (
-                    <Button
-                        size="small"
-                        aria-label="Connect to server"
-                        icon={<PlugDisconnectedRegular />}
-                        appearance="transparent"
-                        onClick={() => {
-                            publishCtx.openConnectionDialog();
-                        }}
-                    />
-                ),
-            })}
             {renderCombobox(
-                databaseComponent,
+                getServerComponentWithNewConnection(),
+                localServerDisplay,
+                false,
+                handleServerInputChange,
+                handleServerSelect,
+                selectedConnectionUri,
+            )}
+            {renderCombobox(
+                getDatabaseComponentWithLoading(),
                 localDatabase,
-                publishTarget === PublishTarget.LocalContainer,
+                true, // Always allow typing database name
                 handleDatabaseChange,
             )}
         </div>

@@ -45,6 +45,8 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -139,6 +141,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerRpcHandlers();
+
+        // Listen for connection changes to keep dropdown synced
+        this.registerDisposable(
+            this._connectionManager.onConnectionsChanged(() => {
+                this.state.availableConnections = this.getActiveConnectionsForDropdown();
+                this.updateServerDropdownOptions();
+                this.updateState();
+            }),
+        );
 
         // Listen for successful connections
         this.registerDisposable(
@@ -493,6 +504,86 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
     }
 
+    /**
+     * Gets active connections formatted for dropdown display (deduplicated by server)
+     * If selectedConnectionUri is set, prefer that connectionUri for matching server
+     */
+    private getActiveConnectionsForDropdown(): {
+        connectionUri: string;
+        profile: IConnectionDialogProfile;
+    }[] {
+        const activeConnections = this._connectionManager.activeConnections;
+        const result: { connectionUri: string; profile: IConnectionDialogProfile }[] = [];
+        const serverToIndex = new Map<string, number>();
+
+        for (const [connectionUri, connInfo] of Object.entries(activeConnections)) {
+            const profile = connInfo.credentials as IConnectionProfile;
+            if (!profile.server) continue;
+
+            const existingIndex = serverToIndex.get(profile.server);
+            if (existingIndex === undefined) {
+                // First connection for this server
+                serverToIndex.set(profile.server, result.length);
+                result.push({
+                    connectionUri,
+                    profile: {
+                        ...profile,
+                        profileName: profile.profileName || getConnectionDisplayName(profile),
+                    } as IConnectionDialogProfile,
+                });
+            } else if (connectionUri === this.state.selectedConnectionUri) {
+                // Replace with selected connectionUri if same server
+                result[existingIndex] = {
+                    connectionUri,
+                    profile: {
+                        ...profile,
+                        profileName: profile.profileName || getConnectionDisplayName(profile),
+                    } as IConnectionDialogProfile,
+                };
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Updates the server dropdown options from availableConnections
+     */
+    private updateServerDropdownOptions(): void {
+        const serverComponent = this.state.formComponents[PublishFormFields.ServerName];
+        if (serverComponent && this.state.availableConnections) {
+            serverComponent.options = this.state.availableConnections.map((item) => ({
+                displayName: item.profile.profileName || "",
+                value: item.connectionUri,
+            }));
+        }
+    }
+
+    /**
+     * Connects to a server using connectionUri and returns databases
+     */
+    private async connectAndGetDatabases(connectionUri: string): Promise<{
+        ownerUri?: string;
+        serverName?: string;
+        databases?: string[];
+        errorMessage?: string;
+    }> {
+        const activeConnection = this._connectionManager.activeConnections[connectionUri];
+        if (!activeConnection) {
+            return { errorMessage: Loc.ConnectionProfileNotFound };
+        }
+
+        const profile = activeConnection.credentials as IConnectionProfile;
+        const databases = await this._connectionManager.listDatabases(connectionUri);
+        this._connectionString = await this._connectionManager.getConnectionString(
+            connectionUri,
+            true,
+            true,
+        );
+
+        return { ownerUri: connectionUri, serverName: profile.server, databases };
+    }
+
     private async initializeDialog(projectFilePath: string) {
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
@@ -565,6 +656,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Update item visibility before updating state to ensure SQLCMD table is visible if needed
         await this.updateItemVisibility();
+
+        // Load active connections for the server dropdown
+        this.state.availableConnections = this.getActiveConnectionsForDropdown();
+        this.updateServerDropdownOptions();
 
         this.updateState();
 
@@ -846,6 +941,54 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return { ...state, formMessage: undefined };
         });
 
+        // Reducer for connecting to a server using connectionUri
+        this.registerReducer(
+            "connectToServer",
+            async (state: PublishDialogState, payload: { connectionUri: string }) => {
+                state.selectedConnectionUri = payload.connectionUri;
+                state.isLoadingDatabases = true;
+
+                // Update state to show loading indicator
+                this.updateState();
+
+                const result = await this.connectAndGetDatabases(payload.connectionUri);
+
+                state.isLoadingDatabases = false;
+
+                // Always update database dropdown options (clear on error, populate on success)
+                const databaseComponent = state.formComponents[PublishFormFields.DatabaseName];
+                if (databaseComponent) {
+                    if (result.errorMessage || !result.databases) {
+                        // Clear options on error or no databases
+                        databaseComponent.options = [];
+                    } else {
+                        // Populate with database list
+                        databaseComponent.options = result.databases.map((db) => ({
+                            displayName: db,
+                            value: db,
+                        }));
+                    }
+                }
+
+                if (result.errorMessage) {
+                    state.formMessage = {
+                        message: result.errorMessage,
+                        intent: "error",
+                    };
+                    return state;
+                }
+
+                // Update connection info
+                this._connectionUri = result.ownerUri;
+                state.formState.serverName = result.serverName || "";
+
+                // Validate form after connection
+                await this.validateForm(state.formState, undefined, false);
+
+                return state;
+            },
+        );
+
         // Dedicated reducer for updating SQLCMD variables.
         // Cannot use formAction because FormEvent.value is typed as string | boolean,
         // but sqlCmdVariables is an object type, so we need a custom reducer for type safety.
@@ -1123,6 +1266,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             this.state.formState.serverName = connectionProfile.server;
 
+            // Store the selectedConnectionUri
+            this.state.selectedConnectionUri = event.fileUri;
+
+            // Refresh the available connections list
+            this.state.availableConnections = this.getActiveConnectionsForDropdown();
+            this.updateServerDropdownOptions();
+
             // Store the connectionUri and connection string for dacfx operations and saving to publish profile
             this._connectionUri = event.fileUri;
             this._connectionString = await this._connectionManager.getConnectionString(
@@ -1131,24 +1281,28 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 true, // includeApplicationName
             );
 
+            // Set loading state for database dropdown
+            this.state.isLoadingDatabases = true;
+            this.updateState();
+
             // Get databases
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
             try {
                 const databases = await this._connectionManager.listDatabases(event.fileUri);
 
                 // Update database dropdown options
-                const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
                 if (databaseComponent) {
                     databaseComponent.options = databases.map((db) => ({
                         displayName: db,
                         value: db,
                     }));
                 }
-
-                // Optionally select the first database if available
-                if (databases.length > 0 && !this.state.formState.databaseName) {
-                    this.state.formState.databaseName = databases[0];
-                }
             } catch (dbError) {
+                // Clear database options on error
+                if (databaseComponent) {
+                    databaseComponent.options = [];
+                }
+
                 // Show error message to user when database listing fails
                 this.state.formMessage = {
                     message: `${Loc.FailedToListDatabases}: ${getErrorMessage(dbError)}`,
@@ -1163,6 +1317,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         operationId: this._operationId,
                     },
                 );
+            } finally {
+                this.state.isLoadingDatabases = false;
             }
 
             // Validate form to update button state after connection

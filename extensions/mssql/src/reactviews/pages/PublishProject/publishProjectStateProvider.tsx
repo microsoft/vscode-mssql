@@ -56,6 +56,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
             generateSqlPackageCommand: (maskMode?: mssql.MaskMode) =>
                 extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type, { maskMode }),
+            connectToServer: (connectionUri: string) =>
+                extensionRpc.action("connectToServer", { connectionUri }),
             extensionRpc,
             themeKind,
         }),
