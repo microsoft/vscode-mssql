@@ -66,6 +66,11 @@ jobs:
           sqlproj_vsix_size=$(stat -c%s "$sqlproj_vsix")
           sqlproj_vsix_size=$((sqlproj_vsix_size / 1024))
 
+          # Calculate DataWorkspace sizes
+          dataworkspace_vsix=$(find ./extensions/data-workspace -name "*.vsix")
+          dataworkspace_vsix_size=$(stat -c%s "$dataworkspace_vsix")
+          dataworkspace_vsix_size=$((dataworkspace_vsix_size / 1024))
+
           # Create baseline metadata file
           cat > baseline-sizes.json <<EOF
           {
@@ -74,6 +79,9 @@ jobs:
             },
             "sql_database_projects": {
               "vsix_kb": $sqlproj_vsix_size
+            },
+            "data_workspace": {
+              "vsix_kb": $dataworkspace_vsix_size
             },
             "commit": "${{ github.sha }}",
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
