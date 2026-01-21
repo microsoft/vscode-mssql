@@ -68,6 +68,10 @@ suite("PublishProjectWebViewController Tests", () => {
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
+            onConnectionsChanged: sandbox.stub().returns({
+                dispose: sandbox.stub(),
+            } as vscode.Disposable),
+            activeConnections: {},
         } as sinon.SinonStubbedInstance<ConnectionManager>;
 
         // Create mock for interface (IDacFxService) - only stub methods we actually use in tests

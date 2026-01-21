@@ -925,6 +925,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                         ),
                                         intent: "error",
                                     };
+                                } else if (connectionResult.connectionUri) {
+                                    // Refresh connections and set selected connection
+                                    this.state.availableConnections =
+                                        this.getActiveConnectionsForDropdown();
+                                    this.state.selectedConnectionUri =
+                                        connectionResult.connectionUri;
+                                    this.updateServerDropdownOptions();
                                 }
                                 this.updateState();
                             },

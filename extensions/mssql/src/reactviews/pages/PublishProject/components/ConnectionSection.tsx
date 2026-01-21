@@ -25,6 +25,7 @@ export const ConnectionSection: React.FC = () => {
     const styles = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
+    const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
     const selectedConnectionUri = usePublishDialogSelector((s) => s.selectedConnectionUri);
     const isLoadingDatabases = usePublishDialogSelector((s) => s.isLoadingDatabases);
@@ -32,15 +33,18 @@ export const ConnectionSection: React.FC = () => {
     const [localServerDisplay, setLocalServerDisplay] = useState("");
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
-    // Update local server display when selectedConnectionUri changes
+    // Update local server display when selectedConnectionUri or serverValue changes
     useEffect(() => {
         if (selectedConnectionUri && serverComponent?.options) {
             const opt = serverComponent.options.find((o) => o.value === selectedConnectionUri);
-            setLocalServerDisplay(opt?.displayName || "");
-        } else {
-            setLocalServerDisplay("");
+            if (opt?.displayName) {
+                setLocalServerDisplay(opt.displayName);
+                return;
+            }
         }
-    }, [selectedConnectionUri, serverComponent?.options]);
+        // Fallback to serverValue from formState (e.g., when loaded from publish profile)
+        setLocalServerDisplay(serverValue || "");
+    }, [selectedConnectionUri, serverComponent?.options, serverValue]);
 
     useEffect(() => setLocalDatabase(databaseValue || ""), [databaseValue]);
 
