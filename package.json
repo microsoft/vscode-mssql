@@ -11,16 +11,12 @@
   },
   "scripts": {
     "build": "yarn workspaces run build",
-    "watch:mssql": "yarn workspace mssql watch",
-    "watch:data-workspace": "yarn workspace data-workspace-vscode watch",
-    "watch:sql-database-projects": "yarn workspace sql-database-projects-vscode watch",
-    "watch": "run-p -l watch:mssql watch:data-workspace watch:sql-database-projects",
+    "watch": "node scripts/watch-extensions.js",
     "localization": "node scripts/localization-extract.js",
     "prepare": "husky"
   },
   "devDependencies": {
     "@vscode/l10n-dev": "^0.0.35",
-    "npm-run-all": "^4.1.5",
     "prettier": "^3.3.3",
     "husky": "^9.0.11"
   }
