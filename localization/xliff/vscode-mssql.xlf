@@ -3228,11 +3228,11 @@
     <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
       <source xml:lang="en">Read docs</source>
     </trans-unit>
+    <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
+      <source xml:lang="en">Read docs on Microsoft Learn</source>
+    </trans-unit>
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
-    </trans-unit>
-    <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
-      <source xml:lang="en">Read the documentation</source>
     </trans-unit>
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>

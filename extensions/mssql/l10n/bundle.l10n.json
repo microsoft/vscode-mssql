@@ -2286,7 +2286,7 @@
     "Read docs": "Read docs",
     "Watch demos on YouTube": "Watch demos on YouTube",
     "View roadmap": "View roadmap",
-    "Read the documentation": "Read the documentation",
+    "Read docs on Microsoft Learn": "Read docs on Microsoft Learn",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {

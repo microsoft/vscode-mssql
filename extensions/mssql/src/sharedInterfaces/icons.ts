@@ -8,10 +8,10 @@
  * IMPORTANT: Ensure that the map in iconUtils.tsx is updated when adding new icons here.
  */
 export interface Icons {
-    BookOpenFilled: React.ReactElement;
-    BugRegular: React.ReactElement;
-    ChatRegular: React.ReactElement;
-    ClipboardBulletListRegular: React.ReactElement;
-    LightbulbRegular: React.ReactElement;
-    VideoClipFilled: React.ReactElement;
+    BookOpen16Filled: React.ReactElement;
+    Bug16Regular: React.ReactElement;
+    Chat16Regular: React.ReactElement;
+    ClipboardBulletList16Regular: React.ReactElement;
+    Lightbulb16Regular: React.ReactElement;
+    VideoClip16Filled: React.ReactElement;
 }
