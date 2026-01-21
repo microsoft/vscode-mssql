@@ -54,6 +54,7 @@ import { getExpirationDateForSas } from "../utils/utils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -346,7 +347,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             encryptorName: "",
         };
         if (state.formState.encryptionEnabled) {
-            encryptor = this.state.backupEncryptors.find(
+            encryptor = state.backupEncryptors.find(
                 (be) => be.encryptorName === state.formState.encryptorName,
             );
         }
@@ -376,16 +377,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             backupPathDevices[backupUrl] = MediaDeviceType.Url;
             backupPathList.push(backupUrl);
 
-            const sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(
-                subscription,
-                storageAccount,
-            );
-
-            if (sasKeyResult instanceof Error) {
+            let sasKeyResult;
+            try {
+                sasKeyResult = await VsCodeAzureHelper.getStorageAccountKeys(
+                    subscription,
+                    storageAccount,
+                );
+            } catch (error) {
                 vscode.window.showErrorMessage(
-                    LocConstants.BackupDatabase.generatingSASKeyFailedWithError(
-                        sasKeyResult.message,
-                    ),
+                    LocConstants.BackupDatabase.generatingSASKeyFailedWithError(error.message),
                 );
                 return;
             }
@@ -410,7 +410,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             backupComponent: BackupComponent.Database, // always database for this scenario
             backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
             selectedFiles: undefined,
-            backupsetName: state.formState.backupName ?? this.state.defaultBackupName,
+            backupsetName: state.formState.backupName ?? state.defaultBackupName,
             selectedFileGroup: undefined,
             backupPathDevices: backupPathDevices,
             backupPathList: backupPathList,
@@ -1004,16 +1004,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         const subscription = state.subscriptions.find(
             (s) => s.subscriptionId === state.formState.subscriptionId,
         );
-        const storageAccounts =
-            await VsCodeAzureHelper.fetchStorageAccountsForSubscription(subscription);
-        // If an error occurred or no storage accounts found, set state and return
-        if (storageAccounts instanceof Error || storageAccounts.length === 0) {
-            storageAccountComponent.placeholder =
-                LocConstants.BackupDatabase.noStorageAccountsFound;
-            storageAccountComponent.options = [];
-            state.storageAccounts = [];
-            state.formState.storageAccountId = "";
-            return state;
+        let storageAccounts: StorageAccount[] = [];
+        try {
+            storageAccounts =
+                await VsCodeAzureHelper.fetchStorageAccountsForSubscription(subscription);
+        } catch (error) {
+            state.errorMessage = error.message;
         }
         const storageAccountOptions = storageAccounts.map((account) => ({
             displayName: account.name,
@@ -1022,8 +1018,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         // Set associated state values
         storageAccountComponent.options = storageAccountOptions;
-        state.formState.storageAccountId = storageAccountOptions[0].value;
-        storageAccountComponent.placeholder = LocConstants.BackupDatabase.selectAStorageAccount;
+        state.formState.storageAccountId =
+            storageAccountOptions.length > 0 ? storageAccountOptions[0].value : "";
+        storageAccountComponent.placeholder =
+            storageAccounts.length > 0
+                ? LocConstants.BackupDatabase.selectAStorageAccount
+                : LocConstants.BackupDatabase.noStorageAccountsFound;
         state.storageAccounts = storageAccounts;
 
         return state;
@@ -1053,18 +1053,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         const storageAccount = state.storageAccounts.find(
             (sa) => sa.id === state.formState.storageAccountId,
         );
-        const blobContainers = await VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
-            subscription,
-            storageAccount,
-        );
-        // If an error occurred or no blob containers found, set state and return
-        if (blobContainers instanceof Error || blobContainers.length === 0) {
-            blobContainerComponent.placeholder = LocConstants.BackupDatabase.noBlobContainersFound;
-            blobContainerComponent.options = [];
-            state.blobContainers = [];
-            state.formState.blobContainerId = "";
-            return state;
+
+        let blobContainers: BlobContainer[] = [];
+        try {
+            blobContainers = await VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+                subscription,
+                storageAccount,
+            );
+        } catch (error) {
+            state.errorMessage = error.message;
         }
+
         const blobContainerOptions = blobContainers.map((container) => ({
             displayName: container.name,
             value: container.id,
@@ -1072,8 +1071,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         // Set associated state values
         blobContainerComponent.options = blobContainerOptions;
-        state.formState.blobContainerId = blobContainerOptions[0].value;
-        blobContainerComponent.placeholder = LocConstants.BackupDatabase.selectABlobContainer;
+        state.formState.blobContainerId =
+            blobContainers.length > 0 ? blobContainerOptions[0].value : "";
+        blobContainerComponent.placeholder =
+            blobContainers.length > 0
+                ? LocConstants.BackupDatabase.selectABlobContainer
+                : LocConstants.BackupDatabase.noBlobContainersFound;
         state.blobContainers = blobContainers;
 
         return state;
