@@ -830,24 +830,19 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.dacpacDialog.launch",
-                    "when": "true"
+                    "command": "mssql.dacpacDialog.launch"
                 },
                 {
-                    "command": "mssql.dacpacDialog.deploy",
-                    "when": "true"
+                    "command": "mssql.dacpacDialog.deploy"
                 },
                 {
-                    "command": "mssql.dacpacDialog.extract",
-                    "when": "true"
+                    "command": "mssql.dacpacDialog.extract"
                 },
                 {
-                    "command": "mssql.dacpacDialog.import",
-                    "when": "true"
+                    "command": "mssql.dacpacDialog.import"
                 },
                 {
-                    "command": "mssql.dacpacDialog.export",
-                    "when": "true"
+                    "command": "mssql.dacpacDialog.export"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
@@ -1360,7 +1355,7 @@
             "properties": {
                 "mssql.enableExperimentalFeatures": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.enableExperimentalFeatures.description%",
                     "scope": "application"
                 },

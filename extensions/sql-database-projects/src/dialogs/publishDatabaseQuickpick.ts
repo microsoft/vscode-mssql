@@ -12,6 +12,7 @@ import { getDefaultPublishDeploymentOptions, getVscodeMssqlApi } from '../common
 import { IConnectionInfo, IFireWallRuleError } from 'vscode-mssql';
 import { getPublishServerName } from './utils';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
+import { DBProjectConfigurationKey } from '../tools/netcoreTool';
 import { ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
 
 /**
@@ -246,12 +247,13 @@ export async function launchPublishTargetOption(project: Project): Promise<const
 	let options;
 
 	if (target === constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure)) {
-		// All options are now available by default
-		options = [
-			constants.publishToAzureEmulator, 
-			constants.publishToExistingServer(logicalServerName),
-			constants.publishToNewAzureServer
-		];
+		options = [constants.publishToAzureEmulator, constants.publishToExistingServer(logicalServerName)]
+
+		// only show "Publish to New Azure Server" option if preview features are enabled
+		const enablePreviewFeatures = vscode.workspace.getConfiguration(DBProjectConfigurationKey).get(constants.enablePreviewFeaturesKey);
+		if (enablePreviewFeatures) {
+			options.push(constants.publishToNewAzureServer);
+		}
 	} else {
 		options = [constants.publishToDockerContainer(name), constants.publishToExistingServer(logicalServerName)];
 	}
