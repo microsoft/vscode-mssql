@@ -149,6 +149,7 @@ export interface IProviderResources {
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
+    azureStorageResource?: IAADResource;
     fabric?: IAADResource & { sqlDbDnsSuffix?: string; dataWarehouseDnsSuffix: string };
 }
 
