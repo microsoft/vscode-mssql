@@ -1,23 +1,25 @@
 {
-  "name": "vscode-mssql",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Monorepo for SQL Server extensions for Visual Studio Code",
-  "workspaces": [
-    "extensions/*"
-  ],
-  "resolutions": {
-    "@types/react": "18.3.27"
-  },
-  "scripts": {
-    "build": "yarn workspaces run build",
-    "watch": "node scripts/watch-extensions.js",
-    "localization": "node scripts/localization-extract.js",
-    "prepare": "husky"
-  },
-  "devDependencies": {
-    "@vscode/l10n-dev": "^0.0.35",
-    "prettier": "^3.3.3",
-    "husky": "^9.0.11"
-  }
+    "name": "vscode-mssql",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Monorepo for SQL Server extensions for Visual Studio Code",
+    "workspaces": [
+        "extensions/*"
+    ],
+    "resolutions": {
+        "@types/react": "18.3.27"
+    },
+    "scripts": {
+        "build": "yarn workspaces run build",
+        "watch": "node scripts/watch-extensions.js",
+        "localization": "node scripts/localization-extract.js",
+        "lint-staged": "lint-staged --quiet --config lint-staged.config.mjs",
+        "prepare": "husky"
+    },
+    "devDependencies": {
+        "@vscode/l10n-dev": "^0.0.35",
+        "lint-staged": "^15.2.10",
+        "prettier": "^3.3.3",
+        "husky": "^9.0.11"
+    }
 }
