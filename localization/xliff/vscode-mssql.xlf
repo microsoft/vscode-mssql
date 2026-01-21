@@ -711,8 +711,17 @@
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++df56567c2f1a1cff17654a7d81018a1eb0b79cbe7859b4ef8fb0675517a94cae">
+      <source xml:lang="en">Column added</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fb963543a608c2c593e5eac5d4083514d04dc54eac6e88e7990bcb7ea23b52e">
+      <source xml:lang="en">Column deleted</source>
+    </trans-unit>
     <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
       <source xml:lang="en">Column max length cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce2a4858fc9be555a3eeef5ea3418bd80077486096c77c4e5cd45fe9e21796a6">
+      <source xml:lang="en">Column modified</source>
     </trans-unit>
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
@@ -1926,6 +1935,15 @@
       <source xml:lang="en">Foreign key &apos;{0}&apos; already exists</source>
       <note>{0} is the foreign key name</note>
     </trans-unit>
+    <trans-unit id="++CODE++d01f578715c9d2aa98c007f141697943998271a57022297c46270df6e2739f13">
+      <source xml:lang="en">Foreign key added</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7566ecddfbc1571afc2a5e2abe55b75dd8bb7d1e8cb059582190a52c6a7ba573">
+      <source xml:lang="en">Foreign key deleted</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6713f20c06ba4ef3ed625dc8faa6828102930d03f64b4d145d8990f1dda02ea">
+      <source xml:lang="en">Foreign key modified</source>
+    </trans-unit>
     <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
       <source xml:lang="en">Formula</source>
     </trans-unit>
@@ -2037,6 +2055,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
+      <source xml:lang="en">Hide Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
@@ -2639,6 +2660,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
       <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c699aa00b26d36f6dae847bbc716720c946489fb5ed3307a88be0c1f0bc9ee1d">
+      <source xml:lang="en">No changes</source>
     </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
@@ -3445,6 +3469,9 @@
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
+    <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
+      <source xml:lang="en">Schema Changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
     </trans-unit>
@@ -3652,6 +3679,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++edd969c69f64aff645b3027bab51746e3b4b8bbafdc573981df42125e9e85dbe">
+      <source xml:lang="en">Show Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
       <source xml:lang="en">Show Confirm Password</source>
@@ -3901,11 +3931,23 @@
       <source xml:lang="en">Table Explorer for &apos;{0}&apos; has unsaved changes. Do you want to save or discard them?</source>
       <note>{0} is the table name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8cc18ad153ee87b547c6e19043a7293113bccacb9e76f6d4887fdf3b0ddbb786">
+      <source xml:lang="en">Table added</source>
+    </trans-unit>
+    <trans-unit id="++CODE++328247774d562dec80c715f719a619e821c4332c991d52b10e0aa1d2b6cd95f4">
+      <source xml:lang="en">Table deleted</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9ac96214e2b07814285adbfb43d39e1952321141ee8c730253bbf492f6c5c641">
+      <source xml:lang="en">Table modified</source>
+    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
     <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
       <source xml:lang="en">Table name cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
+      <source xml:lang="en">Tables</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
@@ -4067,6 +4109,9 @@
     <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
       <source xml:lang="en">Toggle dark mode</source>
     </trans-unit>
+    <trans-unit id="++CODE++85e15c474bd0c06e2770fc916c37da2de6db070a9d2ad04abff30edae1a7a6f2">
+      <source xml:lang="en">Toggle diff view to see schema changes</source>
+    </trans-unit>
     <trans-unit id="++CODE++0205dc96a474c1b5b12fadd44fb599a3d78af60d697f6136e7e21a51d9f29579">
       <source xml:lang="en">Toggle filter row</source>
     </trans-unit>
@@ -4108,6 +4153,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1497e901b9e70aa938edfbd2d99841e49e00458d40816da793c6a1af625677d">
+      <source xml:lang="en">Undo this change</source>
     </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>
