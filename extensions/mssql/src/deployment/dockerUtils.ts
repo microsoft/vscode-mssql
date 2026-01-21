@@ -13,6 +13,8 @@ import {
     defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
+    localhost,
+    localhostIP,
     Platform,
     windowsDockerDesktopExecutable,
     x64,
@@ -129,10 +131,6 @@ export const COMMANDS = {
         command: "docker",
         args: ["ps", "-a", "--format", "{{.Names}}"],
     }),
-    GET_CONTAINER_NAME_FROM_ID: (containerId: string): DockerCommand => ({
-        command: "docker",
-        args: ["ps", "-a", "--filter", `id=${containerId}`, "--format", "{{.Names}}"],
-    }),
     INSPECT: (id: string): DockerCommand => ({
         command: "docker",
         args: ["inspect", sanitizeContainerInput(id)],
@@ -153,11 +151,11 @@ export const COMMANDS = {
             "-e",
             "ACCEPT_EULA=Y",
             "-e",
-            `\'SA_PASSWORD=${password}\'`,
+            `SA_PASSWORD=${password}`,
             "-p",
-            `\'${port}:${defaultPortNumber}\'`,
+            `${port}:${defaultPortNumber}`,
             "--name",
-            `\'${sanitizeContainerInput(name)}\'`,
+            sanitizeContainerInput(name),
         ];
 
         if (hostname) {
@@ -710,49 +708,29 @@ export async function startDocker(
 
         let attempts = 0;
         const maxAttempts = 30;
-        const intervalMs = 2000;
+        const interval = 2000;
 
         return await new Promise((resolve) => {
-            let timer: NodeJS.Timeout | undefined;
-            let resolved = false;
-            const resolveOnce = (result: DockerCommandParams) => {
-                if (resolved) {
-                    return;
-                }
-                resolved = true;
-                if (timer) {
-                    clearTimeout(timer);
-                    timer = undefined;
-                }
-                resolve(result);
-            };
-
-            const tryCheckDocker = async () => {
+            const checkDocker = setInterval(async () => {
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
+                    clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         dockerStartedThroughExtension: "true",
                     });
-                    return resolveOnce({ success: true });
+                    resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
-                        return resolveOnce({
+                        clearInterval(checkDocker);
+                        resolve({
                             success: false,
                             error: LocalContainers.dockerFailedToStartWithinTimeout,
                             fullErrorText: getErrorMessage(e),
                         });
                     }
-
-                    timer = setTimeout(() => {
-                        void tryCheckDocker();
-                    }, intervalMs);
                 }
-            };
-
-            // Attempt immediately, then wait between retries. This avoids an unnecessary initial wait
-            // (and prevents unit tests / CI from burning 1-2s per success path).
-            void tryCheckDocker();
+            }, interval);
         });
     } catch (e) {
         return {
@@ -835,21 +813,7 @@ export async function checkIfContainerIsReadyForConnections(
     dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
     return new Promise((resolve) => {
-        let timer: NodeJS.Timeout | undefined;
-        let resolved = false;
-        const resolveOnce = (result: DockerCommandParams) => {
-            if (resolved) {
-                return;
-            }
-            resolved = true;
-            if (timer) {
-                clearTimeout(timer);
-                timer = undefined;
-            }
-            resolve(result);
-        };
-
-        const tryCheckContainerReady = async () => {
+        const interval = setInterval(async () => {
             try {
                 const { dockerCmd, grepCmd } = COMMANDS.CHECK_LOGS(containerName, startTimestamp);
                 const logs = await execDockerCommandWithPipe(dockerCmd, grepCmd);
@@ -859,27 +823,22 @@ export async function checkIfContainerIsReadyForConnections(
                 );
 
                 if (readyLine) {
+                    clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    return resolveOnce({ success: true });
+                    return resolve({ success: true });
                 }
             } catch {
                 // Ignore and retry
             }
 
             if (Date.now() - start > timeoutMs) {
-                return resolveOnce({
+                clearInterval(interval);
+                return resolve({
                     success: false,
                     error: LocalContainers.containerFailedToStartWithinTimeout,
                 });
             }
-
-            timer = setTimeout(() => {
-                void tryCheckContainerReady();
-            }, intervalMs);
-        };
-
-        // Attempt immediately, then wait between retries.
-        void tryCheckContainerReady();
+        }, intervalMs);
     });
 }
 
@@ -957,17 +916,42 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
 }
 
 /**
- * Determines whether a connection is running inside a Docker container.
- *
- * Inspects the `machineName` from the connection's server info. For Docker connections,
- * the machine name is set to the UUID corresponding to the container's ID.
- *
- * @param machineName The machine name hosting the connection, as reported in its server info.
+ * Finds a Docker container by checking if its exposed ports match the server name.
+ * It inspects each container to find a match with the server name.
  */
-export async function checkIfConnectionIsDockerContainer(machineName: string): Promise<string> {
+async function findContainerByPort(containerIds: string[], serverName: string): Promise<string> {
+    if (serverName === localhost || serverName === localhostIP) {
+        serverName += `,${defaultPortNumber}`;
+    }
+    for (const id of containerIds) {
+        try {
+            const inspect = await execDockerCommand(COMMANDS.INSPECT_CONTAINER(id));
+            const ports = inspect.match(/"HostPort":\s*"(\d+)"/g);
+
+            if (ports?.some((p) => serverName.includes(p.match(/\d+/)?.[0] || ""))) {
+                const nameMatch = inspect.match(/"Name"\s*:\s*"\/([^"]+)"/);
+                if (nameMatch) return nameMatch[1];
+            }
+        } catch {
+            // skip container if inspection fails
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if a connection is a Docker container by inspecting the server name.
+ */
+export async function checkIfConnectionIsDockerContainer(serverName: string): Promise<string> {
+    if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return "";
+
     try {
-        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINER_NAME_FROM_ID(machineName));
-        return stdout.trim();
+        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINERS());
+        const containerIds = stdout.split("\n").filter(Boolean);
+        if (!containerIds.length) return undefined;
+
+        return await findContainerByPort(containerIds, serverName);
     } catch {
         return undefined;
     }
