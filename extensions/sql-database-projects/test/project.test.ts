@@ -1200,6 +1200,16 @@ projectSuite('Project: round trip updates', function (): void {
 		(project.isCrossPlatformCompatible).should.be.true('Project should be detected as cross-plat compatible');
 		(spy.notCalled).should.be.true('Prompt to update .sqlproj should not have been shown for cross-plat project.');
 	}
+
+	test('Should filter out glob patterns from None items', async function (): Promise<void> {
+		const projFilePath = await testUtils.createTestSqlProjFile(this.test, baselines.openSdkStyleSqlProjectBaseline);
+		const project: Project = await Project.openProject(projFilePath);
+
+		// Verify that glob patterns with *, ?, or [ are not included in noneDeployScripts
+		// Even if the backend returns patterns like "queries/**", "script?.sql", "Script[123].sql", "data[a-z].txt", or "test[!_]*.sql", they should be filtered out
+		const hasGlobPattern = project.noneDeployScripts.some(f => f.relativePath.includes('*') || f.relativePath.includes('?') || f.relativePath.includes('['));
+		should(hasGlobPattern).be.false('None items should not contain glob patterns with *, ?, or [');
+	});
 });
 
 async function testUpdateInRoundTrip(test: Mocha.Runnable | undefined, fileBeforeupdate: string): Promise<void> {

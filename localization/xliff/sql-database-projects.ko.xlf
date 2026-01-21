@@ -58,6 +58,10 @@
         <source xml:lang="en">A reference to this database already exists in this project</source>
         <target state="translated">이 데이터베이스에 대한 참조가 이 프로젝트에 이미 있습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8">
+        <source xml:lang="en">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</source>
+        <target state="new">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
         <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
         <target state="translated">{0} 스크립트가 이미 있습니다. 새 스크립트는 빌드에 포함되지 않습니다.</target>

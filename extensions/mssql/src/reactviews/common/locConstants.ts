@@ -62,6 +62,8 @@ export class LocConstants {
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
             warning: l10n.t("Warning"),
+            signIn: l10n.t("Sign In"),
+            loading: l10n.t("Loading"),
         };
     }
 
@@ -220,7 +222,6 @@ export class LocConstants {
             fabricAccount: l10n.t("Fabric Account"),
             selectAnAccount: l10n.t("Select an account"),
             account: l10n.t("Account"),
-            signIn: l10n.t("Sign In"),
             tenantId: l10n.t("Tenant ID"),
             authenticationType: l10n.t("Authentication Type"),
             browseBy: l10n.t("Browse By"),
@@ -352,6 +353,7 @@ export class LocConstants {
             errorLoadingDatabases: l10n.t("Error loading databases"),
             connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
+            importFromAzureDataStudio: l10n.t("Import from Azure Data Studio"),
         };
     }
 
@@ -1095,6 +1097,7 @@ export class LocConstants {
 
     public get publishProject() {
         return {
+            publishProject: l10n.t("Publish Project"),
             SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
@@ -1108,6 +1111,12 @@ export class LocConstants {
             SqlCmdVariableNameColumn: l10n.t("Name"),
             SqlCmdVariableValueColumn: l10n.t("Value"),
             RevertSqlCmdVariablesToDefaults: l10n.t("Revert values to project defaults"),
+            SqlPackageCommand: l10n.t("SqlPackage Command"),
+            GenerateSqlPackageCommand: l10n.t("Generate sqlpackage command"),
+            SqlPackageCommandTitle: l10n.t("SqlPackage Command"),
+            copySqlPackageCommandToClipboard: l10n.t("Copy command to clipboard"),
+            showUnmaskedCommand: l10n.t("Show unmasked command (reveals sensitive information)"),
+            showMaskedCommand: l10n.t("Show masked command (hides sensitive information)"),
         };
     }
 
@@ -1434,6 +1443,106 @@ export class LocConstants {
         };
     }
 
+    public get azureDataStudioMigration() {
+        return {
+            title: l10n.t("Azure Data Studio Migration - Connections"),
+            subtitle: l10n.t(
+                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+            ),
+            configInputLabel: l10n.t("Azure Data Studio settings file"),
+            configInputDescription: l10n.t(
+                "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
+            ),
+            configInputPlaceholder: l10n.t("Browse to Azure Data Studio settings.json"),
+            browseButton: l10n.t("Browse"),
+            connectionGroupsHeader: l10n.t("Connection groups to import"),
+            connectionGroupsSelection: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} connection groups selected.",
+                    args: [selected, total],
+                    comment: [
+                        "{0} is the number of groups selected for import",
+                        "{1} is the total number of groups detected",
+                    ],
+                }),
+            groupsRootNote: l10n.t(
+                "Connections in groups that are not selected will be moved under the root.",
+            ),
+            noConnectionGroups: l10n.t("No connection groups were found in the file."),
+            groupNameColumn: l10n.t("Name"),
+            groupColorColumn: l10n.t("Color"),
+            groupColorSwatch: (groupName: string, color: string) =>
+                l10n.t({
+                    message: "{0} color swatch ({1})",
+                    args: [groupName, color],
+                    comment: [
+                        "{0} is the connection group name",
+                        "{1} is the color value applied to the group",
+                    ],
+                }),
+            selectAllGroupsLabel: l10n.t("Select or clear all connection groups"),
+            groupSelectionToggle: (groupName: string) =>
+                l10n.t({
+                    message: "Toggle selection for {0}",
+                    args: [groupName],
+                    comment: ["{0} is the connection group name"],
+                }),
+            connectionsHeader: l10n.t("Connections to import"),
+            connectionsSelection: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0} of {1} connections selected",
+                    args: [selected, total],
+                    comment: [
+                        "{0} is the number of connections selected for import",
+                        "{1} is the total number of connections detected",
+                    ],
+                }),
+            selectAllConnectionsLabel: l10n.t("Select or clear all connections"),
+            noConnections: l10n.t("No connections were found in the file."),
+            connectionProfileName: l10n.t("Profile name"),
+            connectionServerColumn: l10n.t("Server"),
+            connectionDatabaseColumn: l10n.t("Database"),
+            connectionDatabaseDefault: l10n.t("<default>"),
+            connectionAuthColumn: l10n.t("Auth type"),
+            connectionUserColumn: l10n.t("User ID"),
+            connectionStatusColumn: l10n.t("Status"),
+            connectionSelectionToggle: (connectionName: string) =>
+                l10n.t({
+                    message: "Toggle selection for {0}",
+                    args: [connectionName],
+                    comment: ["{0} is the connection display name"],
+                }),
+            connectionGroupsCollapse: l10n.t("Collapse connection groups"),
+            connectionGroupsExpand: l10n.t("Expand connection groups"),
+            connectionsCollapse: l10n.t("Collapse connections"),
+            connectionsExpand: l10n.t("Expand connections"),
+            connectionDisplayNameMissing: l10n.t(
+                "This connection does not have a display name in Azure Data Studio.",
+            ),
+            connectionValueMissing: l10n.t(
+                "This value was not provided in the Azure Data Studio settings file.",
+            ),
+            authenticationColumn: l10n.t("Authentication"),
+            enterPassword: l10n.t("Enter password"),
+            importButtonLabel: l10n.t("Import selected"),
+            importWarningDialogTitle: l10n.t("Connection Import Warning"),
+            importWarningDialogMessage: l10n.t(
+                "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.",
+            ),
+            importWarningConnectionsHeader: l10n.t("Incomplete or orphaned connections"),
+            importWarningProceed: l10n.t("Import anyway"),
+            importProgressDialogTitle: l10n.t("Importing selections"),
+            entraSignInAccountLabel: l10n.t("Account"),
+            entraSignInTenantLabel: l10n.t("Tenant"),
+            entraSignInLink: l10n.t("Sign into additional accounts"),
+            selectAccount: l10n.t("Select account"),
+            entraSignInDialogTitle: l10n.t("Select an account for authentication"),
+            entraSignInDialogMessage: l10n.t(
+                "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
+            ),
+        };
+    }
+
     public get changelog() {
         return {
             highlightsSectionTitle: l10n.t("Highlights"),
@@ -1451,6 +1560,14 @@ export class LocConstants {
                 }),
             dontShowAgain: l10n.t("Don't show this again"),
             close: l10n.t("Close"),
+        };
+    }
+
+    public get fileBrowser() {
+        return {
+            fileBrowserTitle: l10n.t("Select a file"),
+            selectedPath: l10n.t("Selected Path"),
+            filesOfType: l10n.t("Files of Type"),
         };
     }
 }
