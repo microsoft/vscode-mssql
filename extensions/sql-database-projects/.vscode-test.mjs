@@ -12,7 +12,7 @@ export default testCli.defineConfig([
         skipExtensionDependencies: true,
         mocha: {
             ui: "tdd",
-            timeout: 60_000,
+            timeout: 6_000,
             require: [path.resolve(__dirname, "out/test/stubs/moduleShims.js")],
         },
     },

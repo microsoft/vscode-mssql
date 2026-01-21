@@ -8,7 +8,7 @@ export default testCli.defineConfig([
         skipExtensionDependencies: true,
         mocha: {
             ui: "tdd",
-            timeout: 60_000,
+            timeout: 6_000,
         },
     },
 ]);

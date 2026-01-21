@@ -708,29 +708,49 @@ export async function startDocker(
 
         let attempts = 0;
         const maxAttempts = 30;
-        const interval = 2000;
+        const intervalMs = 2000;
 
         return await new Promise((resolve) => {
-            const checkDocker = setInterval(async () => {
+            let timer: NodeJS.Timeout | undefined;
+            let resolved = false;
+            const resolveOnce = (result: DockerCommandParams) => {
+                if (resolved) {
+                    return;
+                }
+                resolved = true;
+                if (timer) {
+                    clearTimeout(timer);
+                    timer = undefined;
+                }
+                resolve(result);
+            };
+
+            const tryCheckDocker = async () => {
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
-                    clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         dockerStartedThroughExtension: "true",
                     });
-                    resolve({ success: true });
+                    return resolveOnce({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
-                        clearInterval(checkDocker);
-                        resolve({
+                        return resolveOnce({
                             success: false,
                             error: LocalContainers.dockerFailedToStartWithinTimeout,
                             fullErrorText: getErrorMessage(e),
                         });
                     }
+
+                    timer = setTimeout(() => {
+                        void tryCheckDocker();
+                    }, intervalMs);
                 }
-            }, interval);
+            };
+
+            // Attempt immediately, then wait between retries. This avoids an unnecessary initial wait
+            // (and prevents unit tests / CI from burning 1-2s per success path).
+            void tryCheckDocker();
         });
     } catch (e) {
         return {
@@ -813,7 +833,21 @@ export async function checkIfContainerIsReadyForConnections(
     dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
     return new Promise((resolve) => {
-        const interval = setInterval(async () => {
+        let timer: NodeJS.Timeout | undefined;
+        let resolved = false;
+        const resolveOnce = (result: DockerCommandParams) => {
+            if (resolved) {
+                return;
+            }
+            resolved = true;
+            if (timer) {
+                clearTimeout(timer);
+                timer = undefined;
+            }
+            resolve(result);
+        };
+
+        const tryCheckContainerReady = async () => {
             try {
                 const { dockerCmd, grepCmd } = COMMANDS.CHECK_LOGS(containerName, startTimestamp);
                 const logs = await execDockerCommandWithPipe(dockerCmd, grepCmd);
@@ -823,22 +857,27 @@ export async function checkIfContainerIsReadyForConnections(
                 );
 
                 if (readyLine) {
-                    clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    return resolve({ success: true });
+                    return resolveOnce({ success: true });
                 }
             } catch {
                 // Ignore and retry
             }
 
             if (Date.now() - start > timeoutMs) {
-                clearInterval(interval);
-                return resolve({
+                return resolveOnce({
                     success: false,
                     error: LocalContainers.containerFailedToStartWithinTimeout,
                 });
             }
-        }, intervalMs);
+
+            timer = setTimeout(() => {
+                void tryCheckContainerReady();
+            }, intervalMs);
+        };
+
+        // Attempt immediately, then wait between retries.
+        void tryCheckContainerReady();
     });
 }
 
