@@ -1079,9 +1079,9 @@ suite("Docker Utilities", () => {
             }),
         });
 
-        // 1. Non-localhost server: should return undefined
+        // 1. Non-localhost server: should return ""
         let result = await dockerUtils.checkIfConnectionIsDockerContainer("some.remote.host");
-        expect(result, "Should return undefined for non-localhost address").to.equal(undefined);
+        expect(result, "Should return empty string for non-localhost address").to.equal("");
 
         // 2. Docker command fails: should return undefined
         spawnStub.returns(createFailureProcess(new Error("spawn failed")) as any);
@@ -1092,16 +1092,18 @@ suite("Docker Utilities", () => {
         spawnStub.resetHistory();
         spawnStub.returns(createSuccessProcess("") as any); // simulate no containers
 
-        // 3. Docker command returns no containers: should return empty string
+        // 3. Docker command returns no containers: should return undefined
         result = await dockerUtils.checkIfConnectionIsDockerContainer("127.0.0.1");
-        expect(result, "Should return empty string when no containers exist").to.equal("");
+        expect(result, "Should return undefined when no containers exist").to.equal(undefined);
 
-        // 3. Containers exist and one matches the port: should return the container id
+        // 4. Containers exist and one matches the port: should return the container id
         spawnStub.resetHistory();
-        spawnStub.returns(createSuccessProcess(`dockercontainerid`) as any); // simulate container with port 1433
+        spawnStub.returns(
+            createSuccessProcess(`"HostPort": "1433", "Name": "/testContainer",\n`) as any,
+        ); // simulate container with port 1433
 
         result = await dockerUtils.checkIfConnectionIsDockerContainer("localhost, 1433");
-        expect(result, "Should return matched container ID").to.equal("dockercontainerid");
+        expect(result, "Should return matched container ID").to.equal("testContainer");
     });
 
     test("findAvailablePort: should find next available port", async () => {
