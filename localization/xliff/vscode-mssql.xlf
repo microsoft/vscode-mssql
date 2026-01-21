@@ -636,6 +636,9 @@
     <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
       <source xml:lang="en">Clear All</source>
     </trans-unit>
+    <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
+      <source xml:lang="en">Clear Data</source>
+    </trans-unit>
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
@@ -5173,6 +5176,9 @@
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.launchFromObjectExplorer">
+      <source xml:lang="en">Launch Profiler</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>

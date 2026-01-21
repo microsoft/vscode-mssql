@@ -1540,7 +1540,7 @@ export class LocConstants {
             stop: l10n.t("Stop"),
             pause: l10n.t("Pause"),
             resume: l10n.t("Resume"),
-            clear: l10n.t("Clear"),
+            clear: l10n.t("Clear Data"),
             autoScroll: l10n.t("Auto-scroll"),
 
             // Toolbar labels
