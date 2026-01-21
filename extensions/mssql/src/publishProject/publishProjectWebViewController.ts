@@ -574,14 +574,23 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         const profile = activeConnection.credentials as IConnectionProfile;
-        const databases = await this._connectionManager.listDatabases(connectionUri);
-        this._connectionString = await this._connectionManager.getConnectionString(
-            connectionUri,
-            true,
-            true,
-        );
 
-        return { ownerUri: connectionUri, serverName: profile.server, databases };
+        try {
+            const databases = await this._connectionManager.listDatabases(connectionUri);
+            this._connectionString = await this._connectionManager.getConnectionString(
+                connectionUri,
+                true,
+                true,
+            );
+
+            return { ownerUri: connectionUri, serverName: profile.server, databases };
+        } catch (error) {
+            return {
+                ownerUri: connectionUri,
+                serverName: profile.server,
+                errorMessage: getErrorMessage(error),
+            };
+        }
     }
 
     private async initializeDialog(projectFilePath: string) {
