@@ -72,6 +72,7 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     const mockCreateSessionResponse: SchemaDesigner.CreateSessionResponse = {
         schema: mockSchema,
+        originalSchema: mockSchema,
         dataTypes: ["int", "varchar", "datetime"],
         schemaNames: ["dbo", "sys"],
         sessionId: "test-session-id",
@@ -224,6 +225,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
+                originalSchema: mockSchema,
             });
 
             createController();
@@ -270,6 +272,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: false,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -306,6 +309,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: false,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -334,6 +338,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: false,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -358,6 +363,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -381,6 +387,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -531,6 +538,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
                 isDirty: false,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -560,6 +568,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: true,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -577,6 +586,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
                 isDirty: true,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();
@@ -595,6 +605,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
                 isDirty: false,
+                originalSchema: mockSchema,
             });
 
             const ctrl = createController();

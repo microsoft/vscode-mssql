@@ -891,7 +891,7 @@ export const flowUtils = {
                     const refCol = fk.referencedColumns[idx];
 
                     edges.push({
-                        id: `${table.name}-${referencedTable.name}-${col}-${refCol}`,
+                        id: `${fk.id}-${col}-${refCol}`,
                         source: table.id,
                         target: referencedTable.id,
                         sourceHandle: `right-${col}`,
@@ -979,5 +979,561 @@ export const flowUtils = {
         return {
             tables: tables,
         };
+    },
+};
+
+// ========== DIFF COMPUTATION UTILITIES ==========
+
+/**
+ * Column properties to compare for detecting modifications
+ */
+const COLUMN_COMPARE_PROPERTIES: (keyof SchemaDesigner.Column)[] = [
+    "name",
+    "dataType",
+    "maxLength",
+    "precision",
+    "scale",
+    "isPrimaryKey",
+    "isIdentity",
+    "identitySeed",
+    "identityIncrement",
+    "isNullable",
+    "defaultValue",
+    "isComputed",
+    "computedFormula",
+    "computedPersisted",
+];
+
+/**
+ * Foreign key properties to compare for detecting modifications
+ */
+const FK_COMPARE_PROPERTIES: (keyof SchemaDesigner.ForeignKey)[] = [
+    "name",
+    "columns",
+    "referencedSchemaName",
+    "referencedTableName",
+    "referencedColumns",
+    "onDeleteAction",
+    "onUpdateAction",
+];
+
+export const diffUtils = {
+    stableEquals: (a: unknown, b: unknown): boolean => {
+        // Avoid JSON.stringify brittleness due to object key ordering.
+        // Arrays remain order-sensitive (important for FK column mappings).
+        const normalize = (v: unknown): unknown => {
+            if (v === undefined) {
+                return "__undefined__";
+            }
+            if (Array.isArray(v)) {
+                return v.map(normalize);
+            }
+            if (v && typeof v === "object") {
+                const obj = v as Record<string, unknown>;
+                const out: Record<string, unknown> = {};
+                for (const key of Object.keys(obj).sort()) {
+                    out[key] = normalize(obj[key]);
+                }
+                return out;
+            }
+            return v;
+        };
+
+        return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
+    },
+
+    /**
+     * Computes the diff between a column's original and current state
+     */
+    computeColumnDiff: (
+        originalColumn: SchemaDesigner.Column | undefined,
+        currentColumn: SchemaDesigner.Column | undefined,
+    ): SchemaDesigner.ColumnDiff | undefined => {
+        // Column was deleted
+        if (originalColumn && !currentColumn) {
+            return {
+                columnId: originalColumn.id,
+                columnName: originalColumn.name,
+                status: SchemaDesigner.DiffStatus.Deleted,
+                originalColumn,
+            };
+        }
+
+        // Column was added
+        if (!originalColumn && currentColumn) {
+            return {
+                columnId: currentColumn.id,
+                columnName: currentColumn.name,
+                status: SchemaDesigner.DiffStatus.Added,
+                currentColumn,
+            };
+        }
+
+        // Column exists in both - check for modifications
+        if (originalColumn && currentColumn) {
+            const changes: SchemaDesigner.PropertyChange[] = [];
+
+            for (const prop of COLUMN_COMPARE_PROPERTIES) {
+                const originalValue = originalColumn[prop];
+                const newValue = currentColumn[prop];
+
+                if (!diffUtils.stableEquals(originalValue, newValue)) {
+                    changes.push({
+                        propertyName: prop,
+                        originalValue,
+                        newValue,
+                    });
+                }
+            }
+
+            if (changes.length > 0) {
+                return {
+                    columnId: currentColumn.id,
+                    columnName: currentColumn.name,
+                    status: SchemaDesigner.DiffStatus.Modified,
+                    originalColumn,
+                    currentColumn,
+                    changes,
+                };
+            }
+        }
+
+        return undefined; // No changes
+    },
+
+    /**
+     * Computes the diff between a foreign key's original and current state
+     */
+    computeForeignKeyDiff: (
+        originalFK: SchemaDesigner.ForeignKey | undefined,
+        currentFK: SchemaDesigner.ForeignKey | undefined,
+    ): SchemaDesigner.ForeignKeyDiff | undefined => {
+        // FK was deleted
+        if (originalFK && !currentFK) {
+            return {
+                foreignKeyId: originalFK.id,
+                foreignKeyName: originalFK.name,
+                status: SchemaDesigner.DiffStatus.Deleted,
+                originalForeignKey: originalFK,
+            };
+        }
+
+        // FK was added
+        if (!originalFK && currentFK) {
+            return {
+                foreignKeyId: currentFK.id,
+                foreignKeyName: currentFK.name,
+                status: SchemaDesigner.DiffStatus.Added,
+                currentForeignKey: currentFK,
+            };
+        }
+
+        // FK exists in both - check for modifications
+        if (originalFK && currentFK) {
+            const changes: SchemaDesigner.PropertyChange[] = [];
+
+            for (const prop of FK_COMPARE_PROPERTIES) {
+                const originalValue = originalFK[prop];
+                const newValue = currentFK[prop];
+
+                if (!diffUtils.stableEquals(originalValue, newValue)) {
+                    changes.push({
+                        propertyName: prop,
+                        originalValue,
+                        newValue,
+                    });
+                }
+            }
+
+            if (changes.length > 0) {
+                return {
+                    foreignKeyId: currentFK.id,
+                    foreignKeyName: currentFK.name,
+                    status: SchemaDesigner.DiffStatus.Modified,
+                    originalForeignKey: originalFK,
+                    currentForeignKey: currentFK,
+                    changes,
+                };
+            }
+        }
+
+        return undefined;
+    },
+
+    /**
+     * Computes the diff between a table's original and current state
+     */
+    computeTableDiff: (
+        originalTable: SchemaDesigner.Table | undefined,
+        currentTable: SchemaDesigner.Table | undefined,
+    ): SchemaDesigner.TableDiff | undefined => {
+        // Table was deleted
+        if (originalTable && !currentTable) {
+            return {
+                tableId: originalTable.id,
+                tableName: originalTable.name,
+                schemaName: originalTable.schema,
+                status: SchemaDesigner.DiffStatus.Deleted,
+                originalTable,
+                columnDiffs: originalTable.columns.map((col) => ({
+                    columnId: col.id,
+                    columnName: col.name,
+                    status: SchemaDesigner.DiffStatus.Deleted,
+                    originalColumn: col,
+                })),
+                foreignKeyDiffs: originalTable.foreignKeys.map((fk) => ({
+                    foreignKeyId: fk.id,
+                    foreignKeyName: fk.name,
+                    status: SchemaDesigner.DiffStatus.Deleted,
+                    originalForeignKey: fk,
+                })),
+            };
+        }
+
+        // Table was added
+        if (!originalTable && currentTable) {
+            return {
+                tableId: currentTable.id,
+                tableName: currentTable.name,
+                schemaName: currentTable.schema,
+                status: SchemaDesigner.DiffStatus.Added,
+                currentTable,
+                columnDiffs: currentTable.columns.map((col) => ({
+                    columnId: col.id,
+                    columnName: col.name,
+                    status: SchemaDesigner.DiffStatus.Added,
+                    currentColumn: col,
+                })),
+                foreignKeyDiffs: currentTable.foreignKeys.map((fk) => ({
+                    foreignKeyId: fk.id,
+                    foreignKeyName: fk.name,
+                    status: SchemaDesigner.DiffStatus.Added,
+                    currentForeignKey: fk,
+                })),
+            };
+        }
+
+        // Table exists in both - compute column and FK diffs
+        if (originalTable && currentTable) {
+            const columnDiffs: SchemaDesigner.ColumnDiff[] = [];
+            const foreignKeyDiffs: SchemaDesigner.ForeignKeyDiff[] = [];
+
+            // Check for deleted and modified columns
+            for (const originalCol of originalTable.columns) {
+                const currentCol = currentTable.columns.find((c) => c.id === originalCol.id);
+                const diff = diffUtils.computeColumnDiff(originalCol, currentCol);
+                if (diff) {
+                    columnDiffs.push(diff);
+                }
+            }
+
+            // Check for added columns
+            for (const currentCol of currentTable.columns) {
+                const originalCol = originalTable.columns.find((c) => c.id === currentCol.id);
+                if (!originalCol) {
+                    const diff = diffUtils.computeColumnDiff(undefined, currentCol);
+                    if (diff) {
+                        columnDiffs.push(diff);
+                    }
+                }
+            }
+
+            // Check for deleted foreign keys
+            for (const originalFK of originalTable.foreignKeys) {
+                const currentFK = currentTable.foreignKeys.find((fk) => fk.id === originalFK.id);
+                const diff = diffUtils.computeForeignKeyDiff(originalFK, currentFK);
+                if (diff) {
+                    foreignKeyDiffs.push(diff);
+                }
+            }
+
+            // Check for added foreign keys
+            for (const currentFK of currentTable.foreignKeys) {
+                const originalFK = originalTable.foreignKeys.find((fk) => fk.id === currentFK.id);
+                if (!originalFK) {
+                    const diff = diffUtils.computeForeignKeyDiff(undefined, currentFK);
+                    if (diff) {
+                        foreignKeyDiffs.push(diff);
+                    }
+                }
+            }
+
+            // Check if table name or schema changed
+            const tableNameChanged =
+                originalTable.name !== currentTable.name ||
+                originalTable.schema !== currentTable.schema;
+
+            const hasChanges =
+                tableNameChanged || columnDiffs.length > 0 || foreignKeyDiffs.length > 0;
+
+            if (hasChanges) {
+                return {
+                    tableId: currentTable.id,
+                    tableName: currentTable.name,
+                    schemaName: currentTable.schema,
+                    status: SchemaDesigner.DiffStatus.Modified,
+                    originalTable,
+                    currentTable,
+                    columnDiffs,
+                    foreignKeyDiffs,
+                };
+            }
+        }
+
+        return undefined; // No changes
+    },
+
+    /**
+     * Computes the complete diff between original and current schema
+     */
+    computeSchemaDiff: (
+        originalSchema: SchemaDesigner.Schema,
+        currentSchema: SchemaDesigner.Schema,
+    ): SchemaDesigner.SchemaDiff => {
+        const tableDiffs: SchemaDesigner.TableDiff[] = [];
+
+        // Check for deleted and modified tables
+        for (const originalTable of originalSchema.tables) {
+            const currentTable = currentSchema.tables.find((t) => t.id === originalTable.id);
+            const diff = diffUtils.computeTableDiff(originalTable, currentTable);
+            if (diff) {
+                tableDiffs.push(diff);
+            }
+        }
+
+        // Check for added tables
+        for (const currentTable of currentSchema.tables) {
+            const originalTable = originalSchema.tables.find((t) => t.id === currentTable.id);
+            if (!originalTable) {
+                const diff = diffUtils.computeTableDiff(undefined, currentTable);
+                if (diff) {
+                    tableDiffs.push(diff);
+                }
+            }
+        }
+
+        // Compute summary
+        const summary = {
+            tablesAdded: 0,
+            tablesModified: 0,
+            tablesDeleted: 0,
+            columnsAdded: 0,
+            columnsModified: 0,
+            columnsDeleted: 0,
+            foreignKeysAdded: 0,
+            foreignKeysModified: 0,
+            foreignKeysDeleted: 0,
+        };
+
+        for (const tableDiff of tableDiffs) {
+            switch (tableDiff.status) {
+                case SchemaDesigner.DiffStatus.Added:
+                    summary.tablesAdded++;
+                    summary.columnsAdded += tableDiff.columnDiffs.length;
+                    summary.foreignKeysAdded += tableDiff.foreignKeyDiffs.length;
+                    break;
+                case SchemaDesigner.DiffStatus.Deleted:
+                    summary.tablesDeleted++;
+                    summary.columnsDeleted += tableDiff.columnDiffs.length;
+                    summary.foreignKeysDeleted += tableDiff.foreignKeyDiffs.length;
+                    break;
+                case SchemaDesigner.DiffStatus.Modified:
+                    summary.tablesModified++;
+                    for (const colDiff of tableDiff.columnDiffs) {
+                        switch (colDiff.status) {
+                            case SchemaDesigner.DiffStatus.Added:
+                                summary.columnsAdded++;
+                                break;
+                            case SchemaDesigner.DiffStatus.Deleted:
+                                summary.columnsDeleted++;
+                                break;
+                            case SchemaDesigner.DiffStatus.Modified:
+                                summary.columnsModified++;
+                                break;
+                        }
+                    }
+                    for (const fkDiff of tableDiff.foreignKeyDiffs) {
+                        switch (fkDiff.status) {
+                            case SchemaDesigner.DiffStatus.Added:
+                                summary.foreignKeysAdded++;
+                                break;
+                            case SchemaDesigner.DiffStatus.Modified:
+                                summary.foreignKeysModified++;
+                                break;
+                            case SchemaDesigner.DiffStatus.Deleted:
+                                summary.foreignKeysDeleted++;
+                                break;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return {
+            hasChanges: tableDiffs.length > 0,
+            tableDiffs,
+            summary,
+        };
+    },
+
+    /**
+     * Converts a SchemaDiff to a list of ChangeEntry items for the UI
+     */
+    convertDiffToChangeEntries: (diff: SchemaDesigner.SchemaDiff): SchemaDesigner.ChangeEntry[] => {
+        const entries: SchemaDesigner.ChangeEntry[] = [];
+
+        for (const tableDiff of diff.tableDiffs) {
+            const tableDisplayName = `${tableDiff.schemaName}.${tableDiff.tableName}`;
+
+            // Table-level changes
+            if (
+                tableDiff.status === SchemaDesigner.DiffStatus.Added ||
+                tableDiff.status === SchemaDesigner.DiffStatus.Deleted
+            ) {
+                entries.push({
+                    id: `table-${tableDiff.tableId}`,
+                    entityType: "table",
+                    changeType: tableDiff.status,
+                    label: tableDisplayName,
+                    description:
+                        tableDiff.status === SchemaDesigner.DiffStatus.Added
+                            ? `Table added`
+                            : `Table deleted`,
+                    tableId: tableDiff.tableId,
+                    tableName: tableDisplayName,
+                    originalData: tableDiff.originalTable,
+                });
+            }
+
+            // Modified table (name/schema changes)
+            if (
+                tableDiff.status === SchemaDesigner.DiffStatus.Modified &&
+                tableDiff.originalTable &&
+                tableDiff.currentTable
+            ) {
+                const propertyChanges: SchemaDesigner.PropertyChange[] = [];
+                if (tableDiff.originalTable.name !== tableDiff.currentTable.name) {
+                    propertyChanges.push({
+                        propertyName: "name",
+                        originalValue: tableDiff.originalTable.name,
+                        newValue: tableDiff.currentTable.name,
+                    });
+                }
+                if (tableDiff.originalTable.schema !== tableDiff.currentTable.schema) {
+                    propertyChanges.push({
+                        propertyName: "schema",
+                        originalValue: tableDiff.originalTable.schema,
+                        newValue: tableDiff.currentTable.schema,
+                    });
+                }
+
+                if (propertyChanges.length > 0) {
+                    entries.push({
+                        id: `table-mod-${tableDiff.tableId}`,
+                        entityType: "table",
+                        changeType: SchemaDesigner.DiffStatus.Modified,
+                        label: tableDisplayName,
+                        description: "Table modified",
+                        tableId: tableDiff.tableId,
+                        tableName: tableDisplayName,
+                        propertyChanges,
+                        originalData: tableDiff.originalTable,
+                    });
+                }
+            }
+
+            // Column-level changes (only for modified tables)
+            if (tableDiff.status === SchemaDesigner.DiffStatus.Modified) {
+                for (const colDiff of tableDiff.columnDiffs) {
+                    let description = "";
+                    switch (colDiff.status) {
+                        case SchemaDesigner.DiffStatus.Added:
+                            description = `Column added`;
+                            break;
+                        case SchemaDesigner.DiffStatus.Deleted:
+                            description = `Column deleted`;
+                            break;
+                        case SchemaDesigner.DiffStatus.Modified:
+                            const changedProps = colDiff.changes?.map((c) => c.propertyName) || [];
+                            description = `Modified: ${changedProps.join(", ")}`;
+                            break;
+                    }
+
+                    entries.push({
+                        id: `column-${tableDiff.tableId}-${colDiff.columnId}`,
+                        entityType: "column",
+                        changeType: colDiff.status,
+                        label: `${tableDisplayName}.${colDiff.columnName}`,
+                        description,
+                        tableId: tableDiff.tableId,
+                        tableName: tableDisplayName,
+                        columnId: colDiff.columnId,
+                        propertyChanges: colDiff.changes,
+                        originalData: colDiff.originalColumn,
+                    });
+                }
+
+                // Foreign key changes
+                for (const fkDiff of tableDiff.foreignKeyDiffs) {
+                    entries.push({
+                        id: `fk-${tableDiff.tableId}-${fkDiff.foreignKeyId}`,
+                        entityType: "foreignKey",
+                        changeType: fkDiff.status,
+                        label: fkDiff.foreignKeyName || "Foreign Key",
+                        description:
+                            fkDiff.status === SchemaDesigner.DiffStatus.Added
+                                ? `Foreign key added`
+                                : fkDiff.status === SchemaDesigner.DiffStatus.Deleted
+                                  ? `Foreign key deleted`
+                                  : `Foreign key modified`,
+                        tableId: tableDiff.tableId,
+                        tableName: tableDisplayName,
+                        foreignKeyId: fkDiff.foreignKeyId,
+                        propertyChanges: fkDiff.changes,
+                        originalData: fkDiff.originalForeignKey,
+                    });
+                }
+            }
+        }
+
+        return entries;
+    },
+
+    /**
+     * Gets the diff status for a specific table by ID
+     */
+    getTableDiffStatus: (
+        diff: SchemaDesigner.SchemaDiff,
+        tableId: string,
+    ): SchemaDesigner.DiffStatus => {
+        const tableDiff = diff.tableDiffs.find((td) => td.tableId === tableId);
+        return tableDiff?.status ?? SchemaDesigner.DiffStatus.Unchanged;
+    },
+
+    /**
+     * Gets the diff status for a specific column by ID
+     */
+    getColumnDiffStatus: (
+        diff: SchemaDesigner.SchemaDiff,
+        tableId: string,
+        columnId: string,
+    ): SchemaDesigner.ColumnDiff | undefined => {
+        const tableDiff = diff.tableDiffs.find((td) => td.tableId === tableId);
+        if (!tableDiff) return undefined;
+        return tableDiff.columnDiffs.find((cd) => cd.columnId === columnId);
+    },
+
+    /**
+     * Gets the diff status for a specific foreign key by ID
+     */
+    getForeignKeyDiffStatus: (
+        diff: SchemaDesigner.SchemaDiff,
+        foreignKeyId: string,
+    ): SchemaDesigner.ForeignKeyDiff | undefined => {
+        for (const tableDiff of diff.tableDiffs) {
+            const fkDiff = tableDiff.foreignKeyDiffs.find((fk) => fk.foreignKeyId === foreignKeyId);
+            if (fkDiff) return fkDiff;
+        }
+        return undefined;
     },
 };

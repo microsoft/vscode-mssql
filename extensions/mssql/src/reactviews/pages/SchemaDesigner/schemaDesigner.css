@@ -45,3 +45,220 @@
     border-radius: 3px;
     padding: 3px;
 }
+
+/* ========== DIFF VIEW STYLES ========== */
+
+/* Diff view table borders - applied to ReactFlow node wrapper */
+div.react-flow__node.diff-table-added > div {
+    border: 2px solid var(--vscode-gitDecoration-addedResourceForeground, #89d185) !important;
+    box-shadow: 0 0 8px rgba(137, 209, 133, 0.3);
+}
+
+div.react-flow__node.diff-table-modified > div {
+    border: 2px solid var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d) !important;
+    box-shadow: 0 0 8px rgba(226, 192, 141, 0.3);
+}
+
+div.react-flow__node.diff-table-deleted > div {
+    border: 2px solid var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    box-shadow: 0 0 8px rgba(199, 78, 57, 0.3);
+    opacity: 0.7;
+}
+
+/* Diff view column indicators */
+.diff-column-added {
+    background-color: rgba(137, 209, 133, 0.15) !important;
+    border-left: 3px solid var(--vscode-gitDecoration-addedResourceForeground, #89d185);
+}
+
+.diff-column-modified {
+    background-color: rgba(226, 192, 141, 0.15) !important;
+    border-left: 3px solid var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.diff-column-deleted {
+    background-color: rgba(199, 78, 57, 0.15) !important;
+    border-left: 3px solid var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* Diff badge styles */
+.diff-badge {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.diff-badge-added {
+    background-color: var(--vscode-gitDecoration-addedResourceForeground, #89d185);
+    color: var(--vscode-editor-background);
+}
+
+.diff-badge-modified {
+    background-color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+    color: var(--vscode-editor-background);
+}
+
+.diff-badge-deleted {
+    background-color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    color: var(--vscode-editor-background);
+}
+
+/* Changes panel styles */
+.diff-changes-panel {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    width: 320px;
+    max-height: 60vh;
+    background-color: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.diff-changes-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    background-color: var(--vscode-editor-background);
+}
+
+.diff-changes-panel-title {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.diff-changes-panel-content {
+    overflow-y: auto;
+    flex: 1;
+    padding: 8px;
+}
+
+.diff-change-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+}
+
+.diff-change-item:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.diff-change-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diff-change-item-header .diff-badge {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0;
+}
+
+.diff-change-item-label {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.diff-change-item-description {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 4px;
+}
+
+.diff-change-item-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.diff-property-change {
+    font-size: 10px;
+    padding: 2px 6px;
+    margin: 2px 0;
+    background-color: var(--vscode-textBlockQuote-background);
+    border-radius: 3px;
+}
+
+.diff-property-change-name {
+    font-weight: 600;
+    color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+/* Collapsible section styles */
+.diff-collapsible-section {
+    margin-bottom: 8px;
+}
+
+.diff-collapsible-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    background-color: var(--vscode-editor-background);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--vscode-foreground);
+    font-size: 12px;
+    text-align: left;
+}
+
+.diff-collapsible-header:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.diff-section-count {
+    margin-left: auto;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.diff-collapsible-content {
+    padding: 4px 0 0 0;
+}
+
+/* Table header rename indicator */
+.diff-table-name-wrap {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.diff-table-name-old {
+    text-decoration: line-through;
+    color: var(--vscode-descriptionForeground);
+}
+
+.diff-table-name-new {
+    color: var(--vscode-foreground);
+}

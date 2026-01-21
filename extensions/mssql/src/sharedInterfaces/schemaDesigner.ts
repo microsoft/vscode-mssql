@@ -204,6 +204,11 @@ export namespace SchemaDesigner {
          */
         schema: Schema;
         /**
+         * Original schema from the database (for diff comparison)
+         * This is the schema as it was when the session was first created
+         */
+        originalSchema: Schema;
+        /**
          * List of datatypes
          * This is the list of datatypes that are used to create the schema designer
          */
@@ -401,6 +406,8 @@ export namespace SchemaDesigner {
     export interface SchemaDesignerCacheItem {
         schemaDesignerDetails: SchemaDesigner.CreateSessionResponse;
         isDirty: boolean;
+        /** The original schema from the database when the session was first created (for diff comparison) */
+        originalSchema: Schema;
     }
 
     export interface PublishSessionParams {
@@ -460,5 +467,141 @@ export namespace SchemaDesigner {
         export const type = new RequestType<void, CreateSessionResponse, void>(
             "initializeSchemaDesigner",
         );
+    }
+
+    // ========== DIFF VIEW TYPES ==========
+
+    /**
+     * Represents the diff status of an entity (table, column, foreign key)
+     */
+    export enum DiffStatus {
+        /** Entity exists in both original and current schema with no changes */
+        Unchanged = "unchanged",
+        /** Entity was added in current schema */
+        Added = "added",
+        /** Entity was modified in current schema */
+        Modified = "modified",
+        /** Entity was deleted from current schema */
+        Deleted = "deleted",
+    }
+
+    /**
+     * Represents a change to a specific property
+     */
+    export interface PropertyChange<T = unknown> {
+        /** Name of the property that changed */
+        propertyName: string;
+        /** Original value before the change */
+        originalValue: T;
+        /** New value after the change */
+        newValue: T;
+    }
+
+    /**
+     * Represents the diff information for a column
+     */
+    export interface ColumnDiff {
+        /** The column ID */
+        columnId: string;
+        /** The column name (current or original if deleted) */
+        columnName: string;
+        /** The diff status of this column */
+        status: DiffStatus;
+        /** The original column data (if modified or deleted) */
+        originalColumn?: Column;
+        /** The current column data (if added or modified) */
+        currentColumn?: Column;
+        /** List of property changes (if modified) */
+        changes?: PropertyChange[];
+    }
+
+    /**
+     * Represents the diff information for a foreign key
+     */
+    export interface ForeignKeyDiff {
+        /** The foreign key ID */
+        foreignKeyId: string;
+        /** The foreign key name (current or original if deleted) */
+        foreignKeyName: string;
+        /** The diff status of this foreign key */
+        status: DiffStatus;
+        /** The original foreign key data (if modified or deleted) */
+        originalForeignKey?: ForeignKey;
+        /** The current foreign key data (if added or modified) */
+        currentForeignKey?: ForeignKey;
+        /** List of property changes (if modified) */
+        changes?: PropertyChange[];
+    }
+
+    /**
+     * Represents the diff information for a table
+     */
+    export interface TableDiff {
+        /** The table ID */
+        tableId: string;
+        /** The table name (current or original if deleted) */
+        tableName: string;
+        /** The schema name */
+        schemaName: string;
+        /** The diff status of this table */
+        status: DiffStatus;
+        /** The original table data (if modified or deleted) */
+        originalTable?: Table;
+        /** The current table data (if added or modified) */
+        currentTable?: Table;
+        /** Column-level diffs for this table */
+        columnDiffs: ColumnDiff[];
+        /** Foreign key-level diffs for this table */
+        foreignKeyDiffs: ForeignKeyDiff[];
+    }
+
+    /**
+     * Represents the complete diff between original and current schema
+     */
+    export interface SchemaDiff {
+        /** Whether there are any changes */
+        hasChanges: boolean;
+        /** List of all table diffs */
+        tableDiffs: TableDiff[];
+        /** Summary counts */
+        summary: {
+            tablesAdded: number;
+            tablesModified: number;
+            tablesDeleted: number;
+            columnsAdded: number;
+            columnsModified: number;
+            columnsDeleted: number;
+            foreignKeysAdded: number;
+            foreignKeysModified: number;
+            foreignKeysDeleted: number;
+        };
+    }
+
+    /**
+     * Represents a single change entry for the changes panel
+     */
+    export interface ChangeEntry {
+        /** Unique identifier for this change */
+        id: string;
+        /** Type of entity changed */
+        entityType: "table" | "column" | "foreignKey";
+        /** Type of change */
+        changeType: DiffStatus;
+        /** Display label for the change */
+        label: string;
+        /** Detailed description of the change */
+        description: string;
+        /** Table ID this change belongs to */
+        tableId: string;
+        /** Table name for display */
+        tableName: string;
+        /** Column ID (if column change) */
+        columnId?: string;
+        /** Foreign key ID (if foreign key change) */
+        foreignKeyId?: string;
+        /** Property changes for modified entities */
+        propertyChanges?: PropertyChange[];
+        /** Original entity data for undo operations */
+        originalData?: Table | Column | ForeignKey;
     }
 }

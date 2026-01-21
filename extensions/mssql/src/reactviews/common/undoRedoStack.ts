@@ -23,6 +23,22 @@ export class UndoRedoStack<T> {
         this.maxSize = maxSize;
     }
 
+    private cloneState(state: T): T {
+        // ReactFlow state objects are frequently mutated in-place.
+        // Clone defensively so history entries remain stable.
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const sc = (globalThis as any).structuredClone as undefined | ((v: T) => T);
+            if (typeof sc === "function") {
+                return sc(state);
+            }
+        } catch {
+            // Fall through to JSON clone
+        }
+
+        return JSON.parse(JSON.stringify(state)) as T;
+    }
+
     /**
      * Get the current state
      */
@@ -34,7 +50,7 @@ export class UndoRedoStack<T> {
      * Set the initial state (without pushing to the stack)
      */
     setInitialState(state: T): void {
-        this.currentState = state;
+        this.currentState = this.cloneState(state);
         this.clearHistory();
     }
 
@@ -46,20 +62,25 @@ export class UndoRedoStack<T> {
     pushState(newState: T, undoAction?: () => T): void {
         const previousState = this.currentState;
 
+        const nextStateClone = this.cloneState(newState);
+        const previousStateClone = previousState ? this.cloneState(previousState) : previousState;
+
         // Do a deep comparison to check if the state has changed
-        if (JSON.stringify(previousState) === JSON.stringify(newState)) {
+        if (JSON.stringify(previousStateClone) === JSON.stringify(nextStateClone)) {
             // No change, do not push to stack
             return;
         }
 
         // Store the action that can undo/redo this change
         this.undoStack.push({
-            undo: undoAction || (() => previousState as T),
-            redo: () => newState,
+            undo: undoAction
+                ? () => this.cloneState(undoAction())
+                : () => (previousStateClone as T),
+            redo: () => nextStateClone,
         });
 
         // Update current state
-        this.currentState = newState;
+        this.currentState = nextStateClone;
 
         // Clear the redo stack as a new action breaks the redo chain
         this.redoStack = [];
@@ -94,12 +115,12 @@ export class UndoRedoStack<T> {
         }
 
         const action = this.undoStack.pop()!;
-        const prevState = action.undo();
+        const prevState = this.cloneState(action.undo());
 
         const current = this.currentState;
         this.redoStack.push({
-            undo: () => current as T, // capture at time of undo
-            redo: action.redo,
+            undo: () => this.cloneState(current as T), // capture at time of undo
+            redo: () => this.cloneState(action.redo()),
         });
 
         this.currentState = prevState;
@@ -116,12 +137,12 @@ export class UndoRedoStack<T> {
         }
 
         const action = this.redoStack.pop()!;
-        const nextState = action.redo();
+        const nextState = this.cloneState(action.redo());
 
         const current = this.currentState;
         this.undoStack.push({
-            undo: () => current as T,
-            redo: () => nextState,
+            undo: () => this.cloneState(current as T),
+            redo: () => this.cloneState(nextState),
         });
 
         this.currentState = nextState;

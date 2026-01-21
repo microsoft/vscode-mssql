@@ -95,3 +95,27 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
 .react-flow__node-tableNode .column:hover .react-flow__handle {
     opacity: 1;
 }
+
+/* ========== DIFF VIEW EDGE STYLES ========== */
+
+/* Added foreign key edges - yellow/gold stroke */
+.react-flow__edge.diff-edge-added path {
+    stroke: var(--vscode-gitDecoration-addedResourceForeground, #89d185) !important;
+    stroke-width: 2 !important;
+}
+
+.react-flow__edge.diff-edge-added .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-addedResourceForeground, #89d185) !important;
+}
+
+/* Deleted foreign key edges - red dashed stroke */
+.react-flow__edge.diff-edge-deleted path {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    stroke-width: 2 !important;
+    stroke-dasharray: 5 5 !important;
+}
+
+.react-flow__edge.diff-edge-deleted .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    stroke-dasharray: 5 5 !important;
+}

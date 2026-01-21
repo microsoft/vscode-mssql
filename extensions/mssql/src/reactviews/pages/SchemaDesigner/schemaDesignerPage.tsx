@@ -11,6 +11,7 @@ import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer"
 import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
+import { DiffChangesPanel } from "./diffChangesPanel";
 import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
@@ -39,6 +40,7 @@ export const SchemaDesignerPage = () => {
                         <GraphContainer>
                             <SchemaDesignerToolbar />
                             <SchemaDesignerFlow />
+                            <DiffChangesPanel />
                         </GraphContainer>
                     </Panel>
                     <PanelResizeHandle className={classes.resizeHandle} />

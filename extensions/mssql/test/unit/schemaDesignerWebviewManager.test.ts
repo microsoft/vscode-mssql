@@ -47,6 +47,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
     const mockCreateSessionResponse: SchemaDesigner.CreateSessionResponse = {
         schema: mockSchema,
+        originalSchema: mockSchema,
         dataTypes: ["int", "varchar"],
         schemaNames: ["dbo"],
         sessionId: "test-session-id",

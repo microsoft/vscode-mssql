@@ -107,14 +107,21 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
                     });
+                    // Store the original schema for diff comparison
+                    const originalSchema = JSON.parse(JSON.stringify(sessionResponse.schema));
+                    sessionResponse.originalSchema = originalSchema;
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
                         isDirty: false,
+                        originalSchema: originalSchema,
                     });
                 } else {
                     // if the cache has the session, the changes have not been saved, and the
                     // session is dirty
-                    sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
+                    const cacheItem = this.updateCacheItem(undefined, true);
+                    sessionResponse = cacheItem.schemaDesignerDetails;
+                    // Ensure original schema is included from the cache
+                    sessionResponse.originalSchema = cacheItem.originalSchema;
                 }
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;

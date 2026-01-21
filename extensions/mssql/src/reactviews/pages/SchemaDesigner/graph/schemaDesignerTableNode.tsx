@@ -19,7 +19,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState, cloneElement } from "react";
+import { useContext, useRef, useEffect, useState, cloneElement, useMemo } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
@@ -241,7 +241,13 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
+const TableHeader = ({
+    table,
+    tableDiff,
+}: {
+    table: SchemaDesigner.Table;
+    tableDiff?: SchemaDesigner.TableDiff;
+}) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
 
@@ -282,18 +288,41 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         );
     };
 
+    const showRenameIndicator =
+        context.isDiffViewEnabled &&
+        tableDiff?.status === SchemaDesigner.DiffStatus.Modified &&
+        tableDiff.originalTable &&
+        (tableDiff.originalTable.name !== table.name ||
+            tableDiff.originalTable.schema !== table.schema);
+
+    const oldFullName = showRenameIndicator
+        ? `${tableDiff?.originalTable?.schema}.${tableDiff?.originalTable?.name}`
+        : undefined;
+    const newFullName = `${table.schema}.${table.name}`;
+
     return (
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <ConditionalTooltip content={`${table.schema}.${table.name}`} relationship="label">
+                <ConditionalTooltip
+                    content={showRenameIndicator ? `${oldFullName} → ${newFullName}` : newFullName}
+                    relationship="label">
                     <Text
                         className={
                             context.isExporting ? styles.tableTitleExporting : styles.tableTitle
                         }>
-                        {context.isExporting
-                            ? `${table.schema}.${table.name}`
-                            : highlightText(`${table.schema}.${table.name}`)}
+                        {showRenameIndicator ? (
+                            <span className="diff-table-name-wrap">
+                                <span className="diff-table-name-old">{oldFullName}</span>
+                                <span className="diff-table-name-new">
+                                    {context.isExporting ? newFullName : highlightText(newFullName)}
+                                </span>
+                            </span>
+                        ) : context.isExporting ? (
+                            newFullName
+                        ) : (
+                            highlightText(newFullName)
+                        )}
                     </Text>
                 </ConditionalTooltip>
                 {!context.isExporting && <TableHeaderActions table={table} />}
@@ -309,9 +338,13 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
 const TableColumn = ({
     column,
     table,
+    columnDiff,
+    tableStatus,
 }: {
     column: SchemaDesigner.Column;
     table: SchemaDesigner.Table;
+    columnDiff?: SchemaDesigner.ColumnDiff;
+    tableStatus?: SchemaDesigner.DiffStatus;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
@@ -319,8 +352,56 @@ const TableColumn = ({
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
 
+    const suppressColumnDiff =
+        tableStatus === SchemaDesigner.DiffStatus.Added ||
+        tableStatus === SchemaDesigner.DiffStatus.Deleted;
+
+    // Determine diff class for column
+    const getDiffClass = () => {
+        if (!context.isDiffViewEnabled || !columnDiff || suppressColumnDiff) return "";
+        switch (columnDiff.status) {
+            case SchemaDesigner.DiffStatus.Added:
+                return "diff-column-added";
+            case SchemaDesigner.DiffStatus.Modified:
+                return "diff-column-modified";
+            case SchemaDesigner.DiffStatus.Deleted:
+                return "diff-column-deleted";
+            default:
+                return "";
+        }
+    };
+
+    // Get diff badge text
+    const getDiffBadge = () => {
+        if (!context.isDiffViewEnabled || !columnDiff || suppressColumnDiff) return undefined;
+
+        let badgeClass = "";
+        let badgeText = "";
+
+        switch (columnDiff.status) {
+            case SchemaDesigner.DiffStatus.Added:
+                badgeClass = "diff-badge diff-badge-added";
+                badgeText = "NEW";
+                break;
+            case SchemaDesigner.DiffStatus.Modified:
+                badgeClass = "diff-badge diff-badge-modified";
+                // Show what changed
+                const changedProps = columnDiff.changes?.map((c) => c.propertyName).slice(0, 2);
+                badgeText = changedProps?.join(", ") || "MODIFIED";
+                break;
+            case SchemaDesigner.DiffStatus.Deleted:
+                badgeClass = "diff-badge diff-badge-deleted";
+                badgeText = "DELETED";
+                break;
+            default:
+                return undefined;
+        }
+
+        return <span className={badgeClass}>{badgeText}</span>;
+    };
+
     return (
-        <div className={"column"} key={column.name}>
+        <div className={`column ${getDiffClass()}`} key={column.name}>
             <Handle
                 type="source"
                 position={Position.Left}
@@ -343,6 +424,8 @@ const TableColumn = ({
             <Text className={styles.columnType}>
                 {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
             </Text>
+
+            {getDiffBadge()}
 
             <Handle
                 type="source"
@@ -408,11 +491,13 @@ const TableColumns = ({
     table,
     isCollapsed,
     onToggleCollapse,
+    tableDiff,
 }: {
     columns: SchemaDesigner.Column[];
     table: SchemaDesigner.Table;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
+    tableDiff?: SchemaDesigner.TableDiff;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
@@ -427,13 +512,52 @@ const TableColumns = ({
     const EXPAND = l10n.t("Expand");
     const COLLAPSE = l10n.t("Collapse");
 
+    // Get column diff by ID
+    const getColumnDiff = (columnId: string): SchemaDesigner.ColumnDiff | undefined => {
+        if (!tableDiff) return undefined;
+        return tableDiff.columnDiffs.find((cd) => cd.columnId === columnId);
+    };
+
+    // In diff view, also show deleted columns
+    // But only if the table itself is NOT deleted (if table is deleted, all columns are already shown)
+    const deletedColumns = useMemo(() => {
+        if (!context.isDiffViewEnabled || !tableDiff) return [];
+        // If the entire table is deleted, don't add columns again - they're already shown from table.columns
+        if (tableDiff.status === SchemaDesigner.DiffStatus.Deleted) return [];
+        return tableDiff.columnDiffs
+            .filter((cd) => cd.status === SchemaDesigner.DiffStatus.Deleted && cd.originalColumn)
+            .map((cd) => cd.originalColumn!);
+    }, [context.isDiffViewEnabled, tableDiff]);
+
     return (
         <div style={{ position: "relative" }}>
             {/* Always render all column handles for consistency */}
             {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
 
             {visibleColumns.map((column, index) => (
-                <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
+                <TableColumn
+                    key={`${index}-${column.name}`}
+                    column={column}
+                    table={table}
+                    columnDiff={getColumnDiff(column.id)}
+                    tableStatus={tableDiff?.status}
+                />
+            ))}
+
+            {/* Show deleted columns in diff view */}
+            {deletedColumns.map((column, index) => (
+                <TableColumn
+                    key={`deleted-${index}-${column.name}`}
+                    column={column}
+                    table={table}
+                    columnDiff={{
+                        columnId: column.id,
+                        columnName: column.name,
+                        status: SchemaDesigner.DiffStatus.Deleted,
+                        originalColumn: column,
+                    }}
+                    tableStatus={tableDiff?.status}
+                />
             ))}
 
             {showCollapseButton && (
@@ -459,6 +583,7 @@ const TableColumns = ({
 // Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
+    const context = useContext(SchemaDesignerContext);
     const table = props.data as SchemaDesigner.Table;
     // Default to collapsed state if table has more than 10 columns
     const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
@@ -467,16 +592,27 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
         setIsCollapsed(!isCollapsed);
     };
 
+    // Get table diff status for column styling
+    const tableDiff = useMemo(() => {
+        if (!context.isDiffViewEnabled || !context.originalSchema) {
+            return undefined;
+        }
+        const diff = context.getSchemaDiff();
+        if (!diff) return undefined;
+        return diff.tableDiffs.find((td) => td.tableId === table.id);
+    }, [context.isDiffViewEnabled, context.originalSchema, context.schemaChangeVersion, table.id]);
+
     return (
         <div className={styles.tableNodeContainer}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
-            <TableHeader table={table} />
+            <TableHeader table={table} tableDiff={tableDiff} />
             <Divider />
             <TableColumns
                 columns={table.columns}
                 table={table}
                 isCollapsed={isCollapsed}
                 onToggleCollapse={handleToggleCollapse}
+                tableDiff={tableDiff}
             />
         </div>
     );
