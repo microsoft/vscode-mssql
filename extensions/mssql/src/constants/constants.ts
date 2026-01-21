@@ -313,6 +313,10 @@ export enum Platform {
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
+export const simple = "Simple";
+export const allFileTypes = ["*.*"];
+
+// Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";

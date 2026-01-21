@@ -113,6 +113,7 @@
     "Back": "Back",
     "Warning": "Warning",
     "Sign In": "Sign In",
+    "Loading": "Loading",
     "Clear All": "Clear All",
     "OK": "OK",
     "And": "And",
@@ -301,6 +302,7 @@
     "Error loading workspaces": "Error loading workspaces",
     "Error loading databases": "Error loading databases",
     "Connection Authentication": "Connection Authentication",
+    "Import from Azure Data Studio": "Import from Azure Data Studio",
     "Sign into Azure": "Sign into Azure",
     "Not signed in": "Not signed in",
     "Azure Account": "Azure Account",
@@ -947,7 +949,7 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
-    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
     "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
     "Azure Data Studio settings file": "Azure Data Studio settings file",
     "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
@@ -1003,9 +1005,9 @@
     "Authentication": "Authentication",
     "Enter password": "Enter password",
     "Import selected": "Import selected",
-    "Some selections still need information": "Some selections still need information",
-    "You can continue, but you may need to edit these connections later before connecting.": "You can continue, but you may need to edit these connections later before connecting.",
-    "Connections needing attention": "Connections needing attention",
+    "Connection Import Warning": "Connection Import Warning",
+    "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.": "Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.",
+    "Incomplete or orphaned connections": "Incomplete or orphaned connections",
     "Import anyway": "Import anyway",
     "Importing selections": "Importing selections",
     "Sign into additional accounts": "Sign into additional accounts",
@@ -1021,6 +1023,9 @@
         "comment": ["{0} is the version number of the MSSQL extension"]
     },
     "Don't show this again": "Don't show this again",
+    "Select a file": "Select a file",
+    "Selected Path": "Selected Path",
+    "Files of Type": "Files of Type",
     "New Session": "New Session",
     "Creating...": "Creating...",
     "Start": "Start",
@@ -1412,7 +1417,6 @@
     },
     "Invalid connection URI. Please ensure you have an active database connection.": "Invalid connection URI. Please ensure you have an active database connection.",
     "Query failed": "Query failed",
-    "Loading": "Loading",
     "Execution Plan": "Execution Plan",
     "SQL Plan Files": "SQL Plan Files",
     "Script copied to clipboard": "Script copied to clipboard",
@@ -1782,6 +1786,7 @@
         "comment": ["{0} is the webview name"]
     },
     "General": "General",
+    "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
@@ -2278,16 +2283,17 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
-    "Ready": "Ready",
+    "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
-    "Already imported.  Importing again will replace the existing connection with ID {0}/{0} is the connection ID": {
-        "message": "Already imported.  Importing again will replace the existing connection with ID {0}",
-        "comment": ["{0} is the connection ID"]
+    "Connection with the same ID is already imported: {0} (ID: {1})/{0} is the connection display name{1} is the connection ID": {
+        "message": "Connection with the same ID is already imported: {0} (ID: {1})",
+        "comment": ["{0} is the connection display name", "{1} is the connection ID"]
     },
-    "Already imported.  Importing again will replace the existing group with ID {0}/{0} is the group ID": {
-        "message": "Already imported.  Importing again will replace the existing group with ID {0}",
-        "comment": ["{0} is the group ID"]
+    "Connection group with the same ID is already imported: {0} (ID: {1})/{0} is the group name{1} is the group ID": {
+        "message": "Connection group with the same ID is already imported: {0} (ID: {1})",
+        "comment": ["{0} is the group name", "{1} is the group ID"]
     },
     "Enter the SQL Login password for user '{0}'./{0} is the SQL Login username": {
         "message": "Enter the SQL Login password for user '{0}'.",
@@ -2304,6 +2310,7 @@
         "message": "Import failed: {0}",
         "comment": ["{0} is the error message returned from the import helper."]
     },
+    "This connection's group has not been selected, so this connection will be imported the root.": "This connection's group has not been selected, so this connection will be imported the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",
