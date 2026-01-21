@@ -1032,6 +1032,8 @@
     "Pause": "Pause",
     "Resume": "Resume",
     "Auto-scroll": "Auto-scroll",
+    "Filter...": "Filter...",
+    "Clear Filter": "Clear Filter",
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
@@ -1048,6 +1050,26 @@
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",
+    "Filter events by column values": "Filter events by column values",
+    "Clear all filters and show all events": "Clear all filters and show all events",
+    "No filter is currently active": "No filter is currently active",
+    "Filter Events": "Filter Events",
+    "Add Clause": "Add Clause",
+    "Remove": "Remove",
+    "No filter clauses defined. Add a clause to filter events.": "No filter clauses defined. Add a clause to filter events.",
+    "=": "=",
+    "<>": "<>",
+    "<": "<",
+    "<=": "<=",
+    ">": ">",
+    ">=": ">=",
+    "Is Null": "Is Null",
+    "Is Not Null": "Is Not Null",
+    "Filter active": "Filter active",
+    "Showing {0} of {1} events/{0} is filtered count, {1} is total count": {
+        "message": "Showing {0} of {1} events",
+        "comment": ["{0} is filtered count, {1} is total count"]
+    },
     "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
@@ -1122,7 +1144,6 @@
     "Create": "Create",
     "Clear Recent Connections List": "Clear Recent Connections List",
     "Edit": "Edit",
-    "Remove": "Remove",
     "Manage Connection Profiles": "Manage Connection Profiles",
     "{{put-server-name-here}}": "{{put-server-name-here}}",
     "Server name or ADO.NET connection string": "Server name or ADO.NET connection string",
@@ -2365,6 +2386,10 @@
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
+    },
+    "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
+        "message": "{0}/{1} events",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
     },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",

@@ -1542,6 +1542,8 @@ export class LocConstants {
             resume: l10n.t("Resume"),
             clear: l10n.t("Clear"),
             autoScroll: l10n.t("Auto-scroll"),
+            filter: l10n.t("Filter..."),
+            clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
             selectSessionLabel: l10n.t("Select Session:"),
@@ -1562,6 +1564,43 @@ export class LocConstants {
             clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+            filterTooltip: l10n.t("Filter events by column values"),
+            clearFilterTooltip: l10n.t("Clear all filters and show all events"),
+            clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+
+            // Filter dialog
+            filterDialogTitle: l10n.t("Filter Events"),
+            filterColumn: l10n.t("Column"),
+            filterOperator: l10n.t("Operator"),
+            filterValue: l10n.t("Value"),
+            addClause: l10n.t("Add Clause"),
+            removeClause: l10n.t("Remove"),
+            apply: l10n.t("Apply"),
+            cancel: l10n.t("Cancel"),
+            noFilterClauses: l10n.t("No filter clauses defined. Add a clause to filter events."),
+
+            // Filter operators
+            operatorEquals: l10n.t("="),
+            operatorNotEquals: l10n.t("<>"),
+            operatorLessThan: l10n.t("<"),
+            operatorLessThanOrEqual: l10n.t("<="),
+            operatorGreaterThan: l10n.t(">"),
+            operatorGreaterThanOrEqual: l10n.t(">="),
+            operatorIsNull: l10n.t("Is Null"),
+            operatorIsNotNull: l10n.t("Is Not Null"),
+            operatorContains: l10n.t("Contains"),
+            operatorNotContains: l10n.t("Not Contains"),
+            operatorStartsWith: l10n.t("Starts With"),
+            operatorNotStartsWith: l10n.t("Not Starts With"),
+
+            // Filter status
+            filterActive: l10n.t("Filter active"),
+            filterActiveTooltip: (filteredCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} events",
+                    args: [filteredCount, totalCount],
+                    comment: ["{0} is filtered count, {1} is total count"],
+                }),
 
             // Session states
             stateRunning: l10n.t("Running"),

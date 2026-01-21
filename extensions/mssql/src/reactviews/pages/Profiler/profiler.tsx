@@ -4,17 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import { SlickgridReact, SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
+import {
+    SlickgridReact,
+    SlickgridReactInstance,
+    Column,
+    GridOption,
+    Formatters,
+    Formatter,
+} from "slickgrid-react";
 import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
+import { ProfilerFilterDialog } from "./profilerFilterDialog";
 import {
     SessionState,
     ProfilerNotifications,
     FetchRowsResponse,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    FilterClause,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -59,7 +68,9 @@ const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
  * Gets the appropriate formatter configuration for a field
  * Returns an object with formatter and optional params
  */
-function getFormatterConfig(field: string): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
+function getFormatterConfig(
+    field: string,
+): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
     if (TIMESTAMP_FIELDS.includes(field)) {
         return {
             formatter: Formatters.date,
@@ -98,6 +109,11 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const filterState = useProfilerSelector(
+        (s) => s.filterState ?? { enabled: false, clauses: [] },
+    );
+
+    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
 
     const {
         pauseResume,
@@ -109,11 +125,14 @@ export const Profiler: React.FC = () => {
         changeView,
         toggleAutoScroll,
         fetchRows,
+        applyFilter,
+        clearFilter,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);
+    const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
     const autoScrollRef = useRef(autoScroll);
@@ -406,6 +425,34 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
+    /**
+     * Handles opening the filter dialog from the toolbar.
+     */
+    const handleFilter = useCallback(() => {
+        setIsFilterDialogOpen(true);
+    }, []);
+
+    /**
+     * Handles applying filter clauses from the filter dialog.
+     * @param clauses The filter clauses to apply
+     */
+    const handleApplyFilter = useCallback(
+        (clauses: FilterClause[]) => {
+            applyFilter(clauses);
+            setIsFilterDialogOpen(false);
+        },
+        [applyFilter],
+    );
+
+    /**
+     * Handles clearing the active filter from the toolbar.
+     * Removes all filter clauses and shows all events.
+     */
+    const handleClearFilter = useCallback(() => {
+        clearFilter();
+        setIsFilterDialogOpen(false);
+    }, [clearFilter]);
+
     return (
         <div className={classes.profilerContainer}>
             <ProfilerToolbar
@@ -417,6 +464,7 @@ export const Profiler: React.FC = () => {
                 selectedSessionId={selectedSessionId}
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
+                isFilterActive={isFilterActive}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -425,6 +473,17 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
+                onFilter={handleFilter}
+                onClearFilter={handleClearFilter}
+            />
+            <ProfilerFilterDialog
+                columns={viewConfig?.columns ?? []}
+                currentClauses={filterState.clauses}
+                isFilterActive={isFilterActive}
+                isOpen={isFilterDialogOpen}
+                onOpenChange={setIsFilterDialogOpen}
+                onApplyFilter={handleApplyFilter}
+                onClearFilter={handleClearFilter}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact
