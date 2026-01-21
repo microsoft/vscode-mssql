@@ -1133,7 +1133,7 @@ export class LocConstants {
             ),
             chooseTheRightVersion: l10n.t("Choose the Right Version"),
             chooseTheRightVersionDescription: l10n.t(
-                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+                "Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.",
             ),
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
@@ -1148,14 +1148,6 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
-            armErrorDescription: l10n.t(
-                "SQL Server is not supported on ARM processors including both Windows and Apple silicon-based machines.",
-            ),
-            toContinueCheck: l10n.t(
-                "To continue, run SQL Server on a machine with a supported processor. Check ",
-            ),
-            theDocumentation: l10n.t("the documentation "),
-            forMoreInformation: l10n.t("for more information."),
         };
     }
 
