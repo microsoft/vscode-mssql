@@ -21,7 +21,6 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "./dockerUtils";
 import MainController from "../controllers/mainController";
-import { arch } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
