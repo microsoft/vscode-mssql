@@ -531,8 +531,8 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
-            onExportToCsv: async (csvContent: string, suggestedFileName: string) => {
-                await this.handleExportToCsv(webviewController, csvContent, suggestedFileName);
+            onExportToCsv: async (csvContent: string, suggestedFileName: string, trigger: "manual" | "closePrompt") => {
+                await this.handleExportToCsv(webviewController, csvContent, suggestedFileName, trigger);
             },
         });
 
@@ -549,6 +549,7 @@ export class ProfilerController {
         webviewController: ProfilerWebviewController,
         csvContent: string,
         suggestedFileName: string,
+        trigger: "manual" | "closePrompt",
     ): Promise<void> {
         try {
             // Get a default folder - use user's home directory or workspace folder
@@ -573,6 +574,12 @@ export class ProfilerController {
 
             // Write the CSV content to the file
             await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(csvContent));
+
+            // Count the number of rows exported (count newlines minus header)
+            const rowCount = csvContent.split("\n").length - 1;
+
+            // Send telemetry for successful export
+            ProfilerTelemetry.sendExportCsv(rowCount, trigger);
 
             // Mark export as successful in state
             webviewController.setExportComplete();

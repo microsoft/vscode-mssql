@@ -38,7 +38,7 @@ export interface ProfilerWebviewEvents {
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
     /** Emitted when export to CSV is requested from the UI */
-    onExportToCsv?: (csvContent: string, suggestedFileName: string) => void;
+    onExportToCsv?: (csvContent: string, suggestedFileName: string, trigger: "manual" | "closePrompt") => void;
 }
 
 /**
@@ -244,18 +244,18 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
         const suggestedFileName = `${sessionName}_${timestamp}`;
 
-        // Perform export using event handler
+        // Perform export using event handler (triggered by close prompt)
         if (this._eventHandlers.onExportToCsv) {
             await new Promise<void>((resolve) => {
                 // Create a temporary handler to know when export is complete
                 const originalHandler = this._eventHandlers.onExportToCsv;
-                this._eventHandlers.onExportToCsv = async (content, fileName) => {
+                this._eventHandlers.onExportToCsv = async (content, fileName, trigger) => {
                     if (originalHandler) {
-                        await originalHandler(content, fileName);
+                        await originalHandler(content, fileName, trigger);
                     }
                     resolve();
                 };
-                this._eventHandlers.onExportToCsv(csvContent, suggestedFileName);
+                this._eventHandlers.onExportToCsv(csvContent, suggestedFileName, "closePrompt");
             });
         }
     }
@@ -438,7 +438,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
-        // Handle export to CSV request from webview
+        // Handle export to CSV request from webview (manual trigger from toolbar)
         this.registerReducer(
             "exportToCsv",
             (state, payload: { csvContent: string; suggestedFileName: string }) => {
@@ -447,6 +447,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     this._eventHandlers.onExportToCsv(
                         payload.csvContent,
                         payload.suggestedFileName,
+                        "manual",
                     );
                 }
                 return state;
