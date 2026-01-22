@@ -102,7 +102,7 @@ export interface SearchableDropdownProps {
 
     /**
      * Minimum width for the dropdown popup surface.
-     * Defaults to 240px; set disableMinPopupWidth to true to turn off.
+     * Defaults to 150px; set disableMinPopupWidth to true to turn off.
      */
     minPopupWidth?: number;
 
@@ -178,7 +178,7 @@ const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
 const LIST_HEIGHT_PX = 200;
 const OPTION_HEIGHT_PX = 24;
 const VIRTUAL_OVERSCAN = 6;
-const DEFAULT_MIN_POPUP_WIDTH_PX = 240;
+const DEFAULT_MIN_POPUP_WIDTH_PX = 150;
 
 const sizeToFontSize: Record<string, string> = {
     small: tokens.fontSizeBase200,
