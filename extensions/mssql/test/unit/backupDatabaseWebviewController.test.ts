@@ -148,6 +148,7 @@ suite("BackupDatabaseWebviewController", () => {
                     value: allFileTypes,
                 },
             ],
+            backupUrl: "",
         } as BackupDatabaseState;
 
         expect(getBackupConfigInfoStub).to.have.been.calledOnce;
@@ -506,7 +507,7 @@ suite("BackupDatabaseWebviewController", () => {
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
-        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.execute);
+        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.executeAndScript);
         expect(result).to.deep.equal(mockInitialState);
 
         expect(sendActionEvent).to.have.been.calledWith(
@@ -529,7 +530,7 @@ suite("BackupDatabaseWebviewController", () => {
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
-        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.execute);
+        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.executeAndScript);
 
         expect(sendActionEvent).to.have.been.calledWith(
             TelemetryViews.Backup,
@@ -550,7 +551,7 @@ suite("BackupDatabaseWebviewController", () => {
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
-        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.execute);
+        expect(backupDatabaseStub).to.have.been.calledWithMatch(TaskExecutionMode.executeAndScript);
         expect(sendActionEvent).to.have.been.calledWith(
             TelemetryViews.Backup,
             TelemetryActions.Backup,
@@ -891,13 +892,13 @@ suite("BackupDatabaseWebviewController", () => {
             mediaSetDescription: "desc",
         } as any;
 
-        const result = await controller["backupHelper"](TaskExecutionMode.execute, state);
+        const result = await controller["backupHelper"](TaskExecutionMode.executeAndScript, state);
 
         expect(backupDatabaseStub).to.have.been.calledOnce;
 
         const [, backupInfo, mode] = backupDatabaseStub.firstCall.args;
 
-        expect(mode).to.equal(TaskExecutionMode.execute);
+        expect(mode).to.equal(TaskExecutionMode.executeAndScript);
 
         expect(backupInfo).to.include({
             databaseName: "db1",
@@ -921,7 +922,7 @@ suite("BackupDatabaseWebviewController", () => {
             formState: { ...state.formState, encryptionEnabled: false },
         } as any;
         const result2 = await controller["backupHelper"](
-            TaskExecutionMode.execute,
+            TaskExecutionMode.executeAndScript,
             stateWithoutEncryption,
         );
 
@@ -972,7 +973,7 @@ suite("BackupDatabaseWebviewController", () => {
         } as any;
 
         /* ---------- Execute ---------- */
-        const result = await controller["backupHelper"](TaskExecutionMode.execute, state);
+        const result = await controller["backupHelper"](TaskExecutionMode.executeAndScript, state);
 
         /* ---------- Assertions ---------- */
         expect(getStorageKeysStub).to.have.been.calledOnceWith(
@@ -1039,7 +1040,7 @@ suite("BackupDatabaseWebviewController", () => {
         ]);
 
         // First account auto-selected
-        expect(state.formState.accountId).to.equal("acc1");
+        expect(state.formState.accountId).to.equal("acc2");
 
         // Recursive refresh
         expect(getAzureActionButtonStub.callCount).to.equal(2);

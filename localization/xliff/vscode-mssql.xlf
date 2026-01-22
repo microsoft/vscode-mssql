@@ -156,11 +156,11 @@
     <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
       <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
     </trans-unit>
-    <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
-      <source xml:lang="en">All Schemas</source>
-    </trans-unit>
     <trans-unit id="++CODE++6ae05840acdd06389f12106699a3e0a576640acff674dba36b6f0c4720913361">
       <source xml:lang="en">All Files (*.*)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
+      <source xml:lang="en">All Schemas</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -1782,11 +1782,11 @@
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
-    <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
-      <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
+      <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
     </trans-unit>
     <trans-unit id="++CODE++94138882fa79d94e5c8eb6335f75a2e88f4f1cffbe0ea7b598dd0c9fad748470">
       <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</source>

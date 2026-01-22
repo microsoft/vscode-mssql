@@ -216,6 +216,7 @@ export class BackupDatabaseState
     defaultBackupName: string = "";
     saveToUrl: boolean = false;
     backupFiles: BackupFile[] = [];
+    backupUrl: string = "";
 
     // Azure
     tenants: AzureTenant[] = [];

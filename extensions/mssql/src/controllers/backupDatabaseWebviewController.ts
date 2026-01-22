@@ -162,12 +162,17 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         onTaskCompleted((taskCompletedEvent: TaskCompletedEvent) => {
             const { task, progress } = taskCompletedEvent;
             if (task.name === this.BACKUP_DATABASE_TASK_NAME && progress.script) {
-                const filePaths = this.state.backupFiles.map((file) => file.filePath);
-                const includesAllFilePaths = filePaths.every((path) =>
-                    progress.script?.includes(path),
-                );
+                let includesBackupLocation = false;
+                if (!this.state.saveToUrl) {
+                    const filePaths = this.state.backupFiles.map((file) => file.filePath);
+                    includesBackupLocation = filePaths.every((path) =>
+                        progress.script?.includes(path),
+                    );
+                } else {
+                    includesBackupLocation = progress.script?.includes(this.state.backupUrl);
+                }
 
-                if (includesAllFilePaths) {
+                if (includesBackupLocation) {
                     this.panel.dispose();
                     this.dispose();
                 }
@@ -398,6 +403,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
             const blobContainerUrl = `${https}${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
             const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
+            state.backupUrl = backupUrl;
             backupPathDevices[backupUrl] = MediaDeviceType.Url;
             backupPathList.push(backupUrl);
 
