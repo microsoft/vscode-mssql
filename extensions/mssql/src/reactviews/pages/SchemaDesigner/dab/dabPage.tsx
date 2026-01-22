@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
+import { Checkbox, makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
 import { useContext, useEffect, useMemo } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -160,31 +160,46 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                         <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
                     </div>
                 ) : (
-                    entitiesBySchema.map(([schemaName, entities]) => (
-                        <div key={schemaName} className={classes.schemaSection}>
-                            <div className={classes.schemaHeader}>
-                                <Text className={classes.schemaLabel}>{schemaName}</Text>
-                                <div className={classes.schemaDivider} />
-                            </div>
-                            <div className={classes.entityGrid}>
-                                {entities.map((entity) => (
-                                    <DabEntityTile
-                                        key={entity.id}
-                                        entity={entity}
-                                        onToggleEnabled={(isEnabled) =>
-                                            toggleDabEntity(entity.id, isEnabled)
-                                        }
-                                        onToggleAction={(action, isEnabled) =>
-                                            toggleDabEntityAction(entity.id, action, isEnabled)
-                                        }
-                                        onUpdateSettings={(settings) =>
-                                            updateDabEntitySettings(entity.id, settings)
-                                        }
+                    entitiesBySchema.map(([schemaName, entities]) => {
+                        const enabledCount = entities.filter((e) => e.isEnabled).length;
+                        const allChecked = enabledCount === entities.length;
+                        const noneChecked = enabledCount === 0;
+                        return (
+                            <div key={schemaName} className={classes.schemaSection}>
+                                <div className={classes.schemaHeader}>
+                                    <Checkbox
+                                        checked={allChecked ? true : noneChecked ? false : "mixed"}
+                                        onChange={(_, data) => {
+                                            const enable =
+                                                data.checked === true || data.checked === "mixed";
+                                            for (const entity of entities) {
+                                                toggleDabEntity(entity.id, enable);
+                                            }
+                                        }}
                                     />
-                                ))}
+                                    <Text className={classes.schemaLabel}>{schemaName}</Text>
+                                    <div className={classes.schemaDivider} />
+                                </div>
+                                <div className={classes.entityGrid}>
+                                    {entities.map((entity) => (
+                                        <DabEntityTile
+                                            key={entity.id}
+                                            entity={entity}
+                                            onToggleEnabled={(isEnabled) =>
+                                                toggleDabEntity(entity.id, isEnabled)
+                                            }
+                                            onToggleAction={(action, isEnabled) =>
+                                                toggleDabEntityAction(entity.id, action, isEnabled)
+                                            }
+                                            onUpdateSettings={(settings) =>
+                                                updateDabEntitySettings(entity.id, settings)
+                                            }
+                                        />
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>
