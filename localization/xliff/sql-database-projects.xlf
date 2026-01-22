@@ -148,6 +148,9 @@
     <trans-unit id="++CODE++167a9f61c87101ded76d9d8e39680662a12b6ac2aa063cc9442060968683c079">
       <source xml:lang="en">Build with Code Analysis</source>
     </trans-unit>
+    <trans-unit id="++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0">
+      <source xml:lang="en">Builds the {0} SQL project</source>
+    </trans-unit>
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
     </trans-unit>
@@ -411,6 +414,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c1f3bff3971003bf37f019f870b062fe71b8466ee73218a14849dd306ba4e32">
       <source xml:lang="en">Error trying to read {0} of project &apos;{1}&apos;. {2}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928">
+      <source xml:lang="en">Error updating existing tasks.json: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++169717657881b0e97115c2aae940a802fe1189d93441b13296718be44f617882">
       <source xml:lang="en">Error when moving file from {0} to {1}. Error: {2}</source>
@@ -985,6 +991,9 @@
     </trans-unit>
     <trans-unit id="++CODE++46b5a7c346e9d00be41ca0356c4761a49755124bab2845df72aa9377b4b53be0">
       <source xml:lang="en">Unable to locate &apos;{0}&apos; target: &apos;{1}&apos;. {2}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9eedbf380fb02fed5c08d8d0bffe2c85cfc63d74dc947da354d48da398e4034">
+      <source xml:lang="en">Unable to update existing tasks.json (invalid format). Please fix tasks.json and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6">
       <source xml:lang="en">Unexpected number of {0} files: {1}</source>
