@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -48,6 +48,12 @@ import {
 import eventBus from "../schemaDesignerEvents.js";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
+import {
+    useStyledEdgesForDiff,
+    useGhostNodes,
+    useGhostEdges,
+    useTableRenameInfo,
+} from "../diffViewer/diffViewerContext.js";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -73,6 +79,93 @@ export const SchemaDesignerFlow = () => {
     const [relationshipEdges, setRelationshipEdges, onEdgesChange] = useEdgesState<
         Edge<SchemaDesigner.ForeignKey>
     >([]);
+
+    // Get ghost nodes and edges for deleted element visualization (T014, T018)
+    const ghostNodes = useGhostNodes();
+    const ghostEdges = useGhostEdges();
+    const tableRenameInfo = useTableRenameInfo();
+    // fkModificationType is used inside useStyledEdgesForDiff via context
+
+    // Merge real nodes with ghost nodes for display (T014, T015)
+    const displayNodes = useMemo(() => {
+        if (ghostNodes.length === 0) {
+            // Pass rename info to existing nodes
+            if (Object.keys(tableRenameInfo).length === 0) {
+                return schemaNodes;
+            }
+            return schemaNodes.map((node) => {
+                const rename = tableRenameInfo[node.id];
+                if (rename) {
+                    return {
+                        ...node,
+                        data: { ...node.data, renameInfo: rename },
+                    };
+                }
+                return node;
+            });
+        }
+
+        // Convert ghost nodes to ReactFlow nodes with deleted styling
+        const ghostReactFlowNodes: Node<
+            SchemaDesigner.Table & {
+                isGhostNode?: boolean;
+                renameInfo?: SchemaDesigner.RenameDisplayInfo;
+            }
+        >[] = ghostNodes.map((ghost) => ({
+            id: ghost.id,
+            type: "tableNode",
+            position: ghost.originalPosition,
+            data: { ...ghost, isGhostNode: true },
+            className: "schema-node--ghost",
+            selectable: false,
+            draggable: false,
+        }));
+
+        // Add rename info to existing nodes
+        const nodesWithRename = schemaNodes.map((node) => {
+            const rename = tableRenameInfo[node.id];
+            if (rename) {
+                return {
+                    ...node,
+                    data: { ...node.data, renameInfo: rename },
+                };
+            }
+            return node;
+        });
+
+        return [...nodesWithRename, ...ghostReactFlowNodes];
+    }, [schemaNodes, ghostNodes, tableRenameInfo]);
+
+    // Merge real edges with ghost edges for display (T018)
+    const displayEdges = useMemo(() => {
+        if (ghostEdges.length === 0) {
+            return relationshipEdges;
+        }
+
+        // Convert ghost edges to ReactFlow edges with deleted styling (T019)
+        const ghostReactFlowEdges: Edge<SchemaDesigner.ForeignKey & { isGhostEdge: boolean }>[] =
+            ghostEdges.map((ghost) => ({
+                id: ghost.id,
+                source: ghost.sourceTableId,
+                target: ghost.targetTableId,
+                sourceHandle: `${ghost.sourceColumn}-source`,
+                targetHandle: `${ghost.targetColumn}-target`,
+                markerEnd: { type: MarkerType.ArrowClosed },
+                data: { ...ghost.fkData, isGhostEdge: true },
+                className: "schema-edge--ghost",
+                style: {
+                    stroke: "var(--vscode-gitDecoration-deletedResourceForeground, #c74e39)",
+                    strokeWidth: 2,
+                    strokeDasharray: "5 3",
+                    opacity: 0.7,
+                },
+            }));
+
+        return [...relationshipEdges, ...ghostReactFlowEdges];
+    }, [relationshipEdges, ghostEdges]);
+
+    // Apply diff indicator styles to edges (including ghost edges)
+    const styledEdges = useStyledEdgesForDiff(displayEdges);
 
     const deleteNodeConfirmationPromise = useRef<
         ((value: boolean | PromiseLike<boolean>) => void) | undefined
@@ -245,8 +338,8 @@ export const SchemaDesignerFlow = () => {
         <div style={{ width: "100%", height: "100%" }}>
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
-                nodes={schemaNodes}
-                edges={relationshipEdges}
+                nodes={displayNodes}
+                edges={styledEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}

@@ -641,6 +641,64 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
+    "Schema Changes": "Schema Changes",
+    "Show Changes ({0})/{0} is the number of pending changes": {
+        "message": "Show Changes ({0})",
+        "comment": ["{0} is the number of pending changes"]
+    },
+    "No pending changes": "No pending changes",
+    "Added": "Added",
+    "Modified": "Modified",
+    "Deleted": "Deleted",
+    "Undo change": "Undo change",
+    "Undo Confirmation": "Undo Confirmation",
+    "Are you sure you want to undo changes to '{0}'?/{0} is the entity name": {
+        "message": "Are you sure you want to undo changes to '{0}'?",
+        "comment": ["{0} is the entity name"]
+    },
+    "Additions": "Additions",
+    "Modifications": "Modifications",
+    "Deletions": "Deletions",
+    "Navigate to entity": "Navigate to entity",
+    "Reveal in canvas": "Reveal in canvas",
+    "Collapse group": "Collapse group",
+    "Expand group": "Expand group",
+    "Column '{0}' added/{0} is the column name": {
+        "message": "Column '{0}' added",
+        "comment": ["{0} is the column name"]
+    },
+    "Column '{0}' deleted/{0} is the column name": {
+        "message": "Column '{0}' deleted",
+        "comment": ["{0} is the column name"]
+    },
+    "Column '{0}' - {1} changed/{0} is the column name{1} is the property name": {
+        "message": "Column '{0}' - {1} changed",
+        "comment": ["{0} is the column name", "{1} is the property name"]
+    },
+    "Table '{0}' added/{0} is the table name": {
+        "message": "Table '{0}' added",
+        "comment": ["{0} is the table name"]
+    },
+    "Table '{0}' deleted/{0} is the table name": {
+        "message": "Table '{0}' deleted",
+        "comment": ["{0} is the table name"]
+    },
+    "Table '{0}' modified/{0} is the table name": {
+        "message": "Table '{0}' modified",
+        "comment": ["{0} is the table name"]
+    },
+    "Foreign key '{0}' added/{0} is the foreign key name": {
+        "message": "Foreign key '{0}' added",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Foreign key '{0}' deleted/{0} is the foreign key name": {
+        "message": "Foreign key '{0}' deleted",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Foreign key '{0}' modified/{0} is the foreign key name": {
+        "message": "Foreign key '{0}' modified",
+        "comment": ["{0} is the foreign key name"]
+    },
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",

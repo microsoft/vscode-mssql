@@ -40,6 +40,7 @@ export interface SchemaDesignerContextProps
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    setCenterOnEdge: (edgeId: string, shouldZoomIn?: boolean) => void;
     publishSession: () => Promise<{
         success: boolean;
         error?: string;
@@ -438,6 +439,33 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const setCenterOnEdge = (edgeId: string, shouldZoomIn: boolean = false) => {
+        const edge = reactFlow.getEdge(edgeId) as Edge<SchemaDesigner.ForeignKey>;
+        if (edge) {
+            const sourceNode = reactFlow.getNode(edge.source) as Node<SchemaDesigner.Table>;
+            const targetNode = reactFlow.getNode(edge.target) as Node<SchemaDesigner.Table>;
+            if (sourceNode && targetNode) {
+                // Calculate center point between source and target nodes
+                const sourceCenter = {
+                    x: sourceNode.position.x + flowUtils.getTableWidth() / 2,
+                    y: sourceNode.position.y + flowUtils.getTableHeight(sourceNode.data) / 2,
+                };
+                const targetCenter = {
+                    x: targetNode.position.x + flowUtils.getTableWidth() / 2,
+                    y: targetNode.position.y + flowUtils.getTableHeight(targetNode.data) / 2,
+                };
+                const midpoint = {
+                    x: (sourceCenter.x + targetCenter.x) / 2,
+                    y: (sourceCenter.y + targetCenter.y) / 2,
+                };
+                void reactFlow.setCenter(midpoint.x, midpoint.y, {
+                    zoom: shouldZoomIn ? 1 : reactFlow.getZoom(),
+                    duration: 500,
+                });
+            }
+        }
+    };
+
     const publishSession = async () => {
         const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
@@ -496,6 +524,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                setCenterOnEdge,
                 publishSession,
                 isInitialized,
                 closeDesigner,

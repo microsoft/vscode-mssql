@@ -129,8 +129,14 @@
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
+      <source xml:lang="en">Added</source>
+    </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++966ff94170d3cde6acb3384c255e3cf9084760862d550c8f2d729eac4520bb54">
+      <source xml:lang="en">Additions</source>
     </trans-unit>
     <trans-unit id="++CODE++9f088dbebd6c3c70a5ddbc2c943b11e4ca9acea5757b0b4f2b32479f0dbb747e">
       <source xml:lang="en">Advanced</source>
@@ -267,6 +273,10 @@
     <trans-unit id="++CODE++8a6ddc1941c7b1576cc5674f2969dde12347408d66861ed151f2ed506588f42c">
       <source xml:lang="en">Are you sure you want to remove {0}?</source>
       <note>{0} is the node label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1ebe5e2ce0704cb105813fb0038386cd2563ece4abb2f9f0ff74eec9529c4fda">
+      <source xml:lang="en">Are you sure you want to undo changes to &apos;{0}&apos;?</source>
+      <note>{0} is the entity name</note>
     </trans-unit>
     <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
       <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -705,11 +715,23 @@
     <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
       <source xml:lang="en">Collapse connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++3aaa2dc2093c4aa3fc3828137082cfadfec47b918dd4df50d7953d1228d028a0">
+      <source xml:lang="en">Collapse group</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c148618115514220b47c33bed03f75d854e641ca955fff91c3a624cfc258520b">
+      <source xml:lang="en">Column &apos;{0}&apos; - {1} changed</source>
+      <note>{0} is the column name
+{1} is the property name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4618397dc2c9ed097b3937383ecf05c24e56a765b90073125a99ecd04ecee86b">
+      <source xml:lang="en">Column &apos;{0}&apos; added</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++2a1e6a732f104ee56a84bfe7a04f48a47af3401ee2df16272b47af0195bae023">
       <source xml:lang="en">Column &apos;{0}&apos; already exists</source>
@@ -721,6 +743,10 @@
     </trans-unit>
     <trans-unit id="++CODE++0d1cea3ad10431de23b65a45a897f8a04520ae0353bb863064c38d0c6b7fa7aa">
       <source xml:lang="en">Column &apos;{0}&apos; cannot be null because it is a primary key</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cbdb45fc17db93f2676690eac2b1807c26f5cc411155c0157a1cc413452e9834">
+      <source xml:lang="en">Column &apos;{0}&apos; deleted</source>
       <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++8d00d9665207fcb4d435b78c5be1719cbc6d078437f523910b3e8bd9e95e67aa">
@@ -1237,8 +1263,14 @@
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++b48ff39c2e0f5451b9b29b09c2a74d2760db230749ffd48a6e901cc91fef9a8d">
+      <source xml:lang="en">Deleted</source>
+    </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1535d13590fe0bf36f462931811e042b32bff5800a422dc32b4d7f770d5dbe9a">
+      <source xml:lang="en">Deletions</source>
     </trans-unit>
     <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
       <source xml:lang="en">Deny</source>
@@ -1615,6 +1647,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a278c1ed2486fecd0d324085d0a85dc6b97cb2444cd15978e2ccbea319157b62">
       <source xml:lang="en">Expand connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de457e79922419bc3b1e07c964adacc0815f787543d9aac55f47acdb327258c5">
+      <source xml:lang="en">Expand group</source>
     </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
@@ -1993,8 +2028,20 @@
     <trans-unit id="++CODE++343460cabeff0fb48d3eaab8a7b7cec8ab6533656b987b607002e6fae59daa8b">
       <source xml:lang="en">Foreign Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++d6dc3760a8cee7b7d9a496fb16a476352a5c8b51b51446fb35ca7afd7677f683">
+      <source xml:lang="en">Foreign key &apos;{0}&apos; added</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
     <trans-unit id="++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a">
       <source xml:lang="en">Foreign key &apos;{0}&apos; already exists</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++aa378508fd50588e87151ab10a57046f5e563f1af036f81b51f45ba1353fb6c4">
+      <source xml:lang="en">Foreign key &apos;{0}&apos; deleted</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++35f7f9c33155e8bfbfe4b08c517a5738f95b577064901735a5a9e4a51bcbc016">
+      <source xml:lang="en">Foreign key &apos;{0}&apos; modified</source>
       <note>{0} is the foreign key name</note>
     </trans-unit>
     <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
@@ -2630,6 +2677,12 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++8b3ba0d31742e3bf0f0115c7b4265f39ef08f664433b10697effa2720fd75827">
+      <source xml:lang="en">Modifications</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
+      <source xml:lang="en">Modified</source>
+    </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
@@ -2657,6 +2710,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++466375ae1d9897100093823108dc15b716cd85b7d7e77137b41e631dffb8a4ef">
+      <source xml:lang="en">Navigate to entity</source>
     </trans-unit>
     <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
       <source xml:lang="en">Needs attention</source>
@@ -2800,6 +2856,9 @@
       <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
       <note>{0} is the connection id
 {1} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++069d00767c0d027bc96391874e3fa24fc1fad87d07967412969b8d3dbfce1d1c">
+      <source xml:lang="en">No pending changes</source>
     </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -3370,6 +3429,9 @@
     <trans-unit id="++CODE++cc849385646ba0d67a8687fb561eec23fadf51b144242cf6a41dd5b594bb4180">
       <source xml:lang="en">Reveal in Finder</source>
     </trans-unit>
+    <trans-unit id="++CODE++d7496c408a6f8805515ae7a29ebc7e707a2b8dc4039c0fac8c1a45eaae02e1be">
+      <source xml:lang="en">Reveal in canvas</source>
+    </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
     </trans-unit>
@@ -3561,6 +3623,9 @@
     </trans-unit>
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++673ae818a6a16c8b230b618e5323dcbaa10fb5421d2426c2282dd325500a187a">
+      <source xml:lang="en">Schema Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
@@ -3793,6 +3858,10 @@
     </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a15048da3311afe2811e9482bb9f9f021a85834af715736bc8bb5527a7ddfe98">
+      <source xml:lang="en">Show Changes ({0})</source>
+      <note>{0} is the number of pending changes</note>
     </trans-unit>
     <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
       <source xml:lang="en">Show Confirm Password</source>
@@ -4052,8 +4121,20 @@
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++b989f6446617fbed9b0d86728f1ec1188d95f1c9dbd46a41f022a736b8d2bf9c">
+      <source xml:lang="en">Table &apos;{0}&apos; added</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e37d0b463100c4d709173a6502222535a4960da7c2ae4c1317ba1e20ece36b3e">
       <source xml:lang="en">Table &apos;{0}&apos; already exists</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cd38ea8ad79ff27a6af2f100533c0a8f467264154167cd580ac4e5815d19c143">
+      <source xml:lang="en">Table &apos;{0}&apos; deleted</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++91e03f106b98a3efaa32278e74457da549c286bca6b8651ea614aa1b0303d717">
+      <source xml:lang="en">Table &apos;{0}&apos; modified</source>
       <note>{0} is the table name</note>
     </trans-unit>
     <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
@@ -4288,6 +4369,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4ea5a2bbc5f182e166ecbd0bfd8e75c9a7993987e73d9fce65c55aa51773a23e">
+      <source xml:lang="en">Undo Confirmation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f7d550ec9880323b20484b203523b02ad9621d81a83515c0e09e9273cd71271b">
+      <source xml:lang="en">Undo change</source>
     </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>

@@ -15,11 +15,21 @@ import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { ErrorDialog } from "../../common/errorDialog";
+import { DiffViewerDrawer } from "./diffViewer";
 
 const useStyles = makeStyles({
     resizeHandle: {
         height: "2px",
         backgroundColor: "var(--vscode-editorWidget-border)",
+    },
+    graphWithDrawer: {
+        display: "flex",
+        flexDirection: "row",
+        flex: 1,
+        width: "100%",
+        height: "100%",
+        minWidth: 0,
+        overflow: "hidden",
     },
 });
 export const SchemaDesignerPage = () => {
@@ -36,10 +46,13 @@ export const SchemaDesignerPage = () => {
             <MainLayout>
                 <PanelGroup direction="vertical">
                     <Panel defaultSize={100}>
-                        <GraphContainer>
-                            <SchemaDesignerToolbar />
-                            <SchemaDesignerFlow />
-                        </GraphContainer>
+                        <div className={classes.graphWithDrawer}>
+                            <GraphContainer>
+                                <SchemaDesignerToolbar />
+                                <SchemaDesignerFlow />
+                            </GraphContainer>
+                            <DiffViewerDrawer />
+                        </div>
                     </Panel>
                     <PanelResizeHandle className={classes.resizeHandle} />
                     <SchemaDesignerDefinitionsPanel />

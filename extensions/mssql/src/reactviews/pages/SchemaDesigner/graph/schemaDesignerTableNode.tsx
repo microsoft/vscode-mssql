@@ -13,6 +13,7 @@ import {
     MenuList,
     MenuPopover,
     MenuTrigger,
+    mergeClasses,
     Text,
     Tooltip,
 } from "@fluentui/react-components";
@@ -27,6 +28,13 @@ import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
 import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+import {
+    useTableDiffIndicator,
+    useColumnDiffIndicator,
+    useDeletedColumns,
+    useDiffViewer,
+} from "../diffViewer/diffViewerContext";
+import "../diffViewer/diffViewer.css";
 
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
@@ -94,6 +102,20 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "5px",
+        boxSizing: "border-box",
+    },
+    // Diff indicator styles for colored borders
+    diffIndicatorAdded: {
+        border: "2px solid var(--vscode-gitDecoration-addedResourceForeground, #73c991)",
+        boxShadow: "0 0 6px var(--vscode-gitDecoration-addedResourceForeground, #73c991)",
+    },
+    diffIndicatorModified: {
+        border: "2px solid var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d)",
+        boxShadow: "0 0 6px var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d)",
+    },
+    diffIndicatorDeleted: {
+        border: "2px solid var(--vscode-gitDecoration-deletedResourceForeground, #c74e39)",
+        boxShadow: "0 0 6px var(--vscode-gitDecoration-deletedResourceForeground, #c74e39)",
     },
     tableHeader: {
         width: "100%",
@@ -241,7 +263,15 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
+const TableHeader = ({
+    table,
+    isGhostNode = false,
+    renameInfo,
+}: {
+    table: SchemaDesigner.Table;
+    isGhostNode?: boolean;
+    renameInfo?: SchemaDesigner.RenameDisplayInfo;
+}) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
 
@@ -282,21 +312,55 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         );
     };
 
+    // Render table name with rename visualization (T038, T040)
+    const renderTableName = () => {
+        const currentName = `${table.schema}.${table.name}`;
+
+        // If ghost node, show as deleted
+        if (isGhostNode) {
+            return (
+                <span className="table-name--old" style={{ marginRight: 0 }}>
+                    {currentName}
+                </span>
+            );
+        }
+
+        // If table was renamed, show old name with strikethrough
+        if (renameInfo) {
+            return (
+                <span className="table-name--rename-container">
+                    <span className="table-name--old">{renameInfo.oldDisplayName}</span>
+                    <span className="table-name--rename-arrow">→</span>
+                    <span className="table-name--new">
+                        {context.isExporting ? currentName : highlightText(currentName)}
+                    </span>
+                </span>
+            );
+        }
+
+        // Normal display
+        return context.isExporting ? currentName : highlightText(currentName);
+    };
+
     return (
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <ConditionalTooltip content={`${table.schema}.${table.name}`} relationship="label">
+                <ConditionalTooltip
+                    content={
+                        renameInfo
+                            ? `${renameInfo.oldDisplayName} → ${table.schema}.${table.name}`
+                            : `${table.schema}.${table.name}`
+                    }
+                    relationship="label">
                     <Text
                         className={
                             context.isExporting ? styles.tableTitleExporting : styles.tableTitle
                         }>
-                        {context.isExporting
-                            ? `${table.schema}.${table.name}`
-                            : highlightText(`${table.schema}.${table.name}`)}
+                        {renderTableName()}
                     </Text>
                 </ConditionalTooltip>
-                {!context.isExporting && <TableHeaderActions table={table} />}
+                {!context.isExporting && !isGhostNode && <TableHeaderActions table={table} />}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
@@ -305,13 +369,36 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
     );
 };
 
+/**
+ * Get the CSS class for a column diff indicator based on change type
+ */
+function getColumnIndicatorClass(
+    changeType: SchemaDesigner.SchemaChangeType | undefined,
+): string | undefined {
+    if (!changeType) {
+        return undefined;
+    }
+    switch (changeType) {
+        case SchemaDesigner.SchemaChangeType.Addition:
+            return "column-diff-indicator column-diff-indicator--addition";
+        case SchemaDesigner.SchemaChangeType.Modification:
+            return "column-diff-indicator column-diff-indicator--modification";
+        case SchemaDesigner.SchemaChangeType.Deletion:
+            return "column-diff-indicator column-diff-indicator--deletion";
+        default:
+            return undefined;
+    }
+}
+
 // TableColumn component for rendering a single column
 const TableColumn = ({
     column,
     table,
+    isDeleted = false,
 }: {
     column: SchemaDesigner.Column;
     table: SchemaDesigner.Table;
+    isDeleted?: boolean;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
@@ -319,8 +406,15 @@ const TableColumn = ({
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
 
+    // Get diff indicator state for this column
+    const { showIndicator, changeType } = useColumnDiffIndicator(table.id, column.name);
+    const indicatorClass = getColumnIndicatorClass(changeType);
+
+    // Build class for the column container
+    const columnClassName = mergeClasses("column", isDeleted && "column--deleted");
+
     return (
-        <div className={"column"} key={column.name}>
+        <div className={columnClassName} key={column.name}>
             <Handle
                 type="source"
                 position={Position.Left}
@@ -329,18 +423,27 @@ const TableColumn = ({
                 className={styles.handleLeft}
             />
 
+            {/* Diff indicator dot */}
+            {showIndicator && indicatorClass && <span className={indicatorClass} />}
+
             {column.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
             {!column.isPrimaryKey && isForeignKey && <ForeignKeyIcon className={styles.keyIcon} />}
 
             <ConditionalTooltip content={column.name} relationship="label">
                 <Text
-                    className={context.isExporting ? styles.columnNameExporting : styles.columnName}
-                    style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
+                    className={mergeClasses(
+                        context.isExporting ? styles.columnNameExporting : styles.columnName,
+                        "columnName",
+                    )}
+                    style={{
+                        paddingLeft:
+                            column.isPrimaryKey || isForeignKey || showIndicator ? "0px" : "30px",
+                    }}>
                     {column.name}
                 </Text>
             </ConditionalTooltip>
 
-            <Text className={styles.columnType}>
+            <Text className={mergeClasses(styles.columnType, "columnType")}>
                 {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
             </Text>
 
@@ -350,6 +453,66 @@ const TableColumn = ({
                 id={`right-${column.name}`}
                 isConnectable={true}
                 className={styles.handleRight}
+            />
+        </div>
+    );
+};
+
+// DeletedColumn component for rendering a deleted column inline
+const DeletedColumn = ({
+    columnInfo,
+    table: _table,
+}: {
+    columnInfo: { name: string; dataType: string; isPrimaryKey: boolean; originalIndex: number };
+    table: SchemaDesigner.Table;
+}) => {
+    const styles = useStyles();
+    const context = useContext(SchemaDesignerContext);
+
+    // Check if this column was a foreign key (we can't know for sure since it's deleted)
+    const isForeignKey = false;
+
+    return (
+        <div className="column column--deleted" key={`deleted-${columnInfo.name}`}>
+            <Handle
+                type="source"
+                position={Position.Left}
+                id={`left-${columnInfo.name}`}
+                isConnectable={false}
+                className={styles.handleLeft}
+                style={{ visibility: "hidden" }}
+            />
+
+            {/* Deletion indicator dot */}
+            <span className="column-diff-indicator column-diff-indicator--deletion" />
+
+            {columnInfo.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
+            {!columnInfo.isPrimaryKey && isForeignKey && (
+                <ForeignKeyIcon className={styles.keyIcon} />
+            )}
+
+            <ConditionalTooltip content={columnInfo.name} relationship="label">
+                <Text
+                    className={mergeClasses(
+                        context.isExporting ? styles.columnNameExporting : styles.columnName,
+                        "columnName",
+                    )}
+                    style={{ paddingLeft: columnInfo.isPrimaryKey ? "0px" : "0px" }}>
+                    {columnInfo.name}
+                </Text>
+            </ConditionalTooltip>
+
+            <Text className={mergeClasses(styles.columnType, "columnType")}>
+                {columnInfo.dataType?.toUpperCase() || "UNKNOWN"}
+            </Text>
+
+            <Handle
+                type="source"
+                position={Position.Right}
+                id={`right-${columnInfo.name}`}
+                isConnectable={false}
+                className={styles.handleRight}
+                style={{ visibility: "hidden" }}
             />
         </div>
     );
@@ -417,12 +580,63 @@ const TableColumns = ({
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
 
+    // Get deleted columns for this table
+    const deletedColumnsList = useDeletedColumns(table.id);
+
     // Get setting from webview state, default to true if not set
     const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
 
-    const showCollapseButton = expandCollapseEnabled && columns.length > 10;
-    const visibleColumns = showCollapseButton && isCollapsed ? columns.slice(0, 10) : columns;
-    const hiddenColumns = showCollapseButton && isCollapsed ? columns.slice(10) : [];
+    // Create a merged list of current and deleted columns
+    // Deleted columns are inserted at their original positions
+    type MergedColumn =
+        | { type: "current"; column: SchemaDesigner.Column; index: number }
+        | {
+              type: "deleted";
+              columnInfo: {
+                  name: string;
+                  dataType: string;
+                  isPrimaryKey: boolean;
+                  originalIndex: number;
+              };
+          };
+
+    const mergedColumns: MergedColumn[] = [];
+
+    // Add current columns with their indices
+    columns.forEach((column, index) => {
+        mergedColumns.push({ type: "current", column, index });
+    });
+
+    // Insert deleted columns at their original positions
+    deletedColumnsList.forEach((deletedCol) => {
+        mergedColumns.push({ type: "deleted", columnInfo: deletedCol });
+    });
+
+    // Sort by original index (deleted columns) or current index (existing columns)
+    // Deleted columns should appear near their original position
+    mergedColumns.sort((a, b) => {
+        const aIndex = a.type === "deleted" ? a.columnInfo.originalIndex : a.index;
+        const bIndex = b.type === "deleted" ? b.columnInfo.originalIndex : b.index;
+        // If indices are equal, deleted columns go after current columns
+        if (aIndex === bIndex) {
+            return a.type === "deleted" ? 1 : -1;
+        }
+        return aIndex - bIndex;
+    });
+
+    const showCollapseButton = expandCollapseEnabled && mergedColumns.length > 10;
+    const visibleMergedColumns =
+        showCollapseButton && isCollapsed ? mergedColumns.slice(0, 10) : mergedColumns;
+    const hiddenCurrentColumns =
+        showCollapseButton && isCollapsed
+            ? columns.filter((_, index) => {
+                  // Find all current columns that would be hidden
+                  const mergedIndex = mergedColumns.findIndex(
+                      (m) => m.type === "current" && m.index === index,
+                  );
+                  return mergedIndex >= 10;
+              })
+            : [];
 
     const EXPAND = l10n.t("Expand");
     const COLLAPSE = l10n.t("Collapse");
@@ -430,11 +644,25 @@ const TableColumns = ({
     return (
         <div style={{ position: "relative" }}>
             {/* Always render all column handles for consistency */}
-            {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
+            {hiddenCurrentColumns.length > 0 && (
+                <ConsolidatedHandles hiddenColumns={hiddenCurrentColumns} />
+            )}
 
-            {visibleColumns.map((column, index) => (
-                <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
-            ))}
+            {visibleMergedColumns.map((item, index) =>
+                item.type === "current" ? (
+                    <TableColumn
+                        key={`${index}-${item.column.name}`}
+                        column={item.column}
+                        table={table}
+                    />
+                ) : (
+                    <DeletedColumn
+                        key={`deleted-${index}-${item.columnInfo.name}`}
+                        columnInfo={item.columnInfo}
+                        table={table}
+                    />
+                ),
+            )}
 
             {showCollapseButton && (
                 <Button
@@ -456,6 +684,29 @@ const TableColumns = ({
     );
 };
 
+/**
+ * Get the diff indicator class based on the aggregate state
+ */
+function getDiffIndicatorClass(
+    styles: ReturnType<typeof useStyles>,
+    aggregateState: SchemaDesigner.SchemaChangeType | undefined,
+): string | undefined {
+    if (!aggregateState) {
+        return undefined;
+    }
+
+    switch (aggregateState) {
+        case SchemaDesigner.SchemaChangeType.Addition:
+            return styles.diffIndicatorAdded;
+        case SchemaDesigner.SchemaChangeType.Modification:
+            return styles.diffIndicatorModified;
+        case SchemaDesigner.SchemaChangeType.Deletion:
+            return styles.diffIndicatorDeleted;
+        default:
+            return undefined;
+    }
+}
+
 // Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
@@ -463,14 +714,43 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     // Default to collapsed state if table has more than 10 columns
     const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
 
+    // Get ghost node and rename info from data (T016, T038)
+    const isGhostNode = (props.data as { isGhostNode?: boolean })?.isGhostNode ?? false;
+    const renameInfo = (props.data as { renameInfo?: SchemaDesigner.RenameDisplayInfo })
+        ?.renameInfo;
+
+    // Get diff indicator state for this table
+    const { showIndicator, aggregateState } = useTableDiffIndicator(table.id);
+
+    // Get reveal highlight state from diff viewer context
+    const { state: diffState, clearRevealHighlight } = useDiffViewer();
+    const isHighlighted =
+        diffState?.highlightedElementId === table.id &&
+        diffState?.highlightedElementType === "table";
+
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
 
+    const handleAnimationEnd = () => {
+        if (isHighlighted) {
+            clearRevealHighlight();
+        }
+    };
+
+    // Build class names for the container (T017)
+    const containerClassName = mergeClasses(
+        styles.tableNodeContainer,
+        showIndicator && getDiffIndicatorClass(styles, aggregateState),
+        isHighlighted && "schema-node--revealed",
+        isGhostNode && "schema-node--ghost",
+    );
+
     return (
-        <div className={styles.tableNodeContainer}>
+        <div className={containerClassName} onAnimationEnd={handleAnimationEnd}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
-            <TableHeader table={table} />
+            {isGhostNode && <div className={styles.tableOverlay} style={{ opacity: 0.5 }} />}
+            <TableHeader table={table} isGhostNode={isGhostNode} renameInfo={renameInfo} />
             <Divider />
             <TableColumns
                 columns={table.columns}

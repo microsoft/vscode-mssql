@@ -15,6 +15,7 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
 import { locConstants } from "../../common/locConstants";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { DiffViewerIntegration } from "./diffViewer";
 
 const useStyles = makeStyles({
     root: {
@@ -128,7 +129,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
         <ReactFlowProvider>
             <SchemaDesignerStateProvider>
-                <MainLayout />
+                <DiffViewerIntegration>
+                    <MainLayout />
+                </DiffViewerIntegration>
             </SchemaDesignerStateProvider>
         </ReactFlowProvider>
     </VscodeWebviewProvider>,

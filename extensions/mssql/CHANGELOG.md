@@ -1,5 +1,19 @@
 # Change Log
 
+## Version 1.39.0 (Unreleased)
+
+### What's new in 1.39.0
+
+#### Schema Designer Diff Viewer Improvements
+
+- Fixed deleted tables and foreign keys now appear with red styling on the canvas when the diff drawer is open
+- Fixed undo operations now immediately synchronize the drawer, toolbar count, and canvas indicators without delay
+- Fixed foreign key reveal action now properly pans to and highlights the FK edge with a glowing animation
+- Fixed table rename changes now display strikethrough on the old name with the new name shown alongside
+- Fixed foreign key property changes (name, ON DELETE/UPDATE) now show yellow/amber indicator instead of treating all FK changes the same
+- Fixed foreign key structural changes (column/reference changes) now show old edge in red and new edge in green
+- Fixed new tables with foreign keys now show separate drawer entries for the table and each FK, enabling individual undo and reveal actions
+
 ## Version 1.38.0
 
 -   Release date: December 16, 2025

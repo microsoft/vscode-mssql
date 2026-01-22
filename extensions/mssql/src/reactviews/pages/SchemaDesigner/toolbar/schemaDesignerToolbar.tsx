@@ -12,6 +12,7 @@ import { PublishChangesDialogButton } from "./publishChangesDialogButton";
 import { AutoArrangeButton } from "./autoArrangeButton";
 import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
+import { ShowChangesButton } from "./showChangesButton";
 
 export function SchemaDesignerToolbar() {
     return (
@@ -35,6 +36,7 @@ export function SchemaDesignerToolbar() {
                 <DeleteNodesButton />
                 <ToolbarDivider />
                 <FilterTablesButton />
+                <ShowChangesButton />
             </Toolbar>
         </div>
     );

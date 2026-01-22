@@ -461,4 +461,249 @@ export namespace SchemaDesigner {
             "initializeSchemaDesigner",
         );
     }
+
+    // =========================================================================
+    // Diff Viewer Types
+    // =========================================================================
+
+    /**
+     * Type of change made to a schema element
+     */
+    export enum SchemaChangeType {
+        /** New element added to the schema */
+        Addition = "addition",
+        /** Existing element was modified */
+        Modification = "modification",
+        /** Element was removed from the schema */
+        Deletion = "deletion",
+    }
+
+    /**
+     * Type of schema entity that was changed
+     */
+    export enum SchemaEntityType {
+        /** Database table */
+        Table = "table",
+        /** Table column */
+        Column = "column",
+        /** Foreign key relationship */
+        ForeignKey = "foreignKey",
+    }
+
+    /**
+     * Represents a single change to the schema
+     */
+    export interface SchemaChange {
+        /** Unique identifier for this change (UUID) */
+        id: string;
+        /** Type of change: addition, modification, or deletion */
+        changeType: SchemaChangeType;
+        /** Type of entity changed: table, column, or foreignKey */
+        entityType: SchemaEntityType;
+        /** ID of the table this change belongs to */
+        tableId: string;
+        /** Display name of the table (e.g., "dbo.Users") */
+        tableName: string;
+        /** ID of the specific entity changed */
+        entityId: string;
+        /** Name of the changed entity for display */
+        entityName: string;
+        /** Original state before change (null for additions) */
+        previousValue: unknown | null;
+        /** New state after change (null for deletions) */
+        currentValue: unknown | null;
+        /** Human-readable description of the change */
+        description: string;
+    }
+
+    /**
+     * Groups changes by table for hierarchical display
+     */
+    export interface ChangeGroup {
+        /** ID of the table */
+        tableId: string;
+        /** Display name (schema.table format) */
+        tableName: string;
+        /** Schema name (e.g., "dbo") */
+        schemaName: string;
+        /** Overall state: Addition if table is new, Deletion if dropped, Modification otherwise */
+        aggregateState: SchemaChangeType;
+        /** List of individual changes to this table */
+        changes: SchemaChange[];
+        /** UI state: whether the group is expanded in the drawer */
+        isExpanded: boolean;
+    }
+
+    /**
+     * Summary of change counts for toolbar display
+     */
+    export interface ChangeCountSummary {
+        /** Count of new elements */
+        additions: number;
+        /** Count of modified elements */
+        modifications: number;
+        /** Count of deleted elements */
+        deletions: number;
+        /** Sum of all changes */
+        total: number;
+    }
+
+    /**
+     * Current state of the diff viewer panel
+     */
+    export interface DiffViewerState {
+        /** Whether the drawer is visible */
+        isDrawerOpen: boolean;
+        /** Current width in pixels (persisted) */
+        drawerWidth: number;
+        /** Currently selected change for navigation (undefined if none) */
+        selectedChangeId: string | undefined;
+        /** Computed groups of changes */
+        changeGroups: ChangeGroup[];
+        /** Whether to show visual indicators on canvas elements */
+        showCanvasIndicators: boolean;
+        /** Summary counts for toolbar */
+        changeCounts: ChangeCountSummary;
+        /** IDs of tables that were deleted from the original schema (for canvas indicators) */
+        deletedTableIds: Set<string>;
+        /** IDs of foreign keys that were deleted from the original schema (for canvas indicators) */
+        deletedForeignKeyIds: Set<string>;
+        /** Column-level changes indexed by table ID and column name */
+        tableColumnChanges: { [tableId: string]: { [columnName: string]: SchemaChangeType } };
+        /** Deleted columns indexed by table ID, with original position info */
+        deletedColumns: {
+            [tableId: string]: Array<{
+                name: string;
+                dataType: string;
+                isPrimaryKey: boolean;
+                originalIndex: number;
+            }>;
+        };
+        /** Currently highlighted element ID for reveal animation */
+        highlightedElementId: string | null;
+        /** Type of currently highlighted element */
+        highlightedElementType: "table" | "foreignKey" | null;
+        /** Ghost nodes representing deleted tables (visible when drawer is open) */
+        ghostNodes: GhostNodeData[];
+        /** Ghost edges representing deleted foreign keys (visible when drawer is open) */
+        ghostEdges: GhostEdgeData[];
+        /** Rename info indexed by table ID for tables that were renamed */
+        tableRenameInfo: { [tableId: string]: RenameDisplayInfo };
+        /** FK modification type indexed by FK ID ('property' = yellow, 'structural' = red/green) */
+        fkModificationType: { [fkId: string]: "property" | "structural" };
+    }
+
+    /**
+     * Input for diff calculation
+     */
+    export interface DiffCalculationInput {
+        /** Original schema loaded at session start */
+        originalSchema: Schema;
+        /** Current schema from ReactFlow state */
+        currentSchema: Schema;
+    }
+
+    /**
+     * Result of diff calculation
+     */
+    export interface DiffCalculationResult {
+        /** All changes detected */
+        changes: SchemaChange[];
+        /** Changes grouped by table */
+        changeGroups: ChangeGroup[];
+        /** Summary counts */
+        summary: ChangeCountSummary;
+        /** Whether any changes were detected */
+        hasChanges: boolean;
+    }
+
+    /**
+     * Details about a foreign key modification to distinguish
+     * property-only changes from structural changes.
+     */
+    export interface ForeignKeyModificationDetails {
+        /**
+         * Whether the FK columns or referenced columns changed.
+         * - true: Structural change → show old edge red, new edge green
+         * - false: Property change → show single edge yellow
+         */
+        isStructural: boolean;
+
+        /**
+         * Original FK state before modification.
+         * Used to render the "old" red edge for structural changes.
+         */
+        originalForeignKey?: ForeignKey;
+
+        /**
+         * For structural changes, the ID of the edge representing
+         * the old relationship (before column changes).
+         */
+        oldEdgeId?: string;
+    }
+
+    /**
+     * Data for a "ghost" node representing a deleted table.
+     * Ghost nodes are rendered on canvas only when drawer is open.
+     */
+    export interface GhostNodeData extends Table {
+        /**
+         * Flag indicating this is a ghost (deleted) node.
+         * Used by rendering code to apply deleted styling.
+         */
+        isGhostNode: true;
+
+        /**
+         * Original position of the table before deletion.
+         * Used to render the ghost at the same location.
+         */
+        originalPosition: {
+            x: number;
+            y: number;
+        };
+    }
+
+    /**
+     * Data for a "ghost" edge representing a deleted foreign key.
+     */
+    export interface GhostEdgeData {
+        /** Unique edge ID (same as original FK ID) */
+        id: string;
+
+        /** Source table ID */
+        sourceTableId: string;
+
+        /** Target table ID */
+        targetTableId: string;
+
+        /** Source column name */
+        sourceColumn: string;
+
+        /** Target column name */
+        targetColumn: string;
+
+        /** Original FK data for rendering */
+        fkData: ForeignKey;
+    }
+
+    /**
+     * Information about a table rename (name and/or schema change).
+     * Used to display old name with strikethrough next to new name.
+     */
+    export interface RenameDisplayInfo {
+        /** Previous fully qualified name (schema.name) */
+        oldDisplayName: string;
+
+        /** Previous schema name */
+        oldSchema: string;
+
+        /** Previous table name */
+        oldName: string;
+
+        /** Whether the schema was changed */
+        schemaChanged: boolean;
+
+        /** Whether the table name was changed */
+        nameChanged: boolean;
+    }
 }

@@ -1,0 +1,646 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Diff Viewer Styles
+ * 
+ * Uses VS Code CSS variables for theme compatibility.
+ * Colors follow git decoration conventions for consistency.
+ */
+
+/* Container styles */
+.diff-viewer-drawer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--vscode-sideBar-background);
+    border-left: 1px solid var(--vscode-sideBar-border, var(--vscode-panel-border));
+}
+
+.diff-viewer-header {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-sideBarSectionHeader-background);
+}
+
+.diff-viewer-header-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vscode-sideBarTitle-foreground);
+    margin-bottom: 8px;
+}
+
+.diff-viewer-summary {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.diff-viewer-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.diff-viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+/* Empty state */
+.diff-viewer-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+.diff-viewer-empty-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--vscode-foreground);
+}
+
+.diff-viewer-empty-description {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Change group styles */
+.change-group {
+    margin-bottom: 4px;
+}
+
+.change-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    user-select: none;
+    background-color: var(--vscode-list-hoverBackground);
+    transition: background-color 0.1s ease;
+}
+
+.change-group-header:hover {
+    background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.change-group-header:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.change-group-chevron {
+    flex-shrink: 0;
+    color: var(--vscode-foreground);
+    transition: transform 0.15s ease;
+}
+
+.change-group-chevron--expanded {
+    transform: rotate(90deg);
+}
+
+.change-group-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.change-group-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.change-group-items {
+    padding-left: 8px;
+}
+
+/* Change item styles */
+.change-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px 6px 24px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background-color 0.1s ease;
+}
+
+.change-item:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.change-item:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.change-item--selected {
+    background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+/* Change type colors using VS Code git decoration variables */
+.change-item--addition {
+    border-left-color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+.change-item--modification {
+    border-left-color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.change-item--deletion {
+    border-left-color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+}
+
+/* Badge colors */
+.change-badge--addition {
+    background-color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+    color: var(--vscode-editor-background, #1e1e1e);
+}
+
+.change-badge--modification {
+    background-color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+    color: var(--vscode-editor-background, #1e1e1e);
+}
+
+.change-badge--deletion {
+    background-color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    color: var(--vscode-editor-background, #1e1e1e);
+}
+
+/* Summary count colors */
+.summary-count--addition {
+    color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+.summary-count--modification {
+    color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.summary-count--deletion {
+    color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+}
+
+.change-item-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.change-item-icon--addition {
+    color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+.change-item-icon--modification {
+    color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.change-item-icon--deletion {
+    color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+}
+
+.change-item-content {
+    flex: 1;
+    overflow: hidden;
+}
+
+.change-item-name {
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.change-item-description {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
+.change-item-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+
+.change-item:hover .change-item-actions,
+.change-item:focus-within .change-item-actions {
+    opacity: 1;
+}
+
+.change-item-action-button {
+    padding: 4px;
+    border: none;
+    background: transparent;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.change-item-action-button:hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.change-item-action-button:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+}
+
+/* Resize handle */
+.diff-viewer-resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    cursor: ew-resize;
+    background-color: transparent;
+    transition: background-color 0.15s ease;
+}
+
+/* Grip dots visual affordance */
+.diff-viewer-resize-handle::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 3px;
+    height: 20px;
+    background-image: radial-gradient(
+        circle,
+        var(--vscode-editorWidget-border, #454545) 1px,
+        transparent 1px
+    );
+    background-size: 3px 4px;
+    background-repeat: repeat-y;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.diff-viewer-resize-handle:hover,
+.diff-viewer-resize-handle--dragging {
+    background-color: var(--vscode-sash-hoverBorder, var(--vscode-focusBorder));
+}
+
+.diff-viewer-resize-handle:hover::before,
+.diff-viewer-resize-handle--dragging::before {
+    opacity: 1;
+}
+
+/* High contrast theme support for resize handle grip */
+@media (forced-colors: active) {
+    .diff-viewer-resize-handle::before {
+        background-image: radial-gradient(circle, CanvasText 1px, transparent 1px);
+    }
+
+    .diff-viewer-resize-handle:hover,
+    .diff-viewer-resize-handle--dragging {
+        background-color: Highlight;
+    }
+}
+
+/* Column diff indicator dot */
+.column-diff-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 4px;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.column-diff-indicator--addition {
+    background-color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+.column-diff-indicator--modification {
+    background-color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.column-diff-indicator--deletion {
+    background-color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+}
+
+/* Deleted column styling - inline with strikethrough and dimmed text */
+.column--deleted {
+    opacity: 0.5;
+}
+
+.column--deleted .columnName {
+    text-decoration: line-through;
+    color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+}
+
+.column--deleted .columnType {
+    text-decoration: line-through;
+}
+
+/* High contrast theme support */
+@media (forced-colors: active) {
+    .change-item--addition {
+        border-left-color: Highlight;
+    }
+
+    .change-item--modification {
+        border-left-color: ButtonText;
+    }
+
+    .change-item--deletion {
+        border-left-color: LinkText;
+    }
+
+    /* Column indicator high contrast */
+    .column-diff-indicator--addition,
+    .column-diff-indicator--modification,
+    .column-diff-indicator--deletion {
+        background-color: Highlight;
+        forced-color-adjust: none;
+    }
+
+    .column--deleted {
+        opacity: 1;
+    }
+
+    .column--deleted .columnName,
+    .column--deleted .columnType {
+        color: LinkText;
+    }
+
+    .change-badge--addition,
+    .change-badge--modification,
+    .change-badge--deletion {
+        background-color: Highlight;
+        color: HighlightText;
+        forced-color-adjust: none;
+    }
+
+    .change-item:hover,
+    .change-item--selected {
+        background-color: Highlight;
+        color: HighlightText;
+        forced-color-adjust: none;
+    }
+
+    .change-group-header:hover {
+        background-color: Highlight;
+        color: HighlightText;
+        forced-color-adjust: none;
+    }
+
+    .change-item-icon--addition,
+    .change-item-icon--modification,
+    .change-item-icon--deletion {
+        color: ButtonText;
+    }
+
+    .summary-count--addition,
+    .summary-count--modification,
+    .summary-count--deletion {
+        color: ButtonText;
+    }
+
+    .diff-viewer-resize-handle:hover,
+    .diff-viewer-resize-handle--dragging {
+        background-color: Highlight;
+    }
+
+    .schema-node--addition,
+    .schema-node--modification,
+    .schema-node--deletion {
+        box-shadow: 0 0 0 2px Highlight;
+    }
+
+    .show-changes-button-count--has-changes {
+        background-color: Highlight;
+        color: HighlightText;
+        forced-color-adjust: none;
+    }
+}
+
+/* VS Code High Contrast theme support (non-forced colors) */
+:root[data-vscode-theme-kind="vscode-high-contrast"],
+:root[data-vscode-theme-kind="vscode-high-contrast-light"] {
+    /* Ensure sufficient contrast for change indicators */
+    --diff-addition-color: var(--vscode-gitDecoration-addedResourceForeground, #89d185);
+    --diff-modification-color: var(--vscode-gitDecoration-modifiedResourceForeground, #cca700);
+    --diff-deletion-color: var(--vscode-gitDecoration-deletedResourceForeground, #f48771);
+}
+
+/* Apply high contrast colors when available */
+.change-item--addition {
+    border-left-color: var(--diff-addition-color, var(--vscode-gitDecoration-addedResourceForeground, #73c991));
+}
+
+.change-item--modification {
+    border-left-color: var(--diff-modification-color, var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d));
+}
+
+.change-item--deletion {
+    border-left-color: var(--diff-deletion-color, var(--vscode-gitDecoration-deletedResourceForeground, #c74e39));
+}
+
+/* Canvas indicators for changed elements */
+.schema-node--addition {
+    box-shadow: 0 0 0 2px var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+.schema-node--modification {
+    box-shadow: 0 0 0 2px var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
+.schema-node--deletion {
+    box-shadow: 0 0 0 2px var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    opacity: 0.7;
+}
+
+/* Empty state icon styling */
+.diff-viewer-empty-icon {
+    color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+}
+
+/* Toolbar button styles */
+.show-changes-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.show-changes-button-count {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background-color: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+}
+
+.show-changes-button-count--has-changes {
+    background-color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+    color: var(--vscode-editor-background, #1e1e1e);
+}
+
+/* Reveal highlight animation for canvas elements */
+@keyframes reveal-highlight {
+    0% {
+        box-shadow: 0 0 0 3px var(--vscode-focusBorder, #007fd4);
+    }
+    50% {
+        box-shadow: 0 0 12px 6px var(--vscode-focusBorder, #007fd4);
+    }
+    100% {
+        box-shadow: 0 0 0 3px var(--vscode-focusBorder, #007fd4);
+    }
+}
+
+.schema-node--revealed {
+    animation: reveal-highlight 0.8s ease-in-out 2;
+}
+
+/* Reveal highlight for edges */
+@keyframes reveal-edge-highlight {
+    0% {
+        filter: drop-shadow(0 0 2px var(--vscode-focusBorder, #007fd4));
+    }
+    50% {
+        filter: drop-shadow(0 0 8px var(--vscode-focusBorder, #007fd4));
+    }
+    100% {
+        filter: drop-shadow(0 0 2px var(--vscode-focusBorder, #007fd4));
+    }
+}
+
+.schema-edge--revealed {
+    animation: reveal-edge-highlight 0.8s ease-in-out 2;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .schema-node--revealed {
+        animation: none;
+        box-shadow: 0 0 0 3px var(--vscode-focusBorder, #007fd4);
+    }
+
+    .schema-edge--revealed {
+        animation: none;
+        filter: drop-shadow(0 0 4px var(--vscode-focusBorder, #007fd4));
+    }
+}
+
+/* ============================================================================
+ * Ghost Node/Edge Styles (T007, T020, T021)
+ * Styles for deleted tables and foreign keys rendered when drawer is open
+ * ============================================================================ */
+
+/* Ghost node (deleted table) styling */
+.schema-node--ghost {
+    opacity: 0.7;
+    border: 2px dashed var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    box-shadow: 0 0 8px var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    pointer-events: none; /* Ghost nodes are non-interactive */
+}
+
+/* Ghost node inner content overlay */
+.schema-node--ghost .schema-node-content {
+    position: relative;
+}
+
+.schema-node--ghost::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    opacity: 0.08;
+    pointer-events: none;
+    border-radius: 5px;
+}
+
+/* Ghost edge (deleted foreign key) styling */
+.schema-edge--ghost {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    stroke-width: 2px !important;
+    stroke-dasharray: 5 3 !important;
+    opacity: 0.7;
+}
+
+/* Ghost edge marker (arrowhead) */
+.schema-edge--ghost marker path {
+    fill: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+}
+
+/* ============================================================================
+ * Table Rename Styles (T039)
+ * Strikethrough old name with new name display
+ * ============================================================================ */
+
+.table-name--old {
+    text-decoration: line-through;
+    color: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39);
+    margin-right: 6px;
+    opacity: 0.8;
+}
+
+.table-name--new {
+    color: var(--vscode-gitDecoration-addedResourceForeground, #73c991);
+    font-weight: 600;
+}
+
+.table-name--rename-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.table-name--rename-arrow {
+    color: var(--vscode-descriptionForeground);
+    font-size: 10px;
+    margin: 0 2px;
+}
+
+/* ============================================================================
+ * FK Modification Color Styles (T049)
+ * Yellow for property changes, red/green for structural changes
+ * ============================================================================ */
+
+/* Property-only FK modification (name, onDelete, onUpdate) - yellow/amber */
+.schema-edge--modified-property {
+    stroke: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d) !important;
+    stroke-width: 2px !important;
+}
+
+/* Structural FK modification - old edge (red, deleted) */
+.schema-edge--modified-structural-old {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground, #c74e39) !important;
+    stroke-width: 2px !important;
+    stroke-dasharray: 5 3 !important;
+    opacity: 0.8;
+}
+
+/* Structural FK modification - new edge (green, added) */
+.schema-edge--modified-structural-new {
+    stroke: var(--vscode-gitDecoration-addedResourceForeground, #73c991) !important;
+    stroke-width: 2px !important;
+}

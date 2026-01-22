@@ -920,6 +920,89 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
+            // Diff Viewer
+            diffViewer: {
+                schemaChanges: l10n.t("Schema Changes"),
+                showChanges: (count: number) =>
+                    l10n.t({
+                        message: "Show Changes ({0})",
+                        args: [count],
+                        comment: ["{0} is the number of pending changes"],
+                    }),
+                noPendingChanges: l10n.t("No pending changes"),
+                added: l10n.t("Added"),
+                modified: l10n.t("Modified"),
+                deleted: l10n.t("Deleted"),
+                undoChange: l10n.t("Undo change"),
+                undoConfirmation: l10n.t("Undo Confirmation"),
+                undoConfirmationContent: (entityName: string) =>
+                    l10n.t({
+                        message: "Are you sure you want to undo changes to '{0}'?",
+                        args: [entityName],
+                        comment: ["{0} is the entity name"],
+                    }),
+                additions: l10n.t("Additions"),
+                modifications: l10n.t("Modifications"),
+                deletions: l10n.t("Deletions"),
+                navigateToEntity: l10n.t("Navigate to entity"),
+                revealInCanvas: l10n.t("Reveal in canvas"),
+                collapseGroup: l10n.t("Collapse group"),
+                expandGroup: l10n.t("Expand group"),
+                columnAdded: (columnName: string) =>
+                    l10n.t({
+                        message: "Column '{0}' added",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                columnDeleted: (columnName: string) =>
+                    l10n.t({
+                        message: "Column '{0}' deleted",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                columnModified: (columnName: string, property: string) =>
+                    l10n.t({
+                        message: "Column '{0}' - {1} changed",
+                        args: [columnName, property],
+                        comment: ["{0} is the column name", "{1} is the property name"],
+                    }),
+                tableAdded: (tableName: string) =>
+                    l10n.t({
+                        message: "Table '{0}' added",
+                        args: [tableName],
+                        comment: ["{0} is the table name"],
+                    }),
+                tableDeleted: (tableName: string) =>
+                    l10n.t({
+                        message: "Table '{0}' deleted",
+                        args: [tableName],
+                        comment: ["{0} is the table name"],
+                    }),
+                tableModified: (tableName: string) =>
+                    l10n.t({
+                        message: "Table '{0}' modified",
+                        args: [tableName],
+                        comment: ["{0} is the table name"],
+                    }),
+                foreignKeyAdded: (fkName: string) =>
+                    l10n.t({
+                        message: "Foreign key '{0}' added",
+                        args: [fkName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                foreignKeyDeleted: (fkName: string) =>
+                    l10n.t({
+                        message: "Foreign key '{0}' deleted",
+                        args: [fkName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                foreignKeyModified: (fkName: string) =>
+                    l10n.t({
+                        message: "Foreign key '{0}' modified",
+                        args: [fkName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+            },
         };
     }
 
