@@ -29,6 +29,14 @@ export const sqlProjTaskType = 'sqlproj-build';
 export const dotnet = 'dotnet';
 export const build = 'build';
 export const runCodeAnalysisParam = '/p:RunSqlCodeAnalysis=true';
+export const tasksJsonVersion = '2.0.0';
+export const processTaskType = 'process';
+export const buildGroupKind = 'build';
+export const sqlprojBuildTaskLabelPrefix = 'sqlproj: Build';
+export function getSqlProjectBuildTaskLabel(projectName: string): string { return `${sqlprojBuildTaskLabelPrefix} ${projectName}`; }
+export function getSqlProjectBuildTaskDetail(projectName: string): string { return l10n.t("Builds the {0} SQL project", projectName); }
+export const tasksJsonParseError = l10n.t("Unable to update existing tasks.json (invalid format). Please fix tasks.json and try again.");
+export function tasksJsonUpdateError(error: string): string { return l10n.t("Error updating existing tasks.json: {0}", error); }
 
 //#endregion
 

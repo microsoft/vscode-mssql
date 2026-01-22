@@ -872,3 +872,42 @@ export function throwIfFailed(result: azdataType.ResultStatus | vscodeMssql.Resu
 		throw new Error(constants.errorPrefix(result.errorMessage));
 	}
 }
+
+//#region Build Task helpers
+
+export interface SqlProjectBuildTaskOptions {
+	projectName: string;
+	buildArgs: string[];
+	isDefault: boolean;
+}
+
+/**
+ * Creates a SQL project build task definition for tasks.json
+ */
+export function createSqlProjectBuildTask(options: SqlProjectBuildTaskOptions): object {
+	return {
+		label: constants.getSqlProjectBuildTaskLabel(options.projectName),
+		type: constants.processTaskType,
+		command: constants.dotnet,
+		args: options.buildArgs,
+		problemMatcher: constants.problemMatcher,
+		isBackground: true,
+		group: {
+			kind: constants.build,
+			isDefault: options.isDefault
+		},
+		detail: constants.getSqlProjectBuildTaskDetail(options.projectName)
+	};
+}
+
+/**
+ * Creates a new tasks.json structure with the given tasks
+ */
+export function createTasksJson(tasks: object[]): object {
+	return {
+		version: constants.tasksJsonVersion,
+		tasks: tasks
+	};
+}
+
+//#endregion
