@@ -170,6 +170,11 @@ export interface ProfilerReducers {
     selectRow: {
         rowId: string;
     };
+    /** Export events to CSV file */
+    exportToCsv: {
+        csvContent: string;
+        suggestedFileName: string;
+    };
 }
 
 /**
@@ -194,11 +199,6 @@ export interface ProfilerSelectedEventDetails {
     textData: string;
     /** All event properties (for the Details tab) */
     properties: ProfilerEventProperty[];
-    /** Export events to CSV file */
-    exportToCsv: {
-        csvContent: string;
-        suggestedFileName: string;
-    };
 }
 
 /**
@@ -289,10 +289,10 @@ export interface FilterStateChangedParams {
     totalCount: number;
     /** Count of events matching the filter */
     filteredCount: number;
-
-    /** Notification sent when export result is available */
-    export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 }
+
+/** Notification sent when export result is available */
+export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 
 // ============================================================================
 // Profiler Details Panel (VS Code Panel View)

@@ -563,6 +563,7 @@ export const Profiler: React.FC = () => {
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
                 isFilterActive={isFilterActive}
+                totalEventCount={localRowCount}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -573,6 +574,7 @@ export const Profiler: React.FC = () => {
                 onAutoScrollToggle={handleAutoScrollToggle}
                 onFilter={handleFilter}
                 onClearFilter={handleClearFilter}
+                onExportToCsv={handleExportToCsv}
             />
             <ProfilerFilterDialog
                 columns={viewConfig?.columns ?? []}
@@ -582,8 +584,6 @@ export const Profiler: React.FC = () => {
                 onOpenChange={setIsFilterDialogOpen}
                 onApplyFilter={handleApplyFilter}
                 onClearFilter={handleClearFilter}
-                totalEventCount={localRowCount}
-                onExportToCsv={handleExportToCsv}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact

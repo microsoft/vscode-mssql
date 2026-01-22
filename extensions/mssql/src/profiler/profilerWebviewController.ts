@@ -535,6 +535,28 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        // Handle row selection from webview - update details panel
+        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
+            this.handleRowSelection(payload.rowId);
+            return state;
+        });
+
+        // Handle export to CSV request from webview (manual trigger from toolbar)
+        this.registerReducer(
+            "exportToCsv",
+            (state, payload: { csvContent: string; suggestedFileName: string }) => {
+                // Export is handled asynchronously by the event handler
+                if (this._eventHandlers.onExportToCsv) {
+                    this._eventHandlers.onExportToCsv(
+                        payload.csvContent,
+                        payload.suggestedFileName,
+                        "manual",
+                    );
+                }
+                return state;
+            },
+        );
     }
 
     /**
@@ -553,12 +575,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         };
 
         await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
-
-        // Handle row selection from webview - update details panel
-        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            this.handleRowSelection(payload.rowId);
-            return state;
-        });
     }
 
     /**
@@ -588,22 +604,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // Update the details panel after it's revealed
             this._detailsPanelController?.updateSelectedEvent(selectedEventDetails);
         });
-
-        // Handle export to CSV request from webview (manual trigger from toolbar)
-        this.registerReducer(
-            "exportToCsv",
-            (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                // Export is handled asynchronously by the event handler
-                if (this._eventHandlers.onExportToCsv) {
-                    this._eventHandlers.onExportToCsv(
-                        payload.csvContent,
-                        payload.suggestedFileName,
-                        "manual",
-                    );
-                }
-                return state;
-            },
-        );
     }
 
     /**
