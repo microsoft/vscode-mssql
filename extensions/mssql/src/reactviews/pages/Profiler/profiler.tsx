@@ -98,6 +98,7 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const sessionName = useProfilerSelector((s) => s.sessionName);
 
     const {
         pauseResume,
@@ -109,6 +110,7 @@ export const Profiler: React.FC = () => {
         changeView,
         toggleAutoScroll,
         fetchRows,
+        exportToCsv,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
@@ -406,6 +408,60 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
+    /**
+     * Handle export to CSV using TextExportService
+     * Exports ALL events from the session buffer (not just filtered view)
+     */
+    const handleExportToCsv = useCallback(() => {
+        if (!reactGridRef.current?.dataView) {
+            return;
+        }
+
+        const dataView = reactGridRef.current.dataView;
+        const allItems = dataView.getItems();
+
+        if (allItems.length === 0) {
+            return;
+        }
+
+        // Get column definitions for export
+        const exportColumns = columns.map((col) => ({
+            id: col.id,
+            name: typeof col.name === "string" ? col.name : col.field,
+            field: col.field,
+        }));
+
+        // Build CSV content
+        let csvContent = "";
+
+        // Add header row
+        const headers = exportColumns.map((col) => `"${(col.name || col.field || "").replace(/"/g, '""')}"`);
+        csvContent += headers.join(",") + "\n";
+
+        // Add data rows - export ALL items in the DataView (full dataset)
+        for (const item of allItems) {
+            const row = exportColumns.map((col) => {
+                const value = item[col.field];
+                if (value === null || value === undefined) {
+                    return "";
+                }
+                // Escape quotes and wrap in quotes
+                const stringValue = String(value).replace(/"/g, '""');
+                return `"${stringValue}"`;
+            });
+            csvContent += row.join(",") + "\n";
+        }
+
+        // Generate suggested file name (without .csv extension, controller will add it)
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        const suggestedFileName = sessionName
+            ? `${sessionName}_${timestamp}`
+            : `profiler_events_${timestamp}`;
+
+        // Send to extension host for file save dialog and writing
+        exportToCsv(csvContent, suggestedFileName);
+    }, [columns, sessionName, exportToCsv]);
+
     return (
         <div className={classes.profilerContainer}>
             <ProfilerToolbar
@@ -425,6 +481,8 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
+                totalEventCount={localRowCount}
+                onExportToCsv={handleExportToCsv}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact

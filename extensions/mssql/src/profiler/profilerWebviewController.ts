@@ -37,6 +37,8 @@ export interface ProfilerWebviewEvents {
     onStartSession?: (sessionId: string) => void;
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
+    /** Emitted when export to CSV is requested from the UI */
+    onExportToCsv?: (csvContent: string, suggestedFileName: string) => void;
 }
 
 /**
@@ -116,6 +118,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                         "executionPlan_light.svg",
                     ),
                 },
+                showRestorePromptAfterClose: false, // Will be set to true when events are captured
             },
         );
 
@@ -175,6 +178,143 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         ProfilerTelemetry.sendSessionClosed(sessionId, eventCount, wasStopped);
 
         super.dispose();
+    }
+
+    /**
+     * Override showRestorePrompt to show export prompt when there are unexported events.
+     * Prompts the user to export or discard captured events before closing.
+     * Like VS Code's native "unsaved changes" dialog: Export & Close, Close Without Export, Cancel
+     */
+    protected override async showRestorePrompt(): Promise<
+        | {
+              title: string;
+              run: () => Promise<void>;
+          }
+        | undefined
+    > {
+        const result = await vscode.window.showWarningMessage(
+            LocProfiler.unexportedEventsMessage,
+            {
+                modal: true,
+            },
+            LocProfiler.exportAndClose,
+            LocProfiler.closeWithoutExport,
+        );
+
+        if (result === LocProfiler.exportAndClose) {
+            // Perform export then allow close
+            await this.performExportFromBuffer();
+            return undefined; // Allow close
+        } else if (result === LocProfiler.closeWithoutExport) {
+            // Just close without export
+            return undefined; // Allow close
+        } else {
+            // Cancel button clicked (result is undefined) - restore the panel
+            return super.showRestorePrompt();
+        }
+    }
+
+    /**
+     * Generates CSV content from all events in the buffer and performs export.
+     * Used by the close prompt to export before closing.
+     */
+    private async performExportFromBuffer(): Promise<void> {
+        if (!this._currentSession || this._currentSession.events.size === 0) {
+            return;
+        }
+
+        // Get all events from the buffer
+        const allEvents = this._currentSession.events.getAllRows();
+
+        if (allEvents.length === 0) {
+            return;
+        }
+
+        // Get current view config to determine which columns to export
+        const viewConfig = this.state.viewConfig;
+        if (!viewConfig) {
+            return;
+        }
+
+        // Generate CSV content
+        const csvContent = this.generateCsvFromEvents(allEvents, viewConfig);
+
+        // Generate suggested file name
+        const sessionName = this._currentSession.sessionName || "profiler_events";
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const suggestedFileName = `${sessionName}_${timestamp}`;
+
+        // Perform export using event handler
+        if (this._eventHandlers.onExportToCsv) {
+            await new Promise<void>((resolve) => {
+                // Create a temporary handler to know when export is complete
+                const originalHandler = this._eventHandlers.onExportToCsv;
+                this._eventHandlers.onExportToCsv = async (content, fileName) => {
+                    if (originalHandler) {
+                        await originalHandler(content, fileName);
+                    }
+                    resolve();
+                };
+                this._eventHandlers.onExportToCsv(csvContent, suggestedFileName);
+            });
+        }
+    }
+
+    /**
+     * Generates CSV content from events using the current view configuration.
+     */
+    private generateCsvFromEvents(events: EventRow[], viewConfig: ProfilerViewConfig): string {
+        // Get column headers from view config
+        const columns = viewConfig.columns;
+        const headers = columns.map((col) => `"${col.header.replace(/"/g, '""')}"`);
+
+        // Generate CSV rows
+        const rows = events.map((event) => {
+            return columns
+                .map((col) => {
+                    const value = this.getEventFieldValue(event, col.field);
+                    // Escape quotes and wrap in quotes
+                    const stringValue = String(value).replace(/"/g, '""');
+                    return `"${stringValue}"`;
+                })
+                .join(",");
+        });
+
+        // Combine headers and rows
+        return [headers.join(","), ...rows].join("\n");
+    }
+
+    /**
+     * Gets the value of a field from an EventRow.
+     * Handles both direct properties and additionalData.
+     */
+    private getEventFieldValue(event: EventRow, field: string): string | number | undefined {
+        // Map common field names to EventRow properties
+        switch (field) {
+            case "eventNumber":
+                return event.eventNumber;
+            case "timestamp":
+                return event.timestamp?.toISOString() ?? "";
+            case "eventClass":
+                return event.eventClass ?? "";
+            case "textData":
+                return event.textData ?? "";
+            case "databaseName":
+                return event.databaseName ?? "";
+            case "spid":
+                return event.spid;
+            case "duration":
+                return event.duration;
+            case "cpu":
+                return event.cpu;
+            case "reads":
+                return event.reads;
+            case "writes":
+                return event.writes;
+            default:
+                // Check additionalData for other fields
+                return event.additionalData?.[field] ?? "";
+        }
     }
 
     /**
@@ -294,6 +434,21 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 const response = this.fetchRowsFromBuffer(payload.startIndex, payload.count);
                 // Send response to webview via notification
                 void this.sendNotification(ProfilerNotifications.RowsAvailable, response);
+                return state;
+            },
+        );
+
+        // Handle export to CSV request from webview
+        this.registerReducer(
+            "exportToCsv",
+            (state, payload: { csvContent: string; suggestedFileName: string }) => {
+                // Export is handled asynchronously by the event handler
+                if (this._eventHandlers.onExportToCsv) {
+                    this._eventHandlers.onExportToCsv(
+                        payload.csvContent,
+                        payload.suggestedFileName,
+                    );
+                }
                 return state;
             },
         );
@@ -433,8 +588,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.state = {
             ...this.state,
             totalRowCount: totalCount,
+            hasUnexportedEvents: totalCount > 0, // Mark as having unexported events when we have data
         };
         this.updateStatusBar();
+
+        // Enable close prompt when there are unexported events
+        if (totalCount > 0) {
+            this.showRestorePromptAfterClose = true;
+        }
 
         // Notify webview of new data availability
         const params: NewEventsAvailableParams = {
@@ -575,6 +736,20 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
         this.updateStatusBar();
+    }
+
+    /**
+     * Mark that export has been completed successfully.
+     * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
+     */
+    public setExportComplete(): void {
+        this.state = {
+            ...this.state,
+            hasUnexportedEvents: false,
+            lastExportTimestamp: Date.now(),
+        };
+        // Disable close prompt since data has been exported
+        this.showRestorePromptAfterClose = false;
     }
 
     /**
