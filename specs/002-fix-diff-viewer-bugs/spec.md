@@ -106,6 +106,9 @@ Users expect the diff viewer drawer to have consistent styling that matches VS C
 
 - **FR-013**: Undo button in drawer must live update the drawer list, toolbar count, and canvas indicators immediately after action.
 
+- **FR-014**: Add reveal button on diff list items like tables and foreign keys to navigate to corresponding canvas element.
+
+
 ### Key Entities
 
 - **ChangeCountTracker**: Singleton service that tracks change counts and notifies subscribers
