@@ -10,12 +10,11 @@ import * as locConstants from "../constants/locConstants";
 
 export const changelogConfig: ChangelogWebviewState = {
     mainContent: {
-        title: "Highlights",
+        title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
-                title: "Azure Data Studio Connection Migration Toolkit",
-                description:
-                    "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+                title: locConstants.Changelog.adsMigrationTitle,
+                description: locConstants.Changelog.adsMigrationDescription,
                 icon: "azureDataStudio.svg",
                 actions: [
                     {
@@ -36,9 +35,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "Edit Data (Preview)",
-                description:
-                    "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+                title: locConstants.Changelog.editDataTitle,
+                description: locConstants.Changelog.editDataDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -53,9 +51,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
-                description:
-                    "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
+                title: locConstants.Changelog.dacpacTitle,
+                description: locConstants.Changelog.dacpacDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -75,9 +72,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "SQL Database Projects – Publish Dialog (Preview)",
-                description:
-                    "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
+                title: locConstants.Changelog.sqlProjPublishTitle,
+                description: locConstants.Changelog.sqlProjPublishDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -94,13 +90,12 @@ export const changelogConfig: ChangelogWebviewState = {
         ],
     },
     secondaryContent: {
-        title: "In case you missed it",
-        description: "Previously released features you may not have explored yet.",
+        title: locConstants.Changelog.secondaryContentTitle,
+        description: locConstants.Changelog.secondaryContentDescription,
         entries: [
             {
-                title: "Schema Designer (GA)",
-                description:
-                    "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+                title: locConstants.Changelog.schemaDesignerTitle,
+                description: locConstants.Changelog.schemaDesignerDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -115,9 +110,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "Schema Compare (GA)",
-                description:
-                    "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+                title: locConstants.Changelog.schemaCompareTitle,
+                description: locConstants.Changelog.schemaCompareDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -137,9 +131,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "Local SQL Server Container (GA)",
-                description:
-                    "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
+                title: locConstants.Changelog.localContainerTitle,
+                description: locConstants.Changelog.localContainerDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -159,9 +152,8 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "GitHub Copilot integration (GA)",
-                description:
-                    "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+                title: locConstants.Changelog.copilotIntegrationTitle,
+                description: locConstants.Changelog.copilotIntegrationDescription,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -185,8 +177,8 @@ export const changelogConfig: ChangelogWebviewState = {
     },
     sidebarContent: [
         {
-            title: "Resources",
-            description: "Explore tutorials, docs, and what's coming next.",
+            title: locConstants.Changelog.resourcesTitle,
+            description: locConstants.Changelog.resourcesDescription,
             actions: [
                 {
                     type: "link",
@@ -208,18 +200,18 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
         {
-            title: "Feedback",
-            description: "Help us improve by sharing your thoughts.",
+            title: locConstants.Changelog.feedbackTitle,
+            description: locConstants.Changelog.feedbackDescription,
             actions: [
                 {
                     type: "link",
-                    label: "Open a new bug",
+                    label: locConstants.Changelog.openNewBug,
                     value: "https://aka.ms/vscode-mssql-bug",
                     icon: "Bug16Regular",
                 },
                 {
                     type: "link",
-                    label: "Request a new feature",
+                    label: locConstants.Changelog.requestNewFeature,
                     value: "https://aka.ms/vscode-mssql-feature-request",
                     icon: "Lightbulb16Regular",
                 },
@@ -231,24 +223,24 @@ export const changelogConfig: ChangelogWebviewState = {
                 },
                 {
                     type: "link",
-                    label: "GitHub Copilot survey",
+                    label: locConstants.Changelog.copilotSurvey,
                     value: "https://aka.ms/vscode-mssql-copilot-survey",
                     icon: "ClipboardBulletList16Regular",
                 },
             ],
         },
         {
-            title: "Getting Started",
-            description: "New to the MSSQL extension? Check out our quick-start guide.",
+            title: locConstants.Changelog.gettingStartedTitle,
+            description: locConstants.Changelog.gettingStartedDescription,
             actions: [
                 {
                     type: "walkthrough",
-                    label: "MSSQL - VS Code walkthrough",
+                    label: locConstants.Changelog.mssqlWalkthrough,
                     value: `${constants.extensionId}#mssql.getStarted`,
                 },
                 {
                     type: "walkthrough",
-                    label: "GitHub Copilot - VS Code walkthrough",
+                    label: locConstants.Changelog.copilotWalkthrough,
                     value: `GitHub.copilot-chat#copilotWelcome`,
                 },
                 {
