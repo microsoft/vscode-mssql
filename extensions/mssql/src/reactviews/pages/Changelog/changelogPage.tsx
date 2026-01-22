@@ -144,6 +144,14 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
     },
+    secondaryChangesColumn: {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: "16px",
+        "@media (max-width: 900px)": {
+            gridTemplateColumns: "1fr",
+        },
+    },
     changeCard: {
         backgroundColor: "var(--vscode-sideBar-background)",
         borderRadius: "12px",
@@ -452,8 +460,8 @@ export const ChangelogPage = () => {
                             {secondaryContent.title}
                         </Title3>
                         {!secondaryCollapsed && (
-                            <div className={classes.mainGrid}>
-                                <div className={classes.changesColumn}>
+                            <div className={classes.mainGrid} style={{ marginBottom: "16px" }}>
+                                <div className={classes.secondaryChangesColumn}>
                                     {secondaryContent.entries.map((group, index) => {
                                         const changeIcon = group.icon
                                             ? changelogIcons[group.icon]
