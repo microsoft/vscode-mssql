@@ -292,7 +292,7 @@ export function retryMessage(name: string, error: string) { return l10n.t("Opera
 export const addDatabaseReferenceDialogName = l10n.t("Add database reference");
 export const addDatabaseReferenceOkButtonText = l10n.t("Add reference");
 export const referenceRadioButtonsGroupTitle = l10n.t("Referenced Database Type");
-export const projectLabel = l10n.t("Project");
+export const projectLabel = l10n.t("Project (.sqlproj)");
 export const systemDatabase = l10n.t("System database");
 export const dacpacText = l10n.t("Data-tier application (.dacpac)");
 export const nupkgText = l10n.t("Published data-tier application (.nupkg)");
