@@ -11,6 +11,7 @@ import {
     ProfilerDetailsPanelReducers,
     ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * View ID for the profiler details panel (must match package.json contribution)
@@ -77,6 +78,7 @@ export class ProfilerDetailsPanelViewController extends ReactWebviewViewControll
         this.registerReducer(
             "openInEditor",
             async (state, payload: { textData: string; eventName?: string }) => {
+                ProfilerTelemetry.sendOpenInEditor();
                 await this.openTextInEditor(payload.textData);
                 return state;
             },
@@ -84,6 +86,7 @@ export class ProfilerDetailsPanelViewController extends ReactWebviewViewControll
 
         // Handle Copy to Clipboard request
         this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
+            ProfilerTelemetry.sendCopyToClipboard("textData");
             await vscode.env.clipboard.writeText(payload.text);
             void vscode.window.showInformationMessage("Copied to clipboard");
             return state;

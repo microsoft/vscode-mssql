@@ -218,6 +218,9 @@ export enum TelemetryActions {
     ProfilerAutoScrollToggled = "ProfilerAutoScrollToggled",
     ProfilerXelFileOpened = "ProfilerXelFileOpened",
     ProfilerExportCsv = "ProfilerExportCsv",
+    ProfilerRowSelected = "ProfilerRowSelected",
+    ProfilerCopyToClipboard = "ProfilerCopyToClipboard",
+    ProfilerOpenInEditor = "ProfilerOpenInEditor",
 }
 
 /**
@@ -238,7 +241,7 @@ export type FinishActivity = (
     activityStatus: Exclude<ActivityStatus, ActivityStatus.Failed>,
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
-    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    connectionProfile?: IConnectionDialogProfile,
     serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 
@@ -262,7 +265,7 @@ export type FinishActivityFailed = (
 export type UpdateActivity = (
     additionalProperties?: Record<string, string>,
     additionalMeasurements?: Record<string, number>,
-    connectionProfile?: any, //TODO fix any with IConnectionProfile
+    connectionProfile?: IConnectionDialogProfile,
     serverInfo?: vscodeMssql.IServerInfo,
 ) => void;
 

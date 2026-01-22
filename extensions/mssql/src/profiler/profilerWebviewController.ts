@@ -471,6 +471,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 const filteredCount = this.calculateFilteredCount(payload.clauses);
                 const totalCount = this._filteredBuffer.totalCount;
 
+                // Send telemetry for filter applied
+                // Summarize filter clauses for telemetry
+                const filterSummary = payload.clauses.map((c) => c.field).join(",");
+                const filterOperators = payload.clauses.map((c) => c.operator).join(",");
+                ProfilerTelemetry.sendFilterApplied(filterSummary, filterOperators);
+
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
 
@@ -507,6 +513,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             if (this._filteredBuffer) {
                 this._filteredBuffer.clearFilter();
                 const totalCount = this._filteredBuffer.totalCount;
+
+                // Send telemetry for filter cleared
+                ProfilerTelemetry.sendFilterCleared();
 
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();

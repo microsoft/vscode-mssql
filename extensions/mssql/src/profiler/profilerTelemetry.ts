@@ -45,14 +45,10 @@ export class ProfilerTelemetry {
      * @param templateName - The template used to create the session
      */
     public static sendSessionCreated(sessionName: string, templateName: string): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerSessionCreated,
-            {
-                [ProfilerTelemetryProperties.SessionName]: sessionName,
-                [ProfilerTelemetryProperties.TemplateName]: templateName,
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionCreated, {
+            [ProfilerTelemetryProperties.SessionName]: sessionName,
+            [ProfilerTelemetryProperties.TemplateName]: templateName,
+        });
     }
 
     /**
@@ -61,14 +57,10 @@ export class ProfilerTelemetry {
      * @param sessionId - The unique ID of the session
      */
     public static sendSessionStarted(sessionName: string, sessionId: string): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerSessionStarted,
-            {
-                [ProfilerTelemetryProperties.SessionName]: sessionName,
-                [ProfilerTelemetryProperties.SessionId]: sessionId,
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionStarted, {
+            [ProfilerTelemetryProperties.SessionName]: sessionName,
+            [ProfilerTelemetryProperties.SessionId]: sessionId,
+        });
     }
 
     /**
@@ -94,13 +86,9 @@ export class ProfilerTelemetry {
      * @param sessionId - The unique ID of the session
      */
     public static sendSessionResumed(sessionId: string): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerSessionResumed,
-            {
-                [ProfilerTelemetryProperties.SessionId]: sessionId,
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionResumed, {
+            [ProfilerTelemetryProperties.SessionId]: sessionId,
+        });
     }
 
     /**
@@ -141,14 +129,10 @@ export class ProfilerTelemetry {
         fromSessionId: string | undefined,
         toSessionId: string,
     ): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerSessionSwitched,
-            {
-                [ProfilerTelemetryProperties.SessionId]: toSessionId,
-                ...(fromSessionId && { fromSessionId }),
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerSessionSwitched, {
+            [ProfilerTelemetryProperties.SessionId]: toSessionId,
+            ...(fromSessionId && { fromSessionId }),
+        });
     }
 
     /**
@@ -167,8 +151,7 @@ export class ProfilerTelemetry {
             TelemetryActions.ProfilerSessionClosed,
             {
                 ...(sessionId && { [ProfilerTelemetryProperties.SessionId]: sessionId }),
-                [ProfilerTelemetryProperties.WasPreviouslyStopped]:
-                    wasPreviouslyStopped.toString(),
+                [ProfilerTelemetryProperties.WasPreviouslyStopped]: wasPreviouslyStopped.toString(),
             },
             {
                 [ProfilerTelemetryMeasurements.EventCount]: eventCount,
@@ -197,24 +180,17 @@ export class ProfilerTelemetry {
      * @param filterType - The type of filter (e.g., "contains", "equals")
      */
     public static sendFilterApplied(filterColumn: string, filterType: string): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerFilterApplied,
-            {
-                [ProfilerTelemetryProperties.FilterColumn]: filterColumn,
-                [ProfilerTelemetryProperties.FilterType]: filterType,
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerFilterApplied, {
+            [ProfilerTelemetryProperties.FilterColumn]: filterColumn,
+            [ProfilerTelemetryProperties.FilterType]: filterType,
+        });
     }
 
     /**
      * Send telemetry when a filter is cleared.
      */
     public static sendFilterCleared(): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerFilterCleared,
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerFilterCleared);
     }
 
     /**
@@ -222,13 +198,9 @@ export class ProfilerTelemetry {
      * @param enabled - Whether auto-scroll is now enabled
      */
     public static sendAutoScrollToggled(enabled: boolean): void {
-        sendActionEvent(
-            TelemetryViews.Profiler,
-            TelemetryActions.ProfilerAutoScrollToggled,
-            {
-                [ProfilerTelemetryProperties.AutoScrollEnabled]: enabled.toString(),
-            },
-        );
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerAutoScrollToggled, {
+            [ProfilerTelemetryProperties.AutoScrollEnabled]: enabled.toString(),
+        });
     }
 
     /**
@@ -269,6 +241,33 @@ export class ProfilerTelemetry {
     }
 
     /**
+     * Send telemetry when a row is selected in the profiler grid.
+     * @param eventName - The event class/name of the selected row
+     */
+    public static sendRowSelected(eventName: string): void {
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerRowSelected, {
+            eventName,
+        });
+    }
+
+    /**
+     * Send telemetry when text is copied to clipboard from the details panel.
+     * @param contentType - The type of content copied (e.g., "textData", "property")
+     */
+    public static sendCopyToClipboard(contentType: string): void {
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerCopyToClipboard, {
+            contentType,
+        });
+    }
+
+    /**
+     * Send telemetry when text is opened in editor from the details panel.
+     */
+    public static sendOpenInEditor(): void {
+        sendActionEvent(TelemetryViews.Profiler, TelemetryActions.ProfilerOpenInEditor);
+    }
+
+    /**
      * Send error telemetry for profiler operations.
      * @param action - The action that failed
      * @param error - The error that occurred
@@ -279,11 +278,6 @@ export class ProfilerTelemetry {
         error: Error,
         includeErrorMessage: boolean = true,
     ): void {
-        sendErrorEvent(
-            TelemetryViews.Profiler,
-            action,
-            error,
-            includeErrorMessage,
-        );
+        sendErrorEvent(TelemetryViews.Profiler, action, error, includeErrorMessage);
     }
 }

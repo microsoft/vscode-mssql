@@ -559,8 +559,17 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
-            onExportToCsv: async (csvContent: string, suggestedFileName: string, trigger: "manual" | "closePrompt") => {
-                await this.handleExportToCsv(webviewController, csvContent, suggestedFileName, trigger);
+            onExportToCsv: async (
+                csvContent: string,
+                suggestedFileName: string,
+                trigger: "manual" | "closePrompt",
+            ) => {
+                await this.handleExportToCsv(
+                    webviewController,
+                    csvContent,
+                    suggestedFileName,
+                    trigger,
+                );
             },
         });
 
