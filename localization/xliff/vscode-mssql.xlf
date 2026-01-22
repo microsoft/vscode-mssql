@@ -2483,9 +2483,6 @@
     <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
       <source xml:lang="en">Loading databases in selected workspace...</source>
     </trans-unit>
-    <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
-      <source xml:lang="en">Loading databases...</source>
-    </trans-unit>
     <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
       <source xml:lang="en">Loading deployment</source>
     </trans-unit>
