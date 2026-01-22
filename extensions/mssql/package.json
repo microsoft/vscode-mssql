@@ -580,7 +580,7 @@
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
@@ -590,7 +590,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_tableActions@1"
                 },
                 {
@@ -831,24 +831,19 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.dacpacDialog.launch",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.launch"
                 },
                 {
-                    "command": "mssql.dacpacDialog.deploy",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.deploy"
                 },
                 {
-                    "command": "mssql.dacpacDialog.extract",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.extract"
                 },
                 {
-                    "command": "mssql.dacpacDialog.import",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.import"
                 },
                 {
-                    "command": "mssql.dacpacDialog.export",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.export"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
