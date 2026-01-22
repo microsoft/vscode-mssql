@@ -109,10 +109,10 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         if (!dabConfig) {
             return [];
         }
-        if (!dabSchemaFilter) {
+        if (dabSchemaFilter.length === 0) {
             return dabConfig.entities;
         }
-        return dabConfig.entities.filter((e) => e.schemaName === dabSchemaFilter);
+        return dabConfig.entities.filter((e) => dabSchemaFilter.includes(e.schemaName));
     }, [dabConfig, dabSchemaFilter]);
 
     // Group filtered entities by schema
