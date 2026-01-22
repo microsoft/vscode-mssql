@@ -1,0 +1,301 @@
+<svg width="340" height="700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #1e1e1e; }
+      .panel-bg { fill: #252526; }
+      .border { stroke: #3c3c3c; stroke-width: 1; fill: none; }
+      .text { fill: #cccccc; font-family: 'Segoe UI', sans-serif; font-size: 13px; }
+      .text-small { fill: #cccccc; font-family: 'Segoe UI', sans-serif; font-size: 11px; }
+      .text-dim { fill: #858585; }
+      .badge { fill: #4d4d4d; }
+      .badge-text { fill: #ffffff; font-family: 'Segoe UI', sans-serif; font-size: 11px; font-weight: 600; }
+      
+      .addition { fill: #89d185; }
+      .addition-bg { fill: rgba(137, 209, 133, 0.15); }
+      .addition-border { stroke: #89d185; stroke-width: 2; fill: none; }
+      
+      .modification { fill: #e2c08d; }
+      .modification-bg { fill: rgba(226, 192, 141, 0.15); }
+      .modification-border { stroke: #e2c08d; stroke-width: 2; fill: none; }
+      
+      .deletion { fill: #f48771; }
+      .deletion-bg { fill: rgba(244, 135, 113, 0.15); }
+      .deletion-border { stroke: #f48771; stroke-width: 2; fill: none; }
+      
+      .hover-bg { fill: #2a2d2e; }
+      .divider { stroke: #3c3c3c; stroke-width: 1; }
+      .icon { fill: #858585; }
+      .action-icon { fill: #c5c5c5; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="340" height="700"/>
+  
+  <!-- Header -->
+  <rect class="panel-bg" width="340" height="45"/>
+  <text class="text" x="16" y="22" font-weight="600">Schema Changes</text>
+  
+  <!-- Summary badges -->
+  <g transform="translate(16, 32)">
+    <!-- Additions -->
+    <circle class="addition" cx="4" cy="0" r="4"/>
+    <text class="text-small" x="12" y="4">4 Additions</text>
+    
+    <!-- Modifications -->
+    <circle class="modification" cx="94" cy="0" r="4"/>
+    <text class="text-small" x="102" y="4">1 Modification</text>
+    
+    <!-- Deletions -->
+    <circle class="deletion" cx="214" cy="0" r="4"/>
+    <text class="text-small" x="222" y="4">1 Deletion</text>
+  </g>
+  
+  <!-- Close button -->
+  <g transform="translate(310, 14)">
+    <rect class="hover-bg" width="20" height="20" rx="2" opacity="0"/>
+    <path class="icon" d="M 6,6 L 14,14 M 14,6 L 6,14" stroke="#858585" stroke-width="1.5" fill="none"/>
+  </g>
+  
+  <!-- Divider -->
+  <line class="divider" x1="0" y1="45" x2="340" y2="45"/>
+  
+  <!-- Filter/Action Bar -->
+  <rect class="panel-bg" y="45" width="340" height="36"/>
+  <g transform="translate(16, 58)">
+    <!-- Filter button -->
+    <rect class="hover-bg" width="60" height="22" rx="3" opacity="0.3"/>
+    <path class="icon" d="M 8,7 L 12,11 L 8,15" stroke="#c5c5c5" stroke-width="1.5" fill="none"/>
+    <text class="text-small action-icon" x="18" y="15">Filter</text>
+    
+    <!-- Group by button -->
+    <rect class="hover-bg" x="70" width="75" height="22" rx="3" opacity="0.3"/>
+    <text class="text-small action-icon" x="78" y="15">Group by Type</text>
+    
+    <!-- Expand/Collapse -->
+    <g transform="translate(290, 0)">
+      <rect class="hover-bg" width="22" height="22" rx="3" opacity="0"/>
+      <path class="icon" d="M 7,8 L 11,11 L 15,8" stroke="#858585" stroke-width="1.5" fill="none"/>
+    </g>
+  </g>
+  
+  <line class="divider" x1="0" y1="81" x2="340" y2="81"/>
+  
+  <!-- Scroll Content Area -->
+  
+  <!-- Table Group 1: dbo.shipments (Modified) -->
+  <g transform="translate(0, 97)">
+    <!-- Group header -->
+    <rect class="hover-bg" width="340" height="32" opacity="0"/>
+    <path class="icon" d="M 12,10 L 18,16 L 12,22" stroke="#858585" stroke-width="1.5" fill="none" transform="rotate(90 15 16)"/>
+    
+    <!-- Table icon -->
+    <rect class="modification" x="30" y="10" width="14" height="12" rx="1"/>
+    <line class="panel-bg" x1="32" y1="15" x2="42" y2="15" stroke-width="1"/>
+    
+    <text class="text" x="50" y="21" font-weight="500">dbo.shipments</text>
+    
+    <!-- Badge -->
+    <rect class="badge" x="158" y="11" width="18" height="14" rx="7"/>
+    <text class="badge-text" x="163" y="21">4</text>
+    
+    <!-- Change type badge -->
+    <rect class="modification-bg" x="182" y="11" width="68" height="14" rx="2"/>
+    <text class="text-small modification" x="188" y="21" font-weight="500">MODIFIED</text>
+    
+    <!-- Undo all icon -->
+    <g transform="translate(304, 12)">
+      <circle class="hover-bg" cx="8" cy="8" r="10" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Modified column item -->
+  <g transform="translate(0, 129)">
+    <rect class="modification-border" x="8" y="0" width="4" height="48"/>
+    <rect class="modification-bg" x="12" width="328" height="48"/>
+    <rect class="hover-bg" x="12" width="328" height="48" opacity="0"/>
+    
+    <!-- Edit icon -->
+    <g transform="translate(30, 12)">
+      <path class="modification" d="M 2,10 L 2,14 L 6,14 L 14,6 L 10,2 Z M 10,2 L 14,6" stroke-width="1.2" fill="none"/>
+    </g>
+    
+    <text class="text" x="54" y="20" font-weight="500">shipment_id</text>
+    <text class="text-small text-dim" x="54" y="35">Modified: varchar(50) → varchar(100)</text>
+    
+    <!-- Undo icon -->
+    <g transform="translate(300, 16)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Added column items -->
+  <g transform="translate(0, 177)">
+    <rect class="addition-border" x="8" y="0" width="4" height="44"/>
+    <rect class="addition-bg" x="12" width="328" height="44"/>
+    
+    <!-- Plus icon -->
+    <g transform="translate(34, 14)">
+      <line class="addition" x1="0" y1="8" x2="16" y2="8" stroke-width="1.5"/>
+      <line class="addition" x1="8" y1="0" x2="8" y2="16" stroke-width="1.5"/>
+    </g>
+    
+    <text class="text" x="54" y="18" font-weight="500">column_1</text>
+    <text class="text-small text-dim" x="54" y="33">Added: int, NOT NULL</text>
+    
+    <g transform="translate(300, 14)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <g transform="translate(0, 221)">
+    <rect class="addition-border" x="8" y="0" width="4" height="44"/>
+    <rect class="addition-bg" x="12" width="328" height="44"/>
+    
+    <g transform="translate(34, 14)">
+      <line class="addition" x1="0" y1="8" x2="16" y2="8" stroke-width="1.5"/>
+      <line class="addition" x1="8" y1="0" x2="8" y2="16" stroke-width="1.5"/>
+    </g>
+    
+    <text class="text" x="54" y="18" font-weight="500">column_2</text>
+    <text class="text-small text-dim" x="54" y="33">Added: varchar(255)</text>
+    
+    <g transform="translate(300, 14)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <g transform="translate(0, 265)">
+    <rect class="addition-border" x="8" y="0" width="4" height="44"/>
+    <rect class="addition-bg" x="12" width="328" height="44"/>
+    
+    <g transform="translate(34, 14)">
+      <line class="addition" x1="0" y1="8" x2="16" y2="8" stroke-width="1.5"/>
+      <line class="addition" x1="8" y1="0" x2="8" y2="16" stroke-width="1.5"/>
+    </g>
+    
+    <text class="text" x="54" y="18" font-weight="500">column_3</text>
+    <text class="text-small text-dim" x="54" y="33">Added: decimal(18,2)</text>
+    
+    <g transform="translate(300, 14)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Divider between groups -->
+  <line class="divider" x1="12" y1="325" x2="340" y2="325"/>
+  
+  <!-- Table Group 2: dbo.table_2 (Added) -->
+  <g transform="translate(0, 341)">
+    <rect class="hover-bg" width="340" height="32" opacity="0"/>
+    <path class="icon" d="M 12,10 L 18,16 L 12,22" stroke="#858585" stroke-width="1.5" fill="none" transform="rotate(90 15 16)"/>
+    
+    <rect class="addition" x="30" y="10" width="14" height="12" rx="1"/>
+    <line class="panel-bg" x1="32" y1="15" x2="42" y2="15" stroke-width="1"/>
+    
+    <text class="text" x="50" y="21" font-weight="500">dbo.table_2</text>
+    
+    <rect class="badge" x="135" y="11" width="18" height="14" rx="7"/>
+    <text class="badge-text" x="140" y="21">1</text>
+    
+    <rect class="addition-bg" x="159" y="11" width="53" height="14" rx="2"/>
+    <text class="text-small addition" x="165" y="21" font-weight="500">ADDED</text>
+    
+    <g transform="translate(304, 12)">
+      <circle class="hover-bg" cx="8" cy="8" r="10" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Added table item -->
+  <g transform="translate(0, 373)">
+    <rect class="addition-border" x="8" y="0" width="4" height="44"/>
+    <rect class="addition-bg" x="12" width="328" height="44"/>
+    
+    <g transform="translate(34, 14)">
+      <line class="addition" x1="0" y1="8" x2="16" y2="8" stroke-width="1.5"/>
+      <line class="addition" x1="8" y1="0" x2="8" y2="16" stroke-width="1.5"/>
+    </g>
+    
+    <text class="text" x="54" y="18" font-weight="500">table_2</text>
+    <text class="text-small text-dim" x="54" y="33">Added table with 5 columns</text>
+    
+    <g transform="translate(300, 14)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <line class="divider" x1="12" y1="433" x2="340" y2="433"/>
+  
+  <!-- Table Group 3: reporting.daily_metrics (Deleted) -->
+  <g transform="translate(0, 449)">
+    <rect class="hover-bg" width="340" height="32" opacity="0"/>
+    <path class="icon" d="M 12,10 L 18,16 L 12,22" stroke="#858585" stroke-width="1.5" fill="none" transform="rotate(90 15 16)"/>
+    
+    <rect class="deletion" x="30" y="10" width="14" height="12" rx="1"/>
+    <line class="panel-bg" x1="32" y1="15" x2="42" y2="15" stroke-width="1"/>
+    
+    <text class="text" x="50" y="21" font-weight="500">reporting.daily_metrics</text>
+    
+    <rect class="badge" x="220" y="11" width="18" height="14" rx="7"/>
+    <text class="badge-text" x="225" y="21">1</text>
+    
+    <rect class="deletion-bg" x="244" y="11" width="60" height="14" rx="2"/>
+    <text class="text-small deletion" x="250" y="21" font-weight="500">DELETED</text>
+    
+    <g transform="translate(304, 12)">
+      <circle class="hover-bg" cx="8" cy="8" r="10" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Deleted table item -->
+  <g transform="translate(0, 481)">
+    <rect class="deletion-border" x="8" y="0" width="4" height="44"/>
+    <rect class="deletion-bg" x="12" width="328" height="44"/>
+    
+    <g transform="translate(34, 18)">
+      <circle class="deletion" cx="8" cy="0" r="1.5"/>
+      <circle class="deletion" cx="8" cy="5" r="1.5"/>
+      <circle class="deletion" cx="8" cy="10" r="1.5"/>
+      <line class="deletion" x1="1" y1="3" x2="15" y2="7" stroke-width="1.5"/>
+    </g>
+    
+    <text class="text" x="54" y="18" font-weight="500">daily_metrics</text>
+    <text class="text-small text-dim" x="54" y="33">Deleted table 'reporting.daily_metrics'</text>
+    
+    <g transform="translate(300, 14)">
+      <circle class="hover-bg" cx="8" cy="8" r="12" opacity="0"/>
+      <path class="action-icon" d="M 5,8 A 3,3 0 1,1 11,8" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+      <path class="action-icon" d="M 5,8 L 3,6 M 5,8 L 7,6" stroke="#c5c5c5" stroke-width="1.2" fill="none"/>
+    </g>
+  </g>
+  
+  <!-- Bottom action bar -->
+  <rect class="panel-bg" y="664" width="340" height="36"/>
+  <line class="divider" x1="0" y1="664" x2="340" y2="664"/>
+  
+  <g transform="translate(16, 677)">
+    <!-- Apply changes button -->
+    <rect fill="#0e639c" width="100" height="24" rx="2"/>
+    <text class="text-small" x="50" y="16" text-anchor="middle" fill="#ffffff" font-weight="500">Apply Changes</text>
+    
+    <!-- Discard all button -->
+    <rect class="hover-bg" x="110" width="90" height="24" rx="2" opacity="0.3"/>
+    <text class="text-small action-icon" x="155" y="16" text-anchor="middle">Discard All</text>
+  </g>
+</svg>
