@@ -260,8 +260,8 @@ export class ProjectsController {
 
 		// Determine the target folder: workspace root if available, otherwise project folder
 		const targetFolder = workspaceFolder ? workspaceFolder.uri.fsPath : project.projectFolderPath;
-		const vscodeFolder = path.join(targetFolder, '.vscode');
-		const tasksJsonPath = path.join(vscodeFolder, 'tasks.json');
+		const vscodeFolder = path.join(targetFolder, constants.vscodeFolderName);
+		const tasksJsonPath = path.join(vscodeFolder, constants.tasksJsonFileName);
 
 		const projectName = path.basename(project.projectFilePath, constants.sqlprojExtension);
 
@@ -312,7 +312,7 @@ export class ProjectsController {
 
 			// If created inside the project folder (no workspace), add to project's None items
 			if (!workspaceFolder) {
-				await project.addNoneItem('.vscode/tasks.json');
+				await project.addNoneItem(`${constants.vscodeFolderName}/${constants.tasksJsonFileName}`);
 			}
 		}
 	}
@@ -332,9 +332,9 @@ export class ProjectsController {
 			// No quotes needed - process execution handles paths with spaces correctly
 			const buildDirPath = utils.getPlatformSafeFileEntryPath(this.buildHelper.extensionBuildDirPath);
 			buildArgs.push(
-				'/p:NetCoreBuild=true',
-				`/p:NETCoreTargetsPath=${buildDirPath}`,
-				`/p:SystemDacpacsLocation=${buildDirPath}`
+				constants.netCoreBuildArg,
+				`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`,
+				`${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`
 			);
 		}
 
