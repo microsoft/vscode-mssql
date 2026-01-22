@@ -27,15 +27,25 @@ const useStyles = makeStyles({
     },
     headerRow: {
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "space-between",
     },
     headerLeft: {
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "4px",
         flex: 1,
         minWidth: 0,
+    },
+    nameColumn: {
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 0,
+    },
+    nameRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
     },
     tableName: {
         fontWeight: 600,
@@ -56,9 +66,8 @@ const useStyles = makeStyles({
         margin: "0 4px",
     },
     description: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        marginLeft: "24px",
+        fontSize: "11px",
+        color: tokens.colorNeutralForeground4,
     },
     actionsRow: {
         display: "flex",
@@ -117,13 +126,20 @@ export function DabEntityTile({
                             checked={entity.isEnabled}
                             onChange={(_, data) => onToggleEnabled(data.checked === true)}
                         />
-                        <Text className={classes.tableName}>
-                            {entity.advancedSettings.entityName}
-                        </Text>
-                        <Text className={classes.separator}>&#8226;</Text>
-                        <Text className={classes.schemaTableName}>
-                            {entity.schemaName}.{entity.tableName}
-                        </Text>
+                        <div className={classes.nameColumn}>
+                            <div className={classes.nameRow}>
+                                <Text className={classes.tableName}>
+                                    {entity.advancedSettings.entityName}
+                                </Text>
+                                <Text className={classes.separator}>&#8226;</Text>
+                                <Text className={classes.schemaTableName}>
+                                    {entity.schemaName}.{entity.tableName}
+                                </Text>
+                            </div>
+                            <Text className={classes.description}>
+                                {locConstants.schemaDesigner.entityNameDescription}
+                            </Text>
+                        </div>
                     </div>
                     <Button
                         appearance="subtle"
@@ -134,11 +150,6 @@ export function DabEntityTile({
                         title={locConstants.schemaCompare.settings}
                     />
                 </div>
-
-                {/* Description */}
-                <Text className={classes.description}>
-                    {locConstants.schemaDesigner.entityNameDescription}
-                </Text>
 
                 {/* CRUD actions row */}
                 <div className={classes.actionsRow}>
