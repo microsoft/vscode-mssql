@@ -466,7 +466,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
         <source xml:lang="en">Azure Data Studio Migration - Connections</source>
-        <target state="new">Azure Data Studio Migration - Connections</target>
+        <target state="translated">Azure Data Studio-Migration – Verbindungen</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -1194,7 +1194,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++e98d4b850ce65853ef4019c9a3faa89e9df536698224a7de85bfd83a4dbf35b7">
         <source xml:lang="en">Connection Import Warning</source>
-        <target state="new">Connection Import Warning</target>
+        <target state="translated">Warnung beim Verbindungsimport</target>
       </trans-unit>
       <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -1221,7 +1221,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
         <note>{0} is the group name
 {1} is the group ID</note>
-        <target state="new">Connection group with the same ID is already imported: {0} (ID: {1})</target>
+        <target state="translated">Die Verbindungsgruppe mit derselben ID wurde bereits importiert: {0} (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
         <source xml:lang="en">Connection groups to import</source>
@@ -1268,7 +1268,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Connection with the same ID is already imported: {0} (ID: {1})</source>
         <note>{0} is the connection display name
 {1} is the connection ID</note>
-        <target state="new">Connection with the same ID is already imported: {0} (ID: {1})</target>
+        <target state="translated">Die Verbindung mit derselben ID wurde bereits importiert: {0} (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
@@ -2524,7 +2524,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
         <source xml:lang="en">Files of Type</source>
-        <target state="new">Files of Type</target>
+        <target state="translated">Dateien vom Typ</target>
       </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
@@ -2923,7 +2923,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
         <source xml:lang="en">Import from Azure Data Studio</source>
-        <target state="new">Import from Azure Data Studio</target>
+        <target state="translated">Von Azure Data Studio importieren</target>
       </trans-unit>
       <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
         <source xml:lang="en">Import selected</source>
@@ -2963,7 +2963,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
         <source xml:lang="en">Incomplete or orphaned connections</source>
-        <target state="new">Incomplete or orphaned connections</target>
+        <target state="translated">Unvollständige oder verwaiste Verbindungen</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -4250,7 +4250,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
         <source xml:lang="en">Publish Project</source>
-        <target state="new">Publish Project</target>
+        <target state="translated">Projekt veröffentlichen</target>
       </trans-unit>
       <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
         <source xml:lang="en">Publish Project (Preview)</source>
@@ -4326,7 +4326,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
         <source xml:lang="en">Ready for import</source>
-        <target state="new">Ready for import</target>
+        <target state="translated">Bereit zum Import</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -4901,7 +4901,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
         <source xml:lang="en">Select a file</source>
-        <target state="new">Select a file</target>
+        <target state="translated">Datei auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
@@ -5001,7 +5001,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6e45e850e5552217009a64f5c87e898720561d6263867b0cebfc6f770aff9810">
         <source xml:lang="en">Selected Path</source>
-        <target state="new">Selected Path</target>
+        <target state="translated">Ausgewählter Pfad</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -5205,7 +5205,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++21844306ac40ad949795b32880ff37ee26e56b0acf405e7c4028b10c5168d0d2">
         <source xml:lang="en">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</source>
-        <target state="new">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</target>
+        <target state="translated">Einige Verbindungen oder Gruppen enthalten unvollständige Informationen. Sie können fortfahren, müssen diese Verbindungen aber möglicherweise später vor dem Verbinden bearbeiten.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
@@ -5615,7 +5615,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
         <source xml:lang="en">This connection's group has not been selected, so this connection will be imported the root.</source>
-        <target state="new">This connection's group has not been selected, so this connection will be imported the root.</target>
+        <target state="translated">Die Gruppe dieser Verbindung wurde nicht ausgewählt, daher wird diese Verbindung in den Stammordner importiert.</target>
       </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
