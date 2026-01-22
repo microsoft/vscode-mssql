@@ -78,7 +78,7 @@ export const CreateDatabaseForm = ({
                     selectedOption={selected ? { value: selected, text: selected } : undefined}
                     onSelect={(option) => onSelect(option.value)}
                     ariaLabel={label}
-                    size="medium"
+                    size="small"
                 />
             </Field>
         );
@@ -92,13 +92,13 @@ export const CreateDatabaseForm = ({
                 </div>
                 <div className={styles.fieldGroup}>
                     <Field
-                        size="medium"
+                        size="small"
                         label={locConstants.createDatabase.nameLabel}
                         required
                         validationMessage={nameValidationMessage}
                         validationState={nameValidationState ?? "none"}>
                         <Input
-                            size="medium"
+                            size="small"
                             placeholder={locConstants.createDatabase.namePlaceholder}
                             value={value.name}
                             onChange={(_, data) =>
