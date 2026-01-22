@@ -93,13 +93,17 @@ export interface PublishDialogState
     projectProperties?: ProjectPropertiesResult;
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
-    waitingForNewConnection?: boolean;
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
-    availableConnections?: { connectionUri: string; profile: IConnectionDialogProfile }[];
-    selectedConnectionUri?: string;
+    /** All saved connection profiles available for selection */
+    availableConnections?: IConnectionDialogProfile[];
+    /** The profile ID of the currently selected connection */
+    selectedProfileId?: string;
+    /** The ownerUri for the active connection (used for database listing and DacFx operations) */
+    connectionOwnerUri?: string;
     isLoadingDatabases?: boolean;
+    isConnecting?: boolean;
 }
 
 /**
@@ -122,12 +126,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     generatePublishScript: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
-    openConnectionDialog: {};
     closeMessage: {};
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
     updateSqlCmdVariables: { variables: { [key: string]: string } };
     revertSqlCmdVariables: {};
-    connectToServer: { connectionUri: string };
+    connectToServer: { profileId: string };
 }
 
 /**
@@ -146,13 +149,12 @@ export interface PublishProjectProvider {
     generatePublishScript(): void;
     selectPublishProfile(): void;
     savePublishProfile(publishProfileName: string): void;
-    openConnectionDialog(): void;
     closeMessage(): void;
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
     generateSqlPackageCommand(maskMode?: MaskMode): Promise<mssql.SqlPackageCommandResult>;
-    connectToServer(connectionUri: string): void;
+    connectToServer(profileId: string): void;
 }
 
 /**

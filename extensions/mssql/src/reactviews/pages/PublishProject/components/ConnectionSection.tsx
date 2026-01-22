@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState, useEffect } from "react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Spinner, Field } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import { renderCombobox } from "./FormFieldComponents";
@@ -27,45 +27,32 @@ export const ConnectionSection: React.FC = () => {
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
     const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
-    const selectedConnectionUri = usePublishDialogSelector((s) => s.selectedConnectionUri);
+    const availableConnections = usePublishDialogSelector((s) => s.availableConnections);
+    const selectedProfileId = usePublishDialogSelector((s) => s.selectedProfileId);
+    const isConnecting = usePublishDialogSelector((s) => s.isConnecting);
     const isLoadingDatabases = usePublishDialogSelector((s) => s.isLoadingDatabases);
 
     const [localServerDisplay, setLocalServerDisplay] = useState("");
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
-    // Update local server display when selectedConnectionUri or serverValue changes
+    // Update local server display when selectedProfileId or serverValue changes
     useEffect(() => {
-        if (selectedConnectionUri && serverComponent?.options) {
-            const opt = serverComponent.options.find((o) => o.value === selectedConnectionUri);
-            if (opt?.displayName) {
-                setLocalServerDisplay(opt.displayName);
+        if (selectedProfileId && availableConnections) {
+            const selectedConn = availableConnections.find((c) => c.id === selectedProfileId);
+            if (selectedConn?.profileName) {
+                setLocalServerDisplay(selectedConn.profileName);
                 return;
             }
         }
         // Fallback to serverValue from formState (e.g., when loaded from publish profile)
         setLocalServerDisplay(serverValue || "");
-    }, [selectedConnectionUri, serverComponent?.options, serverValue]);
+    }, [selectedProfileId, availableConnections, serverValue]);
 
     useEffect(() => setLocalDatabase(databaseValue || ""), [databaseValue]);
 
     if (!publishCtx) {
         return undefined;
     }
-
-    // Add "Add Connection" option to the server options
-    const getServerComponentWithNewConnection = () => {
-        if (!serverComponent) return undefined;
-        return {
-            ...serverComponent,
-            options: [
-                {
-                    displayName: locConstants.publishProject.addConnection,
-                    value: locConstants.publishProject.addConnection,
-                },
-                ...(serverComponent.options || []),
-            ],
-        };
-    };
 
     // Get database component with loading indicator option when loading
     const getDatabaseComponentWithLoading = () => {
@@ -86,11 +73,8 @@ export const ConnectionSection: React.FC = () => {
     };
 
     const handleServerSelect = (value: string) => {
-        if (value === locConstants.publishProject.addConnection) {
-            publishCtx.openConnectionDialog();
-        } else {
-            publishCtx.connectToServer(value);
-        }
+        // value is the profile ID - connect to the selected server
+        publishCtx.connectToServer(value);
     };
 
     const handleServerInputChange = (value: string) => {
@@ -110,13 +94,22 @@ export const ConnectionSection: React.FC = () => {
 
     return (
         <div className={styles.root}>
-            {renderCombobox(
-                getServerComponentWithNewConnection(),
-                localServerDisplay,
-                false,
-                handleServerInputChange,
-                handleServerSelect,
-                selectedConnectionUri,
+            {isConnecting ? (
+                <Field
+                    label={serverComponent?.label}
+                    required={serverComponent?.required}
+                    orientation="horizontal">
+                    <Spinner size="tiny" label={locConstants.dacpacDialog.connectingToServer} />
+                </Field>
+            ) : (
+                renderCombobox(
+                    serverComponent,
+                    localServerDisplay,
+                    false,
+                    handleServerInputChange,
+                    handleServerSelect,
+                    selectedProfileId,
+                )
             )}
             {renderCombobox(
                 getDatabaseComponentWithLoading(),

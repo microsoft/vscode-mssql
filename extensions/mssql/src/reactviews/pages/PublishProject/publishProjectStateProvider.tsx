@@ -47,7 +47,6 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             selectPublishProfile: () => extensionRpc.action("selectPublishProfile"),
             savePublishProfile: (publishProfileName: string) =>
                 extensionRpc.action("savePublishProfile", { publishProfileName }),
-            openConnectionDialog: () => extensionRpc.action("openConnectionDialog"),
             closeMessage: () => extensionRpc.action("closeMessage"),
             updateDeploymentOptions: (deploymentOptions: mssql.DeploymentOptions) =>
                 extensionRpc.action("updateDeploymentOptions", { deploymentOptions }),
@@ -56,8 +55,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
             generateSqlPackageCommand: (maskMode?: mssql.MaskMode) =>
                 extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type, { maskMode }),
-            connectToServer: (connectionUri: string) =>
-                extensionRpc.action("connectToServer", { connectionUri }),
+            connectToServer: (profileId: string) =>
+                extensionRpc.action("connectToServer", { profileId }),
             extensionRpc,
             themeKind,
         }),
