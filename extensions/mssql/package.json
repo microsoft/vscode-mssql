@@ -2338,7 +2338,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Manage the currently open schema designer. Use this tool to perform operations on an active schema designer session. Supported operations: 'add_table' - Adds a new table to the schema (name/schema or full table). 'update_table' - Updates an existing table. 'delete_table' - Deletes a table by id or name+schema. 'replace_schema' - Replaces the entire schema model. 'get_schema' - Returns the current schema model. Requires a schema designer to be open first (use mssql_show_schema). Use 'payload' for operation-specific inputs and 'options' for UI hints like keeping positions or focusing a table. Examples: add_table => {\"operation\":\"add_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; add_table with full table => {\"operation\":\"add_table\",\"payload\":{\"table\":{...}}}; update_table => {\"operation\":\"update_table\",\"payload\":{\"table\":{...}}}; delete_table => {\"operation\":\"delete_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; replace_schema => {\"operation\":\"replace_schema\",\"payload\":{\"schema\":{\"tables\":[]}},\"options\":{\"keepPositions\":true}}; get_schema => {\"operation\":\"get_schema\"}.",
+                "modelDescription": "Open or manage the schema designer. Use this tool to open a designer with 'show' or to perform operations on the active, visible schema designer session. Supported operations: 'show' - Opens the schema designer for a connectionId. 'add_table' - Adds a new table to the schema (name/schema or full table). 'update_table' - Updates an existing table. 'delete_table' - Deletes a table by id or name+schema. 'replace_schema' - Replaces the entire schema model. 'get_schema' - Returns the current schema model. For non-'show' operations, a schema designer must already be open (use /showSchema, 'show', or open one in the UI). Use 'payload' for operation-specific inputs and 'options' for UI hints like keeping positions or focusing a table. Examples: show => {\"operation\":\"show\",\"connectionId\":\"...\"}; add_table => {\"operation\":\"add_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; add_table with full table => {\"operation\":\"add_table\",\"payload\":{\"table\":{...}}}; update_table => {\"operation\":\"update_table\",\"payload\":{\"table\":{...}}}; delete_table => {\"operation\":\"delete_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; replace_schema => {\"operation\":\"replace_schema\",\"payload\":{\"schema\":{\"tables\":[]}},\"options\":{\"keepPositions\":true}}; get_schema => {\"operation\":\"get_schema\"}.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2350,16 +2350,22 @@
                     "type": "object",
                     "properties": {
                         "operation": {
-                            "description": "The operation to perform on the schema designer. Supported values: 'add_table', 'replace_schema', 'get_schema'.",
+                            "description": "The operation to perform on the schema designer. Supported values: 'show', 'add_table', 'update_table', 'delete_table', 'replace_schema', 'get_schema'.",
                             "title": "Operation",
                             "type": "string",
                             "enum": [
+                                "show",
                                 "add_table",
                                 "update_table",
                                 "delete_table",
                                 "replace_schema",
                                 "get_schema"
                             ]
+                        },
+                        "connectionId": {
+                            "description": "Connection ID to use when opening the schema designer (show operation only).",
+                            "title": "Connection ID",
+                            "type": "string"
                         },
                         "payload": {
                             "description": "Operation-specific payload. add_table: { tableName?, schemaName? } or { table }. update_table: { table }. delete_table: { tableId? } or { tableName, schemaName }. replace_schema: { schema }. get_schema: omit. Schema skeleton for replace_schema: {\"schema\":{\"tables\":[{\"id\":\"t1\",\"name\":\"Orders\",\"schema\":\"dbo\",\"columns\":[{\"id\":\"c1\",\"name\":\"OrderId\",\"dataType\":\"int\",\"maxLength\":\"\",\"precision\":0,\"scale\":0,\"isPrimaryKey\":true,\"isIdentity\":true,\"identitySeed\":1,\"identityIncrement\":1,\"isNullable\":false,\"defaultValue\":\"\",\"isComputed\":false,\"computedFormula\":\"\",\"computedPersisted\":false}],\"foreignKeys\":[{\"id\":\"fk1\",\"name\":\"FK_Orders_Customers\",\"columns\":[\"CustomerId\"],\"referencedSchemaName\":\"dbo\",\"referencedTableName\":\"Customers\",\"referencedColumns\":[\"Id\"],\"onDeleteAction\":1,\"onUpdateAction\":1}]}]}}. onDeleteAction/onUpdateAction enum: 0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT.",
@@ -2379,36 +2385,8 @@
                 "canBeReferencedInPrompt": true,
                 "displayName": "Schema Designer",
                 "toolReferenceName": "mssql_schema_designer",
-                "userDescription": "Manage the currently open schema designer (e.g., add/update/delete tables, replace the schema, or get the current schema).",
+                "userDescription": "Open or manage the active schema designer (e.g., open it, add/update/delete tables, replace the schema, or get the current schema).",
                 "icon": "$(edit)"
-            },
-            {
-                "name": "mssql_show_schema",
-                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
-                "tags": [
-                    "databases",
-                    "mssql",
-                    "schema",
-                    "visualization"
-                ],
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "connectionId": {
-                            "description": "Connection ID to use for schema visualization.",
-                            "title": "Connection ID",
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "connectionId"
-                    ]
-                },
-                "canBeReferencedInPrompt": true,
-                "displayName": "Show Database Schema",
-                "toolReferenceName": "mssql_show_schema",
-                "userDescription": "Show database schema for a connected MSSQL database.",
-                "icon": "$(graph-scatter)"
             },
             {
                 "name": "mssql_connect",

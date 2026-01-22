@@ -1850,7 +1850,10 @@ export class MssqlChatAgent {
         });
     };
     public static schemaDesignerNoActiveDesigner = l10n.t(
-        "No active schema designer found. Please open a schema designer first using /showSchema.",
+        "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    );
+    public static schemaDesignerMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",

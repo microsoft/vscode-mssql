@@ -8,14 +8,25 @@ import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
+import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 
 export interface SchemaDesignerToolParams {
     /**
      * The operation to perform on the schema designer.
-     * Supported operations: "add_table", "update_table", "delete_table", "replace_schema", "get_schema"
+     * Supported operations: "show", "add_table", "update_table", "delete_table", "replace_schema", "get_schema"
      */
-    operation: "add_table" | "update_table" | "delete_table" | "replace_schema" | "get_schema";
+    operation:
+        | "show"
+        | "add_table"
+        | "update_table"
+        | "delete_table"
+        | "replace_schema"
+        | "get_schema";
+    /**
+     * Connection ID to use when opening a schema designer (show operation only).
+     */
+    connectionId?: string;
     /**
      * Operation-specific payload.
      * - add_table: { tableName?, schemaName? } or { table }
@@ -66,7 +77,10 @@ export interface SchemaDesignerToolResult {
 export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     public readonly toolName = Constants.copilotSchemaDesignerToolName;
 
-    constructor() {
+    constructor(
+        private _connectionManager: ConnectionManager,
+        private _showSchema: (connectionUri: string, database: string) => Promise<void>,
+    ) {
         super();
     }
 
@@ -74,11 +88,33 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         options: vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        const { operation, payload, options: uiOptions } = options.input;
+        const { operation, payload, options: uiOptions, connectionId } = options.input;
         const { tableName, schemaName, schema, table, tableId } = payload ?? {};
         const { keepPositions, focusTableId } = uiOptions ?? {};
 
         try {
+            if (operation === "show") {
+                if (!connectionId) {
+                    return JSON.stringify({
+                        success: false,
+                        message: loc.schemaDesignerMissingConnectionId,
+                    });
+                }
+                const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+                const connCreds = connInfo?.credentials;
+                if (!connCreds) {
+                    return JSON.stringify({
+                        success: false,
+                        message: loc.noConnectionError(connectionId),
+                    });
+                }
+                await this._showSchema(connectionId, connCreds.database);
+                return JSON.stringify({
+                    success: true,
+                    message: loc.showSchemaToolSuccessMessage,
+                });
+            }
+
             // Get the active schema designer
             const activeDesigner = SchemaDesignerWebviewManager.getInstance().getActiveDesigner();
 

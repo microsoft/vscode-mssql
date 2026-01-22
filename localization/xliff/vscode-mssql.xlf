@@ -2569,6 +2569,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
+      <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
+    </trans-unit>
     <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
       <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
     </trans-unit>
@@ -2684,8 +2687,8 @@
     <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
       <source xml:lang="en">No active database connection. Please connect to a database first.</source>
     </trans-unit>
-    <trans-unit id="++CODE++1a7b7018fa92407d432b98a14243e1122081621c246a75f990b542b087f86c45">
-      <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema.</source>
+    <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
+      <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
     </trans-unit>
     <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
       <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>

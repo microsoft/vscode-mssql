@@ -20,7 +20,7 @@ export class SchemaDesignerWebviewManager {
     private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem> = new Map();
 
     /**
-     * Reference to the most recently created/accessed schema designer (for POC purposes)
+     * Reference to the most recently visible schema designer.
      */
     private _activeDesigner: SchemaDesignerWebviewController | undefined;
 
@@ -36,11 +36,14 @@ export class SchemaDesignerWebviewManager {
     }
 
     /**
-     * Gets the currently active schema designer (most recently accessed).
-     * Returns undefined if no designer is active.
+     * Gets the currently active schema designer (most recently visible).
+     * Returns undefined if no visible designer is active.
      */
     public getActiveDesigner(): SchemaDesignerWebviewController | undefined {
-        if (this._activeDesigner?.isDisposed) {
+        if (
+            this._activeDesigner?.isDisposed ||
+            (this._activeDesigner && !this._activeDesigner.panel.visible)
+        ) {
             this._activeDesigner = undefined;
         }
         return this._activeDesigner;
@@ -115,8 +118,19 @@ export class SchemaDesignerWebviewManager {
                 treeNode,
                 connectionUri,
             );
+            const viewStateDisposable = schemaDesigner.panel.onDidChangeViewState((event) => {
+                if (event.webviewPanel.visible) {
+                    this._activeDesigner = schemaDesigner;
+                } else if (this._activeDesigner === schemaDesigner) {
+                    this._activeDesigner = undefined;
+                }
+            });
             schemaDesigner.onDisposed(async () => {
+                viewStateDisposable.dispose();
                 this.schemaDesigners.delete(key);
+                if (this._activeDesigner === schemaDesigner) {
+                    this._activeDesigner = undefined;
+                }
                 if (this.schemaDesignerCache.get(key).isDirty) {
                     // Ensure the user wants to exit without saving
                     const choice = await vscode.window.showInformationMessage(
@@ -160,7 +174,7 @@ export class SchemaDesignerWebviewManager {
             this.schemaDesigners.set(key, schemaDesigner);
         }
         const designer = this.schemaDesigners.get(key)!;
-        this._activeDesigner = designer; // Track the active designer for POC
+        this._activeDesigner = designer;
         return designer;
     }
 }
