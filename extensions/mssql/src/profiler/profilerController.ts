@@ -18,6 +18,7 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * Controller for the profiler feature.
@@ -195,6 +196,9 @@ export class ProfilerController {
             webviewController.setSessionState(SessionState.Running);
             webviewController.setSessionName(sessionName);
             this._logger.verbose("Profiling session started");
+
+            // Send telemetry for session started
+            ProfilerTelemetry.sendSessionStarted(sessionName, sessionId);
         } catch (e) {
             this._logger.error(`Error starting profiler session: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToStartProfiler(String(e)));
@@ -331,6 +335,9 @@ export class ProfilerController {
                 LocProfiler.sessionCreatedSuccessfully(sessionName),
             );
             this._logger.verbose(`Session '${sessionName}' created successfully`);
+
+            // Send telemetry for session created
+            ProfilerTelemetry.sendSessionCreated(sessionName, selectedTemplate.template.name);
 
             // Step 7: Auto-start the session
             await this.startSession(sessionName, webviewController);
@@ -479,11 +486,18 @@ export class ProfilerController {
                         await this._sessionManager.pauseProfilingSession(session.id);
                         webviewController.setSessionState(SessionState.Paused);
                         this._logger.verbose("Session paused");
+
+                        // Send telemetry for session paused
+                        const eventCount = session.events?.size ?? 0;
+                        ProfilerTelemetry.sendSessionPaused(session.id, eventCount);
                     } else if (session.state === SessionState.Paused) {
                         this._logger.verbose(`Resuming profiler session ${session.id}...`);
                         await this._sessionManager.togglePauseProfilingSession(session.id);
                         webviewController.setSessionState(SessionState.Running);
                         this._logger.verbose("Session resumed");
+
+                        // Send telemetry for session resumed
+                        ProfilerTelemetry.sendSessionResumed(session.id);
                     } else {
                         this._logger.verbose(
                             `Session in unexpected state: ${session.state}, cannot pause/resume`,
@@ -506,6 +520,10 @@ export class ProfilerController {
                     await this._sessionManager.stopProfilingSession(session.id);
                     webviewController.setSessionState(SessionState.Stopped);
                     this._logger.verbose("Session stopped");
+
+                    // Send telemetry for session stopped
+                    const eventCount = session.events?.size ?? 0;
+                    ProfilerTelemetry.sendSessionStopped(session.id, eventCount);
                 } catch (e) {
                     this._logger.error(`Error stopping session: ${e}`);
                 }

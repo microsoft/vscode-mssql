@@ -41,6 +41,7 @@ export enum TelemetryViews {
     ChangelogPage = "ChangelogPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
+    Profiler = "Profiler",
 }
 
 export enum TelemetryActions {
@@ -203,6 +204,20 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
+    // Profiler actions
+    ProfilerSessionCreated = "ProfilerSessionCreated",
+    ProfilerSessionStarted = "ProfilerSessionStarted",
+    ProfilerSessionPaused = "ProfilerSessionPaused",
+    ProfilerSessionResumed = "ProfilerSessionResumed",
+    ProfilerSessionStopped = "ProfilerSessionStopped",
+    ProfilerSessionSwitched = "ProfilerSessionSwitched",
+    ProfilerSessionClosed = "ProfilerSessionClosed",
+    ProfilerClearData = "ProfilerClearData",
+    ProfilerFilterApplied = "ProfilerFilterApplied",
+    ProfilerFilterCleared = "ProfilerFilterCleared",
+    ProfilerAutoScrollToggled = "ProfilerAutoScrollToggled",
+    ProfilerXelFileOpened = "ProfilerXelFileOpened",
+    ProfilerExportCsv = "ProfilerExportCsv",
 }
 
 /**

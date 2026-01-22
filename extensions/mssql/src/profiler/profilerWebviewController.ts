@@ -21,6 +21,7 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -50,6 +51,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    /** Tracks whether the session was stopped before closing (for telemetry) */
+    private _wasSessionPreviouslyStopped: boolean = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -150,6 +153,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         // Dispose status bar item
         this._statusBarItem.dispose();
 
+        // Capture telemetry data before disposing
+        const sessionId = this._currentSession?.id;
+        const eventCount = this._currentSession?.events?.size ?? 0;
+        const wasStopped = this._wasSessionPreviouslyStopped;
+
         // Only dispose the session associated with THIS webview, not all sessions
         if (this._currentSession && this._currentSession.isRunning) {
             const sessionName = this._currentSession.sessionName;
@@ -162,6 +170,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 console.error("Error disposing profiler session:", err);
             });
         }
+
+        // Send telemetry for session closed
+        ProfilerTelemetry.sendSessionClosed(sessionId, eventCount, wasStopped);
 
         super.dispose();
     }
@@ -218,11 +229,17 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle clear events request from webview (client-side clear)
         this.registerReducer("clearEvents", (state, payload: { localRowCount: number }) => {
+            // Capture event count before clearing for telemetry
+            const eventCountBeforeClear = this._currentSession?.eventCount ?? 0;
+
             // Clear events from the RingBuffer up to localRowCount (what was displayed)
             // New events that arrived after the clear click will remain in the buffer
             if (this._currentSession) {
                 this._currentSession.clearEventsRange(payload.localRowCount);
             }
+
+            // Send telemetry for clear data
+            ProfilerTelemetry.sendClearData(eventCountBeforeClear);
 
             // Get remaining events count after clear
             const remainingEvents = this._currentSession?.eventCount ?? 0;
@@ -258,9 +275,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle auto-scroll toggle from webview
         this.registerReducer("toggleAutoScroll", (state) => {
+            const newAutoScroll = !state.autoScroll;
+
+            // Send telemetry for auto-scroll toggle
+            ProfilerTelemetry.sendAutoScrollToggled(newAutoScroll);
+
             return {
                 ...state,
-                autoScroll: !state.autoScroll,
+                autoScroll: newAutoScroll,
             };
         });
 
@@ -534,6 +556,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Set the session state
      */
     public setSessionState(sessionState: SessionState): void {
+        // Track when the session is stopped for telemetry on close
+        if (sessionState === SessionState.Stopped) {
+            this._wasSessionPreviouslyStopped = true;
+        }
+
         // If we have a current session, verify state from the session manager
         if (this._currentSession) {
             const actualState = this.getSessionStateFromSession(this._currentSession);
