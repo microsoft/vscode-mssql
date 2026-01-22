@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import { SlickgridReact, SlickgridReactInstance, Column, GridOption } from "slickgrid-react";
+import { SlickgridReact, SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
+import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
@@ -18,7 +19,6 @@ import {
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
-import "./profilerPage.css";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -29,7 +29,64 @@ const EMPTY_DATASET: never[] = [];
 /** Module-level flag to ensure handlers are registered only once per webview lifecycle */
 let notificationHandlersRegistered = false;
 
-export const ProfilerPage: React.FC = () => {
+/**
+ * Formatter for optional numeric fields - shows empty string for undefined/null
+ */
+const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
+    if (value === undefined || value === null) {
+        return "";
+    }
+    return String(value);
+};
+
+/**
+ * Fields that should use the timestamp formatter (using built-in Formatters.date with custom format)
+ */
+const TIMESTAMP_FIELDS = ["timestamp"];
+
+/**
+ * Date format for timestamp columns - includes milliseconds using Tempo format tokens
+ * Format: YYYY-MM-DD HH:mm:ss.SSS
+ */
+const TIMESTAMP_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS";
+
+/**
+ * Fields that should use the optional number formatter (may be undefined)
+ */
+const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
+
+/**
+ * Gets the appropriate formatter configuration for a field
+ * Returns an object with formatter and optional params
+ */
+function getFormatterConfig(field: string): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
+    if (TIMESTAMP_FIELDS.includes(field)) {
+        return {
+            formatter: Formatters.date,
+            params: { dateFormat: TIMESTAMP_DATE_FORMAT },
+        };
+    }
+    if (OPTIONAL_NUMBER_FIELDS.includes(field)) {
+        return { formatter: optionalNumberFormatter };
+    }
+    return undefined;
+}
+
+// Inject SlickGrid styles once
+let stylesInjected = false;
+function injectSlickGridStyles() {
+    if (stylesInjected) {
+        return;
+    }
+    stylesInjected = true;
+    const styleElement = document.createElement("style");
+    styleElement.textContent = slickGridStyles;
+    document.head.appendChild(styleElement);
+}
+
+export const Profiler: React.FC = () => {
+    const classes = useStyles();
+
     const totalRowCount = useProfilerSelector((s) => s.totalRowCount ?? 0);
     const clearGeneration = useProfilerSelector((s) => s.clearGeneration ?? 0);
     const sessionState = useProfilerSelector((s) => s.sessionState ?? SessionState.NotStarted);
@@ -63,6 +120,11 @@ export const ProfilerPage: React.FC = () => {
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
+
+    // Inject SlickGrid styles on mount
+    useEffect(() => {
+        injectSlickGridStyles();
+    }, []);
 
     // Keep refs in sync with current values
     useEffect(() => {
@@ -251,21 +313,34 @@ export const ProfilerPage: React.FC = () => {
                     filterable: false,
                     resizable: true,
                     minWidth: 200,
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
                 },
             ];
         }
 
         return [
-            ...viewConfig.columns.map((col) => ({
-                id: col.field,
-                name: col.header,
-                field: col.field,
-                width: col.width,
-                sortable: col.sortable ?? true,
-                filterable: col.filterable ?? false,
-                resizable: true,
-                minWidth: 50,
-            })),
+            ...viewConfig.columns.map((col) => {
+                const formatterConfig = getFormatterConfig(col.field);
+                return {
+                    id: col.field,
+                    name: col.header,
+                    field: col.field,
+                    width: col.width,
+                    sortable: col.sortable ?? true,
+                    filterable: col.filterable ?? false,
+                    resizable: true,
+                    minWidth: 50,
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
+                    ...(formatterConfig && {
+                        formatter: formatterConfig.formatter,
+                        ...(formatterConfig.params && { params: formatterConfig.params }),
+                    }),
+                };
+            }),
         ];
     }, [viewConfig]);
 
@@ -273,7 +348,7 @@ export const ProfilerPage: React.FC = () => {
     const gridOptions: GridOption = useMemo(
         () => ({
             autoResize: {
-                container: ".profiler-grid-container",
+                container: "#profilerGridContainer",
                 calculateAvailableSizeBy: "container",
             },
             enableAutoResize: true,
@@ -282,6 +357,10 @@ export const ProfilerPage: React.FC = () => {
             enableSorting: false,
             enableFiltering: false,
             enablePagination: false,
+            enableColumnPicker: false, // Hide column picker menu
+            enableGridMenu: false, // Hide grid menu (hamburger menu)
+            enableHeaderMenu: false, // Hide header menu (column hide/show)
+            enableAutoTooltip: true, // Enable tooltips to show cell values on hover
             rowHeight: 25,
             headerRowHeight: 30,
             showHeaderRow: false,
@@ -370,7 +449,7 @@ export const ProfilerPage: React.FC = () => {
     );
 
     return (
-        <div className="profiler-container">
+        <div className={classes.profilerContainer}>
             <ProfilerToolbar
                 sessionState={sessionState}
                 currentViewId={viewId}
@@ -389,7 +468,7 @@ export const ProfilerPage: React.FC = () => {
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
             />
-            <div className="profiler-grid-container">
+            <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact
                     gridId="profilerGrid"
                     columns={columns}
@@ -404,3 +483,155 @@ export const ProfilerPage: React.FC = () => {
         </div>
     );
 };
+
+// #region Styles
+
+const useStyles = makeStyles({
+    profilerContainer: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        padding: "0",
+        boxSizing: "border-box",
+    },
+    profilerToolbar: {
+        display: "flex",
+        alignItems: "center",
+        padding: "4px 8px",
+        borderBottom: "1px solid var(--vscode-panel-border)",
+        backgroundColor: "var(--vscode-editor-background)",
+        flexShrink: 0,
+    },
+    profilerToolbarViewSelector: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginLeft: "8px",
+    },
+    profilerToolbarLabel: {
+        fontSize: "12px",
+        color: "var(--vscode-foreground)",
+    },
+    profilerToolbarInfo: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        marginLeft: "auto",
+        paddingLeft: "16px",
+    },
+    profilerToolbarSessionName: {
+        fontSize: "12px",
+        color: "var(--vscode-descriptionForeground)",
+        maxWidth: "200px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    profilerToolbarStatus: {
+        fontSize: "12px",
+        padding: "2px 8px",
+        borderRadius: "4px",
+        backgroundColor: "var(--vscode-badge-background)",
+        color: "var(--vscode-badge-foreground)",
+    },
+    profilerToolbarEventCount: {
+        fontSize: "12px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    profilerGridContainer: {
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+        padding: "0",
+        margin: "8px",
+        marginTop: "0",
+        width: "calc(100% - 16px)",
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+    },
+});
+
+// Global styles for SlickGrid that need to be injected as CSS
+// These use CSS custom properties with --slick- prefix which makeStyles doesn't support well
+const slickGridStyles = `
+#profilerGrid {
+    /* Main grid colors */
+    --slick-cell-even-background-color: var(--vscode-editor-background);
+    --slick-cell-odd-background-color: var(--vscode-editor-background);
+    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
+    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
+    --slick-cell-text-color: var(--vscode-foreground);
+    --slick-grid-header-background: var(--vscode-editor-background);
+    --slick-grid-header-text-color: var(--vscode-foreground);
+    --slick-grid-header-column-width: auto;
+    --slick-header-row-border-color: var(--vscode-panel-border);
+
+    /* Border colors */
+    --slick-border-color: var(--vscode-editorWidget-border);
+    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-cell-border-left: 0;
+
+    /* Column picker colors */
+    --slick-column-picker-background-color: var(--vscode-menu-background);
+    --slick-column-picker-item-color: var(--vscode-menu-foreground);
+    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
+    --slick-column-picker-border-color: var(--vscode-menu-border);
+
+    /* Scrollbar colors */
+    --slick-scrollbar-background: var(--vscode-scrollbar-background);
+    --slick-scrollbar-thumb-background: var(--vscode-scrollbarSlider-background);
+    --slick-scrollbar-thumb-hover-background: var(--vscode-scrollbarSlider-hoverBackground);
+    --slick-scrollbar-thumb-active-background: var(--vscode-scrollbarSlider-activeBackground);
+
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Auto-hide scrollbars when not needed */
+#profilerGrid .slick-viewport {
+    overflow: auto !important;
+}
+
+/* Ensure internal grid structure fills container */
+#profilerGrid .slick-pane {
+    flex: 1;
+}
+
+#profilerGrid .slick-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide scrollbars when content fits */
+#profilerGrid .slick-viewport::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    border-radius: 7px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:active {
+    background-color: var(--vscode-scrollbarSlider-activeBackground);
+}
+`;
+
+// #endregion

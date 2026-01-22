@@ -162,14 +162,6 @@
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
     </trans-unit>
-    <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
-      <note>{0} is the connection ID</note>
-    </trans-unit>
-    <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
-      <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
-      <note>{0} is the group ID</note>
-    </trans-unit>
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
@@ -361,6 +353,9 @@
     </trans-unit>
     <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
       <source xml:lang="en">Azure Data Studio Migration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
+      <source xml:lang="en">Azure Data Studio Migration - Connections</source>
     </trans-unit>
     <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
       <source xml:lang="en">Azure Data Studio settings file</source>
@@ -640,6 +635,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
       <source xml:lang="en">Clear All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
+      <source xml:lang="en">Clear Data</source>
     </trans-unit>
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
@@ -921,6 +919,9 @@
     <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
       <source xml:lang="en">Connection Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++e98d4b850ce65853ef4019c9a3faa89e9df536698224a7de85bfd83a4dbf35b7">
+      <source xml:lang="en">Connection Import Warning</source>
+    </trans-unit>
     <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
       <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
     </trans-unit>
@@ -940,6 +941,11 @@
     <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
+      <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
+      <note>{0} is the group name
+{1} is the group ID</note>
     </trans-unit>
     <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
       <source xml:lang="en">Connection groups to import</source>
@@ -973,11 +979,13 @@
       <source xml:lang="en">Connection with ID &quot;{0}&quot; not found. Please verify the connection ID exists.</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++2f3daf0cd0f2a34f9d404145647a7a71178161552fe7dc9acba74d5b8d14cc49">
+      <source xml:lang="en">Connection with the same ID is already imported: {0} (ID: {1})</source>
+      <note>{0} is the connection display name
+{1} is the connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
       <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++b82cef69876e86ca650b86a01403a1993737b15871e7e4216363213573d600f3">
-      <source xml:lang="en">Connections needing attention</source>
     </trans-unit>
     <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
       <source xml:lang="en">Connections to import</source>
@@ -1955,6 +1963,9 @@
     <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
       <source xml:lang="en">Files</source>
     </trans-unit>
+    <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
+      <source xml:lang="en">Files of Type</source>
+    </trans-unit>
     <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
       <source xml:lang="en">Filter</source>
     </trans-unit>
@@ -2244,6 +2255,9 @@
       <source xml:lang="en">Import failed: {0}</source>
       <note>{0} is the error message returned from the import helper.</note>
     </trans-unit>
+    <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
+      <source xml:lang="en">Import from Azure Data Studio</source>
+    </trans-unit>
     <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
       <source xml:lang="en">Import selected</source>
     </trans-unit>
@@ -2267,6 +2281,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
+      <source xml:lang="en">Incomplete or orphaned connections</source>
     </trans-unit>
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
@@ -3298,6 +3315,9 @@
     <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
       <source xml:lang="en">Publish Project</source>
     </trans-unit>
+    <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
+      <source xml:lang="en">Publish Project (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
       <source xml:lang="en">Publish Settings File</source>
     </trans-unit>
@@ -3353,8 +3373,8 @@
     <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
       <source xml:lang="en">Read-only SQL text editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
-      <source xml:lang="en">Ready</source>
+    <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
+      <source xml:lang="en">Ready for import</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
@@ -3790,6 +3810,9 @@
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
+      <source xml:lang="en">Select a file</source>
+    </trans-unit>
     <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
       <source xml:lang="en">Select a profiler template</source>
     </trans-unit>
@@ -3871,6 +3894,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
       <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e45e850e5552217009a64f5c87e898720561d6263867b0cebfc6f770aff9810">
+      <source xml:lang="en">Selected Path</source>
     </trans-unit>
     <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
       <source xml:lang="en">Server</source>
@@ -4040,8 +4066,8 @@
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
     </trans-unit>
-    <trans-unit id="++CODE++a4fc5133409f8a143e806d9a71b88a9a32029c885589a0df6b63de5fac3e6e74">
-      <source xml:lang="en">Some selections still need information</source>
+    <trans-unit id="++CODE++21844306ac40ad949795b32880ff37ee26e56b0acf405e7c4028b10c5168d0d2">
+      <source xml:lang="en">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</source>
     </trans-unit>
     <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
       <source xml:lang="en">Sort</source>
@@ -4372,6 +4398,9 @@
     <trans-unit id="++CODE++2dfd619510d128a32109e18f1206eb1170ff96be2c7672f8f2f9541f6e28391d">
       <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
+      <source xml:lang="en">This connection&apos;s group has not been selected, so this connection will be imported the root.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
@@ -4621,9 +4650,6 @@
     <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
       <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
       <note>{0} is the version number of the MSSQL extension</note>
-    </trans-unit>
-    <trans-unit id="++CODE++23b87eb718db2dfbfebcae9b02f46ba7667d28ffd03dc40a119768f278a9191a">
-      <source xml:lang="en">You can continue, but you may need to edit these connections later before connecting.</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
@@ -5191,6 +5217,9 @@
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="mssql.profiler.launchFromObjectExplorer">
+      <source xml:lang="en">Launch Profiler</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
     </trans-unit>
@@ -5208,6 +5237,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.maxCharsToStore">
       <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.eventBufferSize">
+      <source xml:lang="en">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</source>
     </trans-unit>
     <trans-unit id="mssql.logFilesRemovalLimit">
       <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>

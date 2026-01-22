@@ -18,7 +18,7 @@ export interface EventRow extends IndexedRow {
     /** Event sequence number from SQL Tools Service */
     eventNumber: number;
     /** Timestamp when the event occurred */
-    timestamp: number;
+    timestamp: Date;
     /** The type/class of the event (e.g., "SQL:BatchCompleted", "RPC:Completed") */
     eventClass: string;
     /** The SQL text or command text */
@@ -26,15 +26,15 @@ export interface EventRow extends IndexedRow {
     /** Name of the database where the event occurred */
     databaseName: string;
     /** Server Process ID */
-    spid: number;
+    spid: number | undefined;
     /** Duration in microseconds */
-    duration: number;
+    duration: number | undefined;
     /** CPU time in milliseconds */
-    cpu: number;
+    cpu: number | undefined;
     /** Logical reads */
-    reads: number;
+    reads: number | undefined;
     /** Logical writes */
-    writes: number;
+    writes: number | undefined;
     /** Additional event-specific data */
     additionalData: Record<string, string>;
 }

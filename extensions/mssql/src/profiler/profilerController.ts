@@ -16,6 +16,9 @@ import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionTemplate } from "../models/contracts/profiler";
 import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import * as Constants from "../constants/constants";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../models/interfaces";
 
 /**
  * Controller for the profiler feature.
@@ -69,6 +72,24 @@ export class ProfilerController {
                     vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
                 }
             }),
+        );
+
+        // Launch Profiler from Object Explorer (uses selected connection)
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.profiler.launchFromObjectExplorer",
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    try {
+                        const connectionProfile = treeNodeInfo.connectionProfile;
+                        await this.launchProfilerWithConnection(connectionProfile);
+                    } catch (e) {
+                        this._logger.error(`Command error: ${e}`);
+                        vscode.window.showErrorMessage(
+                            LocProfiler.failedToLaunchProfiler(String(e)),
+                        );
+                    }
+                },
+            ),
         );
 
         this._logger.verbose("Profiler commands registered");
@@ -149,12 +170,16 @@ export class ProfilerController {
 
             // Create a ProfilerSession for the selected session
             const sessionId = Utils.generateGuid();
+            const bufferCapacity = vscode.workspace
+                .getConfiguration(Constants.extensionConfigSectionName)
+                .get<number>(Constants.configProfilerEventBufferSize);
             const session = this._sessionManager.createSession({
                 id: sessionId,
                 ownerUri: this._profilerUri,
                 sessionName: sessionName,
                 sessionType: SessionType.Live,
                 templateName: "Standard",
+                bufferCapacity: bufferCapacity,
             });
             this._logger.verbose(
                 `Created ProfilerSession: id=${sessionId}, ownerUri=${this._profilerUri}`,
@@ -355,124 +380,173 @@ export class ProfilerController {
                 return;
             }
             this._logger.verbose(`Profiler connection created: ${profilerUri}`);
-            this._profilerUri = profilerUri;
 
-            // Fetch available XEvent sessions from the server
-            this._logger.verbose("Fetching available XEvent sessions...");
-            const xeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
-            this._logger.verbose(`Found ${xeventSessions.length} available XEvent sessions`);
-
-            // Convert to session objects for the webview
-            const availableSessions = xeventSessions.map((name) => ({
-                id: name,
-                name: name,
-            }));
-
-            // Create the webview to display events with the standard template
-            // Don't create a ProfilerSession yet - wait for user to select and click Start
-            const webviewController = new ProfilerWebviewController(
-                this._context,
-                this._vscodeWrapper,
-                this._sessionManager,
-                availableSessions,
-                undefined, // No initial session name
-                "Standard_OnPrem", // templateId
-            );
-
-            // Connect the details panel controller to this webview so row selections update the panel
-            if (this._detailsPanelController) {
-                webviewController.setDetailsPanelController(this._detailsPanelController);
-            }
-
-            // Track this webview controller along with its profiler URI for cleanup
-            const webviewId = Utils.generateGuid();
-            const webviewProfilerUri = profilerUri; // Capture for cleanup
-            this._webviewControllers.set(webviewId, webviewController);
-
-            // Remove from tracking and clean up connection when disposed
-            const originalDispose = webviewController.dispose.bind(webviewController);
-            webviewController.dispose = () => {
-                this._webviewControllers.delete(webviewId);
-
-                // Disconnect the profiler connection to avoid lingering connections
-                this._logger.verbose(`Cleaning up profiler connection: ${webviewProfilerUri}`);
-                this._connectionManager.disconnect(webviewProfilerUri).catch((err) => {
-                    this._logger.error(`Error disconnecting profiler connection: ${err}`);
-                });
-
-                originalDispose();
-            };
-
-            // Set up webview event handlers for toolbar actions
-            // Capture webviewController in the closure so each webview has its own handlers
-            webviewController.setEventHandlers({
-                onCreateSession: async () => {
-                    await this.handleCreateSession(webviewController);
-                },
-                onStartSession: async (selectedSessionId: string) => {
-                    await this.startSession(selectedSessionId, webviewController);
-                },
-                onPauseResume: async () => {
-                    // Get the session for THIS webview directly from the controller
-                    const session = webviewController.currentSession;
-
-                    if (!session) {
-                        this._logger.verbose("No active session to pause/resume for this webview");
-                        return;
-                    }
-                    try {
-                        this._logger.verbose(
-                            `Current session state: ${session.state}, session.id: ${session.id}`,
-                        );
-                        if (session.state === SessionState.Running) {
-                            this._logger.verbose(`Pausing profiler session ${session.id}...`);
-                            await this._sessionManager.pauseProfilingSession(session.id);
-                            webviewController.setSessionState(SessionState.Paused);
-                            this._logger.verbose("Session paused");
-                        } else if (session.state === SessionState.Paused) {
-                            this._logger.verbose(`Resuming profiler session ${session.id}...`);
-                            await this._sessionManager.togglePauseProfilingSession(session.id);
-                            webviewController.setSessionState(SessionState.Running);
-                            this._logger.verbose("Session resumed");
-                        } else {
-                            this._logger.verbose(
-                                `Session in unexpected state: ${session.state}, cannot pause/resume`,
-                            );
-                        }
-                    } catch (e) {
-                        this._logger.error(`Error pausing/resuming session: ${e}`);
-                    }
-                },
-                onStop: async () => {
-                    // Get the session for THIS webview directly from the controller
-                    const session = webviewController.currentSession;
-
-                    if (!session) {
-                        this._logger.verbose("No active session to stop for this webview");
-                        return;
-                    }
-                    try {
-                        this._logger.verbose(`Stopping profiler session ${session.id}...`);
-                        await this._sessionManager.stopProfilingSession(session.id);
-                        webviewController.setSessionState(SessionState.Stopped);
-                        this._logger.verbose("Session stopped");
-                    } catch (e) {
-                        this._logger.error(`Error stopping session: ${e}`);
-                    }
-                },
-                onViewChange: (viewId: string) => {
-                    this._logger.verbose(`View changed to: ${viewId}`);
-                },
-            });
-
-            this._logger.verbose(
-                "Profiler UI created. Select a session and click Start to begin profiling.",
-            );
-            vscode.window.showInformationMessage(LocProfiler.profilerReady);
+            // Use the common setup method
+            await this.setupProfilerUI(profilerUri);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
         }
+    }
+
+    /**
+     * Launches the profiler UI with a provided connection profile (from Object Explorer).
+     * This skips the connection prompt and uses the provided connection directly.
+     * @param connectionProfile - The connection profile to use for profiling
+     */
+    public async launchProfilerWithConnection(
+        connectionProfile: IConnectionProfile,
+    ): Promise<void> {
+        this._logger.verbose(
+            `Launching profiler with connection to ${connectionProfile.server}...`,
+        );
+
+        try {
+            // Generate a unique URI for this profiler connection
+            const profilerUri = `profiler://${Utils.generateGuid()}`;
+            this._logger.verbose(
+                `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
+            );
+
+            // Connect using the connection manager with the provided profile
+            const connected = await this._connectionManager.connect(profilerUri, connectionProfile);
+
+            if (!connected) {
+                this._logger.verbose("Connection failed");
+                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
+                return;
+            }
+
+            this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
+
+            // Use the common setup method
+            await this.setupProfilerUI(profilerUri);
+        } catch (e) {
+            this._logger.error(`Error launching profiler: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+        }
+    }
+
+    /**
+     * Common setup for the profiler UI after a connection has been established.
+     * Creates the webview, sets up event handlers, and prepares for profiling.
+     * @param profilerUri - The URI of the established profiler connection
+     */
+    private async setupProfilerUI(profilerUri: string): Promise<void> {
+        this._profilerUri = profilerUri;
+
+        // Fetch available XEvent sessions from the server
+        this._logger.verbose("Fetching available XEvent sessions...");
+        const xeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
+        this._logger.verbose(`Found ${xeventSessions.length} available XEvent sessions`);
+
+        // Convert to session objects for the webview
+        const availableSessions = xeventSessions.map((name) => ({
+            id: name,
+            name: name,
+        }));
+
+        // Create the webview to display events with the standard template
+        // Don't create a ProfilerSession yet - wait for user to select and click Start
+        const webviewController = new ProfilerWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            this._sessionManager,
+            availableSessions,
+            undefined, // No initial session name
+            "Standard_OnPrem", // templateId
+        );
+
+        // Connect the details panel controller to this webview so row selections update the panel
+        if (this._detailsPanelController) {
+            webviewController.setDetailsPanelController(this._detailsPanelController);
+        }
+
+        // Track this webview controller along with its profiler URI for cleanup
+        const webviewId = Utils.generateGuid();
+        const webviewProfilerUri = profilerUri; // Capture for cleanup
+        this._webviewControllers.set(webviewId, webviewController);
+
+        // Remove from tracking and clean up connection when disposed
+        const originalDispose = webviewController.dispose.bind(webviewController);
+        webviewController.dispose = () => {
+            this._webviewControllers.delete(webviewId);
+
+            // Disconnect the profiler connection to avoid lingering connections
+            this._logger.verbose(`Cleaning up profiler connection: ${webviewProfilerUri}`);
+            this._connectionManager.disconnect(webviewProfilerUri).catch((err) => {
+                this._logger.error(`Error disconnecting profiler connection: ${err}`);
+            });
+
+            originalDispose();
+        };
+
+        // Set up webview event handlers for toolbar actions
+        // Capture webviewController in the closure so each webview has its own handlers
+        webviewController.setEventHandlers({
+            onCreateSession: async () => {
+                await this.handleCreateSession(webviewController);
+            },
+            onStartSession: async (selectedSessionId: string) => {
+                await this.startSession(selectedSessionId, webviewController);
+            },
+            onPauseResume: async () => {
+                // Get the session for THIS webview directly from the controller
+                const session = webviewController.currentSession;
+
+                if (!session) {
+                    this._logger.verbose("No active session to pause/resume for this webview");
+                    return;
+                }
+                try {
+                    this._logger.verbose(
+                        `Current session state: ${session.state}, session.id: ${session.id}`,
+                    );
+                    if (session.state === SessionState.Running) {
+                        this._logger.verbose(`Pausing profiler session ${session.id}...`);
+                        await this._sessionManager.pauseProfilingSession(session.id);
+                        webviewController.setSessionState(SessionState.Paused);
+                        this._logger.verbose("Session paused");
+                    } else if (session.state === SessionState.Paused) {
+                        this._logger.verbose(`Resuming profiler session ${session.id}...`);
+                        await this._sessionManager.togglePauseProfilingSession(session.id);
+                        webviewController.setSessionState(SessionState.Running);
+                        this._logger.verbose("Session resumed");
+                    } else {
+                        this._logger.verbose(
+                            `Session in unexpected state: ${session.state}, cannot pause/resume`,
+                        );
+                    }
+                } catch (e) {
+                    this._logger.error(`Error pausing/resuming session: ${e}`);
+                }
+            },
+            onStop: async () => {
+                // Get the session for THIS webview directly from the controller
+                const session = webviewController.currentSession;
+
+                if (!session) {
+                    this._logger.verbose("No active session to stop for this webview");
+                    return;
+                }
+                try {
+                    this._logger.verbose(`Stopping profiler session ${session.id}...`);
+                    await this._sessionManager.stopProfilingSession(session.id);
+                    webviewController.setSessionState(SessionState.Stopped);
+                    this._logger.verbose("Session stopped");
+                } catch (e) {
+                    this._logger.error(`Error stopping session: ${e}`);
+                }
+            },
+            onViewChange: (viewId: string) => {
+                this._logger.verbose(`View changed to: ${viewId}`);
+            },
+        });
+
+        this._logger.verbose(
+            "Profiler UI created. Select a session and click Start to begin profiling.",
+        );
+        vscode.window.showInformationMessage(LocProfiler.profilerReady);
     }
 
     public async dispose(): Promise<void> {

@@ -8,7 +8,7 @@ import {
     ProfilerConfigService,
     getProfilerConfigService,
 } from "../../../src/profiler/profilerConfigService";
-import { EventRow, ViewTemplate } from "../../../src/profiler/profilerTypes";
+import { EventRow, EngineType, ViewTemplate } from "../../../src/profiler/profilerTypes";
 
 suite("ProfilerConfigService Tests", () => {
     let configService: ProfilerConfigService;
@@ -17,351 +17,444 @@ suite("ProfilerConfigService Tests", () => {
         configService = getProfilerConfigService();
     });
 
-    suite("buildEventDetails", () => {
-        const testViewTemplate: ViewTemplate = {
-            id: "Standard",
-            name: "Standard View",
-            columns: [
-                { field: "eventClass", header: "Event Class", width: 150, eventsMapped: ["name"] },
-                {
-                    field: "textData",
-                    header: "Text Data",
-                    width: 400,
-                    eventsMapped: ["batch_text", "statement"],
-                },
-                {
-                    field: "databaseName",
-                    header: "Database",
-                    width: 100,
-                    eventsMapped: ["database_name"],
-                },
-                { field: "spid", header: "SPID", width: 60, eventsMapped: ["session_id"] },
-                { field: "duration", header: "Duration", width: 80, eventsMapped: ["duration"] },
-                { field: "cpu", header: "CPU", width: 60, eventsMapped: ["cpu_time"] },
-                { field: "reads", header: "Reads", width: 80, eventsMapped: ["logical_reads"] },
-                { field: "writes", header: "Writes", width: 80, eventsMapped: ["writes"] },
-                {
-                    field: "timestamp",
-                    header: "Timestamp",
-                    width: 180,
-                    eventsMapped: ["timestamp"],
-                },
-            ],
-        };
-
-        function createTestEvent(overrides: Partial<EventRow> = {}): EventRow {
-            return {
-                id: "event-123",
-                eventNumber: 1,
-                timestamp: new Date("2024-01-15T10:30:00Z").getTime(),
-                eventClass: "sql_batch_completed",
-                textData: "SELECT * FROM Users WHERE Id = 1",
-                databaseName: "TestDatabase",
-                spid: 55,
-                duration: 1500,
-                cpu: 20,
-                reads: 150,
-                writes: 10,
-                additionalData: {},
-                ...overrides,
-            };
-        }
-
-        test("should build event details with all columns from view template", () => {
-            const event = createTestEvent();
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            expect(details.rowId).to.equal("event-123");
-            expect(details.eventName).to.equal("sql_batch_completed");
-            expect(details.textData).to.equal("SELECT * FROM Users WHERE Id = 1");
-            expect(details.properties).to.have.length(testViewTemplate.columns.length);
+    suite("singleton pattern", () => {
+        test("should return the same instance", () => {
+            const instance1 = ProfilerConfigService.instance;
+            const instance2 = ProfilerConfigService.instance;
+            expect(instance1).to.equal(instance2);
         });
 
-        test("should include event class property", () => {
-            const event = createTestEvent({ eventClass: "sql_statement_completed" });
-            const details = configService.buildEventDetails(event, testViewTemplate);
+        test("getProfilerConfigService should return the singleton instance", () => {
+            const instance1 = getProfilerConfigService();
+            const instance2 = ProfilerConfigService.instance;
+            expect(instance1).to.equal(instance2);
+        });
+    });
 
-            const eventClassProp = details.properties.find((p) => p.label === "Event Class");
-            expect(eventClassProp).to.exist;
-            expect(eventClassProp!.value).to.equal("sql_statement_completed");
+    suite("getTemplates", () => {
+        test("should return all available templates", () => {
+            const templates = configService.getTemplates();
+            expect(templates).to.be.an("array");
+            expect(templates.length).to.be.greaterThan(0);
         });
 
-        test("should include text data property", () => {
-            const event = createTestEvent({ textData: "INSERT INTO Logs VALUES (1)" });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            const textDataProp = details.properties.find((p) => p.label === "Text Data");
-            expect(textDataProp).to.exist;
-            expect(textDataProp!.value).to.equal("INSERT INTO Logs VALUES (1)");
-        });
-
-        test("should include database name property", () => {
-            const event = createTestEvent({ databaseName: "ProductionDB" });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            const dbProp = details.properties.find((p) => p.label === "Database");
-            expect(dbProp).to.exist;
-            expect(dbProp!.value).to.equal("ProductionDB");
-        });
-
-        test("should include numeric properties as strings", () => {
-            const event = createTestEvent({
-                spid: 100,
-                duration: 5000,
-                cpu: 50,
-                reads: 1000,
-                writes: 25,
+        test("should return templates with required properties", () => {
+            const templates = configService.getTemplates();
+            templates.forEach((template) => {
+                expect(template).to.have.property("id");
+                expect(template).to.have.property("name");
+                expect(template).to.have.property("engineType");
+                expect(template).to.have.property("defaultView");
+                expect(template).to.have.property("createStatement");
             });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            const spidProp = details.properties.find((p) => p.label === "SPID");
-            expect(spidProp).to.exist;
-            expect(spidProp!.value).to.equal("100");
-
-            const durationProp = details.properties.find((p) => p.label === "Duration");
-            expect(durationProp).to.exist;
-            expect(durationProp!.value).to.equal("5000");
-
-            const cpuProp = details.properties.find((p) => p.label === "CPU");
-            expect(cpuProp).to.exist;
-            expect(cpuProp!.value).to.equal("50");
-
-            const readsProp = details.properties.find((p) => p.label === "Reads");
-            expect(readsProp).to.exist;
-            expect(readsProp!.value).to.equal("1000");
-
-            const writesProp = details.properties.find((p) => p.label === "Writes");
-            expect(writesProp).to.exist;
-            expect(writesProp!.value).to.equal("25");
         });
 
-        test("should handle missing optional properties gracefully", () => {
-            const event = createTestEvent({
-                textData: undefined,
-                databaseName: undefined,
-                duration: undefined,
+        test("should include Standard_OnPrem template", () => {
+            const templates = configService.getTemplates();
+            const standardTemplate = templates.find((t) => t.id === "Standard_OnPrem");
+            expect(standardTemplate).to.exist;
+            expect(standardTemplate?.name).to.include("Standard");
+        });
+    });
+
+    suite("getTemplatesForEngine", () => {
+        test("should return templates for Standalone engine type", () => {
+            const templates = configService.getTemplatesForEngine(EngineType.Standalone);
+            expect(templates).to.be.an("array");
+            templates.forEach((template) => {
+                expect(template.engineType).to.equal(EngineType.Standalone);
             });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            // Should still have all properties from the view template
-            expect(details.properties).to.have.length(testViewTemplate.columns.length);
-
-            // Missing values should be empty strings
-            const textDataProp = details.properties.find((p) => p.label === "Text Data");
-            expect(textDataProp!.value).to.equal("");
-
-            const dbProp = details.properties.find((p) => p.label === "Database");
-            expect(dbProp!.value).to.equal("");
         });
 
-        test("should use event.id for rowId", () => {
-            const event = createTestEvent({ id: "custom-row-id-456" });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            expect(details.rowId).to.equal("custom-row-id-456");
-        });
-
-        test("should default eventName to 'Unknown Event' when eventClass is missing", () => {
-            const event = createTestEvent({ eventClass: undefined });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            expect(details.eventName).to.equal("Unknown Event");
-        });
-
-        test("should include additional data not covered by view columns", () => {
-            const event = createTestEvent({
-                additionalData: {
-                    custom_field: "custom_value",
-                    another_field: "another_value",
-                },
+        test("should return templates for AzureSQLDB engine type", () => {
+            const templates = configService.getTemplatesForEngine(EngineType.AzureSQLDB);
+            expect(templates).to.be.an("array");
+            templates.forEach((template) => {
+                expect(template.engineType).to.equal(EngineType.AzureSQLDB);
             });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            // Should include properties for additional data
-            const customProp = details.properties.find((p) => p.label === "custom_field");
-            expect(customProp).to.exist;
-            expect(customProp!.value).to.equal("custom_value");
-
-            const anotherProp = details.properties.find((p) => p.label === "another_field");
-            expect(anotherProp).to.exist;
-            expect(anotherProp!.value).to.equal("another_value");
         });
 
-        test("should not duplicate fields already in view columns", () => {
-            const event = createTestEvent({
-                additionalData: {
-                    batch_text: "Should be skipped - covered by textData column",
-                    statement: "Should also be skipped",
-                },
+        test("should return empty array for non-existent engine type", () => {
+            const templates = configService.getTemplatesForEngine("NonExistent" as EngineType);
+            expect(templates).to.be.an("array");
+            expect(templates.length).to.equal(0);
+        });
+    });
+
+    suite("getTemplate", () => {
+        test("should return a specific template by ID", () => {
+            const template = configService.getTemplate("Standard_OnPrem");
+            expect(template).to.exist;
+            expect(template?.id).to.equal("Standard_OnPrem");
+        });
+
+        test("should return undefined for non-existent template", () => {
+            const template = configService.getTemplate("NonExistentTemplate");
+            expect(template).to.be.undefined;
+        });
+    });
+
+    suite("getViews", () => {
+        test("should return all available views", () => {
+            const views = configService.getViews();
+            expect(views).to.be.an("array");
+            expect(views.length).to.be.greaterThan(0);
+        });
+
+        test("should return views with required properties", () => {
+            const views = configService.getViews();
+            views.forEach((view) => {
+                expect(view).to.have.property("id");
+                expect(view).to.have.property("name");
+                expect(view).to.have.property("columns");
+                expect(view.columns).to.be.an("array");
             });
-            const details = configService.buildEventDetails(event, testViewTemplate);
-
-            // Count occurrences of Text Data label
-            const textDataLabels = details.properties.filter((p) => p.label === "Text Data");
-            expect(textDataLabels).to.have.length(1);
-
-            // Should not include batch_text or statement as separate properties
-            const batchTextProp = details.properties.find((p) => p.label === "batch_text");
-            expect(batchTextProp).to.not.exist;
-
-            const statementProp = details.properties.find((p) => p.label === "statement");
-            expect(statementProp).to.not.exist;
         });
 
-        test("should work with minimal view template", () => {
-            const minimalView: ViewTemplate = {
-                id: "Minimal",
-                name: "Minimal View",
-                columns: [
-                    { field: "eventClass", header: "Event", width: 100, eventsMapped: ["name"] },
-                ],
-            };
-            const event = createTestEvent();
-            const details = configService.buildEventDetails(event, minimalView);
+        test("should include Standard View", () => {
+            const views = configService.getViews();
+            const standardView = views.find((v) => v.id === "Standard View");
+            expect(standardView).to.exist;
+        });
+    });
 
-            expect(details.properties).to.have.length(1);
-            expect(details.properties[0].label).to.equal("Event");
-            expect(details.properties[0].value).to.equal("sql_batch_completed");
+    suite("getView", () => {
+        test("should return a specific view by ID", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+            expect(view?.id).to.equal("Standard View");
         });
 
-        test("should handle event with mapped field values", () => {
-            // Test that eventsMapped values are used to get column values
-            const event = createTestEvent({
-                textData: undefined,
-                additionalData: {
-                    batch_text: "Query from batch_text field",
-                },
-            });
-            const details = configService.buildEventDetails(event, testViewTemplate);
+        test("should return undefined for non-existent view", () => {
+            const view = configService.getView("NonExistentView");
+            expect(view).to.be.undefined;
+        });
+    });
 
-            // The textData column has eventsMapped: ['batch_text', 'statement']
-            // So it should find the value from additionalData.batch_text
-            const textDataProp = details.properties.find((p) => p.label === "Text Data");
-            expect(textDataProp).to.exist;
-            expect(textDataProp!.value).to.equal("Query from batch_text field");
+    suite("getViewsForSession", () => {
+        test("should return views compatible with a session template", () => {
+            // Get the first template
+            const templates = configService.getTemplates();
+            if (templates.length > 0) {
+                const views = configService.getViewsForSession(templates[0].id!);
+                expect(views).to.be.an("array");
+            }
+        });
+
+        test("should return empty array for non-existent session", () => {
+            const views = configService.getViewsForSession("NonExistent");
+            expect(views).to.be.an("array");
+        });
+    });
+
+    suite("getSessionsForView", () => {
+        test("should return sessions compatible with a view", () => {
+            const views = configService.getViews();
+            if (views.length > 0) {
+                const sessions = configService.getSessionsForView(views[0].id!);
+                expect(sessions).to.be.an("array");
+            }
+        });
+
+        test("should return empty array for non-existent view", () => {
+            const sessions = configService.getSessionsForView("NonExistent");
+            expect(sessions).to.be.an("array");
+        });
+    });
+
+    suite("getDefaultViewForTemplate", () => {
+        test("should return default view for a template", () => {
+            const view = configService.getDefaultViewForTemplate("Standard_OnPrem");
+            expect(view).to.exist;
+        });
+
+        test("should return undefined for non-existent template", () => {
+            const view = configService.getDefaultViewForTemplate("NonExistent");
+            expect(view).to.be.undefined;
         });
     });
 
     suite("convertEventToViewRow", () => {
-        const testViewTemplate: ViewTemplate = {
-            id: "Test",
-            name: "Test View",
-            columns: [
-                { field: "eventClass", header: "Event", width: 100, eventsMapped: ["name"] },
-                { field: "textData", header: "SQL", width: 300, eventsMapped: ["batch_text"] },
-                { field: "duration", header: "Duration", width: 80, eventsMapped: ["duration"] },
-            ],
-        };
-
-        function createTestEvent(): EventRow {
-            return {
-                id: "event-1",
-                eventNumber: 1,
-                timestamp: Date.now(),
-                eventClass: "sql_batch_completed",
-                textData: "SELECT 1",
-                databaseName: "TestDB",
-                spid: 55,
-                duration: 1000,
-                cpu: 10,
-                reads: 100,
-                writes: 5,
-                additionalData: {},
-            };
-        }
-
-        test("should convert event to view row format", () => {
-            const event = createTestEvent();
-            const viewRow = configService.convertEventToViewRow(event, testViewTemplate);
-
-            expect(viewRow.id).to.equal("event-1");
-            expect(viewRow.eventClass).to.equal("sql_batch_completed");
-            expect(viewRow.textData).to.equal("SELECT 1");
-            expect(viewRow.duration).to.equal(1000); // Numbers stay as numbers
+        const createTestEvent = (overrides: Partial<EventRow> = {}): EventRow => ({
+            id: "test-uuid-123",
+            eventNumber: 1,
+            timestamp: new Date(),
+            eventClass: "SQL:BatchCompleted",
+            textData: "SELECT * FROM users",
+            databaseName: "TestDB",
+            spid: 55,
+            duration: 1000,
+            cpu: 10,
+            reads: 100,
+            writes: 5,
+            additionalData: {
+                client_app_name: "TestApp",
+                server_principal_name: "testuser",
+                session_id: "55",
+            },
+            ...overrides,
         });
 
-        test("should handle missing values", () => {
+        test("should convert event to view row with mapped fields", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
             const event = createTestEvent();
-            event.textData = undefined;
-            event.duration = undefined;
+            const viewRow = configService.convertEventToViewRow(event, view!);
 
-            const viewRow = configService.convertEventToViewRow(event, testViewTemplate);
-
-            expect(viewRow.textData).to.be.null;
-            expect(viewRow.duration).to.be.null;
+            expect(viewRow).to.have.property("id", event.id);
+            expect(viewRow).to.have.property("eventNumber", event.eventNumber);
         });
-    });
 
-    suite("getSlickGridColumns", () => {
-        test("should convert view template columns to SlickGrid format", () => {
-            const viewTemplate: ViewTemplate = {
-                id: "Test",
+        test("should include all view columns in the result", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const event = createTestEvent();
+            const viewRow = configService.convertEventToViewRow(event, view!);
+
+            view!.columns.forEach((col) => {
+                expect(viewRow).to.have.property(col.field);
+            });
+        });
+
+        test("should map eventClass field correctly", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
                 name: "Test View",
                 columns: [
                     {
-                        field: "eventClass",
+                        field: "EventClass",
                         header: "Event",
-                        width: 150,
-                        eventsMapped: ["name"],
-                        sortable: true,
-                    },
-                    {
-                        field: "textData",
-                        header: "SQL Text",
-                        width: 400,
-                        eventsMapped: ["batch_text"],
-                        visible: true,
-                    },
-                    {
-                        field: "hidden",
-                        header: "Hidden Column",
-                        width: 100,
-                        eventsMapped: [],
-                        visible: false,
+                        eventsMapped: ["eventClass", "name"],
                     },
                 ],
             };
 
-            const columns = configService.getSlickGridColumns(viewTemplate);
+            const event = createTestEvent({ eventClass: "RPC:Completed" });
+            const viewRow = configService.convertEventToViewRow(event, view);
 
-            // Should filter out hidden columns
-            expect(columns).to.have.length(2);
-
-            expect(columns[0].id).to.equal("eventClass");
-            expect(columns[0].name).to.equal("Event");
-            expect(columns[0].field).to.equal("eventClass");
-            expect(columns[0].width).to.equal(150);
-            expect(columns[0].sortable).to.be.true;
-
-            expect(columns[1].id).to.equal("textData");
-            expect(columns[1].name).to.equal("SQL Text");
-            expect(columns[1].field).to.equal("textData");
-            expect(columns[1].width).to.equal(400);
+            expect(viewRow.EventClass).to.equal("RPC:Completed");
         });
 
-        test("should default sortable to true", () => {
-            const viewTemplate: ViewTemplate = {
-                id: "Test",
+        test("should map additionalData fields correctly", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
                 name: "Test View",
-                columns: [{ field: "test", header: "Test", width: 100, eventsMapped: [] }],
+                columns: [
+                    {
+                        field: "ApplicationName",
+                        header: "Application",
+                        eventsMapped: ["client_app_name"],
+                    },
+                ],
             };
 
-            const columns = configService.getSlickGridColumns(viewTemplate);
-            expect(columns[0].sortable).to.be.true;
+            const event = createTestEvent({
+                additionalData: {
+                    client_app_name: "MyApplication",
+                },
+            });
+            const viewRow = configService.convertEventToViewRow(event, view);
+
+            expect(viewRow.ApplicationName).to.equal("MyApplication");
+        });
+
+        test("should handle missing mapped fields gracefully", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "MissingField",
+                        header: "Missing",
+                        eventsMapped: ["non_existent_field"],
+                    },
+                ],
+            };
+
+            const event = createTestEvent();
+            const viewRow = configService.convertEventToViewRow(event, view);
+
+            expect(viewRow.MissingField).to.be.null;
+        });
+
+        test("should format timestamp correctly", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "StartTime",
+                        header: "Start Time",
+                        eventsMapped: ["timestamp"],
+                    },
+                ],
+            };
+
+            const testTimestamp = new Date("2024-01-15T10:30:00.000Z");
+            const event = createTestEvent({ timestamp: testTimestamp });
+            const viewRow = configService.convertEventToViewRow(event, view);
+
+            // Should be formatted as ISO string without T and Z
+            expect(viewRow.StartTime).to.include("2024-01-15");
+            expect(viewRow.StartTime).to.include("10:30:00");
         });
     });
 
-    suite("singleton", () => {
-        test("should return same instance", () => {
-            const instance1 = getProfilerConfigService();
-            const instance2 = getProfilerConfigService();
+    suite("convertEventsToViewRows", () => {
+        test("should convert multiple events to view rows", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
 
-            expect(instance1).to.equal(instance2);
+            const events: EventRow[] = [
+                {
+                    id: "uuid-1",
+                    eventNumber: 1,
+                    timestamp: new Date(),
+                    eventClass: "Event1",
+                    textData: "SELECT 1",
+                    databaseName: "DB1",
+                    spid: 50,
+                    duration: 100,
+                    cpu: 5,
+                    reads: 10,
+                    writes: 1,
+                    additionalData: {},
+                },
+                {
+                    id: "uuid-2",
+                    eventNumber: 2,
+                    timestamp: new Date(),
+                    eventClass: "Event2",
+                    textData: "SELECT 2",
+                    databaseName: "DB2",
+                    spid: 51,
+                    duration: 200,
+                    cpu: 10,
+                    reads: 20,
+                    writes: 2,
+                    additionalData: {},
+                },
+            ];
+
+            const viewRows = configService.convertEventsToViewRows(events, view!);
+
+            expect(viewRows).to.be.an("array");
+            expect(viewRows).to.have.length(2);
+            expect(viewRows[0].id).to.equal("uuid-1");
+            expect(viewRows[1].id).to.equal("uuid-2");
         });
 
-        test("should return ProfilerConfigService instance", () => {
-            const instance = getProfilerConfigService();
-            expect(instance).to.be.instanceOf(ProfilerConfigService);
+        test("should return empty array for empty events", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const viewRows = configService.convertEventsToViewRows([], view!);
+
+            expect(viewRows).to.be.an("array");
+            expect(viewRows).to.have.length(0);
+        });
+    });
+
+    suite("getSlickGridColumns", () => {
+        test("should return SlickGrid column definitions from a view", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const columns = configService.getSlickGridColumns(view!);
+
+            expect(columns).to.be.an("array");
+            expect(columns.length).to.be.greaterThan(0);
+        });
+
+        test("should include required column properties", () => {
+            const view = configService.getView("Standard View");
+            expect(view).to.exist;
+
+            const columns = configService.getSlickGridColumns(view!);
+
+            columns.forEach((col) => {
+                expect(col).to.have.property("id");
+                expect(col).to.have.property("name");
+                expect(col).to.have.property("field");
+            });
+        });
+
+        test("should set default sortable and resizable values", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "TestField",
+                        header: "Test",
+                        eventsMapped: ["test"],
+                    },
+                ],
+            };
+
+            const columns = configService.getSlickGridColumns(view);
+
+            expect(columns[0].sortable).to.equal(true);
+            expect(columns[0].resizable).to.equal(true);
+            expect(columns[0].minWidth).to.equal(50);
+        });
+
+        test("should filter out non-visible columns", () => {
+            const view: ViewTemplate = {
+                id: "TestView",
+                name: "Test View",
+                columns: [
+                    {
+                        field: "VisibleField",
+                        header: "Visible",
+                        visible: true,
+                        eventsMapped: ["visible"],
+                    },
+                    {
+                        field: "HiddenField",
+                        header: "Hidden",
+                        visible: false,
+                        eventsMapped: ["hidden"],
+                    },
+                ],
+            };
+
+            const columns = configService.getSlickGridColumns(view);
+
+            expect(columns).to.have.length(1);
+            expect(columns[0].field).to.equal("VisibleField");
+        });
+    });
+
+    suite("generateCreateStatement", () => {
+        test("should replace {sessionName} placeholder in create statement", () => {
+            const template = configService.getTemplate("Standard_OnPrem");
+            expect(template).to.exist;
+
+            const statement = configService.generateCreateStatement(template!, "MyTestSession");
+
+            expect(statement).to.include("MyTestSession");
+            expect(statement).to.not.include("{sessionName}");
+        });
+
+        test("should replace multiple occurrences of {sessionName}", () => {
+            const template = {
+                id: "test",
+                name: "Test",
+                engineType: EngineType.Standalone,
+                defaultView: "Standard View",
+                createStatement:
+                    "CREATE EVENT SESSION [{sessionName}] ON SERVER; ALTER EVENT SESSION [{sessionName}] ON SERVER STATE = START;",
+                eventsCaptured: [],
+            };
+
+            const statement = configService.generateCreateStatement(template, "TestSession");
+
+            expect(statement).to.equal(
+                "CREATE EVENT SESSION [TestSession] ON SERVER; ALTER EVENT SESSION [TestSession] ON SERVER STATE = START;",
+            );
         });
     });
 });

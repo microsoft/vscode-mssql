@@ -36,6 +36,7 @@ export interface ChangelogWalkthrough {
 
 export interface ChangelogChangeItem {
     title: string;
+    icon?: string;
     description: string;
     codeSnippets?: string[];
     actions?: ChangelogAction[];
