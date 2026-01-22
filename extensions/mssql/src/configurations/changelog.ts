@@ -36,24 +36,6 @@ export const changelogConfig: ChangelogWebviewState = {
                 ],
             },
             {
-                title: "Backup Database",
-                description:
-                    "Back up databases using a built-in, guided experience in the MSSQL extension. Quickly protect data databases as part of your normal workflow.",
-                codeSnippets: ["@mssql"],
-                actions: [
-                    {
-                        label: locConstants.Changelog.watchDemo,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-backup-restore-demo",
-                    },
-                    {
-                        label: locConstants.Changelog.learnMore,
-                        type: "link",
-                        value: "https://aka.ms/vscode-mssql-january2026",
-                    },
-                ],
-            },
-            {
                 title: "Edit Data (Preview)",
                 description:
                     "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
