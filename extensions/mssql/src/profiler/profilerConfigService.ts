@@ -136,11 +136,11 @@ export class ProfilerConfigService {
      * Get the value for a column from an event row.
      * Iterates through eventsMapped array and returns the first matching value.
      */
-    private getColumnValue(event: EventRow, column: ViewColumn): string | number | null {
+    private getColumnValue(event: EventRow, column: ViewColumn): string | number | undefined {
         // Try each mapped event field until we find a value
         for (const mappedField of column.eventsMapped) {
             const value = this.getFieldValue(event, mappedField);
-            if (value !== null && value !== undefined && value !== "") {
+            if (value !== undefined && value !== "") {
                 return value;
             }
         }
@@ -158,12 +158,12 @@ export class ProfilerConfigService {
     /**
      * Get a field value from an EventRow, checking both direct properties and additionalData
      */
-    private getFieldValue(event: EventRow, field: string): string | number | null {
+    private getFieldValue(event: EventRow, field: string): string | number | undefined {
         // Check if it's a direct property of EventRow
         if (field in event && field !== "additionalData") {
             const value = (event as unknown as Record<string, unknown>)[field];
-            if (value === undefined || value === null) {
-                return null;
+            if (value === undefined) {
+                return undefined;
             }
             // Format specific fields
             if (field === "timestamp") {
@@ -177,10 +177,10 @@ export class ProfilerConfigService {
 
         // Check additionalData
         if (event.additionalData && field in event.additionalData) {
-            return event.additionalData[field] ?? null;
+            return event.additionalData[field];
         }
 
-        return null;
+        return undefined;
     }
 
     /**

@@ -19,6 +19,8 @@ import {
     Next24Regular,
     EraserRegular,
     Add24Regular,
+    FilterDismiss24Regular,
+    Filter24Regular,
     ArrowExportRegular,
 } from "@fluentui/react-icons";
 import {
@@ -45,6 +47,8 @@ export interface ProfilerToolbarProps {
     autoScroll: boolean;
     /** Whether a session is being created */
     isCreatingSession?: boolean;
+    /** Whether a filter is currently active */
+    isFilterActive: boolean;
     /** Total event count (for export button state) */
     totalEventCount?: number;
     /** Callback when new session is requested */
@@ -63,6 +67,10 @@ export interface ProfilerToolbarProps {
     onViewChange: (viewId: string) => void;
     /** Callback when auto-scroll is toggled */
     onAutoScrollToggle: () => void;
+    /** Callback when filter button is clicked to open filter dialog */
+    onFilter: () => void;
+    /** Callback when clear filter is clicked */
+    onClearFilter: () => void;
     /** Callback when export to CSV is clicked */
     onExportToCsv: () => void;
 }
@@ -76,6 +84,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     selectedSessionId,
     autoScroll,
     isCreatingSession,
+    isFilterActive,
     totalEventCount,
     onNewSession,
     onSelectSession,
@@ -85,6 +94,8 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
+    onFilter,
+    onClearFilter,
     onExportToCsv,
 }) => {
     const isRunning = sessionState === SessionState.Running;
@@ -207,6 +218,33 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         icon={<EraserRegular />}
                         onClick={onClear}>
                         {loc.clear}
+                    </ToolbarButton>
+                </Tooltip>
+
+                <ToolbarDivider />
+
+                {/* Filter button - opens filter dialog */}
+                <Tooltip content={loc.filterTooltip} relationship="label">
+                    <ToolbarButton
+                        aria-label={loc.filter}
+                        icon={<Filter24Regular />}
+                        onClick={onFilter}>
+                        {loc.filter}
+                    </ToolbarButton>
+                </Tooltip>
+
+                {/* Clear Filter button */}
+                <Tooltip
+                    content={
+                        isFilterActive ? loc.clearFilterTooltip : loc.clearFilterDisabledTooltip
+                    }
+                    relationship="label">
+                    <ToolbarButton
+                        aria-label={loc.clearFilter}
+                        icon={<FilterDismiss24Regular />}
+                        onClick={onClearFilter}
+                        disabled={!isFilterActive}>
+                        {loc.clearFilter}
                     </ToolbarButton>
                 </Tooltip>
 

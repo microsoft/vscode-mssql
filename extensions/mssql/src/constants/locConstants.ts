@@ -2576,6 +2576,12 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0}/{1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count, {1} is the total count"],
+        });
 
     // Details panel
     public static failedToOpenInEditor = (error: string) =>

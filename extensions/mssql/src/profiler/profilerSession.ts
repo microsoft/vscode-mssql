@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { RingBuffer } from "./ringBuffer";
-import { EventRow, Filter, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
+import { EventRow, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilingSessionType } from "../models/contracts/profiler";
 
@@ -75,9 +75,6 @@ export class ProfilerSession {
     /** Event buffer */
     public readonly events: RingBuffer<EventRow>;
 
-    /** Active filters applied to the session */
-    public filters: Filter[];
-
     /** View configuration for displaying events */
     public viewConfig: ViewTemplate;
 
@@ -138,9 +135,6 @@ export class ProfilerSession {
         // Initialize event buffer with indexed fields
         const capacity = options.bufferCapacity ?? DEFAULT_BUFFER_CAPACITY;
         this.events = new RingBuffer<EventRow>(capacity, INDEXED_FIELDS);
-
-        // Initialize filters
-        this.filters = [];
 
         // Initialize view config
         this.viewConfig = options.viewConfig ?? this.getDefaultViewConfig();
@@ -502,29 +496,6 @@ export class ProfilerSession {
     }
 
     /**
-     * Sets the active filters for querying events.
-     * @param filters - The filters to apply
-     */
-    setFilters(filters: Filter[]): void {
-        this.filters = filters;
-    }
-
-    /**
-     * Adds a filter to the active filters.
-     * @param filter - The filter to add
-     */
-    addFilter(filter: Filter): void {
-        this.filters.push(filter);
-    }
-
-    /**
-     * Clears all active filters.
-     */
-    clearFilters(): void {
-        this.filters = [];
-    }
-
-    /**
      * Disposes of the session and cleans up resources.
      * If the session is running, stops it first to clean up server-side XEvent session.
      */
@@ -662,7 +633,6 @@ export class ProfilerSession {
             templateName: this.templateName,
             state: this._state,
             eventCount: this.events.size,
-            filters: this.filters,
             viewConfig: this.viewConfig,
             createdAt: this.createdAt,
             lastEventTimestamp: this.lastEventTimestamp,

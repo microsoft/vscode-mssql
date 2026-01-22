@@ -7,6 +7,21 @@
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++77d57e39b407cbca2770fb31b55c148c757f4f84d1e2ce824c7d5cf9412a6298">
+      <source xml:lang="en">&gt;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0dd9aaac823c795196de2c13a409f5adf2652723f32be4c32c2831fcf47fdf51">
+      <source xml:lang="en">&gt;=</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3885ff5ae3386f58e4f1f1363d4863d8c9a5f280fe15e346ad7c78a09529637a">
+      <source xml:lang="en">&lt;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5db520ece127b89d67ed03b42b26dfc85e0e9e55c8e16e33e58bf2fc7a484b23">
+      <source xml:lang="en">&lt;&gt;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53047fb5d5fdae95544c86b244ac7919f3bcb3fed509de00e7fd91c093698974">
+      <source xml:lang="en">&lt;=</source>
+    </trans-unit>
     <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
       <source xml:lang="en">&lt;Default&gt;</source>
     </trans-unit>
@@ -31,6 +46,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++380918b946a526640a40df5dced6516794f3d97bbd9e6bb553d037c4439f31c3">
+      <source xml:lang="en">=</source>
     </trans-unit>
     <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
       <source xml:lang="en">A SQL editor must have focus before executing this command</source>
@@ -90,6 +108,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
       <source xml:lang="en">Add Account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++64a5d3d445f986159dfc1cad55ae05438735ca751184d2a3899581b268a2dd0c">
+      <source xml:lang="en">Add Clause</source>
     </trans-unit>
     <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
       <source xml:lang="en">Add Column</source>
@@ -639,6 +660,9 @@
     <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
       <source xml:lang="en">Clear Data</source>
     </trans-unit>
+    <trans-unit id="++CODE++910bda6aed78b23e29c53e12a4f1da7d4cad3793e138ab7839990e2ce507b68e">
+      <source xml:lang="en">Clear Filter</source>
+    </trans-unit>
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
@@ -653,6 +677,9 @@
     </trans-unit>
     <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
       <source xml:lang="en">Clear all filters</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e05d0864b79bf5feb3776495d63cfde72a56aac038a6557620b5107b06fa701">
+      <source xml:lang="en">Clear all filters and show all events</source>
     </trans-unit>
     <trans-unit id="++CODE++2c41036cefbc864e021ed1f12d45fe960a9ac85b8586d9338a1e3f9a2dcd65a1">
       <source xml:lang="en">Clear all grouping</source>
@@ -1992,11 +2019,17 @@
     <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
       <source xml:lang="en">Filter Azure subscriptions</source>
     </trans-unit>
+    <trans-unit id="++CODE++22fe2ae9a68514df7a617599647fa0728a361acb6888afa0a187dd208391ecca">
+      <source xml:lang="en">Filter Events</source>
+    </trans-unit>
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
     </trans-unit>
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8303b392b5ebd96463b39a2d278551d266b1ee0a5a4a707daa49a142fdfedcc5">
+      <source xml:lang="en">Filter active</source>
     </trans-unit>
     <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
       <source xml:lang="en">Filter by keyword</source>
@@ -2004,11 +2037,17 @@
     <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
       <source xml:lang="en">Filter by type</source>
     </trans-unit>
+    <trans-unit id="++CODE++d82276b4dc4d7c1934c610624dcd96caaaf8d372027329bba940c1bcdd633a4b">
+      <source xml:lang="en">Filter events by column values</source>
+    </trans-unit>
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
     </trans-unit>
     <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
       <source xml:lang="en">Filter shortcuts</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
+      <source xml:lang="en">Filter...</source>
     </trans-unit>
     <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
       <source xml:lang="en">Find</source>
@@ -2367,6 +2406,12 @@
     </trans-unit>
     <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
       <source xml:lang="en">Is Identity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d477e89f1ae8255f0a2c539022a215feccd9d6569476d9b2c2287ef9cfc29554">
+      <source xml:lang="en">Is Not Null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++adeeb108b9ef8dd2f4e3aa374b581719b1f82cae3e2223497b4cd350ca1aa167">
+      <source xml:lang="en">Is Null</source>
     </trans-unit>
     <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
       <source xml:lang="en">Is Persisted</source>
@@ -2892,6 +2937,12 @@
     </trans-unit>
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e180bc8df0c35b5cc2ee9b7e4c128f5e0cc73343d325507cf7c49ab685c03c4d">
+      <source xml:lang="en">No filter clauses defined. Add a clause to filter events.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
+      <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -4043,6 +4094,10 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++f2dabec2cf9b7f24f2e1ea799fac8dda0eda5f1ecb9109abc5211c31f5dc5bbb">
+      <source xml:lang="en">Showing {0} of {1} events</source>
+      <note>{0} is filtered count, {1} is total count</note>
+    </trans-unit>
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
     </trans-unit>
@@ -4917,6 +4972,10 @@
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
 {1} is the message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb">
+      <source xml:lang="en">{0}/{1} events</source>
+      <note>{0} is the filtered count, {1} is the total count</note>
     </trans-unit>
     <trans-unit id="++CODE++2b85e133b4abad5a9f5b85b3dd903a3f1f84db64680beb66977f6e44743f2434">
       <source xml:lang="en">{0}: {1}</source>

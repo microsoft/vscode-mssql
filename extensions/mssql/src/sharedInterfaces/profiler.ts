@@ -5,18 +5,24 @@
 
 import { NotificationType } from "vscode-jsonrpc";
 import { ProfilerEvent } from "../models/contracts/profiler";
-import { SessionState } from "../profiler/profilerTypes";
+import { SessionState, FilterClause, FilterState, FilterOperator } from "../profiler/profilerTypes";
 
 // Re-export ProfilerEvent for convenience
 export type { ProfilerEvent };
 
-// Re-export SessionState as the unified session state enum
-export { SessionState };
+// Re-export types for convenience
+export { SessionState, FilterOperator };
+export type { FilterClause, FilterState };
 
 /**
  * Maximum length for session names
  */
 export const SESSION_NAME_MAX_LENGTH = 50;
+
+/**
+ * Data type for a column - determines filtering behavior
+ */
+export type ColumnType = "string" | "number" | "datetime";
 
 /**
  * Column definition for the profiler grid (shared between extension and webview)
@@ -26,6 +32,8 @@ export interface ProfilerColumnDef {
     field: string;
     /** Display header */
     header: string;
+    /** Data type for the column (defaults to string) */
+    type?: ColumnType;
     /** Column width in pixels */
     width?: number;
     /** Whether the column is sortable */
@@ -80,12 +88,16 @@ export interface ProfilerGridRow {
 export interface ProfilerWebviewState {
     /** Total number of events in the buffer (for display purposes) */
     totalRowCount: number;
+    /** Number of events matching the current filter (equals totalRowCount when no filter) */
+    filteredRowCount: number;
     /** Generation counter incremented on each clear to synchronize state */
     clearGeneration: number;
     /** Current session state */
     sessionState: SessionState;
     /** Whether auto-scroll is enabled */
     autoScroll: boolean;
+    /** Current filter state (per session) */
+    filterState: FilterState;
     /** Session name if connected */
     sessionName?: string;
     /** Current template ID */
@@ -148,6 +160,12 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
+    /** Apply filter clauses (client-side only) */
+    applyFilter: {
+        clauses: FilterClause[];
+    };
+    /** Clear all filter clauses */
+    clearFilter: Record<string, never>;
     /** Notify extension that a row was selected in the grid */
     selectRow: {
         rowId: string;
@@ -252,6 +270,25 @@ export namespace ProfilerNotifications {
 
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
+
+    /** Notification sent when filter state changes (for UI updates) */
+    export const FilterStateChanged = new NotificationType<FilterStateChangedParams>(
+        "filterStateChanged",
+    );
+}
+
+/**
+ * Payload for filter state changed notification
+ */
+export interface FilterStateChangedParams {
+    /** Whether filtering is currently active */
+    isFilterActive: boolean;
+    /** Number of filter clauses */
+    clauseCount: number;
+    /** Total count of events in buffer (unfiltered) */
+    totalCount: number;
+    /** Count of events matching the filter */
+    filteredCount: number;
 
     /** Notification sent when export result is available */
     export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
