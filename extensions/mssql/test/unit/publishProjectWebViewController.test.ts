@@ -72,7 +72,12 @@ suite("PublishProjectWebViewController Tests", () => {
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
             activeConnections: {},
-        } as sinon.SinonStubbedInstance<ConnectionManager>;
+            getUriForConnection: sandbox.stub().returns(""),
+            isConnected: sandbox.stub().returns(false),
+            connectionStore: {
+                readAllConnections: sandbox.stub().resolves([]),
+            },
+        } as unknown as sinon.SinonStubbedInstance<ConnectionManager>;
 
         // Create mock for interface (IDacFxService) - only stub methods we actually use in tests
         mockDacFxService = {
@@ -627,6 +632,62 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Verify database name is updated
         expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
+    });
+
+    test("connectToServer reducer loads saved connections and populates database list on connect", async () => {
+        // Setup mock saved connections
+        const mockSavedConnections = [
+            {
+                id: "profile-1",
+                server: "testserver.database.windows.net",
+                database: "master",
+                user: "testuser",
+                profileName: "Test Server",
+                authenticationType: "SqlLogin",
+            },
+        ];
+
+        const mockDatabases = ["master", "tempdb", "MyDatabase"];
+
+        (mockConnectionManager.connectionStore.readAllConnections as sinon.SinonStub).resolves(
+            mockSavedConnections,
+        );
+        (mockConnectionManager.connect as sinon.SinonStub).resolves(true);
+        (mockConnectionManager.getUriForConnection as sinon.SinonStub).returns(
+            "mssql://testserver",
+        );
+        (mockConnectionManager.isConnected as sinon.SinonStub).returns(false);
+        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves(mockDatabases);
+        (mockConnectionManager.getConnectionString as sinon.SinonStub).resolves(
+            "Server=testserver;Database=master",
+        );
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Verify server dropdown is populated from saved connections
+        expect(controller.state.availableConnections).to.have.length(1);
+        const serverComponent = controller.state.formComponents.serverName;
+        expect(serverComponent.options).to.have.length(1);
+        expect(serverComponent.options[0].displayName).to.equal("Test Server");
+
+        // Get and call the connectToServer reducer
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const connectToServer = reducerHandlers.get("connectToServer");
+        expect(connectToServer, "connectToServer reducer should be registered").to.exist;
+
+        await connectToServer(controller.state, { profileId: "profile-1" });
+
+        // Verify database dropdown is populated after connection
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.length(3);
+        expect(databaseComponent.options.map((o: { value: string }) => o.value)).to.include(
+            "MyDatabase",
+        );
+
+        // Verify state is updated correctly
+        expect(controller.state.selectedProfileId).to.equal("profile-1");
+        expect(controller.state.isConnecting).to.be.false;
     });
     //#endregion
 

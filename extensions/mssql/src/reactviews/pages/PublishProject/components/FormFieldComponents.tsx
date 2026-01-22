@@ -170,6 +170,7 @@ export function renderDropdown(
 }
 
 // Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+// Intended for dropdown-like components where user can type to filter or enter custom values
 export function renderCombobox(
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
