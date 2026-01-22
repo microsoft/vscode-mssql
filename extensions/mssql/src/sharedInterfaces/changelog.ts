@@ -7,7 +7,8 @@ import { RequestType } from "vscode-jsonrpc/browser";
 import { Icons } from "./icons";
 
 export interface ChangelogWebviewState {
-    primaryContent: ContentEntry[];
+    mainContent: ContentGroup;
+    secondaryContent: ContentGroup;
     sidebarContent: ContentEntry[];
     version: string;
 }
@@ -20,6 +21,12 @@ export interface ChangelogHero {
     badgeText?: string;
     cta?: ChangelogAction;
     dismissCommandId?: string;
+}
+
+export interface ContentGroup {
+    title: string;
+    description?: string;
+    entries: ContentEntry[];
 }
 
 export interface ContentEntry {

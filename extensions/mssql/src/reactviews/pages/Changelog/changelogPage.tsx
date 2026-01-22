@@ -13,7 +13,7 @@ import {
     shorthands,
 } from "@fluentui/react-components";
 import { ArrowRight12Regular, Dismiss12Filled } from "@fluentui/react-icons";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import {
     ChangelogCommandRequest,
@@ -24,7 +24,7 @@ import {
 } from "../../../sharedInterfaces/changelog";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useChangelogSelector } from "./changelogSelector";
-import { locConstants, LocConstants } from "../../common/locConstants";
+import { locConstants } from "../../common/locConstants";
 import { getActionIcon } from "../../common/icons/iconUtils";
 
 const useStyles = makeStyles({
@@ -205,12 +205,11 @@ export const ChangelogPage = () => {
     const classes = useStyles();
     const { extensionRpc } = useVscodeWebview2();
     const state = useChangelogSelector((s) => s ?? {});
-    const primaryContent = state?.primaryContent ?? [];
+    const mainContent = state?.mainContent ?? {};
+    const secondaryContent = state?.secondaryContent ?? {};
     const sidebarContent = state?.sidebarContent ?? [];
 
     const [showBanner, setShowBanner] = useState(true);
-
-    const sectionTitles = useMemo(() => LocConstants.getInstance().changelog, []);
 
     const openLink = async (url: string) => {
         await extensionRpc.sendRequest(ChangelogLinkRequest.type, {
@@ -339,29 +338,27 @@ export const ChangelogPage = () => {
                         </div>
                     </div>
                 )}
-                <Title3 as="h2">{sectionTitles.highlightsSectionTitle}</Title3>
+                <Title3 as="h2">{mainContent.title}</Title3>
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
-                        {primaryContent.map((change, index) => {
-                            const changeIcon = change.icon
-                                ? changelogIcons[change.icon]
-                                : undefined;
+                        {mainContent.entries.map((group, index) => {
+                            const changeIcon = group.icon ? changelogIcons[group.icon] : undefined;
 
                             return (
                                 <Card
-                                    key={`${change.title}-${index}`}
+                                    key={`${group.title}-${index}`}
                                     className={classes.changeCard}>
-                                    <h3 className={classes.changeTitle}>{change.title}</h3>
+                                    <h3 className={classes.changeTitle}>{group.title}</h3>
                                     <Text className={classes.changeDescription}>
                                         {renderDescription(
                                             index,
-                                            change.description,
-                                            change.codeSnippets,
+                                            group.description,
+                                            group.codeSnippets,
                                         )}
                                     </Text>
-                                    {change.actions && change.actions.length > 0 && (
+                                    {group.actions && group.actions.length > 0 && (
                                         <div className={classes.changeActions}>
-                                            {change.actions.map((action, idx) => {
+                                            {group.actions.map((action, idx) => {
                                                 if (action.type === "link") {
                                                     return (
                                                         <Link
@@ -438,6 +435,72 @@ export const ChangelogPage = () => {
                         ))}
                     </div>
                 </div>
+
+                <Title3 as="h2">{secondaryContent.title}</Title3>
+                <div className={classes.mainGrid}>
+                    <div className={classes.changesColumn}>
+                        {secondaryContent.entries.map((group, index) => {
+                            const changeIcon = group.icon ? changelogIcons[group.icon] : undefined;
+
+                            return (
+                                <Card
+                                    key={`${group.title}-${index}`}
+                                    className={classes.changeCard}>
+                                    <h3 className={classes.changeTitle}>{group.title}</h3>
+                                    <Text className={classes.changeDescription}>
+                                        {renderDescription(
+                                            index,
+                                            group.description,
+                                            group.codeSnippets,
+                                        )}
+                                    </Text>
+                                    {group.actions && group.actions.length > 0 && (
+                                        <div className={classes.changeActions}>
+                                            {group.actions.map((action, idx) => {
+                                                if (action.type === "link") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() => openLink(action.value)}>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                } else if (action.type === "command") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() =>
+                                                                handleAction({
+                                                                    commandId: action.value,
+                                                                    args: action.args,
+                                                                })
+                                                            }>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                }
+                                            })}
+                                        </div>
+                                    )}
+                                    {changeIcon && (
+                                        <div className={classes.changeIconContainer}>
+                                            <img
+                                                className={classes.changeIcon}
+                                                src={changeIcon}
+                                                alt=""
+                                            />
+                                        </div>
+                                    )}
+                                </Card>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 <div className={classes.footer}>
                     <Text>{locConstants.changelog.footerText(state.version)}</Text>
                     <div
