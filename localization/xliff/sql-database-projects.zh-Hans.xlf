@@ -1655,7 +1655,7 @@
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publishDialog">
         <source xml:lang="en">Publish (Preview)</source>
-        <target state="new">Publish (Preview)</target>
+        <target state="translated">发布(预览版)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>

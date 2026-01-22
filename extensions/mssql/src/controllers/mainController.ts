@@ -1778,13 +1778,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands (only register if experimental features are enabled)
-        if (this.isExperimentalEnabled) {
-            registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-            registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-            registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
-        }
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(
