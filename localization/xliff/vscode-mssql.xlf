@@ -97,9 +97,6 @@
     <trans-unit id="++CODE++d72d67f0f765e5584e6db8bd1e591a84914d23ff29e9f5b20d8b39125091fca0">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
-    <trans-unit id="++CODE++1f9d10ec776602c58fc36e2cb93841603b7a57b3cd248a0e215b91edfa01bc47">
-      <source xml:lang="en">Add Connection...</source>
-    </trans-unit>
     <trans-unit id="++CODE++079cd7244ce7f3c0fe474c025b5ff8e58c3678fba1ed67f0120416ac0071df85">
       <source xml:lang="en">Add Firewall Rule</source>
     </trans-unit>

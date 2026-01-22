@@ -735,9 +735,6 @@
     "Copy command to clipboard": "Copy command to clipboard",
     "Show unmasked command (reveals sensitive information)": "Show unmasked command (reveals sensitive information)",
     "Show masked command (hides sensitive information)": "Show masked command (hides sensitive information)",
-    "Select a server": "Select a server",
-    "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
-    "Add Connection...": "Add Connection...",
     "Loading databases...": "Loading databases...",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
@@ -830,6 +827,8 @@
     "Loading...": "Loading...",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
+    "Select a server": "Select a server",
+    "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
     "Connecting to server...": "Connecting to server...",
     "Failed to connect to server": "Failed to connect to server",
     "Publish DACPAC": "Publish DACPAC",
