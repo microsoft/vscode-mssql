@@ -557,12 +557,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     // It's a connectionUri - use the existing active connection
                     const activeConnection = this._connectionManager.activeConnections[profileId];
                     if (activeConnection) {
-                        const databases = await this._connectionManager.listDatabases(profileId);
-                        this._connectionString = await this._connectionManager.getConnectionString(
-                            profileId,
-                            true,
-                            true,
-                        );
+                        // Try to get databases, but don't fail the connection if this errors
+                        let databases: string[] = [];
+                        try {
+                            databases = await this._connectionManager.listDatabases(profileId);
+                            this._connectionString =
+                                await this._connectionManager.getConnectionString(
+                                    profileId,
+                                    true,
+                                    true,
+                                );
+                        } catch (dbError) {
+                            this.logger.warn(`Failed to list databases: ${dbError}`);
+                        }
 
                         const credentials = activeConnection.credentials as IConnectionProfile;
                         return {
@@ -584,13 +591,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // Check if already connected
             let ownerUri = this._connectionManager.getUriForConnection(profile);
             if (ownerUri && this._connectionManager.isConnected(ownerUri)) {
-                // Connection is active - get databases
-                const databases = await this._connectionManager.listDatabases(ownerUri);
-                this._connectionString = await this._connectionManager.getConnectionString(
-                    ownerUri,
-                    true,
-                    true,
-                );
+                // Connection is active - try to get databases
+                let databases: string[] = [];
+                try {
+                    databases = await this._connectionManager.listDatabases(ownerUri);
+                    this._connectionString = await this._connectionManager.getConnectionString(
+                        ownerUri,
+                        true,
+                        true,
+                    );
+                } catch (dbError) {
+                    this.logger.warn(`Failed to list databases: ${dbError}`);
+                }
 
                 return {
                     ownerUri,
@@ -605,12 +617,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result) {
                 ownerUri = this._connectionManager.getUriForConnection(profile);
-                const databases = await this._connectionManager.listDatabases(ownerUri);
-                this._connectionString = await this._connectionManager.getConnectionString(
-                    ownerUri,
-                    true,
-                    true,
-                );
+
+                // Try to get databases, but don't fail the connection if this errors
+                let databases: string[] = [];
+                try {
+                    databases = await this._connectionManager.listDatabases(ownerUri);
+                    this._connectionString = await this._connectionManager.getConnectionString(
+                        ownerUri,
+                        true,
+                        true,
+                    );
+                } catch (dbError) {
+                    this.logger.warn(`Failed to list databases: ${dbError}`);
+                }
 
                 return {
                     ownerUri,
@@ -982,6 +1001,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                     this.state.availableConnections =
                                         await this.listSavedConnections();
                                     this.updateServerDropdownOptions();
+
+                                    // Find and select the matching connection profile
+                                    const serverName = this.state.formState.serverName;
+                                    const matchingProfile = this.state.availableConnections.find(
+                                        (conn) => conn.server === serverName,
+                                    );
+                                    if (matchingProfile?.id) {
+                                        this.state.selectedProfileId = matchingProfile.id;
+                                    }
                                 }
                                 this.updateState();
                             },

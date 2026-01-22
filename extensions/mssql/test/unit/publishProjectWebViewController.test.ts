@@ -688,6 +688,47 @@ suite("PublishProjectWebViewController Tests", () => {
         // Verify state is updated correctly
         expect(controller.state.selectedProfileId).to.equal("profile-1");
         expect(controller.state.isConnecting).to.be.false;
+        expect(controller.state.isLoadingDatabases).to.be.false;
+    });
+
+    test("connectToServer reducer handles connection failure and displays error", async () => {
+        const mockSavedConnections = [
+            {
+                id: "profile-1",
+                server: "badserver.database.windows.net",
+                database: "master",
+                user: "testuser",
+                profileName: "Bad Server",
+                authenticationType: "SqlLogin",
+            },
+        ];
+
+        (mockConnectionManager.connectionStore.readAllConnections as sinon.SinonStub).resolves(
+            mockSavedConnections,
+        );
+        (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+        (mockConnectionManager.getUriForConnection as sinon.SinonStub).returns("");
+        (mockConnectionManager.isConnected as sinon.SinonStub).returns(false);
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const connectToServer = reducerHandlers.get("connectToServer");
+
+        await connectToServer(controller.state, { profileId: "profile-1" });
+
+        // Verify error message is displayed
+        expect(controller.state.formMessage).to.exist;
+        expect(controller.state.formMessage?.intent).to.equal("error");
+
+        // Verify database dropdown is cleared on error
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.length(0);
+
+        // Verify loading states are properly reset
+        expect(controller.state.isConnecting).to.be.false;
+        expect(controller.state.isLoadingDatabases).to.be.false;
     });
     //#endregion
 
