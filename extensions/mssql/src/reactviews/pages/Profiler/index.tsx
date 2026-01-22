@@ -7,12 +7,12 @@ import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { ProfilerStateProvider } from "./profilerStateProvider";
-import { ProfilerPage } from "./profilerPage";
+import { Profiler } from "./profiler";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider2>
         <ProfilerStateProvider>
-            <ProfilerPage />
+            <Profiler />
         </ProfilerStateProvider>
     </VscodeWebviewProvider2>,
 );

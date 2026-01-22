@@ -566,4 +566,212 @@ suite("RingBuffer Tests", () => {
             expect(buffer.head).to.equal(1);
         });
     });
+
+    suite("getAt", () => {
+        test("should return row at valid index", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+            buffer.add(createTestRow("row3", 3, 300));
+
+            expect(buffer.getAt(0)?.name).to.equal("row1");
+            expect(buffer.getAt(1)?.name).to.equal("row2");
+            expect(buffer.getAt(2)?.name).to.equal("row3");
+        });
+
+        test("should return undefined for negative index", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+
+            expect(buffer.getAt(-1)).to.be.undefined;
+        });
+
+        test("should return undefined for index out of bounds", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+
+            expect(buffer.getAt(5)).to.be.undefined;
+            expect(buffer.getAt(100)).to.be.undefined;
+        });
+
+        test("should return undefined for index equal to size", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+
+            expect(buffer.getAt(2)).to.be.undefined;
+        });
+
+        test("should work correctly with wrapped buffer", () => {
+            const buffer = new RingBuffer<TestRow>(3);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+            buffer.add(createTestRow("row3", 3, 300));
+            buffer.add(createTestRow("row4", 4, 400)); // Overwrites row1
+
+            expect(buffer.getAt(0)?.name).to.equal("row2");
+            expect(buffer.getAt(1)?.name).to.equal("row3");
+            expect(buffer.getAt(2)?.name).to.equal("row4");
+        });
+    });
+
+    suite("getRange", () => {
+        test("should return rows within specified range", () => {
+            const buffer = new RingBuffer<TestRow>(10);
+            for (let i = 1; i <= 5; i++) {
+                buffer.add(createTestRow(`row${i}`, i, i * 100));
+            }
+
+            const range = buffer.getRange(1, 3);
+            expect(range).to.have.length(3);
+            expect(range[0].name).to.equal("row2");
+            expect(range[1].name).to.equal("row3");
+            expect(range[2].name).to.equal("row4");
+        });
+
+        test("should return empty array for negative startIndex", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+
+            const range = buffer.getRange(-1, 5);
+            expect(range).to.deep.equal([]);
+        });
+
+        test("should return empty array for startIndex >= size", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+
+            expect(buffer.getRange(2, 5)).to.deep.equal([]);
+            expect(buffer.getRange(10, 5)).to.deep.equal([]);
+        });
+
+        test("should return remaining rows when count exceeds available", () => {
+            const buffer = new RingBuffer<TestRow>(10);
+            for (let i = 1; i <= 5; i++) {
+                buffer.add(createTestRow(`row${i}`, i, i * 100));
+            }
+
+            const range = buffer.getRange(3, 100);
+            expect(range).to.have.length(2);
+            expect(range[0].name).to.equal("row4");
+            expect(range[1].name).to.equal("row5");
+        });
+
+        test("should work correctly with wrapped buffer", () => {
+            const buffer = new RingBuffer<TestRow>(3);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+            buffer.add(createTestRow("row3", 3, 300));
+            buffer.add(createTestRow("row4", 4, 400));
+            buffer.add(createTestRow("row5", 5, 500));
+
+            // Buffer now contains: row3, row4, row5
+            const range = buffer.getRange(0, 3);
+            expect(range).to.have.length(3);
+            expect(range[0].name).to.equal("row3");
+            expect(range[1].name).to.equal("row4");
+            expect(range[2].name).to.equal("row5");
+        });
+    });
+
+    suite("capacity property", () => {
+        test("should return the buffer capacity", () => {
+            const buffer = new RingBuffer<TestRow>(100);
+            expect(buffer.capacity).to.equal(100);
+        });
+    });
+
+    suite("size property", () => {
+        test("should return current number of elements", () => {
+            const buffer = new RingBuffer<TestRow>(10);
+            expect(buffer.size).to.equal(0);
+
+            buffer.add(createTestRow("row1", 1, 100));
+            expect(buffer.size).to.equal(1);
+
+            buffer.add(createTestRow("row2", 2, 200));
+            expect(buffer.size).to.equal(2);
+        });
+
+        test("should not exceed capacity", () => {
+            const buffer = new RingBuffer<TestRow>(3);
+            for (let i = 1; i <= 10; i++) {
+                buffer.add(createTestRow(`row${i}`, i, i * 100));
+            }
+            expect(buffer.size).to.equal(3);
+        });
+    });
+
+    suite("edge cases", () => {
+        test("should handle buffer with capacity 1", () => {
+            const buffer = new RingBuffer<TestRow>(1);
+            
+            buffer.add(createTestRow("row1", 1, 100));
+            expect(buffer.size).to.equal(1);
+            expect(buffer.getAt(0)?.name).to.equal("row1");
+
+            buffer.add(createTestRow("row2", 2, 200));
+            expect(buffer.size).to.equal(1);
+            expect(buffer.getAt(0)?.name).to.equal("row2");
+        });
+
+        test("should handle rapid add and clear cycles", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+
+            for (let cycle = 0; cycle < 10; cycle++) {
+                // Add rows
+                for (let i = 0; i < 5; i++) {
+                    buffer.add(createTestRow(`cycle${cycle}-row${i}`, i, i * 100));
+                }
+                expect(buffer.size).to.equal(5);
+
+                // Clear all
+                buffer.clear();
+                expect(buffer.size).to.equal(0);
+            }
+        });
+
+        test("should handle getRecent with count greater than size", () => {
+            const buffer = new RingBuffer<TestRow>(10);
+            buffer.add(createTestRow("row1", 1, 100));
+            buffer.add(createTestRow("row2", 2, 200));
+
+            const recent = buffer.getRecent(100);
+            expect(recent).to.have.length(2);
+            expect(recent[0].name).to.equal("row2"); // Most recent first
+            expect(recent[1].name).to.equal("row1");
+        });
+
+        test("should handle getRecent with empty buffer", () => {
+            const buffer = new RingBuffer<TestRow>(10);
+
+            const recent = buffer.getRecent(5);
+            expect(recent).to.deep.equal([]);
+        });
+
+        test("should maintain consistency after many operations", () => {
+            const buffer = new RingBuffer<TestRow>(50);
+
+            // Add 100 rows
+            for (let i = 1; i <= 100; i++) {
+                buffer.add(createTestRow(`row${i}`, i, i * 100));
+            }
+            expect(buffer.size).to.equal(50);
+
+            // Clear half
+            buffer.clearRange(25);
+            expect(buffer.size).to.equal(25);
+
+            // Add more
+            for (let i = 101; i <= 110; i++) {
+                buffer.add(createTestRow(`row${i}`, i, i * 100));
+            }
+            expect(buffer.size).to.equal(35);
+
+            // Verify all rows are accessible
+            const allRows = buffer.getAllRows();
+            expect(allRows).to.have.length(35);
+        });
+    });
 });

@@ -445,7 +445,7 @@ export class ProfilerSession {
     addEvent(event: EventRow): { added: EventRow; removed?: EventRow } | undefined {
         const result = this.events.add(event);
         if (result) {
-            this.lastEventTimestamp = result.added.timestamp;
+            this.lastEventTimestamp = result.added.timestamp.getTime();
         }
         return result;
     }
@@ -569,17 +569,28 @@ export class ProfilerSession {
         return {
             id,
             eventNumber,
-            timestamp: new Date(event.timestamp).getTime(),
+            timestamp: new Date(event.timestamp),
             eventClass: event.name,
             textData: event.values["sql_text"] || event.values["statement"] || "",
             databaseName: event.values["database_name"] || "",
-            spid: parseInt(event.values["session_id"] || "0", 10),
-            duration: parseInt(event.values["duration"] || "0", 10),
-            cpu: parseInt(event.values["cpu_time"] || "0", 10),
-            reads: parseInt(event.values["logical_reads"] || "0", 10),
-            writes: parseInt(event.values["writes"] || "0", 10),
+            spid: this.parseOptionalInt(event.values["session_id"]),
+            duration: this.parseOptionalInt(event.values["duration"]),
+            cpu: this.parseOptionalInt(event.values["cpu_time"]),
+            reads: this.parseOptionalInt(event.values["logical_reads"]),
+            writes: this.parseOptionalInt(event.values["writes"]),
             additionalData: event.values,
         };
+    }
+
+    /**
+     * Parses a string value to an integer, returning undefined if the value is empty or not a valid number.
+     */
+    private parseOptionalInt(value: string | undefined): number | undefined {
+        if (!value || value.trim() === "") {
+            return undefined;
+        }
+        const parsed = parseInt(value, 10);
+        return isNaN(parsed) ? undefined : parsed;
     }
 
     /**

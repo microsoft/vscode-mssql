@@ -578,6 +578,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
+                    "command": "mssql.profiler.launchFromObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "group": "1a_MSSQL_profiler@1"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
@@ -1333,6 +1338,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.profiler.launchFromObjectExplorer",
+                "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.profiler.openXelFile",
                 "title": "%mssql.profiler.openXelFile%",
                 "category": "MS SQL"
@@ -1454,6 +1464,14 @@
                     "default": 5,
                     "description": "%mssql.maxRecentConnections%",
                     "scope": "window"
+                },
+                "mssql.profiler.eventBufferSize": {
+                    "type": "number",
+                    "default": 10000,
+                    "minimum": 1000,
+                    "maximum": 100000,
+                    "description": "%mssql.profiler.eventBufferSize%",
+                    "scope": "application"
                 },
                 "mssql.connectionGroups": {
                     "type": "array",

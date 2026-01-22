@@ -56,7 +56,6 @@ export interface LocalContainersFormItemSpec
         LocalContainersFormItemSpec
     > {
     componentWidth: string;
-    isAdvancedOption: boolean;
 }
 
 export interface LocalContainersContextProps

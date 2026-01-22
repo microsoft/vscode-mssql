@@ -215,16 +215,6 @@
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">アルファベット順</target>
       </trans-unit>
-      <trans-unit id="++CODE++91e78b2febc967dfb55ffe4139b1c46605222de5037135db53ba0b5d48c675c2">
-        <source xml:lang="en">Already imported.  Importing again will replace the existing connection with ID {0}</source>
-        <note>{0} is the connection ID</note>
-        <target state="translated">既にインポート済みです。 もう一度インポートすると、既存の接続が ID {0} に置き換えられます</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e51f2f4a1643c5e49fa81f9d801e6a7d7fe9271c0101c476d403c3aeaffeb4bd">
-        <source xml:lang="en">Already imported.  Importing again will replace the existing group with ID {0}</source>
-        <note>{0} is the group ID</note>
-        <target state="translated">既にインポート済みです。 再度インポートすると、既存のグループが ID {0} に置き換えられます</target>
-      </trans-unit>
       <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
         <source xml:lang="en">Alter</source>
         <target state="translated">変更</target>
@@ -465,6 +455,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Azure Data Studio 移行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
+        <source xml:lang="en">Azure Data Studio Migration - Connections</source>
+        <target state="new">Azure Data Studio Migration - Connections</target>
       </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
@@ -1186,6 +1180,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection Group</source>
         <target state="translated">接続グループ</target>
       </trans-unit>
+      <trans-unit id="++CODE++e98d4b850ce65853ef4019c9a3faa89e9df536698224a7de85bfd83a4dbf35b7">
+        <source xml:lang="en">Connection Import Warning</source>
+        <target state="new">Connection Import Warning</target>
+      </trans-unit>
       <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
         <target state="translated">接続プロファイルを更新できませんでした。settings.json で接続の詳細を手動で変更してから、もう一度お試しください。</target>
@@ -1206,6 +1204,12 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection failed: {0}</source>
         <note>{0} is the error message from the connection attempt</note>
         <target state="translated">接続に失敗しました: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4af9562e151d82d6647b49a0ebb192051f470999bc80f52dfe8fa8d23aa3ff95">
+        <source xml:lang="en">Connection group with the same ID is already imported: {0} (ID: {1})</source>
+        <note>{0} is the group name
+{1} is the group ID</note>
+        <target state="new">Connection group with the same ID is already imported: {0} (ID: {1})</target>
       </trans-unit>
       <trans-unit id="++CODE++7c0b4997ad257dfe10892180163f8656c4d2d663589677ba6690790f54fb519e">
         <source xml:lang="en">Connection groups to import</source>
@@ -1248,13 +1252,15 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection ID</note>
         <target state="translated">ID "{0}" の接続が見つかりません。接続 ID が存在することを確認してください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++2f3daf0cd0f2a34f9d404145647a7a71178161552fe7dc9acba74d5b8d14cc49">
+        <source xml:lang="en">Connection with the same ID is already imported: {0} (ID: {1})</source>
+        <note>{0} is the connection display name
+{1} is the connection ID</note>
+        <target state="new">Connection with the same ID is already imported: {0} (ID: {1})</target>
+      </trans-unit>
       <trans-unit id="++CODE++b08ee8f8534ee808b03d2a6534a0f3988a149469b487454af076faf4a3b98a3d">
         <source xml:lang="en">Connections in groups that are not selected will be moved under the root.</source>
         <target state="translated">選択されていないグループ内の接続は、ルートの下に移動されます。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b82cef69876e86ca650b86a01403a1993737b15871e7e4216363213573d600f3">
-        <source xml:lang="en">Connections needing attention</source>
-        <target state="translated">注意が必要な接続</target>
       </trans-unit>
       <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
         <source xml:lang="en">Connections to import</source>
@@ -2472,6 +2478,10 @@ Error:
         <source xml:lang="en">Files</source>
         <target state="translated">ファイル</target>
       </trans-unit>
+      <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
+        <source xml:lang="en">Files of Type</source>
+        <target state="new">Files of Type</target>
+      </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
         <target state="translated">フィルター</target>
@@ -2851,6 +2861,10 @@ Error:
         <note>{0} is the error message returned from the import helper.</note>
         <target state="translated">インポートできませんでした: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
+        <source xml:lang="en">Import from Azure Data Studio</source>
+        <target state="new">Import from Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
         <source xml:lang="en">Import selected</source>
         <target state="translated">選択内容のインポート</target>
@@ -2882,6 +2896,10 @@ Error:
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
         <target state="translated">すべてのオブジェクトタイプを含める</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
+        <source xml:lang="en">Incomplete or orphaned connections</source>
+        <target state="new">Incomplete or orphaned connections</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -4146,6 +4164,10 @@ Error:
         <source xml:lang="en">Publish Project</source>
         <target state="new">Publish Project</target>
       </trans-unit>
+      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
+        <source xml:lang="en">Publish Project (Preview)</source>
+        <target state="translated">プロジェクトの公開 (プレビュー)</target>
+      </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
         <target state="translated">設定ファイルを公開</target>
@@ -4214,9 +4236,9 @@ Error:
         <source xml:lang="en">Read the documentation</source>
         <target state="translated">ドキュメントを読む</target>
       </trans-unit>
-      <trans-unit id="++CODE++5fa7aac5375c5815787fba3f49559f9b45b14023147ce0652803387974144e5f">
-        <source xml:lang="en">Ready</source>
-        <target state="translated">準備完了</target>
+      <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
+        <source xml:lang="en">Ready for import</source>
+        <target state="new">Ready for import</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -4781,6 +4803,10 @@ Query: {2}</source>
         <source xml:lang="en">Select a database</source>
         <target state="translated">データベースの選択</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
+        <source xml:lang="en">Select a file</source>
+        <target state="new">Select a file</target>
+      </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
         <target state="translated">サーバーの選択</target>
@@ -4876,6 +4902,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">選択した Microsoft Entra アカウントが正常に削除されました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e45e850e5552217009a64f5c87e898720561d6263867b0cebfc6f770aff9810">
+        <source xml:lang="en">Selected Path</source>
+        <target state="new">Selected Path</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -5077,9 +5107,9 @@ Query: {2}</source>
         <source xml:lang="en">Smart performance</source>
         <target state="translated">スマート パフォーマンス</target>
       </trans-unit>
-      <trans-unit id="++CODE++a4fc5133409f8a143e806d9a71b88a9a32029c885589a0df6b63de5fac3e6e74">
-        <source xml:lang="en">Some selections still need information</source>
-        <target state="translated">一部の選択には引き続き情報が必要です</target>
+      <trans-unit id="++CODE++21844306ac40ad949795b32880ff37ee26e56b0acf405e7c4028b10c5168d0d2">
+        <source xml:lang="en">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</source>
+        <target state="new">Some connections or groups have incomplete information. You can continue, but you may need to edit these connections later before connecting.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
@@ -5487,6 +5517,10 @@ Query: {2}</source>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">この接続には、Azure Data Studio に表示名がありません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
+        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported the root.</source>
+        <target state="new">This connection's group has not been selected, so this connection will be imported the root.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
         <target state="translated">このデータベース名は既に使用されています。別の名前を選択してください。</target>
@@ -5811,10 +5845,6 @@ Query: {2}</source>
         <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
         <note>{0} is the version number of the MSSQL extension</note>
         <target state="translated">MSSQL 拡張機能をバージョン {0}に更新したため、このメッセージが表示されます。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++23b87eb718db2dfbfebcae9b02f46ba7667d28ffd03dc40a119768f278a9191a">
-        <source xml:lang="en">You can continue, but you may need to edit these connections later before connecting.</source>
-        <target state="translated">続行できますが、接続する前に、後でこれらの接続を編集する必要がある場合があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
