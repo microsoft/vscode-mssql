@@ -1920,6 +1920,7 @@
         "comment": ["{0} is the operation name"]
     },
     "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.": "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
     "Table added to schema designer successfully.": "Table added to schema designer successfully.",
     "Failed to add table to schema designer.": "Failed to add table to schema designer.",

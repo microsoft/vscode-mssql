@@ -10,6 +10,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
+import { createHash } from "crypto";
 import {
     SchemaDesignerTool,
     SchemaDesignerToolParams,
@@ -51,6 +52,9 @@ suite("SchemaDesignerTool Tests", () => {
         columns: [],
         foreignKeys: [],
     };
+
+    const computeSchemaHash = (schema: SchemaDesigner.Schema) =>
+        createHash("sha256").update(JSON.stringify(schema)).digest("hex");
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -129,11 +133,21 @@ suite("SchemaDesignerTool Tests", () => {
     });
 
     suite("call - active designer operations", () => {
-        function stubActiveDesigner(designer: any) {
+        function stubActiveDesigner(
+            designer: any,
+            schema: SchemaDesigner.Schema = mockSchema,
+            previousHash?: string,
+        ) {
             const managerStub = {
                 getActiveDesigner: sandbox.stub().returns(designer),
+                getSchemaHash: sandbox.stub().returns(previousHash),
+                setSchemaHash: sandbox.stub(),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+            if (designer) {
+                designer.designerKey = designer.designerKey ?? "designer-key";
+                designer.getSchemaState = sandbox.stub().resolves(schema);
+            }
             return managerStub;
         }
 
@@ -157,13 +171,39 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.message).to.equal(loc.schemaDesignerNoActiveDesigner);
         });
 
+        test("should return stale state when schema changes between calls", async () => {
+            const mockDesigner = {
+                revealToForeground: sandbox.stub(),
+            } as any;
+
+            stubActiveDesigner(mockDesigner, mockSchema, "stale-hash");
+
+            const options = {
+                input: {
+                    operation: "add_table",
+                    payload: {
+                        tableName: "Orders",
+                        schemaName: "dbo",
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("stale_state");
+            expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
+            expect(parsedResult.schema).to.deep.equal(mockSchema);
+        });
+
         test("should add a table", async () => {
             const mockDesigner = {
                 revealToForeground: sandbox.stub(),
                 addTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -190,7 +230,7 @@ suite("SchemaDesignerTool Tests", () => {
                 revealToForeground: sandbox.stub(),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -212,7 +252,7 @@ suite("SchemaDesignerTool Tests", () => {
                 updateTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -238,7 +278,7 @@ suite("SchemaDesignerTool Tests", () => {
                 revealToForeground: sandbox.stub(),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -260,7 +300,7 @@ suite("SchemaDesignerTool Tests", () => {
                 deleteTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -291,7 +331,7 @@ suite("SchemaDesignerTool Tests", () => {
                 revealToForeground: sandbox.stub(),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -313,7 +353,7 @@ suite("SchemaDesignerTool Tests", () => {
                 replaceSchemaState: sandbox.stub().resolves({ success: true, schema: mockSchema }),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {
@@ -345,10 +385,13 @@ suite("SchemaDesignerTool Tests", () => {
         test("should return schema state", async () => {
             const mockDesigner = {
                 revealToForeground: sandbox.stub(),
-                getSchemaState: sandbox.stub().resolves(mockSchema),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            const managerStub = stubActiveDesigner(
+                mockDesigner,
+                mockSchema,
+                computeSchemaHash(mockSchema),
+            );
 
             const options = {
                 input: {
@@ -364,6 +407,10 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.schema).to.deep.equal(mockSchema);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.getSchemaState).to.have.been.calledOnce;
+            expect(managerStub.setSchemaHash).to.have.been.calledOnceWith(
+                mockDesigner.designerKey,
+                computeSchemaHash(mockSchema),
+            );
         });
 
         test("should return error for unknown operation", async () => {
@@ -371,7 +418,7 @@ suite("SchemaDesignerTool Tests", () => {
                 revealToForeground: sandbox.stub(),
             } as any;
 
-            stubActiveDesigner(mockDesigner);
+            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
 
             const options = {
                 input: {

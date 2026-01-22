@@ -1852,6 +1852,9 @@ export class MssqlChatAgent {
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     );
+    public static schemaDesignerStaleState = l10n.t(
+        "Schema designer state changed. Fetch the latest schema and retry the operation.",
+    );
     public static schemaDesignerMissingConnectionId = l10n.t(
         "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );

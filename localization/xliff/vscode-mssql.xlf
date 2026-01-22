@@ -3521,6 +3521,9 @@
     <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
       <source xml:lang="en">Schema designer is not initialized.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
+      <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++60ff1fa0767a4ec721cbddea244bc9d84d18b46ad68a9e894dda437f413be240">
       <source xml:lang="en">Schema designer state retrieved successfully.</source>
     </trans-unit>

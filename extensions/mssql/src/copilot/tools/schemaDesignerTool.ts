@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { createHash } from "crypto";
 import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
@@ -72,6 +73,7 @@ export interface SchemaDesignerToolResult {
     success: boolean;
     message?: string;
     schema?: SchemaDesigner.Schema;
+    reason?: "stale_state";
 }
 
 export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
@@ -93,6 +95,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         const { keepPositions, focusTableId } = uiOptions ?? {};
 
         try {
+            const schemaDesignerManager = SchemaDesignerWebviewManager.getInstance();
             if (operation === "show") {
                 if (!connectionId) {
                     return JSON.stringify({
@@ -116,12 +119,38 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
             }
 
             // Get the active schema designer
-            const activeDesigner = SchemaDesignerWebviewManager.getInstance().getActiveDesigner();
+            const activeDesigner = schemaDesignerManager.getActiveDesigner();
 
             if (!activeDesigner) {
                 return JSON.stringify({
                     success: false,
                     message: loc.schemaDesignerNoActiveDesigner,
+                });
+            }
+
+            if (operation === "get_schema") {
+                activeDesigner.revealToForeground();
+                const currentSchema = await activeDesigner.getSchemaState();
+                const schemaHash = this.computeSchemaHash(currentSchema);
+                schemaDesignerManager.setSchemaHash(activeDesigner.designerKey, schemaHash);
+                return JSON.stringify({
+                    success: true,
+                    message: loc.schemaDesignerGetSchemaSuccess,
+                    schema: currentSchema,
+                });
+            }
+
+            const currentSchema = await activeDesigner.getSchemaState();
+            const currentSchemaHash = this.computeSchemaHash(currentSchema);
+            const cacheKey = activeDesigner.designerKey;
+            const previousSchemaHash = schemaDesignerManager.getSchemaHash(cacheKey);
+            if (!previousSchemaHash || previousSchemaHash !== currentSchemaHash) {
+                schemaDesignerManager.setSchemaHash(cacheKey, currentSchemaHash);
+                return JSON.stringify({
+                    success: false,
+                    reason: "stale_state",
+                    message: loc.schemaDesignerStaleState,
+                    schema: currentSchema,
                 });
             }
 
@@ -138,6 +167,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerAddTableFailed,
                             });
                         }
+                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
                         return JSON.stringify({
                             success: true,
                             message: loc.schemaDesignerAddTableSuccess,
@@ -160,6 +190,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerUpdateTableFailed,
                             });
                         }
+                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
                         return JSON.stringify({
                             success: true,
                             message: loc.schemaDesignerUpdateTableSuccess,
@@ -186,6 +217,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerDeleteTableFailed,
                             });
                         }
+                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
                         return JSON.stringify({
                             success: true,
                             message: loc.schemaDesignerDeleteTableSuccess,
@@ -212,21 +244,13 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerReplaceSchemaFailed,
                             });
                         }
+                        this.updateSchemaHash(cacheKey, result.schema ?? schema);
                         return JSON.stringify({
                             success: true,
                             message: loc.schemaDesignerReplaceSchemaSuccess,
                             schema: result.schema ?? schema,
                         });
                     }
-                case "get_schema": {
-                    activeDesigner.revealToForeground();
-                    const currentSchema = await activeDesigner.getSchemaState();
-                    return JSON.stringify({
-                        success: true,
-                        message: loc.schemaDesignerGetSchemaSuccess,
-                        schema: currentSchema,
-                    });
-                }
 
                 default:
                     return JSON.stringify({
@@ -256,5 +280,14 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         };
         const invocationMessage = loc.schemaDesignerToolInvocationMessage(operation);
         return { invocationMessage, confirmationMessages };
+    }
+
+    private computeSchemaHash(schema: SchemaDesigner.Schema): string {
+        return createHash("sha256").update(JSON.stringify(schema)).digest("hex");
+    }
+
+    private updateSchemaHash(cacheKey: string, schema: SchemaDesigner.Schema): void {
+        const schemaHash = this.computeSchemaHash(schema);
+        SchemaDesignerWebviewManager.getInstance().setSchemaHash(cacheKey, schemaHash);
     }
 }

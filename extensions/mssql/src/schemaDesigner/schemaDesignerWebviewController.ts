@@ -360,6 +360,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return schemaDesignerCacheItem;
     }
 
+    public get designerKey(): string {
+        return this._key;
+    }
+
     override async dispose(): Promise<void> {
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);

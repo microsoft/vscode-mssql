@@ -18,6 +18,7 @@ export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
     private schemaDesigners: Map<string, SchemaDesignerWebviewController> = new Map();
     private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem> = new Map();
+    private schemaDesignerSchemaHashes: Map<string, string> = new Map();
 
     /**
      * Reference to the most recently visible schema designer.
@@ -47,6 +48,18 @@ export class SchemaDesignerWebviewManager {
             this._activeDesigner = undefined;
         }
         return this._activeDesigner;
+    }
+
+    public getSchemaHash(cacheKey: string): string | undefined {
+        return this.schemaDesignerSchemaHashes.get(cacheKey);
+    }
+
+    public setSchemaHash(cacheKey: string, hash: string): void {
+        this.schemaDesignerSchemaHashes.set(cacheKey, hash);
+    }
+
+    public clearSchemaHash(cacheKey: string): void {
+        this.schemaDesignerSchemaHashes.delete(cacheKey);
     }
 
     /**
@@ -128,6 +141,7 @@ export class SchemaDesignerWebviewManager {
             schemaDesigner.onDisposed(async () => {
                 viewStateDisposable.dispose();
                 this.schemaDesigners.delete(key);
+                this.schemaDesignerSchemaHashes.delete(key);
                 if (this._activeDesigner === schemaDesigner) {
                     this._activeDesigner = undefined;
                 }
