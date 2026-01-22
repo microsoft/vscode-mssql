@@ -105,7 +105,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 -   **View & Edit Data (`Preview`)**: Browse and modify table data directly within the editor without writing Transact-SQL data manipulation language (DML) statements
     -   Inline editing with real-time validation that highlights errors and displays helpful messages for incorrect inputs
     -   Add and delete rows, navigate large datasets with pagination controls, and save all changes together with a read-only DML script preview
--   **Data-tier Application (DACPAC) Export/Import (`Preview`)**: Easy-to-use wizard experience to deploy and extract dacpac files and import and export bacpac files
+-   **Data-tier Application (DACPAC) Export/Import (`Preview`)**: Easy-to-use wizard experience to deploy and extract `dacpac` files and import and export bacpac files
     -   Deploy dacpac files to SQL Server instances, extract instances to dacpac files, and create databases or export schema and data to bacpac files
     -   Simplifies development and deployment workflows for data-tier applications supporting your application
 -   **SQL Database Projects Publish Dialog (`Preview`)**: Streamlined deployment workflow for SQL Database Projects
