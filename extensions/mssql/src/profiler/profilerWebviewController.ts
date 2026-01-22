@@ -21,6 +21,7 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
@@ -38,7 +39,11 @@ export interface ProfilerWebviewEvents {
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
     /** Emitted when export to CSV is requested from the UI */
-    onExportToCsv?: (csvContent: string, suggestedFileName: string, trigger: "manual" | "closePrompt") => void;
+    onExportToCsv?: (
+        csvContent: string,
+        suggestedFileName: string,
+        trigger: "manual" | "closePrompt",
+    ) => void;
 }
 
 /**
@@ -53,6 +58,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
     /** Tracks whether the session was stopped before closing (for telemetry) */
     private _wasSessionPreviouslyStopped: boolean = false;
 
@@ -438,6 +444,41 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
+        // Handle row selection from webview - update details panel
+        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
+            this.handleRowSelection(payload.rowId);
+            return state;
+        });
+    }
+
+    /**
+     * Handle row selection - get event details and update the details panel
+     */
+    private handleRowSelection(rowId: string): void {
+        if (!this._currentSession || !this._detailsPanelController) {
+            return;
+        }
+
+        // Find the event in the ring buffer by its ID
+        const event = this._currentSession.events.findById(rowId);
+        if (!event) {
+            return;
+        }
+
+        // Build the selected event details using the centralized ProfilerConfigService
+        const viewConfig = this._currentSession.viewConfig;
+        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
+            event,
+            viewConfig,
+        );
+
+        // Reveal the details panel first (creates the webview if needed)
+        // Then update the selected event after the panel is ready
+        void this._detailsPanelController.reveal().then(() => {
+            // Update the details panel after it's revealed
+            this._detailsPanelController?.updateSelectedEvent(selectedEventDetails);
+        });
+
         // Handle export to CSV request from webview (manual trigger from toolbar)
         this.registerReducer(
             "exportToCsv",
@@ -506,6 +547,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
         this._eventHandlers = handlers;
+    }
+
+    /**
+     * Set the details panel controller for row selection updates
+     */
+    public setDetailsPanelController(controller: ProfilerDetailsPanelViewController): void {
+        this._detailsPanelController = controller;
     }
 
     /**

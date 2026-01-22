@@ -148,6 +148,34 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
+    /** Notify extension that a row was selected in the grid */
+    selectRow: {
+        rowId: string;
+    };
+}
+
+/**
+ * A property/column for display in the details panel
+ */
+export interface ProfilerEventProperty {
+    /** Property label (column header or field name) */
+    label: string;
+    /** Property value (formatted as string for display) */
+    value: string;
+}
+
+/**
+ * Selected event details for the details panel
+ */
+export interface ProfilerSelectedEventDetails {
+    /** Row ID of the selected event */
+    rowId: string;
+    /** Event class/name */
+    eventName: string;
+    /** TextData content (for the Text tab) */
+    textData: string;
+    /** All event properties (for the Details tab) */
+    properties: ProfilerEventProperty[];
     /** Export events to CSV file */
     exportToCsv: {
         csvContent: string;
@@ -227,4 +255,33 @@ export namespace ProfilerNotifications {
 
     /** Notification sent when export result is available */
     export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
+}
+
+// ============================================================================
+// Profiler Details Panel (VS Code Panel View)
+// ============================================================================
+
+/**
+ * State for the profiler details panel webview (VS Code Panel view)
+ */
+export interface ProfilerDetailsPanelState {
+    /** The currently selected event details (undefined if no event selected) */
+    selectedEvent: ProfilerSelectedEventDetails | undefined;
+    /** Session name for context */
+    sessionName?: string;
+}
+
+/**
+ * Reducers for the profiler details panel webview
+ */
+export interface ProfilerDetailsPanelReducers {
+    /** Open TextData content in a new VS Code editor */
+    openInEditor: {
+        textData: string;
+        eventName?: string;
+    };
+    /** Copy text to clipboard */
+    copyToClipboard: {
+        text: string;
+    };
 }

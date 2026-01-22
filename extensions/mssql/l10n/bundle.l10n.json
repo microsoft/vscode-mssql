@@ -1059,6 +1059,18 @@
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
     },
+    "Text": "Text",
+    "No event selected": "No event selected",
+    "No text data available": "No text data available",
+    "Open text data in a new editor": "Open text data in a new editor",
+    "Copy text data to clipboard": "Copy text data to clipboard",
+    "Maximize details panel": "Maximize details panel",
+    "Close details panel": "Close details panel",
+    "Text tab - displays SQL text data": "Text tab - displays SQL text data",
+    "Details tab - displays all event properties": "Details tab - displays all event properties",
+    "Read-only SQL text editor": "Read-only SQL text editor",
+    "Event properties list": "Event properties list",
+    "Copied to clipboard": "Copied to clipboard",
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
     "Object Explorer Filter": "Object Explorer Filter",
@@ -2368,6 +2380,10 @@
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
+    },
+    "Failed to open text in editor: {0}/{0} is the error message": {
+        "message": "Failed to open text in editor: {0}",
+        "comment": ["{0} is the error message"]
     },
     "Profiler events exported successfully to {0}/{0} is the file path": {
         "message": "Profiler events exported successfully to {0}",

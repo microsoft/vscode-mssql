@@ -9,6 +9,7 @@ import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { SessionType, SessionState } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
+import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
@@ -28,6 +29,7 @@ export class ProfilerController {
     private _logger: Logger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
+    private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -37,6 +39,27 @@ export class ProfilerController {
     ) {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "Profiler");
         this.registerCommands();
+        this.registerDetailsPanelView();
+    }
+
+    /**
+     * Register the profiler details panel view in VS Code's panel area
+     */
+    private registerDetailsPanelView(): void {
+        // Register the details panel webview view provider
+        const disposable = ProfilerDetailsPanelViewController.register(
+            this._context,
+            this._vscodeWrapper,
+        );
+        this._context.subscriptions.push(disposable);
+
+        // Get the singleton instance for use by profiler webview controllers
+        this._detailsPanelController = ProfilerDetailsPanelViewController.getInstance(
+            this._context,
+            this._vscodeWrapper,
+        );
+
+        this._logger.verbose("Profiler details panel view registered");
     }
 
     private registerCommands(): void {
@@ -440,6 +463,11 @@ export class ProfilerController {
             undefined, // No initial session name
             "Standard_OnPrem", // templateId
         );
+
+        // Connect the details panel controller to this webview so row selections update the panel
+        if (this._detailsPanelController) {
+            webviewController.setDetailsPanelController(this._detailsPanelController);
+        }
 
         // Track this webview controller along with its profiler URI for cleanup
         const webviewId = Utils.generateGuid();

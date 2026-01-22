@@ -2577,6 +2577,14 @@ export class Profiler {
             comment: ["{0} is the number of events"],
         });
 
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
     // Export messages
     public static exportToCsv = l10n.t("Export to CSV");
     public static exportSuccess = (filePath: string) =>

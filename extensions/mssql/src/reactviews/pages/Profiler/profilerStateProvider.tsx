@@ -30,6 +30,8 @@ export interface ProfilerRpcMethods {
     toggleAutoScroll: () => void;
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
+    /** Select a row to show details in the panel */
+    selectRow: (rowId: string) => void;
     /** Export events to CSV file */
     exportToCsv: (csvContent: string, suggestedFileName: string) => void;
 }
@@ -102,6 +104,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const selectRow = useCallback(
+        (rowId: string) => {
+            extensionRpc?.action("selectRow", { rowId });
+        },
+        [extensionRpc],
+    );
+
     const exportToCsv = useCallback(
         (csvContent: string, suggestedFileName: string) => {
             extensionRpc?.action("exportToCsv", { csvContent, suggestedFileName });
@@ -122,6 +131,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 changeView,
                 toggleAutoScroll,
                 fetchRows,
+                selectRow,
                 exportToCsv,
             }}>
             {children}

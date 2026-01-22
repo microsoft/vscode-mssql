@@ -13,6 +13,7 @@ import {
     ViewColumn,
 } from "./profilerTypes";
 import { defaultProfilerConfig } from "./profilerDefaultConfig";
+import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../sharedInterfaces/profiler";
 
 /**
  * Service for managing profiler templates and view configurations
@@ -217,6 +218,49 @@ export class ProfilerConfigService {
      */
     public generateCreateStatement(template: ProfilerTemplate, sessionName: string): string {
         return template.createStatement.replace(/\{sessionName\}/g, sessionName);
+    }
+
+    /**
+     * Build event details for the details panel from an EventRow.
+     * Uses the view's column configuration to determine which properties to display.
+     * @param event The event row to convert
+     * @param view The view template defining which fields to include
+     * @returns ProfilerSelectedEventDetails for the details panel
+     */
+    public buildEventDetails(event: EventRow, view: ViewTemplate): ProfilerSelectedEventDetails {
+        const properties: ProfilerEventProperty[] = [];
+
+        // Build properties from the view's column configuration
+        for (const column of view.columns) {
+            const value = this.getColumnValue(event, column);
+            properties.push({
+                label: column.header,
+                value: value !== null && value !== undefined ? String(value) : "",
+            });
+        }
+
+        // Also include any additional data not already covered by the view columns
+        if (event.additionalData) {
+            const viewFields = new Set(
+                view.columns.flatMap((col) => [col.field, ...col.eventsMapped]),
+            );
+            for (const [key, value] of Object.entries(event.additionalData)) {
+                // Skip if already covered by a view column
+                if (!viewFields.has(key)) {
+                    properties.push({
+                        label: key,
+                        value: value ?? "",
+                    });
+                }
+            }
+        }
+
+        return {
+            rowId: event.id,
+            eventName: event.eventClass || "Unknown Event",
+            textData: event.textData || "",
+            properties,
+        };
     }
 }
 

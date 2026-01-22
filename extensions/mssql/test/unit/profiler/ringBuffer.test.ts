@@ -706,7 +706,7 @@ suite("RingBuffer Tests", () => {
     suite("edge cases", () => {
         test("should handle buffer with capacity 1", () => {
             const buffer = new RingBuffer<TestRow>(1);
-            
+
             buffer.add(createTestRow("row1", 1, 100));
             expect(buffer.size).to.equal(1);
             expect(buffer.getAt(0)?.name).to.equal("row1");
@@ -772,6 +772,79 @@ suite("RingBuffer Tests", () => {
             // Verify all rows are accessible
             const allRows = buffer.getAllRows();
             expect(allRows).to.have.length(35);
+        });
+    });
+
+    suite("findById", () => {
+        test("should find row by its UUID", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            const row1 = createTestRow("row1", 1, 100);
+            const row2 = createTestRow("row2", 2, 200);
+            const row3 = createTestRow("row3", 3, 300);
+
+            buffer.add(row1);
+            buffer.add(row2);
+            buffer.add(row3);
+
+            const found = buffer.findById(row2.id);
+            expect(found).to.deep.equal(row2);
+            expect(found?.name).to.equal("row2");
+        });
+
+        test("should return undefined when ID not found", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+            buffer.add(createTestRow("row1", 1, 100));
+
+            const found = buffer.findById("non-existent-id");
+            expect(found).to.be.undefined;
+        });
+
+        test("should return undefined for empty buffer", () => {
+            const buffer = new RingBuffer<TestRow>(5);
+
+            const found = buffer.findById("any-id");
+            expect(found).to.be.undefined;
+        });
+
+        test("should find row after buffer wraps around", () => {
+            const buffer = new RingBuffer<TestRow>(3);
+            const row1 = createTestRow("row1", 1, 100);
+            const row2 = createTestRow("row2", 2, 200);
+            const row3 = createTestRow("row3", 3, 300);
+            const row4 = createTestRow("row4", 4, 400);
+
+            buffer.add(row1);
+            buffer.add(row2);
+            buffer.add(row3);
+            buffer.add(row4); // Wraps, removes row1
+
+            // row1 should not be found (removed)
+            expect(buffer.findById(row1.id)).to.be.undefined;
+
+            // row2, row3, row4 should be found
+            expect(buffer.findById(row2.id)).to.deep.equal(row2);
+            expect(buffer.findById(row3.id)).to.deep.equal(row3);
+            expect(buffer.findById(row4.id)).to.deep.equal(row4);
+        });
+
+        test("should find first row after many additions", () => {
+            const buffer = new RingBuffer<TestRow>(100);
+            const rows: TestRow[] = [];
+
+            for (let i = 0; i < 50; i++) {
+                const row = createTestRow(`row${i}`, i, i * 100);
+                rows.push(row);
+                buffer.add(row);
+            }
+
+            // Should find first row
+            expect(buffer.findById(rows[0].id)).to.deep.equal(rows[0]);
+
+            // Should find last row
+            expect(buffer.findById(rows[49].id)).to.deep.equal(rows[49]);
+
+            // Should find middle row
+            expect(buffer.findById(rows[25].id)).to.deep.equal(rows[25]);
         });
     });
 });
