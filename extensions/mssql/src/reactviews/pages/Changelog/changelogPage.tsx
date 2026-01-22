@@ -18,7 +18,7 @@ import {
     ChevronRight20Regular,
     Dismiss12Filled,
 } from "@fluentui/react-icons";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 
 import {
     ChangelogCommandRequest,
@@ -117,7 +117,7 @@ const useStyles = makeStyles({
     },
     contentLayout: {
         display: "grid",
-        gridTemplateColumns: "minmax(0, 2.5fr) minmax(260px, 1.5fr)",
+        gridTemplateColumns: "minmax(0, 3fr) minmax(220px, 1fr)",
         gap: "24px",
         flex: "1 1 auto",
         minHeight: 0,
@@ -241,6 +241,12 @@ export const ChangelogPage = () => {
 
     const [showBanner, setShowBanner] = useState(true);
     const [secondaryCollapsed, setSecondaryCollapsed] = useState(true);
+    const [secondaryHeaderElement, setSecondaryHeaderElement] = useState<HTMLDivElement>();
+    const secondaryHeaderRef = useCallback((element: HTMLDivElement) => {
+        if (element) {
+            setSecondaryHeaderElement(element);
+        }
+    }, []);
 
     const openLink = async (url: string) => {
         await extensionRpc.sendRequest(ChangelogLinkRequest.type, {
@@ -442,23 +448,49 @@ export const ChangelogPage = () => {
                             </div>
                         </div>
 
-                        <Title3
-                            as="h2"
+                        <div
+                            ref={secondaryHeaderRef}
                             style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
                                 cursor: "pointer",
                                 userSelect: "none",
                             }}
-                            onClick={() => setSecondaryCollapsed(!secondaryCollapsed)}>
-                            {secondaryCollapsed ? (
-                                <ChevronRight20Regular />
-                            ) : (
-                                <ChevronDown20Regular />
+                            onClick={() => {
+                                const wasCollapsed = secondaryCollapsed;
+                                setSecondaryCollapsed(!secondaryCollapsed);
+                                if (wasCollapsed) {
+                                    // Scroll to top when expanding
+                                    setTimeout(() => {
+                                        secondaryHeaderElement?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "start",
+                                        });
+                                    }, 0);
+                                }
+                            }}>
+                            <Title3
+                                as="h2"
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                }}>
+                                {secondaryCollapsed ? (
+                                    <ChevronRight20Regular />
+                                ) : (
+                                    <ChevronDown20Regular />
+                                )}
+                                {secondaryContent.title}
+                            </Title3>
+                            {secondaryContent.description && (
+                                <Text
+                                    style={{
+                                        color: "var(--vscode-descriptionForeground)",
+                                        marginLeft: "24px",
+                                    }}>
+                                    {secondaryContent.description}
+                                </Text>
                             )}
-                            {secondaryContent.title}
-                        </Title3>
+                        </div>
                         {!secondaryCollapsed && (
                             <div className={classes.mainGrid} style={{ marginBottom: "16px" }}>
                                 <div className={classes.secondaryChangesColumn}>
