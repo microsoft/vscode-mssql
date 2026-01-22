@@ -5,6 +5,7 @@
 
 import { makeStyles, Spinner, Text, tokens } from "@fluentui/react-components";
 import { useContext, useEffect, useMemo } from "react";
+import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTile } from "./dabEntityTile";
@@ -99,7 +100,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
             <div className={classes.root}>
                 <div className={classes.loadingContainer}>
                     <Spinner size="medium" />
-                    <Text>Loading...</Text>
+                    <Text>{locConstants.schemaDesigner.loading}</Text>
                 </div>
             </div>
         );
@@ -111,7 +112,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
             <div className={classes.root}>
                 <div className={classes.loadingContainer}>
                     <Spinner size="medium" />
-                    <Text>Initializing DAB configuration...</Text>
+                    <Text>{locConstants.schemaDesigner.initializingDabConfig}</Text>
                 </div>
             </div>
         );
@@ -123,7 +124,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
             <div className={classes.content}>
                 {filteredEntities.length === 0 ? (
                     <div className={classes.emptyState}>
-                        <Text>No entities found</Text>
+                        <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
                     </div>
                 ) : (
                     <div className={classes.entityGrid}>
