@@ -1077,11 +1077,6 @@ export class LocConstants {
             copySqlPackageCommandToClipboard: l10n.t("Copy command to clipboard"),
             showUnmaskedCommand: l10n.t("Show unmasked command (reveals sensitive information)"),
             showMaskedCommand: l10n.t("Show masked command (hides sensitive information)"),
-            selectServer: l10n.t("Select a server"),
-            noConnectionsAvailable: l10n.t(
-                "No connections available. Please create a connection first.",
-            ),
-            addConnection: l10n.t("Add Connection..."),
             loadingDatabases: l10n.t("Loading databases..."),
         };
     }
