@@ -460,6 +460,7 @@ export const scriptFriendlyName = l10n.t("Script");
 export const tableFriendlyName = l10n.t("Table");
 export const viewFriendlyName = l10n.t("View");
 export const storedProcedureFriendlyName = l10n.t("Stored Procedure");
+export const schemaFriendlyName = l10n.t("Schema");
 export const dataSourceFriendlyName = l10n.t("Data Source");
 export const fileFormatFriendlyName = l10n.t("File Format");
 export const externalStreamFriendlyName = l10n.t("External Stream");
