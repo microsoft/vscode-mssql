@@ -54,24 +54,6 @@ export const ConnectionSection: React.FC = () => {
         return undefined;
     }
 
-    // Get database component with loading indicator option when loading
-    const getDatabaseComponentWithLoading = () => {
-        if (!databaseComponent) return undefined;
-        if (isLoadingDatabases) {
-            return {
-                ...databaseComponent,
-                options: [
-                    {
-                        displayName: locConstants.publishProject.loadingDatabases,
-                        value: locConstants.publishProject.loadingDatabases,
-                        disabled: true,
-                    },
-                ],
-            };
-        }
-        return databaseComponent;
-    };
-
     const handleServerSelect = (value: string) => {
         // value is the profile ID - connect to the selected server
         publishCtx.connectToServer(value);
@@ -107,15 +89,17 @@ export const ConnectionSection: React.FC = () => {
                     localServerDisplay,
                     false,
                     handleServerInputChange,
+                    false, // disabled
                     handleServerSelect,
                     selectedProfileId,
                 )
             )}
             {renderCombobox(
-                getDatabaseComponentWithLoading(),
+                databaseComponent,
                 localDatabase,
-                true, // Always allow typing database name
+                true, // freeform - always allow typing database name
                 handleDatabaseChange,
+                isLoadingDatabases ?? false, // disabled while loading
             )}
         </div>
     );

@@ -176,6 +176,7 @@ export function renderCombobox(
     value: string | undefined,
     freeform: boolean | undefined,
     onChange: (value: string) => void,
+    disabled?: boolean,
     onOptionSelect?: (value: string) => void,
     selectedOptionValue?: string,
 ) {
@@ -196,6 +197,7 @@ export function renderCombobox(
                 value={value || ""}
                 selectedOptions={selectedOptionValue ? [selectedOptionValue] : []}
                 placeholder={component.placeholder ?? ""}
+                disabled={disabled}
                 onOptionSelect={(_, data) => {
                     if (data.optionValue) {
                         if (onOptionSelect) {

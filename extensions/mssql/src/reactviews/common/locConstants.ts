@@ -1077,7 +1077,6 @@ export class LocConstants {
             copySqlPackageCommandToClipboard: l10n.t("Copy command to clipboard"),
             showUnmaskedCommand: l10n.t("Show unmasked command (reveals sensitive information)"),
             showMaskedCommand: l10n.t("Show masked command (hides sensitive information)"),
-            loadingDatabases: l10n.t("Loading databases..."),
         };
     }
 
