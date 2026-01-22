@@ -56,7 +56,6 @@ const useStyles = makeStyles({
         paddingBottom: "50px",
     },
     formDiv: {
-        padding: "10px",
         flexGrow: 1,
     },
     header: {
@@ -72,6 +71,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "4px",
+        marginLeft: "0px",
     },
     fileButtons: {
         display: "flex",
@@ -100,17 +100,16 @@ const useStyles = makeStyles({
         marginBottom: "10px",
     },
     azureLoadingContainer: {
-        marginTop: "20px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        paddingTop: "20px",
     },
     formLoadingLabel: {
         display: "flex",
         alignItems: "center",
-        gap: "8px",
+        marginTop: 0,
+        marginBottom: 0,
     },
     fileList: {
         display: "flex",
@@ -118,10 +117,13 @@ const useStyles = makeStyles({
         padding: "10px",
         gap: "8px",
     },
+    field: {
+        width: "400px",
+    },
 });
 
-const databaseIconLight = require("../../../../media/database_light.svg");
-const databaseIconDark = require("../../../../media/database_dark.svg");
+const backupLightIcon = require("../../../../media/backup_light.svg");
+const backupDarkIcon = require("../../../../media/backup_dark.svg");
 
 export const BackupDatabaseForm: React.FC = () => {
     const classes = useStyles();
@@ -145,7 +147,17 @@ export const BackupDatabaseForm: React.FC = () => {
                 <div
                     key={index}
                     className={formStyles.formComponentDiv}
-                    style={{ padding: "10px" }}>
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
                     <FormField<
                         BackupDatabaseFormState,
                         BackupDatabaseState,
@@ -173,7 +185,17 @@ export const BackupDatabaseForm: React.FC = () => {
                     <div
                         key={index}
                         className={formStyles.formComponentDiv}
-                        style={{ padding: "10px" }}>
+                        style={
+                            component.componentWidth
+                                ? {
+                                      width: component.componentWidth,
+                                      maxWidth: component.componentWidth,
+                                      whiteSpace: "normal", // allows wrapping
+                                      overflowWrap: "break-word", // breaks long words if needed
+                                      wordBreak: "break-word",
+                                  }
+                                : {}
+                        }>
                         <FormField<
                             BackupDatabaseFormState,
                             BackupDatabaseState,
@@ -186,18 +208,29 @@ export const BackupDatabaseForm: React.FC = () => {
                         />
                     </div>
                 ) : (
-                    <Field
-                        key={index}
-                        label={
-                            <div className={classes.formLoadingLabel}>
-                                <Text>{component.label}</Text>
-                                <Spinner size="extra-tiny" />
-                            </div>
-                        }
-                        className={formStyles.formComponentDiv}
-                        style={{ padding: "10px", marginLeft: "8px" }}>
-                        <Dropdown size="small" placeholder={locConstants.backupDatabase.loading} />
-                    </Field>
+                    <div style={{ marginLeft: "6px", marginBottom: "2px" }} key={index}>
+                        <Field
+                            key={index}
+                            label={
+                                <div className={classes.formLoadingLabel}>
+                                    <Text>{component.label}</Text>
+                                    <Spinner
+                                        size="extra-tiny"
+                                        style={{ transform: "scale(0.8)" }}
+                                    />
+                                </div>
+                            }>
+                            <Dropdown
+                                size="small"
+                                placeholder={locConstants.backupDatabase.loading}
+                                style={{
+                                    marginTop: 0,
+                                    marginLeft: "5px",
+                                    width: "630px",
+                                }}
+                            />
+                        </Field>
+                    </div>
                 );
             });
 
@@ -205,7 +238,19 @@ export const BackupDatabaseForm: React.FC = () => {
         Object.values(formComponents)
             .filter((component) => component.groupName == locConstants.backupDatabase.media)
             .map((component, index) => (
-                <div key={index}>
+                <div
+                    key={index}
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
                     <FormField<
                         BackupDatabaseFormState,
                         BackupDatabaseState,
@@ -278,11 +323,7 @@ export const BackupDatabaseForm: React.FC = () => {
                         style={{
                             padding: "10px",
                         }}
-                        src={
-                            context?.themeKind === ColorThemeKind.Light
-                                ? databaseIconLight
-                                : databaseIconDark
-                        }
+                        src={ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
                         alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseName}`}
                         height={60}
                         width={60}
@@ -308,11 +349,10 @@ export const BackupDatabaseForm: React.FC = () => {
                     />
                 )}
                 {renderFormFields()}
-                <div
-                    className={formStyles.formComponentDiv}
-                    style={{ padding: "10px", marginLeft: "8px" }}>
+                <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
                     <Field
                         label={locConstants.backupDatabase.backupLocation}
+                        className={classes.field}
                         orientation="horizontal">
                         <RadioGroup
                             onChange={(_, data) => {
@@ -365,14 +405,13 @@ export const BackupDatabaseForm: React.FC = () => {
                         </div>
                     )
                 ) : (
-                    <div
-                        className={formStyles.formComponentDiv}
-                        style={{ padding: "10px", marginLeft: "8px" }}>
+                    <div className={formStyles.formComponentDiv} style={{ marginLeft: "5px" }}>
                         <Field
                             label={locConstants.backupDatabase.backupFiles}
                             validationMessage={getFileValidationMessage()}
                             required={true}
                             validationState={getFileValidationMessage() === "" ? "none" : "error"}
+                            className={classes.field}
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
                                 <div className={classes.fileList}>

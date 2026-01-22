@@ -81,8 +81,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 title: LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
                 viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
                 iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "backup_dark.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "backup_light.svg"),
                 },
             },
         );
@@ -165,6 +165,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
+            // isAction indicates whether the event was triggered by an action button
             if (payload.event.isAction) {
                 const component = state.formComponents[payload.event.propertyName];
                 if (component && component.actionButtons) {
@@ -172,10 +173,13 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                         (b) => b.id === payload.event.value,
                     );
                     if (actionButton?.callback) {
-                        void actionButton.callback();
+                        await actionButton.callback();
                     }
                 }
+                // Only action form event is for account id, so reload dependent components
+                state = this.reloadAzureComponents(state, payload.event.propertyName);
             } else {
+                // formAction is a normal form item value change; update form state
                 (state.formState[
                     payload.event.propertyName
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -192,9 +196,11 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 }
 
                 // Re-validate the changed component
-                const componentFormError = (
-                    await this.validateForm(state.formState, payload.event.propertyName, true)
-                )[0];
+                const [componentFormError] = await this.validateForm(
+                    state.formState,
+                    payload.event.propertyName,
+                    true,
+                );
                 if (componentFormError) {
                     state.formErrors.push(payload.event.propertyName);
                 } else {
@@ -473,6 +479,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 type: FormItemType.Checkbox,
                 propertyName: "copyOnly",
                 label: LocConstants.BackupDatabase.copyOnly,
+                componentWidth: "420px",
             }),
 
             accountId: createFormItem({
@@ -870,7 +877,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             id: "azureSignIn",
             callback: async () => {
                 // Force sign in prompt
-                void VsCodeAzureHelper.signIn(true);
+                await VsCodeAzureHelper.signIn(true);
 
                 const accountsComponent = state.formComponents[accountFormComponentId];
 
@@ -882,7 +889,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
                 // There should always be at least one account, because the user just went through the sign in workflow
                 if (azureAccounts.length !== 0) {
-                    state.formState.accountId = azureAccounts[0].id;
+                    state.formState.accountId = azureAccounts[azureAccounts.length - 1].id;
                 }
 
                 const accountComponent = state.formComponents["accountId"];

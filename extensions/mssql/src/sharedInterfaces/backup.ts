@@ -332,6 +332,11 @@ export interface BackupDatabaseProvider
 export interface BackupDatabaseFormItemSpec
     extends FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec> {
     /**
+     * The width of the form item component
+     */
+    componentWidth?: string;
+
+    /**
      * The name of the advanced options group this item belongs to
      */
     groupName?: string;
