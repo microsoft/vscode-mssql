@@ -1578,6 +1578,11 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of events"],
                 }),
+
+            // Export
+            exportToCsv: l10n.t("Export to CSV"),
+            exportTooltip: l10n.t("Export all captured events to a CSV file"),
+            noEventsToExport: l10n.t("No events to export"),
         };
     }
 }

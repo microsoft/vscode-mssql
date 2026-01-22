@@ -513,12 +513,70 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
+            onExportToCsv: async (csvContent: string, suggestedFileName: string) => {
+                await this.handleExportToCsv(webviewController, csvContent, suggestedFileName);
+            },
         });
 
         this._logger.verbose(
             "Profiler UI created. Select a session and click Start to begin profiling.",
         );
         vscode.window.showInformationMessage(LocProfiler.profilerReady);
+    }
+
+    /**
+     * Handles exporting profiler events to a CSV file
+     */
+    private async handleExportToCsv(
+        webviewController: ProfilerWebviewController,
+        csvContent: string,
+        suggestedFileName: string,
+    ): Promise<void> {
+        try {
+            // Get a default folder - use user's home directory or workspace folder
+            const defaultFolder =
+                vscode.workspace.workspaceFolders?.[0]?.uri ??
+                vscode.Uri.file(require("os").homedir());
+
+            // Show save dialog
+            const saveUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.joinPath(defaultFolder, `${suggestedFileName}.csv`),
+                filters: {
+                    CSV: ["csv"],
+                },
+                title: LocProfiler.exportToCsv,
+            });
+
+            if (!saveUri) {
+                // User cancelled
+                this._logger.verbose("Export to CSV cancelled by user");
+                return;
+            }
+
+            // Write the CSV content to the file
+            await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(csvContent));
+
+            // Mark export as successful in state
+            webviewController.setExportComplete();
+
+            // Show success message with Open File button
+            const openFile = await vscode.window.showInformationMessage(
+                LocProfiler.exportSuccess(saveUri.fsPath),
+                LocProfiler.openFile,
+            );
+
+            if (openFile === LocProfiler.openFile) {
+                // Open the exported file in VS Code
+                const doc = await vscode.workspace.openTextDocument(saveUri);
+                await vscode.window.showTextDocument(doc);
+            }
+
+            this._logger.verbose(`Profiler events exported to ${saveUri.fsPath}`);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+            this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+        }
     }
 
     public async dispose(): Promise<void> {

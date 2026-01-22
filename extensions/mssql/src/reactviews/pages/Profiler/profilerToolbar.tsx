@@ -19,6 +19,7 @@ import {
     Next24Regular,
     EraserRegular,
     Add24Regular,
+    ArrowExportRegular,
 } from "@fluentui/react-icons";
 import {
     SessionState,
@@ -44,6 +45,8 @@ export interface ProfilerToolbarProps {
     autoScroll: boolean;
     /** Whether a session is being created */
     isCreatingSession?: boolean;
+    /** Total event count (for export button state) */
+    totalEventCount?: number;
     /** Callback when new session is requested */
     onNewSession: () => void;
     /** Callback when session is selected */
@@ -60,6 +63,8 @@ export interface ProfilerToolbarProps {
     onViewChange: (viewId: string) => void;
     /** Callback when auto-scroll is toggled */
     onAutoScrollToggle: () => void;
+    /** Callback when export to CSV is clicked */
+    onExportToCsv: () => void;
 }
 
 export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
@@ -71,6 +76,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     selectedSessionId,
     autoScroll,
     isCreatingSession,
+    totalEventCount,
     onNewSession,
     onSelectSession,
     onStart,
@@ -79,6 +85,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
+    onExportToCsv,
 }) => {
     const isRunning = sessionState === SessionState.Running;
     const isPaused = sessionState === SessionState.Paused;
@@ -200,6 +207,25 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         icon={<EraserRegular />}
                         onClick={onClear}>
                         {loc.clear}
+                    </ToolbarButton>
+                </Tooltip>
+
+                <ToolbarDivider />
+
+                {/* Export to CSV button */}
+                <Tooltip
+                    content={
+                        totalEventCount && totalEventCount > 0
+                            ? loc.exportTooltip
+                            : loc.noEventsToExport
+                    }
+                    relationship="label">
+                    <ToolbarButton
+                        aria-label={loc.exportToCsv}
+                        icon={<ArrowExportRegular />}
+                        onClick={onExportToCsv}
+                        disabled={!totalEventCount || totalEventCount === 0}>
+                        {loc.exportToCsv}
                     </ToolbarButton>
                 </Tooltip>
 
