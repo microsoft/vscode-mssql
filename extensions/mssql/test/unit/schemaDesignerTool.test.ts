@@ -195,6 +195,34 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.reason).to.equal("stale_state");
             expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+        });
+
+        test("should return stale state on first call for a new designer", async () => {
+            const mockDesigner = {
+                revealToForeground: sandbox.stub(),
+            } as any;
+
+            stubActiveDesigner(mockDesigner, mockSchema, undefined);
+
+            const options = {
+                input: {
+                    operation: "add_table",
+                    payload: {
+                        tableName: "Orders",
+                        schemaName: "dbo",
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("stale_state");
+            expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
+            expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
         });
 
         test("should add a table", async () => {
@@ -221,6 +249,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerAddTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.addTable).to.have.been.calledOnceWith("Orders", "dbo", undefined);
         });
@@ -269,6 +298,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerUpdateTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.updateTable).to.have.been.calledOnceWith(mockTable);
         });
@@ -318,6 +348,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerDeleteTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.deleteTable).to.have.been.calledOnceWith({
                 tableId: undefined,
@@ -374,6 +405,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerReplaceSchemaSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.replaceSchemaState).to.have.been.calledOnceWith(
                 mockSchema,
@@ -405,6 +437,7 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerGetSchemaSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
+            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.getSchemaState).to.have.been.calledOnce;
             expect(managerStub.setSchemaHash).to.have.been.calledOnceWith(

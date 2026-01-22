@@ -74,6 +74,7 @@ export interface SchemaDesignerToolResult {
     message?: string;
     schema?: SchemaDesigner.Schema;
     reason?: "stale_state";
+    designerKey?: string;
 }
 
 export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
@@ -137,6 +138,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     success: true,
                     message: loc.schemaDesignerGetSchemaSuccess,
                     schema: currentSchema,
+                    designerKey: activeDesigner.designerKey,
                 });
             }
 
@@ -151,6 +153,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     reason: "stale_state",
                     message: loc.schemaDesignerStaleState,
                     schema: currentSchema,
+                    designerKey: activeDesigner.designerKey,
                 });
             }
 
@@ -172,6 +175,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                             success: true,
                             message: loc.schemaDesignerAddTableSuccess,
                             schema: result.schema,
+                            designerKey: activeDesigner.designerKey,
                         });
                     }
                 case "update_table":
@@ -195,6 +199,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                             success: true,
                             message: loc.schemaDesignerUpdateTableSuccess,
                             schema: result.schema,
+                            designerKey: activeDesigner.designerKey,
                         });
                     }
                 case "delete_table":
@@ -222,6 +227,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                             success: true,
                             message: loc.schemaDesignerDeleteTableSuccess,
                             schema: result.schema,
+                            designerKey: activeDesigner.designerKey,
                         });
                     }
                 case "replace_schema":
@@ -249,6 +255,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                             success: true,
                             message: loc.schemaDesignerReplaceSchemaSuccess,
                             schema: result.schema ?? schema,
+                            designerKey: activeDesigner.designerKey,
                         });
                     }
 
