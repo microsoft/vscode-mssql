@@ -55,6 +55,7 @@ import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
+import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
 
 export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormState,
@@ -62,6 +63,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     BackupDatabaseFormItemSpec,
     BackupDatabaseReducers
 > {
+    public readonly BACKUP_DATABASE_TASK_NAME = "Backup Database";
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -156,6 +158,22 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             blobContainerId: "",
         };
 
+        // Handle task completed events to close the webview if the backup task completed
+        onTaskCompleted((taskCompletedEvent: TaskCompletedEvent) => {
+            const { task, progress } = taskCompletedEvent;
+            if (task.name === this.BACKUP_DATABASE_TASK_NAME && progress.script) {
+                const filePaths = this.state.backupFiles.map((file) => file.filePath);
+                const includesAllFilePaths = filePaths.every((path) =>
+                    progress.script?.includes(path),
+                );
+
+                if (includesAllFilePaths) {
+                    this.panel.dispose();
+                    this.dispose();
+                }
+            }
+        });
+
         sendActionEvent(TelemetryViews.Backup, TelemetryActions.StartBackup);
 
         this.registerRpcHandlers();
@@ -213,7 +231,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("backupDatabase", async (state, _payload) => {
-            void this.backupHelper(TaskExecutionMode.execute, state);
+            void this.backupHelper(TaskExecutionMode.executeAndScript, state);
 
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
                 backupToUrl: state.saveToUrl ? "true" : "false",
