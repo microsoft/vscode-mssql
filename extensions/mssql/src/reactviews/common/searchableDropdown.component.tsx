@@ -222,6 +222,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [isTriggerFocused, setIsTriggerFocused] = useState(false);
     const [activeIndex, setActiveIndex] = useState<number>(-1);
 
+    const triggerBorderColor =
+        isOpen || isTriggerFocused
+            ? "var(--vscode-focusBorder)"
+            : "var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent))";
+
     const selectedOptionIndex = useMemo(
         () => props.options.findIndex((opt) => opt.value === selectedOption.value),
         [props.options, selectedOption.value],
@@ -555,13 +560,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         backgroundColor:
                             "var(--vscode-settings-dropdownBackground, var(--vscode-dropdown-background))",
                         color: "var(--vscode-settings-dropdownForeground, var(--vscode-dropdown-foreground))",
-                        border: `1px solid var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent))`,
+                        borderStyle: "solid",
+                        borderWidth: "1px",
+                        borderColor: triggerBorderColor,
                         borderRadius: "2px",
                         minHeight: "22px",
                         lineHeight: "19px",
-                        ...(isOpen || isTriggerFocused
-                            ? { borderColor: "var(--vscode-focusBorder)" }
-                            : {}),
                     }}
                     onKeyDown={handleTriggerKeyDown}
                     onFocus={() => setIsTriggerFocused(true)}
@@ -580,13 +584,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                 textOverflow: "ellipsis",
                                 fontSize: triggerFontSize,
                                 ...(getOptionDisplayText(selectedOption, props.placeholder) ===
-                                    props.placeholder
+                                props.placeholder
                                     ? { color: "var(--vscode-input-placeholderForeground)" }
                                     : {}),
                             }}
                             className={
                                 getOptionDisplayText(selectedOption, props.placeholder) ===
-                                    props.placeholder
+                                props.placeholder
                                     ? "placeholder"
                                     : ""
                             }
@@ -602,11 +606,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     width: popoverWidth > 0 ? popoverWidth : "auto",
                     minWidth: minPopupWidthPx !== undefined ? `${minPopupWidthPx}px` : undefined,
                     padding: 0,
-                    // Match Fluent listbox styling used elsewhere in the repo
-                    backgroundColor:
-                        "var(--vscode-dropdown-background, var(--vscode-editorWidget-background))",
-                    color: "var(--vscode-dropdown-foreground, var(--vscode-foreground))",
-                    border: "1px solid var(--vscode-dropdown-border, var(--vscode-input-border, transparent))",
+                    backgroundColor: "var(--vscode-editorWidget-background)",
+                    color: "var(--vscode-editorWidget-foreground, var(--vscode-foreground))",
+                    border: "1px solid var(--vscode-editorWidget-border, var(--vscode-input-border, transparent))",
                     borderRadius: "4px",
                     boxShadow: "0 2px 8px var(--vscode-widget-shadow)",
                 }}>
@@ -681,13 +683,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                             backgroundColor: isSelected
                                                 ? "var(--vscode-list-activeSelectionBackground)"
                                                 : isActive
-                                                    ? "var(--vscode-list-hoverBackground)"
-                                                    : "transparent",
+                                                  ? "var(--vscode-list-hoverBackground)"
+                                                  : "transparent",
                                             color: isSelected
                                                 ? "var(--vscode-list-activeSelectionForeground)"
                                                 : option.color
-                                                    ? tokens[option.color]
-                                                    : "var(--vscode-dropdown-foreground)",
+                                                  ? tokens[option.color]
+                                                  : "var(--vscode-editorWidget-foreground, var(--vscode-foreground))",
                                         }}>
                                         <div
                                             style={{
