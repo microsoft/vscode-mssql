@@ -24,6 +24,27 @@ const useStyles = makeStyles({
         overflow: "auto",
         padding: "15px",
     },
+    schemaSection: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        marginBottom: "20px",
+    },
+    schemaHeader: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+    schemaLabel: {
+        fontSize: "13px",
+        fontWeight: 600,
+        color: tokens.colorNeutralForeground2,
+    },
+    schemaDivider: {
+        flex: 1,
+        height: "1px",
+        backgroundColor: tokens.colorNeutralStroke2,
+    },
     entityGrid: {
         display: "flex",
         flexWrap: "wrap",
@@ -94,6 +115,18 @@ export const DabPage = ({ activeView }: DabPageProps) => {
         return dabConfig.entities.filter((e) => e.schemaName === dabSchemaFilter);
     }, [dabConfig, dabSchemaFilter]);
 
+    // Group filtered entities by schema
+    const entitiesBySchema = useMemo(() => {
+        const groups: Record<string, typeof filteredEntities> = {};
+        for (const entity of filteredEntities) {
+            if (!groups[entity.schemaName]) {
+                groups[entity.schemaName] = [];
+            }
+            groups[entity.schemaName].push(entity);
+        }
+        return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+    }, [filteredEntities]);
+
     // Show loading state while schema is being initialized
     if (!isInitialized) {
         return (
@@ -127,23 +160,31 @@ export const DabPage = ({ activeView }: DabPageProps) => {
                         <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
                     </div>
                 ) : (
-                    <div className={classes.entityGrid}>
-                        {filteredEntities.map((entity) => (
-                            <DabEntityTile
-                                key={entity.id}
-                                entity={entity}
-                                onToggleEnabled={(isEnabled) =>
-                                    toggleDabEntity(entity.id, isEnabled)
-                                }
-                                onToggleAction={(action, isEnabled) =>
-                                    toggleDabEntityAction(entity.id, action, isEnabled)
-                                }
-                                onUpdateSettings={(settings) =>
-                                    updateDabEntitySettings(entity.id, settings)
-                                }
-                            />
-                        ))}
-                    </div>
+                    entitiesBySchema.map(([schemaName, entities]) => (
+                        <div key={schemaName} className={classes.schemaSection}>
+                            <div className={classes.schemaHeader}>
+                                <Text className={classes.schemaLabel}>{schemaName}</Text>
+                                <div className={classes.schemaDivider} />
+                            </div>
+                            <div className={classes.entityGrid}>
+                                {entities.map((entity) => (
+                                    <DabEntityTile
+                                        key={entity.id}
+                                        entity={entity}
+                                        onToggleEnabled={(isEnabled) =>
+                                            toggleDabEntity(entity.id, isEnabled)
+                                        }
+                                        onToggleAction={(action, isEnabled) =>
+                                            toggleDabEntityAction(entity.id, action, isEnabled)
+                                        }
+                                        onUpdateSettings={(settings) =>
+                                            updateDabEntitySettings(entity.id, settings)
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))
                 )}
             </div>
         </div>
