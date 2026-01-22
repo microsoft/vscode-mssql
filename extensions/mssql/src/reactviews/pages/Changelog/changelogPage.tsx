@@ -12,7 +12,12 @@ import {
     makeStyles,
     shorthands,
 } from "@fluentui/react-components";
-import { ArrowRight12Regular, Dismiss12Filled } from "@fluentui/react-icons";
+import {
+    ArrowRight12Regular,
+    ChevronDown20Regular,
+    ChevronRight20Regular,
+    Dismiss12Filled,
+} from "@fluentui/react-icons";
 import React, { useState } from "react";
 
 import {
@@ -227,6 +232,7 @@ export const ChangelogPage = () => {
     const sidebarContent = state?.sidebarContent ?? [];
 
     const [showBanner, setShowBanner] = useState(true);
+    const [secondaryCollapsed, setSecondaryCollapsed] = useState(true);
 
     const openLink = async (url: string) => {
         await extensionRpc.sendRequest(ChangelogLinkRequest.type, {
@@ -428,74 +434,99 @@ export const ChangelogPage = () => {
                             </div>
                         </div>
 
-                        <Title3 as="h2">{secondaryContent.title}</Title3>
-                        <div className={classes.mainGrid}>
-                            <div className={classes.changesColumn}>
-                                {secondaryContent.entries.map((group, index) => {
-                                    const changeIcon = group.icon
-                                        ? changelogIcons[group.icon]
-                                        : undefined;
+                        <Title3
+                            as="h2"
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                cursor: "pointer",
+                                userSelect: "none",
+                            }}
+                            onClick={() => setSecondaryCollapsed(!secondaryCollapsed)}>
+                            {secondaryCollapsed ? (
+                                <ChevronRight20Regular />
+                            ) : (
+                                <ChevronDown20Regular />
+                            )}
+                            {secondaryContent.title}
+                        </Title3>
+                        {!secondaryCollapsed && (
+                            <div className={classes.mainGrid}>
+                                <div className={classes.changesColumn}>
+                                    {secondaryContent.entries.map((group, index) => {
+                                        const changeIcon = group.icon
+                                            ? changelogIcons[group.icon]
+                                            : undefined;
 
-                                    return (
-                                        <Card
-                                            key={`${group.title}-${index}`}
-                                            className={classes.changeCard}>
-                                            <h3 className={classes.changeTitle}>{group.title}</h3>
-                                            <Text className={classes.changeDescription}>
-                                                {renderDescription(
-                                                    index,
-                                                    group.description,
-                                                    group.codeSnippets,
+                                        return (
+                                            <Card
+                                                key={`${group.title}-${index}`}
+                                                className={classes.changeCard}>
+                                                <h3 className={classes.changeTitle}>
+                                                    {group.title}
+                                                </h3>
+                                                <Text className={classes.changeDescription}>
+                                                    {renderDescription(
+                                                        index,
+                                                        group.description,
+                                                        group.codeSnippets,
+                                                    )}
+                                                </Text>
+                                                {group.actions && group.actions.length > 0 && (
+                                                    <div className={classes.changeActions}>
+                                                        {group.actions.map((action, idx) => {
+                                                            if (action.type === "link") {
+                                                                return (
+                                                                    <Link
+                                                                        key={`${action.label}-${idx}`}
+                                                                        className={
+                                                                            classes.actionLink
+                                                                        }
+                                                                        onClick={() =>
+                                                                            openLink(action.value)
+                                                                        }>
+                                                                        {action.label}
+                                                                        <ArrowRight12Regular />
+                                                                    </Link>
+                                                                );
+                                                            } else if (action.type === "command") {
+                                                                return (
+                                                                    <Link
+                                                                        key={`${action.label}-${idx}`}
+                                                                        className={
+                                                                            classes.actionLink
+                                                                        }
+                                                                        onClick={() =>
+                                                                            handleAction({
+                                                                                commandId:
+                                                                                    action.value,
+                                                                                args: action.args,
+                                                                            })
+                                                                        }>
+                                                                        {action.label}
+                                                                        <ArrowRight12Regular />
+                                                                    </Link>
+                                                                );
+                                                            }
+                                                        })}
+                                                    </div>
                                                 )}
-                                            </Text>
-                                            {group.actions && group.actions.length > 0 && (
-                                                <div className={classes.changeActions}>
-                                                    {group.actions.map((action, idx) => {
-                                                        if (action.type === "link") {
-                                                            return (
-                                                                <Link
-                                                                    key={`${action.label}-${idx}`}
-                                                                    className={classes.actionLink}
-                                                                    onClick={() =>
-                                                                        openLink(action.value)
-                                                                    }>
-                                                                    {action.label}
-                                                                    <ArrowRight12Regular />
-                                                                </Link>
-                                                            );
-                                                        } else if (action.type === "command") {
-                                                            return (
-                                                                <Link
-                                                                    key={`${action.label}-${idx}`}
-                                                                    className={classes.actionLink}
-                                                                    onClick={() =>
-                                                                        handleAction({
-                                                                            commandId: action.value,
-                                                                            args: action.args,
-                                                                        })
-                                                                    }>
-                                                                    {action.label}
-                                                                    <ArrowRight12Regular />
-                                                                </Link>
-                                                            );
-                                                        }
-                                                    })}
-                                                </div>
-                                            )}
-                                            {changeIcon && (
-                                                <div className={classes.changeIconContainer}>
-                                                    <img
-                                                        className={classes.changeIcon}
-                                                        src={changeIcon}
-                                                        alt=""
-                                                    />
-                                                </div>
-                                            )}
-                                        </Card>
-                                    );
-                                })}
+                                                {changeIcon && (
+                                                    <div className={classes.changeIconContainer}>
+                                                        <img
+                                                            className={classes.changeIcon}
+                                                            src={changeIcon}
+                                                            alt=""
+                                                        />
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className={classes.sidebarStack}>
