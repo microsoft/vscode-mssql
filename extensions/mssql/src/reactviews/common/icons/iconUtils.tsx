@@ -19,7 +19,7 @@ import { Icons } from "../../../sharedInterfaces/icons";
  * Map of icon names to their React components.
  * IMPORTANT: Keep this in sync with the Icons interface in sharedInterfaces/icons.ts
  */
-const actionIcons: Record<keyof Icons, React.ComponentType> = {
+const actionIcons: Icons = {
     BookOpen16Filled: BookOpen16Filled,
     Bug16Regular: Bug16Regular,
     Chat16Regular: Chat16Regular,
