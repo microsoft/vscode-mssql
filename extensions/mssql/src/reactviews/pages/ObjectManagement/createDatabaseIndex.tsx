@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import ReactDOM from "react-dom";
 import { FluentProvider } from "@fluentui/react-components";
 import { ObjectManagementStateProvider } from "./objectManagementStateProvider";
 import {
@@ -14,6 +13,7 @@ import { CreateDatabaseDialogPage } from "./createDatabaseDialogPage";
 import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { useObjectManagementSelector } from "./objectManagementSelector";
 import "../../index.css";
+import { createRoot } from "react-dom/client";
 
 const CreateDatabaseDialogRoot = () => {
     const model = useObjectManagementSelector((state) =>
@@ -41,4 +41,4 @@ const App = () => {
     );
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+createRoot(document.getElementById("root")!).render(<App />);
