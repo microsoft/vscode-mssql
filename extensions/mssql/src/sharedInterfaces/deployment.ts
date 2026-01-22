@@ -110,7 +110,6 @@ export enum DeploymentType {
 export interface DeploymentFormItemSpec
     extends FormItemSpec<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
     componentWidth: string;
-    isAdvancedOption: boolean;
 }
 
 export type DeploymentTypeState = LocalContainersState | FabricProvisioningState;

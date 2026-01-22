@@ -108,6 +108,7 @@ import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
+import { FileBrowserService } from "../services/fileBrowserService";
 
 /**
  * The main controller class that initializes the extension
@@ -145,6 +146,7 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
+    public fileBrowserService: FileBrowserService;
 
     /**
      * The main controller constructor
@@ -843,6 +845,11 @@ export default class MainController implements vscode.Disposable {
          * Good candidate for dependency injection.
          */
         this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+
+        this.fileBrowserService = new FileBrowserService(
+            this._vscodeWrapper,
+            SqlToolsServerClient.instance,
+        );
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
@@ -1926,13 +1933,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands (only register if experimental features are enabled)
-        if (this.isExperimentalEnabled) {
-            registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-            registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-            registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
-        }
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(

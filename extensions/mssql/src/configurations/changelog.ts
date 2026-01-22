@@ -9,130 +9,246 @@ import * as constants from "../constants/constants";
 import * as locConstants from "../constants/locConstants";
 
 export const changelogConfig: ChangelogWebviewState = {
-    changes: [
+    mainContent: {
+        title: locConstants.Changelog.mainContentTitle,
+        entries: [
+            {
+                title: locConstants.Changelog.adsMigrationTitle,
+                description: locConstants.Changelog.adsMigrationDescription,
+                icon: "azureDataStudio.svg",
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdOpenAzureDataStudioMigration,
+                    },
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-ads-migration-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-january2026",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.editDataTitle,
+                description: locConstants.Changelog.editDataDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-edit-data-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-edit-data",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.dacpacTitle,
+                description: locConstants.Changelog.dacpacDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdDacpacDialog,
+                    },
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dacpac-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-dacpac-docs",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.sqlProjPublishTitle,
+                description: locConstants.Changelog.sqlProjPublishDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-sqlproj-publish-docs",
+                    },
+                ],
+            },
+        ],
+    },
+    secondaryContent: {
+        title: locConstants.Changelog.secondaryContentTitle,
+        description: locConstants.Changelog.secondaryContentDescription,
+        entries: [
+            {
+                title: locConstants.Changelog.schemaDesignerTitle,
+                description: locConstants.Changelog.schemaDesignerDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-schema-designer-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-schema-designer",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.schemaCompareTitle,
+                description: locConstants.Changelog.schemaCompareDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdSchemaCompareOpenFromCommandPalette,
+                    },
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-schema-compare-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-docs/schema-compare",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.localContainerTitle,
+                description: locConstants.Changelog.localContainerDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdDeployNewDatabase,
+                    },
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-container-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-containers",
+                    },
+                ],
+            },
+            {
+                title: locConstants.Changelog.copilotIntegrationTitle,
+                description: locConstants.Changelog.copilotIntegrationDescription,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: constants.cmdOpenGithubChat,
+                        args: [`@${constants.mssqlChatParticipantName} Hello!`],
+                    },
+                    {
+                        label: locConstants.Changelog.watchDemo,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-copilot-demo",
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-november2025",
+                    },
+                ],
+            },
+        ],
+    },
+    sidebarContent: [
         {
-            title: "Edit Data (Preview)",
-            description:
-                "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
-            codeSnippets: ["@mssql"],
+            title: locConstants.Changelog.resourcesTitle,
+            description: locConstants.Changelog.resourcesDescription,
             actions: [
                 {
-                    label: locConstants.Changelog.watchDemo,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-edit-data-demo",
+                    label: locConstants.Changelog.watchDemosOnYoutube,
+                    value: "https://aka.ms/vscode-mssql-demos",
+                    icon: "VideoClip16Filled",
                 },
                 {
-                    label: locConstants.Changelog.learnMore,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-edit-data-blog",
+                    label: locConstants.Changelog.viewRoadmap,
+                    value: "https://aka.ms/vscode-mssql-roadmap",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.readTheDocumentation,
+                    value: "https://aka.ms/vscode-mssql-docs",
+                    icon: "BookOpen16Filled",
                 },
             ],
         },
         {
-            title: "Fabric Browse / Provisioning (Preview)",
-            description:
-                "Browse Fabric workspaces and provision SQL databases directly from VS Code with a guided, developer-friendly flow.",
+            title: locConstants.Changelog.feedbackTitle,
+            description: locConstants.Changelog.feedbackDescription,
             actions: [
                 {
-                    label: locConstants.Changelog.watchDemo,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-fabric-db-demo",
+                    label: locConstants.Changelog.openNewBug,
+                    value: "https://aka.ms/vscode-mssql-bug",
+                    icon: "Bug16Regular",
                 },
                 {
-                    label: locConstants.Changelog.learnMore,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-fabric-blog",
+                    label: locConstants.Changelog.requestNewFeature,
+                    value: "https://aka.ms/vscode-mssql-feature-request",
+                    icon: "Lightbulb16Regular",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.joinTheDiscussions,
+                    value: "https://aka.ms/vscode-mssql-discussions",
+                    icon: "Chat16Regular",
+                },
+                {
+                    type: "link",
+                    label: locConstants.Changelog.copilotSurvey,
+                    value: "https://aka.ms/vscode-mssql-copilot-survey",
+                    icon: "ClipboardBulletList16Regular",
                 },
             ],
         },
         {
-            title: "Schema Designer (GA)",
-            description:
-                "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+            title: locConstants.Changelog.gettingStartedTitle,
+            description: locConstants.Changelog.gettingStartedDescription,
             actions: [
                 {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-schema-designer-demo",
+                    type: "walkthrough",
+                    label: locConstants.Changelog.mssqlWalkthrough,
+                    value: `${constants.extensionId}#mssql.getStarted`,
                 },
                 {
-                    label: locConstants.Changelog.learnMore,
+                    type: "walkthrough",
+                    label: locConstants.Changelog.copilotWalkthrough,
+                    value: `GitHub.copilot-chat#copilotWelcome`,
+                },
+                {
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-schema-designer",
+                    label: locConstants.Changelog.customizeKeyboardShortcuts,
+                    value: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
                 },
             ],
-        },
-        {
-            title: "Local SQL Server Container (GA)",
-            description:
-                "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
-            actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-container-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-containers",
-                },
-            ],
-        },
-        {
-            title: "GitHub Copilot integration (GA)",
-            description:
-                "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
-            actions: [
-                {
-                    label: locConstants.Changelog.watchDemo,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-copilot-demo",
-                },
-                {
-                    label: locConstants.Changelog.learnMore,
-                    type: "link",
-                    value: "https://aka.ms/vscode-mssql-november2025",
-                },
-                {
-                    label: locConstants.Changelog.tryIt,
-                    type: "command",
-                    value: constants.cmdOpenGithubChat,
-                    args: [`@${constants.mssqlChatParticipantName} Hello!`],
-                },
-            ],
-        },
-    ],
-    resources: [
-        {
-            label: locConstants.Changelog.watchDemosOnYoutube,
-            url: "https://aka.ms/vscode-mssql-demos",
-        },
-        {
-            label: locConstants.Changelog.viewRoadmap,
-            url: "https://aka.ms/vscode-mssql-roadmap",
-        },
-        {
-            label: locConstants.Changelog.readTheDocumentation,
-            url: "https://aka.ms/vscode-mssql-docs",
-        },
-        {
-            label: locConstants.Changelog.joinTheDiscussions,
-            url: "https://aka.ms/vscode-mssql-discussions",
-        },
-    ],
-    walkthroughs: [
-        {
-            label: "MSSQL - VS Code walkthrough",
-            walkthroughId: `${constants.extensionId}#mssql.getStarted`,
-        },
-        {
-            label: "GitHub Copilot - VS Code walkthrough",
-            walkthroughId: `GitHub.copilot-chat#copilotWelcome`,
-        },
-        {
-            label: locConstants.Changelog.customizeKeyboardShortcuts,
-            url: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
         },
     ],
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",

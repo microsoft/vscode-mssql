@@ -74,6 +74,7 @@ export interface AzureDataStudioMigrationReducers {
         connectionId: string;
     };
     closeDialog: {};
+    closeWindow: {};
     signIntoEntraAccount: {
         connectionId: string;
     };

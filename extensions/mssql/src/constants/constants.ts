@@ -167,7 +167,6 @@ export const outputContentTypeShowError = "showError";
 export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
-export const localhostIP = "127.0.0.1";
 export const defaultContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
@@ -319,6 +318,10 @@ export enum Platform {
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
+export const simple = "Simple";
+export const allFileTypes = ["*.*"];
+
+// Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
