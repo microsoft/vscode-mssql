@@ -146,6 +146,7 @@ export function DabEntityTile({
                         icon={<FluentIcons.Settings16Regular />}
                         size="small"
                         className={classes.settingsButton}
+                        disabled={!entity.isEnabled}
                         onClick={() => setSettingsDialogOpen(true)}
                         title={locConstants.schemaCompare.settings}
                     />
