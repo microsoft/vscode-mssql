@@ -10,19 +10,19 @@ import { ItemType } from 'sqldbproj';
 
 const templatesPath = getTemplatesRootPath();
 
-suite('Templates: loading templates from disk', function (): void {
-	setup(() => {
+suite('Templates', function (): void {
+	setup(async () => {
 		templates.reset();
+		await templates.loadTemplates(templatesPath);
 	});
 
 	test('Should throw error when attempting to use templates before loaded from file', async function (): Promise<void> {
+		templates.reset();
 		await shouldThrowSpecificError(() => templates.get('foobar'), 'Templates must be loaded from file before attempting to use.');
 		await shouldThrowSpecificError(() => templates.get('foobar'), 'Templates must be loaded from file before attempting to use.');
 	});
 
 	test('Should load all templates from files', async function (): Promise<void> {
-		await templates.loadTemplates(templatesPath);
-
 		// check expected counts
 
 		const numScriptObjectTypes = 13;
@@ -37,13 +37,6 @@ suite('Templates: loading templates from disk', function (): void {
 		for (const obj of templates.projectScriptTypes()) {
 			should(obj.templateScript).not.equal(undefined);
 		}
-	});
-});
-
-suite('Templates: Item Templates', function (): void {
-	setup(async () => {
-		templates.reset();
-		await templates.loadTemplates(templatesPath);
 	});
 
 	test('Should have Schema item template', async function (): Promise<void> {
