@@ -3,7 +3,7 @@
 **Branch**: `[aasim/feat/###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by the `/speckit.plan` command.
 
 ## Summary
 
@@ -17,12 +17,12 @@
   the iteration process.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
+**Language/Version**: TypeScript (Node.js 20+)  \
+**Primary Dependencies**: VS Code Extension API, React (webviews), Yarn classic workspace  \
+**Storage**: N/A (extension; uses external SQL Tools Service + remote databases)  \
+**Testing**: Mocha unit tests, Playwright smoke tests (where applicable)  \
+**Target Platform**: VS Code Desktop (extension) and Webviews
+**Project Type**: Monorepo (multiple VS Code extensions under `extensions/`)  \
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
 **Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
@@ -31,7 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- Security & privacy: confirm no secrets/PII exposure; telemetry/logging considerations documented.
+- UX/localization: confirm user-facing strings are localizable; entry points are discoverable.
+- Tests/verification: confirm test plan exists (tests or justification + alternative verification).
+- Compatibility: confirm breaking changes are identified with migration notes.
+- Diagnose-ability/perf: confirm errors are actionable; perf impact considered for hot paths.
 
 ## Project Structure
 
