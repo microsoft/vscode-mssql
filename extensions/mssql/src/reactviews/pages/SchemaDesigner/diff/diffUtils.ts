@@ -199,6 +199,33 @@ export function calculateSchemaDiff(
     const allTableIds = new Set<string>([...oldTablesById.keys(), ...newTablesById.keys()]);
     const groupsByTableId = new Map<string, TableChangeGroup>();
 
+    // Cache of oldName -> newName rename maps for tables whose columns were renamed.
+    const columnRenameCache = new Map<string, Map<string, string>>();
+
+    function getColumnRenameMap(tableId: string): Map<string, string> {
+        const cached = columnRenameCache.get(tableId);
+        if (cached) {
+            return cached;
+        }
+
+        const oldTable = oldTablesById.get(tableId);
+        const newTable = newTablesById.get(tableId);
+        const renameMap = new Map<string, string>();
+
+        if (oldTable && newTable) {
+            const oldColsById = mapById(oldTable.columns ?? []);
+            for (const newCol of newTable.columns ?? []) {
+                const oldCol = oldColsById.get(newCol.id);
+                if (oldCol && oldCol.name !== newCol.name) {
+                    renameMap.set(oldCol.name, newCol.name);
+                }
+            }
+        }
+
+        columnRenameCache.set(tableId, renameMap);
+        return renameMap;
+    }
+
     function getOrCreateGroup(
         table: sd.SchemaDesigner.Table,
         flags?: { isNew?: boolean; isDeleted?: boolean },
@@ -245,6 +272,22 @@ export function calculateSchemaDiff(
                 tableName: newTable.name,
                 tableSchema: newTable.schema,
             });
+
+            // Also surface foreign keys created on the new table as separate changes.
+            // This allows users to revert/delete individual FKs without deleting the table.
+            for (const fk of newTable.foreignKeys ?? []) {
+                pushChange(group, {
+                    id: `foreignKey:add:${newTable.id}:${fk.id}`,
+                    action: "add",
+                    category: "foreignKey",
+                    tableId: newTable.id,
+                    tableName: newTable.name,
+                    tableSchema: newTable.schema,
+                    objectId: fk.id,
+                    objectName: fk.name,
+                });
+            }
+
             continue;
         }
 
@@ -382,6 +425,33 @@ export function calculateSchemaDiff(
 
             const fkPropertyChanges = diffObject(oldFk, newFk, FOREIGN_KEY_PROPERTIES);
             if (fkPropertyChanges.length > 0) {
+                // Hide FK modify changes that are purely derived from renaming a referenced column.
+                // Users will revert the column rename (and we propagate edges/FKs) rather than reverting the FK.
+                if (
+                    fkPropertyChanges.length === 1 &&
+                    fkPropertyChanges[0].property === "referencedColumns"
+                ) {
+                    const referencedTable = newSchema.tables.find(
+                        (t) =>
+                            t.schema === newFk.referencedSchemaName &&
+                            t.name === newFk.referencedTableName,
+                    );
+
+                    if (referencedTable) {
+                        const renameMap = getColumnRenameMap(referencedTable.id);
+                        if (
+                            renameMap.size > 0 &&
+                            oldFk.referencedColumns.length === newFk.referencedColumns.length &&
+                            oldFk.referencedColumns.every(
+                                (oldCol, idx) =>
+                                    renameMap.get(oldCol) === newFk.referencedColumns[idx],
+                            )
+                        ) {
+                            continue;
+                        }
+                    }
+                }
+
                 pushChange(group, {
                     id: `foreignKey:modify:${newTable.id}:${newFk.id}`,
                     action: "modify",

@@ -22,6 +22,12 @@ import {
     CanRevertResult,
 } from "./diff/revertChange";
 import { locConstants } from "../../common/locConstants";
+import {
+    applyColumnRenamesToIncomingForeignKeyEdges,
+    applyColumnRenamesToOutgoingForeignKeyEdges,
+    buildForeignKeyEdgeId,
+    removeEdgesForForeignKey,
+} from "./schemaDesignerEdgeUtils";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -136,6 +142,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             }
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
+            eventBus.emit("refreshFlowState");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("undo", handleUndo);
@@ -150,6 +157,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             }
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
+            eventBus.emit("refreshFlowState");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("redo", handleRedo);
@@ -387,6 +395,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
             reactFlow.setNodes(existingNodes);
             reactFlow.setEdges(existingEdges);
+            eventBus.emit("refreshFlowState");
             requestAnimationFrame(async () => {
                 setCenter(nodeWithPosition.id, true);
             });
@@ -410,6 +419,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return false;
         }
 
+        // Track column renames so we can update incoming FK handles/data.
+        const renamedColumns = new Map<string, string>();
+        for (const oldCol of existingTableNode.data.columns ?? []) {
+            const newCol = updatedTable.columns.find((c) => c.id === oldCol.id);
+            if (newCol && newCol.name !== oldCol.name) {
+                renamedColumns.set(oldCol.name, newCol.name);
+            }
+        }
+
         // Updating the table name and schema in all foreign keys that reference this table
         // This is necessary because the table name and schema might have changed
         existingEdges.forEach((edge) => {
@@ -421,6 +439,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 edge.data.referencedTableName = updatedTable.name;
             }
         });
+
+        // If columns were renamed, update incoming FK edges to point to the new column names.
+        applyColumnRenamesToIncomingForeignKeyEdges(existingEdges, updatedTable.id, renamedColumns);
+
+        // Keep outgoing FK metadata in sync with column renames on this table.
+        if (renamedColumns.size > 0) {
+            for (const foreignKey of updatedTable.foreignKeys ?? []) {
+                foreignKey.columns = foreignKey.columns.map((c) => renamedColumns.get(c) ?? c);
+            }
+        }
 
         // Update the table node with the new data
         existingTableNode.data = updatedTable;
@@ -441,12 +469,26 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
             foreignKey.columns.forEach((column, index) => {
                 const referencedColumn = foreignKey.referencedColumns[index];
+
+                const sourceColumnId = updatedTable.columns.find((c) => c.name === column)?.id;
+                const referencedColumnId = referencedTable.data.columns.find(
+                    (c) => c.name === referencedColumn,
+                )?.id;
+
+                if (!sourceColumnId || !referencedColumnId) {
+                    return;
+                }
                 existingEdges.push({
-                    id: foreignKey.id,
+                    id: buildForeignKeyEdgeId(
+                        updatedTable.id,
+                        referencedTable.id,
+                        sourceColumnId,
+                        referencedColumnId,
+                    ),
                     source: updatedTable.id,
                     target: referencedTable.id,
-                    sourceHandle: `right-${column}`,
-                    targetHandle: `left-${referencedColumn}`,
+                    sourceHandle: `right-${sourceColumnId}`,
+                    targetHandle: `left-${referencedColumnId}`,
                     markerEnd: {
                         type: MarkerType.ArrowClosed,
                     },
@@ -461,6 +503,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         reactFlow.setNodes(existingNodes);
         reactFlow.setEdges(existingEdges);
+        eventBus.emit("refreshFlowState");
         requestAnimationFrame(() => {
             setCenter(updatedTable.id, true);
         });
@@ -605,16 +648,40 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return node;
         });
 
+        // Handle column rename edge updates (incoming + outgoing)
+        if (change.category === "column" && change.action === "modify") {
+            const beforeTable = existingNodes.find((n) => n.id === change.tableId)?.data;
+            const afterTable = updatedNodes.find((n) => n.id === change.tableId)?.data;
+
+            const beforeName = beforeTable?.columns.find((c) => c.id === change.objectId)?.name;
+            const afterName = afterTable?.columns.find((c) => c.id === change.objectId)?.name;
+
+            if (beforeName && afterName && beforeName !== afterName) {
+                const renameMap = new Map<string, string>([[beforeName, afterName]]);
+                applyColumnRenamesToIncomingForeignKeyEdges(
+                    existingEdges,
+                    change.tableId,
+                    renameMap,
+                );
+                applyColumnRenamesToOutgoingForeignKeyEdges(
+                    existingEdges,
+                    change.tableId,
+                    renameMap,
+                );
+                reactFlow.setEdges(existingEdges);
+            }
+        }
+
         // Handle foreign key edge updates
         if (change.category === "foreignKey") {
             const currentNode = updatedNodes.find((n) => n.id === change.tableId);
 
             if (change.action === "add") {
-                // Remove the edge for the deleted FK
-                existingEdges = existingEdges.filter((e) => e.id !== change.objectId);
+                // Revert add = remove all edges belonging to this FK
+                existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
             } else if (change.action === "delete" || change.action === "modify") {
                 // Remove existing edges for this FK and recreate them
-                existingEdges = existingEdges.filter((e) => e.id !== change.objectId);
+                existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
 
                 const baselineTable = baselineSchemaRef.current.tables.find(
                     (t) => t.id === change.tableId,
@@ -633,12 +700,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     if (referencedTable) {
                         baselineFk.columns.forEach((column, index) => {
                             const referencedColumn = baselineFk.referencedColumns[index];
+
+                            const sourceColumnId = currentNode.data.columns.find(
+                                (c) => c.name === column,
+                            )?.id;
+                            const referencedColumnId = referencedTable.data.columns.find(
+                                (c) => c.name === referencedColumn,
+                            )?.id;
+
+                            if (!sourceColumnId || !referencedColumnId) {
+                                return;
+                            }
                             existingEdges.push({
-                                id: baselineFk.id,
+                                id: buildForeignKeyEdgeId(
+                                    currentNode.id,
+                                    referencedTable.id,
+                                    sourceColumnId,
+                                    referencedColumnId,
+                                ),
                                 source: currentNode.id,
                                 target: referencedTable.id,
-                                sourceHandle: `right-${column}`,
-                                targetHandle: `left-${referencedColumn}`,
+                                sourceHandle: `right-${sourceColumnId}`,
+                                targetHandle: `left-${referencedColumnId}`,
                                 markerEnd: { type: MarkerType.ArrowClosed },
                                 data: {
                                     ...baselineFk,
@@ -655,6 +738,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
 
         reactFlow.setNodes(updatedNodes);
+        eventBus.emit("refreshFlowState");
         eventBus.emit("pushState");
         eventBus.emit("getScript");
     };

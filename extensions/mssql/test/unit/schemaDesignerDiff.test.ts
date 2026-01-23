@@ -301,6 +301,150 @@ suite("SchemaDesigner diff utils", () => {
         );
     });
 
+    test("includes foreign key add entries for newly added tables", () => {
+        const baseline: sd.SchemaDesigner.Schema = { tables: [] };
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [
+                {
+                    id: "table-new",
+                    name: "new_table",
+                    schema: "dbo",
+                    columns: [
+                        {
+                            id: "col-id",
+                            name: "id",
+                            dataType: "int",
+                            maxLength: "",
+                            precision: 0,
+                            scale: 0,
+                            isPrimaryKey: true,
+                            isIdentity: true,
+                            identitySeed: 1,
+                            identityIncrement: 1,
+                            isNullable: false,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        },
+                    ],
+                    foreignKeys: [
+                        {
+                            id: "fk-new-ref",
+                            name: "FK_new_ref",
+                            columns: ["id"],
+                            referencedSchemaName: "dbo",
+                            referencedTableName: "ref",
+                            referencedColumns: ["id"],
+                            onDeleteAction: 1,
+                            onUpdateAction: 1,
+                        },
+                    ],
+                } as unknown as sd.SchemaDesigner.Table,
+            ],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        expect(summary.hasChanges).to.equal(true);
+
+        const group = findGroup(summary, "table-new");
+        expect(group.isNew).to.equal(true);
+
+        const tableAdd = findChange(group, (c) => c.category === "table" && c.action === "add");
+        expect(tableAdd).to.exist;
+
+        const fkAdd = findChange(
+            group,
+            (c) => c.category === "foreignKey" && c.action === "add" && c.objectId === "fk-new-ref",
+        );
+        expect(fkAdd.objectName).to.equal("FK_new_ref");
+    });
+    
+    test("renaming a referenced column does not surface a derived FK modify change", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [
+                {
+                    id: "table-users",
+                    name: "users",
+                    schema: "dbo",
+                    columns: [
+                        {
+                            id: "col-user-id",
+                            name: "user_id",
+                            dataType: "int",
+                            maxLength: "",
+                            precision: 0,
+                            scale: 0,
+                            isPrimaryKey: true,
+                            isIdentity: true,
+                            identitySeed: 1,
+                            identityIncrement: 1,
+                            isNullable: false,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        },
+                    ],
+                    foreignKeys: [],
+                } as unknown as sd.SchemaDesigner.Table,
+                {
+                    id: "table-orders",
+                    name: "orders",
+                    schema: "dbo",
+                    columns: [
+                        {
+                            id: "col-user-ref",
+                            name: "user_id",
+                            dataType: "int",
+                            maxLength: "",
+                            precision: 0,
+                            scale: 0,
+                            isPrimaryKey: false,
+                            isIdentity: false,
+                            identitySeed: 0,
+                            identityIncrement: 0,
+                            isNullable: false,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        },
+                    ],
+                    foreignKeys: [
+                        {
+                            id: "fk-orders-users",
+                            name: "FK_orders_users",
+                            columns: ["user_id"],
+                            referencedSchemaName: "dbo",
+                            referencedTableName: "users",
+                            referencedColumns: ["user_id"],
+                            onDeleteAction: 1,
+                            onUpdateAction: 1,
+                        },
+                    ],
+                } as unknown as sd.SchemaDesigner.Table,
+            ],
+        };
+
+        const updated: sd.SchemaDesigner.Schema = deepClone(baseline);
+        updated.tables[0].columns[0].name = "user_id_new";
+        updated.tables[1].foreignKeys[0].referencedColumns = ["user_id_new"];
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const allChanges = summary.groups.flatMap((g) => g.changes);
+
+        const userColChange = allChanges.find(
+            (c) => c.category === "column" && c.action === "modify" && c.tableId === "table-users",
+        );
+        expect(userColChange).to.exist;
+
+        const fkModify = allChanges.find(
+            (c) => c.category === "foreignKey" && c.action === "modify" && c.tableId === "table-orders",
+        );
+        expect(fkModify).to.be.undefined;
+    });
+
     test("detects added/deleted/modified columns and validates propertyChanges", () => {
         const updated = deepClone(sampleSchema);
 
@@ -778,7 +922,7 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.canRevert).to.equal(true);
         });
 
-        test("prevents reverting column deletion when FK references it", () => {
+        test("allows reverting column deletion even when a related FK was deleted", () => {
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
             // Delete the user_id column from users table
             currentSchema.tables[0].columns = currentSchema.tables[0].columns.filter(
@@ -816,8 +960,103 @@ suite("SchemaDesigner revert logic", () => {
                 [colDeleteChange, fkDeleteChange],
                 testRevertMessages,
             );
-            expect(result.canRevert).to.equal(false);
-            expect(result.reason).to.equal(testRevertMessages.cannotRevertDeletedColumn);
+            expect(result.canRevert).to.equal(true);
+            expect(result.reason).to.be.undefined;
+        });
+
+        test("repro: delete FK1 then column, add FK2", () => {
+            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
+
+            // FK1 is the baseline FK from orders(user_id) -> users(user_id). Delete it.
+            currentSchema.tables[1].foreignKeys = [];
+            // Delete the referenced column (users.user_id)
+            currentSchema.tables[0].columns = currentSchema.tables[0].columns.filter(
+                (c) => c.name !== "user_id",
+            );
+            // Add another FK (FK2)
+            currentSchema.tables[1].foreignKeys.push({
+                id: "fk-orders-users-2",
+                name: "FK_orders_users_2",
+                columns: ["user_id"],
+                referencedSchemaName: "dbo",
+                referencedTableName: "users",
+                referencedColumns: ["user_id"],
+                onDeleteAction: 1,
+                onUpdateAction: 1,
+            });
+
+            const fk1DeleteChange: SchemaChange = {
+                id: "foreignKey:delete:table-orders:fk-orders-users",
+                action: "delete",
+                category: "foreignKey",
+                tableId: "table-orders",
+                tableName: "orders",
+                tableSchema: "dbo",
+                objectId: "fk-orders-users",
+                objectName: "FK_orders_users",
+            };
+
+            const colDeleteChange: SchemaChange = {
+                id: "column:delete:table-users:col-user-id",
+                action: "delete",
+                category: "column",
+                tableId: "table-users",
+                tableName: "users",
+                tableSchema: "dbo",
+                objectId: "col-user-id",
+                objectName: "user_id",
+            };
+
+            const fk2AddChange: SchemaChange = {
+                id: "foreignKey:add:table-orders:fk-orders-users-2",
+                action: "add",
+                category: "foreignKey",
+                tableId: "table-orders",
+                tableName: "orders",
+                tableSchema: "dbo",
+                objectId: "fk-orders-users-2",
+                objectName: "FK_orders_users_2",
+            };
+
+            const allChanges = [fk1DeleteChange, colDeleteChange, fk2AddChange];
+
+            // Cannot revert FK1 deletion while referenced column is missing
+            const fk1CanRevert = canRevertChange(
+                fk1DeleteChange,
+                baselineSchema,
+                currentSchema,
+                allChanges,
+                testRevertMessages,
+            );
+            expect(fk1CanRevert.canRevert).to.equal(false);
+            expect(fk1CanRevert.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
+
+            // Can revert the column deletion (restore column)
+            const colCanRevert = canRevertChange(
+                colDeleteChange,
+                baselineSchema,
+                currentSchema,
+                allChanges,
+                testRevertMessages,
+            );
+            expect(colCanRevert.canRevert).to.equal(true);
+
+            // Can revert FK2 add (remove FK2)
+            const fk2CanRevert = canRevertChange(
+                fk2AddChange,
+                baselineSchema,
+                currentSchema,
+                allChanges,
+                testRevertMessages,
+            );
+            expect(fk2CanRevert.canRevert).to.equal(true);
+
+            const fk2Reverted = computeRevertedSchema(fk2AddChange, baselineSchema, currentSchema);
+            expect(fk2Reverted.success).to.equal(true);
+            const orders = fk2Reverted.tables.find((t) => t.id === "table-orders");
+            expect(orders).to.exist;
+            expect(orders!.foreignKeys.find((fk) => fk.id === "fk-orders-users-2")).to.be
+                .undefined;
         });
     });
 
@@ -870,6 +1109,62 @@ suite("SchemaDesigner revert logic", () => {
             expect(restoredTable!.name).to.equal("users");
             expect(restoredTable!.columns.length).to.equal(2);
             expect(restoredTable!.foreignKeys.length).to.equal(0); // FKs not restored with table
+        });
+
+        test("reverts column deletion by restoring the column at its baseline position", () => {
+            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
+
+            // Baseline users columns are: user_id, username
+            // Create a 3-column baseline ordering for this test by inserting a middle column.
+            const baselineWithThreeCols = deepClone(baselineSchema);
+            baselineWithThreeCols.tables[0].columns = [
+                baselineWithThreeCols.tables[0].columns[0],
+                {
+                    id: "col-middle",
+                    name: "middle",
+                    dataType: "int",
+                    maxLength: "",
+                    precision: 0,
+                    scale: 0,
+                    isPrimaryKey: false,
+                    isIdentity: false,
+                    identitySeed: 0,
+                    identityIncrement: 0,
+                    isNullable: false,
+                    defaultValue: "",
+                    isComputed: false,
+                    computedFormula: "",
+                    computedPersisted: false,
+                },
+                baselineWithThreeCols.tables[0].columns[1],
+            ];
+
+            // Current schema deletes the middle column
+            currentSchema.tables[0].columns = baselineWithThreeCols.tables[0].columns.filter(
+                (c) => c.id !== "col-middle",
+            );
+
+            const change: SchemaChange = {
+                id: "column:delete:table-users:col-middle",
+                action: "delete",
+                category: "column",
+                tableId: "table-users",
+                tableName: "users",
+                tableSchema: "dbo",
+                objectId: "col-middle",
+                objectName: "middle",
+            };
+
+            const result = computeRevertedSchema(change, baselineWithThreeCols, currentSchema);
+            expect(result.success).to.equal(true);
+
+            const users = result.tables.find((t) => t.id === "table-users");
+            expect(users).to.exist;
+            expect(users!.columns.map((c) => c.id)).to.deep.equal([
+                baselineWithThreeCols.tables[0].columns[0].id,
+                "col-middle",
+                baselineWithThreeCols.tables[0].columns[2].id,
+            ]);
         });
 
         test("reverts table modification by restoring original name/schema", () => {
@@ -1012,6 +1307,63 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.success).to.equal(true);
             const usersTable = result.tables.find((t) => t.id === "table-users");
             expect(usersTable!.foreignKeys.length).to.equal(0); // Original had no FKs
+        });
+
+        test("reverts FK addition on a newly added table by removing the FK", () => {
+            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
+            currentSchema.tables.push({
+                id: "table-new",
+                name: "new_table",
+                schema: "dbo",
+                columns: [
+                    {
+                        id: "col-new-user-id",
+                        name: "user_id",
+                        dataType: "int",
+                        maxLength: "",
+                        precision: 0,
+                        scale: 0,
+                        isPrimaryKey: false,
+                        isIdentity: false,
+                        identitySeed: 0,
+                        identityIncrement: 0,
+                        isNullable: false,
+                        defaultValue: "",
+                        isComputed: false,
+                        computedFormula: "",
+                        computedPersisted: false,
+                    },
+                ],
+                foreignKeys: [
+                    {
+                        id: "fk-new-users",
+                        name: "FK_new_users",
+                        columns: ["user_id"],
+                        referencedSchemaName: "dbo",
+                        referencedTableName: "users",
+                        referencedColumns: ["user_id"],
+                        onDeleteAction: 1,
+                        onUpdateAction: 1,
+                    },
+                ],
+            });
+
+            const change: SchemaChange = {
+                id: "foreignKey:add:table-new:fk-new-users",
+                action: "add",
+                category: "foreignKey",
+                tableId: "table-new",
+                tableName: "new_table",
+                tableSchema: "dbo",
+                objectId: "fk-new-users",
+                objectName: "FK_new_users",
+            };
+
+            const result = computeRevertedSchema(change, baselineSchema, currentSchema);
+            expect(result.success).to.equal(true);
+            const newTable = result.tables.find((t) => t.id === "table-new");
+            expect(newTable).to.exist;
+            expect(newTable!.foreignKeys.length).to.equal(0);
         });
 
         test("reverts FK deletion by restoring the FK", () => {

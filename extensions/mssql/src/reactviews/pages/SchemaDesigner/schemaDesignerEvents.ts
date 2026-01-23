@@ -8,6 +8,7 @@ import { TypedEventEmitter } from "../../common/eventEmitter";
 
 export type MyEvents = {
     getScript: () => void;
+    refreshFlowState: () => void;
     openCodeDrawer: () => void;
     toggleChangesPanel: () => void;
     editTable: (
