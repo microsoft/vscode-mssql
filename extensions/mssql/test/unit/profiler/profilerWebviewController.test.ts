@@ -423,7 +423,9 @@ suite("ProfilerWebviewController Tests", () => {
             controller.notifyRowsRemoved([]);
 
             // Should not have made an additional call for empty array
-            expect((mockWebview.postMessage as sinon.SinonStub).callCount).to.equal(callCountBefore);
+            expect((mockWebview.postMessage as sinon.SinonStub).callCount).to.equal(
+                callCountBefore,
+            );
         });
 
         test("should not send notification when no session", () => {

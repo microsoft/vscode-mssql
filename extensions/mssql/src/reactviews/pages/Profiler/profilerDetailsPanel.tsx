@@ -24,7 +24,10 @@ import {
     ChevronDown16Regular,
 } from "@fluentui/react-icons";
 import { Editor } from "@monaco-editor/react";
-import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../../../sharedInterfaces/profiler";
+import {
+    ProfilerSelectedEventDetails,
+    ProfilerEventProperty,
+} from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { resolveVscodeThemeType } from "../../common/utils";
 import { locConstants } from "../../common/locConstants";
@@ -164,12 +167,9 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
     const monacoTheme = useMemo(() => resolveVscodeThemeType(themeKind), [themeKind]);
 
     // Handle tab change
-    const handleTabSelect = useCallback(
-        (_event: SelectTabEvent, data: SelectTabData) => {
-            setActiveTab(data.value as DetailsPanelTab);
-        },
-        [],
-    );
+    const handleTabSelect = useCallback((_event: SelectTabEvent, data: SelectTabData) => {
+        setActiveTab(data.value as DetailsPanelTab);
+    }, []);
 
     // Handle Open in Editor click
     const handleOpenInEditor = useCallback(() => {
@@ -280,7 +280,13 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                                 <Button
                                     size="small"
                                     appearance="subtle"
-                                    icon={isMaximized ? <ChevronDown16Regular /> : <Maximize16Regular />}
+                                    icon={
+                                        isMaximized ? (
+                                            <ChevronDown16Regular />
+                                        ) : (
+                                            <Maximize16Regular />
+                                        )
+                                    }
                                     onClick={onToggleMaximize}
                                     aria-label={isMaximized ? loc.restore : loc.maximize}
                                 />
@@ -362,7 +368,11 @@ interface PropertyRowProps {
     index: number;
     totalItems: number;
     classes: ReturnType<typeof useStyles>;
-    onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>, index: number, totalItems: number) => void;
+    onKeyDown: (
+        event: React.KeyboardEvent<HTMLDivElement>,
+        index: number,
+        totalItems: number,
+    ) => void;
 }
 
 const PropertyRow: React.FC<PropertyRowProps> = ({

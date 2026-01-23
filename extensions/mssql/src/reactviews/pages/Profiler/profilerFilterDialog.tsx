@@ -320,7 +320,13 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
                     field: c.field,
                     operator: c.operator,
                     value: VALUE_NOT_REQUIRED_OPERATORS.includes(c.operator) ? undefined : c.value,
-                    typeHint: typeHint as "string" | "number" | "date" | "datetime" | "boolean" | undefined,
+                    typeHint: typeHint as
+                        | "string"
+                        | "number"
+                        | "date"
+                        | "datetime"
+                        | "boolean"
+                        | undefined,
                 };
             });
 

@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../../../src/sharedInterfaces/profiler";
+import {
+    ProfilerSelectedEventDetails,
+    ProfilerEventProperty,
+} from "../../../src/sharedInterfaces/profiler";
 
 // Since ProfilerDetailsPanelViewController extends ReactWebviewViewController,
 // we need to test its specific functionality without full VS Code integration.
@@ -13,7 +16,9 @@ import { ProfilerSelectedEventDetails, ProfilerEventProperty } from "../../../sr
 /**
  * Helper function to create mock event details for testing
  */
-function createMockEventDetails(overrides?: Partial<ProfilerSelectedEventDetails>): ProfilerSelectedEventDetails {
+function createMockEventDetails(
+    overrides?: Partial<ProfilerSelectedEventDetails>,
+): ProfilerSelectedEventDetails {
     const defaultProperties: ProfilerEventProperty[] = [
         { label: "Event Class", value: "SQL:BatchCompleted" },
         { label: "Event Number", value: "123" },
@@ -167,7 +172,8 @@ suite("ProfilerDetailsPanelViewController Tests", () => {
         });
 
         test("should handle very long text data", () => {
-            const longQuery = "SELECT " + Array(1000).fill("column").join(", ") + " FROM LargeTable";
+            const longQuery =
+                "SELECT " + Array(1000).fill("column").join(", ") + " FROM LargeTable";
 
             const details = createMockEventDetails({ textData: longQuery });
 
