@@ -2278,7 +2278,7 @@
         "message": "Import failed: {0}",
         "comment": ["{0} is the error message returned from the import helper."]
     },
-    "This connection's group has not been selected, so this connection will be imported the root.": "This connection's group has not been selected, so this connection will be imported the root.",
+    "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",
