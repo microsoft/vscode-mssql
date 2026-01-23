@@ -160,6 +160,21 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 });
             }
 
+            const finalizeSuccess = async (
+                message: string,
+                resultSchema?: SchemaDesigner.Schema,
+            ): Promise<string> => {
+                const latestSchema = resultSchema ?? currentSchema;
+                this.updateSchemaHash(cacheKey, latestSchema);
+                return JSON.stringify({
+                    success: true,
+                    message,
+                    schema: latestSchema,
+                    server: activeDesigner.server,
+                    database: activeDesigner.database,
+                });
+            };
+
             // Handle the operation
             switch (operation) {
                 case "add_table":
@@ -173,14 +188,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerAddTableFailed,
                             });
                         }
-                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
-                        return JSON.stringify({
-                            success: true,
-                            message: loc.schemaDesignerAddTableSuccess,
-                            schema: result.schema,
-                            server: activeDesigner.server,
-                            database: activeDesigner.database,
-                        });
+                        return finalizeSuccess(loc.schemaDesignerAddTableSuccess, result.schema);
                     }
                 case "update_table":
                     if (!table) {
@@ -198,14 +206,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerUpdateTableFailed,
                             });
                         }
-                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
-                        return JSON.stringify({
-                            success: true,
-                            message: loc.schemaDesignerUpdateTableSuccess,
-                            schema: result.schema,
-                            server: activeDesigner.server,
-                            database: activeDesigner.database,
-                        });
+                        return finalizeSuccess(loc.schemaDesignerUpdateTableSuccess, result.schema);
                     }
                 case "delete_table":
                     if (!tableId && !(tableName && schemaName)) {
@@ -227,14 +228,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerDeleteTableFailed,
                             });
                         }
-                        this.updateSchemaHash(cacheKey, result.schema ?? currentSchema);
-                        return JSON.stringify({
-                            success: true,
-                            message: loc.schemaDesignerDeleteTableSuccess,
-                            schema: result.schema,
-                            server: activeDesigner.server,
-                            database: activeDesigner.database,
-                        });
+                        return finalizeSuccess(loc.schemaDesignerDeleteTableSuccess, result.schema);
                     }
                 case "replace_schema":
                     if (!schema) {
@@ -256,14 +250,10 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                                 message: result.message ?? loc.schemaDesignerReplaceSchemaFailed,
                             });
                         }
-                        this.updateSchemaHash(cacheKey, result.schema ?? schema);
-                        return JSON.stringify({
-                            success: true,
-                            message: loc.schemaDesignerReplaceSchemaSuccess,
-                            schema: result.schema ?? schema,
-                            server: activeDesigner.server,
-                            database: activeDesigner.database,
-                        });
+                        return finalizeSuccess(
+                            loc.schemaDesignerReplaceSchemaSuccess,
+                            result.schema ?? schema,
+                        );
                     }
 
                 default:

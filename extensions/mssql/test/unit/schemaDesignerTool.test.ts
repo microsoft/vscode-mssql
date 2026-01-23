@@ -286,7 +286,7 @@ suite("SchemaDesignerTool Tests", () => {
         test("should add a table", async () => {
             const mockDesigner = {
                 revealToForeground: sandbox.stub(),
-                addTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
+                addTable: sandbox.stub().resolves({ success: true, schema: { tables: [] } }),
             } as any;
 
             stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
