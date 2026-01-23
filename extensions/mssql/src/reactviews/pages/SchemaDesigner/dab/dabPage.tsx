@@ -36,9 +36,9 @@ const useStyles = makeStyles({
         gap: "8px",
     },
     schemaLabel: {
-        fontSize: "13px",
+        fontSize: "16px",
         fontWeight: 600,
-        color: tokens.colorNeutralForeground2,
+        color: tokens.colorNeutralForeground1,
     },
     schemaDivider: {
         flex: 1,
