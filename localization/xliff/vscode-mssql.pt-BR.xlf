@@ -2555,7 +2555,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
         <source xml:lang="en">Feedback</source>
-        <target state="new">Feedback</target>
+        <target state="translated">Comentários</target>
       </trans-unit>
       <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
         <source xml:lang="en">Fetch rows</source>
