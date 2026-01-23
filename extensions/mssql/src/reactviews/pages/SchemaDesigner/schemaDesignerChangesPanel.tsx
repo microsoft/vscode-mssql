@@ -160,15 +160,6 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
         fontSize: "12px",
     },
-    tableNameAdded: {
-        color: "var(--vscode-gitDecoration-addedResourceForeground)",
-    },
-    tableNameDeleted: {
-        color: "var(--vscode-gitDecoration-deletedResourceForeground)",
-    },
-    tableNameModified: {
-        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
-    },
     changeIcon: {
         display: "flex",
         alignItems: "center",
@@ -447,16 +438,6 @@ export const SchemaDesignerChangesPanel = () => {
         return classes.tableIconModified;
     };
 
-    const getTableNameClass = (group: TableChangeGroup) => {
-        if (group.isNew) {
-            return classes.tableNameAdded;
-        }
-        if (group.isDeleted) {
-            return classes.tableNameDeleted;
-        }
-        return classes.tableNameModified;
-    };
-
     const getChangeIconClass = (change: SchemaChange) => {
         switch (change.action) {
             case ChangeAction.Add:
@@ -694,10 +675,7 @@ export const SchemaDesignerChangesPanel = () => {
                                                     />
                                                 }>
                                                 <span
-                                                    className={mergeClasses(
-                                                        classes.tableName,
-                                                        getTableNameClass(group),
-                                                    )}
+                                                    className={classes.tableName}
                                                     title={content as string}>
                                                     {highlightMatches(
                                                         content as string,
