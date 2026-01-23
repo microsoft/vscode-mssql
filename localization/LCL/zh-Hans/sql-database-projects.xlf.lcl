@@ -1372,6 +1372,9 @@
       <Item ItemId=";bundle.++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[工作区中已存在 tasks.json 文件。正在将 SQL 项目生成任务添加到现有文件。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
