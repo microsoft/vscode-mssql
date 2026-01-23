@@ -107,6 +107,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string>("");
 
+    // TODO: Replace RAF wait with a deterministic schema-commit signal for tool-driven ops.
+    const waitForNextFrame = useCallback(
+        () =>
+            new Promise<void>((resolve) => {
+                requestAnimationFrame(() => resolve());
+            }),
+        [],
+    );
+
     useEffect(() => {
         const handleScript = () => {
             setTimeout(() => {
@@ -331,6 +340,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             eventBus.emit("pushState");
             eventBus.emit("getScript");
 
+            await waitForNextFrame();
             return {
                 success: true,
                 schema: extractSchema(),
@@ -378,6 +388,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             eventBus.emit("pushState");
             eventBus.emit("getScript");
 
+            await waitForNextFrame();
             return {
                 success: true,
                 schema: extractSchema(),
@@ -429,6 +440,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
             eventBus.emit("getScript");
 
+            await waitForNextFrame();
             return {
                 success: true,
                 schema: extractSchema(),
@@ -438,7 +450,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         extensionRpc.onRequest(SchemaDesigner.AddTableRequest.type, handleAddTable);
         extensionRpc.onRequest(SchemaDesigner.UpdateTableRequest.type, handleUpdateTable);
         extensionRpc.onRequest(SchemaDesigner.DeleteTableRequest.type, handleDeleteTable);
-    }, [isInitialized, extensionRpc, schemaNames, reactFlow]);
+    }, [isInitialized, extensionRpc, schemaNames, reactFlow, waitForNextFrame]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -495,14 +507,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 }
             });
 
+            await waitForNextFrame();
             return {
                 success: true,
-                schema,
+                schema: extractSchema(),
             };
         };
 
         extensionRpc.onRequest(SchemaDesigner.ReplaceSchemaRequest.type, handleReplaceSchema);
-    }, [isInitialized, extensionRpc, reactFlow]);
+    }, [isInitialized, extensionRpc, reactFlow, waitForNextFrame]);
 
     const initializeSchemaDesigner = async () => {
         try {
