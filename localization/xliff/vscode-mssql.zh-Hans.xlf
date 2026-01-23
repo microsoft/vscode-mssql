@@ -207,10 +207,6 @@
         <source xml:lang="en">All Schemas</source>
         <target state="new">All Schemas</target>
       </trans-unit>
-      <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
-        <source xml:lang="en">All Schemas</source>
-        <target state="new">All Schemas</target>
-      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">已清除用于访问你的连接的扩展的所有权限。</target>
