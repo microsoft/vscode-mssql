@@ -133,6 +133,55 @@ export const SchemaDesignerFlow = () => {
         };
     }, [reactFlow, setSchemaNodes, setRelationshipEdges]);
 
+    // Reveal/highlight foreign key edges in the graph.
+    useEffect(() => {
+        const revealForeignKeyEdges = (foreignKeyId: string) => {
+            if (!foreignKeyId) {
+                return;
+            }
+
+            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const matchingEdges = edgesFromStore.filter((e) => e.data?.id === foreignKeyId);
+
+            if (matchingEdges.length === 0) {
+                return;
+            }
+
+            // Select all edges for this FK (FKs can be multi-column -> multiple edges)
+            const updatedEdges = edgesFromStore.map((e) => ({
+                ...e,
+                selected: e.data?.id === foreignKeyId,
+            }));
+            setRelationshipEdges(updatedEdges);
+
+            // Center the viewport between the first FK edge's source/target tables
+            const first = matchingEdges[0];
+            const srcNode = reactFlow.getNode(first.source) as Node<SchemaDesigner.Table>;
+            const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
+
+            if (srcNode && tgtNode) {
+                const width = flowUtils.getTableWidth();
+                const srcHeight = flowUtils.getTableHeight(srcNode.data);
+                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+
+                const srcCx = srcNode.position.x + width / 2;
+                const srcCy = srcNode.position.y + srcHeight / 2;
+                const tgtCx = tgtNode.position.x + width / 2;
+                const tgtCy = tgtNode.position.y + tgtHeight / 2;
+
+                void reactFlow.setCenter((srcCx + tgtCx) / 2, (srcCy + tgtCy) / 2, {
+                    zoom: 1,
+                    duration: 500,
+                });
+            }
+        };
+
+        eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
+        return () => {
+            eventBus.off("revealForeignKeyEdges", revealForeignKeyEdges);
+        };
+    }, [reactFlow, setRelationshipEdges]);
+
     /**
      * Displays an error toast notification
      * @param {string} errorMessage - The error message to display

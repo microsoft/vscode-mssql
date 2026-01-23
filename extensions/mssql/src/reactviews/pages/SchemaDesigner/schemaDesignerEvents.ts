@@ -9,6 +9,7 @@ import { TypedEventEmitter } from "../../common/eventEmitter";
 export type MyEvents = {
     getScript: () => void;
     refreshFlowState: () => void;
+    revealForeignKeyEdges: (foreignKeyId: string) => void;
     openCodeDrawer: () => void;
     toggleChangesPanel: () => void;
     editTable: (

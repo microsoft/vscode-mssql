@@ -307,8 +307,12 @@ export const SchemaDesignerChangesPanel = () => {
 
     const handleReveal = useCallback(
         (change: SchemaChange) => {
-            context.updateSelectedNodes([change.tableId]);
-            context.setCenter(change.tableId, true);
+            if (change.category === "foreignKey" && change.objectId) {
+                eventBus.emit("revealForeignKeyEdges", change.objectId);
+            } else {
+                context.updateSelectedNodes([change.tableId]);
+                context.setCenter(change.tableId, true);
+            }
         },
         [context],
     );
@@ -455,7 +459,7 @@ export const SchemaDesignerChangesPanel = () => {
                                 );
 
                                 if (!item) {
-                                    return null;
+                                    return undefined;
                                 }
 
                                 if (item.nodeType === "table" && item.tableGroup) {
@@ -523,7 +527,7 @@ export const SchemaDesignerChangesPanel = () => {
                                         </TreeItem>
                                     );
                                 }
-                                return null;
+                                return undefined;
                             })}
                         </FlatTree>
                     </div>
