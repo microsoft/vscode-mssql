@@ -7,7 +7,7 @@
     // Example:
     "Copyright Header": {
         "scope": "javascript,javascriptreact,typescript,typescriptreact,css,rust",
-        "prefix": ["header", "stub", "copyright", "msft", "microsoft"],
+        "prefix": ["header", "stub", "copyright", "microsoft"],
         "body": [
             "/*---------------------------------------------------------------------------------------------",
             " *  Copyright (c) Microsoft Corporation. All rights reserved.",
