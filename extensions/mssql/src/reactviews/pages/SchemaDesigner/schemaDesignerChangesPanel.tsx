@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     Button,
     Input,
@@ -165,6 +165,9 @@ const useStyles = makeStyles({
     actionToolbar: {
         flexShrink: 0,
     },
+    searchHighlight: {
+        backgroundColor: "var(--vscode-editor-findMatchBackground)",
+    },
     treeItem: {
         "& .fui-TreeItemLayout__actions": {
             opacity: 0,
@@ -178,6 +181,36 @@ const useStyles = makeStyles({
         },
     },
 });
+
+const highlightMatches = (
+    text: string,
+    searchText: string,
+    highlightClass: string,
+): React.ReactNode => {
+    if (!searchText.trim()) {
+        return text;
+    }
+
+    const lowerText = text.toLowerCase();
+    const lowerSearch = searchText.toLowerCase().trim();
+    const index = lowerText.indexOf(lowerSearch);
+
+    if (index === -1) {
+        return text;
+    }
+
+    const before = text.slice(0, index);
+    const match = text.slice(index, index + searchText.trim().length);
+    const after = text.slice(index + searchText.trim().length);
+
+    return (
+        <>
+            {before}
+            <span className={highlightClass}>{match}</span>
+            {highlightMatches(after, searchText, highlightClass)}
+        </>
+    );
+};
 
 export const SchemaDesignerChangesPanel = () => {
     const context = useContext(SchemaDesignerContext);
@@ -494,7 +527,11 @@ export const SchemaDesignerChangesPanel = () => {
                                                         getTableNameClass(group),
                                                     )}
                                                     title={content as string}>
-                                                    {content}
+                                                    {highlightMatches(
+                                                        content as string,
+                                                        searchText,
+                                                        classes.searchHighlight,
+                                                    )}
                                                 </span>
                                             </TreeItemLayout>
                                         </TreeItem>
@@ -521,7 +558,11 @@ export const SchemaDesignerChangesPanel = () => {
                                                 <span
                                                     className={classes.changeDescription}
                                                     title={content as string}>
-                                                    {content}
+                                                    {highlightMatches(
+                                                        content as string,
+                                                        searchText,
+                                                        classes.searchHighlight,
+                                                    )}
                                                 </span>
                                             </TreeItemLayout>
                                         </TreeItem>
