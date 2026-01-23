@@ -401,11 +401,11 @@ export const SchemaDesignerChangesPanel = () => {
 
     const handleReveal = useCallback(
         (change: SchemaChange) => {
+            // Clear previous selections and select the relevant table
+            context.updateSelectedNodes([change.tableId]);
+            context.setCenter(change.tableId, true);
             if (change.category === ChangeCategory.ForeignKey && change.objectId) {
                 eventBus.emit("revealForeignKeyEdges", change.objectId);
-            } else {
-                context.updateSelectedNodes([change.tableId]);
-                context.setCenter(change.tableId, true);
             }
         },
         [context],
