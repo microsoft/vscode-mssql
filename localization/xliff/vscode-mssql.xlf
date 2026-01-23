@@ -4506,6 +4506,9 @@
     <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
       <source xml:lang="en">Azure MFA</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaDesigner.engine">
+      <source xml:lang="en">Backend used by Schema Designer (choose &apos;DacFx&apos; for full validation or &apos;In-memory&apos; for faster edits)</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
     </trans-unit>
