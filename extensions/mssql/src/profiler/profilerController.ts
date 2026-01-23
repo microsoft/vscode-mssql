@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { DatabaseEngineEdition, IServerInfo } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
@@ -21,17 +20,26 @@ import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { ProfilerTelemetry } from "./profilerTelemetry";
+import { IServerInfo } from "vscode-mssql";
+
+/**
+ * Azure SQL Database engine edition IDs from DatabaseEngineEdition const enum.
+ * These values are duplicated here because the vscode-mssql module cannot be imported
+ * at runtime (it's a declaration-only module). The const enum values are inlined
+ * during TypeScript compilation, but ts-node test execution requires runtime resolution.
+ *
+ * Values from vscode-mssql.d.ts DatabaseEngineEdition:
+ * - SqlDatabase = 5: Azure SQL Database
+ * - SqlDataWarehouse = 6: Azure Synapse Analytics (SQL DW)
+ * - SqlManagedInstance = 8: Azure SQL Managed Instance
+ * - SqlOnDemand = 11: Azure Synapse Serverless SQL
+ * - SqlDbFabric = 12: Microsoft Fabric SQL Database
+ */
+const AzureEngineEditions = [5, 6, 8, 11, 12];
 
 /**
  * Determines the engine type from server info for profiler template filtering.
  * Uses engineEditionId as the primary indicator since it's more reliable than isCloud.
- *
- * Azure SQL Database types that should use Azure templates:
- * - SqlDatabase (5): Azure SQL Database
- * - SqlDataWarehouse (6): Azure Synapse Analytics (SQL DW)
- * - SqlManagedInstance (8): Azure SQL Managed Instance
- * - SqlOnDemand (11): Azure Synapse Serverless SQL
- * - SqlDbFabric (12): Microsoft Fabric SQL Database
  *
  * @param serverInfo The server info from the connection
  * @returns EngineType.AzureSQLDB for Azure-hosted SQL, EngineType.Standalone otherwise
@@ -45,15 +53,7 @@ function getEngineTypeFromServerInfo(serverInfo: IServerInfo | undefined): Engin
 
     // Check for Azure SQL Database editions by engineEditionId
     // This is more reliable than isCloud which may not always be set correctly
-    const azureEngineEditions = [
-        DatabaseEngineEdition.SqlDatabase, // 5 - Azure SQL Database
-        DatabaseEngineEdition.SqlDataWarehouse, // 6 - Azure Synapse Analytics (SQL DW)
-        DatabaseEngineEdition.SqlManagedInstance, // 8 - Azure SQL Managed Instance
-        DatabaseEngineEdition.SqlOnDemand, // 11 - Azure Synapse Serverless
-        DatabaseEngineEdition.SqlDbFabric, // 12 - Microsoft Fabric SQL Database
-    ];
-
-    if (azureEngineEditions.includes(engineEdition)) {
+    if (AzureEngineEditions.includes(engineEdition)) {
         return EngineType.AzureSQLDB;
     }
 

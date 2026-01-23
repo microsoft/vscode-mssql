@@ -86,6 +86,20 @@ function createMockConnectionManager(sandbox: sinon.SinonSandbox): ConnectionMan
         connect: sandbox.stub().resolves(true),
         disconnect: sandbox.stub().resolves(),
         getConnectionCredentials: sandbox.stub().returns({}),
+        getConnectionInfo: sandbox.stub().returns({
+            serverInfo: {
+                engineEditionId: 3, // Enterprise (on-prem)
+                isCloud: false,
+                serverMajorVersion: 16,
+                serverMinorVersion: 0,
+                serverReleaseVersion: 0,
+                serverVersion: "16.0.0",
+                serverLevel: "",
+                serverEdition: "Enterprise",
+                azureVersion: 0,
+                osVersion: "",
+            },
+        }),
     } as unknown as ConnectionManager;
 }
 
