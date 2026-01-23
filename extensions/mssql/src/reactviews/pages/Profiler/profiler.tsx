@@ -524,7 +524,9 @@ export const Profiler: React.FC = () => {
         let csvContent = "";
 
         // Add header row
-        const headers = exportColumns.map((col) => `"${(col.name || col.field || "").replace(/"/g, '""')}"`);
+        const headers = exportColumns.map(
+            (col) => `"${(col.name || col.field || "").replace(/"/g, '""')}"`,
+        );
         csvContent += headers.join(",") + "\n";
 
         // Add data rows - export ALL items in the DataView (full dataset)
