@@ -11,6 +11,15 @@ import { ItemType } from 'sqldbproj';
 export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
 
+/**
+ * Maps item types to their default folder locations.
+ * Following SSDT conventions for folder structure (ObjectType and SchemaObjectType).
+ * Add new mappings here when adding item types that should be placed in specific folders.
+ */
+export const itemTypeToDefaultFolderMap: ReadonlyMap<ItemType, string> = new Map([
+	[ItemType.schema, constants.securityFolderName],
+]);
+
 // Object maps
 
 let scriptTypeMap: Map<string, ProjectScriptType> = new Map();

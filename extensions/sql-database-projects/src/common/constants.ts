@@ -470,6 +470,13 @@ export const postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
 export const publishProfileFriendlyName = l10n.t("Publish Profile");
 export const tasksJsonFriendlyName = l10n.t("Tasks.json");
 
+//#region Default folder paths for item types
+// Maps item types to their default folder locations when created at project root
+// These follow SSDT conventions for folder structure
+export const securityFolderName = 'Security';
+
+//#endregion
+
 //#endregion
 
 //#region Build

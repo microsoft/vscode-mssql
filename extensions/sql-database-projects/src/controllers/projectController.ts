@@ -880,6 +880,25 @@ export class ProjectsController {
 		return sameName && sameLocation;
 	}
 
+	/**
+	 * Gets the default folder path for a given item type when creating at project root.
+	 * Only returns the default folder if it already exists in the project.
+	 * @param itemType The type of item being created
+	 * @param project The project to check for existing folders
+	 * @returns The default folder path if it exists, or empty string otherwise
+	 */
+	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject): string {
+		const defaultFolder = templates.itemTypeToDefaultFolderMap.get(itemType);
+		if (!defaultFolder) {
+			return '';
+		}
+
+		// Only use the default folder if it already exists in the project
+		const folderExists = project.folders.some(f => f.relativePath === defaultFolder);
+
+		return folderExists ? defaultFolder : '';
+	}
+
 	public async addItemPromptFromNode(treeNode: dataworkspace.WorkspaceTreeItem, itemTypeName?: string): Promise<void> {
 		const projectRelativeUri = vscode.Uri.file(path.basename((treeNode.element as BaseProjectTreeItem).projectFileUri.fsPath, constants.sqlprojExtension));
 		await this.addItemPrompt(await this.getProjectFromContext(treeNode), this.getRelativePath(projectRelativeUri, treeNode.element), { itemType: itemTypeName }, treeNode.treeDataProvider as SqlDatabaseProjectTreeViewProvider);
@@ -904,6 +923,12 @@ export class ProjectsController {
 		}
 
 		const itemType = templates.get(itemTypeName);
+
+		// Get default folder for this item type if creating at project root and folder exists, otherwise use the selected folder
+		if (relativePath === '') {
+			relativePath = this.getDefaultFolderForItemType(itemType.type, project);
+		}
+
 		const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
 		const isItemTypePublishProfile = itemTypeName === constants.publishProfileFriendlyName || itemTypeName === ItemType.publishProfile;
 		const fileExtension = isItemTypePublishProfile ? constants.publishProfileExtension : constants.sqlFileExtension;

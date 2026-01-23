@@ -260,6 +260,11 @@ declare module 'sqldbproj' {
 		readonly sqlObjectScripts: IFileProjectEntry[];
 
 		/**
+		 * Folders in this project
+		 */
+		readonly folders: IFileProjectEntry[];
+
+		/**
 		 * SqlCmd variables and their values
 		 */
 		readonly sqlCmdVariables: Map<string, string>;
