@@ -68,7 +68,6 @@ export interface FabricProvisioningFormItemSpec
         FabricProvisioningFormItemSpec
     > {
     componentWidth: string;
-    isAdvancedOption: boolean;
 }
 
 export interface FabricProvisioningContextProps

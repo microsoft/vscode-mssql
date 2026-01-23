@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { assert } from "chai";
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import {
     StubStatusView,
     StubLogger,
@@ -11,6 +13,8 @@ import {
     installService,
 } from "../../src/languageservice/serviceInstallerUtil";
 import * as sinon from "sinon";
+
+chai.use(sinonChai);
 
 suite("Stub Status View tests", function (): void {
     let stubStatusView: StubStatusView;
@@ -27,28 +31,26 @@ suite("Stub Status View tests", function (): void {
 
     test("Test installing service method", () => {
         stubStatusView.installingService();
-        assert.isTrue(logStub.calledWith("..."), "Should print expected output to console");
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith("...");
     });
 
     test("Test service installed method", () => {
         stubStatusView.serviceInstalled();
-        assert.isTrue(
-            logStub.calledWith("Service installed"),
-            "Should print expected output to console",
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith(
+            "Service installed",
         );
     });
 
     test("Test service installation failed method", () => {
         stubStatusView.serviceInstallationFailed();
-        assert.isTrue(
-            logStub.calledWith("Service installation failed"),
-            "Should print expected output to console",
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith(
+            "Service installation failed",
         );
     });
 
     test("Test update service downloading progress method", () => {
         stubStatusView.updateServiceDownloadingProgress(100);
-        assert.isTrue(logStub.calledWith("100%"), "Should print expected output to console");
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith("100%");
     });
 });
 
@@ -67,43 +69,43 @@ suite("Stub Logger tests", function (): void {
 
     test("Test logdebug method", () => {
         stubLogger.logDebug("test");
-        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 
     test("Test increaseIndent method", () => {
         stubLogger.increaseIndent();
-        assert.isTrue(logStub.notCalled, "Should not have printed anything to console");
+        expect(logStub.notCalled, "Should not have printed anything to console").to.be.true;
     });
 
     test("Test decreaseIndent method", () => {
         stubLogger.decreaseIndent();
-        assert.isTrue(logStub.notCalled, "Should not have printed anything to console");
+        expect(logStub.notCalled, "Should not have printed anything to console").to.be.true;
     });
 
     test("Test append method", () => {
         stubLogger.append("test");
-        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 
     test("Test appendLine method", () => {
         stubLogger.appendLine("test");
-        assert.isTrue(logStub.calledWith("test"), "Should print expected output to console");
+        expect(logStub, "Should print expected output to console").to.have.been.calledWith("test");
     });
 });
 
 suite("Test Service Installer Util functions", () => {
     test("Test getServiceInstallDirectoryRoot function", () => {
         let path = getServiceInstallDirectoryRoot();
-        assert.isNotNull(path, "Service install directory root should not be null");
+        expect(path, "Service install directory root should not be null").to.not.be.null;
     });
 
     // test('Test getgetServiceInstallDirectory function', async () => {
     //     let dir = await getServiceInstallDirectory(undefined);
-    //     assert.isNotNull(dir, 'Service install directory should not be null');
+    //     expect(dir, 'Service install directory should not be null').to.not.be.null;
     // });
 
     test("Test installService function", async () => {
         let installedPath = await installService(undefined);
-        assert.isNotNull(installedPath, "Service installed path should not be null");
+        expect(installedPath, "Service installed path should not be null").to.not.be.null;
     });
 });

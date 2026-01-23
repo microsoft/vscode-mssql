@@ -43,6 +43,9 @@
     <trans-unit id="++CODE++51c6f6f7088acc0dd08061a0d7a08e200653d1fbdc6f47315aa2e99eb3ca1920">
       <source xml:lang="en">A reference to this database already exists in this project</source>
     </trans-unit>
+    <trans-unit id="++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8">
+      <source xml:lang="en">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
       <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
     </trans-unit>

@@ -58,6 +58,10 @@
         <source xml:lang="en">A reference to this database already exists in this project</source>
         <target state="translated">Il existe déjà une référence à cette base de données système dans votre projet.</target>
       </trans-unit>
+      <trans-unit id="++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8">
+        <source xml:lang="en">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</source>
+        <target state="translated">Un fichier « tasks.json » existe déjà dans votre espace de travail. Ajout de la tâche de génération du projet SQL au fichier existant.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
         <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
         <target state="translated">Un script {0} existe déjà. Le nouveau script ne sera pas inclus dans la build.</target>

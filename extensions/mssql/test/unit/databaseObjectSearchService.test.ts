@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import {
@@ -12,6 +14,8 @@ import {
 } from "../../src/models/contracts/metadata/metadataRequest";
 import { DatabaseObjectSearchService } from "../../src/services/databaseObjectSearchService";
 import { ObjectMetadata } from "vscode-mssql";
+
+chai.use(sinonChai);
 
 suite("DatabaseObjectSearchService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -62,7 +66,7 @@ suite("DatabaseObjectSearchService Tests", () => {
         expect(result.objects.map((o) => o.name).sort()).to.deep.equal(
             ["Customers", "vTopCustomers"].sort(),
         );
-        sinon.assert.calledOnceWithExactly(client.sendRequest, MetadataQueryRequest.type, {
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
             ownerUri: "test_uri",
         });
     });
@@ -83,7 +87,7 @@ suite("DatabaseObjectSearchService Tests", () => {
         await searchService.warmCache("uri1");
         await searchService.searchObjects("uri1", "thing");
 
-        sinon.assert.calledOnceWithExactly(client.sendRequest, MetadataQueryRequest.type, {
+        expect(client.sendRequest).to.have.been.calledOnceWithExactly(MetadataQueryRequest.type, {
             ownerUri: "uri1",
         });
     });
@@ -105,7 +109,7 @@ suite("DatabaseObjectSearchService Tests", () => {
         DatabaseObjectSearchService.clearCache("uri2");
         await searchService.searchObjects("uri2", "x");
 
-        sinon.assert.calledTwice(client.sendRequest);
+        expect(client.sendRequest).to.have.been.calledTwice;
         expect(client.sendRequest.firstCall.args).to.deep.equal([
             MetadataQueryRequest.type,
             { ownerUri: "uri2" },
@@ -122,7 +126,7 @@ suite("DatabaseObjectSearchService Tests", () => {
         expect(result.success).to.be.false;
         expect(result.objects).to.have.lengthOf(0);
         expect(result.error || "").to.match(/Search term cannot be empty/);
-        sinon.assert.notCalled(client.sendRequest);
+        expect(client.sendRequest).to.not.have.been.called;
     });
 
     test("maps metadata type names to friendly labels", async () => {

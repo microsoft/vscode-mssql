@@ -14,7 +14,10 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+import {
+    configEnableDab,
+    configSchemaDesignerEnableExpandCollapseButtons,
+} from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
@@ -23,6 +26,10 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
+}
+
+function isDABEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
@@ -55,6 +62,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
+                enableDAB: isDABEnabled(),
+                activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
                 title: databaseName,
@@ -340,6 +349,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
                 this.updateState({
                     enableExpandCollapseButtons: newValue,
+                });
+            }
+            if (e.affectsConfiguration(configEnableDab)) {
+                const newValue = isDABEnabled();
+                this.updateState({
+                    enableDAB: newValue,
                 });
             }
         });

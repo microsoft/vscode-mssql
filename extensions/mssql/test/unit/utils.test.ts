@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
@@ -97,23 +97,23 @@ suite("Utility tests - getSignInQuickPickItems", () => {
 
     test("first quick pick item should be Azure Sign In", () => {
         let signInItem = quickPickItems[0];
-        assert.notEqual(signInItem.label, undefined);
-        assert.notEqual(signInItem.description, undefined);
-        assert.equal(signInItem.command, Constants.cmdAzureSignIn);
+        expect(signInItem.label).to.not.equal(undefined);
+        expect(signInItem.description).to.not.equal(undefined);
+        expect(signInItem.command).to.equal(Constants.cmdAzureSignIn);
     });
 
     test("second quick pick item should be Azure Sign In With Device Code", () => {
         let signInWithDeviceCodeItem = quickPickItems[1];
-        assert.notEqual(signInWithDeviceCodeItem.label, undefined);
-        assert.notEqual(signInWithDeviceCodeItem.description, undefined);
-        assert.equal(signInWithDeviceCodeItem.command, Constants.cmdAzureSignInWithDeviceCode);
+        expect(signInWithDeviceCodeItem.label).to.not.equal(undefined);
+        expect(signInWithDeviceCodeItem.description).to.not.equal(undefined);
+        expect(signInWithDeviceCodeItem.command).to.equal(Constants.cmdAzureSignInWithDeviceCode);
     });
 
     test("third quick pick item should be Azure Sign In to Azure Cloud", () => {
         let signInToAzureCloudItem = quickPickItems[2];
-        assert.notEqual(signInToAzureCloudItem.label, undefined);
-        assert.notEqual(signInToAzureCloudItem.description, undefined);
-        assert.equal(signInToAzureCloudItem.command, Constants.cmdAzureSignInToCloud);
+        expect(signInToAzureCloudItem.label).to.not.equal(undefined);
+        expect(signInToAzureCloudItem.description).to.not.equal(undefined);
+        expect(signInToAzureCloudItem.command).to.equal(Constants.cmdAzureSignInToCloud);
     });
 });
 
@@ -125,7 +125,7 @@ suite.skip("Utility tests - Timer Class", () => {
         let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let duration = timer.getDuration();
-                assert.isAbove(duration, 0);
+                expect(duration).to.be.greaterThan(0);
                 resolve();
             }, 100);
         });
@@ -138,7 +138,7 @@ suite.skip("Utility tests - Timer Class", () => {
         let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let newDuration = timer.getDuration();
-                assert.notEqual(duration, newDuration);
+                expect(duration).to.not.equal(newDuration);
                 resolve();
             }, 100);
         });
@@ -204,7 +204,7 @@ suite("removeUndefinedProperties", () => {
     test("returns empty object when source is undefined", () => {
         const result = utilUtils.removeUndefinedProperties<Sample>(undefined);
 
-        assert.deepStrictEqual(result, {});
+        expect(result).to.deep.equal({});
     });
 });
 
