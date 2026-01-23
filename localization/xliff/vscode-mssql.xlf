@@ -129,6 +129,9 @@
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
+      <source xml:lang="en">Added</source>
+    </trans-unit>
     <trans-unit id="++CODE++bc6eb3b452e596a92b620948e6858d0f740a07cec116ff572cf7202785894cbf">
       <source xml:lang="en">Added column &apos;{0}&apos;</source>
       <note>{0} is the column name</note>
@@ -151,6 +154,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
+      <source xml:lang="en">All</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -501,6 +507,12 @@
       <source xml:lang="en">Cannot include {0}. Excluded dependents exist, such as {1}</source>
       <note>{0} is the name of the entry
 {1} is the name of the blocking dependency preventing inclusion.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6911a1b423a04fe5c7be67cef3b8f03bd45b8ef5c986041317322d8131df5edf">
+      <source xml:lang="en">Cannot revert: The column is part of a foreign key that references a deleted table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
+      <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
     </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
@@ -1252,6 +1264,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b48ff39c2e0f5451b9b29b09c2a74d2760db230749ffd48a6e901cc91fef9a8d">
+      <source xml:lang="en">Deleted</source>
     </trans-unit>
     <trans-unit id="++CODE++9ca6b97465f4c8972f542c20c953a0d541166912d083694710d9cb1acc8b7e5d">
       <source xml:lang="en">Deleted column &apos;{0}&apos;</source>
@@ -2658,6 +2673,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
+      <source xml:lang="en">Modified</source>
+    </trans-unit>
     <trans-unit id="++CODE++247f907d6e3294abdd7e74f9b418bdfa63295858aa3940a1c9dacaa6984db22d">
       <source xml:lang="en">Modified column &apos;{0}&apos;</source>
       <note>{0} is the column name</note>
@@ -2712,6 +2730,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
+      <source xml:lang="en">Navigate to this item in the diagram</source>
     </trans-unit>
     <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
       <source xml:lang="en">Needs attention</source>
@@ -2799,6 +2820,9 @@
     </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b2b9748d5fb147e1033227d9b53a65f26f62ff8fff7f66f037a1b020166a30a">
+      <source xml:lang="en">No changes match your search.</source>
     </trans-unit>
     <trans-unit id="++CODE++9b1d0a5f102cd0f86d612e1c6b0860d5e918d9bb28966b29acbf500dd9df5b70">
       <source xml:lang="en">No changes yet.</source>
@@ -3422,6 +3446,9 @@
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
     </trans-unit>
+    <trans-unit id="++CODE++36b830bdb447f8c758a9b58f190eed468c4bd53e9c7662ee19bca9c53d3a3e3d">
+      <source xml:lang="en">Reveal</source>
+    </trans-unit>
     <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
       <source xml:lang="en">Reveal in Explorer</source>
     </trans-unit>
@@ -3434,11 +3461,17 @@
     <trans-unit id="++CODE++da37d071c9526cb361ef4fdb39a225e2ec0eefdf323c591b5741adf58295fda8">
       <source xml:lang="en">Reverse-engineer existing databases by explaining SQL schemas and relationships</source>
     </trans-unit>
+    <trans-unit id="++CODE++0026c505347863ae188a99df6946e16ac83262585044660440699346d24784e7">
+      <source xml:lang="en">Revert</source>
+    </trans-unit>
     <trans-unit id="++CODE++289de1729d4ea9f6d9ab040fb6f260a4bb860bac27ecd4e88b968575cfc726f0">
       <source xml:lang="en">Revert Cell</source>
     </trans-unit>
     <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
       <source xml:lang="en">Revert Row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2cd8b391ded485370b446d5df90c1cdb4fb6690d6cfd939c851fd2704c5114f7">
+      <source xml:lang="en">Revert this change to its original state</source>
     </trans-unit>
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>
@@ -3656,6 +3689,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
+      <source xml:lang="en">Search changes...</source>
     </trans-unit>
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
@@ -4650,6 +4686,10 @@
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
       <note>{0} is the number of accounts</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
+      <source xml:lang="en">{0} change(s)</source>
+      <note>{0} is the number of changes</note>
     </trans-unit>
     <trans-unit id="++CODE++150b51443c0b62043c983238adcc405fe66b3fe237a6a5dc21758c5f47b52f17">
       <source xml:lang="en">{0} changed from &apos;{1}&apos; to &apos;{2}&apos;</source>

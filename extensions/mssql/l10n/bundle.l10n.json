@@ -711,6 +711,22 @@
         "message": "Modified foreign key '{0}': {1}",
         "comment": ["{0} is the foreign key name", "{1} is a list of property changes"]
     },
+    "Added": "Added",
+    "Modified": "Modified",
+    "Deleted": "Deleted",
+    "All": "All",
+    "Reveal": "Reveal",
+    "Revert": "Revert",
+    "Search changes...": "Search changes...",
+    "No changes match your search.": "No changes match your search.",
+    "Navigate to this item in the diagram": "Navigate to this item in the diagram",
+    "Revert this change to its original state": "Revert this change to its original state",
+    "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
+    "Cannot revert: The column is part of a foreign key that references a deleted table": "Cannot revert: The column is part of a foreign key that references a deleted table",
+    "{0} change(s)/{0} is the number of changes": {
+        "message": "{0} change(s)",
+        "comment": ["{0} is the number of changes"]
+    },
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
