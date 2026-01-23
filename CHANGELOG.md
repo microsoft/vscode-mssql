@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 1.39.0
+
+-   Release date: January 28, 2026
+-   Release status: GA
+
+### What’s new in 1.39.0
+
+- Added the Azure Data Studio Migration Toolkit
+- Enabled Table Explorer/Edit Data, Data-Tier Application Dialog, and Publish Project feature previews default
+- Added support for Connections and Connection Groups in workspace configuration files
+- Improved usability and fixed auto-run for Schema Compare
+- Added support for copying and exporting data in Table Explorer/Edit Data
+- Improved usability for deleting rows and undoing changes in Table Explorer/Edit Data
+- Fixed issues in Query Editor and Language Service
+
 ## Version 1.38.0
 
 -   Release date: December 16, 2025
@@ -30,7 +45,7 @@ Thank you to @ghiscoding for contributing improvements to the Edit Data feature'
 
 ### What’s new in 1.37.1
 
--   Fixed flickering scrollbars issue happening in query results grid.
+-   Fixed an issue where the results grid may have flickering scrollbars for some users
 
 ## Version 1.37.0
 
