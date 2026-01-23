@@ -207,6 +207,10 @@
         <source xml:lang="en">All Schemas</source>
         <target state="new">All Schemas</target>
       </trans-unit>
+      <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
+        <source xml:lang="en">All Schemas</source>
+        <target state="new">All Schemas</target>
+      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Tutte le autorizzazioni per consentire alle estensioni di accedere alle tue connessioni sono state cancellate.</target>
@@ -5713,9 +5717,9 @@ Query: {2}</target>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">Questa connessione non ha un nome visualizzato in Azure Data Studio.</target>
       </trans-unit>
-      <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
-        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
-        <target state="new">This connection's group has not been selected, so this connection will be imported to the root.</target>
+      <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
+        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported the root.</source>
+        <target state="translated">Il gruppo di questa connessione non è stato selezionato, quindi la connessione verrà importata nella radice.</target>
       </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
