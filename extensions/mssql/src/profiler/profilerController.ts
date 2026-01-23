@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { DatabaseEngineEdition, IServerInfo } from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState } from "./profilerTypes";
+import { SessionType, SessionState, EngineType } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
@@ -22,6 +23,49 @@ import { IConnectionProfile } from "../models/interfaces";
 import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
+ * Determines the engine type from server info for profiler template filtering.
+ * Uses engineEditionId as the primary indicator since it's more reliable than isCloud.
+ *
+ * Azure SQL Database types that should use Azure templates:
+ * - SqlDatabase (5): Azure SQL Database
+ * - SqlDataWarehouse (6): Azure Synapse Analytics (SQL DW)
+ * - SqlManagedInstance (8): Azure SQL Managed Instance
+ * - SqlOnDemand (11): Azure Synapse Serverless SQL
+ * - SqlDbFabric (12): Microsoft Fabric SQL Database
+ *
+ * @param serverInfo The server info from the connection
+ * @returns EngineType.AzureSQLDB for Azure-hosted SQL, EngineType.Standalone otherwise
+ */
+function getEngineTypeFromServerInfo(serverInfo: IServerInfo | undefined): EngineType {
+    if (!serverInfo) {
+        return EngineType.Standalone;
+    }
+
+    const engineEdition = serverInfo.engineEditionId;
+
+    // Check for Azure SQL Database editions by engineEditionId
+    // This is more reliable than isCloud which may not always be set correctly
+    const azureEngineEditions = [
+        DatabaseEngineEdition.SqlDatabase, // 5 - Azure SQL Database
+        DatabaseEngineEdition.SqlDataWarehouse, // 6 - Azure Synapse Analytics (SQL DW)
+        DatabaseEngineEdition.SqlManagedInstance, // 8 - Azure SQL Managed Instance
+        DatabaseEngineEdition.SqlOnDemand, // 11 - Azure Synapse Serverless
+        DatabaseEngineEdition.SqlDbFabric, // 12 - Microsoft Fabric SQL Database
+    ];
+
+    if (azureEngineEditions.includes(engineEdition)) {
+        return EngineType.AzureSQLDB;
+    }
+
+    // Fall back to isCloud check for any edge cases not covered by engineEditionId
+    if (serverInfo.isCloud) {
+        return EngineType.AzureSQLDB;
+    }
+
+    return EngineType.Standalone;
+}
+
+/**
  * Controller for the profiler feature.
  * Handles command registration, connection management, and launching the profiler UI.
  */
@@ -29,6 +73,7 @@ export class ProfilerController {
     private _logger: Logger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
+    private _engineType: EngineType = EngineType.Standalone;
     private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
 
     constructor(
@@ -134,6 +179,7 @@ export class ProfilerController {
 
             if (connected) {
                 this._logger.verbose(`Successfully connected to ${connectionCreds.server}`);
+                this.detectAndSetEngineType(profilerUri);
                 return profilerUri;
             } else {
                 this._logger.verbose("Connection failed");
@@ -145,6 +191,19 @@ export class ProfilerController {
             vscode.window.showErrorMessage(LocProfiler.connectionError(String(e)));
             return undefined;
         }
+    }
+
+    /**
+     * Detects and sets the engine type from the server info for a given profiler URI.
+     * @param profilerUri - The URI of the profiler connection
+     */
+    private detectAndSetEngineType(profilerUri: string): void {
+        const connectionInfo = this._connectionManager.getConnectionInfo(profilerUri);
+        const serverInfo = connectionInfo?.serverInfo;
+        this._engineType = getEngineTypeFromServerInfo(serverInfo);
+        this._logger.verbose(
+            `Detected engine type: ${this._engineType} (engineEditionId: ${serverInfo?.engineEditionId}, isCloud: ${serverInfo?.isCloud})`,
+        );
     }
 
     /**
@@ -242,8 +301,12 @@ export class ProfilerController {
 
         try {
             // Step 1: Show template selection quick pick
+            // Filter templates by the detected engine type
             const configService = getProfilerConfigService();
-            const templates = configService.getTemplates();
+            const templates = configService.getTemplatesForEngine(this._engineType);
+            this._logger.verbose(
+                `Found ${templates.length} templates for engine type: ${this._engineType}`,
+            );
 
             if (templates.length === 0) {
                 vscode.window.showWarningMessage(LocProfiler.noTemplatesAvailable);
@@ -425,6 +488,7 @@ export class ProfilerController {
             }
 
             this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
+            this.detectAndSetEngineType(profilerUri);
 
             // Use the common setup method
             await this.setupProfilerUI(profilerUri);
@@ -453,6 +517,11 @@ export class ProfilerController {
             name: name,
         }));
 
+        // Select the appropriate default template based on engine type
+        const defaultTemplateId =
+            this._engineType === EngineType.AzureSQLDB ? "Standard_Azure" : "Standard_OnPrem";
+        this._logger.verbose(`Using default template: ${defaultTemplateId}`);
+
         // Create the webview to display events with the standard template
         // Don't create a ProfilerSession yet - wait for user to select and click Start
         const webviewController = new ProfilerWebviewController(
@@ -461,7 +530,7 @@ export class ProfilerController {
             this._sessionManager,
             availableSessions,
             undefined, // No initial session name
-            "Standard_OnPrem", // templateId
+            defaultTemplateId, // templateId based on engine type
         );
 
         // Connect the details panel controller to this webview so row selections update the panel
