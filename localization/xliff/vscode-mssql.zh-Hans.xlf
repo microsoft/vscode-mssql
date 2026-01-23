@@ -5713,9 +5713,9 @@ Query: {2}</source>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">此连接在 Azure Data Studio 中没有显示名称。</target>
       </trans-unit>
-      <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
-        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported the root.</source>
-        <target state="translated">尚未选择此连接所属的组，因此该连接将导入到根目录。</target>
+      <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
+        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
+        <target state="new">This connection's group has not been selected, so this connection will be imported to the root.</target>
       </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
