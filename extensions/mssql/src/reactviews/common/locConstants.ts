@@ -920,6 +920,105 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
+
+            schemaDiff: {
+                undefinedValue: l10n.t("undefined"),
+                propertyChanged: (
+                    propertyDisplayName: string,
+                    oldValue: string,
+                    newValue: string,
+                ) =>
+                    l10n.t({
+                        message: "{0} changed from '{1}' to '{2}'",
+                        args: [propertyDisplayName, oldValue, newValue],
+                        comment: [
+                            "{0} is the display name of the property",
+                            "{1} is the old value",
+                            "{2} is the new value",
+                        ],
+                    }),
+
+                createdTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Created table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                deletedTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Deleted table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                modifiedTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Modified table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                modifiedTableWithChanges: (qualifiedTableName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified table {0}: {1}",
+                        args: [qualifiedTableName, propertyChanges],
+                        comment: [
+                            "{0} is the qualified table name",
+                            "{1} is a list of property changes",
+                        ],
+                    }),
+
+                addedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Added column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                deletedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Deleted column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                modifiedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Modified column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                modifiedColumnWithChanges: (columnName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified column '{0}': {1}",
+                        args: [columnName, propertyChanges],
+                        comment: ["{0} is the column name", "{1} is a list of property changes"],
+                    }),
+
+                addedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Added foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                deletedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Deleted foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                modifiedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Modified foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                modifiedForeignKeyWithChanges: (foreignKeyName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified foreign key '{0}': {1}",
+                        args: [foreignKeyName, propertyChanges],
+                        comment: [
+                            "{0} is the foreign key name",
+                            "{1} is a list of property changes",
+                        ],
+                    }),
+            },
         };
     }
 
