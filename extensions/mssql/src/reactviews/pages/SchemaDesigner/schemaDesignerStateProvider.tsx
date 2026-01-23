@@ -223,10 +223,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 baselineSchemaRef.current = model.schema;
             }
 
-            // Initialize changes as empty (baseline vs initial should be 0)
-            setSchemaChangesCount(0);
-            setSchemaChanges([]);
-
             const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
             setDatatypes(model.dataTypes);

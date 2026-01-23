@@ -86,6 +86,12 @@ export const SchemaDesignerFlow = () => {
                 const { nodes, edges } = await context.initializeSchemaDesigner();
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
+
+                // Trigger script generation to update the changes panel
+                // This is necessary for restored sessions that may have changes
+                setTimeout(() => {
+                    eventBus.emit("getScript");
+                }, 0);
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
                 setSchemaNodes([]);
