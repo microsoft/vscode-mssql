@@ -129,6 +129,14 @@
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++bc6eb3b452e596a92b620948e6858d0f740a07cec116ff572cf7202785894cbf">
+      <source xml:lang="en">Added column &apos;{0}&apos;</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f1488f38e72433af73c22c2016b43e97e5d652e4cdd8ee0baa86d2ddd19e4447">
+      <source xml:lang="en">Added foreign key &apos;{0}&apos;</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
     </trans-unit>
@@ -1093,6 +1101,10 @@
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
     </trans-unit>
+    <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
+      <source xml:lang="en">Created table {0}</source>
+      <note>{0} is the qualified table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
       <source xml:lang="en">Creating Container</source>
     </trans-unit>
@@ -1236,6 +1248,18 @@
     </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9ca6b97465f4c8972f542c20c953a0d541166912d083694710d9cb1acc8b7e5d">
+      <source xml:lang="en">Deleted column &apos;{0}&apos;</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1927927f4e169b240939c3ed252262deee4fe1099424c667f89b962549c01dd9">
+      <source xml:lang="en">Deleted foreign key &apos;{0}&apos;</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a5b956b22e4c5bb017d2718dae7b2f61356ba499722efe676ae4feb162cf49e9">
+      <source xml:lang="en">Deleted table {0}</source>
+      <note>{0} is the qualified table name</note>
     </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
@@ -2629,6 +2653,33 @@
     <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
+    </trans-unit>
+    <trans-unit id="++CODE++247f907d6e3294abdd7e74f9b418bdfa63295858aa3940a1c9dacaa6984db22d">
+      <source xml:lang="en">Modified column &apos;{0}&apos;</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8b8b2b1f92276bfac16ca4c1b219a0e14fe085e1a8ff20ed241c980d75605b69">
+      <source xml:lang="en">Modified column &apos;{0}&apos;: {1}</source>
+      <note>{0} is the column name
+{1} is a list of property changes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f3fed3ac5260e9d962afa7e9c3976fbe1f820afd3a1abe010faf7abb2e047092">
+      <source xml:lang="en">Modified foreign key &apos;{0}&apos;</source>
+      <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5eb923d79b1a10036893ddc34f902b9ba8483b479ce9f10fd9d859e1dc7e95a7">
+      <source xml:lang="en">Modified foreign key &apos;{0}&apos;: {1}</source>
+      <note>{0} is the foreign key name
+{1} is a list of property changes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++262d63bdafc4465b907e032f39a38463f560d64dba52d428ab76cf70bc97bf57">
+      <source xml:lang="en">Modified table {0}</source>
+      <note>{0} is the qualified table name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8c1da131c78db5c203dbde2e003b7644fc26985dbf4afee3e4f3b9d618474186">
+      <source xml:lang="en">Modified table {0}: {1}</source>
+      <note>{0} is the qualified table name
+{1} is a list of property changes</note>
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
@@ -4562,6 +4613,9 @@
     <trans-unit id="++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73">
       <source xml:lang="en">the documentation </source>
     </trans-unit>
+    <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
+      <source xml:lang="en">undefined</source>
+    </trans-unit>
     <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
       <source xml:lang="en">untitled</source>
     </trans-unit>
@@ -4585,6 +4639,12 @@
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>
       <note>{0} is the number of accounts</note>
+    </trans-unit>
+    <trans-unit id="++CODE++150b51443c0b62043c983238adcc405fe66b3fe237a6a5dc21758c5f47b52f17">
+      <source xml:lang="en">{0} changed from &apos;{1}&apos; to &apos;{2}&apos;</source>
+      <note>{0} is the display name of the property
+{1} is the old value
+{2} is the new value</note>
     </trans-unit>
     <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
       <source xml:lang="en">{0} color swatch ({1})</source>

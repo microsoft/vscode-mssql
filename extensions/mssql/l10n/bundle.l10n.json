@@ -641,6 +641,63 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
+    "undefined": "undefined",
+    "{0} changed from '{1}' to '{2}'/{0} is the display name of the property{1} is the old value{2} is the new value": {
+        "message": "{0} changed from '{1}' to '{2}'",
+        "comment": [
+            "{0} is the display name of the property",
+            "{1} is the old value",
+            "{2} is the new value"
+        ]
+    },
+    "Created table {0}/{0} is the qualified table name": {
+        "message": "Created table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Deleted table {0}/{0} is the qualified table name": {
+        "message": "Deleted table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}/{0} is the qualified table name": {
+        "message": "Modified table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}: {1}/{0} is the qualified table name{1} is a list of property changes": {
+        "message": "Modified table {0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is a list of property changes"]
+    },
+    "Added column '{0}'/{0} is the column name": {
+        "message": "Added column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Deleted column '{0}'/{0} is the column name": {
+        "message": "Deleted column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}'/{0} is the column name": {
+        "message": "Modified column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}': {1}/{0} is the column name{1} is a list of property changes": {
+        "message": "Modified column '{0}': {1}",
+        "comment": ["{0} is the column name", "{1} is a list of property changes"]
+    },
+    "Added foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Added foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Deleted foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Deleted foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Modified foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}': {1}/{0} is the foreign key name{1} is a list of property changes": {
+        "message": "Modified foreign key '{0}': {1}",
+        "comment": ["{0} is the foreign key name", "{1} is a list of property changes"]
+    },
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
