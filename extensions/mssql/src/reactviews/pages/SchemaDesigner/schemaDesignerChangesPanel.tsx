@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useRef } from "react";
 import { Button, makeStyles, Text } from "@fluentui/react-components";
-import { Dismiss12Regular } from "@fluentui/react-icons";
+import { Dismiss12Regular, CheckmarkCircle24Regular } from "@fluentui/react-icons";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 import eventBus from "./schemaDesignerEvents";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
@@ -37,8 +37,20 @@ const useStyles = makeStyles({
         minHeight: 0,
     },
     empty: {
-        padding: "10px",
-        opacity: 0.8,
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        opacity: 0.7,
+    },
+    emptyIcon: {
+        fontSize: "32px",
+        color: "var(--vscode-descriptionForeground)",
+    },
+    emptyText: {
+        color: "var(--vscode-descriptionForeground)",
     },
     row: {
         padding: "4px 0px",
@@ -97,7 +109,12 @@ export const SchemaDesignerChangesPanel = () => {
                 </div>
 
                 {context.schemaChanges.length === 0 ? (
-                    <div className={classes.empty}>{locConstants.schemaDesigner.noChangesYet}</div>
+                    <div className={classes.empty}>
+                        <CheckmarkCircle24Regular className={classes.emptyIcon} />
+                        <Text className={classes.emptyText}>
+                            {locConstants.schemaDesigner.noChangesYet}
+                        </Text>
+                    </div>
                 ) : (
                     <div className={classes.list}>
                         {context.schemaChanges.map((line) => (
