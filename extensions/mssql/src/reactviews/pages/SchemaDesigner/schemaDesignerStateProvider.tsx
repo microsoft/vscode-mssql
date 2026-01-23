@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs, getErrorMessage } from "../../common/utils";
@@ -14,6 +14,9 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { calculateSchemaDiff } from "./diff/diffUtils";
+import { describeChange } from "./diff/schemaDiff";
+import { locConstants } from "../../common/locConstants";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -55,6 +58,10 @@ export interface SchemaDesignerContextProps
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
     setIsExporting: (value: boolean) => void;
+
+    // Diff/Changes
+    schemaChangesCount: number;
+    schemaChanges: string[];
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -87,6 +94,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
+
+    // Baseline schema is fetched from the extension and must survive webview restore.
+    const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
+    const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
+    const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -136,6 +148,64 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
     }, []);
 
+    useEffect(() => {
+        const updateSchemaChanges = async () => {
+            if (!isInitialized) {
+                return;
+            }
+
+            try {
+                if (!baselineSchemaRef.current) {
+                    baselineSchemaRef.current = await extensionRpc.sendRequest(
+                        SchemaDesigner.GetBaselineSchemaRequest.type,
+                    );
+                }
+
+                if (!baselineSchemaRef.current) {
+                    return;
+                }
+
+                const currentSchema = flowUtils.extractSchemaModel(
+                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+                );
+
+                const summary = calculateSchemaDiff(baselineSchemaRef.current, currentSchema);
+
+                const changeStrings = summary.groups.flatMap((group) =>
+                    group.changes.map((change) => {
+                        const description = describeChange(change);
+                        if (change.category === "table") {
+                            return description;
+                        }
+                        const qualifiedTableName = `[${group.tableSchema}].[${group.tableName}]`;
+                        return locConstants.schemaDesigner.schemaChangeInTable(
+                            qualifiedTableName,
+                            description,
+                        );
+                    }),
+                );
+
+                setSchemaChangesCount(summary.totalChanges);
+                setSchemaChanges(changeStrings);
+            } catch {
+                // Ignore diff errors; schema designer should remain usable.
+            }
+        };
+
+        const handler = () => {
+            // getScript events can fire in quick succession; schedule after UI updates.
+            setTimeout(() => {
+                void updateSchemaChanges();
+            }, 0);
+        };
+
+        eventBus.on("getScript", handler);
+        return () => {
+            eventBus.off("getScript", handler);
+        };
+    }, [extensionRpc, isInitialized, reactFlow]);
+
     const initializeSchemaDesigner = async () => {
         try {
             setIsInitialized(false);
@@ -143,6 +213,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
             );
+
+            // Fetch baseline schema snapshot for diffing (must come from extension to survive restores)
+            try {
+                baselineSchemaRef.current = await extensionRpc.sendRequest(
+                    SchemaDesigner.GetBaselineSchemaRequest.type,
+                );
+            } catch {
+                baselineSchemaRef.current = model.schema;
+            }
+
+            // Initialize changes as empty (baseline vs initial should be 0)
+            setSchemaChangesCount(0);
+            setSchemaChanges([]);
 
             const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
@@ -446,6 +529,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
             schema: schema,
         });
+
+        // After publish, reset baseline to the published schema so changes clear.
+        const updatedSchema = (response as unknown as { updatedSchema?: SchemaDesigner.Schema })
+            .updatedSchema;
+        if (updatedSchema) {
+            baselineSchemaRef.current = updatedSchema;
+        } else {
+            try {
+                baselineSchemaRef.current = await extensionRpc.sendRequest(
+                    SchemaDesigner.GetBaselineSchemaRequest.type,
+                );
+            } catch {
+                // ignore
+            }
+        }
+        setSchemaChangesCount(0);
+        setSchemaChanges([]);
         return response;
     };
 
@@ -505,6 +605,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setRenderOnlyVisibleTables,
                 isExporting,
                 setIsExporting,
+                schemaChangesCount,
+                schemaChanges,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

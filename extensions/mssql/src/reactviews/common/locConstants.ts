@@ -921,6 +921,26 @@ export class LocConstants {
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
 
+            showChangesButtonLabel: (changeCount: number) =>
+                l10n.t({
+                    message: "Show Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of schema changes"],
+                }),
+            changesPanelTitle: (changeCount: number) =>
+                l10n.t({
+                    message: "Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of schema changes"],
+                }),
+            noChangesYet: l10n.t("No changes yet."),
+            schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [qualifiedTableName, changeDescription],
+                    comment: ["{0} is the qualified table name", "{1} is the change description"],
+                }),
+
             schemaDiff: {
                 undefinedValue: l10n.t("undefined"),
                 propertyChanged: (

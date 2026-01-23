@@ -9,6 +9,7 @@ import { TypedEventEmitter } from "../../common/eventEmitter";
 export type MyEvents = {
     getScript: () => void;
     openCodeDrawer: () => void;
+    toggleChangesPanel: () => void;
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,
