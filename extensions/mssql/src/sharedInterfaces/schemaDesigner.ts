@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { IConnectionDialogProfile } from "./connectionDialog";
 
 export namespace SchemaDesigner {
     /**
@@ -38,6 +39,12 @@ export namespace SchemaDesigner {
          * Foreign keys of the table
          */
         foreignKeys: ForeignKey[];
+        indexes?: Index[];
+        checkConstraints?: CheckConstraint[];
+        /**
+         * Optional primary key constraint name (used by in-memory engine)
+         */
+        primaryKeyName?: string;
     };
 
     export interface Column {
@@ -89,6 +96,10 @@ export namespace SchemaDesigner {
          * Default value of the column
          */
         defaultValue: string;
+        /**
+         * Default constraint name. Optional since existing schema may not expose it.
+         */
+        defaultConstraintName?: string;
         /**
          * Is column computed.
          */
@@ -145,6 +156,51 @@ export namespace SchemaDesigner {
         SET_DEFAULT = 3,
     }
 
+    export enum IndexType {
+        Clustered,
+        NonClustered,
+        Unique,
+        ColumnStore,
+    }
+
+    export interface IndexColumn {
+        name: string;
+        isDescending: boolean;
+        isIncluded: boolean;
+    }
+
+    export interface Index {
+        id?: string;
+        name: string;
+        isUnique: boolean;
+        type: IndexType;
+        columns: IndexColumn[];
+        filterDefinition?: string;
+    }
+
+    export interface CheckConstraint {
+        id?: string;
+        name: string;
+        definition: string;
+        isNoCheck: boolean;
+    }
+
+    // --- SCRIPTABLE OBJECTS ---
+    export interface ScriptableObject {
+        id?: string;
+        name: string;
+        schema: string;
+        definition: string;
+    }
+
+    export interface View extends ScriptableObject {}
+    export interface Procedure extends ScriptableObject {}
+    export interface Function extends ScriptableObject {}
+    export interface Trigger extends ScriptableObject {
+        parentTableSchema: string;
+        parentTableName: string;
+    }
+
     /**
      * Represents a script for a table
      */
@@ -187,6 +243,14 @@ export namespace SchemaDesigner {
          * Database name to fetch the schema from
          */
         databaseName: string;
+        /**
+         * Optional owner URI of an existing connection. Used by the in-memory engine to run queries.
+         */
+        ownerUri?: string;
+        /**
+         * Connection profile used to ensure the owner URI stays connected (in-memory engine only).
+         */
+        connectionProfile?: IConnectionDialogProfile;
     }
 
     /**
@@ -294,6 +358,10 @@ export namespace SchemaDesigner {
          * Session id for the schema designer session
          */
         sessionId: string;
+        /**
+         * Updated schema for the session. Required for the in-memory engine.
+         */
+        updatedSchema?: Schema;
     }
 
     export interface SchemaDesignerReport {

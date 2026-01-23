@@ -26,11 +26,11 @@ export function AutoArrangeButton() {
     const context = useContext(SchemaDesignerContext);
     const reactFlow = useReactFlow();
 
-    const autoArrange = () => {
+    const autoArrange = async () => {
         eventBus.emit("pushState");
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-        const generateComponenets = flowUtils.generatePositions(nodes, edges);
+        const generateComponenets = await flowUtils.generatePositions(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
         context.resetView();

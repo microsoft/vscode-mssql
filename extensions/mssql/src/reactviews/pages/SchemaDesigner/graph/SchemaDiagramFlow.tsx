@@ -97,7 +97,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Displays an error toast notification
-     * @param {string} errorMessage - The error message to display
+     * @param errorMessage - The error message to display
      */
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
@@ -110,7 +110,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles new connections between nodes
-     * @param {Connection} params - Connection parameters
+     * @param params - Connection parameters
      */
     const handleConnect = (params: Connection) => {
         const sourceNode = schemaNodes.find((node) => node.id === params.source);
@@ -159,7 +159,7 @@ export const SchemaDesignerFlow = () => {
                 type: MarkerType.ArrowClosed,
             },
             data: foreignKeyData,
-            type: sourceNode.id === targetNode.id ? ConnectionLineType.SmoothStep : undefined, // Use SmoothStep for self-references
+            type: "orthogonalEdge",
         };
 
         setRelationshipEdges((eds) => addEdge(newEdge, eds));
@@ -171,8 +171,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles the end of a connection attempt
-     * @param {Event} _event - The connection event
-     * @param {FinalConnectionState} connectionState - The final connection state
+     * @param _event - The connection event
+     * @param connectionState - The final connection state
      */
     const handleConnectEnd = (_event: Event, connectionState: FinalConnectionState) => {
         if (!connectionState.isValid) {
@@ -218,8 +218,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Validates if a connection is valid
-     * @param {Connection | Edge} connection - The connection to validate
-     * @returns {boolean} Whether the connection is valid
+     * @param connection - The connection to validate
+     * @returns Whether the connection is valid
      */
     const validateConnection = (
         connection: Connection | Edge<SchemaDesigner.ForeignKey>,
@@ -272,6 +272,8 @@ export const SchemaDesignerFlow = () => {
                     return await deleteElementsConfirmation();
                 }}
                 minZoom={0.05}
+                connectionLineType={ConnectionLineType.Step}
+                defaultEdgeOptions={{ type: "orthogonalEdge" }}
                 fitView>
                 <Controls />
                 <MiniMap pannable zoomable />

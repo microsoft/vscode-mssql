@@ -13,6 +13,15 @@ import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
+import {
+    configSchemaDesignerEngine,
+    extensionConfigSectionName,
+    schemaDesignerEngineInMemory,
+} from "../constants/constants";
+import { SchemaDesignerInMemoryService } from "../services/schemaDesignerInMemoryService";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { randomUUID } from "crypto";
+import * as Utils from "../models/utils";
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -57,6 +66,7 @@ export class SchemaDesignerWebviewManager {
     ): Promise<SchemaDesignerWebviewController> {
         let connectionString: string | undefined;
         let azureAccountToken: string | undefined;
+        let preparedConnectionInfo: IConnectionProfile | undefined;
         if (treeNode) {
             let connectionInfo = treeNode.connectionProfile;
             connectionInfo = (await mainController.connectionManager.prepareConnectionInfo(
@@ -75,33 +85,89 @@ export class SchemaDesignerWebviewManager {
                 true,
             );
             azureAccountToken = connectionInfo.azureAccountToken;
+            preparedConnectionInfo = connectionInfo;
         } else if (connectionUri) {
-            var connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
+            const existingConnection =
+                mainController.connectionManager.getConnectionInfo(connectionUri);
+            if (!existingConnection) {
+                throw new Error("Unable to find connection info for Schema Designer.");
+            }
+
+            let clonedConnection = Utils.deepClone(
+                existingConnection.credentials,
+            ) as IConnectionProfile;
+            clonedConnection.database = databaseName;
+            clonedConnection = (await mainController.connectionManager.prepareConnectionInfo(
+                clonedConnection,
+            )) as IConnectionProfile;
+
+            const connectionDetails =
+                await mainController.connectionManager.createConnectionDetails(clonedConnection);
             connectionString = await mainController.connectionManager.getConnectionString(
-                connectionUri,
+                connectionDetails,
                 true,
                 true,
             );
-            azureAccountToken = connInfo.credentials.azureAccountToken;
+            azureAccountToken = clonedConnection.azureAccountToken;
+            preparedConnectionInfo = clonedConnection;
         }
 
         const key = `${connectionString}-${databaseName}`;
+        const configuration = vscode.workspace.getConfiguration(extensionConfigSectionName);
+        const engineSetting = (
+            configuration.get<string>(configSchemaDesignerEngine) ?? "dacfx"
+        ).toLowerCase();
+        const useInMemoryEngine = engineSetting === schemaDesignerEngineInMemory;
+        if (useInMemoryEngine) {
+            const baseConnection = preparedConnectionInfo;
+            if (!baseConnection) {
+                throw new Error("Schema Designer requires a connection profile to initialize.");
+            }
+            const ownerUri = `${baseConnection.server ?? "schemaDesigner"}-${databaseName}-schemaDesigner-${randomUUID()}`;
+            const connected = await mainController.connectionManager.connect(
+                ownerUri,
+                baseConnection,
+                {
+                    connectionSource: "schemaDesigner",
+                },
+            );
+            if (!connected) {
+                throw new Error("Unable to establish connection for Schema Designer.");
+            }
+            connectionUri = ownerUri;
+        } else if (!connectionUri && preparedConnectionInfo) {
+            const existingOwnerUri =
+                mainController.connectionManager.getUriForConnection(preparedConnectionInfo);
+            if (existingOwnerUri) {
+                connectionUri = existingOwnerUri;
+            }
+        }
+        const serviceForController = useInMemoryEngine
+            ? new SchemaDesignerInMemoryService(
+                  SqlToolsServiceClient.instance,
+                  mainController.connectionManager,
+              )
+            : schemaDesignerService;
+
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
                 vscodeWrapper,
                 mainController,
-                schemaDesignerService,
+                serviceForController,
                 connectionString,
                 azureAccountToken,
                 databaseName,
                 this.schemaDesignerCache,
                 treeNode,
                 connectionUri,
+                useInMemoryEngine ? schemaDesignerEngineInMemory : "dacfx",
+                preparedConnectionInfo,
             );
             schemaDesigner.onDisposed(async () => {
                 this.schemaDesigners.delete(key);
-                if (this.schemaDesignerCache.get(key).isDirty) {
+                const cacheItem = this.schemaDesignerCache.get(key);
+                if (cacheItem?.isDirty) {
                     // Ensure the user wants to exit without saving
                     const choice = await vscode.window.showInformationMessage(
                         LocConstants.Webview.webviewRestorePrompt(
@@ -132,10 +198,11 @@ export class SchemaDesignerWebviewManager {
                 }
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
-                    schemaDesignerService.disposeSession({
-                        sessionId:
-                            this.schemaDesignerCache.get(key).schemaDesignerDetails.sessionId,
-                    });
+                    if (cacheItem?.schemaDesignerDetails?.sessionId) {
+                        serviceForController.disposeSession({
+                            sessionId: cacheItem.schemaDesignerDetails.sessionId,
+                        });
+                    }
                 } catch (error) {
                     console.error(`Error disposing schema designer session: ${error}`);
                 }

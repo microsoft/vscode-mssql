@@ -144,7 +144,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
             );
 
-            const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
+            const { nodes, edges } = await flowUtils.generateSchemaDesignerFlowComponents(
+                model.schema,
+            );
 
             setDatatypes(model.dataTypes);
             setSchemaNames(model.schemaNames);
@@ -244,7 +246,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         schemaModel.tables.push(table);
 
-        const updatedPositions = flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
+        const updatedPositions = await flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
 
         const nodeWithPosition = updatedPositions.nodes.find((node) => node.id === table.id);
 
@@ -358,6 +360,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         referencedColumns: [referencedColumn],
                         columns: [column],
                     },
+                    type: "orthogonalEdge",
                 });
             });
         });

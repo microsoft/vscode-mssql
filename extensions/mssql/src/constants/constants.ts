@@ -259,6 +259,9 @@ export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoM
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
+export const configSchemaDesignerEngine = "schemaDesigner.engine";
+export const schemaDesignerEngineDacFx = "dacfx";
+export const schemaDesignerEngineInMemory = "inmemory";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";

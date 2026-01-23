@@ -3934,6 +3934,11 @@ electron-to-chromium@^1.5.41:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.43.tgz#d9e69fc709ddebd521416de9d17cdef81d2d4718"
   integrity sha512-NxnmFBHDl5Sachd2P46O7UJiMaMHMLSofoIWVJq3mj8NJgG0umiSeljAVP9lGzjI0UDLJJ5jjoGjcrB8RSbjLQ==
 
+elkjs@^0.9.3:
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/elkjs/-/elkjs-0.9.3.tgz#16711f8ceb09f1b12b99e971b138a8384a529161"
+  integrity sha512-f/ZeWvW/BCXbhGEf1Ujp29EASo/lk1FDnETgNKwJrsVvGZhUWCZyg3xLJjAsxfOmt8KjswHmI5EwCQcPMpOYhQ==
+
 embla-carousel-autoplay@^8.5.1:
   version "8.6.0"
   resolved "https://registry.yarnpkg.com/embla-carousel-autoplay/-/embla-carousel-autoplay-8.6.0.tgz#bc86c97de00d52ec34b05058736ef50af6e0d0e4"

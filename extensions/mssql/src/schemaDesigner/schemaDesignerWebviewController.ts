@@ -14,10 +14,17 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+import {
+    configSchemaDesignerEnableExpandCollapseButtons,
+    schemaDesignerEngineInMemory,
+} from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { randomUUID } from "crypto";
+import { IConnectionProfile } from "../models/interfaces";
+
+type SchemaDesignerEngine = typeof schemaDesignerEngineInMemory | "dacfx";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -32,8 +39,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
+    private _connectionProfile?: IConnectionProfile;
     private _key: string = "";
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
+    private _engineMode: SchemaDesignerEngine;
+    private _activeOwnerUri: string | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -43,10 +53,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private connectionString: string,
         private accessToken: string | undefined,
         private databaseName: string,
-        private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
+    private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
-    ) {
+        engineMode: SchemaDesignerEngine = "dacfx",
+        connectionProfile?: IConnectionProfile,
+) {
         super(
             context,
             vscodeWrapper,
@@ -75,6 +87,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         );
 
         this._key = `${this.connectionString}-${this.databaseName}`;
+        this._engineMode = engineMode;
+        this._connectionProfile = connectionProfile ?? treeNode?.connectionProfile;
 
         this.setupRequestHandlers();
         this.setupConfigurationListener();
@@ -92,19 +106,26 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             );
             try {
                 let sessionResponse: SchemaDesigner.CreateSessionResponse;
-                if (!this.schemaDesignerCache.has(this._key)) {
+                const ownerUri = this.isInMemoryEngine() ? await this.ensureOwnerUri() : undefined;
+                const cachedItem = this.schemaDesignerCache.get(this._key);
+                if (!cachedItem || this.isInMemoryEngine()) {
                     sessionResponse = await this.schemaDesignerService.createSession({
                         connectionString: this.connectionString,
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
+                        ownerUri,
+                        connectionProfile: this.isInMemoryEngine()
+                            ? this._connectionProfile
+                            : undefined,
                     });
+                    if (cachedItem?.schemaDesignerDetails?.schema) {
+                        sessionResponse.schema = cachedItem.schemaDesignerDetails.schema;
+                    }
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
-                        isDirty: false,
+                        isDirty: cachedItem?.isDirty ?? false,
                     });
                 } else {
-                    // if the cache has the session, the changes have not been saved, and the
-                    // session is dirty
                     sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
                 }
                 this.schemaDesignerDetails = sessionResponse;
@@ -200,6 +221,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             try {
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
+                    updatedSchema: this.isInMemoryEngine() ? payload.schema : undefined,
                 });
                 publishActivity.end(ActivityStatus.Succeeded, undefined, {
                     tableCount: payload.schema?.tables?.length,
@@ -364,6 +386,72 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }
+        if (this._activeOwnerUri) {
+            void this.mainController.connectionManager.disconnect(this._activeOwnerUri);
+            this._activeOwnerUri = undefined;
+        }
         super.dispose();
+    }
+
+    private isInMemoryEngine(): boolean {
+        return this._engineMode === schemaDesignerEngineInMemory;
+    }
+
+    private async ensureOwnerUri(): Promise<string> {
+        if (
+            this.connectionUri &&
+            this.mainController.connectionManager.isConnected(this.connectionUri)
+        ) {
+            this._activeOwnerUri = this.connectionUri;
+            return this.connectionUri;
+        }
+
+
+        if (this.connectionUri) {
+            const connectionInfo =
+                this.mainController.connectionManager.getConnectionInfo(this.connectionUri);
+            if (connectionInfo?.credentials) {
+                const newOwnerUri = `${
+                    connectionInfo.credentials.server ?? "schemaDesigner"
+                }-${this.databaseName}-schemaDesigner-${randomUUID()}`;
+                const connected = await this.mainController.connectionManager.connect(
+                    newOwnerUri,
+                    connectionInfo.credentials,
+                    {
+                        connectionSource: "schemaDesigner",
+                    },
+                );
+                if (connected) {
+                    this._activeOwnerUri = newOwnerUri;
+                    this._connectionProfile = connectionInfo.credentials as IConnectionProfile;
+                    return newOwnerUri;
+                }
+            }
+        }
+
+        if (this._activeOwnerUri) {
+            return this._activeOwnerUri;
+        }
+
+        const connectionInfo = this.treeNode?.connectionProfile ?? this._connectionProfile;
+        if (!connectionInfo) {
+            throw new Error("Unable to determine connection for Schema Designer");
+        }
+
+        let ownerUri = this.mainController.connectionManager.getUriForConnection(connectionInfo);
+        if (!ownerUri) {
+            ownerUri = `${connectionInfo.server}-${this.databaseName}-schemaDesigner-${randomUUID()}`;
+        }
+
+        const connected = await this.mainController.connectionManager.connect(ownerUri, connectionInfo, {
+            connectionSource: "schemaDesigner",
+        });
+        if (!connected) {
+            throw new Error("Failed to establish connection for Schema Designer");
+        }
+
+        this._connectionProfile = connectionInfo;
+        this._activeOwnerUri = ownerUri;
+        return ownerUri;
     }
 }

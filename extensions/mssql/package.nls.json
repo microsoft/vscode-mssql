@@ -253,6 +253,7 @@
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
     "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
+    "mssql.schemaDesigner.engine": "Backend used by Schema Designer (choose 'DacFx' for full validation or 'In-memory' for faster edits)",
     "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.",
     "mssql.autoRevealResultsPanel": "Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.",
     "mssql.customEnvironment": "The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.",

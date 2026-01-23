@@ -17,9 +17,14 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
         request: SchemaDesigner.CreateSessionRequest,
     ): Promise<SchemaDesigner.CreateSessionResponse> {
         try {
+            const { connectionString, accessToken, databaseName } = request;
             return await this._sqlToolsClient.sendRequest(
                 SchemaDesignerRequests.CreateSession.type,
-                request,
+                {
+                    connectionString,
+                    accessToken,
+                    databaseName,
+                },
             );
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
@@ -69,9 +74,12 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
 
     async publishSession(request: SchemaDesigner.PublishSessionRequest): Promise<void> {
         try {
+            const { sessionId } = request;
             await this._sqlToolsClient.sendRequest(
                 SchemaDesignerRequests.PublishSession.type,
-                request,
+                {
+                    sessionId,
+                },
             );
         } catch (e) {
             this._sqlToolsClient.logger.error(e);
