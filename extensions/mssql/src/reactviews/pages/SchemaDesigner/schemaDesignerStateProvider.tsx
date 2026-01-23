@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useEffect, useState, useCallback } from "react";
+import { createContext, useEffect, useState, useCallback, useRef } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -38,11 +38,12 @@ export interface SchemaDesignerContextProps
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
-    deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    consumeSkipDeleteConfirmation: () => boolean;
     publishSession: () => Promise<{
         success: boolean;
         error?: string;
@@ -100,6 +101,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
+    const skipDeleteConfirmationRef = useRef(false);
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
@@ -417,7 +419,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 };
             }
 
-            const success = await deleteTable(table);
+            const success = await deleteTable(table, true);
             if (!success) {
                 return {
                     success: false,
@@ -736,14 +738,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return true;
     };
 
-    const deleteTable = async (table: SchemaDesigner.Table) => {
+    const deleteTable = async (table: SchemaDesigner.Table, skipConfirmation = false) => {
         const node = reactFlow.getNode(table.id);
         if (!node) {
             return false;
         }
+        if (skipConfirmation) {
+            skipDeleteConfirmationRef.current = true;
+        }
         await reactFlow.deleteElements({ nodes: [node] });
         eventBus.emit("pushState");
         return true;
+    };
+
+    const consumeSkipDeleteConfirmation = () => {
+        const shouldSkip = skipDeleteConfirmationRef.current;
+        skipDeleteConfirmationRef.current = false;
+        return shouldSkip;
     };
 
     /**
@@ -960,6 +971,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                consumeSkipDeleteConfirmation,
                 publishSession,
                 isInitialized,
                 closeDesigner,
