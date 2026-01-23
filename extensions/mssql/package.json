@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.38.0",
+    "version": "1.39.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -155,6 +155,7 @@
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
@@ -162,6 +163,7 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^4.1.1",
         "@xmldom/xmldom": "^0.8.11",
+        "strip-json-comments": "^5.0.1",
         "axios": "^1.12.0",
         "dotenv": "^16.4.5",
         "error-ex": "^1.3.0",
@@ -579,7 +581,7 @@
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
@@ -589,7 +591,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_tableActions@1"
                 },
                 {
@@ -830,24 +832,19 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.dacpacDialog.launch",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.launch"
                 },
                 {
-                    "command": "mssql.dacpacDialog.deploy",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.deploy"
                 },
                 {
-                    "command": "mssql.dacpacDialog.extract",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.extract"
                 },
                 {
-                    "command": "mssql.dacpacDialog.import",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.import"
                 },
                 {
-                    "command": "mssql.dacpacDialog.export",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.export"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
@@ -1315,6 +1312,11 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openAzureDataStudioMigration",
+                "title": "%mssql.openAzureDataStudioMigration%",
                 "category": "MS SQL"
             }
         ],

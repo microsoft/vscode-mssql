@@ -125,6 +125,8 @@ export interface SchemaCompareReducers {
         newTargetEndpointInfo: SchemaCompareEndpointInfo;
     };
 
+    resetEndpointsSwitched: {};
+
     compare: {
         sourceEndpointInfo: SchemaCompareEndpointInfo;
         targetEndpointInfo: SchemaCompareEndpointInfo;
@@ -213,6 +215,8 @@ export interface SchemaCompareContextProps {
         newSourceEndpointInfo: SchemaCompareEndpointInfo,
         newTargetEndpointInfo: SchemaCompareEndpointInfo,
     ) => void;
+
+    resetEndpointsSwitched: () => void;
 
     compare: (
         sourceEndpointInfo: SchemaCompareEndpointInfo,

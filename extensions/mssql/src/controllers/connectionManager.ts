@@ -52,6 +52,7 @@ import { Logger } from "../models/logger";
 import { getServerTypes } from "../models/connectionInfo";
 import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
+import { checkIfConnectionIsDockerContainer } from "../deployment/dockerUtils";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -183,7 +184,6 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                this._connectionStore,
                 this._accountStore,
                 prompter,
                 this.vscodeWrapper,
@@ -1142,12 +1142,16 @@ export default class ConnectionManager {
         if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
+            if (
+                Utils.isEmpty(password) &&
+                !(connectionCreds as IConnectionProfile).emptyPasswordInput
+            ) {
                 password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
-                    if (!password) {
-                        return false;
+                    // If user provided empty password, set the flag to avoid re-prompting
+                    if (password === undefined || password === "") {
+                        (connectionCreds as IConnectionProfile).emptyPasswordInput = true;
                     }
                 }
 
@@ -1167,6 +1171,24 @@ export default class ConnectionManager {
      */
     public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
         await this.connectionStore.saveProfilePasswordIfNeeded(profile);
+    }
+
+    public async checkForDockerConnection(profile: IConnectionProfile): Promise<string> {
+        if (!profile.containerName) {
+            const serverInfo = this.getServerInfo(profile);
+            let machineName = "";
+            if (serverInfo) {
+                machineName = (serverInfo as any)["machineName"];
+            }
+            const containerName = await checkIfConnectionIsDockerContainer(machineName);
+            if (containerName) {
+                profile.containerName = containerName;
+                // if the connection is a docker container, make sure to set the container name for future use
+                await this.connectionStore.saveProfile(profile);
+                return containerName;
+            }
+        }
+        return "";
     }
 
     /**
@@ -1407,6 +1429,7 @@ export default class ConnectionManager {
         // Handle password-based credentials
         const passwordResult = await this.handlePasswordBasedCredentials(credentials);
         if (!passwordResult) {
+            // User cancelled the password prompt
             const passwordError = new Error(LocalizedConstants.cannotConnect);
             telemetryActivity?.endFailed(
                 passwordError,

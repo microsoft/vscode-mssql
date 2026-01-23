@@ -30,6 +30,7 @@ const config = {
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
+        azureDataStudioMigration: "src/reactviews/pages/AzureDataStudioMigration/index.tsx",
     },
     bundle: true,
     outdir: "dist/views",

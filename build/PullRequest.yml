@@ -18,6 +18,8 @@ steps:
 
   - template: ./templates/build-sql-database-projects.yml@self
 
+  - template: ./templates/build-data-workspace.yml@self
+
   - task: PublishPipelineArtifact@1
     displayName: Publish artifacts
     inputs:

@@ -1414,6 +1414,12 @@ export class PublishProject {
             args: [serverName],
             comment: ["{0} is the server name"],
         });
+    public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
+        return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
+    }
+    public static DacpacPathNotFound = l10n.t(
+        "DACPAC path not found. Please build the project first.",
+    );
 }
 
 export class SchemaCompare {
@@ -1560,6 +1566,33 @@ export class Connection {
                 "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
             args: [connectionId],
             comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static orphanedConnectionGroupsWarning = (groupNames: string) => {
+        return l10n.t({
+            message:
+                "One or more connection groups reference parent groups that do not exist and have been ignored: {0}. Update your settings file to fix these entries.",
+            args: [groupNames],
+            comment: ["{0} is the comma separated list of connection group names"],
+        });
+    };
+
+    public static orphanedConnectionsWarning = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "One or more connections reference groups that do not exist and have been ignored: {0}. Update your connection settings to fix these entries.",
+            args: [connectionDisplayNames.join(", ")],
+            comment: ["{0} is the comma separated list of connection display names"],
+        });
+    };
+
+    public static multipleRootGroupsFoundError = (rootId: string) => {
+        return l10n.t({
+            message:
+                "Multiple connection groups with ID '{0}' found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.",
+            args: [rootId],
+            comment: ["{0} is the root id"],
         });
     };
 
@@ -2271,6 +2304,7 @@ export class TableExplorer {
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
+    public static rowDeletedSuccessfully = l10n.t("Row deleted.");
 
     public static title = (tableName: string) =>
         l10n.t({
@@ -2370,17 +2404,145 @@ export class TableExplorer {
     public static Save = l10n.t("Save");
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
+
+    public static exportSuccessful = (filePath: string) =>
+        l10n.t({
+            message: "Results exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+
+    public static exportFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to export results: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
+export class AzureDataStudioMigration {
+    public static PageTitle = l10n.t("Azure Data Studio Migration");
+    public static SelectConfigFileDialogTitle = l10n.t(
+        "Locate an Azure Data Studio settings.json file to import",
+    );
+    public static ImportStatusReady = l10n.t("Ready for import");
+    public static ConnectionStatusNeedsAttention = l10n.t("Needs attention");
+    public static ConnectionStatusAlreadyImported = (
+        connectionDisplayName: string,
+        connectionId: string,
+    ) =>
+        l10n.t({
+            message: "Connection with the same ID is already imported: {0} (ID: {1})",
+            args: [connectionDisplayName, connectionId],
+            comment: ["{0} is the connection display name", "{1} is the connection ID"],
+        });
+
+    public static ConnectionGroupStatusAlreadyImported = (groupName: string, groupId: string) =>
+        l10n.t({
+            message: "Connection group with the same ID is already imported: {0} (ID: {1})",
+            args: [groupName, groupId],
+            comment: ["{0} is the group name", "{1} is the group ID"],
+        });
+    public static connectionIssueMissingSqlPassword = (username: string) =>
+        l10n.t({
+            message: "Enter the SQL Login password for user '{0}'.",
+            args: [username],
+            comment: ["{0} is the SQL Login username"],
+        });
+    public static connectionIssueMissingAzureAccount = (username: string) =>
+        l10n.t({
+            message: "Sign in with Entra ID '{0}'.",
+            args: [username],
+            comment: ["{0} is the Entra ID username"],
+        });
+
+    public static EntraSignInDialogUnknownAccount = l10n.t("Unknown account");
+    public static EntraSignInDialogUnknownTenant = l10n.t("Unknown tenant ID");
+
+    public static importProgressSuccessMessage = l10n.t(
+        "Import complete. You can close this dialog.",
+    );
+    public static importProgressErrorMessage = (error: string) =>
+        l10n.t({
+            message: "Import failed: {0}",
+            args: [error],
+            comment: ["{0} is the error message returned from the import helper."],
+        });
+
+    public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
+        "This connection's group has not been selected, so this connection will be imported the root.",
+    );
 }
 
 export class Changelog {
     public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
     public static tryIt = l10n.t("Try it");
+    public static watchDemo = l10n.t("Watch demo");
+    public static learnMore = l10n.t("Learn more");
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
-    public static readTheDocumentation = l10n.t("Read the documentation");
+    public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
     public static joinTheDiscussions = l10n.t("Join the discussions");
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
+
+    // Main content
+    public static mainContentTitle = l10n.t("Highlights");
+    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationDescription = l10n.t(
+        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+    );
+    public static editDataTitle = l10n.t("Edit Data (Preview)");
+    public static editDataDescription = l10n.t(
+        "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static dacpacTitle = l10n.t(
+        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
+    );
+    public static dacpacDescription = l10n.t(
+        "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
+    );
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishDescription = l10n.t(
+        "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
+    );
+
+    // Secondary content
+    public static secondaryContentTitle = l10n.t("In case you missed it");
+    public static secondaryContentDescription = l10n.t(
+        "Previously released features you may not have explored yet.",
+    );
+    public static schemaDesignerTitle = l10n.t("Schema Designer");
+    public static schemaDesignerDescription = l10n.t(
+        "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    );
+    public static schemaCompareTitle = l10n.t("Schema Compare");
+    public static schemaCompareDescription = l10n.t(
+        "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    );
+    public static localContainerTitle = l10n.t("Local SQL Server Container");
+    public static localContainerDescription = l10n.t(
+        "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
+    );
+    public static copilotIntegrationTitle = l10n.t("GitHub Copilot integration");
+    public static copilotIntegrationDescription = l10n.t(
+        "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    );
+
+    // Sidebar content
+    public static resourcesTitle = l10n.t("Resources");
+    public static resourcesDescription = l10n.t("Explore tutorials, docs, and what's coming next.");
+    public static feedbackTitle = l10n.t("Feedback");
+    public static feedbackDescription = l10n.t("Help us improve by sharing your thoughts.");
+    public static openNewBug = l10n.t("Open a new bug");
+    public static requestNewFeature = l10n.t("Request a new feature");
+    public static copilotSurvey = l10n.t("GitHub Copilot survey");
+    public static gettingStartedTitle = l10n.t("Getting Started");
+    public static gettingStartedDescription = l10n.t(
+        "New to the MSSQL extension? Check out our quick-start guide.",
+    );
+    public static mssqlWalkthrough = l10n.t("MSSQL - VS Code walkthrough");
+    public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 }
 
 export class Proxy {

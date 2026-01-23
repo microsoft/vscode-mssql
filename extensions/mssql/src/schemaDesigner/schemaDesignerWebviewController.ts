@@ -15,8 +15,9 @@ import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
-    configSchemaDesignerEnableExpandCollapseButtons,
     schemaDesignerEngineInMemory,
+    configEnableDab,
+    configSchemaDesignerEnableExpandCollapseButtons,
 } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
@@ -30,6 +31,10 @@ function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
+}
+
+function isDABEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
@@ -53,12 +58,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private connectionString: string,
         private accessToken: string | undefined,
         private databaseName: string,
-    private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
+        private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
         private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
         engineMode: SchemaDesignerEngine = "dacfx",
         connectionProfile?: IConnectionProfile,
-) {
+    ) {
         super(
             context,
             vscodeWrapper,
@@ -66,6 +71,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
+                enableDAB: isDABEnabled(),
+                activeView: SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner,
             },
             {
                 title: databaseName,
@@ -362,6 +369,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     enableExpandCollapseButtons: newValue,
                 });
             }
+            if (e.affectsConfiguration(configEnableDab)) {
+                const newValue = isDABEnabled();
+                this.updateState({
+                    enableDAB: newValue,
+                });
+            }
         });
         this.registerDisposable(configChangeDisposable);
     }
@@ -406,10 +419,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             return this.connectionUri;
         }
 
-
         if (this.connectionUri) {
-            const connectionInfo =
-                this.mainController.connectionManager.getConnectionInfo(this.connectionUri);
+            const connectionInfo = this.mainController.connectionManager.getConnectionInfo(
+                this.connectionUri,
+            );
             if (connectionInfo?.credentials) {
                 const newOwnerUri = `${
                     connectionInfo.credentials.server ?? "schemaDesigner"
@@ -443,9 +456,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             ownerUri = `${connectionInfo.server}-${this.databaseName}-schemaDesigner-${randomUUID()}`;
         }
 
-        const connected = await this.mainController.connectionManager.connect(ownerUri, connectionInfo, {
-            connectionSource: "schemaDesigner",
-        });
+        const connected = await this.mainController.connectionManager.connect(
+            ownerUri,
+            connectionInfo,
+            {
+                connectionSource: "schemaDesigner",
+            },
+        );
         if (!connected) {
             throw new Error("Failed to establish connection for Schema Designer");
         }

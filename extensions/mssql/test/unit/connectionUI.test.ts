@@ -12,6 +12,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
+    IConnectionGroup,
 } from "../../src/models/interfaces";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AccountStore } from "../../src/azure/accountStore";
@@ -19,6 +20,9 @@ import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import { stubVscodeWrapper } from "./utils";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import * as LocConstants from "../../src/constants/locConstants";
+import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
 
 const expect = chai.expect;
 
@@ -78,8 +82,10 @@ suite("Connection UI tests", () => {
         vscodeWrapperStub.executeCommand.resolves(undefined);
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
-        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         accountStoreStub = sandbox.createStubInstance(AccountStore);
+
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        connectionManagerStub.connectionStore = connectionStoreStub;
 
         promptStub = sandbox.stub();
         promptSingleStub = sandbox.stub();
@@ -91,7 +97,6 @@ suite("Connection UI tests", () => {
 
         connectionUI = new ConnectionUI(
             connectionManagerStub,
-            connectionStoreStub,
             accountStoreStub,
             prompter,
             vscodeWrapperStub,
@@ -214,9 +219,7 @@ suite("Connection UI tests", () => {
 
         await connectionUI.removeProfile();
 
-        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
-            false,
-        );
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.have.been.calledOnce;
         expect(connectionStoreStub.removeProfile).to.have.been.calledOnce;
     });
@@ -226,9 +229,7 @@ suite("Connection UI tests", () => {
 
         await connectionUI.removeProfile();
 
-        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
-            false,
-        );
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.not.have.been.called;
         expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
     });
@@ -239,5 +240,63 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToManageProfiles();
 
         expect(promptSingleStub).to.have.been.calledOnce;
+    });
+
+    test("getConnectionGroupOptions", async () => {
+        const mockGroups: IConnectionGroup[] = [
+            {
+                id: "0000",
+                name: "Parent Group One",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "1111",
+                name: "Parent Group Two",
+                parentId: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "0000-0000",
+                name: "Child Group",
+                parentId: "0000",
+                configSource: vscode.ConfigurationTarget.Global,
+            }, // two child groups with the same name but different parents
+            {
+                id: "1111-0000",
+                name: "Child Group",
+                parentId: "1111",
+                configSource: vscode.ConfigurationTarget.Global,
+            },
+            {
+                id: "1111-1111",
+                name: "Other Child Group",
+                parentId: "1111",
+                configSource: vscode.ConfigurationTarget.Global,
+            }, // a child group with a unique name shouldn't have parent prefix
+        ];
+
+        connectionStoreStub.readAllConnectionGroups.resolves(mockGroups);
+
+        const options = await connectionUI.getConnectionGroupOptions();
+
+        expect(options).to.have.lengthOf(mockGroups.length + 2); // +2 for root and 'create new' options
+        expect(options[0], "Root node should be first").to.deep.equal({
+            displayName: LocConstants.ConnectionDialog.default,
+            value: ConnectionConfig.ROOT_GROUP_ID,
+        });
+        expect(options[1], "'Create new' option should be second").to.deep.equal({
+            displayName: LocConstants.ConnectionDialog.createConnectionGroup,
+            value: CREATE_NEW_GROUP_ID,
+        });
+
+        expect(
+            options.map((group) => group.displayName),
+            "Should include parent prefix for child groups that have identical names, but not for unique names",
+        ).to.deep.include.members([
+            "Parent Group One > Child Group",
+            "Parent Group Two > Child Group",
+            "Other Child Group",
+        ]);
     });
 });

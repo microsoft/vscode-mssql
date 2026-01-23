@@ -193,12 +193,17 @@ export namespace SchemaDesigner {
         definition: string;
     }
 
-    export interface View extends ScriptableObject {}
-    export interface Procedure extends ScriptableObject {}
-    export interface Function extends ScriptableObject {}
+    export interface View extends ScriptableObject { }
+    export interface Procedure extends ScriptableObject { }
+    export interface Function extends ScriptableObject { }
     export interface Trigger extends ScriptableObject {
         parentTableSchema: string;
         parentTableName: string;
+    }
+
+    export enum SchemaDesignerActiveView {
+        SchemaDesigner = "schemaDesigner",
+        Dab = "dab",
     }
 
     /**
@@ -426,6 +431,8 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerWebviewState {
         enableExpandCollapseButtons?: boolean;
+        enableDAB?: boolean;
+        activeView?: SchemaDesignerActiveView;
     }
 
     export interface ExportFileOptions {

@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="package" source-language="en" datatype="plaintext" target-language="ko">
+    <body>
+      <trans-unit id="projects.showNotAddedProjectsInWorkspacePrompt">
+        <source xml:lang="en">Always show information message when the current workspace folders contain projects that have not been added to the workspace's projects.</source>
+        <target state="translated">현재 작업 영역 폴더에 작업 영역의 프로젝트에 추가되지 않은 프로젝트가 포함된 경우 항상 정보 메시지를 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="close-workspace-command">
+        <source xml:lang="en">Close Workspace</source>
+        <target state="translated">작업 영역 닫기</target>
+      </trans-unit>
+      <trans-unit id="projects-view-no-workspace-content">
+        <source xml:lang="en">Create new or open existing to get started.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).</source>
+        <target state="translated">새 항목을 만들거나 기존 항목을 열어 시작하세요.
+[새로 만들기](command:projects.new)
+[기존 항목 열기](command:projects.openExisting)
+프로젝트에 대해 자세히 알아보려면 [문서를 읽어보세요](https://aka.ms/azuredatastudio-projects).</target>
+      </trans-unit>
+      <trans-unit id="main-view-name">
+        <source xml:lang="en">Database Projects</source>
+        <target state="translated">데이터베이스 프로젝트</target>
+      </trans-unit>
+      <trans-unit id="data-workspace-view-container-name">
+        <source xml:lang="en">Database Projects</source>
+        <target state="translated">데이터베이스 프로젝트</target>
+      </trans-unit>
+      <trans-unit id="projects.defaultProjectSaveLocation">
+        <source xml:lang="en">Full path to folder where new projects are saved by default.</source>
+        <target state="translated">새 프로젝트가 기본적으로 저장되는 폴더의 전체 경로입니다.</target>
+      </trans-unit>
+      <trans-unit id="projects.excludedProjectsDescription">
+        <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
+        <target state="translated">프로젝트 뷰렛에서 제외할 작업 영역의 프로젝트 목록</target>
+      </trans-unit>
+      <trans-unit id="manage-project-command">
+        <source xml:lang="en">Manage</source>
+        <target state="translated">관리</target>
+      </trans-unit>
+      <trans-unit id="new-command">
+        <source xml:lang="en">New</source>
+        <target state="translated">신규</target>
+      </trans-unit>
+      <trans-unit id="projects-view-no-project-content">
+        <source xml:lang="en">No projects open in current workspace.
+[Create new](command:projects.new)
+[Open existing](command:projects.openExisting)
+To learn more about projects [read our docs](https://aka.ms/azuredatastudio-projects).
+</source>
+        <target state="translated">현재 작업 영역에 열려 있는 프로젝트가 없습니다.
+[새로 만들기](command:projects.new)
+[기존 항목 열기](command:projects.openExisting)
+프로젝트에 대해 자세히 알아보려면 [문서를 읽어보세요](https://aka.ms/azuredatastudio-projects).
+</target>
+      </trans-unit>
+      <trans-unit id="open-existing-command">
+        <source xml:lang="en">Open existing</source>
+        <target state="translated">기존 항목 열기</target>
+      </trans-unit>
+      <trans-unit id="refresh-workspace-command">
+        <source xml:lang="en">Refresh</source>
+        <target state="translated">새로 고침</target>
+      </trans-unit>
+      <trans-unit id="remove-project-command">
+        <source xml:lang="en">Remove Project</source>
+        <target state="translated">프로젝트 제거</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
