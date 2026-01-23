@@ -54,7 +54,61 @@ suite("SchemaDesignerTool Tests", () => {
     };
 
     const computeSchemaHash = (schema: SchemaDesigner.Schema) =>
-        createHash("sha256").update(JSON.stringify(schema)).digest("hex");
+        createHash("sha256")
+            .update(JSON.stringify(normalizeSchemaForHash(schema)))
+            .digest("hex");
+
+    const normalizeSchemaForHash = (schema: SchemaDesigner.Schema): SchemaDesigner.Schema => {
+        const tables = [...(schema.tables ?? [])].sort((a, b) =>
+            compareKeys(tableSortKey(a), tableSortKey(b)),
+        );
+        return {
+            tables: tables.map((table) => ({
+                id: table.id,
+                name: table.name,
+                schema: table.schema,
+                columns: [...(table.columns ?? [])]
+                    .sort((a, b) => compareKeys(columnSortKey(a), columnSortKey(b)))
+                    .map((column) => ({
+                        id: column.id,
+                        name: column.name,
+                        dataType: column.dataType,
+                        maxLength: column.maxLength,
+                        precision: column.precision,
+                        scale: column.scale,
+                        isPrimaryKey: column.isPrimaryKey,
+                        isIdentity: column.isIdentity,
+                        identitySeed: column.identitySeed,
+                        identityIncrement: column.identityIncrement,
+                        isNullable: column.isNullable,
+                        defaultValue: column.defaultValue,
+                        isComputed: column.isComputed,
+                        computedFormula: column.computedFormula,
+                        computedPersisted: column.computedPersisted,
+                    })),
+                foreignKeys: [...(table.foreignKeys ?? [])]
+                    .sort((a, b) => compareKeys(foreignKeySortKey(a), foreignKeySortKey(b)))
+                    .map((foreignKey) => ({
+                        id: foreignKey.id,
+                        name: foreignKey.name,
+                        columns: [...(foreignKey.columns ?? [])],
+                        referencedSchemaName: foreignKey.referencedSchemaName,
+                        referencedTableName: foreignKey.referencedTableName,
+                        referencedColumns: [...(foreignKey.referencedColumns ?? [])],
+                        onDeleteAction: foreignKey.onDeleteAction,
+                        onUpdateAction: foreignKey.onUpdateAction,
+                    })),
+            })),
+        };
+    };
+
+    const tableSortKey = (table: SchemaDesigner.Table) =>
+        `${table.schema ?? ""}.${table.name ?? ""}.${table.id ?? ""}`;
+    const columnSortKey = (column: SchemaDesigner.Column) =>
+        `${column.id ?? ""}.${column.name ?? ""}.${column.dataType ?? ""}`;
+    const foreignKeySortKey = (foreignKey: SchemaDesigner.ForeignKey) =>
+        `${foreignKey.id ?? ""}.${foreignKey.name ?? ""}.${foreignKey.referencedSchemaName ?? ""}.${foreignKey.referencedTableName ?? ""}`;
+    const compareKeys = (left: string, right: string) => left.localeCompare(right);
 
     setup(() => {
         sandbox = sinon.createSandbox();

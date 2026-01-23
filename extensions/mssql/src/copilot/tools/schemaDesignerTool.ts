@@ -290,11 +290,74 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     }
 
     private computeSchemaHash(schema: SchemaDesigner.Schema): string {
-        return createHash("sha256").update(JSON.stringify(schema)).digest("hex");
+        const normalizedSchema = this.normalizeSchemaForHash(schema);
+        return createHash("sha256").update(JSON.stringify(normalizedSchema)).digest("hex");
     }
 
     private updateSchemaHash(cacheKey: string, schema: SchemaDesigner.Schema): void {
         const schemaHash = this.computeSchemaHash(schema);
         SchemaDesignerWebviewManager.getInstance().setSchemaHash(cacheKey, schemaHash);
+    }
+
+    private normalizeSchemaForHash(schema: SchemaDesigner.Schema): SchemaDesigner.Schema {
+        const tables = [...(schema.tables ?? [])].sort((a, b) =>
+            this.compareKeys(this.tableSortKey(a), this.tableSortKey(b)),
+        );
+        return {
+            tables: tables.map((table) => ({
+                id: table.id,
+                name: table.name,
+                schema: table.schema,
+                columns: [...(table.columns ?? [])]
+                    .sort((a, b) => this.compareKeys(this.columnSortKey(a), this.columnSortKey(b)))
+                    .map((column) => ({
+                        id: column.id,
+                        name: column.name,
+                        dataType: column.dataType,
+                        maxLength: column.maxLength,
+                        precision: column.precision,
+                        scale: column.scale,
+                        isPrimaryKey: column.isPrimaryKey,
+                        isIdentity: column.isIdentity,
+                        identitySeed: column.identitySeed,
+                        identityIncrement: column.identityIncrement,
+                        isNullable: column.isNullable,
+                        defaultValue: column.defaultValue,
+                        isComputed: column.isComputed,
+                        computedFormula: column.computedFormula,
+                        computedPersisted: column.computedPersisted,
+                    })),
+                foreignKeys: [...(table.foreignKeys ?? [])]
+                    .sort((a, b) =>
+                        this.compareKeys(this.foreignKeySortKey(a), this.foreignKeySortKey(b)),
+                    )
+                    .map((foreignKey) => ({
+                        id: foreignKey.id,
+                        name: foreignKey.name,
+                        columns: [...(foreignKey.columns ?? [])],
+                        referencedSchemaName: foreignKey.referencedSchemaName,
+                        referencedTableName: foreignKey.referencedTableName,
+                        referencedColumns: [...(foreignKey.referencedColumns ?? [])],
+                        onDeleteAction: foreignKey.onDeleteAction,
+                        onUpdateAction: foreignKey.onUpdateAction,
+                    })),
+            })),
+        };
+    }
+
+    private tableSortKey(table: SchemaDesigner.Table): string {
+        return `${table.schema ?? ""}.${table.name ?? ""}.${table.id ?? ""}`;
+    }
+
+    private columnSortKey(column: SchemaDesigner.Column): string {
+        return `${column.id ?? ""}.${column.name ?? ""}.${column.dataType ?? ""}`;
+    }
+
+    private foreignKeySortKey(foreignKey: SchemaDesigner.ForeignKey): string {
+        return `${foreignKey.id ?? ""}.${foreignKey.name ?? ""}.${foreignKey.referencedSchemaName ?? ""}.${foreignKey.referencedTableName ?? ""}`;
+    }
+
+    private compareKeys(left: string, right: string): number {
+        return left.localeCompare(right);
     }
 }
