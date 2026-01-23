@@ -276,7 +276,7 @@ suite("ProfilerConfigService Tests", () => {
             const event = createTestEvent();
             const viewRow = configService.convertEventToViewRow(event, view);
 
-            expect(viewRow.MissingField).to.be.null;
+            expect(viewRow.MissingField).to.be.undefined;
         });
 
         test("should format timestamp correctly", () => {

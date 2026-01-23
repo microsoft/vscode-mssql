@@ -60,6 +60,13 @@ export class ProfilerDetailsPanelViewController extends ReactWebviewViewControll
     }
 
     /**
+     * Reset the singleton instance (for testing purposes)
+     */
+    public static resetInstance(): void {
+        ProfilerDetailsPanelViewController._instance = undefined;
+    }
+
+    /**
      * Register the view provider with VS Code
      */
     public static register(
