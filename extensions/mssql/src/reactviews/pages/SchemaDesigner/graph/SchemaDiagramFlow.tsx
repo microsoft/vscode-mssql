@@ -177,8 +177,21 @@ export const SchemaDesignerFlow = () => {
         };
 
         eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
+
+        const clearEdgeSelection = () => {
+            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const updatedEdges = edgesFromStore.map((e) => ({
+                ...e,
+                selected: false,
+            }));
+            setRelationshipEdges(updatedEdges);
+        };
+
+        eventBus.on("clearEdgeSelection", clearEdgeSelection);
+
         return () => {
             eventBus.off("revealForeignKeyEdges", revealForeignKeyEdges);
+            eventBus.off("clearEdgeSelection", clearEdgeSelection);
         };
     }, [reactFlow, setRelationshipEdges]);
 

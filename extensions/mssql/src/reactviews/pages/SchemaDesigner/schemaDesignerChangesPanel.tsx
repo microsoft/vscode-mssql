@@ -401,9 +401,12 @@ export const SchemaDesignerChangesPanel = () => {
 
     const handleReveal = useCallback(
         (change: SchemaChange) => {
+            // Clear all previous selections first
+            context.updateSelectedNodes([]);
+            eventBus.emit("clearEdgeSelection");
+
             if (change.category === ChangeCategory.ForeignKey && change.objectId) {
-                // Clear selection and reveal FK edges
-                context.updateSelectedNodes([]);
+                // Reveal FK edges (no table selection)
                 eventBus.emit("revealForeignKeyEdges", change.objectId);
             } else {
                 // Select the table and center on it
