@@ -329,6 +329,11 @@ export const ChangeItem: React.FC<ChangeItemProps> = ({
                     "isPrimaryKey",
                     "defaultValue",
                     "isIdentity",
+                    "identitySeed",
+                    "identityIncrement",
+                    "isComputed",
+                    "computedFormula",
+                    "computedPersisted",
                 ];
             case SchemaDesigner.SchemaEntityType.ForeignKey:
                 return [

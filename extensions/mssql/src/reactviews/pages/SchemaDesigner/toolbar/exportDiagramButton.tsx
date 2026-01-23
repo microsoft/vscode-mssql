@@ -33,7 +33,10 @@ export function ExportDiagramButton() {
         // Ensure all nodes are visible before exporting
         context.setRenderOnlyVisibleTables(false);
         context.setIsExporting(true);
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the nodes to be rendered
+        const waitForNextFrame = () =>
+            new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        await waitForNextFrame();
+        await waitForNextFrame(); // Allow ReactFlow to render nodes before snapshotting
 
         const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
         const viewport = getViewportForBounds(

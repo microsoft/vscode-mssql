@@ -132,10 +132,14 @@ export function buildGhostEdgesFromDeletedForeignKeys(
                         t.schema === fk.referencedSchemaName && t.name === fk.referencedTableName,
                 );
 
+                if (!targetTable) {
+                    continue;
+                }
+
                 ghostEdges.push({
                     id: fk.id,
                     sourceTableId: table.id,
-                    targetTableId: targetTable?.id || "",
+                    targetTableId: targetTable.id,
                     sourceColumn: fk.columns[0] || "",
                     targetColumn: fk.referencedColumns[0] || "",
                     fkData: fk,
@@ -160,11 +164,14 @@ export function isStructuralFKChange(
     currentFK: SchemaDesigner.ForeignKey,
 ): boolean {
     // Structural changes: columns or referenced columns/table changed
-    const columnsChanged =
-        JSON.stringify(originalFK.columns.sort()) !== JSON.stringify(currentFK.columns.sort());
-    const referencedColumnsChanged =
-        JSON.stringify(originalFK.referencedColumns.sort()) !==
-        JSON.stringify(currentFK.referencedColumns.sort());
+    const columnsChanged = !areStringArraysEqualIgnoreOrder(
+        originalFK.columns,
+        currentFK.columns,
+    );
+    const referencedColumnsChanged = !areStringArraysEqualIgnoreOrder(
+        originalFK.referencedColumns,
+        currentFK.referencedColumns,
+    );
     const referencedTableChanged =
         originalFK.referencedSchemaName !== currentFK.referencedSchemaName ||
         originalFK.referencedTableName !== currentFK.referencedTableName;
@@ -173,10 +180,16 @@ export function isStructuralFKChange(
 }
 
 /**
- * Generates a unique ID for a change
+ * Generates a deterministic ID for a change
  */
-function generateChangeId(): string {
-    return `change-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+function generateChangeId(
+    changeType: SchemaDesigner.SchemaChangeType,
+    entityType: SchemaDesigner.SchemaEntityType,
+    tableId: string,
+    entityId: string,
+): string {
+    const safe = (value: string) => value.replace(/[:|]/g, "_");
+    return `change:${changeType}:${entityType}:${safe(tableId)}:${safe(entityId)}`;
 }
 
 /**
@@ -218,10 +231,21 @@ function foreignKeysEqual(fk1: SchemaDesigner.ForeignKey, fk2: SchemaDesigner.Fo
         fk1.referencedTableName === fk2.referencedTableName &&
         fk1.onDeleteAction === fk2.onDeleteAction &&
         fk1.onUpdateAction === fk2.onUpdateAction &&
-        JSON.stringify(fk1.columns.sort()) === JSON.stringify(fk2.columns.sort()) &&
-        JSON.stringify(fk1.referencedColumns.sort()) ===
-            JSON.stringify(fk2.referencedColumns.sort())
+        areStringArraysEqualIgnoreOrder(fk1.columns, fk2.columns) &&
+        areStringArraysEqualIgnoreOrder(fk1.referencedColumns, fk2.referencedColumns)
     );
+}
+
+/**
+ * Compare string arrays without mutating inputs
+ */
+function areStringArraysEqualIgnoreOrder(valuesA: string[], valuesB: string[]): boolean {
+    if (valuesA.length !== valuesB.length) {
+        return false;
+    }
+    const aSorted = [...valuesA].sort();
+    const bSorted = [...valuesB].sort();
+    return aSorted.every((value, index) => value === bSorted[index]);
 }
 
 /**
@@ -367,7 +391,12 @@ export class DiffCalculator {
         Array.from(originalTablesMap.entries()).forEach(([tableId, originalTable]) => {
             if (!currentTablesMap.has(tableId)) {
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Deletion,
+                        SchemaDesigner.SchemaEntityType.Table,
+                        tableId,
+                        tableId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Deletion,
                     entityType: SchemaDesigner.SchemaEntityType.Table,
                     tableId,
@@ -393,7 +422,12 @@ export class DiffCalculator {
             if (!originalTable) {
                 // New table
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Addition,
+                        SchemaDesigner.SchemaEntityType.Table,
+                        tableId,
+                        tableId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Addition,
                     entityType: SchemaDesigner.SchemaEntityType.Table,
                     tableId,
@@ -414,7 +448,12 @@ export class DiffCalculator {
                 // This enables granular undo and reveal for FKs on new tables
                 currentTable.foreignKeys.forEach((fk) => {
                     const fkChange: SchemaDesigner.SchemaChange = {
-                        id: generateChangeId(),
+                        id: generateChangeId(
+                            SchemaDesigner.SchemaChangeType.Addition,
+                            SchemaDesigner.SchemaEntityType.ForeignKey,
+                            tableId,
+                            fk.id,
+                        ),
                         changeType: SchemaDesigner.SchemaChangeType.Addition,
                         entityType: SchemaDesigner.SchemaEntityType.ForeignKey,
                         tableId,
@@ -449,7 +488,12 @@ export class DiffCalculator {
                     originalTable.schema !== currentTable.schema
                 ) {
                     const change: SchemaDesigner.SchemaChange = {
-                        id: generateChangeId(),
+                        id: generateChangeId(
+                            SchemaDesigner.SchemaChangeType.Modification,
+                            SchemaDesigner.SchemaEntityType.Table,
+                            tableId,
+                            tableId,
+                        ),
                         changeType: SchemaDesigner.SchemaChangeType.Modification,
                         entityType: SchemaDesigner.SchemaEntityType.Table,
                         tableId,
@@ -507,12 +551,12 @@ export class DiffCalculator {
 
         // Build ghost nodes for deleted tables (T010)
         const currentTableIdSet = new Set(currentSchema.tables.map((t) => t.id));
-        // Note: Table positions are not available in schema objects.
-        // For deleted tables, we use default position (0, 0).
-        // In a future enhancement, positions could be captured when originalSchema is stored.
         const tablePositions: TablePositionMap = {};
         for (const table of originalSchema.tables) {
-            tablePositions[table.id] = { x: 0, y: 0 };
+            tablePositions[table.id] = input.originalTablePositions?.[table.id] ?? {
+                x: 0,
+                y: 0,
+            };
         }
         const ghostNodes = buildGhostNodesFromDeletedTables(
             originalSchema.tables,
@@ -577,14 +621,16 @@ export class DiffCalculator {
                                 t.schema === originalFK.referencedSchemaName &&
                                 t.name === originalFK.referencedTableName,
                         );
-                        ghostEdges.push({
-                            id: `${change.entityId}-old`,
-                            sourceTableId: sourceTable.id,
-                            targetTableId: targetTable?.id || "",
-                            sourceColumn: originalFK.columns[0] || "",
-                            targetColumn: originalFK.referencedColumns[0] || "",
-                            fkData: originalFK,
-                        });
+                        if (targetTable) {
+                            ghostEdges.push({
+                                id: `${change.entityId}-old`,
+                                sourceTableId: sourceTable.id,
+                                targetTableId: targetTable.id,
+                                sourceColumn: originalFK.columns[0] || "",
+                                targetColumn: originalFK.referencedColumns[0] || "",
+                                fkData: originalFK,
+                            });
+                        }
                     }
                 }
             }
@@ -629,7 +675,12 @@ export class DiffCalculator {
         Array.from(originalColumnsMap.entries()).forEach(([columnId, originalColumn]) => {
             if (!currentColumnsMap.has(columnId)) {
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Deletion,
+                        SchemaDesigner.SchemaEntityType.Column,
+                        currentTable.id,
+                        columnId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Deletion,
                     entityType: SchemaDesigner.SchemaEntityType.Column,
                     tableId: currentTable.id,
@@ -672,7 +723,12 @@ export class DiffCalculator {
             if (!originalColumn) {
                 // New column
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Addition,
+                        SchemaDesigner.SchemaEntityType.Column,
+                        currentTable.id,
+                        columnId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Addition,
                     entityType: SchemaDesigner.SchemaEntityType.Column,
                     tableId: currentTable.id,
@@ -695,7 +751,12 @@ export class DiffCalculator {
             } else if (!columnsEqual(originalColumn, currentColumn)) {
                 // Modified column
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Modification,
+                        SchemaDesigner.SchemaEntityType.Column,
+                        currentTable.id,
+                        columnId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Modification,
                     entityType: SchemaDesigner.SchemaEntityType.Column,
                     tableId: currentTable.id,
@@ -736,7 +797,12 @@ export class DiffCalculator {
         Array.from(originalFKsMap.entries()).forEach(([fkId, originalFK]) => {
             if (!currentFKsMap.has(fkId)) {
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Deletion,
+                        SchemaDesigner.SchemaEntityType.ForeignKey,
+                        currentTable.id,
+                        fkId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Deletion,
                     entityType: SchemaDesigner.SchemaEntityType.ForeignKey,
                     tableId: currentTable.id,
@@ -762,7 +828,12 @@ export class DiffCalculator {
             if (!originalFK) {
                 // New foreign key
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Addition,
+                        SchemaDesigner.SchemaEntityType.ForeignKey,
+                        currentTable.id,
+                        fkId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Addition,
                     entityType: SchemaDesigner.SchemaEntityType.ForeignKey,
                     tableId: currentTable.id,
@@ -781,7 +852,12 @@ export class DiffCalculator {
             } else if (!foreignKeysEqual(originalFK, currentFK)) {
                 // Modified foreign key
                 const change: SchemaDesigner.SchemaChange = {
-                    id: generateChangeId(),
+                    id: generateChangeId(
+                        SchemaDesigner.SchemaChangeType.Modification,
+                        SchemaDesigner.SchemaEntityType.ForeignKey,
+                        currentTable.id,
+                        fkId,
+                    ),
                     changeType: SchemaDesigner.SchemaChangeType.Modification,
                     entityType: SchemaDesigner.SchemaEntityType.ForeignKey,
                     tableId: currentTable.id,

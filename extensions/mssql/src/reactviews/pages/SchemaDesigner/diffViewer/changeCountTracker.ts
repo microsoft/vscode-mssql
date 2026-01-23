@@ -119,27 +119,15 @@ export class ChangeCountTracker {
 }
 
 /**
- * Singleton instance for the change count tracker.
- * Allows shared access across components without prop drilling.
- */
-let globalTrackerInstance: ChangeCountTracker | undefined = undefined;
-
-/**
- * Get the global ChangeCountTracker instance
+ * Get a new ChangeCountTracker instance
  */
 export function getChangeCountTracker(): ChangeCountTracker {
-    if (!globalTrackerInstance) {
-        globalTrackerInstance = new ChangeCountTracker();
-    }
-    return globalTrackerInstance;
+    return new ChangeCountTracker();
 }
 
 /**
- * Reset the global tracker instance (useful for testing)
+ * Reset the global tracker instance (deprecated - no-op)
  */
 export function resetChangeCountTracker(): void {
-    if (globalTrackerInstance) {
-        globalTrackerInstance.reset();
-    }
-    globalTrackerInstance = undefined;
+    // No-op: tracker instances are no longer global.
 }

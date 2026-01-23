@@ -50,13 +50,13 @@ const useTextOverflow = (text: string) => {
         };
 
         // Use requestAnimationFrame to ensure the element is fully rendered
-        const timeoutId = setTimeout(checkOverflow, 0);
+        const rafId = requestAnimationFrame(checkOverflow);
 
         // Check overflow on window resize
         window.addEventListener("resize", checkOverflow);
 
         return () => {
-            clearTimeout(timeoutId);
+            cancelAnimationFrame(rafId);
             window.removeEventListener("resize", checkOverflow);
         };
     }, [text]); // Re-run when text changes

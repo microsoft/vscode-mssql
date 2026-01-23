@@ -20,6 +20,7 @@ export type MyEvents = {
     undo: () => void;
     redo: () => void;
     updateUndoRedoState: (undoEnabled: boolean, redoEnabled: boolean) => void;
+    initialStateReady: () => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();

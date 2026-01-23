@@ -204,6 +204,11 @@ export namespace SchemaDesigner {
          */
         schema: Schema;
         /**
+         * Original schema model captured at session creation.
+         * Used as the diff baseline across restores.
+         */
+        originalSchema?: Schema;
+        /**
          * List of datatypes
          * This is the list of datatypes that are used to create the schema designer
          */
@@ -400,6 +405,7 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerCacheItem {
         schemaDesignerDetails: SchemaDesigner.CreateSessionResponse;
+        originalSchema?: SchemaDesigner.Schema;
         isDirty: boolean;
     }
 
@@ -601,6 +607,13 @@ export namespace SchemaDesigner {
         originalSchema: Schema;
         /** Current schema from ReactFlow state */
         currentSchema: Schema;
+        /** Optional original table positions for ghost node rendering */
+        originalTablePositions?: {
+            [tableId: string]: {
+                x: number;
+                y: number;
+            };
+        };
     }
 
     /**

@@ -19,16 +19,20 @@ export const SchemaDesignerDefinitionsPanel = () => {
 
     useEffect(() => {
         eventBus.on("getScript", () => {
-            setTimeout(async () => {
-                const script = await context.getDefinition();
-                setCode(script);
-            }, 0);
+            queueMicrotask(() => {
+                void (async () => {
+                    const script = await context.getDefinition();
+                    setCode(script);
+                })();
+            });
         });
         eventBus.on("openCodeDrawer", () => {
-            setTimeout(async () => {
-                const script = await context.getDefinition();
-                setCode(script);
-            }, 0);
+            queueMicrotask(() => {
+                void (async () => {
+                    const script = await context.getDefinition();
+                    setCode(script);
+                })();
+            });
             if (!definitionPaneRef.current) {
                 return;
             }

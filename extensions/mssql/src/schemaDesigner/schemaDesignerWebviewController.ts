@@ -21,6 +21,7 @@ import {
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { deepClone } from "../models/utils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -107,14 +108,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
                     });
+                    const originalSchema = deepClone(sessionResponse.schema);
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
+                        originalSchema,
                         isDirty: false,
                     });
+                    sessionResponse.originalSchema = originalSchema;
                 } else {
                     // if the cache has the session, the changes have not been saved, and the
                     // session is dirty
-                    sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
+                    const cacheItem = this.updateCacheItem(undefined, true);
+                    sessionResponse = cacheItem.schemaDesignerDetails;
+                    sessionResponse.originalSchema =
+                        cacheItem.originalSchema ?? sessionResponse.originalSchema;
                 }
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;

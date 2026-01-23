@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
-import { useContext, useEffect, useRef, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { SchemaDesignerContext, stateStack } from "../schemaDesignerStateProvider";
 import { DiffViewerProvider, useDiffViewerOptional } from "./diffViewerContext";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { flowUtils } from "../schemaDesignerUtils";
-import { getChangeCountTracker, resetChangeCountTracker } from "./changeCountTracker";
 import { usePersistedDrawerWidth } from "./usePersistedDrawerWidth";
 import eventBus from "../schemaDesignerEvents";
+import { TablePositionMap } from "./diffCalculator";
 
 /** Default drawer width in pixels */
 const DEFAULT_DRAWER_WIDTH = 320;
@@ -28,9 +28,11 @@ const SchemaChangeListener: React.FC = () => {
 
         // Handler for general schema changes - small delay for ReactFlow state sync
         const handleSchemaChange = () => {
-            setTimeout(() => {
-                diffViewer.recalculateDiff();
-            }, 150);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    diffViewer.recalculateDiff();
+                });
+            });
         };
 
         // T022, T023: Handler for undo/redo - immediate recalculation for responsive UI
@@ -70,29 +72,52 @@ export const DiffViewerIntegration: React.FC<DiffViewerIntegrationProps> = ({ ch
     const [originalSchema, setOriginalSchema] = useState<SchemaDesigner.Schema | undefined>(
         undefined,
     );
-    const changeTracker = useRef(getChangeCountTracker());
+    const [originalTablePositions, setOriginalTablePositions] = useState<
+        TablePositionMap | undefined
+    >(undefined);
+    const hasCapturedInitialState = useRef(false);
 
-    // Capture original schema when initialization completes
+    // Capture original schema from session when initialization completes
     useEffect(() => {
-        if (context?.isInitialized && !originalSchema) {
-            // Get the initial state from the undo/redo stack
+        if (context?.isInitialized && context.originalSchemaFromSession) {
+            setOriginalSchema(context.originalSchemaFromSession);
+        }
+    }, [context?.isInitialized, context?.originalSchemaFromSession]);
+
+    // Capture initial state once it's available from the provider
+    useEffect(() => {
+        const handleInitialStateReady = () => {
+            if (hasCapturedInitialState.current) {
+                return;
+            }
             const initialState = stateStack.getCurrentState();
-            if (initialState) {
+            if (!initialState) {
+                return;
+            }
+            const positions: TablePositionMap = {};
+            for (const node of initialState.nodes) {
+                positions[node.id] = { x: node.position.x, y: node.position.y };
+            }
+            setOriginalTablePositions(positions);
+            hasCapturedInitialState.current = true;
+            if (!context?.originalSchemaFromSession && !originalSchema) {
                 const schema = flowUtils.extractSchemaModel(initialState.nodes, initialState.edges);
                 setOriginalSchema(schema);
-            } else {
-                // Fallback: extract current schema as original
-                setOriginalSchema(context.extractSchema());
             }
-        }
-    }, [context?.isInitialized, originalSchema, context]);
+        };
+
+        eventBus.on("initialStateReady", handleInitialStateReady);
+        return () => {
+            eventBus.off("initialStateReady", handleInitialStateReady);
+        };
+    }, [context?.originalSchemaFromSession, originalSchema]);
 
     // Reset change tracker when designer is re-initialized
     useEffect(() => {
         if (!context?.isInitialized) {
-            resetChangeCountTracker();
-            changeTracker.current = getChangeCountTracker();
             setOriginalSchema(undefined);
+            setOriginalTablePositions(undefined);
+            hasCapturedInitialState.current = false;
         }
     }, [context?.isInitialized]);
 
@@ -220,9 +245,19 @@ export const DiffViewerIntegration: React.FC<DiffViewerIntegrationProps> = ({ ch
                     case SchemaDesigner.SchemaChangeType.Deletion:
                         // Restore the deleted column
                         if (change.previousValue) {
-                            updatedTable.columns.push(
-                                change.previousValue as SchemaDesigner.Column,
+                            const restoredColumn = change.previousValue as SchemaDesigner.Column;
+                            const originalIndex = originalTable?.columns.findIndex(
+                                (c) => c.id === change.entityId,
                             );
+                            if (
+                                originalIndex !== undefined &&
+                                originalIndex >= 0 &&
+                                originalIndex <= updatedTable.columns.length
+                            ) {
+                                updatedTable.columns.splice(originalIndex, 0, restoredColumn);
+                            } else {
+                                updatedTable.columns.push(restoredColumn);
+                            }
                         }
                         break;
                     case SchemaDesigner.SchemaChangeType.Modification:
@@ -253,9 +288,19 @@ export const DiffViewerIntegration: React.FC<DiffViewerIntegrationProps> = ({ ch
                     case SchemaDesigner.SchemaChangeType.Deletion:
                         // Restore the deleted foreign key
                         if (change.previousValue) {
-                            updatedTable.foreignKeys.push(
-                                change.previousValue as SchemaDesigner.ForeignKey,
+                            const restoredFK = change.previousValue as SchemaDesigner.ForeignKey;
+                            const originalIndex = originalTable?.foreignKeys.findIndex(
+                                (fk) => fk.id === change.entityId,
                             );
+                            if (
+                                originalIndex !== undefined &&
+                                originalIndex >= 0 &&
+                                originalIndex <= updatedTable.foreignKeys.length
+                            ) {
+                                updatedTable.foreignKeys.splice(originalIndex, 0, restoredFK);
+                            } else {
+                                updatedTable.foreignKeys.push(restoredFK);
+                            }
                         }
                         break;
                     case SchemaDesigner.SchemaChangeType.Modification:
@@ -297,6 +342,7 @@ export const DiffViewerIntegration: React.FC<DiffViewerIntegrationProps> = ({ ch
     return (
         <DiffViewerProvider
             originalSchema={originalSchema ?? { tables: [] }}
+            originalTablePositions={originalTablePositions}
             getCurrentSchema={getCurrentSchema}
             onNavigateToEntity={handleNavigateToEntity}
             onUndoChange={handleUndoChange}

@@ -255,14 +255,14 @@ suite("ChangeCountTracker", () => {
         });
     });
 
-    suite("singleton", () => {
-        test("should return same instance from getChangeCountTracker", () => {
+    suite("factory", () => {
+        test("should return a new instance from getChangeCountTracker", () => {
             const instance1 = getChangeCountTracker();
             const instance2 = getChangeCountTracker();
-            assert.strictEqual(instance1, instance2);
+            assert.notStrictEqual(instance1, instance2);
         });
 
-        test("should reset singleton with resetChangeCountTracker", () => {
+        test("resetChangeCountTracker should be a no-op", () => {
             const instance1 = getChangeCountTracker();
             instance1.increment(SchemaDesigner.SchemaChangeType.Addition);
 
@@ -270,7 +270,6 @@ suite("ChangeCountTracker", () => {
 
             const instance2 = getChangeCountTracker();
             assert.notStrictEqual(instance1, instance2);
-            assert.strictEqual(instance2.getCounts().total, 0);
         });
     });
 });

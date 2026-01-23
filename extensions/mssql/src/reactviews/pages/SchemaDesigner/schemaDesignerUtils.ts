@@ -928,16 +928,18 @@ export const flowUtils = {
         nodes: Node<SchemaDesigner.Table>[],
         edges: Edge<SchemaDesigner.ForeignKey>[],
     ): SchemaDesigner.Schema => {
+        const nonGhostNodes = nodes.filter((node) => node.data?.isGhostNode !== true);
+        const nonGhostEdges = edges.filter((edge) => edge.data?.isGhostEdge !== true);
         // Create a deep copy of the nodes to avoid mutating the original data
-        const tables = nodes.map((node) => ({
+        const tables = nonGhostNodes.map((node) => ({
             ...node.data,
             foreignKeys: [] as SchemaDesigner.ForeignKey[],
         }));
 
         // Process edges to create foreign keys
-        edges.forEach((edge) => {
-            const sourceNode = nodes.find((node) => node.id === edge.source);
-            const targetNode = nodes.find((node) => node.id === edge.target);
+        nonGhostEdges.forEach((edge) => {
+            const sourceNode = nonGhostNodes.find((node) => node.id === edge.source);
+            const targetNode = nonGhostNodes.find((node) => node.id === edge.target);
 
             if (!sourceNode || !targetNode || !edge.data) {
                 console.warn(`Edge ${edge.id} references non-existent nodes or has no data`);

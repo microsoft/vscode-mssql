@@ -5,7 +5,6 @@
 
 import {
     Button,
-    Divider,
     makeStyles,
     mergeClasses,
     Text,
@@ -30,6 +29,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         height: "100%",
+        position: "relative",
         borderLeft: `1px solid ${tokens.colorNeutralStroke1}`,
         backgroundColor: tokens.colorNeutralBackground1,
         overflow: "hidden",
@@ -97,6 +97,8 @@ const useStyles = makeStyles({
         flexDirection: "column",
         flexGrow: 1,
         overflow: "hidden",
+        minHeight: 0,
+        paddingTop: "4px",
     },
     resizeHandle: {
         position: "absolute",
@@ -295,8 +297,6 @@ export const DiffViewerDrawer: React.FC<DiffViewerDrawerProps> = ({ className })
                     </div>
                 )}
             </div>
-
-            <Divider />
 
             {/* Body - Changes list */}
             <div className={classes.body}>

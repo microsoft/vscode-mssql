@@ -24,9 +24,12 @@ const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        height: "100%",
+        flex: 1,
+        justifyContent: "flex-start",
+        alignItems: "stretch",
         overflowY: "auto",
         overflowX: "hidden",
+        minHeight: 0,
     },
     emptyState: {
         display: "flex",

@@ -6,8 +6,13 @@
 import * as React from "react";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { getDiffCalculator, TableColumnChanges, DeletedColumnsMap } from "./diffCalculator";
-import { ChangeCountTracker, getChangeCountTracker } from "./changeCountTracker";
+import {
+    getDiffCalculator,
+    TableColumnChanges,
+    DeletedColumnsMap,
+    TablePositionMap,
+} from "./diffCalculator";
+import { ChangeCountTracker } from "./changeCountTracker";
 
 /**
  * Default drawer width in pixels
@@ -62,6 +67,8 @@ export interface DiffViewerProviderProps {
     children: React.ReactNode;
     /** Original schema loaded at session start */
     originalSchema: SchemaDesigner.Schema;
+    /** Original table positions for ghost node placement */
+    originalTablePositions?: TablePositionMap;
     /** Function to get current schema from ReactFlow state */
     getCurrentSchema: () => SchemaDesigner.Schema;
     /** Callback to navigate canvas to an entity */
@@ -85,6 +92,7 @@ const DiffViewerContext = createContext<DiffViewerContextValue | undefined>(unde
 export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
     children,
     originalSchema,
+    originalTablePositions,
     getCurrentSchema,
     onNavigateToEntity,
     onUndoChange,
@@ -96,6 +104,7 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
     const [drawerWidth, setDrawerWidthState] = useState(initialDrawerWidth || DEFAULT_DRAWER_WIDTH);
     const [selectedChangeId, setSelectedChangeId] = useState<string | undefined>(undefined);
     const [changeGroups, setChangeGroups] = useState<SchemaDesigner.ChangeGroup[]>([]);
+    const [groupExpansion, setGroupExpansion] = useState<Record<string, boolean>>({});
     const [changeCounts, setChangeCounts] = useState<SchemaDesigner.ChangeCountSummary>({
         additions: 0,
         modifications: 0,
@@ -124,9 +133,9 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
         [fkId: string]: "property" | "structural";
     }>({});
 
-    // Get singleton instances
+    // Get shared instances
     const diffCalculator = useMemo(() => getDiffCalculator(), []);
-    const changeCountTracker = useMemo(() => getChangeCountTracker(), []);
+    const changeCountTracker = useMemo(() => new ChangeCountTracker(), []);
 
     // Subscribe to change count updates
     React.useEffect(() => {
@@ -144,8 +153,16 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
         const result = diffCalculator.calculateDiff({
             originalSchema,
             currentSchema,
+            originalTablePositions,
         });
-        setChangeGroups(result.changeGroups);
+        const nextGroups = result.changeGroups.map((group) => {
+            const persisted = groupExpansion[group.tableId];
+            if (persisted === undefined) {
+                return group;
+            }
+            return { ...group, isExpanded: persisted };
+        });
+        setChangeGroups(nextGroups);
         setChangeCounts(result.summary);
         // Update the tracker with the calculated counts
         changeCountTracker.setFromSummary(result.summary);
@@ -178,7 +195,14 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
 
         // Set FK modification type map (T045)
         setFkModificationType(result.fkModificationType);
-    }, [diffCalculator, originalSchema, getCurrentSchema, changeCountTracker]);
+    }, [
+        diffCalculator,
+        originalSchema,
+        originalTablePositions,
+        getCurrentSchema,
+        changeCountTracker,
+        groupExpansion,
+    ]);
 
     /**
      * Toggle drawer open/closed
@@ -231,11 +255,19 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
      * Toggle group expansion
      */
     const toggleGroupExpansion = useCallback((tableId: string) => {
-        setChangeGroups((groups) =>
-            groups.map((group) =>
+        setChangeGroups((groups) => {
+            const nextGroups = groups.map((group) =>
                 group.tableId === tableId ? { ...group, isExpanded: !group.isExpanded } : group,
-            ),
-        );
+            );
+            const updatedGroup = nextGroups.find((group) => group.tableId === tableId);
+            if (updatedGroup) {
+                setGroupExpansion((prev) => ({
+                    ...prev,
+                    [tableId]: updatedGroup.isExpanded,
+                }));
+            }
+            return nextGroups;
+        });
     }, []);
 
     /**
@@ -290,17 +322,25 @@ export const DiffViewerProvider: React.FC<DiffViewerProviderProps> = ({
         setHighlightedElementType(null);
     }, []);
 
-    // T033: Auto-clear FK highlight after animation completes (3s timeout)
+    // T033: Auto-clear FK highlight after animation completes (~2s)
     // FK edges use CSS animation, unlike table nodes which have onAnimationEnd handler
     React.useEffect(() => {
         if (highlightedElementType === "foreignKey" && highlightedElementId) {
             // CSS animation is 0.8s x 2 iterations = 1.6s, add buffer
-            const timeoutId = setTimeout(() => {
-                setHighlightedElementId(null);
-                setHighlightedElementType(null);
-            }, 2000); // 2 seconds total
+            const startTime = performance.now();
+            let rafId = 0;
 
-            return () => clearTimeout(timeoutId);
+            const tick = (now: number) => {
+                if (now - startTime >= 2000) {
+                    setHighlightedElementId(null);
+                    setHighlightedElementType(null);
+                    return;
+                }
+                rafId = requestAnimationFrame(tick);
+            };
+            rafId = requestAnimationFrame(tick);
+
+            return () => cancelAnimationFrame(rafId);
         }
     }, [highlightedElementId, highlightedElementType]);
 
@@ -522,6 +562,14 @@ export function useTableDiffIndicator(tableId: string): TableDiffIndicator {
             return {
                 showIndicator: true,
                 aggregateState: SchemaDesigner.SchemaChangeType.Deletion,
+            };
+        }
+
+        // If table was renamed, always show modification indicator
+        if (context.state.tableRenameInfo[tableId]) {
+            return {
+                showIndicator: true,
+                aggregateState: SchemaDesigner.SchemaChangeType.Modification,
             };
         }
 
