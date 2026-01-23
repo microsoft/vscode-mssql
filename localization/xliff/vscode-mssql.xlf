@@ -517,6 +517,9 @@
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
     </trans-unit>
+    <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
+      <source xml:lang="en">Category</source>
+    </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
@@ -659,6 +662,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
       <source xml:lang="en">Clear Sort</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29a390f9237e3c84e5641785eca25199620e53f7b6f4b9d843b23dcb5c12904f">
+      <source xml:lang="en">Clear all</source>
     </trans-unit>
     <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
       <source xml:lang="en">Clear all filters</source>
@@ -1961,6 +1967,9 @@
     </trans-unit>
     <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
       <source xml:lang="en">Filter by type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
+      <source xml:lang="en">Filter changes</source>
     </trans-unit>
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
