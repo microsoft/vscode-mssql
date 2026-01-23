@@ -534,6 +534,10 @@
 {1} is the server name
 {2} is the document name</note>
     </trans-unit>
+    <trans-unit id="++CODE++720013ab95347611fa0f2918e0e719accc806e30e5f0cb349c8594b2a0e46dc2">
+      <source xml:lang="en">Changes ({0})</source>
+      <note>{0} is the number of schema changes</note>
+    </trans-unit>
     <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
       <source xml:lang="en">Changes published successfully</source>
     </trans-unit>
@@ -2796,6 +2800,9 @@
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
+    <trans-unit id="++CODE++9b1d0a5f102cd0f86d612e1c6b0860d5e918d9bb28966b29acbf500dd9df5b70">
+      <source xml:lang="en">No changes yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
       <source xml:lang="en">No connection credentials found</source>
     </trans-unit>
@@ -3845,6 +3852,10 @@
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcbf82a20d3f8aa6064bc6fb7d8fdbca30e2444075d3055ccf3346f8be51dc26">
+      <source xml:lang="en">Show Changes ({0})</source>
+      <note>{0} is the number of schema changes</note>
+    </trans-unit>
     <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
       <source xml:lang="en">Show Confirm Password</source>
     </trans-unit>
@@ -4745,6 +4756,11 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the task name
 {1} is the status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the qualified table name
+{1} is the change description</note>
     </trans-unit>
     <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
       <source xml:lang="en">{0}: {1}. {2}</source>
