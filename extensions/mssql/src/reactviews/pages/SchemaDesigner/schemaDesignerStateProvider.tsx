@@ -14,7 +14,13 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
-import { calculateSchemaDiff, SchemaChange, SchemaChangesSummary } from "./diff/diffUtils";
+import {
+    calculateSchemaDiff,
+    ChangeAction,
+    ChangeCategory,
+    SchemaChange,
+    SchemaChangesSummary,
+} from "./diff/diffUtils";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -201,7 +207,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 const changeStrings = summary.groups.flatMap((group) =>
                     group.changes.map((change) => {
                         const description = describeChange(change);
-                        if (change.category === "table") {
+                        if (change.category === ChangeCategory.Table) {
                             return description;
                         }
                         const qualifiedTableName = `[${group.tableSchema}].[${group.tableName}]`;
@@ -605,7 +611,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
 
         // For table add revert (delete), use React Flow's deleteElements for proper cleanup
-        if (change.category === "table" && change.action === "add") {
+        if (change.category === ChangeCategory.Table && change.action === ChangeAction.Add) {
             const nodeToDelete = existingNodes.find((n) => n.id === change.tableId);
             if (nodeToDelete) {
                 void reactFlow.deleteElements({ nodes: [nodeToDelete] });
@@ -616,7 +622,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
 
         // For table delete revert (restore), use addTable for proper node creation
-        if (change.category === "table" && change.action === "delete") {
+        if (change.category === ChangeCategory.Table && change.action === ChangeAction.Delete) {
             const baselineTable = baselineSchemaRef.current.tables.find(
                 (t) => t.id === change.tableId,
             );
@@ -649,7 +655,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
 
         // Handle column rename edge updates (incoming + outgoing)
-        if (change.category === "column" && change.action === "modify") {
+        if (change.category === ChangeCategory.Column && change.action === ChangeAction.Modify) {
             const beforeTable = existingNodes.find((n) => n.id === change.tableId)?.data;
             const afterTable = updatedNodes.find((n) => n.id === change.tableId)?.data;
 
@@ -673,13 +679,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
 
         // Handle foreign key edge updates
-        if (change.category === "foreignKey") {
+        if (change.category === ChangeCategory.ForeignKey) {
             const currentNode = updatedNodes.find((n) => n.id === change.tableId);
 
-            if (change.action === "add") {
+            if (change.action === ChangeAction.Add) {
                 // Revert add = remove all edges belonging to this FK
                 existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
-            } else if (change.action === "delete" || change.action === "modify") {
+            } else if (
+                change.action === ChangeAction.Delete ||
+                change.action === ChangeAction.Modify
+            ) {
                 // Remove existing edges for this FK and recreate them
                 existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
 

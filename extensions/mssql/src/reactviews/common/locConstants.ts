@@ -1052,6 +1052,10 @@ export class LocConstants {
                 filterAdded: l10n.t("Added"),
                 filterModified: l10n.t("Modified"),
                 filterDeleted: l10n.t("Deleted"),
+                filterTooltip: l10n.t("Filter changes"),
+                actionFilterLabel: l10n.t("Action"),
+                categoryFilterLabel: l10n.t("Category"),
+                clearFilters: l10n.t("Clear all"),
 
                 // Buttons
                 reveal: l10n.t("Reveal"),

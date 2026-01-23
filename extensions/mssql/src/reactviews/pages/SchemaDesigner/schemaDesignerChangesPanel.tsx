@@ -20,6 +20,12 @@ import {
     ToolbarButton,
     Tooltip,
     CounterBadge,
+    Dropdown,
+    Option,
+    Popover,
+    PopoverTrigger,
+    PopoverSurface,
+    Field,
 } from "@fluentui/react-components";
 import {
     Dismiss12Regular,
@@ -27,17 +33,19 @@ import {
     CheckmarkCircle24Regular,
     Eye16Regular,
     ArrowUndo16Regular,
+    Filter16Regular,
 } from "@fluentui/react-icons";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 import eventBus from "./schemaDesignerEvents";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
-import { SchemaChange, TableChangeGroup } from "./diff/diffUtils";
+import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "./diff/diffUtils";
 import { describeChange } from "./diff/schemaDiff";
 import { PendingChangesIcon16 } from "../../common/icons/fluentIcons";
 
 const DEFAULT_PANEL_SIZE = 25;
 const MIN_PANEL_SIZE = 10;
+const ALL_FILTER = "all" as const;
 
 interface FlatTreeItem extends HeadlessFlatTreeItemProps {
     nodeType: "table" | "change";
@@ -69,6 +77,31 @@ const useStyles = makeStyles({
         padding: "8px",
         borderBottom: "1px solid var(--vscode-editorWidget-border)",
         flexShrink: 0,
+    },
+    searchRow: {
+        display: "flex",
+        gap: "4px",
+        alignItems: "center",
+    },
+    searchInput: {
+        flex: 1,
+        minWidth: 0,
+    },
+    filterButton: {
+        flexShrink: 0,
+    },
+    filterButtonActive: {
+        color: "var(--vscode-textLink-foreground)",
+    },
+    filterPopover: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        padding: "4px",
+        minWidth: "200px",
+    },
+    filterDropdown: {
+        width: "100%",
     },
     treeContainer: {
         flex: 1,
@@ -219,6 +252,10 @@ export const SchemaDesignerChangesPanel = () => {
 
     const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
+    const [actionFilter, setActionFilter] = useState<typeof ALL_FILTER | ChangeAction>(ALL_FILTER);
+    const [categoryFilter, setCategoryFilter] = useState<typeof ALL_FILTER | ChangeCategory>(
+        ALL_FILTER,
+    );
 
     const loc = locConstants.schemaDesigner.changesPanel;
 
@@ -249,53 +286,77 @@ export const SchemaDesignerChangesPanel = () => {
             return [];
         }
 
-        if (!searchText.trim()) {
+        const lowerSearch = searchText.toLowerCase().trim();
+        const hasSearchText = lowerSearch.length > 0;
+        const hasActionFilter = actionFilter !== ALL_FILTER;
+        const hasCategoryFilter = categoryFilter !== ALL_FILTER;
+
+        // If no filters active, return all groups
+        if (!hasSearchText && !hasActionFilter && !hasCategoryFilter) {
             return context.schemaChangesSummary.groups;
         }
 
-        const lowerSearch = searchText.toLowerCase().trim();
         return context.schemaChangesSummary.groups
             .map((group) => {
-                // Check if table name matches
-                const tableMatches =
+                // Check if table name matches search
+                const tableMatchesSearch =
+                    !hasSearchText ||
                     group.tableName.toLowerCase().includes(lowerSearch) ||
                     group.tableSchema.toLowerCase().includes(lowerSearch);
 
-                // Filter changes that match
+                // Filter changes based on all criteria
                 const matchingChanges = group.changes.filter((change) => {
-                    if (change.objectName?.toLowerCase().includes(lowerSearch)) {
-                        return true;
+                    // Apply action filter
+                    if (hasActionFilter && change.action !== actionFilter) {
+                        return false;
                     }
-                    const description = describeChange(change);
-                    if (description.toLowerCase().includes(lowerSearch)) {
-                        return true;
+
+                    // Apply category filter
+                    if (hasCategoryFilter && change.category !== categoryFilter) {
+                        return false;
                     }
-                    if (change.propertyChanges) {
-                        for (const pc of change.propertyChanges) {
-                            if (pc.displayName.toLowerCase().includes(lowerSearch)) {
-                                return true;
-                            }
-                            if (String(pc.oldValue).toLowerCase().includes(lowerSearch)) {
-                                return true;
-                            }
-                            if (String(pc.newValue).toLowerCase().includes(lowerSearch)) {
-                                return true;
+
+                    // Apply search filter
+                    if (hasSearchText) {
+                        if (change.objectName?.toLowerCase().includes(lowerSearch)) {
+                            return true;
+                        }
+                        const description = describeChange(change);
+                        if (description.toLowerCase().includes(lowerSearch)) {
+                            return true;
+                        }
+                        if (change.propertyChanges) {
+                            for (const pc of change.propertyChanges) {
+                                if (pc.displayName.toLowerCase().includes(lowerSearch)) {
+                                    return true;
+                                }
+                                if (String(pc.oldValue).toLowerCase().includes(lowerSearch)) {
+                                    return true;
+                                }
+                                if (String(pc.newValue).toLowerCase().includes(lowerSearch)) {
+                                    return true;
+                                }
                             }
                         }
+                        // If search text is provided but nothing matches in this change
+                        return false;
                     }
-                    return false;
+
+                    // No search filter, but action/category filters passed
+                    return true;
                 });
 
-                // Include group if table matches or has matching changes
-                if (tableMatches) {
-                    return group; // Return full group if table name matches
+                // Include group if table matches search (return filtered changes) or has matching changes
+                if (tableMatchesSearch && !hasActionFilter && !hasCategoryFilter && hasSearchText) {
+                    // Return full group if only searching and table name matches
+                    return group;
                 } else if (matchingChanges.length > 0) {
                     return { ...group, changes: matchingChanges };
                 }
                 return undefined;
             })
             .filter((g): g is TableChangeGroup => g !== undefined);
-    }, [context.schemaChangesSummary, searchText]);
+    }, [context.schemaChangesSummary, searchText, actionFilter, categoryFilter]);
 
     // Build flat tree items for the headless flat tree
     const flatTreeItems = useMemo((): FlatTreeItem[] => {
@@ -340,7 +401,7 @@ export const SchemaDesignerChangesPanel = () => {
 
     const handleReveal = useCallback(
         (change: SchemaChange) => {
-            if (change.category === "foreignKey" && change.objectId) {
+            if (change.category === ChangeCategory.ForeignKey && change.objectId) {
                 eventBus.emit("revealForeignKeyEdges", change.objectId);
             } else {
                 context.updateSelectedNodes([change.tableId]);
@@ -365,6 +426,9 @@ export const SchemaDesignerChangesPanel = () => {
     );
 
     const hasNoChanges = context.structuredSchemaChanges.length === 0;
+    const hasActiveFilters = actionFilter !== ALL_FILTER || categoryFilter !== ALL_FILTER;
+    const hasActiveFiltersOrSearch =
+        searchText.trim() !== "" || actionFilter !== ALL_FILTER || categoryFilter !== ALL_FILTER;
     const hasNoResults = filteredGroups.length === 0 && !hasNoChanges;
 
     const getTableIconClass = (group: TableChangeGroup) => {
@@ -389,11 +453,11 @@ export const SchemaDesignerChangesPanel = () => {
 
     const getChangeIconClass = (change: SchemaChange) => {
         switch (change.action) {
-            case "add":
+            case ChangeAction.Add:
                 return classes.changeIconAdded;
-            case "modify":
+            case ChangeAction.Modify:
                 return classes.changeIconModified;
-            case "delete":
+            case ChangeAction.Delete:
                 return classes.changeIconDeleted;
         }
     };
@@ -454,14 +518,112 @@ export const SchemaDesignerChangesPanel = () => {
 
                 {!hasNoChanges && (
                     <div className={classes.searchContainer}>
-                        <Input
-                            size="small"
-                            placeholder={loc.searchPlaceholder}
-                            value={searchText}
-                            onChange={(_, data) => setSearchText(data.value)}
-                            contentBefore={<Search16Regular />}
-                            style={{ width: "100%" }}
-                        />
+                        <div className={classes.searchRow}>
+                            <Input
+                                size="small"
+                                placeholder={loc.searchPlaceholder}
+                                value={searchText}
+                                onChange={(_, data) => setSearchText(data.value)}
+                                contentBefore={<Search16Regular />}
+                                className={classes.searchInput}
+                            />
+                            <Popover withArrow positioning="below-end">
+                                <PopoverTrigger disableButtonEnhancement>
+                                    <Tooltip content={loc.filterTooltip} relationship="label">
+                                        <Button
+                                            size="small"
+                                            appearance="subtle"
+                                            icon={<Filter16Regular />}
+                                            className={mergeClasses(
+                                                classes.filterButton,
+                                                hasActiveFilters && classes.filterButtonActive,
+                                            )}
+                                            aria-label={loc.filterTooltip}
+                                        />
+                                    </Tooltip>
+                                </PopoverTrigger>
+                                <PopoverSurface>
+                                    <div className={classes.filterPopover}>
+                                        <Field label={loc.actionFilterLabel} size="small">
+                                            <Dropdown
+                                                size="small"
+                                                className={classes.filterDropdown}
+                                                value={
+                                                    actionFilter === ALL_FILTER
+                                                        ? loc.filterAll
+                                                        : actionFilter === ChangeAction.Add
+                                                          ? loc.filterAdded
+                                                          : actionFilter === ChangeAction.Modify
+                                                            ? loc.filterModified
+                                                            : loc.filterDeleted
+                                                }
+                                                selectedOptions={[actionFilter]}
+                                                onOptionSelect={(_, data) =>
+                                                    setActionFilter(
+                                                        data.optionValue as
+                                                            | typeof ALL_FILTER
+                                                            | ChangeAction,
+                                                    )
+                                                }>
+                                                <Option value={ALL_FILTER}>{loc.filterAll}</Option>
+                                                <Option value={ChangeAction.Add}>
+                                                    {loc.filterAdded}
+                                                </Option>
+                                                <Option value={ChangeAction.Modify}>
+                                                    {loc.filterModified}
+                                                </Option>
+                                                <Option value={ChangeAction.Delete}>
+                                                    {loc.filterDeleted}
+                                                </Option>
+                                            </Dropdown>
+                                        </Field>
+                                        <Field label={loc.categoryFilterLabel} size="small">
+                                            <Dropdown
+                                                size="small"
+                                                className={classes.filterDropdown}
+                                                value={
+                                                    categoryFilter === ALL_FILTER
+                                                        ? loc.filterAll
+                                                        : categoryFilter === ChangeCategory.Table
+                                                          ? loc.tableCategory
+                                                          : categoryFilter === ChangeCategory.Column
+                                                            ? loc.columnCategory
+                                                            : loc.foreignKeyCategory
+                                                }
+                                                selectedOptions={[categoryFilter]}
+                                                onOptionSelect={(_, data) =>
+                                                    setCategoryFilter(
+                                                        data.optionValue as
+                                                            | typeof ALL_FILTER
+                                                            | ChangeCategory,
+                                                    )
+                                                }>
+                                                <Option value={ALL_FILTER}>{loc.filterAll}</Option>
+                                                <Option value={ChangeCategory.Table}>
+                                                    {loc.tableCategory}
+                                                </Option>
+                                                <Option value={ChangeCategory.Column}>
+                                                    {loc.columnCategory}
+                                                </Option>
+                                                <Option value={ChangeCategory.ForeignKey}>
+                                                    {loc.foreignKeyCategory}
+                                                </Option>
+                                            </Dropdown>
+                                        </Field>
+                                        <Button
+                                            size="small"
+                                            appearance="subtle"
+                                            disabled={!hasActiveFilters}
+                                            onClick={() => {
+                                                setActionFilter(ALL_FILTER);
+                                                setCategoryFilter(ALL_FILTER);
+                                            }}>
+                                            {loc.clearFilters}
+                                        </Button>
+                                    </div>
+                                </PopoverSurface>
+                            </Popover>
+                        </div>
                     </div>
                 )}
 
@@ -475,7 +637,11 @@ export const SchemaDesignerChangesPanel = () => {
                 ) : hasNoResults ? (
                     <div className={classes.empty}>
                         <Search16Regular className={classes.emptyIcon} />
-                        <Text className={classes.emptyText}>{loc.noSearchResults}</Text>
+                        <Text className={classes.emptyText}>
+                            {hasActiveFiltersOrSearch
+                                ? loc.noSearchResults
+                                : locConstants.schemaDesigner.noChangesYet}
+                        </Text>
                     </div>
                 ) : (
                     <div className={classes.treeContainer}>

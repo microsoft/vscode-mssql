@@ -5,8 +5,17 @@
 
 import * as sd from "../../../../sharedInterfaces/schemaDesigner";
 
-export type ChangeAction = "add" | "modify" | "delete";
-export type ChangeCategory = "table" | "column" | "foreignKey";
+export enum ChangeAction {
+    Add = "add",
+    Modify = "modify",
+    Delete = "delete",
+}
+
+export enum ChangeCategory {
+    Table = "table",
+    Column = "column",
+    ForeignKey = "foreignKey",
+}
 
 export interface PropertyChange {
     property: string;
@@ -266,8 +275,8 @@ export function calculateSchemaDiff(
             const group = getOrCreateGroup(newTable, { isNew: true });
             pushChange(group, {
                 id: `table:add:${newTable.id}`,
-                action: "add",
-                category: "table",
+                action: ChangeAction.Add,
+                category: ChangeCategory.Table,
                 tableId: newTable.id,
                 tableName: newTable.name,
                 tableSchema: newTable.schema,
@@ -278,8 +287,8 @@ export function calculateSchemaDiff(
             for (const fk of newTable.foreignKeys ?? []) {
                 pushChange(group, {
                     id: `foreignKey:add:${newTable.id}:${fk.id}`,
-                    action: "add",
-                    category: "foreignKey",
+                    action: ChangeAction.Add,
+                    category: ChangeCategory.ForeignKey,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -296,8 +305,8 @@ export function calculateSchemaDiff(
             const group = getOrCreateGroup(oldTable, { isDeleted: true });
             pushChange(group, {
                 id: `table:delete:${oldTable.id}`,
-                action: "delete",
-                category: "table",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Table,
                 tableId: oldTable.id,
                 tableName: oldTable.name,
                 tableSchema: oldTable.schema,
@@ -316,8 +325,8 @@ export function calculateSchemaDiff(
         if (tablePropertyChanges.length > 0) {
             pushChange(group, {
                 id: `table:modify:${newTable.id}`,
-                action: "modify",
-                category: "table",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.Table,
                 tableId: newTable.id,
                 tableName: newTable.name,
                 tableSchema: newTable.schema,
@@ -337,8 +346,8 @@ export function calculateSchemaDiff(
             if (!oldColumn && newColumn) {
                 pushChange(group, {
                     id: `column:add:${newTable.id}:${newColumn.id}`,
-                    action: "add",
-                    category: "column",
+                    action: ChangeAction.Add,
+                    category: ChangeCategory.Column,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -351,8 +360,8 @@ export function calculateSchemaDiff(
             if (oldColumn && !newColumn) {
                 pushChange(group, {
                     id: `column:delete:${newTable.id}:${oldColumn.id}`,
-                    action: "delete",
-                    category: "column",
+                    action: ChangeAction.Delete,
+                    category: ChangeCategory.Column,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -370,8 +379,8 @@ export function calculateSchemaDiff(
             if (columnPropertyChanges.length > 0) {
                 pushChange(group, {
                     id: `column:modify:${newTable.id}:${newColumn.id}`,
-                    action: "modify",
-                    category: "column",
+                    action: ChangeAction.Modify,
+                    category: ChangeCategory.Column,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -394,8 +403,8 @@ export function calculateSchemaDiff(
             if (!oldFk && newFk) {
                 pushChange(group, {
                     id: `foreignKey:add:${newTable.id}:${newFk.id}`,
-                    action: "add",
-                    category: "foreignKey",
+                    action: ChangeAction.Add,
+                    category: ChangeCategory.ForeignKey,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -408,8 +417,8 @@ export function calculateSchemaDiff(
             if (oldFk && !newFk) {
                 pushChange(group, {
                     id: `foreignKey:delete:${newTable.id}:${oldFk.id}`,
-                    action: "delete",
-                    category: "foreignKey",
+                    action: ChangeAction.Delete,
+                    category: ChangeCategory.ForeignKey,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,
@@ -454,8 +463,8 @@ export function calculateSchemaDiff(
 
                 pushChange(group, {
                     id: `foreignKey:modify:${newTable.id}:${newFk.id}`,
-                    action: "modify",
-                    category: "foreignKey",
+                    action: ChangeAction.Modify,
+                    category: ChangeCategory.ForeignKey,
                     tableId: newTable.id,
                     tableName: newTable.name,
                     tableSchema: newTable.schema,

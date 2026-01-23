@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sd from "../../../../sharedInterfaces/schemaDesigner";
-import { SchemaChange } from "./diffUtils";
+import { ChangeAction, ChangeCategory, SchemaChange } from "./diffUtils";
 
 /**
  * Result of canRevertChange check
@@ -51,7 +51,7 @@ export function canRevertChange(
     messages: RevertMessages,
 ): CanRevertResult {
     // For foreign key deletions, check if referenced table/column still exists
-    if (change.category === "foreignKey" && change.action === "delete") {
+    if (change.category === ChangeCategory.ForeignKey && change.action === ChangeAction.Delete) {
         const baselineTable = baselineSchema.tables.find((t) => t.id === change.tableId);
         const baselineFk = baselineTable?.foreignKeys?.find((fk) => fk.id === change.objectId);
 
@@ -124,11 +124,11 @@ export function computeRevertedSchema(
     // Create a deep copy of current tables to avoid mutation
     const tables = deepClone(currentSchema.tables);
 
-    if (change.category === "table") {
+    if (change.category === ChangeCategory.Table) {
         return revertTableChange(change, baselineSchema, tables);
-    } else if (change.category === "column") {
+    } else if (change.category === ChangeCategory.Column) {
         return revertColumnChange(change, baselineSchema, tables);
-    } else if (change.category === "foreignKey") {
+    } else if (change.category === ChangeCategory.ForeignKey) {
         return revertForeignKeyChange(change, baselineSchema, tables);
     }
 
@@ -143,11 +143,11 @@ function revertTableChange(
     baselineSchema: sd.SchemaDesigner.Schema,
     tables: sd.SchemaDesigner.Table[],
 ): RevertResult {
-    if (change.action === "add") {
+    if (change.action === ChangeAction.Add) {
         // Revert add = delete the table
         const filteredTables = tables.filter((t) => t.id !== change.tableId);
         return { tables: filteredTables, success: true };
-    } else if (change.action === "delete") {
+    } else if (change.action === ChangeAction.Delete) {
         // Revert delete = restore the table from baseline (without foreign keys initially)
         const baselineTable = baselineSchema.tables.find((t) => t.id === change.tableId);
         if (baselineTable) {
@@ -156,7 +156,7 @@ function revertTableChange(
             return { tables, success: true };
         }
         return { tables, success: false, error: "Baseline table not found" };
-    } else if (change.action === "modify") {
+    } else if (change.action === ChangeAction.Modify) {
         // Revert modify = restore original name/schema properties
         const baselineTable = baselineSchema.tables.find((t) => t.id === change.tableId);
         const tableIndex = tables.findIndex((t) => t.id === change.tableId);
@@ -196,11 +196,11 @@ function revertColumnChange(
 
     const table = tables[tableIndex];
 
-    if (change.action === "add") {
+    if (change.action === ChangeAction.Add) {
         // Revert add = delete the column
         table.columns = table.columns.filter((c) => c.id !== change.objectId);
         return { tables, success: true };
-    } else if (change.action === "delete") {
+    } else if (change.action === ChangeAction.Delete) {
         // Revert delete = restore the column from baseline
         const baselineColumn = baselineTable.columns.find((c) => c.id === change.objectId);
         if (baselineColumn) {
@@ -228,7 +228,7 @@ function revertColumnChange(
             return { tables, success: true };
         }
         return { tables, success: false, error: "Baseline column not found" };
-    } else if (change.action === "modify") {
+    } else if (change.action === ChangeAction.Modify) {
         // Revert modify = restore original column
         const baselineColumn = baselineTable.columns.find((c) => c.id === change.objectId);
         const colIndex = table.columns.findIndex((c) => c.id === change.objectId);
@@ -259,7 +259,7 @@ function revertForeignKeyChange(
 
     const table = tables[tableIndex];
 
-    if (change.action === "add") {
+    if (change.action === ChangeAction.Add) {
         // Revert add = delete the FK
         table.foreignKeys = table.foreignKeys.filter((fk) => fk.id !== change.objectId);
         return { tables, success: true };
@@ -270,7 +270,7 @@ function revertForeignKeyChange(
         return { tables, success: false, error: "Baseline table not found" };
     }
 
-    if (change.action === "delete") {
+    if (change.action === ChangeAction.Delete) {
         // Revert delete = restore the FK from baseline
         const baselineFk = baselineTable.foreignKeys?.find((fk) => fk.id === change.objectId);
         if (baselineFk) {
@@ -278,7 +278,7 @@ function revertForeignKeyChange(
             return { tables, success: true };
         }
         return { tables, success: false, error: "Baseline foreign key not found" };
-    } else if (change.action === "modify") {
+    } else if (change.action === ChangeAction.Modify) {
         // Revert modify = restore original FK
         const baselineFk = baselineTable.foreignKeys?.find((fk) => fk.id === change.objectId);
         const fkIndex = table.foreignKeys.findIndex((fk) => fk.id === change.objectId);

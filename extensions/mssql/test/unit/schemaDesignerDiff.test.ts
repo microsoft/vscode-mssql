@@ -9,6 +9,8 @@ import * as path from "path";
 import * as sd from "../../src/sharedInterfaces/schemaDesigner";
 import {
     calculateSchemaDiff,
+    ChangeAction,
+    ChangeCategory,
     type SchemaChange,
     type SchemaChangesSummary,
     type TableChangeGroup,
@@ -252,7 +254,7 @@ suite("SchemaDesigner diff utils", () => {
         expect(addedGroup.isNew).to.equal(true);
         const tableAdd = findChange(
             addedGroup,
-            (c) => c.category === "table" && c.action === "add",
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Add,
         );
         expect(describeChange(tableAdd)).to.equal("Created table [dbo].[audit_log]");
 
@@ -261,7 +263,7 @@ suite("SchemaDesigner diff utils", () => {
         expect(deletedGroup.isDeleted).to.equal(true);
         const tableDelete = findChange(
             deletedGroup,
-            (c) => c.category === "table" && c.action === "delete",
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Delete,
         );
         expect(describeChange(tableDelete)).to.equal("Deleted table [dbo].[promotions]");
 
@@ -269,7 +271,7 @@ suite("SchemaDesigner diff utils", () => {
         const usersGroup = findGroup(summary, "fae49816-b614-4a62-8787-4b497782b4fa");
         const tableModify = findChange(
             usersGroup,
-            (c) => c.category === "table" && c.action === "modify",
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Modify,
         );
         expect(describeChange(tableModify)).to.equal(
             "Modified table [dbo].[app_users]: Name changed from 'users' to 'app_users'",
@@ -279,8 +281,8 @@ suite("SchemaDesigner diff utils", () => {
         const colModify = findChange(
             usersGroup,
             (c) =>
-                c.category === "column" &&
-                c.action === "modify" &&
+                c.category === ChangeCategory.Column &&
+                c.action === ChangeAction.Modify &&
                 c.objectId === "2f7bad91-04cb-46d0-b737-457ce2aae3a9",
         );
         expect(describeChange(colModify)).to.equal(
@@ -292,8 +294,8 @@ suite("SchemaDesigner diff utils", () => {
         const fkModify = findChange(
             returnsGroup,
             (c) =>
-                c.category === "foreignKey" &&
-                c.action === "modify" &&
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Modify &&
                 c.objectId === "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
         );
         expect(describeChange(fkModify)).to.equal(
@@ -350,16 +352,22 @@ suite("SchemaDesigner diff utils", () => {
         const group = findGroup(summary, "table-new");
         expect(group.isNew).to.equal(true);
 
-        const tableAdd = findChange(group, (c) => c.category === "table" && c.action === "add");
+        const tableAdd = findChange(
+            group,
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Add,
+        );
         expect(tableAdd).to.exist;
 
         const fkAdd = findChange(
             group,
-            (c) => c.category === "foreignKey" && c.action === "add" && c.objectId === "fk-new-ref",
+            (c) =>
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Add &&
+                c.objectId === "fk-new-ref",
         );
         expect(fkAdd.objectName).to.equal("FK_new_ref");
     });
-    
+
     test("renaming a referenced column does not surface a derived FK modify change", () => {
         const baseline: sd.SchemaDesigner.Schema = {
             tables: [
@@ -435,12 +443,18 @@ suite("SchemaDesigner diff utils", () => {
         const allChanges = summary.groups.flatMap((g) => g.changes);
 
         const userColChange = allChanges.find(
-            (c) => c.category === "column" && c.action === "modify" && c.tableId === "table-users",
+            (c) =>
+                c.category === ChangeCategory.Column &&
+                c.action === ChangeAction.Modify &&
+                c.tableId === "table-users",
         );
         expect(userColChange).to.exist;
 
         const fkModify = allChanges.find(
-            (c) => c.category === "foreignKey" && c.action === "modify" && c.tableId === "table-orders",
+            (c) =>
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Modify &&
+                c.tableId === "table-orders",
         );
         expect(fkModify).to.be.undefined;
     });
@@ -493,8 +507,8 @@ suite("SchemaDesigner diff utils", () => {
         const colAdd = findChange(
             usersGroup,
             (c) =>
-                c.category === "column" &&
-                c.action === "add" &&
+                c.category === ChangeCategory.Column &&
+                c.action === ChangeAction.Add &&
                 c.objectId === "00000000-0000-0000-0000-0000000000c1",
         );
         expect(describeChange(colAdd)).to.equal("Added column 'middle_name'");
@@ -502,8 +516,8 @@ suite("SchemaDesigner diff utils", () => {
         const colDelete = findChange(
             usersGroup,
             (c) =>
-                c.category === "column" &&
-                c.action === "delete" &&
+                c.category === ChangeCategory.Column &&
+                c.action === ChangeAction.Delete &&
                 c.objectId === "ca31b960-f211-4b0f-93c7-a6ea8d32e8d2",
         );
         expect(describeChange(colDelete)).to.equal("Deleted column 'phone_number'");
@@ -511,8 +525,8 @@ suite("SchemaDesigner diff utils", () => {
         const colModify = findChange(
             usersGroup,
             (c) =>
-                c.category === "column" &&
-                c.action === "modify" &&
+                c.category === ChangeCategory.Column &&
+                c.action === ChangeAction.Modify &&
                 c.objectId === "2f7bad91-04cb-46d0-b737-457ce2aae3a9",
         );
 
@@ -571,8 +585,8 @@ suite("SchemaDesigner diff utils", () => {
         const fkAdd = findChange(
             returnsGroup,
             (c) =>
-                c.category === "foreignKey" &&
-                c.action === "add" &&
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Add &&
                 c.objectId === "00000000-0000-0000-0000-00000000f001",
         );
         expect(describeChange(fkAdd)).to.equal("Added foreign key 'FK_returns_order_item_v2'");
@@ -580,8 +594,8 @@ suite("SchemaDesigner diff utils", () => {
         const fkDelete = findChange(
             returnsGroup,
             (c) =>
-                c.category === "foreignKey" &&
-                c.action === "delete" &&
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Delete &&
                 c.objectId === "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
         );
         expect(describeChange(fkDelete)).to.equal("Deleted foreign key 'FK_returns_order_item'");
@@ -605,8 +619,8 @@ suite("SchemaDesigner diff utils", () => {
         const fkModify = findChange(
             returnsGroup2,
             (c) =>
-                c.category === "foreignKey" &&
-                c.action === "modify" &&
+                c.category === ChangeCategory.ForeignKey &&
+                c.action === ChangeAction.Modify &&
                 c.objectId === "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
         );
 
@@ -662,7 +676,7 @@ suite("SchemaDesigner diff utils", () => {
         const firstGroup = findGroup(summary, baseline.tables[0].id);
         const firstTableModify = findChange(
             firstGroup,
-            (c) => c.category === "table" && c.action === "modify",
+            (c) => c.category === ChangeCategory.Table && c.action === ChangeAction.Modify,
         );
         expect(firstTableModify.propertyChanges).to.exist;
         expect(firstTableModify.propertyChanges!.some((p) => p.property === "name")).to.equal(true);
@@ -778,8 +792,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "table:modify:table-users",
-                action: "modify",
-                category: "table",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.Table,
                 tableId: "table-users",
                 tableName: "app_users",
                 tableSchema: "dbo",
@@ -818,8 +832,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:add:table-users:col-new",
-                action: "add",
-                category: "column",
+                action: ChangeAction.Add,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -846,8 +860,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fkDeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -876,8 +890,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fkDeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -903,8 +917,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fkDeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -933,8 +947,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const colDeleteChange: SchemaChange = {
                 id: "column:delete:table-users:col-user-id",
-                action: "delete",
-                category: "column",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -944,8 +958,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fkDeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -987,8 +1001,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fk1DeleteChange: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -998,8 +1012,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const colDeleteChange: SchemaChange = {
                 id: "column:delete:table-users:col-user-id",
-                action: "delete",
-                category: "column",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1009,8 +1023,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const fk2AddChange: SchemaChange = {
                 id: "foreignKey:add:table-orders:fk-orders-users-2",
-                action: "add",
-                category: "foreignKey",
+                action: ChangeAction.Add,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -1055,8 +1069,7 @@ suite("SchemaDesigner revert logic", () => {
             expect(fk2Reverted.success).to.equal(true);
             const orders = fk2Reverted.tables.find((t) => t.id === "table-orders");
             expect(orders).to.exist;
-            expect(orders!.foreignKeys.find((fk) => fk.id === "fk-orders-users-2")).to.be
-                .undefined;
+            expect(orders!.foreignKeys.find((fk) => fk.id === "fk-orders-users-2")).to.be.undefined;
         });
     });
 
@@ -1073,8 +1086,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "table:add:table-new",
-                action: "add",
-                category: "table",
+                action: ChangeAction.Add,
+                category: ChangeCategory.Table,
                 tableId: "table-new",
                 tableName: "new_table",
                 tableSchema: "dbo",
@@ -1094,8 +1107,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "table:delete:table-users",
-                action: "delete",
-                category: "table",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Table,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1146,8 +1159,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:delete:table-users:col-middle",
-                action: "delete",
-                category: "column",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1174,8 +1187,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "table:modify:table-users",
-                action: "modify",
-                category: "table",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.Table,
                 tableId: "table-users",
                 tableName: "app_users",
                 tableSchema: "app",
@@ -1210,8 +1223,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:add:table-users:col-new",
-                action: "add",
-                category: "column",
+                action: ChangeAction.Add,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1234,8 +1247,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:delete:table-users:col-email",
-                action: "delete",
-                category: "column",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1261,8 +1274,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:modify:table-users:col-email",
-                action: "modify",
-                category: "column",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1294,8 +1307,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "foreignKey:add:table-users:fk-new",
-                action: "add",
-                category: "foreignKey",
+                action: ChangeAction.Add,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1350,8 +1363,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "foreignKey:add:table-new:fk-new-users",
-                action: "add",
-                category: "foreignKey",
+                action: ChangeAction.Add,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-new",
                 tableName: "new_table",
                 tableSchema: "dbo",
@@ -1372,8 +1385,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "foreignKey:delete:table-orders:fk-orders-users",
-                action: "delete",
-                category: "foreignKey",
+                action: ChangeAction.Delete,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -1395,8 +1408,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "foreignKey:modify:table-orders:fk-orders-users",
-                action: "modify",
-                category: "foreignKey",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.ForeignKey,
                 tableId: "table-orders",
                 tableName: "orders",
                 tableSchema: "dbo",
@@ -1416,8 +1429,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "column:add:table-users:col-new",
-                action: "add",
-                category: "column",
+                action: ChangeAction.Add,
+                category: ChangeCategory.Column,
                 tableId: "table-users",
                 tableName: "users",
                 tableSchema: "dbo",
@@ -1436,8 +1449,8 @@ suite("SchemaDesigner revert logic", () => {
 
             const change: SchemaChange = {
                 id: "table:modify:table-users",
-                action: "modify",
-                category: "table",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.Table,
                 tableId: "table-users",
                 tableName: "app_users",
                 tableSchema: "dbo",

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { PropertyChange, SchemaChange } from "./diffUtils";
+import { ChangeAction, ChangeCategory, type PropertyChange, type SchemaChange } from "./diffUtils";
 import { locConstants } from "../../../common/locConstants";
 
 const loc = locConstants.schemaDesigner.schemaDiff;
@@ -37,11 +37,11 @@ function describeQualifiedTable(schema: string, name: string): string {
  * Returns a human-readable description for a schema change.
  */
 export function describeChange(change: SchemaChange): string {
-    if (change.category === "table") {
-        if (change.action === "add") {
+    if (change.category === ChangeCategory.Table) {
+        if (change.action === ChangeAction.Add) {
             return loc.createdTable(describeQualifiedTable(change.tableSchema, change.tableName));
         }
-        if (change.action === "delete") {
+        if (change.action === ChangeAction.Delete) {
             return loc.deletedTable(describeQualifiedTable(change.tableSchema, change.tableName));
         }
 
@@ -56,12 +56,12 @@ export function describeChange(change: SchemaChange): string {
         return loc.modifiedTable(describeQualifiedTable(change.tableSchema, change.tableName));
     }
 
-    if (change.category === "column") {
+    if (change.category === ChangeCategory.Column) {
         const columnName = change.objectName ?? "";
-        if (change.action === "add") {
+        if (change.action === ChangeAction.Add) {
             return loc.addedColumn(columnName);
         }
-        if (change.action === "delete") {
+        if (change.action === ChangeAction.Delete) {
             return loc.deletedColumn(columnName);
         }
 
@@ -75,10 +75,10 @@ export function describeChange(change: SchemaChange): string {
 
     // foreignKey
     const fkName = change.objectName ?? "";
-    if (change.action === "add") {
+    if (change.action === ChangeAction.Add) {
         return loc.addedForeignKey(fkName);
     }
-    if (change.action === "delete") {
+    if (change.action === ChangeAction.Delete) {
         return loc.deletedForeignKey(fkName);
     }
 
