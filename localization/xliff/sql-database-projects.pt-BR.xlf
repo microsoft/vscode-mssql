@@ -60,7 +60,7 @@
       </trans-unit>
       <trans-unit id="++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8">
         <source xml:lang="en">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</source>
-        <target state="new">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</target>
+        <target state="translated">Já existe um arquivo tasks.json no workspace. Adicionando a tarefa de build do projeto SQL ao arquivo existente.</target>
       </trans-unit>
       <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
         <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
@@ -1655,7 +1655,7 @@
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publishDialog">
         <source xml:lang="en">Publish (Preview)</source>
-        <target state="new">Publish (Preview)</target>
+        <target state="translated">Publicar (Versão Prévia)</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
