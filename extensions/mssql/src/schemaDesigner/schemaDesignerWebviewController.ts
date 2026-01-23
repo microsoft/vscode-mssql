@@ -33,6 +33,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 > {
     private _sessionId: string = "";
     private _key: string = "";
+    private _serverName: string | undefined;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
 
     constructor(
@@ -75,6 +76,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         );
 
         this._key = `${this.connectionString}-${this.databaseName}`;
+        this._serverName = this.resolveServerName();
 
         this.setupRequestHandlers();
         this.setupConfigurationListener();
@@ -360,10 +362,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return schemaDesignerCacheItem;
     }
 
-    public get designerKey(): string {
-        return this._key;
-    }
-
     override async dispose(): Promise<void> {
         if (this.schemaDesignerDetails) {
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
@@ -436,5 +434,30 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             keepPositions,
             focusTableId,
         });
+    }
+
+    public get designerKey(): string {
+        return this._key;
+    }
+
+    public get database(): string {
+        return this.databaseName;
+    }
+
+    public get server(): string | undefined {
+        return this._serverName;
+    }
+
+    private resolveServerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.server;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.server;
+        }
+
+        return undefined;
     }
 }

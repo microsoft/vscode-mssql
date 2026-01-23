@@ -200,6 +200,8 @@ suite("SchemaDesignerTool Tests", () => {
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
             if (designer) {
                 designer.designerKey = designer.designerKey ?? "designer-key";
+                designer.server = designer.server ?? "testserver";
+                designer.database = designer.database ?? "testdb";
                 designer.getSchemaState = sandbox.stub().resolves(schema);
             }
             return managerStub;
@@ -249,7 +251,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.reason).to.equal("stale_state");
             expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
         });
 
         test("should return stale state on first call for a new designer", async () => {
@@ -276,7 +279,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.reason).to.equal("stale_state");
             expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
         });
 
         test("should add a table", async () => {
@@ -303,7 +307,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerAddTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.addTable).to.have.been.calledOnceWith("Orders", "dbo", undefined);
         });
@@ -352,7 +357,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerUpdateTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.updateTable).to.have.been.calledOnceWith(mockTable);
         });
@@ -402,7 +408,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerDeleteTableSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.deleteTable).to.have.been.calledOnceWith({
                 tableId: undefined,
@@ -459,7 +466,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerReplaceSchemaSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.replaceSchemaState).to.have.been.calledOnceWith(
                 mockSchema,
@@ -491,7 +499,8 @@ suite("SchemaDesignerTool Tests", () => {
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.schemaDesignerGetSchemaSuccess);
             expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.designerKey).to.equal(mockDesigner.designerKey);
+            expect(parsedResult.server).to.equal(mockDesigner.server);
+            expect(parsedResult.database).to.equal(mockDesigner.database);
             expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
             expect(mockDesigner.getSchemaState).to.have.been.calledOnce;
             expect(managerStub.setSchemaHash).to.have.been.calledOnceWith(
