@@ -11,6 +11,7 @@ import {
     getNewForeignKeyIds,
     getNewTableIds,
     getModifiedColumnHighlights,
+    getModifiedTableHighlights,
 } from "../../src/reactviews/pages/SchemaDesigner/diff/diffHighlights";
 
 function makeColumn(id: string, name: string): sd.SchemaDesigner.Column {
@@ -200,5 +201,26 @@ suite("SchemaDesigner diff highlights", () => {
         expect(highlight?.nameChange).to.equal(undefined);
         expect(highlight?.dataTypeChange).to.equal(undefined);
         expect(highlight?.hasOtherChanges).to.equal(true);
+    });
+
+    test("returns modified table details for name and schema changes", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+        const updatedTable = makeTable("table-1", "app_users", [makeColumn("col-1", "id")]);
+        updatedTable.schema = "sales";
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [updatedTable],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const highlights = getModifiedTableHighlights(summary);
+        const highlight = highlights.get("table-1");
+
+        expect(highlight).to.exist;
+        expect(highlight?.nameChange?.oldValue).to.equal("users");
+        expect(highlight?.nameChange?.newValue).to.equal("app_users");
+        expect(highlight?.schemaChange?.oldValue).to.equal("dbo");
+        expect(highlight?.schemaChange?.newValue).to.equal("sales");
     });
 });

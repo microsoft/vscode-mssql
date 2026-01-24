@@ -17,6 +17,17 @@ export interface ModifiedColumnHighlight {
     hasOtherChanges: boolean;
 }
 
+export interface ModifiedTableHighlight {
+    nameChange?: {
+        oldValue: string;
+        newValue: string;
+    };
+    schemaChange?: {
+        oldValue: string;
+        newValue: string;
+    };
+}
+
 export function getNewTableIds(summary: SchemaChangesSummary | undefined): Set<string> {
     if (!summary) {
         return new Set();
@@ -125,6 +136,58 @@ export function getModifiedColumnHighlights(
             }
 
             highlights.set(change.objectId, highlight);
+        }
+    }
+
+    return highlights;
+}
+
+export function getModifiedTableHighlights(
+    summary: SchemaChangesSummary | undefined,
+): Map<string, ModifiedTableHighlight> {
+    if (!summary) {
+        return new Map();
+    }
+
+    const highlights = new Map<string, ModifiedTableHighlight>();
+
+    for (const group of summary.groups) {
+        if (group.isNew) {
+            continue;
+        }
+
+        for (const change of group.changes) {
+            if (change.category !== ChangeCategory.Table || change.action !== ChangeAction.Modify) {
+                continue;
+            }
+
+            if (!change.tableId || !change.propertyChanges) {
+                continue;
+            }
+
+            const highlight = highlights.get(change.tableId) ?? {};
+
+            for (const propertyChange of change.propertyChanges) {
+                if (propertyChange.property === "name") {
+                    highlight.nameChange = {
+                        oldValue: toTextValue(propertyChange.oldValue),
+                        newValue: toTextValue(propertyChange.newValue),
+                    };
+                    continue;
+                }
+
+                if (propertyChange.property === "schema") {
+                    highlight.schemaChange = {
+                        oldValue: toTextValue(propertyChange.oldValue),
+                        newValue: toTextValue(propertyChange.newValue),
+                    };
+                    continue;
+                }
+            }
+
+            if (highlight.nameChange || highlight.schemaChange) {
+                highlights.set(change.tableId, highlight);
+            }
         }
     }
 

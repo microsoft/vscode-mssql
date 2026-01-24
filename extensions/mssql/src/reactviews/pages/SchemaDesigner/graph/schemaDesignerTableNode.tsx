@@ -154,14 +154,15 @@ const useStyles = makeStyles({
         borderRadius: "3px",
     },
     columnDiffModified: {
-        backgroundColor: "var(--vscode-editorGutter-modifiedBackground)",
+        backgroundColor:
+            "var(--vscode-editorGutter-modifiedBackground, var(--vscode-diffEditor-modifiedTextBackground))",
         boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-modifiedResourceForeground)",
         borderRadius: "3px",
     },
     columnDiffModifiedOther: {
-        backgroundColor: "var(--vscode-diffEditor-modifiedTextBackground)",
-        boxShadow:
-            "inset 0 0 0 1px var(--vscode-diffEditor-modifiedTextBorder, var(--vscode-gitDecoration-modifiedResourceForeground))",
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
         borderRadius: "3px",
     },
     columnDiffValueGroup: {
@@ -172,6 +173,25 @@ const useStyles = makeStyles({
     columnDiffOldValue: {
         textDecorationLine: "line-through",
         opacity: 0.7,
+    },
+    tableDiffValueGroup: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    tableDiffOldValue: {
+        textDecorationLine: "line-through",
+        opacity: 0.7,
+    },
+    tableTitleDiffModified: {
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
+        borderRadius: "3px",
+        padding: "0 4px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
     },
     handleLeft: {
         marginLeft: "2px",
@@ -273,6 +293,10 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const tableHighlight = context.modifiedTableHighlights.get(table.id);
+    const showQualifiedDiff =
+        context.isChangesPanelVisible &&
+        (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange));
 
     // Function to highlight text based on search
     const highlightText = (text: string) => {
@@ -311,18 +335,34 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         );
     };
 
+    const tooltipContent = `${table.schema}.${table.name}`;
+    const oldSchema = tableHighlight?.schemaChange?.oldValue ?? table.schema;
+    const newSchema = tableHighlight?.schemaChange?.newValue ?? table.schema;
+    const oldName = tableHighlight?.nameChange?.oldValue ?? table.name;
+    const newName = tableHighlight?.nameChange?.newValue ?? table.name;
+    const oldQualified = `${oldSchema}.${oldName}`;
+    const newQualified = `${newSchema}.${newName}`;
+
     return (
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <ConditionalTooltip content={`${table.schema}.${table.name}`} relationship="label">
+                <ConditionalTooltip content={tooltipContent} relationship="label">
                     <Text
-                        className={
-                            context.isExporting ? styles.tableTitleExporting : styles.tableTitle
-                        }>
-                        {context.isExporting
-                            ? `${table.schema}.${table.name}`
-                            : highlightText(`${table.schema}.${table.name}`)}
+                        className={mergeClasses(
+                            context.isExporting ? styles.tableTitleExporting : styles.tableTitle,
+                            showQualifiedDiff && styles.tableTitleDiffModified,
+                        )}>
+                        {context.isExporting ? (
+                            tooltipContent
+                        ) : showQualifiedDiff ? (
+                            <span className={styles.tableDiffValueGroup}>
+                                <span className={styles.tableDiffOldValue}>{oldQualified}</span>
+                                <span>{newQualified}</span>
+                            </span>
+                        ) : (
+                            highlightText(tooltipContent)
+                        )}
                     </Text>
                 </ConditionalTooltip>
                 {!context.isExporting && <TableHeaderActions table={table} />}
