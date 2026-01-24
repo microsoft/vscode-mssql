@@ -116,15 +116,23 @@ suite("SchemaDesigner diff highlights", () => {
 
         const updated: sd.SchemaDesigner.Schema = {
             tables: [
-                makeTable("table-1", "users", [makeColumn("col-1", "id")], [
-                    makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"]),
-                ]),
+                makeTable(
+                    "table-1",
+                    "users",
+                    [makeColumn("col-1", "id")],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                ),
                 makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
-                makeTable("table-3", "invoices", [makeColumn("col-3", "invoice_id")], [
-                    makeForeignKey("fk-2", "FK_invoices_orders", ["invoice_id"], "orders", [
-                        "order_id",
-                    ]),
-                ]),
+                makeTable(
+                    "table-3",
+                    "invoices",
+                    [makeColumn("col-3", "invoice_id")],
+                    [
+                        makeForeignKey("fk-2", "FK_invoices_orders", ["invoice_id"], "orders", [
+                            "order_id",
+                        ]),
+                    ],
+                ),
             ],
         };
 

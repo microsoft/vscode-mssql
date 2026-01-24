@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -84,6 +84,37 @@ export const SchemaDesignerFlow = () => {
     >(undefined);
 
     const [open, setOpen] = useState(false);
+
+    const highlightedEdges = useMemo(() => {
+        const highlightClass = "schema-designer-edge-added";
+        let didChange = false;
+        const nextEdges = relationshipEdges.map((edge) => {
+            const foreignKeyId = edge.data?.id;
+            const shouldHighlight =
+                context.isChangesPanelVisible &&
+                !!foreignKeyId &&
+                context.newForeignKeyIds.has(foreignKeyId);
+
+            const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
+            const classSet = new Set(baseClass);
+
+            if (shouldHighlight) {
+                classSet.add(highlightClass);
+            } else {
+                classSet.delete(highlightClass);
+            }
+
+            const nextClassName = classSet.size > 0 ? Array.from(classSet).join(" ") : undefined;
+            if (nextClassName === edge.className) {
+                return edge;
+            }
+
+            didChange = true;
+            return { ...edge, className: nextClassName };
+        });
+
+        return didChange ? nextEdges : relationshipEdges;
+    }, [context.isChangesPanelVisible, context.newForeignKeyIds, relationshipEdges]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -359,7 +390,7 @@ export const SchemaDesignerFlow = () => {
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
                 nodes={schemaNodes}
-                edges={relationshipEdges}
+                edges={highlightedEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
