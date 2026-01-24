@@ -23,7 +23,6 @@ export function SchemaDesignerToolbar() {
                     width: "100%",
                     overflow: "hidden",
                     overflowX: "auto",
-                    gap: "3px",
                     alignItems: "center",
                 }}>
                 <PublishChangesDialogButton />
@@ -31,12 +30,12 @@ export function SchemaDesignerToolbar() {
                 <ExportDiagramButton />
                 <ToolbarDivider />
                 <AddTableButton />
-                <UndoRedoButtons />
-                <AutoArrangeButton />
                 <DeleteNodesButton />
                 <ToolbarDivider />
-                <FilterTablesButton />
+                <UndoRedoButtons />
                 <ToolbarDivider />
+                <AutoArrangeButton />
+                <FilterTablesButton />
                 <ShowChangesButton />
             </Toolbar>
         </div>

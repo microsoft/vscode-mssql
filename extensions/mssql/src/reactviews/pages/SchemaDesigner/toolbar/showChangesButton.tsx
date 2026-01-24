@@ -8,6 +8,7 @@ import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
+import * as FluentIcons from "@fluentui/react-icons";
 
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
@@ -20,6 +21,7 @@ export function ShowChangesButton() {
     return (
         <Button
             size="small"
+            icon={<FluentIcons.BranchCompare16Regular />}
             appearance="subtle"
             onClick={() => {
                 eventBus.emit("toggleChangesPanel");
