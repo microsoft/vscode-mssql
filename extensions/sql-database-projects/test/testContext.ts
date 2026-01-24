@@ -63,7 +63,7 @@ export class MockDacFxService implements mssql.IDacFxService {
 	public validateStreamingJob(_packageFilePath: string, _createStreamingJobTsql: string): Thenable<mssql.ValidateStreamingJobResult> { return Promise.resolve(mockDacFxResult); }
 	public parseTSqlScript(_filePath: string, _databaseSchemaProvider: string): Thenable<mssql.ParseTSqlScriptResult> { return Promise.resolve({ containsCreateTableStatement: true }); }
 	public savePublishProfile(_profilePath: string, _databaseName: string, _connectionString: string, _sqlCommandVariableValues?: Map<string, string>, _deploymentOptions?: mssql.DeploymentOptions): Thenable<azdata.ResultStatus> { return Promise.resolve(mockSavePublishResult); }
-	public getDeploymentOptions(_scenario?: mssql.DeploymentScenario): Thenable<mssql.GetDeploymentOptionsResult> { return Promise.resolve({ success: true, errorMessage: '', defaultDeploymentOptions: getDeploymentOptions() }); }
+	public getDeploymentOptions(_scenario?: mssql.DeploymentScenario): Thenable<mssql.GetDeploymentOptionsResult> { return Promise.resolve(mockDacFxOptionsResult); }
 }
 
 export function createContext(): TestContext {

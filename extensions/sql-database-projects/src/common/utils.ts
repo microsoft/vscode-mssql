@@ -16,7 +16,7 @@ import * as fse from 'fs-extra';
 import * as which from 'which';
 import { promises as fs } from 'fs';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
-import { SystemDatabase } from './typeHelper';
+import { DeploymentScenario, SystemDatabase } from './typeHelper';
 
 export interface ValidationResult {
 	errorMessage: string;
@@ -365,7 +365,7 @@ export async function defaultAzureAccountServiceFactory(): Promise<vscodeMssql.I
  */
 export async function getDefaultPublishDeploymentOptions(project: ISqlProject): Promise<mssql.DeploymentOptions | vscodeMssql.DeploymentOptions> {
 	const dacFxService = await getDacFxService();
-	const result = await dacFxService.getDeploymentOptions(vscodeMssql.DeploymentScenario.Deployment);
+	const result = await (dacFxService as vscodeMssql.IDacFxService).getDeploymentOptions(DeploymentScenario.Deployment as unknown as vscodeMssql.DeploymentScenario);
 	// this option needs to be true for same database references validation to work
 	if (project.databaseReferences.length > 0) {
 		result.defaultDeploymentOptions.booleanOptionsDictionary.includeCompositeObjects.value = true;

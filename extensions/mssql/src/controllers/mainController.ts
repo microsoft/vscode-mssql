@@ -7,12 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import {
-    IConnectionInfo,
-    IScriptingObject,
-    SchemaCompareEndpointInfo,
-    DeploymentScenario,
-} from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../sharedInterfaces/schemaCompare";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";

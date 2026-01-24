@@ -213,6 +213,11 @@ declare module 'mssql' {
 		schemaObjectType = 5
 	}
 
+	export const enum DeploymentScenario {
+		Deployment = 0,
+		SchemaCompare = 1
+	}
+
 	export interface IDacFxService {
 		exportBacpac(databaseName: string, packageFilePath: string, ownerUri: string, taskExecutionMode: azdata.TaskExecutionMode): Thenable<DacFxResult>;
 		importBacpac(packageFilePath: string, databaseName: string, ownerUri: string, taskExecutionMode: azdata.TaskExecutionMode): Thenable<DacFxResult>;
@@ -225,6 +230,7 @@ declare module 'mssql' {
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
 		parseTSqlScript(filePath: string, databaseSchemaProvider: string): Thenable<ParseTSqlScriptResult>;
 		savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<azdata.ResultStatus>;
+		getDeploymentOptions(scenario?: DeploymentScenario | number): Thenable<GetDeploymentOptionsResult>;
 	}
 
 	export interface DacFxResult extends azdata.ResultStatus {
@@ -244,6 +250,14 @@ declare module 'mssql' {
 
 	export interface ParseTSqlScriptResult {
 		containsCreateTableStatement: boolean;
+	}
+
+	export interface GetDeploymentOptionsParams {
+		scenario?: DeploymentScenario | number;
+	}
+
+	export interface GetDeploymentOptionsResult extends azdata.ResultStatus {
+		deploymentOptions: DeploymentOptions;
 	}
 
 	export interface ExportParams {

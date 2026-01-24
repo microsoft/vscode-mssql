@@ -47,10 +47,6 @@ export const enum TaskExecutionMode {
     executeAndScript = 2,
 }
 
-/**
- * Specifies the deployment scenario for getting deployment options.
- * Must be kept in-sync with DeploymentScenario in vscode-mssql.d.ts and SQL Tools Service.
- */
 export const enum DeploymentScenario {
     Deployment = 0,
     SchemaCompare = 1,

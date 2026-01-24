@@ -65,6 +65,15 @@ export enum TaskExecutionMode {
 	executeAndScript = 2
 }
 
+/**
+ * This is a duplicate of the DeploymentScenario from vscode-mssql.d.ts, which is needed
+ * for using when running in VS Code since we don't have an actual implementation of the enum at runtime.
+ */
+export enum DeploymentScenario {
+	Deployment = 0,
+	SchemaCompare = 1
+}
+
 export type AddDatabaseReferenceSettings = ISystemDatabaseReferenceSettings | IDacpacReferenceSettings | IProjectReferenceSettings | INugetPackageReferenceSettings;
 
 interface FileWatcherStatus {
@@ -2000,7 +2009,7 @@ export class ProjectsController {
 
 		TelemetryReporter.sendActionEvent(TelemetryViews.ProjectController, TelemetryActions.SchemaComparisonStarted);
 
-		const deploymentOptions = await (dacFxService as mssqlVscode.IDacFxService).getDeploymentOptions(mssqlVscode.DeploymentScenario.SchemaCompare);
+		const deploymentOptions = await (dacFxService as mssqlVscode.IDacFxService).getDeploymentOptions(DeploymentScenario.SchemaCompare as unknown as mssqlVscode.DeploymentScenario);
 
 		// Perform schema comparison based on environment
 		let comparisonResult: mssql.SchemaCompareResult | mssqlVscode.SchemaCompareResult;
