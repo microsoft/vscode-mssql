@@ -450,7 +450,6 @@ declare module "vscode-mssql" {
             targetFolderStructure: ExtractTarget,
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<SchemaComparePublishProjectResult>;
-        schemaCompareGetDefaultOptions(): Thenable<SchemaCompareOptionsResult>;
         includeExcludeNode(
             operationId: string,
             diffEntry: DiffEntry,
@@ -541,6 +540,7 @@ declare module "vscode-mssql" {
             sqlCommandVariableValues?: Map<string, string>,
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
+        getDeploymentOptions(scenario?: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
     }
 
     /**
@@ -1363,6 +1363,39 @@ declare module "vscode-mssql" {
     }
 
     export interface ValidateStreamingJobResult extends ResultStatus { }
+
+    /**
+     * Specifies the scenario for which to retrieve default deployment options
+     */
+    export const enum DeploymentScenario {
+        /**
+         * Deployment/Publish scenario - uses DacFx native defaults (this is the default)
+         */
+        Deployment = 0,
+        /**
+         * Schema Compare scenario - uses modified defaults that match SSMS behavior
+         */
+        SchemaCompare = 1,
+    }
+
+    /**
+     * Parameters for getting deployment options based on scenario
+     */
+    export interface GetDeploymentOptionsParams {
+        /**
+         * Specifies the scenario for which to retrieve default deployment options.
+         * Deployment (default): Returns DacFx native defaults (for Publish operations).
+         * SchemaCompare: Returns modified defaults that match SSMS behavior.
+         */
+        scenario?: DeploymentScenario;
+    }
+
+    /**
+     * Result containing deployment options for the requested scenario
+     */
+    export interface GetDeploymentOptionsResult extends ResultStatus {
+        defaultDeploymentOptions: DeploymentOptions;
+    }
 
     export interface ExportParams {
         databaseName: string;

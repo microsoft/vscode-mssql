@@ -364,8 +364,8 @@ export async function defaultAzureAccountServiceFactory(): Promise<vscodeMssql.I
  * Returns the default deployment options from DacFx, filtered to appropriate options for the given project.
  */
 export async function getDefaultPublishDeploymentOptions(project: ISqlProject): Promise<mssql.DeploymentOptions | vscodeMssql.DeploymentOptions> {
-	const schemaCompareService = await getSchemaCompareService();
-	const result = await schemaCompareService.schemaCompareGetDefaultOptions();
+	const dacFxService = await getDacFxService();
+	const result = await dacFxService.getDeploymentOptions(vscodeMssql.DeploymentScenario.Deployment);
 	// this option needs to be true for same database references validation to work
 	if (project.databaseReferences.length > 0) {
 		result.defaultDeploymentOptions.booleanOptionsDictionary.includeCompositeObjects.value = true;

@@ -1992,6 +1992,7 @@ export class ProjectsController {
 	private async schemaCompareAndUpdateProject(source: mssql.SchemaCompareEndpointInfo | mssqlVscode.SchemaCompareEndpointInfo, target: mssql.SchemaCompareEndpointInfo | mssqlVscode.SchemaCompareEndpointInfo): Promise<void> {
 		// Run schema comparison - use the schema compare service
 		const service = await utils.getSchemaCompareService();
+		const dacFxService = await utils.getDacFxService();
 		const operationId = UUID.generateUuid();
 
 		target.targetScripts = await this.getProjectScriptFiles(target.projectFilePath);
@@ -1999,7 +2000,7 @@ export class ProjectsController {
 
 		TelemetryReporter.sendActionEvent(TelemetryViews.ProjectController, TelemetryActions.SchemaComparisonStarted);
 
-		const deploymentOptions = await service.schemaCompareGetDefaultOptions();
+		const deploymentOptions = await (dacFxService as mssqlVscode.IDacFxService).getDeploymentOptions(mssqlVscode.DeploymentScenario.SchemaCompare);
 
 		// Perform schema comparison based on environment
 		let comparisonResult: mssql.SchemaCompareResult | mssqlVscode.SchemaCompareResult;

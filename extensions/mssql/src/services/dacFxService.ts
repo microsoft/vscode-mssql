@@ -254,4 +254,13 @@ export class DacFxService implements mssql.IDacFxService {
         };
         return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
     }
+
+    public getDeploymentOptions(
+        scenario?: mssql.DeploymentScenario,
+    ): Thenable<mssql.GetDeploymentOptionsResult> {
+        const params: mssql.GetDeploymentOptionsParams = {
+            scenario: scenario,
+        };
+        return this._client.sendRequest(dacFxContracts.GetDeploymentOptionsRequest.type, params);
+    }
 }
