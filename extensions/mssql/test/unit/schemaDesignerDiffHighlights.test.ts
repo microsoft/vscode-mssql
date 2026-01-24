@@ -107,7 +107,7 @@ suite("SchemaDesigner diff highlights", () => {
         expect(newColumnIds.has("col-3")).to.equal(false);
     });
 
-    test("returns added foreign keys for existing tables only", () => {
+    test("returns added foreign keys for existing and new tables", () => {
         const baseline: sd.SchemaDesigner.Schema = {
             tables: [
                 makeTable("table-1", "users", [makeColumn("col-1", "id")]),
@@ -141,7 +141,7 @@ suite("SchemaDesigner diff highlights", () => {
         const newForeignKeyIds = getNewForeignKeyIds(summary);
 
         expect(newForeignKeyIds.has("fk-1")).to.equal(true);
-        expect(newForeignKeyIds.has("fk-2")).to.equal(false);
+        expect(newForeignKeyIds.has("fk-2")).to.equal(true);
     });
 
     test("returns modified column details for name changes", () => {

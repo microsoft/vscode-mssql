@@ -57,9 +57,6 @@ export function getNewForeignKeyIds(summary: SchemaChangesSummary | undefined): 
 
     const addedForeignKeys = new Set<string>();
     for (const group of summary.groups) {
-        if (group.isNew) {
-            continue;
-        }
         for (const change of group.changes) {
             if (
                 change.category === ChangeCategory.ForeignKey &&
