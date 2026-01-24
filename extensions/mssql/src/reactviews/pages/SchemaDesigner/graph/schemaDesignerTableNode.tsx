@@ -7,6 +7,7 @@ import {
     Button,
     Divider,
     makeStyles,
+    mergeClasses,
     Menu,
     MenuButton,
     MenuItem,
@@ -95,6 +96,9 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "5px",
     },
+    tableNodeDiffAdded: {
+        boxShadow: "0 0 0 2px var(--vscode-gitDecoration-addedResourceForeground)",
+    },
     tableHeader: {
         width: "100%",
         display: "flex",
@@ -143,6 +147,11 @@ const useStyles = makeStyles({
     columnType: {
         fontSize: "12px",
         color: "var(--vscode-descriptionForeground)",
+    },
+    columnDiffAdded: {
+        backgroundColor: "var(--vscode-diffEditor-insertedTextBackground)",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-addedResourceForeground)",
+        borderRadius: "3px",
     },
     handleLeft: {
         marginLeft: "2px",
@@ -318,9 +327,12 @@ const TableColumn = ({
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
+    const showAddedDiff = context.isChangesPanelVisible && context.newColumnIds.has(column.id);
 
     return (
-        <div className={"column"} key={column.name}>
+        <div
+            className={mergeClasses("column", showAddedDiff && styles.columnDiffAdded)}
+            key={column.name}>
             <Handle
                 type="source"
                 position={Position.Left}
@@ -459,6 +471,7 @@ const TableColumns = ({
 // Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
+    const context = useContext(SchemaDesignerContext);
     const table = props.data as SchemaDesigner.Table;
     // Default to collapsed state if table has more than 10 columns
     const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
@@ -467,8 +480,14 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
         setIsCollapsed(!isCollapsed);
     };
 
+    const showAddedDiff = context.isChangesPanelVisible && context.newTableIds.has(table.id);
+
     return (
-        <div className={styles.tableNodeContainer}>
+        <div
+            className={mergeClasses(
+                styles.tableNodeContainer,
+                showAddedDiff && styles.tableNodeDiffAdded,
+            )}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
             <TableHeader table={table} />
             <Divider />

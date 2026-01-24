@@ -21,6 +21,7 @@ import {
     SchemaChange,
     SchemaChangesSummary,
 } from "./diff/diffUtils";
+import { getNewColumnIds, getNewForeignKeyIds, getNewTableIds } from "./diff/diffHighlights";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -75,6 +76,11 @@ export interface SchemaDesignerContextProps
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
     setIsExporting: (value: boolean) => void;
+    isChangesPanelVisible: boolean;
+    setIsChangesPanelVisible: (value: boolean) => void;
+    newTableIds: Set<string>;
+    newColumnIds: Set<string>;
+    newForeignKeyIds: Set<string>;
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -115,6 +121,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
+    const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
@@ -124,6 +131,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         SchemaChangesSummary | undefined
     >(undefined);
     const [structuredSchemaChanges, setStructuredSchemaChanges] = useState<SchemaChange[]>([]);
+    const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
+    const [newColumnIds, setNewColumnIds] = useState<Set<string>>(new Set());
+    const [newForeignKeyIds, setNewForeignKeyIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         const handleScript = () => {
@@ -203,6 +213,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 const allChanges = summary.groups.flatMap((group) => group.changes);
                 setStructuredSchemaChanges(allChanges);
                 setSchemaChangesSummary(summary);
+                setNewTableIds(getNewTableIds(summary));
+                setNewColumnIds(getNewColumnIds(summary));
+                setNewForeignKeyIds(getNewForeignKeyIds(summary));
 
                 const changeStrings = summary.groups.flatMap((group) =>
                     group.changes.map((change) => {
@@ -799,6 +812,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
         setSchemaChangesCount(0);
         setSchemaChanges([]);
+        setSchemaChangesSummary(undefined);
+        setStructuredSchemaChanges([]);
+        setNewTableIds(new Set());
+        setNewColumnIds(new Set());
+        setNewForeignKeyIds(new Set());
         return response;
     };
 
@@ -858,6 +876,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setRenderOnlyVisibleTables,
                 isExporting,
                 setIsExporting,
+                isChangesPanelVisible,
+                setIsChangesPanelVisible,
+                newTableIds,
+                newColumnIds,
+                newForeignKeyIds,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

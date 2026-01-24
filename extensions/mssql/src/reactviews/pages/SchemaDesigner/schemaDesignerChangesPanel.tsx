@@ -240,6 +240,7 @@ export const SchemaDesignerChangesPanel = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const panelRef = useRef<ImperativePanelHandle | undefined>(undefined);
+    const { setIsChangesPanelVisible } = context;
 
     const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
@@ -253,6 +254,7 @@ export const SchemaDesignerChangesPanel = () => {
     useEffect(() => {
         // Ensure panel starts collapsed
         panelRef.current?.collapse();
+        setIsChangesPanelVisible(false);
 
         const toggle = () => {
             if (!panelRef.current) {
@@ -261,16 +263,19 @@ export const SchemaDesignerChangesPanel = () => {
 
             if (panelRef.current.isCollapsed()) {
                 panelRef.current.expand(DEFAULT_PANEL_SIZE);
+                setIsChangesPanelVisible(true);
             } else {
                 panelRef.current.collapse();
+                setIsChangesPanelVisible(false);
             }
         };
 
         eventBus.on("toggleChangesPanel", toggle);
         return () => {
             eventBus.off("toggleChangesPanel", toggle);
+            setIsChangesPanelVisible(false);
         };
-    }, []);
+    }, [setIsChangesPanelVisible]);
 
     const filteredGroups = useMemo(() => {
         if (!context.schemaChangesSummary?.groups) {
@@ -485,6 +490,9 @@ export const SchemaDesignerChangesPanel = () => {
             collapsible
             defaultSize={DEFAULT_PANEL_SIZE}
             minSize={MIN_PANEL_SIZE}
+            onResize={(size) => {
+                setIsChangesPanelVisible(size > 0);
+            }}
             ref={(ref) => {
                 panelRef.current = ref ?? undefined;
             }}>
@@ -499,7 +507,10 @@ export const SchemaDesignerChangesPanel = () => {
                         icon={<Dismiss12Regular />}
                         title={locConstants.schemaDesigner.close}
                         aria-label={locConstants.schemaDesigner.close}
-                        onClick={() => panelRef.current?.collapse()}
+                        onClick={() => {
+                            panelRef.current?.collapse();
+                            setIsChangesPanelVisible(false);
+                        }}
                     />
                 </div>
 
