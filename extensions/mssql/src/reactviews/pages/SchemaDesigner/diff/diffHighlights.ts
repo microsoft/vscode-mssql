@@ -81,6 +81,26 @@ export function getNewForeignKeyIds(summary: SchemaChangesSummary | undefined): 
     return addedForeignKeys;
 }
 
+export function getModifiedForeignKeyIds(summary: SchemaChangesSummary | undefined): Set<string> {
+    if (!summary) {
+        return new Set();
+    }
+
+    const modifiedForeignKeys = new Set<string>();
+    for (const group of summary.groups) {
+        for (const change of group.changes) {
+            if (
+                change.category === ChangeCategory.ForeignKey &&
+                change.action === ChangeAction.Modify &&
+                change.objectId
+            ) {
+                modifiedForeignKeys.add(change.objectId);
+            }
+        }
+    }
+    return modifiedForeignKeys;
+}
+
 const toTextValue = (value: unknown): string => {
     if (value === null || value === undefined) {
         return "";

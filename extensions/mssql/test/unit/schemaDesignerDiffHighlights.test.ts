@@ -12,6 +12,7 @@ import {
     getNewTableIds,
     getModifiedColumnHighlights,
     getModifiedTableHighlights,
+    getModifiedForeignKeyIds,
 } from "../../src/reactviews/pages/SchemaDesigner/diff/diffHighlights";
 
 function makeColumn(id: string, name: string): sd.SchemaDesigner.Column {
@@ -222,5 +223,36 @@ suite("SchemaDesigner diff highlights", () => {
         expect(highlight?.nameChange?.newValue).to.equal("app_users");
         expect(highlight?.schemaChange?.oldValue).to.equal("dbo");
         expect(highlight?.schemaChange?.newValue).to.equal("sales");
+    });
+
+    test("returns modified foreign key ids", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [
+                makeTable(
+                    "table-1",
+                    "users",
+                    [makeColumn("col-1", "id")],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                ),
+                makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+            ],
+        };
+
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [
+                makeTable(
+                    "table-1",
+                    "users",
+                    [makeColumn("col-1", "id")],
+                    [makeForeignKey("fk-1", "FK_users_orders_new", ["id"], "orders", ["order_id"])],
+                ),
+                makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+            ],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const modifiedForeignKeyIds = getModifiedForeignKeyIds(summary);
+
+        expect(modifiedForeignKeyIds.has("fk-1")).to.equal(true);
     });
 });

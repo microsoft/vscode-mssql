@@ -86,7 +86,8 @@ export const SchemaDesignerFlow = () => {
     const [open, setOpen] = useState(false);
 
     const highlightedEdges = useMemo(() => {
-        const highlightClass = "schema-designer-edge-added";
+        const addedClass = "schema-designer-edge-added";
+        const modifiedClass = "schema-designer-edge-modified";
         let didChange = false;
         const nextEdges = relationshipEdges.map((edge) => {
             const foreignKeyId = edge.data?.id;
@@ -94,14 +95,24 @@ export const SchemaDesignerFlow = () => {
                 context.isChangesPanelVisible &&
                 !!foreignKeyId &&
                 context.newForeignKeyIds.has(foreignKeyId);
+            const shouldShowModified =
+                context.isChangesPanelVisible &&
+                !!foreignKeyId &&
+                context.modifiedForeignKeyIds.has(foreignKeyId);
 
             const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
             const classSet = new Set(baseClass);
 
             if (shouldHighlight) {
-                classSet.add(highlightClass);
+                classSet.add(addedClass);
             } else {
-                classSet.delete(highlightClass);
+                classSet.delete(addedClass);
+            }
+
+            if (shouldShowModified) {
+                classSet.add(modifiedClass);
+            } else {
+                classSet.delete(modifiedClass);
             }
 
             const nextClassName = classSet.size > 0 ? Array.from(classSet).join(" ") : undefined;

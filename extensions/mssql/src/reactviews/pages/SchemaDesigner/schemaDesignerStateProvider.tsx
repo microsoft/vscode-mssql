@@ -23,6 +23,7 @@ import {
 } from "./diff/diffUtils";
 import {
     getModifiedColumnHighlights,
+    getModifiedForeignKeyIds,
     getModifiedTableHighlights,
     getNewColumnIds,
     getNewForeignKeyIds,
@@ -89,6 +90,7 @@ export interface SchemaDesignerContextProps
     newTableIds: Set<string>;
     newColumnIds: Set<string>;
     newForeignKeyIds: Set<string>;
+    modifiedForeignKeyIds: Set<string>;
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
 
@@ -144,6 +146,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
     const [newColumnIds, setNewColumnIds] = useState<Set<string>>(new Set());
     const [newForeignKeyIds, setNewForeignKeyIds] = useState<Set<string>>(new Set());
+    const [modifiedForeignKeyIds, setModifiedForeignKeyIds] = useState<Set<string>>(new Set());
     const [modifiedColumnHighlights, setModifiedColumnHighlights] = useState<
         Map<string, ModifiedColumnHighlight>
     >(new Map());
@@ -234,6 +237,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setNewForeignKeyIds(getNewForeignKeyIds(summary));
                 setModifiedColumnHighlights(getModifiedColumnHighlights(summary));
                 setModifiedTableHighlights(getModifiedTableHighlights(summary));
+                setModifiedForeignKeyIds(getModifiedForeignKeyIds(summary));
 
                 const changeStrings = summary.groups.flatMap((group) =>
                     group.changes.map((change) => {
@@ -837,6 +841,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setNewForeignKeyIds(new Set());
         setModifiedColumnHighlights(new Map());
         setModifiedTableHighlights(new Map());
+        setModifiedForeignKeyIds(new Set());
         return response;
     };
 
@@ -901,6 +906,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 newTableIds,
                 newColumnIds,
                 newForeignKeyIds,
+                modifiedForeignKeyIds,
                 modifiedColumnHighlights,
                 modifiedTableHighlights,
                 schemaChangesCount,
