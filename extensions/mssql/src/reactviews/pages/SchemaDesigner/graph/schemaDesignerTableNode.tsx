@@ -153,6 +153,26 @@ const useStyles = makeStyles({
         boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-addedResourceForeground)",
         borderRadius: "3px",
     },
+    columnDiffModified: {
+        backgroundColor: "var(--vscode-editorGutter-modifiedBackground)",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-modifiedResourceForeground)",
+        borderRadius: "3px",
+    },
+    columnDiffModifiedOther: {
+        backgroundColor: "var(--vscode-diffEditor-modifiedTextBackground)",
+        boxShadow:
+            "inset 0 0 0 1px var(--vscode-diffEditor-modifiedTextBorder, var(--vscode-gitDecoration-modifiedResourceForeground))",
+        borderRadius: "3px",
+    },
+    columnDiffValueGroup: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    columnDiffOldValue: {
+        textDecorationLine: "line-through",
+        opacity: 0.7,
+    },
     handleLeft: {
         marginLeft: "2px",
     },
@@ -328,10 +348,57 @@ const TableColumn = ({
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
     const showAddedDiff = context.isChangesPanelVisible && context.newColumnIds.has(column.id);
+    const modifiedHighlight = context.modifiedColumnHighlights.get(column.id);
+    const hasNameChange = Boolean(modifiedHighlight?.nameChange);
+    const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
+    const showNameDiff = context.isChangesPanelVisible && hasNameChange;
+    const showDataTypeDiff = context.isChangesPanelVisible && hasDataTypeChange;
+    const showModifiedDiff = showNameDiff || showDataTypeDiff;
+    const showModifiedOther =
+        context.isChangesPanelVisible && !showModifiedDiff && modifiedHighlight?.hasOtherChanges;
+
+    const renderName = () => {
+        if (!showNameDiff || !modifiedHighlight?.nameChange) {
+            return column.name;
+        }
+
+        return (
+            <span className={styles.columnDiffValueGroup}>
+                <span className={styles.columnDiffOldValue}>
+                    {modifiedHighlight.nameChange.oldValue}
+                </span>
+                <span>{modifiedHighlight.nameChange.newValue}</span>
+            </span>
+        );
+    };
+
+    const renderDataType = () => {
+        if (column.isComputed) {
+            return "COMPUTED";
+        }
+
+        if (!showDataTypeDiff || !modifiedHighlight?.dataTypeChange) {
+            return column.dataType?.toUpperCase();
+        }
+
+        return (
+            <span className={styles.columnDiffValueGroup}>
+                <span className={styles.columnDiffOldValue}>
+                    {modifiedHighlight.dataTypeChange.oldValue.toUpperCase()}
+                </span>
+                <span>{modifiedHighlight.dataTypeChange.newValue.toUpperCase()}</span>
+            </span>
+        );
+    };
 
     return (
         <div
-            className={mergeClasses("column", showAddedDiff && styles.columnDiffAdded)}
+            className={mergeClasses(
+                "column",
+                showAddedDiff && styles.columnDiffAdded,
+                showModifiedDiff && styles.columnDiffModified,
+                showModifiedOther && styles.columnDiffModifiedOther,
+            )}
             key={column.name}>
             <Handle
                 type="source"
@@ -348,13 +415,11 @@ const TableColumn = ({
                 <Text
                     className={context.isExporting ? styles.columnNameExporting : styles.columnName}
                     style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
-                    {column.name}
+                    {renderName()}
                 </Text>
             </ConditionalTooltip>
 
-            <Text className={styles.columnType}>
-                {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
-            </Text>
+            <Text className={styles.columnType}>{renderDataType()}</Text>
 
             <Handle
                 type="source"

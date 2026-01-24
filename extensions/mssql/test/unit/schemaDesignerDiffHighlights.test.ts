@@ -10,6 +10,7 @@ import {
     getNewColumnIds,
     getNewForeignKeyIds,
     getNewTableIds,
+    getModifiedColumnHighlights,
 } from "../../src/reactviews/pages/SchemaDesigner/diff/diffHighlights";
 
 function makeColumn(id: string, name: string): sd.SchemaDesigner.Column {
@@ -141,5 +142,63 @@ suite("SchemaDesigner diff highlights", () => {
 
         expect(newForeignKeyIds.has("fk-1")).to.equal(true);
         expect(newForeignKeyIds.has("fk-2")).to.equal(false);
+    });
+
+    test("returns modified column details for name changes", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "user_id")])],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const highlights = getModifiedColumnHighlights(summary);
+        const highlight = highlights.get("col-1");
+
+        expect(highlight).to.exist;
+        expect(highlight?.nameChange?.oldValue).to.equal("id");
+        expect(highlight?.nameChange?.newValue).to.equal("user_id");
+        expect(highlight?.hasOtherChanges).to.equal(false);
+    });
+
+    test("returns modified column details for data type changes", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+        const updatedColumn = makeColumn("col-1", "id");
+        updatedColumn.dataType = "bigint";
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [updatedColumn])],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const highlights = getModifiedColumnHighlights(summary);
+        const highlight = highlights.get("col-1");
+
+        expect(highlight).to.exist;
+        expect(highlight?.dataTypeChange?.oldValue).to.equal("int");
+        expect(highlight?.dataTypeChange?.newValue).to.equal("bigint");
+        expect(highlight?.hasOtherChanges).to.equal(false);
+    });
+
+    test("returns modified column details for other property changes", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+        const updatedColumn = makeColumn("col-1", "id");
+        updatedColumn.isNullable = false;
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [updatedColumn])],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const highlights = getModifiedColumnHighlights(summary);
+        const highlight = highlights.get("col-1");
+
+        expect(highlight).to.exist;
+        expect(highlight?.nameChange).to.equal(undefined);
+        expect(highlight?.dataTypeChange).to.equal(undefined);
+        expect(highlight?.hasOtherChanges).to.equal(true);
     });
 });
