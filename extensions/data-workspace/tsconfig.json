@@ -18,7 +18,7 @@
 	},
 	"include": [
 		"src/**/*",
-		"../../typings/vscode-mssql.d.ts",
+		"../mssql/typings/vscode-mssql.d.ts",
 		"../../typings/dataworkspace.d.ts",
 		"../../typings/azdata.d.ts",
 		"../../typings/azdata.proposed.d.ts"

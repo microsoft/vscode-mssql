@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+// These tests are commented out because the ADS dialog files have been removed.
+// The test logic should be converted to test the VS Code quickpick-based UI.
+
+/*
 import should = require('should/as-function');
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -159,5 +164,6 @@ function validateInputBoxEnabledStates(dialog: AddDatabaseReferenceDialog, expec
 	should(dialog.serverNameTextbox?.enabled).equal(expectedStates.serverNameEnabled, `Server name text box should be ${expectedStates.serverNameEnabled}. Actual: ${dialog.serverNameTextbox?.enabled}`);
 	should(dialog.serverVariableTextbox?.enabled).equal(expectedStates.serverVariabledEnabled, `Server variable text box should be ${expectedStates.serverVariabledEnabled}. Actual: ${dialog.serverVariableTextbox?.enabled}`);
 }
+*/
 
 

@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { IExtension, IProjectType } from "dataworkspace";
 import { WorkspaceService } from "../services/workspaceService";
 import { defaultProjectSaveLocation } from "./projectLocationHelper";
-import { openSpecificProjectNewProjectDialog } from "../dialogs/newProjectDialog";
+import { openSpecificProjectNewProjectDialog } from "../dialogs/newProjectQuickpick";
 import {
   isValidBasename,
   isValidBasenameErrorMessage,

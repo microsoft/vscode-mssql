@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+// These tests are commented out because the ADS dialog files have been removed.
+// The test logic should be converted to test the VS Code quickpick-based UI.
+
+/*
 import * as azdata from 'azdata';
 import should = require('should/as-function');
 import * as sinon from 'sinon';
@@ -142,5 +147,6 @@ suite.skip('Update Project From Database Dialog', () => {
 		should(model!).deepEqual(expectedUpdateProjectDataModel);
 	});
 });
+*/
 
 

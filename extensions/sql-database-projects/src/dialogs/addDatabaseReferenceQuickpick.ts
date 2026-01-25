@@ -11,9 +11,38 @@ import { DbServerValues, populateResultWithVars } from './utils';
 import { AddDatabaseReferenceSettings } from '../controllers/projectController';
 import { IDacpacReferenceSettings, INugetPackageReferenceSettings, IProjectReferenceSettings, ISystemDatabaseReferenceSettings } from '../models/IDatabaseReferenceSettings';
 import { Project } from '../models/project';
-import { getSystemDbOptions, promptDacpacLocation } from './addDatabaseReferenceDialog';
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
 import { ProjectType, SystemDbReferenceType } from 'vscode-mssql';
+
+/**
+ * Get system database options based on project target version
+ */
+export function getSystemDbOptions(project: Project): string[] {
+	const projectTargetVersion = project.getProjectTargetVersion().toLowerCase();
+	// only master is a valid system db reference for projects targeting Azure and DW
+	if (projectTargetVersion.includes('azure') || projectTargetVersion.includes('dw')) {
+		return [constants.master];
+	}
+	return [constants.master, constants.msdb];
+}
+
+/**
+ * Prompt user to select a dacpac file location
+ */
+export async function promptDacpacLocation(): Promise<vscode.Uri[] | undefined> {
+	return await vscode.window.showOpenDialog({
+		canSelectFiles: true,
+		canSelectFolders: false,
+		canSelectMany: false,
+		defaultUri: vscode.workspace.workspaceFolders ?
+			(vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[])[0].uri : undefined,
+		openLabel: constants.selectString,
+		title: constants.selectDacpac,
+		filters: {
+			[constants.dacpacFiles]: ['dacpac'],
+		}
+	});
+}
 
 /**
  * Create flow for adding a database reference using only VS Code-native APIs such as QuickPick
