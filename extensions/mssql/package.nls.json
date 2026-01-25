@@ -267,5 +267,6 @@
     "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
-    "mssql.showChangelogOnUpdate": "Show changelog after extension updates"
+    "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
+    "mssql.flatFileImport": "Import Flat File"
 }

@@ -2562,3 +2562,70 @@ export class Proxy {
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
 }
+
+export class SqlOps {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static installingService = (serviceName: string) =>
+        l10n.t({
+            message: "Installing '{0}' service",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static installingServiceTo = (serviceName: string, installPath: string) =>
+        l10n.t({
+            message: "Installing '{0}' service to {1}",
+            args: [serviceName, installPath],
+            comment: ["{0} is the service name", "{1} is the installation path"],
+        });
+    public static serviceInstalled = (serviceName: string) =>
+        l10n.t({
+            message: "Installed '{0}'.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static downloadingService = (serviceName: string) =>
+        l10n.t({
+            message: "Downloading '{0}'",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static downloadSize = (sizeInKB: string) =>
+        l10n.t({
+            message: "Download size: {0} KB",
+            args: [sizeInKB],
+            comment: ["{0} is the size in kilobytes"],
+        });
+    public static downloadComplete = (serviceName: string) =>
+        l10n.t({
+            message: "Download '{0}' complete.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static entryExtracted = (entryName: string, entryFolder: string, entryFile: string) => 
+        l10n.t({
+            message: "Extracted '{0}' ('{1}'/'{2}').",
+            args: [entryName, entryFolder, entryFile],
+            comment: ["{0} is the entry name", "{1} is the entry folder", "{2} is the entry file"],
+        });
+}
+
+export class FlatFileImport {
+    public static flatFileImportTitle = l10n.t("Flat File Import");
+}

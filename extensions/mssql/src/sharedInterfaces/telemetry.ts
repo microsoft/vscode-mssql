@@ -41,6 +41,7 @@ export enum TelemetryViews {
     ChangelogPage = "ChangelogPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
+    SQLOps = "SQLOps",
 }
 
 export enum TelemetryActions {
@@ -203,6 +204,7 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
+    ServiceStarted = "ServiceStarted",
 }
 
 /**

@@ -106,6 +106,10 @@ import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigr
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { SqlOpsClient } from "../flatFile/sqlOpsClient";
+import { FlatFileImportController } from "./flatFileImportController";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
  * The main controller class that initializes the extension
@@ -143,6 +147,8 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public sqlOpsClient: SqlOpsClient;
+    public flatFileProvider: FlatFileProvider;
 
     /**
      * The main controller constructor
@@ -833,6 +839,16 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
+        // Initialize SQL Data ops client
+        const sqlOpsClient = new SqlOpsClient(this._vscodeWrapper.outputChannel);
+        await sqlOpsClient.startService(this._context);
+        this.sqlOpsClient = sqlOpsClient;
+        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
+            this.flatFileProvider = provider;
+            Promise.resolve(true);
+        });
+        console.log("FlatFileProvider registered.", this.flatFileProvider);
+
         /**
          * TODO: aaskhan
          * Good candidate for dependency injection.
@@ -1435,6 +1451,20 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdFlatFileImport,
+                async (node: ConnectTreeNode) => {
+                    const flatFileImportDialog = new FlatFileImportController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.flatFileProvider,
+                    );
+                    flatFileImportDialog.revealToForeground();
                 },
             ),
         );

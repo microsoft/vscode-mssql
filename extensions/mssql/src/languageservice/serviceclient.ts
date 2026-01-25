@@ -52,7 +52,7 @@ interface IMessage {
  * Handle Language Service client errors
  * @class LanguageClientErrorHandler
  */
-class LanguageClientErrorHandler {
+export class LanguageClientErrorHandler {
     /**
      * Creates an instance of LanguageClientErrorHandler.
      * @memberOf LanguageClientErrorHandler
