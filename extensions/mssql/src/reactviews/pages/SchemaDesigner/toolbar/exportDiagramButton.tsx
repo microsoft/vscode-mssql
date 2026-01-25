@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
     Menu,
     MenuItem,
     MenuList,
@@ -13,7 +12,6 @@ import {
     ToolbarButton,
     Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import * as htmlToImage from "html-to-image";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";

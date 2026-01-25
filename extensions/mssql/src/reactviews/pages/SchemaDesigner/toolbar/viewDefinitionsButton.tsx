@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, ToolbarButton, Tooltip } from "@fluentui/react-components";
+import { ToolbarButton, Tooltip } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import eventBus from "../schemaDesignerEvents";

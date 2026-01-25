@@ -89,7 +89,6 @@ export function PublishChangesDialogButton() {
         return (
             <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
                 <ToolbarButton
-                    size="small"
                     appearance="primary"
                     icon={<SaveIcon16 />}
                     disabled={publishButtonDisabled}

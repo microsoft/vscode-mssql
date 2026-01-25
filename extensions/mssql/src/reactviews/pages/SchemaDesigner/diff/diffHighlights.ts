@@ -33,9 +33,7 @@ export function getNewTableIds(summary: SchemaChangesSummary | undefined): Set<s
         return new Set();
     }
 
-    return new Set(
-        summary.groups.filter((group) => group.isNew).map((group) => group.tableId),
-    );
+    return new Set(summary.groups.filter((group) => group.isNew).map((group) => group.tableId));
 }
 
 export function getNewColumnIds(summary: SchemaChangesSummary | undefined): Set<string> {
@@ -101,6 +99,57 @@ export function getModifiedForeignKeyIds(summary: SchemaChangesSummary | undefin
     return modifiedForeignKeys;
 }
 
+export function getDeletedColumnIdsByTable(
+    summary: SchemaChangesSummary | undefined,
+): Map<string, Set<string>> {
+    if (!summary) {
+        return new Map();
+    }
+
+    const deletedColumnsByTable = new Map<string, Set<string>>();
+    for (const group of summary.groups) {
+        if (group.isDeleted) {
+            continue;
+        }
+        for (const change of group.changes) {
+            if (
+                change.category === ChangeCategory.Column &&
+                change.action === ChangeAction.Delete &&
+                change.objectId
+            ) {
+                const entry = deletedColumnsByTable.get(group.tableId) ?? new Set<string>();
+                entry.add(change.objectId);
+                deletedColumnsByTable.set(group.tableId, entry);
+            }
+        }
+    }
+
+    return deletedColumnsByTable;
+}
+
+export function getDeletedForeignKeyIds(summary: SchemaChangesSummary | undefined): Set<string> {
+    if (!summary) {
+        return new Set();
+    }
+
+    const deletedForeignKeys = new Set<string>();
+    for (const group of summary.groups) {
+        if (group.isDeleted) {
+            continue;
+        }
+        for (const change of group.changes) {
+            if (
+                change.category === ChangeCategory.ForeignKey &&
+                change.action === ChangeAction.Delete &&
+                change.objectId
+            ) {
+                deletedForeignKeys.add(change.objectId);
+            }
+        }
+    }
+    return deletedForeignKeys;
+}
+
 const toTextValue = (value: unknown): string => {
     if (value === null || value === undefined) {
         return "";
@@ -123,7 +172,10 @@ export function getModifiedColumnHighlights(
         }
 
         for (const change of group.changes) {
-            if (change.category !== ChangeCategory.Column || change.action !== ChangeAction.Modify) {
+            if (
+                change.category !== ChangeCategory.Column ||
+                change.action !== ChangeAction.Modify
+            ) {
                 continue;
             }
 

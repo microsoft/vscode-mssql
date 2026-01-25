@@ -104,6 +104,16 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
     stroke: var(--vscode-editorWarning-foreground);
 }
 
+.react-flow__edge.schema-designer-edge-deleted .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-designer-edge-deleted .react-flow__arrowhead path {
+    fill: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+}
+
 .react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
     width: 10px;

@@ -22,6 +22,8 @@ import {
     SchemaChangesSummary,
 } from "./diff/diffUtils";
 import {
+    getDeletedColumnIdsByTable,
+    getDeletedForeignKeyIds,
     getModifiedColumnHighlights,
     getModifiedForeignKeyIds,
     getModifiedTableHighlights,
@@ -31,6 +33,7 @@ import {
     type ModifiedColumnHighlight,
     type ModifiedTableHighlight,
 } from "./diff/diffHighlights";
+import { buildDeletedForeignKeyEdges } from "./diff/deletedVisualUtils";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -93,6 +96,9 @@ export interface SchemaDesignerContextProps
     modifiedForeignKeyIds: Set<string>;
     modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
     modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
+    deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    baselineColumnOrderByTable: Map<string, string[]>;
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -152,6 +158,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     >(new Map());
     const [modifiedTableHighlights, setModifiedTableHighlights] = useState<
         Map<string, ModifiedTableHighlight>
+    >(new Map());
+    const [deletedColumnsByTable, setDeletedColumnsByTable] = useState<
+        Map<string, SchemaDesigner.Column[]>
+    >(new Map());
+    const [deletedForeignKeyEdges, setDeletedForeignKeyEdges] = useState<
+        Edge<SchemaDesigner.ForeignKey>[]
+    >([]);
+    const [baselineColumnOrderByTable, setBaselineColumnOrderByTable] = useState<
+        Map<string, string[]>
     >(new Map());
 
     useEffect(() => {
@@ -232,12 +247,66 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 const allChanges = summary.groups.flatMap((group) => group.changes);
                 setStructuredSchemaChanges(allChanges);
                 setSchemaChangesSummary(summary);
+                if (baselineSchemaRef.current) {
+                    const orderMap = new Map<string, string[]>();
+                    for (const table of baselineSchemaRef.current.tables) {
+                        orderMap.set(
+                            table.id,
+                            (table.columns ?? []).map((column) => column.id),
+                        );
+                    }
+                    setBaselineColumnOrderByTable(orderMap);
+                } else {
+                    setBaselineColumnOrderByTable(new Map());
+                }
                 setNewTableIds(getNewTableIds(summary));
                 setNewColumnIds(getNewColumnIds(summary));
                 setNewForeignKeyIds(getNewForeignKeyIds(summary));
                 setModifiedColumnHighlights(getModifiedColumnHighlights(summary));
                 setModifiedTableHighlights(getModifiedTableHighlights(summary));
                 setModifiedForeignKeyIds(getModifiedForeignKeyIds(summary));
+                const deletedColumnsByTableIds = getDeletedColumnIdsByTable(summary);
+                const deletedForeignKeyIds = getDeletedForeignKeyIds(summary);
+
+                if (baselineSchemaRef.current) {
+                    const baselineTablesById = new Map(
+                        baselineSchemaRef.current.tables.map((table) => [table.id, table]),
+                    );
+                    const deletedColumns = new Map<string, SchemaDesigner.Column[]>();
+                    if (deletedColumnsByTableIds.size > 0) {
+                        for (const [tableId, columnIds] of deletedColumnsByTableIds) {
+                            const baselineTable = baselineTablesById.get(tableId);
+                            if (!baselineTable) {
+                                continue;
+                            }
+                            const columns = baselineTable.columns.filter((column) =>
+                                columnIds.has(column.id),
+                            );
+                            if (columns.length > 0) {
+                                deletedColumns.set(
+                                    tableId,
+                                    columns.map((column) => ({ ...column })),
+                                );
+                            }
+                        }
+                    }
+
+                    const deletedEdges =
+                        deletedForeignKeyIds.size > 0
+                            ? buildDeletedForeignKeyEdges({
+                                  baselineSchema: baselineSchemaRef.current,
+                                  currentNodes:
+                                      reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                                  deletedForeignKeyIds,
+                              })
+                            : [];
+
+                    setDeletedColumnsByTable(deletedColumns);
+                    setDeletedForeignKeyEdges(deletedEdges);
+                } else {
+                    setDeletedColumnsByTable(new Map());
+                    setDeletedForeignKeyEdges([]);
+                }
 
                 const changeStrings = summary.groups.flatMap((group) =>
                     group.changes.map((change) => {
@@ -842,6 +911,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setModifiedColumnHighlights(new Map());
         setModifiedTableHighlights(new Map());
         setModifiedForeignKeyIds(new Set());
+        setDeletedColumnsByTable(new Map());
+        setDeletedForeignKeyEdges([]);
+        setBaselineColumnOrderByTable(new Map());
         return response;
     };
 
@@ -909,6 +981,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 modifiedForeignKeyIds,
                 modifiedColumnHighlights,
                 modifiedTableHighlights,
+                deletedColumnsByTable,
+                deletedForeignKeyEdges,
+                baselineColumnOrderByTable,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

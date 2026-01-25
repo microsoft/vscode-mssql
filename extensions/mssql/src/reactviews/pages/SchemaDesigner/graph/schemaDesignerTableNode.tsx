@@ -28,6 +28,7 @@ import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
 import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
 
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
@@ -163,6 +164,12 @@ const useStyles = makeStyles({
         backgroundColor:
             "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
         boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
+        borderRadius: "3px",
+    },
+    columnDiffDeleted: {
+        backgroundColor:
+            "var(--vscode-diffEditor-removedTextBackground, var(--vscode-inputValidation-errorBackground))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-deletedResourceForeground)",
         borderRadius: "3px",
     },
     columnDiffValueGroup: {
@@ -374,21 +381,28 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
     );
 };
 
+type SchemaDesignerColumnRender = SchemaDesigner.Column & { isDeleted?: boolean };
+
 // TableColumn component for rendering a single column
 const TableColumn = ({
     column,
     table,
 }: {
-    column: SchemaDesigner.Column;
+    column: SchemaDesignerColumnRender;
     table: SchemaDesigner.Table;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const isDeletedColumn = column.isDeleted === true;
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
-    const showAddedDiff = context.isChangesPanelVisible && context.newColumnIds.has(column.id);
-    const modifiedHighlight = context.modifiedColumnHighlights.get(column.id);
+    const showDeletedDiff = context.isChangesPanelVisible && isDeletedColumn;
+    const showAddedDiff =
+        !isDeletedColumn && context.isChangesPanelVisible && context.newColumnIds.has(column.id);
+    const modifiedHighlight = !isDeletedColumn
+        ? context.modifiedColumnHighlights.get(column.id)
+        : undefined;
     const hasNameChange = Boolean(modifiedHighlight?.nameChange);
     const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
     const showNameDiff = context.isChangesPanelVisible && hasNameChange;
@@ -438,13 +452,14 @@ const TableColumn = ({
                 showAddedDiff && styles.columnDiffAdded,
                 showModifiedDiff && styles.columnDiffModified,
                 showModifiedOther && styles.columnDiffModifiedOther,
+                showDeletedDiff && styles.columnDiffDeleted,
             )}
             key={column.name}>
             <Handle
                 type="source"
                 position={Position.Left}
                 id={`left-${column.id}`}
-                isConnectable={true}
+                isConnectable={!isDeletedColumn}
                 className={styles.handleLeft}
             />
 
@@ -465,7 +480,7 @@ const TableColumn = ({
                 type="source"
                 position={Position.Right}
                 id={`right-${column.id}`}
-                isConnectable={true}
+                isConnectable={!isDeletedColumn}
                 className={styles.handleRight}
             />
         </div>
@@ -473,7 +488,11 @@ const TableColumn = ({
 };
 
 // ConsolidatedHandles component for rendering invisible handles of hidden columns
-const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.Column[] }) => {
+const ConsolidatedHandles = ({
+    hiddenColumns,
+}: {
+    hiddenColumns: SchemaDesignerColumnRender[];
+}) => {
     return (
         <div
             style={{
@@ -491,7 +510,7 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                         type="source"
                         position={Position.Left}
                         id={`left-${column.id}`}
-                        isConnectable={true}
+                        isConnectable={!column.isDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -504,7 +523,7 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                         type="source"
                         position={Position.Right}
                         id={`right-${column.id}`}
-                        isConnectable={true}
+                        isConnectable={!column.isDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -537,9 +556,17 @@ const TableColumns = ({
     // Get setting from webview state, default to true if not set
     const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
 
-    const showCollapseButton = expandCollapseEnabled && columns.length > 10;
-    const visibleColumns = showCollapseButton && isCollapsed ? columns.slice(0, 10) : columns;
-    const hiddenColumns = showCollapseButton && isCollapsed ? columns.slice(10) : [];
+    const deletedColumns = context.isChangesPanelVisible
+        ? (context.deletedColumnsByTable.get(table.id) ?? [])
+        : [];
+    const baselineOrder = context.baselineColumnOrderByTable.get(table.id) ?? [];
+    const mergedColumns = mergeColumnsWithDeleted(columns, deletedColumns, baselineOrder);
+
+    const showCollapseButton = expandCollapseEnabled && mergedColumns.length > 10;
+    const visibleColumns =
+        showCollapseButton && isCollapsed ? mergedColumns.slice(0, 10) : mergedColumns;
+    const hiddenColumns = showCollapseButton && isCollapsed ? mergedColumns.slice(10) : [];
+    const hiddenHandleColumns = hiddenColumns;
 
     const EXPAND = l10n.t("Expand");
     const COLLAPSE = l10n.t("Collapse");
@@ -547,7 +574,9 @@ const TableColumns = ({
     return (
         <div style={{ position: "relative" }}>
             {/* Always render all column handles for consistency */}
-            {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
+            {hiddenHandleColumns.length > 0 && (
+                <ConsolidatedHandles hiddenColumns={hiddenHandleColumns} />
+            )}
 
             {visibleColumns.map((column, index) => (
                 <TableColumn key={`${index}-${column.name}`} column={column} table={table} />

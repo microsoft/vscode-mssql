@@ -85,6 +85,9 @@ export const SchemaDesignerFlow = () => {
 
     const [open, setOpen] = useState(false);
 
+    const filterDeletedEdges = (edges: Edge<SchemaDesigner.ForeignKey>[]) =>
+        edges.filter((edge) => !(edge.data as { isDeleted?: boolean })?.isDeleted);
+
     const highlightedEdges = useMemo(() => {
         const addedClass = "schema-designer-edge-added";
         const modifiedClass = "schema-designer-edge-modified";
@@ -125,7 +128,20 @@ export const SchemaDesignerFlow = () => {
         });
 
         return didChange ? nextEdges : relationshipEdges;
-    }, [context.isChangesPanelVisible, context.newForeignKeyIds, relationshipEdges]);
+    }, [
+        context.isChangesPanelVisible,
+        context.newForeignKeyIds,
+        context.modifiedForeignKeyIds,
+        relationshipEdges,
+    ]);
+
+    const displayEdges = useMemo(() => {
+        if (!context.isChangesPanelVisible || context.deletedForeignKeyEdges.length === 0) {
+            return highlightedEdges;
+        }
+
+        return [...highlightedEdges, ...context.deletedForeignKeyEdges];
+    }, [context.deletedForeignKeyEdges, context.isChangesPanelVisible, highlightedEdges]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -160,7 +176,9 @@ export const SchemaDesignerFlow = () => {
             refreshRafId.current = requestAnimationFrame(() => {
                 refreshRafId.current = undefined;
                 setSchemaNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
-                setRelationshipEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                setRelationshipEdges(
+                    filterDeletedEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]),
+                );
             });
         };
 
@@ -182,7 +200,9 @@ export const SchemaDesignerFlow = () => {
                 return;
             }
 
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const matchingEdges = edgesFromStore.filter((e) => e.data?.id === foreignKeyId);
 
             if (matchingEdges.length === 0) {
@@ -221,7 +241,9 @@ export const SchemaDesignerFlow = () => {
         eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
 
         const clearEdgeSelection = () => {
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const updatedEdges = edgesFromStore.map((e) => ({
                 ...e,
                 selected: false,
@@ -239,7 +261,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Displays an error toast notification
-     * @param {string} errorMessage - The error message to display
+     * @param errorMessage - The error message to display
      */
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
@@ -252,7 +274,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles new connections between nodes
-     * @param {Connection} params - Connection parameters
+     * @param params - Connection parameters
      */
     const handleConnect = (params: Connection) => {
         const sourceNode = schemaNodes.find((node) => node.id === params.source);
@@ -313,8 +335,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles the end of a connection attempt
-     * @param {Event} _event - The connection event
-     * @param {FinalConnectionState} connectionState - The final connection state
+     * @param _event - The connection event
+     * @param connectionState - The final connection state
      */
     const handleConnectEnd = (_event: Event, connectionState: FinalConnectionState) => {
         if (!connectionState.isValid) {
@@ -373,8 +395,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Validates if a connection is valid
-     * @param {Connection | Edge} connection - The connection to validate
-     * @returns {boolean} Whether the connection is valid
+     * @param connection - The connection to validate
+     * @returns Whether the connection is valid
      */
     const validateConnection = (
         connection: Connection | Edge<SchemaDesigner.ForeignKey>,
@@ -401,7 +423,7 @@ export const SchemaDesignerFlow = () => {
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
                 nodes={schemaNodes}
-                edges={highlightedEdges}
+                edges={displayEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}

@@ -582,7 +582,10 @@ export const foreignKeyUtils = {
         sourceTableId: string,
         schema: SchemaDesigner.Schema,
     ): SchemaDesigner.ForeignKey[] => {
-        const filteredEdges = edges.filter((edge) => edge.source === sourceTableId);
+        const filteredEdges = edges.filter(
+            (edge) =>
+                edge.source === sourceTableId && !(edge.data as { isDeleted?: boolean })?.isDeleted,
+        );
         const edgesMap = new Map<string, SchemaDesigner.ForeignKey>();
 
         filteredEdges.forEach((edge) => {
@@ -963,7 +966,12 @@ export const flowUtils = {
             const sourceNode = nodes.find((node) => node.id === edge.source);
             const targetNode = nodes.find((node) => node.id === edge.target);
 
-            if (!sourceNode || !targetNode || !edge.data) {
+            if (
+                !sourceNode ||
+                !targetNode ||
+                !edge.data ||
+                (edge.data as { isDeleted?: boolean }).isDeleted
+            ) {
                 console.warn(`Edge ${edge.id} references non-existent nodes or has no data`);
                 return;
             }

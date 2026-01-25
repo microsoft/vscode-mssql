@@ -7,6 +7,8 @@ import { expect } from "chai";
 import * as sd from "../../src/sharedInterfaces/schemaDesigner";
 import { calculateSchemaDiff } from "../../src/reactviews/pages/SchemaDesigner/diff/diffUtils";
 import {
+    getDeletedColumnIdsByTable,
+    getDeletedForeignKeyIds,
     getNewColumnIds,
     getNewForeignKeyIds,
     getNewTableIds,
@@ -74,6 +76,8 @@ suite("SchemaDesigner diff highlights", () => {
         expect(getNewTableIds(undefined).size).to.equal(0);
         expect(getNewColumnIds(undefined).size).to.equal(0);
         expect(getNewForeignKeyIds(undefined).size).to.equal(0);
+        expect(getDeletedColumnIdsByTable(undefined).size).to.equal(0);
+        expect(getDeletedForeignKeyIds(undefined).size).to.equal(0);
     });
 
     test("returns added table ids from summary", () => {
@@ -144,6 +148,26 @@ suite("SchemaDesigner diff highlights", () => {
 
         expect(newForeignKeyIds.has("fk-1")).to.equal(true);
         expect(newForeignKeyIds.has("fk-2")).to.equal(true);
+    });
+
+    test("returns deleted column ids for existing tables", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [
+                makeTable("table-1", "users", [
+                    makeColumn("col-1", "id"),
+                    makeColumn("col-2", "email"),
+                ]),
+            ],
+        };
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const deletedColumnsByTable = getDeletedColumnIdsByTable(summary);
+        const deletedIds = deletedColumnsByTable.get("table-1");
+
+        expect(deletedIds?.has("col-2")).to.equal(true);
     });
 
     test("returns modified column details for name changes", () => {
@@ -254,5 +278,31 @@ suite("SchemaDesigner diff highlights", () => {
         const modifiedForeignKeyIds = getModifiedForeignKeyIds(summary);
 
         expect(modifiedForeignKeyIds.has("fk-1")).to.equal(true);
+    });
+
+    test("returns deleted foreign key ids", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [
+                makeTable(
+                    "table-1",
+                    "users",
+                    [makeColumn("col-1", "id")],
+                    [makeForeignKey("fk-1", "FK_users_orders", ["id"], "orders", ["order_id"])],
+                ),
+                makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+            ],
+        };
+
+        const updated: sd.SchemaDesigner.Schema = {
+            tables: [
+                makeTable("table-1", "users", [makeColumn("col-1", "id")]),
+                makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+            ],
+        };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const deletedForeignKeyIds = getDeletedForeignKeyIds(summary);
+
+        expect(deletedForeignKeyIds.has("fk-1")).to.equal(true);
     });
 });
