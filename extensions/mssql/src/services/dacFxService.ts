@@ -6,7 +6,11 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as dacFxContracts from "../models/contracts/dacFx/dacFxContracts";
 import type * as mssql from "vscode-mssql";
-import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import {
+    DeploymentScenario,
+    ExtractTarget,
+    TaskExecutionMode,
+} from "../sharedInterfaces/schemaCompare";
 import { SqlTasksService } from "./sqlTasksService";
 import * as path from "path";
 import * as vscode from "vscode";
