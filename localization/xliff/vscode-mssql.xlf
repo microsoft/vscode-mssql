@@ -7,6 +7,10 @@
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
+      <source xml:lang="en">&apos;{0}&apos; started.</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
     <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
       <source xml:lang="en">&lt;Default&gt;</source>
     </trans-unit>
@@ -1414,6 +1418,18 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
+    <trans-unit id="++CODE++1e755318b106a8946de523a86dbfbfc2ccccd5dd338ca8ffcee9b2c8145148ea">
+      <source xml:lang="en">Download &apos;{0}&apos; complete.</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++11ec033ddc030f7955e714613de6fa979321ed9fc444aa6bfb922b273e966fd5">
+      <source xml:lang="en">Download size: {0} KB</source>
+      <note>{0} is the size in kilobytes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b7088b3d27556ce20e86d1e0789a8f10338e69b4f195d9e79af490d22d9d810e">
+      <source xml:lang="en">Downloading &apos;{0}&apos;</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
@@ -1739,6 +1755,12 @@
     <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
       <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
     </trans-unit>
+    <trans-unit id="++CODE++123d3903624eab92d425a26a2ee364ab0fa73dd793d0e7712eb9052c33f67b8c">
+      <source xml:lang="en">Extracted &apos;{0}&apos; (&apos;{1}&apos;/&apos;{2}&apos;).</source>
+      <note>{0} is the entry name
+{1} is the entry folder
+{2} is the entry file</note>
+    </trans-unit>
     <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
       <source xml:lang="en">Extracting DACPAC...</source>
     </trans-unit>
@@ -1929,6 +1951,11 @@
       <source xml:lang="en">Failed to save scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the save scmp operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++b83535802d81722fc60f64ecac36906e07c0df4bb61e9b41182702d25a26d3d2">
+      <source xml:lang="en">Failed to start &apos;{0}&apos;: {1}</source>
+      <note>{0} is the service name
+{1} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
       <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
     </trans-unit>
@@ -2045,6 +2072,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bd857ce3728a542506c98bc18cec2199bd570a58dab7851f85916e27c1208c21">
+      <source xml:lang="en">Flat File Import</source>
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
@@ -2332,6 +2362,19 @@
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6d0e918785702e9a5296d8732925451bb083298a83deb35a65b6d4bd922f6c5">
+      <source xml:lang="en">Installed &apos;{0}&apos;.</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++508dfd2e59c052e99ee3f4f0ce70f8f6c7bf88100ca130f1daccabf9ebb04af9">
+      <source xml:lang="en">Installing &apos;{0}&apos; service</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0820b0f6fcb6a873e9c695fd4bbc7233a55096d371db860358ef0dc199f9a0c7">
+      <source xml:lang="en">Installing &apos;{0}&apos; service to {1}</source>
+      <note>{0} is the service name
+{1} is the installation path</note>
     </trans-unit>
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
@@ -4098,6 +4141,10 @@
     <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
       <source xml:lang="en">Started saving results to </source>
     </trans-unit>
+    <trans-unit id="++CODE++7db6cebea8c95ec1db665d9ce39b1798388767fb2481b3f02548f4f008012631">
+      <source xml:lang="en">Starting &apos;{0}&apos;...</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
     <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
       <source xml:lang="en">Starting Container...</source>
     </trans-unit>
@@ -5175,6 +5222,9 @@
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.flatFileImport">
+      <source xml:lang="en">Import Flat File</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>

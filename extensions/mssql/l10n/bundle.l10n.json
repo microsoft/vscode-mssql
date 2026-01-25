@@ -2353,6 +2353,47 @@
         "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'.  You may encounter connection issues while using the MSSQL extension.  Error: {1}",
         "comment": ["{0} is the proxy URL", "{1} is the error message"]
     },
+    "Starting '{0}'.../{0} is the service name": {
+        "message": "Starting '{0}'...",
+        "comment": ["{0} is the service name"]
+    },
+    "'{0}' started./{0} is the service name": {
+        "message": "'{0}' started.",
+        "comment": ["{0} is the service name"]
+    },
+    "Failed to start '{0}': {1}/{0} is the service name{1} is the error message": {
+        "message": "Failed to start '{0}': {1}",
+        "comment": ["{0} is the service name", "{1} is the error message"]
+    },
+    "Installing '{0}' service/{0} is the service name": {
+        "message": "Installing '{0}' service",
+        "comment": ["{0} is the service name"]
+    },
+    "Installing '{0}' service to {1}/{0} is the service name{1} is the installation path": {
+        "message": "Installing '{0}' service to {1}",
+        "comment": ["{0} is the service name", "{1} is the installation path"]
+    },
+    "Installed '{0}'./{0} is the service name": {
+        "message": "Installed '{0}'.",
+        "comment": ["{0} is the service name"]
+    },
+    "Downloading '{0}'/{0} is the service name": {
+        "message": "Downloading '{0}'",
+        "comment": ["{0} is the service name"]
+    },
+    "Download size: {0} KB/{0} is the size in kilobytes": {
+        "message": "Download size: {0} KB",
+        "comment": ["{0} is the size in kilobytes"]
+    },
+    "Download '{0}' complete./{0} is the service name": {
+        "message": "Download '{0}' complete.",
+        "comment": ["{0} is the service name"]
+    },
+    "Extracted '{0}' ('{1}'/'{2}')./{0} is the entry name{1} is the entry folder{2} is the entry file": {
+        "message": "Extracted '{0}' ('{1}'/'{2}').",
+        "comment": ["{0} is the entry name", "{1} is the entry folder", "{2} is the entry file"]
+    },
+    "Flat File Import": "Flat File Import",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
