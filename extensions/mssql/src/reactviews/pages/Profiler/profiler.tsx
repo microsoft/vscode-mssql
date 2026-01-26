@@ -4,7 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useRef, useMemo, useEffect, useCallback, useState } from "react";
-import { SlickgridReact, SlickgridReactInstance, Column, GridOption, Formatters, Formatter } from "slickgrid-react";
+import {
+    SlickgridReact,
+    SlickgridReactInstance,
+    Column,
+    GridOption,
+    Formatters,
+    Formatter,
+} from "slickgrid-react";
 import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
@@ -59,7 +66,9 @@ const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
  * Gets the appropriate formatter configuration for a field
  * Returns an object with formatter and optional params
  */
-function getFormatterConfig(field: string): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
+function getFormatterConfig(
+    field: string,
+): { formatter: Formatter; params?: Record<string, unknown> } | undefined {
     if (TIMESTAMP_FIELDS.includes(field)) {
         return {
             formatter: Formatters.date,
