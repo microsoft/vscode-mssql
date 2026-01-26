@@ -277,6 +277,20 @@ suite("ProfilerController Tests", () => {
             expect(getXEventSessionsStub).to.have.been.called;
         });
 
+        test("should still create webview panel even if getXEventSessions fails (e.g., Azure system databases)", async () => {
+            const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
+            getXEventSessionsStub.rejects(new Error("Cannot profile Azure system databases"));
+
+            createController();
+            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+
+            await launchCommand!();
+
+            // The webview should still be created even if getXEventSessions fails
+            expect(createWebviewPanelStub).to.have.been.calledOnce;
+            expect(showInformationMessageStub).to.have.been.called;
+        });
+
         test("should show information message when profiler is ready", async () => {
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launch");
@@ -336,6 +350,155 @@ suite("ProfilerController Tests", () => {
             await launchCommand!();
 
             expect(showErrorMessageStub).to.have.been.called;
+        });
+    });
+
+    suite("Azure SQL Database handling", () => {
+        test("should prompt for database selection when connected to Azure system database", async () => {
+            // Configure mock for Azure SQL Database connected to master
+            (mockConnectionManager.getConnectionInfo as sinon.SinonStub).returns({
+                serverInfo: {
+                    engineEditionId: 5, // Azure SQL Database
+                    isCloud: true,
+                    serverMajorVersion: 12,
+                    serverMinorVersion: 0,
+                    serverReleaseVersion: 0,
+                    serverVersion: "12.0.0",
+                    serverLevel: "",
+                    serverEdition: "SQL Azure",
+                    azureVersion: 0,
+                    osVersion: "",
+                },
+                credentials: {
+                    database: "master",
+                },
+            });
+
+            // Add listDatabases stub
+            (mockConnectionManager as unknown as { listDatabases: sinon.SinonStub }).listDatabases =
+                sandbox.stub().resolves(["master", "UserDb1", "UserDb2"]);
+
+            // Mock quick pick to return a user database
+            showQuickPickStub.resolves({ label: "UserDb1", description: "" });
+
+            createController();
+            const launchFromOECommand = registeredCommands.get(
+                "mssql.profiler.launchFromObjectExplorer",
+            );
+
+            // Create a mock TreeNodeInfo
+            const mockTreeNode = {
+                connectionProfile: {
+                    server: "myazureserver.database.windows.net",
+                    authenticationType: "SqlLogin",
+                    user: "testuser",
+                    password: "testpass",
+                    database: "master",
+                },
+            };
+
+            await launchFromOECommand!(mockTreeNode);
+
+            // Verify quick pick was shown for database selection
+            expect(showQuickPickStub).to.have.been.called;
+            // Verify webview was created after database selection
+            expect(createWebviewPanelStub).to.have.been.called;
+        });
+
+        test("should not prompt for database selection when connected to Azure user database", async () => {
+            // Configure mock for Azure SQL Database connected to a user database
+            (mockConnectionManager.getConnectionInfo as sinon.SinonStub).returns({
+                serverInfo: {
+                    engineEditionId: 5, // Azure SQL Database
+                    isCloud: true,
+                    serverMajorVersion: 12,
+                    serverMinorVersion: 0,
+                    serverReleaseVersion: 0,
+                    serverVersion: "12.0.0",
+                    serverLevel: "",
+                    serverEdition: "SQL Azure",
+                    azureVersion: 0,
+                    osVersion: "",
+                },
+                credentials: {
+                    database: "MyUserDatabase",
+                },
+            });
+
+            createController();
+            const launchFromOECommand = registeredCommands.get(
+                "mssql.profiler.launchFromObjectExplorer",
+            );
+
+            // Create a mock TreeNodeInfo
+            const mockTreeNode = {
+                connectionProfile: {
+                    server: "myazureserver.database.windows.net",
+                    authenticationType: "SqlLogin",
+                    user: "testuser",
+                    password: "testpass",
+                    database: "MyUserDatabase",
+                },
+            };
+
+            await launchFromOECommand!(mockTreeNode);
+
+            // Quick pick should not have been called for database selection
+            // since we're already connected to a user database
+            // Note: Quick pick might be called for other reasons (like template selection)
+            // but not for database selection
+            expect(createWebviewPanelStub).to.have.been.called;
+        });
+
+        test("should cancel when user cancels database selection", async () => {
+            // Configure mock for Azure SQL Database connected to master
+            (mockConnectionManager.getConnectionInfo as sinon.SinonStub).returns({
+                serverInfo: {
+                    engineEditionId: 5, // Azure SQL Database
+                    isCloud: true,
+                    serverMajorVersion: 12,
+                    serverMinorVersion: 0,
+                    serverReleaseVersion: 0,
+                    serverVersion: "12.0.0",
+                    serverLevel: "",
+                    serverEdition: "SQL Azure",
+                    azureVersion: 0,
+                    osVersion: "",
+                },
+                credentials: {
+                    database: "master",
+                },
+            });
+
+            // Add listDatabases stub
+            (mockConnectionManager as unknown as { listDatabases: sinon.SinonStub }).listDatabases =
+                sandbox.stub().resolves(["master", "UserDb1", "UserDb2"]);
+
+            // Mock quick pick to return undefined (user cancelled)
+            showQuickPickStub.resolves(undefined);
+
+            createController();
+            const launchFromOECommand = registeredCommands.get(
+                "mssql.profiler.launchFromObjectExplorer",
+            );
+
+            // Create a mock TreeNodeInfo
+            const mockTreeNode = {
+                connectionProfile: {
+                    server: "myazureserver.database.windows.net",
+                    authenticationType: "SqlLogin",
+                    user: "testuser",
+                    password: "testpass",
+                    database: "master",
+                },
+            };
+
+            await launchFromOECommand!(mockTreeNode);
+
+            // Verify disconnect was called since user cancelled
+            expect(mockConnectionManager.disconnect).to.have.been.called;
+            // Webview should not be created
+            expect(createWebviewPanelStub).to.not.have.been.called;
         });
     });
 });

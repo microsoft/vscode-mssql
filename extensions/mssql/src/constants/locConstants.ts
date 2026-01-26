@@ -2520,6 +2520,19 @@ export class Profiler {
     );
     public static noTemplatesAvailable = l10n.t("No profiler templates available");
     public static sessionCreationTimedOut = l10n.t("Session creation timed out");
+    public static cannotProfileAzureSystemDatabase = l10n.t(
+        "Cannot create profiler sessions on Azure SQL Database system databases (e.g., master). Please connect to a user database to use the profiler.",
+    );
+
+    // Azure database selection
+    public static selectDatabaseForProfiling = l10n.t(
+        "Select a database to allow profiling (system databases cannot be profiled)",
+    );
+    public static selectDatabaseTitle = l10n.t("Azure SQL Database - Select Database");
+    public static fetchingDatabases = l10n.t("Fetching databases...");
+    public static noUserDatabasesAvailable = l10n.t(
+        "No user databases available. Please create a user database to use the profiler.",
+    );
 
     // Validation messages
     public static sessionNameEmpty = l10n.t("Session name cannot be empty");

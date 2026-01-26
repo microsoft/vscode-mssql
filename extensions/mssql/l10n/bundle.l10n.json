@@ -2378,6 +2378,11 @@
     "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
     "No profiler templates available": "No profiler templates available",
     "Session creation timed out": "Session creation timed out",
+    "Cannot create profiler sessions on Azure SQL Database system databases (e.g., master). Please connect to a user database to use the profiler.": "Cannot create profiler sessions on Azure SQL Database system databases (e.g., master). Please connect to a user database to use the profiler.",
+    "Select a database to allow profiling (system databases cannot be profiled)": "Select a database to allow profiling (system databases cannot be profiled)",
+    "Azure SQL Database - Select Database": "Azure SQL Database - Select Database",
+    "Fetching databases...": "Fetching databases...",
+    "No user databases available. Please create a user database to use the profiler.": "No user databases available. Please create a user database to use the profiler.",
     "Session name cannot be empty": "Session name cannot be empty",
     "Session name must be {0} characters or less/{0} is the maximum length": {
         "message": "Session name must be {0} characters or less",

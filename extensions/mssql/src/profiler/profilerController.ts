@@ -299,6 +299,21 @@ export class ProfilerController {
             return;
         }
 
+        // Check if connected to an Azure SQL Database system database
+        // Azure system databases (e.g., master) don't support creating Extended Events sessions
+        if (this._engineType === EngineType.AzureSQLDB) {
+            const connectionInfo = this._connectionManager.getConnectionInfo(this._profilerUri);
+            const databaseName = connectionInfo?.credentials?.database?.toLowerCase();
+            const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
+            if (databaseName && azureSystemDatabases.includes(databaseName)) {
+                this._logger.verbose(
+                    `Cannot create profiler session on Azure system database: ${databaseName}`,
+                );
+                vscode.window.showErrorMessage(LocProfiler.cannotProfileAzureSystemDatabase);
+                return;
+            }
+        }
+
         try {
             // Step 1: Show template selection quick pick
             // Filter templates by the detected engine type
@@ -462,6 +477,7 @@ export class ProfilerController {
     /**
      * Launches the profiler UI with a provided connection profile (from Object Explorer).
      * This skips the connection prompt and uses the provided connection directly.
+     * For Azure SQL Database connections to system databases, prompts user to select a user database.
      * @param connectionProfile - The connection profile to use for profiling
      */
     public async launchProfilerWithConnection(
@@ -473,13 +489,13 @@ export class ProfilerController {
 
         try {
             // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
+            let profilerUri = `profiler://${Utils.generateGuid()}`;
             this._logger.verbose(
                 `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
             );
 
             // Connect using the connection manager with the provided profile
-            const connected = await this._connectionManager.connect(profilerUri, connectionProfile);
+            let connected = await this._connectionManager.connect(profilerUri, connectionProfile);
 
             if (!connected) {
                 this._logger.verbose("Connection failed");
@@ -490,11 +506,100 @@ export class ProfilerController {
             this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
             this.detectAndSetEngineType(profilerUri);
 
+            // For Azure SQL Database, check if connected to a system database and prompt for database selection
+            if (this._engineType === EngineType.AzureSQLDB) {
+                const connectionInfo = this._connectionManager.getConnectionInfo(profilerUri);
+                const currentDatabase = connectionInfo?.credentials?.database?.toLowerCase() || "";
+                const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
+
+                if (!currentDatabase || azureSystemDatabases.includes(currentDatabase)) {
+                    this._logger.verbose(
+                        `Connected to Azure system database '${currentDatabase}', prompting for database selection...`,
+                    );
+
+                    // Prompt user to select a user database
+                    const selectedDatabase = await this.promptForAzureDatabase(profilerUri);
+
+                    if (!selectedDatabase) {
+                        // User cancelled - disconnect and return
+                        this._logger.verbose("User cancelled database selection");
+                        await this._connectionManager.disconnect(profilerUri);
+                        return;
+                    }
+
+                    // Disconnect current connection and reconnect with selected database
+                    await this._connectionManager.disconnect(profilerUri);
+
+                    // Create new connection profile with selected database
+                    const updatedProfile = { ...connectionProfile, database: selectedDatabase };
+                    profilerUri = `profiler://${Utils.generateGuid()}`;
+
+                    this._logger.verbose(
+                        `Reconnecting to database '${selectedDatabase}' with URI: ${profilerUri}`,
+                    );
+
+                    connected = await this._connectionManager.connect(profilerUri, updatedProfile);
+
+                    if (!connected) {
+                        this._logger.verbose("Reconnection failed");
+                        vscode.window.showErrorMessage(LocProfiler.failedToConnect);
+                        return;
+                    }
+
+                    this._logger.verbose(
+                        `Successfully reconnected to database '${selectedDatabase}'`,
+                    );
+                }
+            }
+
             // Use the common setup method
             await this.setupProfilerUI(profilerUri);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+        }
+    }
+
+    /**
+     * Prompts the user to select a database for profiling on Azure SQL Database.
+     * Filters out system databases.
+     * @param profilerUri - The URI of the current profiler connection
+     * @returns The selected database name, or undefined if cancelled
+     */
+    private async promptForAzureDatabase(profilerUri: string): Promise<string | undefined> {
+        const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
+
+        try {
+            // Fetch list of databases
+            this._logger.verbose("Fetching available databases...");
+            const databases = await this._connectionManager.listDatabases(profilerUri);
+
+            // Filter out system databases
+            const userDatabases = databases.filter(
+                (db) => !azureSystemDatabases.includes(db.toLowerCase()),
+            );
+
+            if (userDatabases.length === 0) {
+                vscode.window.showWarningMessage(LocProfiler.noUserDatabasesAvailable);
+                return undefined;
+            }
+
+            // Show quick pick for database selection
+            const databaseItems = userDatabases.map((db) => ({
+                label: db,
+                description: "",
+            }));
+
+            const selected = await vscode.window.showQuickPick(databaseItems, {
+                placeHolder: LocProfiler.selectDatabaseForProfiling,
+                title: LocProfiler.selectDatabaseTitle,
+                ignoreFocusOut: true,
+            });
+
+            return selected?.label;
+        } catch (e) {
+            this._logger.error(`Error fetching databases: ${e}`);
+            throw e;
         }
     }
 
@@ -507,9 +612,18 @@ export class ProfilerController {
         this._profilerUri = profilerUri;
 
         // Fetch available XEvent sessions from the server
+        // If this fails (e.g., Azure system databases), still open the UI so users can create sessions
         this._logger.verbose("Fetching available XEvent sessions...");
-        const xeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
-        this._logger.verbose(`Found ${xeventSessions.length} available XEvent sessions`);
+        let xeventSessions: string[] = [];
+        try {
+            xeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
+            this._logger.verbose(`Found ${xeventSessions.length} available XEvent sessions`);
+        } catch (e) {
+            this._logger.warn(
+                `Could not fetch XEvent sessions (this may be expected for Azure system databases): ${e}`,
+            );
+            // Continue with empty session list - user can still create a new session
+        }
 
         // Convert to session objects for the webview
         const availableSessions = xeventSessions.map((name) => ({

@@ -387,6 +387,9 @@
     <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
       <source xml:lang="en">Azure MFA</source>
     </trans-unit>
+    <trans-unit id="++CODE++33d0ace0eefccfa9972b45259f9b2ef7035d27f83b40a25252ccdb084ee00111">
+      <source xml:lang="en">Azure SQL Database - Select Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
@@ -505,6 +508,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b040e3ccb716e04a5dbd840e7ead07922ab442eacea308ab5e04daf8fc93492c">
+      <source xml:lang="en">Cannot create profiler sessions on Azure SQL Database system databases (e.g., master). Please connect to a user database to use the profiler.</source>
     </trans-unit>
     <trans-unit id="++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b">
       <source xml:lang="en">Cannot exclude {0}. Included dependents exist</source>
@@ -1987,6 +1993,9 @@
     <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
       <source xml:lang="en">Fetch rows</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff8b092754f1836868a7480cbd2e01f628970bf5001ffb6b96ccd60390c7035c">
+      <source xml:lang="en">Fetching databases...</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
       <source xml:lang="en">Fetching {0} script...</source>
       <note>{0} is the script type</note>
@@ -3006,6 +3015,9 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fc18bb3f57aa6b852e0d0103164c51e99c52c9ccac73265442d093bc85894975">
+      <source xml:lang="en">No user databases available. Please create a user database to use the profiler.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
       <source xml:lang="en">No workspaces found</source>
     </trans-unit>
@@ -3886,6 +3898,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97b4a40db20e08404798c2b6f62b1c052a459f877fbcf3bc676c3f477cf4e35b">
+      <source xml:lang="en">Select a database to allow profiling (system databases cannot be profiled)</source>
     </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
