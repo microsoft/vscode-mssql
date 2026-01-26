@@ -155,10 +155,7 @@ suite("ProfilerController Tests", () => {
         registerCommandStub = sandbox
             .stub(vscode.commands, "registerCommand")
             .callsFake(
-                (
-                    command: string,
-                    callback: (...args: unknown[]) => unknown,
-                ): vscode.Disposable => {
+                (command: string, callback: (...args: unknown[]) => unknown): vscode.Disposable => {
                     registeredCommands.set(command, callback);
                     return { dispose: sandbox.stub() } as unknown as vscode.Disposable;
                 },
@@ -370,14 +367,16 @@ suite("ProfilerController Integration Tests", () => {
         sandbox.stub(vscode.window, "showWarningMessage");
         sandbox.stub(vscode.window, "showErrorMessage");
 
-        sandbox.stub(vscode.commands, "registerCommand").callsFake(
-            (
-                _command: string,
-                _callback: (...args: unknown[]) => unknown,
-            ): vscode.Disposable => {
-                return { dispose: sandbox.stub() } as unknown as vscode.Disposable;
-            },
-        );
+        sandbox
+            .stub(vscode.commands, "registerCommand")
+            .callsFake(
+                (
+                    _command: string,
+                    _callback: (...args: unknown[]) => unknown,
+                ): vscode.Disposable => {
+                    return { dispose: sandbox.stub() } as unknown as vscode.Disposable;
+                },
+            );
 
         mockProfilerService = createMockProfilerService();
         mockSessionManager = new ProfilerSessionManager(mockProfilerService);
