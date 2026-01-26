@@ -37,12 +37,14 @@ export interface CreateDatabaseDialogPageProps {
     model?: CreateDatabaseViewModel;
     isLoading: boolean;
     dialogTitle?: string;
+    initializationError?: string;
 }
 
 export const CreateDatabaseDialogPage = ({
     model,
     isLoading,
     dialogTitle,
+    initializationError,
 }: CreateDatabaseDialogPageProps) => {
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
@@ -112,7 +114,7 @@ export const CreateDatabaseDialogPage = ({
             description={
                 model ? locConstants.createDatabase.description(model.serverName) : undefined
             }
-            errorMessage={resultApiError}
+            errorMessage={resultApiError ?? initializationError}
             primaryLabel={locConstants.createDatabase.createButton}
             cancelLabel={locConstants.createDatabase.cancelButton}
             helpLabel={locConstants.createDatabase.helpButton}

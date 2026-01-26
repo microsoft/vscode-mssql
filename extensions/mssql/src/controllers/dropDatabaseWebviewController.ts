@@ -90,7 +90,8 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
                 isLoading: false,
             });
         } catch (error) {
-            this.logger.error(`Drop database initialization failed: ${getErrorMessage(error)}`);
+            const errorMessage = getErrorMessage(error);
+            this.logger.error(`Drop database initialization failed: ${errorMessage}`);
             this.updateWebviewState({
                 viewModel: {
                     dialogType: ObjectManagementDialogType.DropDatabase,
@@ -99,6 +100,7 @@ export class DropDatabaseWebviewController extends ObjectManagementWebviewContro
                         databaseName: this.databaseName ?? "",
                     },
                 },
+                errorMessage,
                 isLoading: false,
             });
         }

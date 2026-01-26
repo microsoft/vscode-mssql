@@ -23,9 +23,15 @@ const CreateDatabaseDialogRoot = () => {
     );
     const isLoading = useObjectManagementSelector((state) => state.isLoading ?? false);
     const dialogTitle = useObjectManagementSelector((state) => state.dialogTitle);
+    const errorMessage = useObjectManagementSelector((state) => state.errorMessage);
 
     return (
-        <CreateDatabaseDialogPage model={model} isLoading={isLoading} dialogTitle={dialogTitle} />
+        <CreateDatabaseDialogPage
+            model={model}
+            isLoading={isLoading}
+            dialogTitle={dialogTitle}
+            initializationError={errorMessage}
+        />
     );
 };
 

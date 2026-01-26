@@ -23,8 +23,16 @@ const DropDatabaseDialogRoot = () => {
     );
     const isLoading = useObjectManagementSelector((state) => state.isLoading ?? false);
     const dialogTitle = useObjectManagementSelector((state) => state.dialogTitle);
+    const errorMessage = useObjectManagementSelector((state) => state.errorMessage);
 
-    return <DropDatabaseDialogPage model={model} isLoading={isLoading} dialogTitle={dialogTitle} />;
+    return (
+        <DropDatabaseDialogPage
+            model={model}
+            isLoading={isLoading}
+            dialogTitle={dialogTitle}
+            initializationError={errorMessage}
+        />
+    );
 };
 
 const App = () => {

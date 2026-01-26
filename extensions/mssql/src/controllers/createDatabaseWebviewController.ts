@@ -122,7 +122,8 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
                 isLoading: false,
             });
         } catch (error) {
-            this.logger.error(`Create database initialization failed: ${getErrorMessage(error)}`);
+            const errorMessage = getErrorMessage(error);
+            this.logger.error(`Create database initialization failed: ${errorMessage}`);
             this.updateWebviewState({
                 viewModel: {
                     dialogType: ObjectManagementDialogType.CreateDatabase,
@@ -131,6 +132,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
                         databaseName: "",
                     },
                 },
+                errorMessage,
                 isLoading: false,
             });
         }

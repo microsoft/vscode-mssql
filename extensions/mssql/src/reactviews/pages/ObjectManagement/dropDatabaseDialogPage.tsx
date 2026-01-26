@@ -35,12 +35,14 @@ export interface DropDatabaseDialogPageProps {
     model?: DropDatabaseViewModel;
     isLoading: boolean;
     dialogTitle?: string;
+    initializationError?: string;
 }
 
 export const DropDatabaseDialogPage = ({
     model,
     isLoading,
     dialogTitle,
+    initializationError,
 }: DropDatabaseDialogPageProps) => {
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
@@ -66,7 +68,7 @@ export const DropDatabaseDialogPage = ({
                     ? locConstants.dropDatabase.description(model.databaseName, model.serverName)
                     : undefined
             }
-            errorMessage={resultApiError}
+            errorMessage={resultApiError ?? initializationError}
             primaryLabel={locConstants.dropDatabase.dropButton}
             cancelLabel={locConstants.dropDatabase.cancelButton}
             helpLabel={locConstants.dropDatabase.helpButton}

@@ -62,6 +62,7 @@ export interface ObjectManagementWebviewState {
     viewModel: ObjectManagementViewModel;
     isLoading?: boolean;
     dialogTitle?: string;
+    errorMessage?: string;
 }
 
 export type ObjectManagementActionParams =
