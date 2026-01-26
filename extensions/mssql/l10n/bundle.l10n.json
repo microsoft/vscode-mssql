@@ -871,7 +871,6 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
-    "Create": "Create",
     "Drop Database": "Drop Database",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
