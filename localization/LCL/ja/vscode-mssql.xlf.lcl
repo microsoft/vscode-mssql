@@ -58,9 +58,12 @@
       <Item ItemId=";bundle.++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All Schemas]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[すべてのスキーマ]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -490,9 +493,12 @@
       <Item ItemId=";bundle.++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[View Config]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[構成を表示する]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -886,9 +892,12 @@
       <Item ItemId=";bundle.++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No authentication required]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[認証は必要ありません]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1570,9 +1579,12 @@
       <Item ItemId=";bundle.++CODE++1a7d4ddcb0e36ec5b7122b03dcf1a9b7d02395011c7daf2e7591c4f71b638702" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Entity Name]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エンティティ名]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3487,9 +3499,12 @@
       <Item ItemId=";bundle.++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[REST API]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[REST API]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4522,9 +4537,12 @@
       <Item ItemId=";bundle.++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data API Builder Configuration]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[データ API ビルダーの構成]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4747,9 +4765,12 @@
       <Item ItemId=";bundle.++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Source Table]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[基になるテーブル]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4774,9 +4795,12 @@
       <Item ItemId=";bundle.++CODE++59b9bc625f3deaf53650dfb541e848b7452cc3ede80793c43fd3ca68351c7c9d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Advanced Entity Configuration]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[高度なエンティティ構成]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5602,9 +5626,12 @@
       <Item ItemId=";bundle.++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authenticated]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[認証済み]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6034,9 +6061,12 @@
       <Item ItemId=";bundle.++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API Type]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[API の種類]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6286,9 +6316,12 @@
       <Item ItemId=";bundle.++CODE++760bb46db5b9f7594d6a52062c3f044fac1a2dc55ec95bfd659eb345bd1425fa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Back to Schema]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[スキーマに戻る]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6727,9 +6760,12 @@
       <Item ItemId=";bundle.++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Requires user authentication]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[ユーザー認証が必要です]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6781,9 +6817,12 @@
       <Item ItemId=";bundle.++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Optional - Override default GraphQL type name]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[省略可能 - 既定の GraphQL 型名をオーバーライドする]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7285,9 +7324,12 @@
       <Item ItemId=";bundle.++CODE++88f7acca017a3a274d4c9ee22712b49f567fcadb30287e007c1ac2ea00cb6927" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Optional - Override default api/entityName path]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[省略可能 - 既定の api/entityName パスをオーバーライドする]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7672,9 +7714,12 @@
       <Item ItemId=";bundle.++CODE++9084f018e1499a8e51a7e04312970c63a473ec7cbe1cdbe804048ad01461983e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom REST Path]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[カスタム REST パス]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8077,9 +8122,12 @@
       <Item ItemId=";bundle.++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Define who can access this endpoint]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[このエンドポイントにどのユーザーがアクセスできるかを定義してください]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8392,9 +8440,12 @@
       <Item ItemId=";bundle.++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authorization Role]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[認可ロール]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9346,9 +9397,12 @@
       <Item ItemId=";bundle.++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Entity name used in API routes]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[API ルートで使われるエンティティ名]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9589,9 +9643,12 @@
       <Item ItemId=";bundle.++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Both]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[両方]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9784,6 +9841,7 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+<<<<<<< HEAD
       <Item ItemId=";bundle.++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This connection's group has not been selected, so this connection will be imported to the root.]]></Val>
@@ -9793,6 +9851,8 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
       <Item ItemId=";bundle.++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not started]]></Val>
@@ -10120,9 +10180,12 @@
       <Item ItemId=";bundle.++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom GraphQL Type]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[カスタム GraphQL 型]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10819,6 +10882,18 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+<<<<<<< HEAD
+=======
+      <Item ItemId=";bundle.++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection's group has not been selected, so this connection will be imported the root.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[この接続のグループが選択されていないため、この接続はルートにインポートされます。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
       <Item ItemId=";bundle.++CODE++cd184ad9e92906aa47b1a2a184c7d63d4c3642b0ee74079f2d428841ff17036c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>
@@ -12055,9 +12130,12 @@
       <Item ItemId=";bundle.++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Generate & Run]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[生成して実行]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12280,9 +12358,12 @@
       <Item ItemId=";bundle.++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Anonymous]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[匿名]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12622,9 +12703,12 @@
       <Item ItemId=";bundle.++CODE++ee27322554e46143c3c56f419fc28b71a445380e4e5af7332aabdb87c7d0ec26" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[GraphQL]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[GraphQL]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12955,9 +13039,12 @@
       <Item ItemId=";bundle.++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Used in API routes and responses]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[API ルートおよび応答で使われます]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13054,9 +13141,12 @@
       <Item ItemId=";bundle.++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Entity Endpoints]]></Val>
+<<<<<<< HEAD
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[エンティティ エンドポイント]]></Val>
           </Tgt>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
         </Str>
         <Disp Icon="Str" />
       </Item>
