@@ -287,10 +287,23 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     });
                 }
             } else {
+                const groupsAffected = new Set<string>();
+
                 // set selection for all groups
                 state.connectionGroups.forEach((group) => {
                     if (group.status !== MigrationStatus.AlreadyImported) {
                         group.selected = payload.selected;
+                        groupsAffected.add(group.group.id);
+                    }
+                });
+
+                // select or deselect all connections in the groups
+                state.connections.forEach((connection) => {
+                    if (
+                        groupsAffected.has(connection.profile.groupId) &&
+                        connection.status !== MigrationStatus.AlreadyImported
+                    ) {
+                        connection.selected = payload.selected;
                     }
                 });
             }

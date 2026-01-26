@@ -2516,7 +2516,7 @@ export class AzureDataStudioMigration {
         });
 
     public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
-        "This connection's group has not been selected, so this connection will be imported the root.",
+        "This connection's group has not been selected, so this connection will be imported to the root.",
     );
 }
 
