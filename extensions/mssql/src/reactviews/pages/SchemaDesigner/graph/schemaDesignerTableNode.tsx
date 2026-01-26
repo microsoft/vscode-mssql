@@ -87,6 +87,8 @@ const ConditionalTooltip = ({
     return childWithRef;
 };
 
+type SchemaDesignerTableRender = SchemaDesigner.Table & { isDeleted?: boolean };
+
 // Styles for the table node components
 const useStyles = makeStyles({
     tableNodeContainer: {
@@ -99,6 +101,12 @@ const useStyles = makeStyles({
     },
     tableNodeDiffAdded: {
         boxShadow: "0 0 0 2px var(--vscode-gitDecoration-addedResourceForeground)",
+    },
+    tableNodeDeleted: {
+        boxShadow: "0 0 0 2px var(--vscode-gitDecoration-deletedResourceForeground)",
+        filter: "grayscale(0.6)",
+        opacity: 0.75,
+        pointerEvents: "none",
     },
     tableHeader: {
         width: "100%",
@@ -297,11 +305,13 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
+const TableHeader = ({ table }: { table: SchemaDesignerTableRender }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const isDeletedTable = table.isDeleted === true;
     const tableHighlight = context.modifiedTableHighlights.get(table.id);
     const showQualifiedDiff =
+        !isDeletedTable &&
         context.isChangesPanelVisible &&
         (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange));
 
@@ -372,7 +382,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
                         )}
                     </Text>
                 </ConditionalTooltip>
-                {!context.isExporting && <TableHeaderActions table={table} />}
+                {!context.isExporting && !isDeletedTable && <TableHeaderActions table={table} />}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
@@ -387,20 +397,26 @@ type SchemaDesignerColumnRender = SchemaDesigner.Column & { isDeleted?: boolean 
 const TableColumn = ({
     column,
     table,
+    isTableDeleted,
 }: {
     column: SchemaDesignerColumnRender;
-    table: SchemaDesigner.Table;
+    table: SchemaDesignerTableRender;
+    isTableDeleted: boolean;
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const isDeletedColumn = column.isDeleted === true;
+    const isConnectable = !isDeletedColumn && !isTableDeleted;
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
     const showDeletedDiff = context.isChangesPanelVisible && isDeletedColumn;
     const showAddedDiff =
-        !isDeletedColumn && context.isChangesPanelVisible && context.newColumnIds.has(column.id);
-    const modifiedHighlight = !isDeletedColumn
+        !isDeletedColumn &&
+        !isTableDeleted &&
+        context.isChangesPanelVisible &&
+        context.newColumnIds.has(column.id);
+    const modifiedHighlight = !isDeletedColumn && !isTableDeleted
         ? context.modifiedColumnHighlights.get(column.id)
         : undefined;
     const hasNameChange = Boolean(modifiedHighlight?.nameChange);
@@ -459,7 +475,7 @@ const TableColumn = ({
                 type="source"
                 position={Position.Left}
                 id={`left-${column.id}`}
-                isConnectable={!isDeletedColumn}
+                isConnectable={isConnectable}
                 className={styles.handleLeft}
             />
 
@@ -480,7 +496,7 @@ const TableColumn = ({
                 type="source"
                 position={Position.Right}
                 id={`right-${column.id}`}
-                isConnectable={!isDeletedColumn}
+                isConnectable={isConnectable}
                 className={styles.handleRight}
             />
         </div>
@@ -490,8 +506,10 @@ const TableColumn = ({
 // ConsolidatedHandles component for rendering invisible handles of hidden columns
 const ConsolidatedHandles = ({
     hiddenColumns,
+    isTableDeleted,
 }: {
     hiddenColumns: SchemaDesignerColumnRender[];
+    isTableDeleted: boolean;
 }) => {
     return (
         <div
@@ -510,7 +528,7 @@ const ConsolidatedHandles = ({
                         type="source"
                         position={Position.Left}
                         id={`left-${column.id}`}
-                        isConnectable={!column.isDeleted}
+                        isConnectable={!column.isDeleted && !isTableDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -523,7 +541,7 @@ const ConsolidatedHandles = ({
                         type="source"
                         position={Position.Right}
                         id={`right-${column.id}`}
-                        isConnectable={!column.isDeleted}
+                        isConnectable={!column.isDeleted && !isTableDeleted}
                         style={{
                             visibility: "hidden",
                             position: "absolute",
@@ -542,11 +560,13 @@ const ConsolidatedHandles = ({
 const TableColumns = ({
     columns,
     table,
+    isDeletedTable,
     isCollapsed,
     onToggleCollapse,
 }: {
     columns: SchemaDesigner.Column[];
-    table: SchemaDesigner.Table;
+    table: SchemaDesignerTableRender;
+    isDeletedTable: boolean;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
 }) => {
@@ -562,10 +582,10 @@ const TableColumns = ({
     const baselineOrder = context.baselineColumnOrderByTable.get(table.id) ?? [];
     const mergedColumns = mergeColumnsWithDeleted(columns, deletedColumns, baselineOrder);
 
-    const showCollapseButton = expandCollapseEnabled && mergedColumns.length > 10;
-    const visibleColumns =
-        showCollapseButton && isCollapsed ? mergedColumns.slice(0, 10) : mergedColumns;
-    const hiddenColumns = showCollapseButton && isCollapsed ? mergedColumns.slice(10) : [];
+    const showCollapseButton = !isDeletedTable && expandCollapseEnabled && mergedColumns.length > 10;
+    const isCollapsedView = showCollapseButton && isCollapsed;
+    const visibleColumns = isCollapsedView ? mergedColumns.slice(0, 10) : mergedColumns;
+    const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];
     const hiddenHandleColumns = hiddenColumns;
 
     const EXPAND = l10n.t("Expand");
@@ -575,11 +595,19 @@ const TableColumns = ({
         <div style={{ position: "relative" }}>
             {/* Always render all column handles for consistency */}
             {hiddenHandleColumns.length > 0 && (
-                <ConsolidatedHandles hiddenColumns={hiddenHandleColumns} />
+                <ConsolidatedHandles
+                    hiddenColumns={hiddenHandleColumns}
+                    isTableDeleted={isDeletedTable}
+                />
             )}
 
             {visibleColumns.map((column, index) => (
-                <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
+                <TableColumn
+                    key={`${index}-${column.name}`}
+                    column={column}
+                    table={table}
+                    isTableDeleted={isDeletedTable}
+                />
             ))}
 
             {showCollapseButton && (
@@ -606,21 +634,24 @@ const TableColumns = ({
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const table = props.data as SchemaDesigner.Table;
+    const table = props.data as SchemaDesignerTableRender;
+    const isDeletedTable = table.isDeleted === true;
     // Default to collapsed state if table has more than 10 columns
-    const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
+    const [isCollapsed, setIsCollapsed] = useState(!isDeletedTable && table.columns.length > 10);
 
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
 
-    const showAddedDiff = context.isChangesPanelVisible && context.newTableIds.has(table.id);
+    const showAddedDiff =
+        !isDeletedTable && context.isChangesPanelVisible && context.newTableIds.has(table.id);
 
     return (
         <div
             className={mergeClasses(
                 styles.tableNodeContainer,
                 showAddedDiff && styles.tableNodeDiffAdded,
+                isDeletedTable && styles.tableNodeDeleted,
             )}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
             <TableHeader table={table} />
@@ -628,6 +659,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             <TableColumns
                 columns={table.columns}
                 table={table}
+                isDeletedTable={isDeletedTable}
                 isCollapsed={isCollapsed}
                 onToggleCollapse={handleToggleCollapse}
             />

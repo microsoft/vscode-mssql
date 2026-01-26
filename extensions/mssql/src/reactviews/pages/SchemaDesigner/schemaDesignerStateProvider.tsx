@@ -24,6 +24,7 @@ import {
 import {
     getDeletedColumnIdsByTable,
     getDeletedForeignKeyIds,
+    getDeletedTableIds,
     getModifiedColumnHighlights,
     getModifiedForeignKeyIds,
     getModifiedTableHighlights,
@@ -33,7 +34,12 @@ import {
     type ModifiedColumnHighlight,
     type ModifiedTableHighlight,
 } from "./diff/diffHighlights";
-import { buildDeletedForeignKeyEdges } from "./diff/deletedVisualUtils";
+import {
+    buildDeletedForeignKeyEdges,
+    filterDeletedEdges,
+    filterDeletedNodes,
+    toSchemaTables,
+} from "./diff/deletedVisualUtils";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -99,6 +105,7 @@ export interface SchemaDesignerContextProps
     deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
     deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
     baselineColumnOrderByTable: Map<string, string[]>;
+    deletedTableNodes: Node<SchemaDesigner.Table>[];
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -168,6 +175,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [baselineColumnOrderByTable, setBaselineColumnOrderByTable] = useState<
         Map<string, string[]>
     >(new Map());
+    const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -193,6 +201,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
+            eventBus.emit("getScript");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("undo", handleUndo);
@@ -208,6 +217,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
+            eventBus.emit("getScript");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("redo", handleRedo);
@@ -267,6 +277,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setModifiedForeignKeyIds(getModifiedForeignKeyIds(summary));
                 const deletedColumnsByTableIds = getDeletedColumnIdsByTable(summary);
                 const deletedForeignKeyIds = getDeletedForeignKeyIds(summary);
+                const deletedTableIds = getDeletedTableIds(summary);
 
                 if (baselineSchemaRef.current) {
                     const baselineTablesById = new Map(
@@ -291,21 +302,42 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         }
                     }
 
+                    const deletedNodes =
+                        deletedTableIds.size > 0
+                            ? flowUtils
+                                  .generateSchemaDesignerFlowComponents(baselineSchemaRef.current)
+                                  .nodes.filter((node) => deletedTableIds.has(node.id))
+                                  .map((node) => ({
+                                      ...node,
+                                      id: `deleted-${node.id}`,
+                                      data: { ...node.data, isDeleted: true },
+                                      draggable: false,
+                                      selectable: false,
+                                      connectable: false,
+                                      deletable: false,
+                                      focusable: false,
+                                  }))
+                            : [];
+
                     const deletedEdges =
                         deletedForeignKeyIds.size > 0
                             ? buildDeletedForeignKeyEdges({
                                   baselineSchema: baselineSchemaRef.current,
-                                  currentNodes:
+                                  currentNodes: filterDeletedNodes(
                                       reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                                  ),
                                   deletedForeignKeyIds,
+                                  deletedTableNodes: deletedNodes,
                               })
                             : [];
 
                     setDeletedColumnsByTable(deletedColumns);
                     setDeletedForeignKeyEdges(deletedEdges);
+                    setDeletedTableNodes(deletedNodes);
                 } else {
                     setDeletedColumnsByTable(new Map());
                     setDeletedForeignKeyEdges([]);
+                    setDeletedTableNodes([]);
                 }
 
                 const changeStrings = summary.groups.flatMap((group) =>
@@ -452,8 +484,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
      * Adds a new table to the flow
      */
     const addTable = async (table: SchemaDesigner.Table) => {
-        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
-        const existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const existingNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
+        const existingEdges = filterDeletedEdges(
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
 
         const schemaModel = flowUtils.extractSchemaModel(existingNodes, existingEdges);
 
@@ -677,10 +713,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return { canRevert: false, reason: loc.cannotRevertForeignKey };
         }
 
-        // Get current tables from React Flow nodes
-        const currentNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        // Get current tables from React Flow nodes, excluding deleted ghost nodes
+        const currentNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
         const currentSchema = {
-            tables: currentNodes.map((node) => node.data),
+            tables: toSchemaTables(currentNodes),
         };
 
         // Pass localized messages to the core function
@@ -708,10 +746,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
 
         // Get current state from React Flow
-        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const existingNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
         let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
         const currentSchema = {
-            tables: existingNodes.map((node) => node.data),
+            tables: toSchemaTables(existingNodes),
         };
 
         // For table add revert (delete), use React Flow's deleteElements for proper cleanup
@@ -914,6 +954,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setDeletedColumnsByTable(new Map());
         setDeletedForeignKeyEdges([]);
         setBaselineColumnOrderByTable(new Map());
+        setDeletedTableNodes([]);
         return response;
     };
 
@@ -984,6 +1025,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deletedColumnsByTable,
                 deletedForeignKeyEdges,
                 baselineColumnOrderByTable,
+                deletedTableNodes,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

@@ -9,6 +9,40 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 export type DeletedColumn = SchemaDesigner.Column & { isDeleted: true };
 export type ColumnWithDeleted = SchemaDesigner.Column | DeletedColumn;
 
+export function filterDeletedNodes(
+    nodes: Node<SchemaDesigner.Table>[],
+): Node<SchemaDesigner.Table>[] {
+    return nodes.filter((node) => !(node.data as { isDeleted?: boolean })?.isDeleted);
+}
+
+export function filterDeletedEdges(
+    edges: Edge<SchemaDesigner.ForeignKey>[],
+): Edge<SchemaDesigner.ForeignKey>[] {
+    return edges.filter((edge) => !(edge.data as { isDeleted?: boolean })?.isDeleted);
+}
+
+export function mergeDeletedTableNodes(
+    nodes: Node<SchemaDesigner.Table>[],
+    deletedNodes: Node<SchemaDesigner.Table>[],
+): Node<SchemaDesigner.Table>[] {
+    if (deletedNodes.length === 0) {
+        return nodes;
+    }
+
+    const existingIds = new Set(nodes.map((node) => node.id));
+    const filteredDeleted = deletedNodes.filter((node) => !existingIds.has(node.id));
+
+    if (filteredDeleted.length === 0) {
+        return nodes;
+    }
+
+    return [...nodes, ...filteredDeleted];
+}
+
+export function toSchemaTables(nodes: Node<SchemaDesigner.Table>[]): SchemaDesigner.Table[] {
+    return filterDeletedNodes(nodes).map((node) => node.data);
+}
+
 export function mergeColumnsWithDeleted(
     columns: SchemaDesigner.Column[],
     deletedColumns: SchemaDesigner.Column[],
@@ -48,21 +82,37 @@ export interface DeletedForeignKeyEdgeParams {
     baselineSchema: SchemaDesigner.Schema;
     currentNodes: Node<SchemaDesigner.Table>[];
     deletedForeignKeyIds: Set<string>;
+    deletedTableNodes?: Node<SchemaDesigner.Table>[];
 }
 
 export function buildDeletedForeignKeyEdges({
     baselineSchema,
     currentNodes,
     deletedForeignKeyIds,
+    deletedTableNodes = [],
 }: DeletedForeignKeyEdgeParams): Edge<SchemaDesigner.ForeignKey>[] {
     if (!baselineSchema || deletedForeignKeyIds.size === 0) {
         return [];
     }
 
     const currentTablesById = new Map(currentNodes.map((node) => [node.id, node.data]));
-    const currentNodesByName = new Map(
-        currentNodes.map((node) => [`${node.data.schema}.${node.data.name}`, node]),
-    );
+    const currentNodesByName = new Map<string, Node<SchemaDesigner.Table>>();
+    const targetNodes =
+        deletedTableNodes.length > 0 ? [...currentNodes, ...deletedTableNodes] : currentNodes;
+    for (const node of targetNodes) {
+        const key = `${node.data.schema}.${node.data.name}`;
+        const existing = currentNodesByName.get(key);
+        if (!existing) {
+            currentNodesByName.set(key, node);
+            continue;
+        }
+
+        const existingDeleted = (existing.data as { isDeleted?: boolean })?.isDeleted;
+        const nodeDeleted = (node.data as { isDeleted?: boolean })?.isDeleted;
+        if (existingDeleted && !nodeDeleted) {
+            currentNodesByName.set(key, node);
+        }
+    }
     const baselineTablesByName = new Map(
         baselineSchema.tables.map((table) => [`${table.schema}.${table.name}`, table]),
     );

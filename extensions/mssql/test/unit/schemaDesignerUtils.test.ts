@@ -170,4 +170,27 @@ suite("SchemaDesigner utils", () => {
         expect(table).to.exist;
         expect(table?.foreignKeys.map((fk) => fk.id)).to.deep.equal(["fk-live"]);
     });
+
+    test("extractSchemaModel ignores deleted nodes", () => {
+        const nodes: Node<SchemaDesigner.Table>[] = [
+            {
+                id: "table-1",
+                type: "tableNode",
+                position: { x: 0, y: 0 },
+                data: makeTable("table-1", "users", [makeColumn("col-1", "id")]),
+            },
+            {
+                id: "table-2",
+                type: "tableNode",
+                position: { x: 0, y: 0 },
+                data: {
+                    ...makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+                    isDeleted: true,
+                } as SchemaDesigner.Table & { isDeleted: true },
+            },
+        ];
+
+        const schema = flowUtils.extractSchemaModel(nodes, []);
+        expect(schema.tables.map((table) => table.id)).to.deep.equal(["table-1"]);
+    });
 });

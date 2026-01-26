@@ -25,6 +25,11 @@ import {
 } from "@xyflow/react";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import {
+    filterDeletedEdges,
+    filterDeletedNodes,
+    mergeDeletedTableNodes,
+} from "../diff/deletedVisualUtils";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
@@ -85,9 +90,6 @@ export const SchemaDesignerFlow = () => {
 
     const [open, setOpen] = useState(false);
 
-    const filterDeletedEdges = (edges: Edge<SchemaDesigner.ForeignKey>[]) =>
-        edges.filter((edge) => !(edge.data as { isDeleted?: boolean })?.isDeleted);
-
     const highlightedEdges = useMemo(() => {
         const addedClass = "schema-designer-edge-added";
         const modifiedClass = "schema-designer-edge-modified";
@@ -143,6 +145,14 @@ export const SchemaDesignerFlow = () => {
         return [...highlightedEdges, ...context.deletedForeignKeyEdges];
     }, [context.deletedForeignKeyEdges, context.isChangesPanelVisible, highlightedEdges]);
 
+    const displayNodes = useMemo(() => {
+        if (!context.isChangesPanelVisible) {
+            return schemaNodes;
+        }
+
+        return mergeDeletedTableNodes(schemaNodes, context.deletedTableNodes);
+    }, [context.deletedTableNodes, context.isChangesPanelVisible, schemaNodes]);
+
     useEffect(() => {
         const intialize = async () => {
             try {
@@ -175,7 +185,9 @@ export const SchemaDesignerFlow = () => {
             // defer to the next frame so we read the updated store.
             refreshRafId.current = requestAnimationFrame(() => {
                 refreshRafId.current = undefined;
-                setSchemaNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                setSchemaNodes(
+                    filterDeletedNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]),
+                );
                 setRelationshipEdges(
                     filterDeletedEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]),
                 );
@@ -422,7 +434,7 @@ export const SchemaDesignerFlow = () => {
         <div style={{ width: "100%", height: "100%" }}>
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
-                nodes={schemaNodes}
+                nodes={displayNodes}
                 edges={displayEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={onNodesChange}

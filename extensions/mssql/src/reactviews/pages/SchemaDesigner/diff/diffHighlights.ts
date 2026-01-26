@@ -36,6 +36,14 @@ export function getNewTableIds(summary: SchemaChangesSummary | undefined): Set<s
     return new Set(summary.groups.filter((group) => group.isNew).map((group) => group.tableId));
 }
 
+export function getDeletedTableIds(summary: SchemaChangesSummary | undefined): Set<string> {
+    if (!summary) {
+        return new Set();
+    }
+
+    return new Set(summary.groups.filter((group) => group.isDeleted).map((group) => group.tableId));
+}
+
 export function getNewColumnIds(summary: SchemaChangesSummary | undefined): Set<string> {
     if (!summary) {
         return new Set();

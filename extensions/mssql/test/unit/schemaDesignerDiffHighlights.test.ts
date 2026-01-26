@@ -8,6 +8,7 @@ import * as sd from "../../src/sharedInterfaces/schemaDesigner";
 import { calculateSchemaDiff } from "../../src/reactviews/pages/SchemaDesigner/diff/diffUtils";
 import {
     getDeletedColumnIdsByTable,
+    getDeletedTableIds,
     getDeletedForeignKeyIds,
     getNewColumnIds,
     getNewForeignKeyIds,
@@ -90,6 +91,18 @@ suite("SchemaDesigner diff highlights", () => {
         const newTableIds = getNewTableIds(summary);
 
         expect(newTableIds.has("table-1")).to.equal(true);
+    });
+
+    test("returns deleted table ids from summary", () => {
+        const baseline: sd.SchemaDesigner.Schema = {
+            tables: [makeTable("table-1", "users", [makeColumn("col-1", "id")])],
+        };
+        const updated: sd.SchemaDesigner.Schema = { tables: [] };
+
+        const summary = calculateSchemaDiff(baseline, updated);
+        const deletedTableIds = getDeletedTableIds(summary);
+
+        expect(deletedTableIds.has("table-1")).to.equal(true);
     });
 
     test("returns added columns for existing tables only", () => {

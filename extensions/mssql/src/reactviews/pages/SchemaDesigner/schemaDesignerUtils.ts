@@ -955,16 +955,20 @@ export const flowUtils = {
         nodes: Node<SchemaDesigner.Table>[],
         edges: Edge<SchemaDesigner.ForeignKey>[],
     ): SchemaDesigner.Schema => {
+        const filteredNodes = nodes.filter(
+            (node) => !(node.data as { isDeleted?: boolean })?.isDeleted,
+        );
+
         // Create a deep copy of the nodes to avoid mutating the original data
-        const tables = nodes.map((node) => ({
+        const tables = filteredNodes.map((node) => ({
             ...node.data,
             foreignKeys: [] as SchemaDesigner.ForeignKey[],
         }));
 
         // Process edges to create foreign keys
         edges.forEach((edge) => {
-            const sourceNode = nodes.find((node) => node.id === edge.source);
-            const targetNode = nodes.find((node) => node.id === edge.target);
+            const sourceNode = filteredNodes.find((node) => node.id === edge.source);
+            const targetNode = filteredNodes.find((node) => node.id === edge.target);
 
             if (
                 !sourceNode ||
