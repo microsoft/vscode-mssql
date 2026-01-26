@@ -337,7 +337,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
         <source xml:lang="en">Apply Changes</source>
-        <target state="new">Apply Changes</target>
+        <target state="translated">変更の適用</target>
       </trans-unit>
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
@@ -4410,7 +4410,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
         <source xml:lang="en">Read</source>
-        <target state="new">Read</target>
+        <target state="translated">読み取り</target>
       </trans-unit>
       <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
         <source xml:lang="en">Read docs</source>
@@ -6299,7 +6299,7 @@ Query: {2}</source>
         <source xml:lang="en">{0} of {1} enabled</source>
         <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
-        <target state="new">{0} of {1} enabled</target>
+        <target state="translated">{1} 件中 {0} 件が有効</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
