@@ -77,6 +77,7 @@ const useStyles = makeStyles({
     },
     schemaDropdown: {
         minWidth: "120px",
+        maxWidth: "250px",
     },
     enabledCount: {
         fontSize: "12px",
@@ -165,14 +166,23 @@ export function DabToolbar() {
                     <Dropdown
                         className={classes.schemaDropdown}
                         size="small"
-                        value={dabSchemaFilter || locConstants.schemaDesigner.allSchemas}
-                        selectedOptions={[dabSchemaFilter]}
+                        multiselect
+                        button={{
+                            style: {
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            },
+                        }}
+                        value={
+                            dabSchemaFilter.length === 0
+                                ? locConstants.schemaDesigner.allSchemas
+                                : dabSchemaFilter.join(", ")
+                        }
+                        selectedOptions={dabSchemaFilter}
                         onOptionSelect={(_, data) => {
-                            setDabSchemaFilter(
-                                data.optionValue === "" ? "" : (data.optionValue ?? ""),
-                            );
+                            setDabSchemaFilter(data.selectedOptions);
                         }}>
-                        <Option value="">{locConstants.schemaDesigner.allSchemas}</Option>
                         {availableSchemas.map((schema) => (
                             <Option key={schema} value={schema}>
                                 {schema}
