@@ -474,4 +474,27 @@ Notes
 - R7: Both UI and tool edits share the same canonical store and advance the same `version`.
 - R8: Tool edits accrue undo steps like user edits (no special undo system required).
 
+---
+
+## Verification (non-normative)
+This extension feature is UI-driven and not easily E2E-testable in CI without VS Code + a live server. The following checks are recommended to validate implementation correctness.
+
+Automatable (unit/contract)
+- Tool contract tests (golden responses) for each operation:
+  - No full schema JSON returned for mutations or errors.
+  - `target_mismatch` returns `activeTarget` + `targetHint`.
+  - `stale_state` returns `currentVersion` + bounded `currentOverview`.
+  - `validation_error` (partial success) returns `failedEditIndex`, `appliedEdits`, and post-partial `currentVersion`.
+- Version hashing tests:
+  - Same semantic schema yields same `version` regardless of ordering/layout/IDs.
+  - Case-insensitive rename does not cause spurious staleness if names are normalized for hashing.
+- Overview sizing tests:
+  - Over omission threshold (>40 tables or >400 columns) sets `columnsOmitted: true` and omits `columns` fields.
+
+Manual (developer workflow)
+- Open a schema designer, then call `get_overview` without calling `show` (active-designer behavior).
+- Apply a small `apply_edits` batch and confirm `version` changes and UI reflects the edits.
+- Force a mismatch (edit in UI, then attempt `apply_edits` with old `expectedVersion`) and confirm deterministic `stale_state`.
+- Confirm tool calls do not rely on `getScript` timing (no `requestAnimationFrame`/timeout races for returned `version`).
+
  
