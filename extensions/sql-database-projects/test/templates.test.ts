@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 13;
+		const numScriptObjectTypes = 14;
 
 		should(templates.projectScriptTypes().length).equal(numScriptObjectTypes);
 		should(Object.keys(templates.projectScriptTypes()).length).equal(numScriptObjectTypes);
@@ -120,5 +120,15 @@ suite('Templates', function (): void {
 		should(publishProfileTemplate).not.equal(undefined);
 		should(publishProfileTemplate.type).equal(ItemType.publishProfile);
 		should(publishProfileTemplate.templateScript).containEql('Project');
+	});
+
+	test('Should have Table-Valued Function item template', async function (): Promise<void> {
+		const tvfTemplate = templates.get(ItemType.tableValuedFunction);
+		should(tvfTemplate).not.equal(undefined);
+		should(tvfTemplate.type).equal(ItemType.tableValuedFunction);
+		should(tvfTemplate.templateScript).containEql('CREATE FUNCTION');
+		should(tvfTemplate.templateScript).containEql('RETURNS @returntable TABLE');
+		should(tvfTemplate.templateScript).containEql('@@SCHEMA_NAME@@');
+		should(tvfTemplate.templateScript).containEql('@@OBJECT_NAME@@');
 	});
 });

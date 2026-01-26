@@ -98,6 +98,7 @@ declare module 'sqldbproj' {
 		table = 'table',
 		view = 'view',
 		storedProcedure = 'storedProcedure',
+		tableValuedFunction = 'tableValuedFunction',
 		schema = 'schema',
 		dataSource = 'dataSource',
 		fileFormat = 'fileFormat',

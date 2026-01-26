@@ -216,20 +216,71 @@ suite('ProjectsController', function (): void {
 				}
 			});
 
-			test('Should return default folder for item type only when folder exists', async function (): Promise<void> {
+			test('Should return empty when no schema folder exists', async function (): Promise<void> {
 				const projController = new ProjectsController(testContext.outputChannel);
 				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
 
-				// Without folders - all should return empty string (root level)
-				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal('', 'Schema should return empty when Security folder does not exist');
-				should(projController.getDefaultFolderForItemType(ItemType.table, project)).equal('', 'Table should not have a default folder');
-				should(projController.getDefaultFolderForItemType(ItemType.view, project)).equal('', 'View should not have a default folder');
+				// Without schema folder - should return empty string (root level)
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo')).equal('', 'Should return empty when no dbo folder exists');
 
-				// Add Security folder to project
-				await project.addFolder(constants.securityFolderName);
+				// Add dbo folder to project
+				await project.addFolder('dbo');
 
-				// With Security folder - Schema should return Security, others unchanged
-				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal(constants.securityFolderName, 'Schema should return Security folder when it exists');
+				// With dbo folder - should return dbo
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo')).equal('dbo', 'Should return dbo folder when it exists');
+			});
+
+			test('Should return nested schema/object-type folder when it exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
+
+				// No folders - should return empty
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales')).equal('', 'Should return empty when no Sales folder');
+
+				// Add Sales folder to project
+				await project.addFolder('Sales');
+
+				// With Sales folder only - should return Sales folder
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales')).equal('Sales', 'Should return Sales folder when no nested Functions folder');
+
+				// Add nested Sales/Functions folder
+				await project.addFolder('Sales/Functions');
+
+				// With Sales/Functions folder - should return nested path
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales')).equal('Sales\\Functions', 'Should return Sales/Functions when nested folder exists');
+
+				// With dbo schema and no dbo folder - should return empty (place at root)
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo')).equal('', 'Should return empty when dbo folder does not exist');
+
+				// Add dbo folder
+				await project.addFolder('dbo');
+
+				// With dbo folder and schema=dbo - should return dbo folder
+				should(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo')).equal('dbo', 'Should return dbo folder when it exists');
+			});
+
+			test('Should parse schema and object name from user input', function (): void {
+				const projController = new ProjectsController(testContext.outputChannel);
+
+				// Test schema-qualified name
+				let result = projController.parseSchemaAndObjectName('sales.MyFunction');
+				should(result.schemaName).equal('sales', 'Schema should be parsed correctly');
+				should(result.objectName).equal('MyFunction', 'Object name should be parsed correctly');
+
+				// Test simple name (no schema)
+				result = projController.parseSchemaAndObjectName('MyFunction');
+				should(result.schemaName).equal('dbo', 'Default schema should be dbo');
+				should(result.objectName).equal('MyFunction', 'Object name should remain unchanged');
+
+				// Test edge case: leading dot
+				result = projController.parseSchemaAndObjectName('.MyFunction');
+				should(result.schemaName).equal('dbo', 'Leading dot should not be treated as schema');
+				should(result.objectName).equal('.MyFunction', 'Full string should be the object name');
+
+				// Test edge case: trailing dot
+				result = projController.parseSchemaAndObjectName('MyFunction.');
+				should(result.schemaName).equal('dbo', 'Trailing dot should not be treated as schema');
+				should(result.objectName).equal('MyFunction.', 'Full string should be the object name');
 			});
 
 			test('Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true', async function (): Promise<void> {
