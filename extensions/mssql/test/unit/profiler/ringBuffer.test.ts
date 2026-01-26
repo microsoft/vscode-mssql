@@ -97,19 +97,6 @@ suite("RingBuffer Tests", () => {
         });
     });
 
-    suite("query", () => {
-        test("should return empty result (not implemented yet)", () => {
-            const buffer = new RingBuffer<TestRow>(10, ["name"]);
-            buffer.add(createTestRow("alpha", 10, 100));
-            buffer.add(createTestRow("beta", 20, 200));
-
-            const result = buffer.query({ filters: [] });
-            expect(result.rows).to.have.length(0);
-            expect(result.totalCount).to.equal(0);
-            expect(result.hasMore).to.be.false;
-        });
-    });
-
     suite("getAllRows", () => {
         test("should return empty array for empty buffer", () => {
             const buffer = new RingBuffer<TestRow>(5);
