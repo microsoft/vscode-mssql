@@ -122,6 +122,13 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "5px",
         paddingTop: "10px",
+        marginBottom: "4px",
+    },
+    tableHeaderDiffModified: {
+        backgroundColor:
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
+        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
+        borderRadius: "3px",
     },
     tableIcon: {
         padding: "0 5px",
@@ -192,21 +199,12 @@ const useStyles = makeStyles({
     tableDiffValueGroup: {
         display: "inline-flex",
         alignItems: "center",
-        gap: "4px",
+        gap: "2px",
+        flexDirection: "column",
     },
     tableDiffOldValue: {
         textDecorationLine: "line-through",
         opacity: 0.7,
-    },
-    tableTitleDiffModified: {
-        backgroundColor:
-            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
-        boxShadow: "inset 0 0 0 1px var(--vscode-editorWarning-foreground)",
-        borderRadius: "3px",
-        padding: "0 4px",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "4px",
     },
     handleLeft: {
         marginLeft: "2px",
@@ -361,21 +359,24 @@ const TableHeader = ({ table }: { table: SchemaDesignerTableRender }) => {
     const newQualified = `${newSchema}.${newName}`;
 
     return (
-        <div className={styles.tableHeader}>
+        <div
+            className={mergeClasses(
+                styles.tableHeader,
+                showQualifiedDiff && styles.tableHeaderDiffModified,
+            )}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
                 <ConditionalTooltip content={tooltipContent} relationship="label">
                     <Text
                         className={mergeClasses(
                             context.isExporting ? styles.tableTitleExporting : styles.tableTitle,
-                            showQualifiedDiff && styles.tableTitleDiffModified,
                         )}>
                         {context.isExporting ? (
                             tooltipContent
                         ) : showQualifiedDiff ? (
                             <span className={styles.tableDiffValueGroup}>
-                                <span className={styles.tableDiffOldValue}>{oldQualified}</span>
                                 <span>{newQualified}</span>
+                                <span className={styles.tableDiffOldValue}>{oldQualified}</span>
                             </span>
                         ) : (
                             highlightText(tooltipContent)
@@ -416,9 +417,10 @@ const TableColumn = ({
         !isTableDeleted &&
         context.isChangesPanelVisible &&
         context.newColumnIds.has(column.id);
-    const modifiedHighlight = !isDeletedColumn && !isTableDeleted
-        ? context.modifiedColumnHighlights.get(column.id)
-        : undefined;
+    const modifiedHighlight =
+        !isDeletedColumn && !isTableDeleted
+            ? context.modifiedColumnHighlights.get(column.id)
+            : undefined;
     const hasNameChange = Boolean(modifiedHighlight?.nameChange);
     const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
     const showNameDiff = context.isChangesPanelVisible && hasNameChange;
@@ -582,7 +584,8 @@ const TableColumns = ({
     const baselineOrder = context.baselineColumnOrderByTable.get(table.id) ?? [];
     const mergedColumns = mergeColumnsWithDeleted(columns, deletedColumns, baselineOrder);
 
-    const showCollapseButton = !isDeletedTable && expandCollapseEnabled && mergedColumns.length > 10;
+    const showCollapseButton =
+        !isDeletedTable && expandCollapseEnabled && mergedColumns.length > 10;
     const isCollapsedView = showCollapseButton && isCollapsed;
     const visibleColumns = isCollapsedView ? mergedColumns.slice(0, 10) : mergedColumns;
     const hiddenColumns = isCollapsedView ? mergedColumns.slice(10) : [];

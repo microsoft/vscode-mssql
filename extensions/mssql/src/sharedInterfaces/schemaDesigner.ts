@@ -453,6 +453,15 @@ export namespace SchemaDesigner {
         );
     }
 
+    export interface SchemaDesignerDirtyStateParams {
+        hasChanges: boolean;
+    }
+    export namespace SchemaDesignerDirtyStateNotification {
+        export const type = new NotificationType<SchemaDesignerDirtyStateParams>(
+            "schemaDesignerDirtyState",
+        );
+    }
+
     export namespace ExportToFileNotification {
         export const type = new NotificationType<ExportFileOptions>("exportToFile");
     }

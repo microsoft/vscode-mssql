@@ -150,6 +150,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
+    const lastHasChangesRef = useRef<boolean | undefined>(undefined);
     const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
     const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
@@ -356,6 +357,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
                 setSchemaChangesCount(summary.totalChanges);
                 setSchemaChanges(changeStrings);
+
+                const hasChanges = summary.totalChanges > 0;
+                if (lastHasChangesRef.current !== hasChanges) {
+                    lastHasChangesRef.current = hasChanges;
+                    void extensionRpc.sendNotification(
+                        SchemaDesigner.SchemaDesignerDirtyStateNotification.type,
+                        { hasChanges },
+                    );
+                }
             } catch {
                 // Ignore diff errors; schema designer should remain usable.
             }

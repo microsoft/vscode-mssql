@@ -22,6 +22,61 @@ import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 
+const areValuesEqual = (a: unknown, b: unknown): boolean => {
+    if (a === b) {
+        return true;
+    }
+
+    if (typeof a !== typeof b) {
+        return false;
+    }
+
+    if (a === null || b === null) {
+        return false;
+    }
+
+    if (Array.isArray(a) || Array.isArray(b)) {
+        if (!Array.isArray(a) || !Array.isArray(b)) {
+            return false;
+        }
+
+        if (a.length !== b.length) {
+            return false;
+        }
+
+        for (let i = 0; i < a.length; i += 1) {
+            if (!areValuesEqual(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (typeof a === "object" && typeof b === "object") {
+        const aObj = a as Record<string, unknown>;
+        const bObj = b as Record<string, unknown>;
+        const keysA = Object.keys(aObj);
+        const keysB = Object.keys(bObj);
+
+        if (keysA.length !== keysB.length) {
+            return false;
+        }
+
+        for (const key of keysA) {
+            if (!Object.prototype.hasOwnProperty.call(bObj, key)) {
+                return false;
+            }
+            if (!areValuesEqual(aObj[key], bObj[key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+};
+
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
@@ -149,7 +204,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(payload.updatedSchema, true);
+            this.updateCacheItem(payload.updatedSchema, this.hasSchemaChanged(payload.updatedSchema));
             return script;
         });
 
@@ -175,7 +230,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             updatedSchema: payload.updatedSchema,
                             sessionId: this._sessionId,
                         });
-                        this.updateCacheItem(payload.updatedSchema, true);
+                        this.updateCacheItem(
+                            payload.updatedSchema,
+                            Boolean(report?.hasSchemaChanged),
+                        );
                         return {
                             report,
                         };
@@ -358,6 +416,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             this.panel.dispose();
         });
 
+        this.onNotification(SchemaDesigner.SchemaDesignerDirtyStateNotification.type, (payload) => {
+            this.updateCacheItem(undefined, payload.hasChanges);
+        });
+
         this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {
             const cacheItem = this.schemaDesignerCache.get(this._key);
             // Prefer cached baseline so it survives controller recreation (webview restore)
@@ -409,6 +471,16 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         schemaDesignerCacheItem.isDirty = isDirty ?? schemaDesignerCacheItem.isDirty;
         this.schemaDesignerCache.set(this._key, schemaDesignerCacheItem);
         return schemaDesignerCacheItem;
+    }
+
+    private hasSchemaChanged(updatedSchema: SchemaDesigner.Schema): boolean {
+        const cacheItem = this.schemaDesignerCache.get(this._key);
+        const baseline = cacheItem?.baselineSchema ?? this.baselineSchema;
+        if (!baseline) {
+            return true;
+        }
+
+        return !areValuesEqual(baseline, updatedSchema);
     }
 
     override async dispose(): Promise<void> {

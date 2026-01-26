@@ -69,6 +69,7 @@ export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
+    const hasSchemaChanges = (context?.schemaChangesCount ?? 0) > 0;
     if (!context) {
         return undefined;
     }
@@ -91,7 +92,7 @@ export function PublishChangesDialogButton() {
                 <ToolbarButton
                     appearance="primary"
                     icon={<SaveIcon16 />}
-                    disabled={publishButtonDisabled}
+                    disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({
                             ...state,
