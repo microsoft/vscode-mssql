@@ -925,7 +925,7 @@ export class LocConstants {
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
-            both: l10n.t("Both"),
+            mcp: l10n.t("MCP"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>

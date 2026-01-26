@@ -645,7 +645,7 @@
     "API Type": "API Type",
     "REST API": "REST API",
     "GraphQL": "GraphQL",
-    "Both": "Both",
+    "MCP": "MCP",
     "Entity Endpoints": "Entity Endpoints",
     "All Schemas": "All Schemas",
     "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {

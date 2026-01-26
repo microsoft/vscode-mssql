@@ -60,7 +60,7 @@ export interface SchemaDesignerContextProps
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
-    updateDabApiType: (apiType: Dab.ApiType) => void;
+    updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
@@ -515,14 +515,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     }, [dabConfig, reactFlow]);
 
-    const updateDabApiType = useCallback((apiType: Dab.ApiType) => {
+    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
             if (!prev) {
                 return prev;
             }
             return {
                 ...prev,
-                apiType,
+                apiTypes,
             };
         });
     }, []);
@@ -622,7 +622,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
-                updateDabApiType,
+                updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
                 updateDabEntitySettings,

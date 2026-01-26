@@ -88,7 +88,7 @@ const useStyles = makeStyles({
 export function DabToolbar() {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const { dabConfig, updateDabApiType, dabSchemaFilter, setDabSchemaFilter } = context;
+    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter } = context;
 
     if (!dabConfig) {
         return null;
@@ -96,6 +96,12 @@ export function DabToolbar() {
 
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
+
+    const apiTypeOptions = [
+        { type: Dab.ApiType.Rest, label: locConstants.schemaDesigner.restApi },
+        { type: Dab.ApiType.GraphQL, label: locConstants.schemaDesigner.graphql },
+        { type: Dab.ApiType.Mcp, label: locConstants.schemaDesigner.mcp },
+    ];
 
     // Get unique schemas from entities for the filter dropdown
     const availableSchemas = Array.from(
@@ -131,29 +137,27 @@ export function DabToolbar() {
             <div className={classes.apiTypeRow}>
                 <Text className={classes.apiTypeLabel}>{locConstants.schemaDesigner.apiType}</Text>
                 <Toolbar size="small" className={classes.apiTypeButtons}>
-                    <ToggleButton
-                        appearance={dabConfig.apiType === Dab.ApiType.Rest ? "primary" : "subtle"}
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.Rest}
-                        onClick={() => updateDabApiType(Dab.ApiType.Rest)}>
-                        {locConstants.schemaDesigner.restApi}
-                    </ToggleButton>
-                    <ToggleButton
-                        appearance={
-                            dabConfig.apiType === Dab.ApiType.GraphQL ? "primary" : "subtle"
-                        }
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.GraphQL}
-                        onClick={() => updateDabApiType(Dab.ApiType.GraphQL)}>
-                        {locConstants.schemaDesigner.graphql}
-                    </ToggleButton>
-                    <ToggleButton
-                        appearance={dabConfig.apiType === Dab.ApiType.Both ? "primary" : "subtle"}
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.Both}
-                        onClick={() => updateDabApiType(Dab.ApiType.Both)}>
-                        {locConstants.schemaDesigner.both}
-                    </ToggleButton>
+                    {apiTypeOptions.map(({ type, label }) => {
+                        const isSelected = dabConfig.apiTypes.includes(type);
+                        const isLastSelected =
+                            isSelected && dabConfig.apiTypes.length === 1;
+                        return (
+                            <ToggleButton
+                                key={type}
+                                appearance={isSelected ? "primary" : "subtle"}
+                                size="small"
+                                checked={isSelected}
+                                disabled={isLastSelected}
+                                onClick={() => {
+                                    const updated = isSelected
+                                        ? dabConfig.apiTypes.filter((t) => t !== type)
+                                        : [...dabConfig.apiTypes, type];
+                                    updateDabApiTypes(updated);
+                                }}>
+                                {label}
+                            </ToggleButton>
+                        );
+                    })}
                 </Toolbar>
             </div>
 
