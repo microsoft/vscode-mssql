@@ -3045,6 +3045,10 @@ Error:
         <source xml:lang="en">Indexes</source>
         <target state="translated">Индексы</target>
       </trans-unit>
+      <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
+        <source xml:lang="en">Initializing DAB configuration...</source>
+        <target state="new">Initializing DAB configuration...</target>
+      </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
         <target state="translated">Инициализируется сравнение. Это может занять некоторое время.</target>
@@ -3803,6 +3807,10 @@ Error:
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
         <target state="translated">Элементы не найдены</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
+        <source xml:lang="en">No entities found</source>
+        <target state="new">No entities found</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
