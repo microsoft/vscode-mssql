@@ -11,7 +11,7 @@ import {
     Button,
     Tooltip,
 } from "@fluentui/react-components";
-import { ArrowSyncRegular, DismissRegular } from "@fluentui/react-icons";
+import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
 
 const useStyles = makeStyles({
@@ -65,11 +65,6 @@ export const GlobalSearchToolbar: React.FC = () => {
         setLocalSearchValue(data.value);
     }, []);
 
-    const handleClear = useCallback(() => {
-        setLocalSearchValue("");
-        context.clearSearch();
-    }, [context]);
-
     const handleRefresh = useCallback(() => {
         context.refreshResults();
     }, [context]);
@@ -84,17 +79,6 @@ export const GlobalSearchToolbar: React.FC = () => {
                     onChange={handleSearchChange}
                     size="medium"
                 />
-                {localSearchValue && (
-                    <Tooltip content="Clear search" relationship="label">
-                        <Button
-                            appearance="subtle"
-                            icon={<DismissRegular />}
-                            onClick={handleClear}
-                            size="small"
-                            aria-label="Clear search"
-                        />
-                    </Tooltip>
-                )}
             </div>
             <Tooltip content="Refresh results" relationship="label">
                 <Button
