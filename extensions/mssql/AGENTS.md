@@ -218,6 +218,7 @@ yarn package --online      # Ensure extension can be packaged
 -   Always run linting before committing changes
 -   Build and package extension to test full integration
 -   Extension can be debugged by installing VSIX in VS Code
+- When working on a bug, first try adding a test that validates the error, then work on a fix to get the test to pass; if it is not possible to add the test try fixing and then implement the test to cover for the changes
 
 **Remember**: NEVER CANCEL long-running build or test commands. Always set appropriate timeouts and wait for completion.
 
@@ -299,3 +300,4 @@ When reviewing webview-related PRs, verify:
 - [ ] `queueMicrotask` used for non-visual immediate execution
 - [ ] No `setTimeout` during webview initialization/startup
 - [ ] Consider hidden/backgrounded webview behavior for any timing-sensitive code
+- [ ] No separate style files (.css) added, views use buildStyle at the end of the file
