@@ -400,6 +400,11 @@ export namespace SchemaDesigner {
 
     export interface SchemaDesignerCacheItem {
         schemaDesignerDetails: SchemaDesigner.CreateSessionResponse;
+        /**
+         * Snapshot of the schema when the Schema Designer session was first created (or last published).
+         * Used as the baseline for diffing against current edits.
+         */
+        baselineSchema: Schema;
         isDirty: boolean;
     }
 
@@ -460,5 +465,9 @@ export namespace SchemaDesigner {
         export const type = new RequestType<void, CreateSessionResponse, void>(
             "initializeSchemaDesigner",
         );
+    }
+
+    export namespace GetBaselineSchemaRequest {
+        export const type = new RequestType<void, Schema, void>("getBaselineSchema");
     }
 }

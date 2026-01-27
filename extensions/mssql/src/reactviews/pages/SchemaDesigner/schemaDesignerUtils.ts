@@ -620,9 +620,9 @@ export const foreignKeyUtils = {
     },
 
     /**
-     * Extract column name from a handle ID
+     * Extract column id from a handle ID
      */
-    extractColumnNameFromHandle: (handleId: string): string => {
+    extractColumnIdFromHandle: (handleId: string): string => {
         return handleId.replace("left-", "").replace("right-", "");
     },
 
@@ -671,12 +671,24 @@ export const foreignKeyUtils = {
             };
         }
 
-        const sourceColumnName = connection.sourceHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(connection.sourceHandle)
+        const sourceColumnId = connection.sourceHandle
+            ? foreignKeyUtils.extractColumnIdFromHandle(connection.sourceHandle)
             : "";
-        const targetColumnName = connection.targetHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(connection.targetHandle)
+        const targetColumnId = connection.targetHandle
+            ? foreignKeyUtils.extractColumnIdFromHandle(connection.targetHandle)
             : "";
+
+        if (!sourceColumnId || !targetColumnId) {
+            return {
+                isValid: false,
+                errorMessage: "Source or target column not found",
+            };
+        }
+
+        const sourceColumnName =
+            sourceTable.data.columns.find((c) => c.id === sourceColumnId)?.name ?? "";
+        const targetColumnName =
+            targetTable.data.columns.find((c) => c.id === targetColumnId)?.name ?? "";
 
         if (!sourceColumnName || !targetColumnName) {
             return {
@@ -887,15 +899,27 @@ export const flowUtils = {
 
                 if (!referencedTable) continue;
 
+                const findColumnIdByName = (
+                    table: SchemaDesigner.Table,
+                    columnName: string,
+                ): string | undefined => table.columns.find((c) => c.name === columnName)?.id;
+
                 fk.columns.forEach((col, idx) => {
                     const refCol = fk.referencedColumns[idx];
 
+                    const sourceColId = findColumnIdByName(table, col);
+                    const refColId = findColumnIdByName(referencedTable, refCol);
+
+                    if (!sourceColId || !refColId) {
+                        return;
+                    }
+
                     edges.push({
-                        id: `${table.name}-${referencedTable.name}-${col}-${refCol}`,
+                        id: `${table.id}-${referencedTable.id}-${sourceColId}-${refColId}`,
                         source: table.id,
                         target: referencedTable.id,
-                        sourceHandle: `right-${col}`,
-                        targetHandle: `left-${refCol}`,
+                        sourceHandle: `right-${sourceColId}`,
+                        targetHandle: `left-${refColId}`,
                         markerEnd: {
                             type: MarkerType.ArrowClosed,
                         },

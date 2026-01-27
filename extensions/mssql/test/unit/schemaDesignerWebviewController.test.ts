@@ -223,6 +223,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -269,6 +270,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getDefinition.resolves(scriptResponse);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -305,6 +307,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getReport.resolves(reportResponse);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -333,6 +336,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getReport.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -357,6 +361,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.publishSession.resolves();
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -380,6 +385,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.publishSession.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -530,6 +536,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const initialSchema = JSON.parse(JSON.stringify(mockSchema));
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
+                baselineSchema: initialSchema,
                 isDirty: false,
             });
 
@@ -559,6 +566,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -576,6 +584,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const initialSchema = JSON.parse(JSON.stringify(mockSchema));
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
+                baselineSchema: initialSchema,
                 isDirty: true,
             });
 
@@ -594,6 +603,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
