@@ -129,6 +129,7 @@ export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
+export const cmdBackupDatabase = "mssql.backupDatabase";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -185,6 +186,7 @@ export const xml = "xml";
 export const json = "json";
 export const queryPlan = "Query Plan";
 export const queryPlanXmlStart = "<ShowPlanXML";
+export const https = "https://";
 
 /**
  * Azure Firewall rule name convention is specified here:
@@ -313,6 +315,11 @@ export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
+
+// Deployment Constants
+export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
+export const disk = "Disk";
+export const url = "URL";
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

@@ -106,6 +106,9 @@ import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigr
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
+import { BackupService } from "../services/backupService";
+import { AzureBlobService } from "../services/azureBlobService";
 
 /**
  * The main controller class that initializes the extension
@@ -135,6 +138,7 @@ export default class MainController implements vscode.Disposable {
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
+    public azureBlobService: AzureBlobService;
     public tableDesignerService: TableDesignerService;
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
@@ -143,6 +147,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public backupDatabaseService: BackupService;
 
     /**
      * The main controller constructor
@@ -610,6 +615,7 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
+            this.azureBlobService = new AzureBlobService(SqlToolsServerClient.instance);
 
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
@@ -843,6 +849,8 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             SqlToolsServerClient.instance,
         );
+
+        this.backupDatabaseService = new BackupService(SqlToolsServerClient.instance);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
@@ -1345,6 +1353,7 @@ export default class MainController implements vscode.Disposable {
                 async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    console.log(this._connectionMgr.getConnectionInfoFromUri("test"));
 
                     if (
                         databaseName !== connectionCredentials.database &&
@@ -1667,6 +1676,48 @@ export default class MainController implements vscode.Disposable {
                             select: true,
                             focus: true,
                             expand: true,
+                        });
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdBackupDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        let ownerUri = node.sessionId;
+                        if (node.nodeType === Constants.databaseString) {
+                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
+
+                            // Create a new temp connection for the database if we are not already connected
+                            // This lets sts know the context of the database we are backing up; otherwise,
+                            // sts will assume the master database context
+                            await this.connectionManager.connect(databaseConnectionUri, {
+                                ...node.connectionProfile,
+                                database: databaseName,
+                            });
+
+                            ownerUri = databaseConnectionUri;
+                        }
+
+                        const reactPanel = new BackupDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.backupDatabaseService,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            ownerUri,
+                            databaseName,
+                        );
+                        reactPanel.revealToForeground();
+
+                        // Disconnect the temp database connection when the backup panel is closed
+                        reactPanel.onDisposed(() => {
+                            if (ownerUri !== node.sessionId) {
+                                void this.connectionManager.disconnect(ownerUri);
+                            }
                         });
                     },
                 ),
