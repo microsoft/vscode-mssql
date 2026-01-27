@@ -8,7 +8,7 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
-import { IConnectionDialogProfile } from "./connectionDialog";
+import { IConnectionProfile } from "../models/interfaces";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -97,7 +97,7 @@ export interface PublishDialogState
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
     /** All saved connection profiles available for selection */
-    availableConnections?: IConnectionDialogProfile[];
+    availableConnections?: IConnectionProfile[];
     /** The profile ID of the currently selected connection */
     selectedProfileId?: string;
     /** The ownerUri for the active connection (used for database listing and DacFx operations) */
@@ -130,7 +130,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
     updateSqlCmdVariables: { variables: { [key: string]: string } };
     revertSqlCmdVariables: {};
-    connectToServer: { profileId: string };
+    connectToServer: { connectionId: string };
 }
 
 /**
@@ -154,7 +154,7 @@ export interface PublishProjectProvider {
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
     generateSqlPackageCommand(maskMode?: MaskMode): Promise<mssql.SqlPackageCommandResult>;
-    connectToServer(profileId: string): void;
+    connectToServer(connectionId: string): void;
 }
 
 /**

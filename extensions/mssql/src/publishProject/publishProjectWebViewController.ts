@@ -45,7 +45,6 @@ import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
-import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
@@ -59,7 +58,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
     private _connectionUri?: string;
-    private _connectionString?: string;
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
@@ -495,43 +493,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
-     * Lists all saved connections from the connection store (similar to dacpac dialog).
+     * Lists all saved connections from the connection store.
      * Returns all connection profiles, not just active connections.
      */
-    private async listSavedConnections(): Promise<IConnectionDialogProfile[]> {
+    private async listSavedConnections(): Promise<IConnectionProfile[]> {
         try {
             const savedConnections =
                 await this._connectionManager.connectionStore.readAllConnections();
-
-            return savedConnections.map((conn) => {
-                const profile = conn as IConnectionProfile;
-                const displayName = profile.profileName || getConnectionDisplayName(profile);
-
-                return {
-                    server: profile.server,
-                    database: profile.database,
-                    user: profile.user,
-                    password: profile.password,
-                    authenticationType: profile.authenticationType,
-                    profileName: displayName,
-                    id: profile.id,
-                    groupId: profile.groupId,
-                    savePassword: profile.savePassword,
-                    azureAuthType: profile.azureAuthType,
-                } as IConnectionDialogProfile;
-            });
+            return savedConnections as IConnectionProfile[];
         } catch (error) {
-            this.logger.error(`Failed to list saved connections: ${error}`);
+            this.logger.error(`Failed to list saved connections: ${getErrorMessage(error)}`);
             return [];
         }
     }
 
     /**
-     * Connects to a server using the specified profile ID.
+     * Connects to a server using the specified connection ID.
      * If already connected, returns the existing ownerUri.
      * Otherwise, establishes a new connection.
      */
-    private async connectToServerByProfileId(profileId: string): Promise<{
+    private async connectToServerByConnectionId(connectionId: string): Promise<{
         ownerUri: string;
         isConnected: boolean;
         serverName?: string;
@@ -539,48 +520,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         errorMessage?: string;
     }> {
         try {
-            // Find the profile in saved connections
-            const savedConnections =
-                await this._connectionManager.connectionStore.readAllConnections();
-            const profile = savedConnections.find((conn) => {
-                const connProfile = conn as IConnectionProfile;
-                return connProfile.id === profileId;
-            }) as IConnectionProfile | undefined;
+            // Find the profile from cached available connections (already loaded from store)
+            const profile = this.state.availableConnections?.find(
+                (conn) => conn.id === connectionId,
+            );
 
             if (!profile) {
-                // Profile not found in saved connections.
-                // Check if profileId is actually a connectionUri (for newly added connections)
-                if (
-                    profileId.startsWith("mssql://") ||
-                    this._connectionManager.isConnected(profileId)
-                ) {
-                    // It's a connectionUri - use the existing active connection
-                    const activeConnection = this._connectionManager.activeConnections[profileId];
-                    if (activeConnection) {
-                        // Try to get databases, but don't fail the connection if this errors
-                        let databases: string[] = [];
-                        try {
-                            databases = await this._connectionManager.listDatabases(profileId);
-                            this._connectionString =
-                                await this._connectionManager.getConnectionString(
-                                    profileId,
-                                    true,
-                                    true,
-                                );
-                        } catch (dbError) {
-                            this.logger.warn(`Failed to list databases: ${dbError}`);
-                        }
-
-                        const credentials = activeConnection.credentials as IConnectionProfile;
-                        return {
-                            ownerUri: profileId,
-                            isConnected: true,
-                            serverName: credentials?.server,
-                            databases,
-                        };
-                    }
-                }
-
+                // Profile should always be found since dropdown is populated from saved connections.
+                // If not found, the connection may have been deleted - treat as error.
                 return {
                     ownerUri: "",
                     isConnected: false,
@@ -595,13 +542,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 let databases: string[] = [];
                 try {
                     databases = await this._connectionManager.listDatabases(ownerUri);
-                    this._connectionString = await this._connectionManager.getConnectionString(
-                        ownerUri,
-                        true,
-                        true,
-                    );
                 } catch (dbError) {
-                    this.logger.warn(`Failed to list databases: ${dbError}`);
+                    this.logger.warn(`Failed to list databases: ${getErrorMessage(dbError)}`);
                 }
 
                 return {
@@ -622,13 +564,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 let databases: string[] = [];
                 try {
                     databases = await this._connectionManager.listDatabases(ownerUri);
-                    this._connectionString = await this._connectionManager.getConnectionString(
-                        ownerUri,
-                        true,
-                        true,
-                    );
                 } catch (dbError) {
-                    this.logger.warn(`Failed to list databases: ${dbError}`);
+                    this.logger.warn(`Failed to list databases: ${getErrorMessage(dbError)}`);
                 }
 
                 return {
@@ -662,13 +599,35 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
-     * Updates the server dropdown options from availableConnections
+     * Fetches the connection string on-demand from the active connection.
+     * @returns The connection string (without password), or undefined if not available or on error
+     */
+    private async getConnectionStringOnDemand(): Promise<string | undefined> {
+        if (!this._connectionUri) {
+            return undefined;
+        }
+
+        try {
+            return await this._connectionManager.getConnectionString(
+                this._connectionUri,
+                false, // includePassword
+                true, // includeApplicationName
+            );
+        } catch (error) {
+            this.logger.warn(`Failed to get connection string: ${getErrorMessage(error)}`);
+            return undefined;
+        }
+    }
+
+    /**
+     * Updates the server dropdown options from availableConnections.
+     * Uses getConnectionDisplayName() to compute display names for each profile.
      */
     private updateServerDropdownOptions(): void {
         const serverComponent = this.state.formComponents[PublishFormFields.ServerName];
         if (serverComponent && this.state.availableConnections) {
             serverComponent.options = this.state.availableConnections.map((profile) => ({
-                displayName: profile.profileName || "",
+                displayName: getConnectionDisplayName(profile),
                 value: profile.id || "",
             }));
         }
@@ -987,8 +946,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 this._connectionUri =
                                     connectionResult.connectionUri || this._connectionUri;
                                 this.state.connectionOwnerUri = this._connectionUri;
-                                this._connectionString =
-                                    connectionResult.connectionString || this._connectionString;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
                                         message: Loc.ProfileLoadedConnectionFailed(
@@ -1035,18 +992,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return { ...state, formMessage: undefined };
         });
 
-        // Reducer for connecting to a server using profile ID
+        // Reducer for connecting to a server using connection ID
         this.registerReducer(
             "connectToServer",
-            async (state: PublishDialogState, payload: { profileId: string }) => {
-                state.selectedProfileId = payload.profileId;
+            async (state: PublishDialogState, payload: { connectionId: string }) => {
+                state.selectedProfileId = payload.connectionId;
                 state.isConnecting = true;
                 state.isLoadingDatabases = true;
 
                 // Update state to show loading indicator
                 this.updateState();
 
-                const result = await this.connectToServerByProfileId(payload.profileId);
+                const result = await this.connectToServerByConnectionId(payload.connectionId);
 
                 state.isConnecting = false;
                 state.isLoadingDatabases = false;
@@ -1154,13 +1111,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const databaseName = state.formState.databaseName || projectName;
                     // Connection string depends on publish target:
                     // - For container targets: empty string because we're provisioning a new container
-                    //   and don't have an existing connection. The actual connection would be established
-                    //   after the container is created and SQL Server is running inside it.
-                    // - For existing servers: use the current connection string from the established connection
+                    // - For existing servers: fetch connection string on-demand
                     const connectionString =
                         state.formState.publishTarget === PublishTarget.LocalContainer
                             ? ""
-                            : this._connectionString || "";
+                            : (await this.getConnectionStringOnDemand()) || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -1220,15 +1175,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const isContainerTarget =
                     this.state.formState.publishTarget === PublishTarget.LocalContainer;
 
-                // Pass connection string if available, otherwise pass server and database name
-                if (this._connectionString) {
+                // Fetch connection string on-demand if we have an active connection
+                // This avoids keeping secrets in memory longer than necessary
+                const connectionString = isContainerTarget
+                    ? undefined
+                    : await this.getConnectionStringOnDemand();
+
+                if (connectionString) {
                     // Replace the database name in the connection string with the actual database from the form
                     // This ensures SqlPackage command uses the correct target database instead of master/connection made on any database
-                    let connectionString = updateDatabaseInConnectionString(
-                        this._connectionString,
+                    commandLineArguments.targetConnectionString = updateDatabaseInConnectionString(
+                        connectionString,
                         this.state.formState.databaseName,
                     );
-                    commandLineArguments.targetConnectionString = connectionString;
                 } else {
                     // For container targets, use a placeholder server name that will be removed from output
                     // For other targets, use the actual server name if available
@@ -1287,11 +1246,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * Connects to SQL Server using a connection string and populates the database dropdown.
      * This happens in the background when loading a publish profile.
      * @param connectionString The connection string from the publish profile
-     * @returns Object containing connectionUri and connectionString if successful, or errorMessage if failed
+     * @returns Object containing connectionUri if successful, or errorMessage if failed
      */
     private async connectAndPopulateDatabases(connectionString: string): Promise<{
         connectionUri?: string;
-        connectionString?: string;
         errorMessage?: string;
     }> {
         const fileUri = `mssql://publish-profile-${Utils.generateGuid()}`;
@@ -1332,14 +1290,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }));
             }
 
-            // Get connection string for SqlPackage command generation and saving to publish profile
-            const retrievedConnectionString = await this._connectionManager.getConnectionString(
-                fileUri,
-                true, // includePassword
-                true, // includeApplicationName
-            );
-
-            return { connectionUri: fileUri, connectionString: retrievedConnectionString };
+            return { connectionUri: fileUri };
         } catch (error) {
             return { errorMessage: getErrorMessage(error) };
         }
@@ -1381,7 +1332,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     path.extname(this.state.projectFilePath),
                 );
                 this._connectionUri = undefined;
-                this._connectionString = undefined;
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {

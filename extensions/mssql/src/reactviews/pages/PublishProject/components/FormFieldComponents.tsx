@@ -17,6 +17,10 @@ import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
 import { locConstants } from "../../../common/locConstants";
 import type { PublishProjectContextProps } from "../publishProjectStateProvider";
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 
 // Helper to get validation state from component
 function getValidationState(validation: PublishDialogFormItemSpec["validation"]): "none" | "error" {
@@ -165,6 +169,56 @@ export function renderDropdown(
                     ),
                 )}
             </Dropdown>
+        </Field>
+    );
+}
+
+// Generic Searchable Dropdown Field - uses SearchableDropdown component with built-in search,
+// virtualized list, and keyboard navigation.
+export function renderSearchableDropdown(
+    component: PublishDialogFormItemSpec | undefined,
+    selectedValue: string | undefined,
+    onSelect: (value: string) => void,
+    options?: {
+        disabled?: boolean;
+        clearable?: boolean;
+        searchBoxPlaceholder?: string;
+    },
+) {
+    if (!component || component.hidden) return undefined;
+    if (!component.options) return undefined;
+
+    // Map component options to SearchableDropdownOptions format
+    const dropdownOptions: SearchableDropdownOptions[] = component.options.map(
+        (opt: { value: string; displayName: string }) => ({
+            value: opt.value,
+            text: opt.displayName,
+        }),
+    );
+
+    // Find the currently selected option
+    const selectedOption = dropdownOptions.find((opt) => opt.value === selectedValue);
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            label={component.label}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}
+            orientation="horizontal">
+            <SearchableDropdown
+                id={component.propertyName}
+                size="small"
+                options={dropdownOptions}
+                selectedOption={selectedOption}
+                placeholder={component.placeholder ?? ""}
+                searchBoxPlaceholder={options?.searchBoxPlaceholder}
+                disabled={options?.disabled}
+                clearable={options?.clearable}
+                onSelect={(option) => onSelect(option.value)}
+                style={{ width: "100%" }}
+            />
         </Field>
     );
 }

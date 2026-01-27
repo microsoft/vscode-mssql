@@ -676,7 +676,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const connectToServer = reducerHandlers.get("connectToServer");
         expect(connectToServer, "connectToServer reducer should be registered").to.exist;
 
-        await connectToServer(controller.state, { profileId: "profile-1" });
+        await connectToServer(controller.state, { connectionId: "profile-1" });
 
         // Verify database dropdown is populated after connection
         const databaseComponent = controller.state.formComponents.databaseName;
@@ -716,7 +716,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const connectToServer = reducerHandlers.get("connectToServer");
 
-        await connectToServer(controller.state, { profileId: "profile-1" });
+        await connectToServer(controller.state, { connectionId: "profile-1" });
 
         // Verify error message is displayed
         expect(controller.state.formMessage).to.exist;

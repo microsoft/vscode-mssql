@@ -1405,7 +1405,9 @@ export class PublishProject {
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
     public static FailedToConnectToServer = l10n.t("Failed to connect to server");
-    public static ConnectionProfileNotFound = l10n.t("Connection profile not found");
+    public static ConnectionProfileNotFound = l10n.t(
+        "Connection profile not found. Please create a new connection using the Connection Dialog.",
+    );
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
