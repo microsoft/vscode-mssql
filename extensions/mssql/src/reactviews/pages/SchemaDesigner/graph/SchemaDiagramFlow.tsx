@@ -11,6 +11,7 @@ import {
     Background,
     useNodesState,
     useEdgesState,
+    useReactFlow,
     BackgroundVariant,
     Connection,
     NodeTypes,
@@ -45,7 +46,7 @@ import {
     useId,
     useToastController,
 } from "@fluentui/react-components";
-import eventBus from "../schemaDesignerEvents.js";
+import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
 
@@ -74,6 +75,10 @@ export const SchemaDesignerFlow = () => {
         Edge<SchemaDesigner.ForeignKey>
     >([]);
 
+    const reactFlow = useReactFlow();
+
+    const refreshRafId = useRef<number | undefined>(undefined);
+
     const deleteNodeConfirmationPromise = useRef<
         ((value: boolean | PromiseLike<boolean>) => void) | undefined
     >(undefined);
@@ -86,6 +91,12 @@ export const SchemaDesignerFlow = () => {
                 const { nodes, edges } = await context.initializeSchemaDesigner();
                 setSchemaNodes(nodes);
                 setRelationshipEdges(edges);
+
+                // Trigger script generation to update the changes panel
+                // This is necessary for restored sessions that may have changes
+                setTimeout(() => {
+                    eventBus.emit("getScript");
+                }, 0);
             } catch (error) {
                 context.log?.(`Failed to initialize schema designer: ${String(error)}`);
                 setSchemaNodes([]);
@@ -94,6 +105,95 @@ export const SchemaDesignerFlow = () => {
         };
         void intialize();
     }, [context.initializationRequestId]);
+
+    // Keep the local controlled state in sync with programmatic updates done via useReactFlow() elsewhere.
+    useEffect(() => {
+        const refresh = () => {
+            if (refreshRafId.current !== undefined) {
+                cancelAnimationFrame(refreshRafId.current);
+            }
+
+            // ReactFlow's store updates can lag the caller's setNodes/setEdges;
+            // defer to the next frame so we read the updated store.
+            refreshRafId.current = requestAnimationFrame(() => {
+                refreshRafId.current = undefined;
+                setSchemaNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                setRelationshipEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+            });
+        };
+
+        eventBus.on("refreshFlowState", refresh);
+        return () => {
+            eventBus.off("refreshFlowState", refresh);
+
+            if (refreshRafId.current !== undefined) {
+                cancelAnimationFrame(refreshRafId.current);
+                refreshRafId.current = undefined;
+            }
+        };
+    }, [reactFlow, setSchemaNodes, setRelationshipEdges]);
+
+    // Reveal/highlight foreign key edges in the graph.
+    useEffect(() => {
+        const revealForeignKeyEdges = (foreignKeyId: string) => {
+            if (!foreignKeyId) {
+                return;
+            }
+
+            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const matchingEdges = edgesFromStore.filter((e) => e.data?.id === foreignKeyId);
+
+            if (matchingEdges.length === 0) {
+                return;
+            }
+
+            // Select all edges for this FK (FKs can be multi-column -> multiple edges)
+            const updatedEdges = edgesFromStore.map((e) => ({
+                ...e,
+                selected: e.data?.id === foreignKeyId,
+            }));
+            setRelationshipEdges(updatedEdges);
+
+            // Center the viewport between the first FK edge's source/target tables
+            const first = matchingEdges[0];
+            const srcNode = reactFlow.getNode(first.source) as Node<SchemaDesigner.Table>;
+            const tgtNode = reactFlow.getNode(first.target) as Node<SchemaDesigner.Table>;
+
+            if (srcNode && tgtNode) {
+                const width = flowUtils.getTableWidth();
+                const srcHeight = flowUtils.getTableHeight(srcNode.data);
+                const tgtHeight = flowUtils.getTableHeight(tgtNode.data);
+
+                const srcCx = srcNode.position.x + width / 2;
+                const srcCy = srcNode.position.y + srcHeight / 2;
+                const tgtCx = tgtNode.position.x + width / 2;
+                const tgtCy = tgtNode.position.y + tgtHeight / 2;
+
+                void reactFlow.setCenter((srcCx + tgtCx) / 2, (srcCy + tgtCy) / 2, {
+                    zoom: 1,
+                    duration: 500,
+                });
+            }
+        };
+
+        eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
+
+        const clearEdgeSelection = () => {
+            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const updatedEdges = edgesFromStore.map((e) => ({
+                ...e,
+                selected: false,
+            }));
+            setRelationshipEdges(updatedEdges);
+        };
+
+        eventBus.on("clearEdgeSelection", clearEdgeSelection);
+
+        return () => {
+            eventBus.off("revealForeignKeyEdges", revealForeignKeyEdges);
+            eventBus.off("clearEdgeSelection", clearEdgeSelection);
+        };
+    }, [reactFlow, setRelationshipEdges]);
 
     /**
      * Displays an error toast notification
@@ -120,11 +220,11 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        const sourceColumnName = foreignKeyUtils.extractColumnNameFromHandle(params.sourceHandle);
-        const targetColumnName = foreignKeyUtils.extractColumnNameFromHandle(params.targetHandle);
+        const sourceColumnId = foreignKeyUtils.extractColumnIdFromHandle(params.sourceHandle);
+        const targetColumnId = foreignKeyUtils.extractColumnIdFromHandle(params.targetHandle);
 
-        const sourceColumn = sourceNode.data.columns.find((c) => c.name === sourceColumnName);
-        const targetColumn = targetNode.data.columns.find((c) => c.name === targetColumnName);
+        const sourceColumn = sourceNode.data.columns.find((c) => c.id === sourceColumnId);
+        const targetColumn = targetNode.data.columns.find((c) => c.id === targetColumnId);
 
         if (!sourceColumn || !targetColumn) {
             return;
@@ -150,7 +250,7 @@ export const SchemaDesignerFlow = () => {
 
         // Create the edge data from foreign key
         const newEdge: Edge<SchemaDesigner.ForeignKey> = {
-            id: `${sourceNode.id}-${targetNode.id}-${sourceColumn.name}-${targetColumn.name}`,
+            id: `${sourceNode.id}-${targetNode.id}-${sourceColumn.id}-${targetColumn.id}`,
             source: sourceNode.id,
             target: targetNode.id,
             sourceHandle: params.sourceHandle,
@@ -188,12 +288,25 @@ export const SchemaDesignerFlow = () => {
             }
 
             // Create a test foreign key to validate
-            const sourceColumnName = foreignKeyUtils.extractColumnNameFromHandle(
+            const sourceColumnId = foreignKeyUtils.extractColumnIdFromHandle(
                 connectionState.fromHandle.id,
             );
-            const targetColumnName = foreignKeyUtils.extractColumnNameFromHandle(
+            const targetColumnId = foreignKeyUtils.extractColumnIdFromHandle(
                 connectionState.toHandle.id,
             );
+
+            const sourceColumnName =
+                (connectionState.fromNode.data as SchemaDesigner.Table).columns.find(
+                    (c) => c.id === sourceColumnId,
+                )?.name ?? "";
+            const targetColumnName =
+                (connectionState.toNode.data as SchemaDesigner.Table).columns.find(
+                    (c) => c.id === targetColumnId,
+                )?.name ?? "";
+
+            if (!sourceColumnName || !targetColumnName) {
+                return;
+            }
 
             const potentialForeignKey = foreignKeyUtils.createForeignKeyFromConnection(
                 connectionState.fromNode as unknown as Node<SchemaDesigner.Table>,

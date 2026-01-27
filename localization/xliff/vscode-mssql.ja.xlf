@@ -201,7 +201,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
         <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
-        <target state="new">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</target>
+        <target state="translated">スキーマ対応のクエリ生成、ORM サポート、および質問またはエージェント モードで @mssql との自然言語チャットを使用した Al-Assisted SQL 開発。</target>
       </trans-unit>
       <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
         <source xml:lang="en">All Schemas</source>
@@ -337,7 +337,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
         <source xml:lang="en">Apply Changes</source>
-        <target state="new">Apply Changes</target>
+        <target state="translated">変更の適用</target>
       </trans-unit>
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
@@ -486,7 +486,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++cbf1176900b828464cac58d4ab7b00aa01cb741cabb584e87ddc6835b0c9d223">
         <source xml:lang="en">Azure Data Studio Connection Migration Toolkit</source>
-        <target state="new">Azure Data Studio Connection Migration Toolkit</target>
+        <target state="translated">Azure Data Studio 接続移行ツールキット</target>
       </trans-unit>
       <trans-unit id="++CODE++efc3409dd68fd9fbc2ec4fa00216475abce7178376f44e57227516047ae5eaad">
         <source xml:lang="en">Azure Data Studio Migration</source>
@@ -1055,7 +1055,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++887138e7ec0b3791877650b8e43bd012cf8d0abd298cbacf5c99ff8c3709c126">
         <source xml:lang="en">Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.</source>
-        <target state="new">Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.</target>
+        <target state="translated">データベース、DACPAC ファイル、または SQL プロジェクト間でデータベース スキーマを比較します。スキーマの同期を維持するために、相違点を確認し、変更を適用するか、デプロイ スクリプトを生成します。</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -1472,7 +1472,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
         <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
-        <target state="new">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</target>
+        <target state="translated">ローカル SQL Server コンテナーをVS Code から直接作成して管理し、高速で一貫性のあるローカル開発を実現します。</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
@@ -1585,7 +1585,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++7e986cf4465d2b2d98f423377f2fbd7e7a3b4d6e4a44023ca39027c3a0229fe0">
         <source xml:lang="en">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export (Preview)</source>
-        <target state="new">Data-Tier Application (DACPAC / BACPAC) Import &amp; Export (Preview)</target>
+        <target state="translated">データ層アプリケーション (DACPAC / BACPAC) のインポートとエクスポート (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
         <source xml:lang="en">Data-tier Application (Preview)</source>
@@ -1710,11 +1710,11 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++592bd375fa7c9d7ab616ecb3debb297c018a80c6a903167afbd6f1c4d68b0d0b">
         <source xml:lang="en">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</source>
-        <target state="new">Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.</target>
+        <target state="translated">MSSQL 拡張機能の統合された合理化されたワークフローを使用して .dacpac ファイルのデプロイと抽出、または .bacpac パッケージのインポート/エクスポートを行います。</target>
       </trans-unit>
       <trans-unit id="++CODE++125abe6c1406f356647c415b8627a84a6d928dca274d3e70c26fff22c7b77580">
         <source xml:lang="en">Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.</source>
-        <target state="new">Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.</target>
+        <target state="translated">SQL Database プロジェクトのガイド付き発行ダイアログを使用して、SQL Server データベースと Azure SQL データベースのスクリプト プレビューを使用して、データベースの変更をデプロイします。</target>
       </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
@@ -1750,7 +1750,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
         <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
-        <target state="new">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</target>
+        <target state="translated">同期された SQL 生成を備えた対話型ダイアグラムを使用して、データベース スキーマを設計し、視覚化し、進化させます。</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -1878,7 +1878,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
         <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="new">Edit Data (Preview)</target>
+        <target state="translated">データの編集 (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
@@ -2227,7 +2227,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
         <source xml:lang="en">Explore tutorials, docs, and what's coming next.</source>
-        <target state="new">Explore tutorials, docs, and what's coming next.</target>
+        <target state="translated">チュートリアル、ドキュメント、今後の予定を確認します。</target>
       </trans-unit>
       <trans-unit id="++CODE++94138882fa79d94e5c8eb6335f75a2e88f4f1cffbe0ea7b598dd0c9fad748470">
         <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</source>
@@ -2555,7 +2555,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
         <source xml:lang="en">Feedback</source>
-        <target state="new">Feedback</target>
+        <target state="translated">フィードバック</target>
       </trans-unit>
       <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
         <source xml:lang="en">Fetch rows</source>
@@ -2843,15 +2843,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
         <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
-        <target state="new">GitHub Copilot - VS Code walkthrough</target>
+        <target state="translated">GitHub Copilot - VS Code チュートリアル</target>
       </trans-unit>
       <trans-unit id="++CODE++737f47ca3f9975103a99da74b37a986e6a1e97b77817a154b27d53d840a9a599">
         <source xml:lang="en">GitHub Copilot integration</source>
-        <target state="new">GitHub Copilot integration</target>
+        <target state="translated">GitHub Copilot の統合</target>
       </trans-unit>
       <trans-unit id="++CODE++f311c2fb4a90d31362e0c6578ce52cd4b6200755caf41040acf39fc9ea6ed487">
         <source xml:lang="en">GitHub Copilot survey</source>
-        <target state="new">GitHub Copilot survey</target>
+        <target state="translated">GitHub Copilot アンケート</target>
       </trans-unit>
       <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
         <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
@@ -2893,7 +2893,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
         <source xml:lang="en">Help us improve by sharing your thoughts.</source>
-        <target state="new">Help us improve by sharing your thoughts.</target>
+        <target state="translated">ご意見をお寄せいただき、改善にご協力ください。</target>
       </trans-unit>
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
@@ -3015,7 +3015,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++edc1807b28e26d830c47aea48d193d0a4a8d3f07dfc4cb3b11f43eabe698f01e">
         <source xml:lang="en">In case you missed it</source>
-        <target state="new">In case you missed it</target>
+        <target state="translated">見逃した場合</target>
       </trans-unit>
       <trans-unit id="++CODE++c1f88e9d6c4145cf0530ae020155384d5688d70ed82a07a35d783bbc4b32238c">
         <source xml:lang="en">In progress</source>
@@ -3044,6 +3044,10 @@ Error:
       <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
         <source xml:lang="en">Indexes</source>
         <target state="translated">インデックス</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
+        <source xml:lang="en">Initializing DAB configuration...</source>
+        <target state="new">Initializing DAB configuration...</target>
       </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
@@ -3429,7 +3433,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
         <source xml:lang="en">Local SQL Server Container</source>
-        <target state="new">Local SQL Server Container</target>
+        <target state="translated">ローカル SQL Server コンテナー</target>
       </trans-unit>
       <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
         <source xml:lang="en">Local SQL Server database container</source>
@@ -3457,7 +3461,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac71b6a015738ee5338790cb940cf29b65310494e9c98aba9894dac78b05e4ca">
         <source xml:lang="en">MSSQL - VS Code walkthrough</source>
-        <target state="new">MSSQL - VS Code walkthrough</target>
+        <target state="translated">MSSQL - VS Code チュートリアル</target>
       </trans-unit>
       <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
         <source xml:lang="en">MSSQL Feedback</source>
@@ -3581,7 +3585,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7513be31d093689a83a5840217b05b63313b201192c5e2e9d590c86f52353a0e">
         <source xml:lang="en">Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.</source>
-        <target state="new">Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.</target>
+        <target state="translated">保存された接続と接続グループを Azure Data Studio から MSSQL 拡張機能に移行します。このガイド付きエクスペリエンスは、最小限のセットアップで、使い慣れた環境で作業を続けるのに役立ちます。</target>
       </trans-unit>
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
@@ -3687,7 +3691,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++982508e73b4054980892537f3c6840f282b91d266b07729d248b2140cc50c08f">
         <source xml:lang="en">New to the MSSQL extension? Check out our quick-start guide.</source>
-        <target state="new">New to the MSSQL extension? Check out our quick-start guide.</target>
+        <target state="translated">MSSQL 拡張機能を初めて使用する場合クイック スタート ガイドをご覧ください。</target>
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
@@ -3803,6 +3807,10 @@ Error:
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
         <target state="translated">要素が見つかりません</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
+        <source xml:lang="en">No entities found</source>
+        <target state="new">No entities found</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -4015,7 +4023,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++36eaf70bf802c56bb84c14fb713ba56b41a28ba07a5a6cdab3fedd21146ff274">
         <source xml:lang="en">Open a new bug</source>
-        <target state="new">Open a new bug</target>
+        <target state="translated">新しいバグを開く</target>
       </trans-unit>
       <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
         <source xml:lang="en">Open in Editor</source>
@@ -4237,7 +4245,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++576a15f12aaf6d6a15053e3618a9cc740d9ab8b79b68e6515a851ed3cf6dcdc6">
         <source xml:lang="en">Previously released features you may not have explored yet.</source>
-        <target state="new">Previously released features you may not have explored yet.</target>
+        <target state="translated">以前にリリースされた機能は、まだ探索していない可能性があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
         <source xml:lang="en">Primary Key</source>
@@ -4402,7 +4410,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
         <source xml:lang="en">Read</source>
-        <target state="new">Read</target>
+        <target state="translated">読み取り</target>
       </trans-unit>
       <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
         <source xml:lang="en">Read docs</source>
@@ -4410,7 +4418,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c386185bf02fec23ab41b4dbcc29406839df6efd9fd1cb03660aa0c2e5640617">
         <source xml:lang="en">Read docs on Microsoft Learn</source>
-        <target state="new">Read docs on Microsoft Learn</target>
+        <target state="translated">Microsoft Learn のドキュメントを読む</target>
       </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
@@ -4509,7 +4517,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
         <source xml:lang="en">Request a new feature</source>
-        <target state="new">Request a new feature</target>
+        <target state="translated">新しい機能を要求する</target>
       </trans-unit>
       <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
         <source xml:lang="en">Required</source>
@@ -4697,7 +4705,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++11f1ce06685908adfd2a88a77c9de4148392e6667521c7ff01845de7c8822849">
         <source xml:lang="en">SQL Database Projects – Publish Dialog (Preview)</source>
-        <target state="new">SQL Database Projects – Publish Dialog (Preview)</target>
+        <target state="translated">SQL Database プロジェクト – 発行ダイアログ (プレビュー)</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -5713,9 +5721,9 @@ Query: {2}</source>
         <source xml:lang="en">This connection does not have a display name in Azure Data Studio.</source>
         <target state="translated">この接続には、Azure Data Studio に表示名がありません。</target>
       </trans-unit>
-      <trans-unit id="++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18">
-        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported the root.</source>
-        <target state="translated">この接続のグループが選択されていないため、この接続はルートにインポートされます。</target>
+      <trans-unit id="++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926">
+        <source xml:lang="en">This connection's group has not been selected, so this connection will be imported to the root.</source>
+        <target state="new">This connection's group has not been selected, so this connection will be imported to the root.</target>
       </trans-unit>
       <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
@@ -5975,7 +5983,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
         <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
-        <target state="new">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</target>
+        <target state="translated">リアルタイム検証とライブ DML スクリプト プレビューを使用して、対話型グリッドでテーブル行を表示、編集、追加、削除します。</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -6291,7 +6299,7 @@ Query: {2}</source>
         <source xml:lang="en">{0} of {1} enabled</source>
         <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
-        <target state="new">{0} of {1} enabled</target>
+        <target state="translated">{1} 件中 {0} 件が有効</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>

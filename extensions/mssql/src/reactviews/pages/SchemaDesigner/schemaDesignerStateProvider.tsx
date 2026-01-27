@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useEffect, useState, useCallback, useRef } from "react";
+import { createContext, useEffect, useState, useRef, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -20,7 +20,26 @@ import {
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import { v4 as uuidv4 } from "uuid";
+import {
+    calculateSchemaDiff,
+    ChangeAction,
+    ChangeCategory,
+    SchemaChange,
+    SchemaChangesSummary,
+} from "./diff/diffUtils";
+import { describeChange } from "./diff/schemaDiff";
+import {
+    canRevertChange as canRevertChangeCore,
+    computeRevertedSchema,
+    CanRevertResult,
+} from "./diff/revertChange";
 import { locConstants } from "../../common/locConstants";
+import {
+    applyColumnRenamesToIncomingForeignKeyEdges,
+    applyColumnRenamesToOutgoingForeignKeyEdges,
+    buildForeignKeyEdgeId,
+    removeEdgesForForeignKey,
+} from "./schemaDesignerEdgeUtils";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -63,6 +82,15 @@ export interface SchemaDesignerContextProps
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
     setIsExporting: (value: boolean) => void;
+
+    // Diff/Changes
+    schemaChangesCount: number;
+    schemaChanges: string[];
+    schemaChangesSummary: SchemaChangesSummary | undefined;
+    structuredSchemaChanges: SchemaChange[];
+    revertChange: (change: SchemaChange) => void;
+    canRevertChange: (change: SchemaChange) => CanRevertResult;
+
     // DAB (Data API Builder) state
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
@@ -71,8 +99,8 @@ export interface SchemaDesignerContextProps
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
-    dabSchemaFilter: string;
-    setDabSchemaFilter: (schemaName: string) => void;
+    dabSchemaFilter: string[];
+    setDabSchemaFilter: (schemas: string[]) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -107,9 +135,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [isExporting, setIsExporting] = useState<boolean>(false);
     const skipDeleteConfirmationRef = useRef(false);
 
+    // Baseline schema is fetched from the extension and must survive webview restore.
+    const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
+    const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
+    const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
+    const [schemaChangesSummary, setSchemaChangesSummary] = useState<
+        SchemaChangesSummary | undefined
+    >(undefined);
+    const [structuredSchemaChanges, setStructuredSchemaChanges] = useState<SchemaChange[]>([]);
+
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
-    const [dabSchemaFilter, setDabSchemaFilter] = useState<string>("");
+    const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
 
     // TODO: Replace RAF wait with a deterministic schema-commit signal for tool-driven ops.
     const waitForNextFrame = useCallback(
@@ -143,6 +180,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             }
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
+            eventBus.emit("refreshFlowState");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("undo", handleUndo);
@@ -157,6 +195,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             }
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
+            eventBus.emit("refreshFlowState");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("redo", handleRedo);
@@ -319,6 +358,68 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             extractSchema,
         });
     }, [isInitialized, extensionRpc]);
+    useEffect(() => {
+        const updateSchemaChanges = async () => {
+            if (!isInitialized) {
+                return;
+            }
+
+            try {
+                if (!baselineSchemaRef.current) {
+                    baselineSchemaRef.current = await extensionRpc.sendRequest(
+                        SchemaDesigner.GetBaselineSchemaRequest.type,
+                    );
+                }
+
+                if (!baselineSchemaRef.current) {
+                    return;
+                }
+
+                const currentSchema = flowUtils.extractSchemaModel(
+                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+                );
+
+                const summary = calculateSchemaDiff(baselineSchemaRef.current, currentSchema);
+
+                // Flatten all changes for the structured list
+                const allChanges = summary.groups.flatMap((group) => group.changes);
+                setStructuredSchemaChanges(allChanges);
+                setSchemaChangesSummary(summary);
+
+                const changeStrings = summary.groups.flatMap((group) =>
+                    group.changes.map((change) => {
+                        const description = describeChange(change);
+                        if (change.category === ChangeCategory.Table) {
+                            return description;
+                        }
+                        const qualifiedTableName = `[${group.tableSchema}].[${group.tableName}]`;
+                        return locConstants.schemaDesigner.schemaChangeInTable(
+                            qualifiedTableName,
+                            description,
+                        );
+                    }),
+                );
+
+                setSchemaChangesCount(summary.totalChanges);
+                setSchemaChanges(changeStrings);
+            } catch {
+                // Ignore diff errors; schema designer should remain usable.
+            }
+        };
+
+        const handler = () => {
+            // getScript events can fire in quick succession; schedule after UI updates.
+            setTimeout(() => {
+                void updateSchemaChanges();
+            }, 0);
+        };
+
+        eventBus.on("getScript", handler);
+        return () => {
+            eventBus.off("getScript", handler);
+        };
+    }, [extensionRpc, isInitialized, reactFlow]);
 
     const initializeSchemaDesigner = async () => {
         try {
@@ -327,6 +428,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
             );
+
+            // Fetch baseline schema snapshot for diffing (must come from extension to survive restores)
+            try {
+                baselineSchemaRef.current = await extensionRpc.sendRequest(
+                    SchemaDesigner.GetBaselineSchemaRequest.type,
+                );
+            } catch {
+                baselineSchemaRef.current = model.schema;
+            }
 
             const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
@@ -474,6 +584,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
             reactFlow.setNodes(existingNodes);
             reactFlow.setEdges(existingEdges);
+            eventBus.emit("refreshFlowState");
             requestAnimationFrame(async () => {
                 setCenter(nodeWithPosition.id, true);
             });
@@ -497,6 +608,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return false;
         }
 
+        // Track column renames so we can update incoming FK handles/data.
+        const renamedColumns = new Map<string, string>();
+        for (const oldCol of existingTableNode.data.columns ?? []) {
+            const newCol = updatedTable.columns.find((c) => c.id === oldCol.id);
+            if (newCol && newCol.name !== oldCol.name) {
+                renamedColumns.set(oldCol.name, newCol.name);
+            }
+        }
+
         // Updating the table name and schema in all foreign keys that reference this table
         // This is necessary because the table name and schema might have changed
         existingEdges.forEach((edge) => {
@@ -508,6 +628,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 edge.data.referencedTableName = updatedTable.name;
             }
         });
+
+        // If columns were renamed, update incoming FK edges to point to the new column names.
+        applyColumnRenamesToIncomingForeignKeyEdges(existingEdges, updatedTable.id, renamedColumns);
+
+        // Keep outgoing FK metadata in sync with column renames on this table.
+        if (renamedColumns.size > 0) {
+            for (const foreignKey of updatedTable.foreignKeys ?? []) {
+                foreignKey.columns = foreignKey.columns.map((c) => renamedColumns.get(c) ?? c);
+            }
+        }
 
         // Update the table node with the new data
         existingTableNode.data = updatedTable;
@@ -528,16 +658,26 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
             foreignKey.columns.forEach((column, index) => {
                 const referencedColumn = foreignKey.referencedColumns[index];
+
+                const sourceColumnId = updatedTable.columns.find((c) => c.name === column)?.id;
+                const referencedColumnId = referencedTable.data.columns.find(
+                    (c) => c.name === referencedColumn,
+                )?.id;
+
+                if (!sourceColumnId || !referencedColumnId) {
+                    return;
+                }
                 existingEdges.push({
-                    // TODO: FK edge id collision for multi-column mappings. A single FK can create
-                    // multiple edges (one per mapping); using foreignKey.id here causes duplicate
-                    // edge ids and can lead to lost/duplicated mappings. Keep legacy behavior in
-                    // this branch; pull in the upstream fix when available.
-                    id: foreignKey.id,
+                    id: buildForeignKeyEdgeId(
+                        updatedTable.id,
+                        referencedTable.id,
+                        sourceColumnId,
+                        referencedColumnId,
+                    ),
                     source: updatedTable.id,
                     target: referencedTable.id,
-                    sourceHandle: `right-${column}`,
-                    targetHandle: `left-${referencedColumn}`,
+                    sourceHandle: `right-${sourceColumnId}`,
+                    targetHandle: `left-${referencedColumnId}`,
                     markerEnd: {
                         type: MarkerType.ArrowClosed,
                     },
@@ -552,6 +692,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         reactFlow.setNodes(existingNodes);
         reactFlow.setEdges(existingEdges);
+        eventBus.emit("refreshFlowState");
         requestAnimationFrame(() => {
             setCenter(updatedTable.id, true);
         });
@@ -613,6 +754,196 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    /**
+     * Checks if a change can be reverted.
+     * Foreign keys referencing deleted tables/columns cannot be simply reverted.
+     */
+    const canRevertChange = (change: SchemaChange): CanRevertResult => {
+        const loc = locConstants.schemaDesigner.changesPanel;
+
+        if (!baselineSchemaRef.current) {
+            return { canRevert: false, reason: loc.cannotRevertForeignKey };
+        }
+
+        // Get current tables from React Flow nodes
+        const currentNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const currentSchema = {
+            tables: currentNodes.map((node) => node.data),
+        };
+
+        // Pass localized messages to the core function
+        const messages = {
+            cannotRevertForeignKey: loc.cannotRevertForeignKey,
+            cannotRevertDeletedColumn: loc.cannotRevertDeletedColumn,
+        };
+
+        return canRevertChangeCore(
+            change,
+            baselineSchemaRef.current,
+            currentSchema,
+            structuredSchemaChanges,
+            messages,
+        );
+    };
+
+    /**
+     * Reverts a change to its baseline state.
+     * Uses the core revert logic and applies the result to React Flow.
+     */
+    const revertChange = (change: SchemaChange) => {
+        if (!baselineSchemaRef.current) {
+            return;
+        }
+
+        // Get current state from React Flow
+        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const currentSchema = {
+            tables: existingNodes.map((node) => node.data),
+        };
+
+        // For table add revert (delete), use React Flow's deleteElements for proper cleanup
+        if (change.category === ChangeCategory.Table && change.action === ChangeAction.Add) {
+            const nodeToDelete = existingNodes.find((n) => n.id === change.tableId);
+            if (nodeToDelete) {
+                void reactFlow.deleteElements({ nodes: [nodeToDelete] });
+                eventBus.emit("pushState");
+                eventBus.emit("getScript");
+                return;
+            }
+        }
+
+        // For table delete revert (restore), use addTable for proper node creation
+        if (change.category === ChangeCategory.Table && change.action === ChangeAction.Delete) {
+            const baselineTable = baselineSchemaRef.current.tables.find(
+                (t) => t.id === change.tableId,
+            );
+            if (baselineTable) {
+                void addTable({ ...baselineTable, foreignKeys: [] });
+                eventBus.emit("pushState");
+                eventBus.emit("getScript");
+                return;
+            }
+        }
+
+        // Use core logic for the data transformation
+        const result = computeRevertedSchema(change, baselineSchemaRef.current, currentSchema);
+
+        if (!result.success) {
+            console.error("Failed to revert change:", result.error);
+            return;
+        }
+
+        // Apply the reverted tables back to React Flow nodes
+        const updatedNodes = existingNodes.map((node) => {
+            const revertedTable = result.tables.find((t) => t.id === node.id);
+            if (revertedTable) {
+                return {
+                    ...node,
+                    data: revertedTable,
+                };
+            }
+            return node;
+        });
+
+        // Handle column rename edge updates (incoming + outgoing)
+        if (change.category === ChangeCategory.Column && change.action === ChangeAction.Modify) {
+            const beforeTable = existingNodes.find((n) => n.id === change.tableId)?.data;
+            const afterTable = updatedNodes.find((n) => n.id === change.tableId)?.data;
+
+            const beforeName = beforeTable?.columns.find((c) => c.id === change.objectId)?.name;
+            const afterName = afterTable?.columns.find((c) => c.id === change.objectId)?.name;
+
+            if (beforeName && afterName && beforeName !== afterName) {
+                const renameMap = new Map<string, string>([[beforeName, afterName]]);
+                applyColumnRenamesToIncomingForeignKeyEdges(
+                    existingEdges,
+                    change.tableId,
+                    renameMap,
+                );
+                applyColumnRenamesToOutgoingForeignKeyEdges(
+                    existingEdges,
+                    change.tableId,
+                    renameMap,
+                );
+                reactFlow.setEdges(existingEdges);
+            }
+        }
+
+        // Handle foreign key edge updates
+        if (change.category === ChangeCategory.ForeignKey) {
+            const currentNode = updatedNodes.find((n) => n.id === change.tableId);
+
+            if (change.action === ChangeAction.Add) {
+                // Revert add = remove all edges belonging to this FK
+                existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
+            } else if (
+                change.action === ChangeAction.Delete ||
+                change.action === ChangeAction.Modify
+            ) {
+                // Remove existing edges for this FK and recreate them
+                existingEdges = removeEdgesForForeignKey(existingEdges, change.objectId);
+
+                const baselineTable = baselineSchemaRef.current.tables.find(
+                    (t) => t.id === change.tableId,
+                );
+                const baselineFk = baselineTable?.foreignKeys?.find(
+                    (fk) => fk.id === change.objectId,
+                );
+
+                if (baselineFk && currentNode) {
+                    const referencedTable = updatedNodes.find(
+                        (n) =>
+                            n.data.schema === baselineFk.referencedSchemaName &&
+                            n.data.name === baselineFk.referencedTableName,
+                    );
+
+                    if (referencedTable) {
+                        baselineFk.columns.forEach((column, index) => {
+                            const referencedColumn = baselineFk.referencedColumns[index];
+
+                            const sourceColumnId = currentNode.data.columns.find(
+                                (c) => c.name === column,
+                            )?.id;
+                            const referencedColumnId = referencedTable.data.columns.find(
+                                (c) => c.name === referencedColumn,
+                            )?.id;
+
+                            if (!sourceColumnId || !referencedColumnId) {
+                                return;
+                            }
+                            existingEdges.push({
+                                id: buildForeignKeyEdgeId(
+                                    currentNode.id,
+                                    referencedTable.id,
+                                    sourceColumnId,
+                                    referencedColumnId,
+                                ),
+                                source: currentNode.id,
+                                target: referencedTable.id,
+                                sourceHandle: `right-${sourceColumnId}`,
+                                targetHandle: `left-${referencedColumnId}`,
+                                markerEnd: { type: MarkerType.ArrowClosed },
+                                data: {
+                                    ...baselineFk,
+                                    referencedColumns: [referencedColumn],
+                                    columns: [column],
+                                },
+                            });
+                        });
+                    }
+                }
+            }
+
+            reactFlow.setEdges(existingEdges);
+        }
+
+        reactFlow.setNodes(updatedNodes);
+        eventBus.emit("refreshFlowState");
+        eventBus.emit("pushState");
+        eventBus.emit("getScript");
+    };
+
     const updateSelectedNodes = (nodesIds: string[]) => {
         reactFlow.getNodes().forEach((node) => {
             reactFlow.updateNode(node.id, {
@@ -643,6 +974,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
             schema: schema,
         });
+
+        // After publish, reset baseline to the published schema so changes clear.
+        const updatedSchema = (response as unknown as { updatedSchema?: SchemaDesigner.Schema })
+            .updatedSchema;
+        if (updatedSchema) {
+            baselineSchemaRef.current = updatedSchema;
+        } else {
+            try {
+                baselineSchemaRef.current = await extensionRpc.sendRequest(
+                    SchemaDesigner.GetBaselineSchemaRequest.type,
+                );
+            } catch {
+                // ignore
+            }
+        }
+        setSchemaChangesCount(0);
+        setSchemaChanges([]);
         return response;
     };
 
@@ -801,6 +1149,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setRenderOnlyVisibleTables,
                 isExporting,
                 setIsExporting,
+                schemaChangesCount,
+                schemaChanges,
+                schemaChangesSummary,
+                structuredSchemaChanges,
+                revertChange,
+                canRevertChange,
                 // DAB state
                 dabConfig,
                 initializeDabConfig,
