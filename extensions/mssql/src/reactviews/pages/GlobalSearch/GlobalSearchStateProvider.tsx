@@ -10,6 +10,7 @@ import {
     GlobalSearchContextProps,
     SearchResultItem,
     ObjectTypeFilters,
+    ScriptType,
 } from "../../../sharedInterfaces/globalSearch";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { getCoreRPCs2 } from "../../common/utils";
@@ -46,10 +47,7 @@ export const GlobalSearchStateProvider: React.FC<{
             },
 
             // Object Actions
-            scriptObject: (
-                object: SearchResultItem,
-                scriptType: "CREATE" | "DROP" | "SELECT",
-            ): void => {
+            scriptObject: (object: SearchResultItem, scriptType: ScriptType): void => {
                 extensionRpc.action("scriptObject", { object, scriptType });
             },
 

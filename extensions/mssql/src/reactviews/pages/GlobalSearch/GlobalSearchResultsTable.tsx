@@ -34,8 +34,10 @@ import {
     CopyRegular,
     DocumentRegular,
     PlayRegular,
+    EditRegular,
+    DeleteRegular,
 } from "@fluentui/react-icons";
-import { SearchResultItem } from "../../../sharedInterfaces/globalSearch";
+import { SearchResultItem, ScriptType } from "../../../sharedInterfaces/globalSearch";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
 
@@ -184,14 +186,44 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
     );
 });
 
+/**
+ * Determines which script actions are available for a given object type
+ */
+const getAvailableActions = (item: SearchResultItem): ScriptType[] => {
+    const actions: ScriptType[] = [];
+
+    switch (item.type) {
+        case MetadataType.Table:
+            // Tables: Select, Create, Drop
+            actions.push("SELECT", "CREATE", "DROP");
+            break;
+        case MetadataType.View:
+            // Views: Select, Create, Drop, Alter
+            actions.push("SELECT", "CREATE", "DROP", "ALTER");
+            break;
+        case MetadataType.SProc:
+            // Stored Procedures: Create, Drop, Alter, Execute
+            actions.push("CREATE", "DROP", "ALTER", "EXECUTE");
+            break;
+        case MetadataType.Function:
+            // Functions: Create, Drop, Alter
+            actions.push("CREATE", "DROP", "ALTER");
+            break;
+        default:
+            // Default fallback
+            actions.push("CREATE", "DROP");
+    }
+
+    return actions;
+};
+
 interface ActionsMenuProps {
     item: SearchResultItem;
     context: ReturnType<typeof useGlobalSearchContext>;
 }
 
 const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
-    const isTableOrView =
-        item.type === MetadataType.Table || item.type === MetadataType.View;
+    const availableActions = getAvailableActions(item);
 
     return (
         <Menu>
@@ -205,7 +237,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
             </MenuTrigger>
             <MenuPopover>
                 <MenuList>
-                    {isTableOrView && (
+                    {availableActions.includes("SELECT") && (
                         <MenuItem
                             icon={<PlayRegular />}
                             onClick={() => context.scriptObject(item, "SELECT")}
@@ -213,18 +245,38 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             Select Top 1000
                         </MenuItem>
                     )}
-                    <MenuItem
-                        icon={<DocumentRegular />}
-                        onClick={() => context.scriptObject(item, "CREATE")}
-                    >
-                        Script as CREATE
-                    </MenuItem>
-                    <MenuItem
-                        icon={<DocumentRegular />}
-                        onClick={() => context.scriptObject(item, "DROP")}
-                    >
-                        Script as DROP
-                    </MenuItem>
+                    {availableActions.includes("CREATE") && (
+                        <MenuItem
+                            icon={<DocumentRegular />}
+                            onClick={() => context.scriptObject(item, "CREATE")}
+                        >
+                            Script as Create
+                        </MenuItem>
+                    )}
+                    {availableActions.includes("DROP") && (
+                        <MenuItem
+                            icon={<DeleteRegular />}
+                            onClick={() => context.scriptObject(item, "DROP")}
+                        >
+                            Script as Drop
+                        </MenuItem>
+                    )}
+                    {availableActions.includes("ALTER") && (
+                        <MenuItem
+                            icon={<EditRegular />}
+                            onClick={() => context.scriptObject(item, "ALTER")}
+                        >
+                            Script as Alter
+                        </MenuItem>
+                    )}
+                    {availableActions.includes("EXECUTE") && (
+                        <MenuItem
+                            icon={<PlayRegular />}
+                            onClick={() => context.scriptObject(item, "EXECUTE")}
+                        >
+                            Script as Execute
+                        </MenuItem>
+                    )}
                     <MenuItem
                         icon={<CopyRegular />}
                         onClick={() => context.copyObjectName(item)}

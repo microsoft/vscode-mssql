@@ -7,6 +7,11 @@ import { ApiStatus } from "./webview";
 import { MetadataType } from "./metadata";
 
 /**
+ * Script types available for GlobalSearch actions
+ */
+export type ScriptType = "SELECT" | "CREATE" | "DROP" | "ALTER" | "EXECUTE";
+
+/**
  * Represents a database object in search results
  */
 export interface SearchResultItem {
@@ -14,6 +19,7 @@ export interface SearchResultItem {
     schema: string;
     type: MetadataType;
     typeName: string; // Friendly display name (e.g., "Table", "View", "Stored Procedure")
+    metadataTypeName: string; // Scripting type name (e.g., "Table", "View", "StoredProcedure")
     fullName: string; // schema.name
 }
 
@@ -68,7 +74,7 @@ export interface GlobalSearchContextProps {
     toggleObjectTypeFilter: (objectType: keyof ObjectTypeFilters) => void;
 
     // Object Actions
-    scriptObject: (object: SearchResultItem, scriptType: "CREATE" | "DROP" | "SELECT") => void;
+    scriptObject: (object: SearchResultItem, scriptType: ScriptType) => void;
     copyObjectName: (object: SearchResultItem) => void;
 
     // Data refresh
@@ -89,7 +95,7 @@ export interface GlobalSearchReducers {
     toggleObjectTypeFilter: { objectType: keyof ObjectTypeFilters };
 
     // Object Actions
-    scriptObject: { object: SearchResultItem; scriptType: "CREATE" | "DROP" | "SELECT" };
+    scriptObject: { object: SearchResultItem; scriptType: ScriptType };
     copyObjectName: { object: SearchResultItem };
 
     // Data refresh

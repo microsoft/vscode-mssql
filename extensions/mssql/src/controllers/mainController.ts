@@ -2652,6 +2652,7 @@ export default class MainController implements vscode.Disposable {
             this.metadataService,
             this._connectionMgr,
             node,
+            this._scriptingService,
         );
 
         globalSearchWebView.revealToForeground();

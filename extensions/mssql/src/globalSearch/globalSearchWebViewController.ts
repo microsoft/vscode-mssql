@@ -10,6 +10,7 @@ import {
     GlobalSearchReducers,
     SearchResultItem,
     ObjectTypeFilters,
+    ScriptType,
 } from "../sharedInterfaces/globalSearch";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -19,6 +20,9 @@ import { IMetadataService } from "../services/metadataService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { MetadataType, ObjectMetadata } from "../sharedInterfaces/metadata";
 import { getErrorMessage } from "../utils/utils";
+import { ScriptingService } from "../scripting/scriptingService";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { IScriptingObject } from "vscode-mssql";
 
 export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     GlobalSearchWebViewState,
@@ -33,6 +37,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         private _metadataService: IMetadataService,
         private _connectionManager: ConnectionManager,
         private _targetNode: TreeNodeInfo,
+        private _scriptingService: ScriptingService,
     ) {
         const serverName = _targetNode?.connectionProfile?.server || "Server";
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
@@ -133,6 +138,10 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
             await this._connectionManager.connect(connectionUri, connectionCreds);
+        }
+
+        if (!this._connectionManager.isConnected(connectionUri)) {
+            throw new Error("Failed to establish connection for scripting");
         }
     }
 
@@ -243,6 +252,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             schema: obj.schema,
             type: obj.metadataType,
             typeName: this.getFriendlyTypeName(obj.metadataType),
+            metadataTypeName: obj.metadataTypeName,
             fullName: obj.schema ? `${obj.schema}.${obj.name}` : obj.name,
         };
     }
@@ -336,42 +346,118 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Map ScriptType to ScriptOperation enum
+     */
+    private getScriptOperation(scriptType: ScriptType): ScriptOperation {
+        switch (scriptType) {
+            case "SELECT":
+                return ScriptOperation.Select;
+            case "CREATE":
+                return ScriptOperation.Create;
+            case "DROP":
+                return ScriptOperation.Delete;
+            case "ALTER":
+                return ScriptOperation.Alter;
+            case "EXECUTE":
+                return ScriptOperation.Execute;
+            default:
+                return ScriptOperation.Select;
+        }
+    }
+
+    /**
+     * Normalize metadata type name for scripting service.
+     * The scripting service expects specific SMO URN type names for scripting to work.
+     */
+    private getScriptingTypeName(metadataTypeName: string, metadataType: MetadataType): string {
+        // SMO URN types that should pass through directly:
+        // - UserDefinedFunction: scalar functions (FN), table-valued functions (IF, TF)
+        // - UserDefinedAggregate: aggregate functions (AF)
+        // Also pass through Object Explorer node types for compatibility
+        if (
+            metadataTypeName === "UserDefinedFunction" ||
+            metadataTypeName === "UserDefinedAggregate" ||
+            metadataTypeName === "ScalarValuedFunction" ||
+            metadataTypeName === "TableValuedFunction" ||
+            metadataTypeName === "AggregateFunction" ||
+            metadataTypeName === "PartitionFunction"
+        ) {
+            return metadataTypeName;
+        }
+
+        // Fallback for generic "Function" type - defaults to UserDefinedFunction
+        // Note: MetadataService should return specific types (UserDefinedFunction or UserDefinedAggregate)
+        if (metadataType === MetadataType.Function || metadataTypeName === "Function") {
+            return "UserDefinedFunction";
+        }
+
+        // Map standard types to their scripting type names
+        switch (metadataType) {
+            case MetadataType.Table:
+                return metadataTypeName || "Table";
+            case MetadataType.View:
+                return metadataTypeName || "View";
+            case MetadataType.SProc:
+                return metadataTypeName || "StoredProcedure";
+            default:
+                return metadataTypeName;
+        }
+    }
+
+    /**
      * Generate and open a script for the specified object
      */
-    private async scriptObject(
-        object: SearchResultItem,
-        scriptType: "CREATE" | "DROP" | "SELECT",
-    ): Promise<void> {
+    private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
         try {
-            let script = "";
+            // Ensure connection is established before scripting
+            await this.ensureConnection(this.state.connectionUri);
 
-            switch (scriptType) {
-                case "SELECT":
-                    script = `SELECT TOP (1000) * FROM [${object.schema}].[${object.name}]`;
-                    break;
-                case "CREATE":
-                    // TODO: Implement using ScriptingService
-                    void vscode.window.showInformationMessage(
-                        "Script as CREATE not yet implemented",
-                    );
-                    return;
-                case "DROP":
-                    // TODO: Implement using ScriptingService
-                    void vscode.window.showInformationMessage(
-                        "Script as DROP not yet implemented",
-                    );
-                    return;
+            // Create IScriptingObject from SearchResultItem
+            // Normalize the type name for scripting service compatibility
+            const scriptingTypeName = this.getScriptingTypeName(
+                object.metadataTypeName,
+                object.type,
+            );
+
+            const scriptingObject: IScriptingObject = {
+                type: scriptingTypeName,
+                schema: object.schema,
+                name: object.name,
+            };
+
+            // Get the script operation
+            const operation = this.getScriptOperation(scriptType);
+
+            // Get server info from connection manager - use the current connection credentials
+            // with the selected database to ensure we get the correct server info
+            const connectionCreds = { ...this._targetNode.connectionProfile };
+            connectionCreds.database = this.state.selectedDatabase;
+            const serverInfo = this._connectionManager.getServerInfo(connectionCreds);
+
+            // Create scripting parameters
+            const scriptingParams = this._scriptingService.createScriptingRequestParams(
+                serverInfo,
+                scriptingObject,
+                this.state.connectionUri,
+                operation,
+            );
+
+            // Generate script
+            const script = await this._scriptingService.script(scriptingParams);
+
+            if (script) {
+                // Open script in a new editor
+                const doc = await vscode.workspace.openTextDocument({
+                    content: script,
+                    language: "sql",
+                });
+                await vscode.window.showTextDocument(doc);
             }
-
-            // Open script in a new editor
-            const doc = await vscode.workspace.openTextDocument({
-                content: script,
-                language: "sql",
-            });
-            await vscode.window.showTextDocument(doc);
         } catch (error) {
             this.logger.error(`Error scripting object: ${getErrorMessage(error)}`);
-            void vscode.window.showErrorMessage(`Failed to script object: ${getErrorMessage(error)}`);
+            void vscode.window.showErrorMessage(
+                `Failed to script object: ${getErrorMessage(error)}`,
+            );
         }
     }
 }

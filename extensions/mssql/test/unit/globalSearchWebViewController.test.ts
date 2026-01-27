@@ -14,6 +14,7 @@ import { SearchResultItem } from "../../src/sharedInterfaces/globalSearch";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ScriptingService } from "../../src/scripting/scriptingService";
 
 suite("GlobalSearchWebViewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -22,11 +23,11 @@ suite("GlobalSearchWebViewController", () => {
     let mockMetadataService: sinon.SinonStubbedInstance<IMetadataService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockTargetNode: TreeNodeInfo;
+    let mockScriptingService: sinon.SinonStubbedInstance<ScriptingService>;
     let controller: GlobalSearchWebViewController;
     let mockWebview: vscode.Webview;
     let mockPanel: vscode.WebviewPanel;
     let showInformationMessageStub: sinon.SinonStub;
-    let showErrorMessageStub: sinon.SinonStub;
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
     let writeTextStub: sinon.SinonStub;
@@ -37,7 +38,7 @@ suite("GlobalSearchWebViewController", () => {
         { name: "Products", schema: "sales", metadataType: MetadataType.Table, metadataTypeName: "Table" },
         { name: "vw_UserOrders", schema: "dbo", metadataType: MetadataType.View, metadataTypeName: "View" },
         { name: "sp_GetUsers", schema: "dbo", metadataType: MetadataType.SProc, metadataTypeName: "StoredProcedure" },
-        { name: "fn_CalculateTotal", schema: "dbo", metadataType: MetadataType.Function, metadataTypeName: "Function" },
+        { name: "fn_CalculateTotal", schema: "dbo", metadataType: MetadataType.Function, metadataTypeName: "UserDefinedFunction" },
     ];
 
     setup(() => {
@@ -46,7 +47,6 @@ suite("GlobalSearchWebViewController", () => {
 
         // Mock vscode.window methods
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
         openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
         showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
 
@@ -96,6 +96,7 @@ suite("GlobalSearchWebViewController", () => {
             isConnected: sandbox.stub().returns(true),
             isConnecting: sandbox.stub().returns(false),
             connect: sandbox.stub().resolves(true),
+            getServerInfo: sandbox.stub().returns({ serverVersion: "15.0" }),
         } as any;
 
         mockTargetNode = {
@@ -104,6 +105,12 @@ suite("GlobalSearchWebViewController", () => {
                 database: "TestDB",
             },
         } as unknown as TreeNodeInfo;
+
+        mockScriptingService = {
+            scriptAsSelect: sandbox.stub().resolves(""),
+            script: sandbox.stub().resolves("SELECT TOP (1000) * FROM [dbo].[Users]"),
+            createScriptingRequestParams: sandbox.stub().returns({}),
+        } as unknown as sinon.SinonStubbedInstance<ScriptingService>;
     });
 
     teardown(() => {
@@ -117,6 +124,7 @@ suite("GlobalSearchWebViewController", () => {
             mockMetadataService,
             mockConnectionManager,
             mockTargetNode,
+            mockScriptingService,
         );
         return controller;
     }
@@ -297,6 +305,7 @@ suite("GlobalSearchWebViewController", () => {
                 schema: "dbo",
                 type: MetadataType.Table,
                 typeName: "Table",
+                metadataTypeName: "Table",
                 fullName: "dbo.Users",
             };
 
@@ -306,15 +315,12 @@ suite("GlobalSearchWebViewController", () => {
 
             await scriptReducer!(controller.state, { object: testObject, scriptType: "SELECT" });
 
+            expect(mockScriptingService.script.calledOnce).to.be.true;
             expect(openTextDocumentStub.calledOnce).to.be.true;
-            expect(openTextDocumentStub.firstCall.args[0]).to.deep.include({
-                content: "SELECT TOP (1000) * FROM [dbo].[Users]",
-                language: "sql",
-            });
             expect(showTextDocumentStub.calledOnce).to.be.true;
         });
 
-        test("scriptObject reducer shows message for CREATE script (not yet implemented)", async () => {
+        test("scriptObject reducer generates CREATE script for table", async () => {
             createController();
             await waitForInitialization();
 
@@ -325,15 +331,20 @@ suite("GlobalSearchWebViewController", () => {
                 schema: "dbo",
                 type: MetadataType.Table,
                 typeName: "Table",
+                metadataTypeName: "Table",
                 fullName: "dbo.Users",
             };
+
+            openTextDocumentStub.resolves({
+                uri: vscode.Uri.file("/tmp/script.sql"),
+            } as unknown as vscode.TextDocument);
 
             await scriptReducer!(controller.state, { object: testObject, scriptType: "CREATE" });
 
-            expect(showInformationMessageStub.calledOnceWith("Script as CREATE not yet implemented")).to.be.true;
+            expect(mockScriptingService.script.called).to.be.true;
         });
 
-        test("scriptObject reducer shows message for DROP script (not yet implemented)", async () => {
+        test("scriptObject reducer generates DROP script for table", async () => {
             createController();
             await waitForInitialization();
 
@@ -344,12 +355,17 @@ suite("GlobalSearchWebViewController", () => {
                 schema: "dbo",
                 type: MetadataType.Table,
                 typeName: "Table",
+                metadataTypeName: "Table",
                 fullName: "dbo.Users",
             };
 
+            openTextDocumentStub.resolves({
+                uri: vscode.Uri.file("/tmp/script.sql"),
+            } as unknown as vscode.TextDocument);
+
             await scriptReducer!(controller.state, { object: testObject, scriptType: "DROP" });
 
-            expect(showInformationMessageStub.calledOnceWith("Script as DROP not yet implemented")).to.be.true;
+            expect(mockScriptingService.script.called).to.be.true;
         });
 
         test("copyObjectName reducer copies full object name to clipboard", async () => {
@@ -364,6 +380,7 @@ suite("GlobalSearchWebViewController", () => {
                 schema: "dbo",
                 type: MetadataType.Table,
                 typeName: "Table",
+                metadataTypeName: "Table",
                 fullName: "dbo.Users",
             };
 
