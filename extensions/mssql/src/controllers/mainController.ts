@@ -773,6 +773,7 @@ export default class MainController implements vscode.Disposable {
                                 connectionUri,
                             );
                         designer.revealToForeground();
+                        return designer;
                     },
                 ),
             ),

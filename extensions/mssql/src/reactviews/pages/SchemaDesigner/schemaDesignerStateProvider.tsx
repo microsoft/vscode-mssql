@@ -13,6 +13,10 @@ import { WebviewRpc } from "../../common/rpc";
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
+import {
+    registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerGetSchemaStateHandler,
+} from "./schemaDesignerRpcHandlers";
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import { v4 as uuidv4 } from "uuid";
@@ -280,242 +284,41 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return undefined;
     };
 
-    // Handle direct table operations from extension
+    // Handle bulk edits (vNext LM tool plumbing) from extension
     useEffect(() => {
-        const handleAddTable = async (
-            params: SchemaDesigner.AddTableParams,
-        ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> => {
-            if (!isInitialized) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
-                };
-            }
-
-            const schema = flowUtils.extractSchemaModel(
-                reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-            );
-
-            let newTable: SchemaDesigner.Table;
-            if (params.table) {
-                const normalized = normalizeTable(params.table);
-                if (!normalized) {
-                    return {
-                        success: false,
-                        message: locConstants.schemaDesigner.invalidTablePayload,
-                    };
-                }
-                if (schema.tables.some((existing) => existing.id === normalized.id)) {
-                    return {
-                        success: false,
-                        message: locConstants.schemaDesigner.tableIdAlreadyExists,
-                    };
-                }
-                newTable = normalized;
-            } else {
-                newTable = tableUtils.createNewTable(schema, schemaNames);
-                if (params.tableName) newTable.name = params.tableName;
-                if (params.schemaName) {
-                    newTable.schema = params.schemaName;
-                }
-            }
-
-            const validationError = validateTable(schema, newTable, schemaNames);
-            if (validationError) {
-                return {
-                    success: false,
-                    message: validationError,
-                };
-            }
-
-            const success = await addTable(newTable);
-            if (!success) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.failedToAddTable,
-                };
-            }
-
-            eventBus.emit("pushState");
-            eventBus.emit("getScript");
-
-            await waitForNextFrame();
-            return {
-                success: true,
-                schema: extractSchema(),
-            };
-        };
-
-        const handleUpdateTable = async (
-            params: SchemaDesigner.UpdateTableParams,
-        ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> => {
-            if (!isInitialized) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
-                };
-            }
-
-            const schema = flowUtils.extractSchemaModel(
-                reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-            );
-
-            const normalized = normalizeTable(params.table);
-            if (!normalized) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.invalidTablePayload,
-                };
-            }
-            const validationError = validateTable(schema, normalized, schemaNames);
-            if (validationError) {
-                return {
-                    success: false,
-                    message: validationError,
-                };
-            }
-
-            const success = await updateTable(normalized);
-            if (!success) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.failedToUpdateTable,
-                };
-            }
-
-            eventBus.emit("pushState");
-            eventBus.emit("getScript");
-
-            await waitForNextFrame();
-            return {
-                success: true,
-                schema: extractSchema(),
-            };
-        };
-
-        const handleDeleteTable = async (
-            params: SchemaDesigner.DeleteTableParams,
-        ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> => {
-            if (!isInitialized) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
-                };
-            }
-
-            const schema = flowUtils.extractSchemaModel(
-                reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-            );
-
-            let table: SchemaDesigner.Table | undefined;
-            if (params.tableId) {
-                table = schema.tables.find((t) => t.id === params.tableId);
-            } else if (params.tableName && params.schemaName) {
-                table = schema.tables.find(
-                    (t) =>
-                        t.name.toLowerCase() === params.tableName?.toLowerCase() &&
-                        t.schema.toLowerCase() === params.schemaName?.toLowerCase(),
-                );
-            }
-
-            if (!table) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.tableNotFound(
-                        params.tableId ?? params.tableName ?? "",
-                    ),
-                };
-            }
-
-            const success = await deleteTable(table, true);
-            if (!success) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.failedToDeleteTable,
-                };
-            }
-
-            eventBus.emit("getScript");
-
-            await waitForNextFrame();
-            return {
-                success: true,
-                schema: extractSchema(),
-            };
-        };
-
-        extensionRpc.onRequest(SchemaDesigner.AddTableRequest.type, handleAddTable);
-        extensionRpc.onRequest(SchemaDesigner.UpdateTableRequest.type, handleUpdateTable);
-        extensionRpc.onRequest(SchemaDesigner.DeleteTableRequest.type, handleDeleteTable);
-    }, [isInitialized, extensionRpc, schemaNames, reactFlow, waitForNextFrame]);
+        registerSchemaDesignerApplyEditsHandler({
+            isInitialized,
+            extensionRpc,
+            schemaNames,
+            datatypes,
+            waitForNextFrame,
+            extractSchema,
+            addTable,
+            updateTable,
+            deleteTable,
+            normalizeColumn,
+            normalizeTable,
+            validateTable,
+            onPushUndoState: () => {
+                const state = reactFlow.toObject() as ReactFlowJsonObject<
+                    Node<SchemaDesigner.Table>,
+                    Edge<SchemaDesigner.ForeignKey>
+                >;
+                stateStack.pushState(state);
+                eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+            },
+            onRequestScriptRefresh: () => eventBus.emit("getScript"),
+        });
+    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, waitForNextFrame]);
 
     // Respond with the current schema state
     useEffect(() => {
-        const handleGetSchemaState = async () => {
-            if (!isInitialized) {
-                throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
-            }
-            return {
-                schema: extractSchema(),
-            };
-        };
-
-        extensionRpc.onRequest(SchemaDesigner.GetSchemaStateRequest.type, handleGetSchemaState);
+        registerSchemaDesignerGetSchemaStateHandler({
+            isInitialized,
+            extensionRpc,
+            extractSchema,
+        });
     }, [isInitialized, extensionRpc]);
-
-    // Handle replace schema requests from extension
-    useEffect(() => {
-        const handleReplaceSchema = async (
-            params: SchemaDesigner.ReplaceSchemaParams,
-        ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> => {
-            if (!isInitialized) {
-                return {
-                    success: false,
-                    message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
-                };
-            }
-
-            const { schema, keepPositions = true, focusTableId } = params;
-            const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(schema);
-
-            if (keepPositions) {
-                const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
-                const positionsById = new Map(
-                    existingNodes.map((node) => [node.id, node.position]),
-                );
-                nodes.forEach((node) => {
-                    const position = positionsById.get(node.id);
-                    if (position) {
-                        node.position = position;
-                    }
-                });
-            }
-
-            reactFlow.setNodes(nodes);
-            reactFlow.setEdges(edges);
-
-            queueMicrotask(() => {
-                eventBus.emit("pushState");
-                eventBus.emit("getScript");
-                if (focusTableId) {
-                    requestAnimationFrame(() => {
-                        setCenter(focusTableId, true);
-                    });
-                }
-            });
-
-            await waitForNextFrame();
-            return {
-                success: true,
-                schema: extractSchema(),
-            };
-        };
-
-        extensionRpc.onRequest(SchemaDesigner.ReplaceSchemaRequest.type, handleReplaceSchema);
-    }, [isInitialized, extensionRpc, reactFlow, waitForNextFrame]);
 
     const initializeSchemaDesigner = async () => {
         try {
@@ -726,6 +529,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             foreignKey.columns.forEach((column, index) => {
                 const referencedColumn = foreignKey.referencedColumns[index];
                 existingEdges.push({
+                    // TODO: FK edge id collision for multi-column mappings. A single FK can create
+                    // multiple edges (one per mapping); using foreignKey.id here causes duplicate
+                    // edge ids and can lead to lost/duplicated mappings. Keep legacy behavior in
+                    // this branch; pull in the upstream fix when available.
                     id: foreignKey.id,
                     source: updatedTable.id,
                     target: referencedTable.id,

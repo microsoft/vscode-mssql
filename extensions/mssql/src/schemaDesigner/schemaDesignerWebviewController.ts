@@ -385,48 +385,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Adds a new table to the schema designer.
-     * @param tableName Optional name for the new table
-     * @param schemaName Optional schema name
-     */
-    public async addTable(
-        tableName?: string,
-        schemaName?: string,
-        table?: SchemaDesigner.Table,
-    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
-        await this.whenWebviewReady();
-        return this.sendRequest(SchemaDesigner.AddTableRequest.type, {
-            tableName,
-            schemaName,
-            table,
-        });
-    }
-
-    /**
-     * Updates an existing table in the schema designer.
-     */
-    public async updateTable(
-        table: SchemaDesigner.Table,
-    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
-        await this.whenWebviewReady();
-        return this.sendRequest(SchemaDesigner.UpdateTableRequest.type, {
-            table,
-        });
-    }
-
-    /**
-     * Deletes a table from the schema designer.
-     */
-    public async deleteTable(params: {
-        tableId?: string;
-        tableName?: string;
-        schemaName?: string;
-    }): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
-        await this.whenWebviewReady();
-        return this.sendRequest(SchemaDesigner.DeleteTableRequest.type, params);
-    }
-
-    /**
      * Gets the current schema state from the webview.
      */
     public async getSchemaState(): Promise<SchemaDesigner.Schema> {
@@ -436,19 +394,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Replaces the schema model in the webview with a new schema.
+     * Applies a batch of semantic schema edits in the webview (used by vNext LM tool).
+     * This method must never be treated as a transcript schema source; it is only used to compute receipts.
      */
-    public async replaceSchemaState(
-        schema: SchemaDesigner.Schema,
-        keepPositions: boolean = true,
-        focusTableId?: string,
-    ): Promise<SchemaDesigner.SchemaDesignerOperationResponse> {
+    public async applyEdits(
+        params: SchemaDesigner.ApplyEditsWebviewParams,
+    ): Promise<SchemaDesigner.ApplyEditsWebviewResponse> {
         await this.whenWebviewReady();
-        return this.sendRequest(SchemaDesigner.ReplaceSchemaRequest.type, {
-            schema,
-            keepPositions,
-            focusTableId,
-        });
+        return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
     }
 
     public get designerKey(): string {

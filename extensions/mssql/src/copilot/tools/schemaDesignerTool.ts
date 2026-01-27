@@ -11,79 +11,164 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesignerWebviewManager";
 import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
+import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 
-export interface SchemaDesignerToolParams {
-    /**
-     * The operation to perform on the schema designer.
-     * Supported operations: "show", "add_table", "update_table", "delete_table", "replace_schema", "get_schema"
-     */
-    operation:
-        | "show"
-        | "add_table"
-        | "update_table"
-        | "delete_table"
-        | "replace_schema"
-        | "get_schema";
-    /**
-     * Connection ID to use when opening a schema designer (show operation only).
-     */
-    connectionId?: string;
-    /**
-     * Operation-specific payload.
-     * - add_table: { tableName?, schemaName? } or { table }
-     * - update_table: { table }
-     * - delete_table: { tableId? } or { tableName, schemaName }
-     * - replace_schema: { schema }
-     * - get_schema: omit
-     */
-    payload?: {
-        /**
-         * Optional name for the new table (add_table) or delete target (delete_table).
-         */
-        tableName?: string;
-        /**
-         * Optional schema name for the new table (add_table) or delete target (delete_table).
-         */
-        schemaName?: string;
-        /**
-         * Full schema state to replace the current designer model (replace_schema only).
-         */
-        schema?: SchemaDesigner.Schema;
-        /**
-         * Full table state to add or update a table (add_table or update_table).
-         */
-        table?: SchemaDesigner.Table;
-        /**
-         * Table id to delete (delete_table only).
-         */
-        tableId?: string;
-    };
-    /**
-     * Options that influence how the UI applies the operation.
-     * - keepPositions: preserve existing table positions when replacing schema
-     * - focusTableId: center on a table after applying the operation
-     */
-    options?: {
-        keepPositions?: boolean;
-        focusTableId?: string;
-    };
+type IncludeOverviewColumns = "none" | "names" | "namesAndTypes";
+type IncludeTableColumns = IncludeOverviewColumns | "full";
+
+interface TargetHint {
+    server: string;
+    database: string;
 }
 
-export interface SchemaDesignerToolResult {
-    success: boolean;
-    message?: string;
-    schema?: SchemaDesigner.Schema;
-    reason?: "stale_state";
+export type SchemaDesignerToolParams =
+    | { operation: "show"; connectionId: string }
+    | { operation: "get_overview"; options?: { includeColumns?: IncludeOverviewColumns } }
+    | {
+          operation: "get_table";
+          payload: { table: SchemaDesigner.TableRef };
+          options?: { includeColumns?: IncludeTableColumns; includeForeignKeys?: boolean };
+      }
+    | {
+          operation: "apply_edits";
+          payload: {
+              expectedVersion?: string;
+              targetHint?: TargetHint;
+              edits: SchemaDesigner.SchemaDesignerEdit[];
+          };
+      };
+
+type ToolErrorReason =
+    | "no_active_designer"
+    | "stale_state"
+    | "target_mismatch"
+    | "not_found"
+    | "ambiguous_identifier"
+    | "validation_error"
+    | "invalid_request"
+    | "internal_error";
+
+interface ToolTarget {
     server?: string;
     database?: string;
 }
+
+interface OverviewColumnView {
+    name: string;
+    dataType?: string;
+}
+
+interface OverviewTableView {
+    schema: string;
+    name: string;
+    columns?: OverviewColumnView[];
+}
+
+interface SchemaDesignerOverview {
+    tables: OverviewTableView[];
+    columnsOmitted: boolean;
+}
+
+interface TableColumnView {
+    id?: string;
+    name: string;
+    dataType?: string;
+    maxLength?: string;
+    precision?: number;
+    scale?: number;
+    isPrimaryKey?: boolean;
+    isIdentity?: boolean;
+    identitySeed?: number;
+    identityIncrement?: number;
+    isNullable?: boolean;
+    defaultValue?: string;
+    isComputed?: boolean;
+    computedFormula?: string;
+    computedPersisted?: boolean;
+}
+
+interface TableForeignKeyView {
+    id?: string;
+    name: string;
+    referencedTable: { schema: string; name: string };
+    mappings: { column: string; referencedColumn: string }[];
+    onDeleteAction: number;
+    onUpdateAction: number;
+}
+
+interface SchemaDesignerTableView {
+    id?: string;
+    schema: string;
+    name: string;
+    columns?: TableColumnView[];
+    foreignKeys?: TableForeignKeyView[];
+}
+
+interface ApplyEditsReceipt {
+    appliedEdits: number;
+    changes: Record<string, unknown>;
+    warnings: string[];
+}
+
+interface SchemaDesignerToolError {
+    success: false;
+    reason: ToolErrorReason;
+    message: string;
+    server?: string;
+    database?: string;
+    activeTarget?: ToolTarget;
+    targetHint?: TargetHint;
+    currentVersion?: string;
+    currentOverview?: SchemaDesignerOverview;
+    suggestedNextCall?: {
+        operation: "get_overview";
+        options: { includeColumns: IncludeOverviewColumns };
+    };
+    failedEditIndex?: number;
+    appliedEdits?: number;
+}
+
+type NormalizedSchemaVersion = {
+    tables: {
+        schema: string;
+        name: string;
+        columns: {
+            name: string;
+            dataType: string;
+            maxLength: string;
+            precision: number;
+            scale: number;
+            isPrimaryKey: boolean;
+            isIdentity: boolean;
+            identitySeed: number;
+            identityIncrement: number;
+            isNullable: boolean;
+            defaultValue: string;
+            isComputed: boolean;
+            computedFormula: string;
+            computedPersisted: boolean;
+        }[];
+        foreignKeys: {
+            name: string;
+            columns: string[];
+            referencedSchemaName: string;
+            referencedTableName: string;
+            referencedColumns: string[];
+            onDeleteAction: number;
+            onUpdateAction: number;
+        }[];
+    }[];
+};
 
 export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     public readonly toolName = Constants.copilotSchemaDesignerToolName;
 
     constructor(
         private _connectionManager: ConnectionManager,
-        private _showSchema: (connectionUri: string, database: string) => Promise<void>,
+        private _showSchema: (
+            connectionUri: string,
+            database: string,
+        ) => Promise<SchemaDesignerWebviewController>,
     ) {
         super();
     }
@@ -92,181 +177,227 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         options: vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        const { operation, payload, options: uiOptions, connectionId } = options.input;
-        const { tableName, schemaName, schema, table, tableId } = payload ?? {};
-        const { keepPositions, focusTableId } = uiOptions ?? {};
+        const json = (obj: unknown) => JSON.stringify(obj);
+
+        const withTarget = (obj: any, designer: SchemaDesignerWebviewController | undefined) => {
+            if (!designer) return obj;
+            return {
+                ...obj,
+                server: designer.server,
+                database: designer.database,
+            };
+        };
+
+        const schemaDesignerManager = SchemaDesignerWebviewManager.getInstance();
+        const { operation } = options.input;
 
         try {
-            const schemaDesignerManager = SchemaDesignerWebviewManager.getInstance();
             if (operation === "show") {
+                const { connectionId } = options.input;
                 if (!connectionId) {
-                    return JSON.stringify({
+                    const err: SchemaDesignerToolError = {
                         success: false,
+                        reason: "invalid_request",
                         message: loc.schemaDesignerMissingConnectionId,
-                    });
+                    };
+                    return json(err);
                 }
+
                 const connInfo = this._connectionManager.getConnectionInfo(connectionId);
                 const connCreds = connInfo?.credentials;
                 if (!connCreds) {
-                    return JSON.stringify({
+                    const err: SchemaDesignerToolError = {
                         success: false,
+                        reason: "invalid_request",
                         message: loc.noConnectionError(connectionId),
-                    });
+                    };
+                    return json(err);
                 }
-                await this._showSchema(connectionId, connCreds.database);
-                return JSON.stringify({
-                    success: true,
-                    message: loc.showSchemaToolSuccessMessage,
-                });
+
+                const designer = await this._showSchema(connectionId, connCreds.database);
+                const schema = await designer.getSchemaState();
+                const version = this.computeSchemaVersion(schema);
+                return json(
+                    withTarget(
+                        {
+                            success: true,
+                            message: loc.showSchemaToolSuccessMessage,
+                            version,
+                        },
+                        designer,
+                    ),
+                );
             }
 
-            // Get the active schema designer
             const activeDesigner = schemaDesignerManager.getActiveDesigner();
-
             if (!activeDesigner) {
-                return JSON.stringify({
+                const err: SchemaDesignerToolError = {
                     success: false,
+                    reason: "no_active_designer",
                     message: loc.schemaDesignerNoActiveDesigner,
-                });
+                };
+                return json(err);
             }
 
-            if (operation === "get_schema") {
-                activeDesigner.revealToForeground();
-                const currentSchema = await activeDesigner.getSchemaState();
-                const schemaHash = this.computeSchemaHash(currentSchema);
-                schemaDesignerManager.setSchemaHash(activeDesigner.designerKey, schemaHash);
-                return JSON.stringify({
-                    success: true,
-                    message: loc.schemaDesignerGetSchemaSuccess,
-                    schema: currentSchema,
-                    server: activeDesigner.server,
-                    database: activeDesigner.database,
-                });
+            if (operation === "get_overview") {
+                const includeColumns = options.input.options?.includeColumns ?? "namesAndTypes";
+                const schema = await activeDesigner.getSchemaState();
+                const version = this.computeSchemaVersion(schema);
+                const overview = this.buildOverview(schema, includeColumns);
+                return json(withTarget({ success: true, version, overview }, activeDesigner));
             }
 
-            const currentSchema = await activeDesigner.getSchemaState();
-            const currentSchemaHash = this.computeSchemaHash(currentSchema);
-            const cacheKey = activeDesigner.designerKey;
-            const previousSchemaHash = schemaDesignerManager.getSchemaHash(cacheKey);
-            if (!previousSchemaHash || previousSchemaHash !== currentSchemaHash) {
-                schemaDesignerManager.setSchemaHash(cacheKey, currentSchemaHash);
-                return JSON.stringify({
-                    success: false,
-                    reason: "stale_state",
-                    message: loc.schemaDesignerStaleState,
-                    schema: currentSchema,
-                    server: activeDesigner.server,
-                    database: activeDesigner.database,
-                });
+            if (operation === "get_table") {
+                const tableRef = options.input.payload?.table;
+                if (!tableRef?.schema || !tableRef?.name) {
+                    const err: SchemaDesignerToolError = withTarget(
+                        {
+                            success: false,
+                            reason: "invalid_request",
+                            message: "Missing payload.table (schema + name).",
+                        },
+                        activeDesigner,
+                    );
+                    return json(err);
+                }
+
+                const includeColumns = options.input.options?.includeColumns ?? "namesAndTypes";
+                const includeForeignKeys = options.input.options?.includeForeignKeys ?? false;
+
+                const schema = await activeDesigner.getSchemaState();
+                const version = this.computeSchemaVersion(schema);
+                const resolved = this.resolveTable(schema, tableRef);
+                if (resolved.success === false) {
+                    return json(withTarget(resolved.error, activeDesigner));
+                }
+
+                const table = this.buildTableView(
+                    resolved.table,
+                    includeColumns,
+                    includeForeignKeys,
+                );
+                return json(withTarget({ success: true, version, table }, activeDesigner));
             }
 
-            const finalizeSuccess = async (
-                message: string,
-                resultSchema?: SchemaDesigner.Schema,
-            ): Promise<string> => {
-                const latestSchema = resultSchema ?? currentSchema;
-                this.updateSchemaHash(cacheKey, latestSchema);
-                return JSON.stringify({
-                    success: true,
-                    message,
-                    schema: latestSchema,
-                    server: activeDesigner.server,
-                    database: activeDesigner.database,
-                });
-            };
+            if (operation === "apply_edits") {
+                const expectedVersion = options.input.payload?.expectedVersion;
+                if (!expectedVersion) {
+                    const err: SchemaDesignerToolError = withTarget(
+                        {
+                            success: false,
+                            reason: "invalid_request",
+                            message: "Missing payload.expectedVersion.",
+                        },
+                        activeDesigner,
+                    );
+                    return json(err);
+                }
 
-            // Handle the operation
-            switch (operation) {
-                case "add_table":
-                    // Bring the designer to foreground and directly add the table
-                    activeDesigner.revealToForeground();
-                    {
-                        const result = await activeDesigner.addTable(tableName, schemaName, table);
-                        if (!result.success) {
-                            return JSON.stringify({
-                                success: false,
-                                message: result.message ?? loc.schemaDesignerAddTableFailed,
-                            });
-                        }
-                        return finalizeSuccess(loc.schemaDesignerAddTableSuccess, result.schema);
-                    }
-                case "update_table":
-                    if (!table) {
-                        return JSON.stringify({
+                const edits = options.input.payload?.edits;
+                if (!Array.isArray(edits) || edits.length === 0) {
+                    const err: SchemaDesignerToolError = withTarget(
+                        {
                             success: false,
-                            message: loc.schemaDesignerMissingTable,
-                        });
-                    }
-                    activeDesigner.revealToForeground();
-                    {
-                        const result = await activeDesigner.updateTable(table);
-                        if (!result.success) {
-                            return JSON.stringify({
-                                success: false,
-                                message: result.message ?? loc.schemaDesignerUpdateTableFailed,
-                            });
-                        }
-                        return finalizeSuccess(loc.schemaDesignerUpdateTableSuccess, result.schema);
-                    }
-                case "delete_table":
-                    if (!tableId && !(tableName && schemaName)) {
-                        return JSON.stringify({
-                            success: false,
-                            message: loc.schemaDesignerMissingDeleteTableTarget,
-                        });
-                    }
-                    activeDesigner.revealToForeground();
-                    {
-                        const result = await activeDesigner.deleteTable({
-                            tableId,
-                            tableName,
-                            schemaName,
-                        });
-                        if (!result.success) {
-                            return JSON.stringify({
-                                success: false,
-                                message: result.message ?? loc.schemaDesignerDeleteTableFailed,
-                            });
-                        }
-                        return finalizeSuccess(loc.schemaDesignerDeleteTableSuccess, result.schema);
-                    }
-                case "replace_schema":
-                    if (!schema) {
-                        return JSON.stringify({
-                            success: false,
-                            message: loc.schemaDesignerMissingSchema,
-                        });
-                    }
-                    activeDesigner.revealToForeground();
-                    {
-                        const result = await activeDesigner.replaceSchemaState(
-                            schema,
-                            keepPositions,
-                            focusTableId,
-                        );
-                        if (!result.success) {
-                            return JSON.stringify({
-                                success: false,
-                                message: result.message ?? loc.schemaDesignerReplaceSchemaFailed,
-                            });
-                        }
-                        return finalizeSuccess(
-                            loc.schemaDesignerReplaceSchemaSuccess,
-                            result.schema ?? schema,
-                        );
-                    }
+                            reason: "invalid_request",
+                            message: "Missing payload.edits (non-empty array).",
+                        },
+                        activeDesigner,
+                    );
+                    return json(err);
+                }
 
-                default:
-                    return JSON.stringify({
+                const targetHint = options.input.payload?.targetHint;
+                if (targetHint && !this.matchesTarget(activeDesigner, targetHint)) {
+                    const err: SchemaDesignerToolError = {
                         success: false,
-                        message: loc.schemaDesignerUnknownOperation(operation),
-                    });
+                        reason: "target_mismatch",
+                        message: "Active schema designer does not match targetHint",
+                        activeTarget: {
+                            server: activeDesigner.server,
+                            database: activeDesigner.database,
+                        },
+                        targetHint,
+                        server: activeDesigner.server,
+                        database: activeDesigner.database,
+                    };
+                    return json(err);
+                }
+
+                const currentSchema = await activeDesigner.getSchemaState();
+                const currentVersion = this.computeSchemaVersion(currentSchema);
+                if (currentVersion !== expectedVersion) {
+                    const err: SchemaDesignerToolError = withTarget(
+                        {
+                            success: false,
+                            reason: "stale_state",
+                            message: loc.schemaDesignerStaleState,
+                            currentVersion,
+                            currentOverview: this.buildOverview(currentSchema, "namesAndTypes"),
+                            suggestedNextCall: {
+                                operation: "get_overview",
+                                options: { includeColumns: "namesAndTypes" },
+                            },
+                        },
+                        activeDesigner,
+                    );
+                    return json(err);
+                }
+
+                activeDesigner.revealToForeground();
+                const applyResult = await activeDesigner.applyEdits({ edits });
+                const postSchema = applyResult.schema ?? (await activeDesigner.getSchemaState());
+                const postVersion = this.computeSchemaVersion(postSchema);
+
+                if (!applyResult.success) {
+                    const err: SchemaDesignerToolError = withTarget(
+                        {
+                            success: false,
+                            reason: applyResult.reason ?? "internal_error",
+                            message: applyResult.message ?? "Failed to apply edits.",
+                            failedEditIndex: applyResult.failedEditIndex,
+                            appliedEdits: applyResult.appliedEdits,
+                            currentVersion: postVersion,
+                        },
+                        activeDesigner,
+                    );
+                    return json(err);
+                }
+
+                const appliedEdits = applyResult.appliedEdits ?? edits.length;
+                const receipt: ApplyEditsReceipt = {
+                    appliedEdits,
+                    changes: this.summarizeEdits(edits.slice(0, appliedEdits)),
+                    warnings: [],
+                };
+
+                return json(
+                    withTarget(
+                        {
+                            success: true,
+                            version: postVersion,
+                            receipt,
+                        },
+                        activeDesigner,
+                    ),
+                );
             }
-        } catch (err) {
-            return JSON.stringify({
+
+            const err: SchemaDesignerToolError = withTarget(
+                {
+                    success: false,
+                    reason: "invalid_request",
+                    message: `Unknown operation: ${String(operation)}`,
+                },
+                schemaDesignerManager.getActiveDesigner(),
+            );
+            return json(err);
+        } catch (error) {
+            const payload: SchemaDesignerToolError = {
                 success: false,
-                message: err instanceof Error ? err.message : String(err),
-            });
+                reason: "internal_error",
+                message: error instanceof Error ? error.message : String(error),
+            };
+            return json(payload);
         }
     }
 
@@ -286,31 +417,24 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         return { invocationMessage, confirmationMessages };
     }
 
-    private computeSchemaHash(schema: SchemaDesigner.Schema): string {
-        const normalizedSchema = this.normalizeSchemaForHash(schema);
+    private computeSchemaVersion(schema: SchemaDesigner.Schema): string {
+        const normalizedSchema = this.normalizeSchemaForVersion(schema);
         return createHash("sha256").update(JSON.stringify(normalizedSchema)).digest("hex");
     }
 
-    private updateSchemaHash(cacheKey: string, schema: SchemaDesigner.Schema): void {
-        const schemaHash = this.computeSchemaHash(schema);
-        SchemaDesignerWebviewManager.getInstance().setSchemaHash(cacheKey, schemaHash);
-    }
-
-    private normalizeSchemaForHash(schema: SchemaDesigner.Schema): SchemaDesigner.Schema {
+    private normalizeSchemaForVersion(schema: SchemaDesigner.Schema): NormalizedSchemaVersion {
         const tables = [...(schema.tables ?? [])].sort((a, b) =>
             this.compareKeys(this.tableSortKey(a), this.tableSortKey(b)),
         );
         return {
             tables: tables.map((table) => ({
-                id: table.id,
-                name: table.name,
-                schema: table.schema,
+                name: (table.name ?? "").toLowerCase(),
+                schema: (table.schema ?? "").toLowerCase(),
                 columns: [...(table.columns ?? [])]
                     .sort((a, b) => this.compareKeys(this.columnSortKey(a), this.columnSortKey(b)))
                     .map((column) => ({
-                        id: column.id,
-                        name: column.name,
-                        dataType: column.dataType,
+                        name: (column.name ?? "").toLowerCase(),
+                        dataType: (column.dataType ?? "").toLowerCase(),
                         maxLength: column.maxLength,
                         precision: column.precision,
                         scale: column.scale,
@@ -328,33 +452,262 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     .sort((a, b) =>
                         this.compareKeys(this.foreignKeySortKey(a), this.foreignKeySortKey(b)),
                     )
-                    .map((foreignKey) => ({
-                        id: foreignKey.id,
-                        name: foreignKey.name,
-                        columns: [...(foreignKey.columns ?? [])],
-                        referencedSchemaName: foreignKey.referencedSchemaName,
-                        referencedTableName: foreignKey.referencedTableName,
-                        referencedColumns: [...(foreignKey.referencedColumns ?? [])],
-                        onDeleteAction: foreignKey.onDeleteAction,
-                        onUpdateAction: foreignKey.onUpdateAction,
-                    })),
+                    .map((foreignKey) => {
+                        const refs = foreignKey.referencedColumns ?? [];
+                        const pairs = (foreignKey.columns ?? []).map((column, i) => ({
+                            column,
+                            referencedColumn: refs[i] ?? "",
+                        }));
+                        pairs.sort((a, b) =>
+                            `${a.column}.${a.referencedColumn}`
+                                .toLowerCase()
+                                .localeCompare(`${b.column}.${b.referencedColumn}`.toLowerCase()),
+                        );
+
+                        return {
+                            name: (foreignKey.name ?? "").toLowerCase(),
+                            columns: pairs.map((p) => p.column.toLowerCase()),
+                            referencedSchemaName: (
+                                foreignKey.referencedSchemaName ?? ""
+                            ).toLowerCase(),
+                            referencedTableName: (
+                                foreignKey.referencedTableName ?? ""
+                            ).toLowerCase(),
+                            referencedColumns: pairs.map((p) => p.referencedColumn.toLowerCase()),
+                            onDeleteAction: foreignKey.onDeleteAction,
+                            onUpdateAction: foreignKey.onUpdateAction,
+                        };
+                    }),
             })),
         };
     }
 
     private tableSortKey(table: SchemaDesigner.Table): string {
-        return `${table.schema ?? ""}.${table.name ?? ""}.${table.id ?? ""}`;
+        return `${(table.schema ?? "").toLowerCase()}.${(table.name ?? "").toLowerCase()}`;
     }
 
     private columnSortKey(column: SchemaDesigner.Column): string {
-        return `${column.id ?? ""}.${column.name ?? ""}.${column.dataType ?? ""}`;
+        return `${(column.name ?? "").toLowerCase()}.${(column.dataType ?? "").toLowerCase()}`;
     }
 
     private foreignKeySortKey(foreignKey: SchemaDesigner.ForeignKey): string {
-        return `${foreignKey.id ?? ""}.${foreignKey.name ?? ""}.${foreignKey.referencedSchemaName ?? ""}.${foreignKey.referencedTableName ?? ""}`;
+        return `${(foreignKey.name ?? "").toLowerCase()}.${(foreignKey.referencedSchemaName ?? "").toLowerCase()}.${(foreignKey.referencedTableName ?? "").toLowerCase()}`;
     }
 
     private compareKeys(left: string, right: string): number {
         return left.localeCompare(right);
+    }
+
+    private buildOverview(
+        schema: SchemaDesigner.Schema,
+        includeColumns: IncludeOverviewColumns,
+    ): SchemaDesignerOverview {
+        const tables = schema.tables ?? [];
+        const totalColumns = tables.reduce((sum, t) => sum + (t.columns?.length ?? 0), 0);
+        const sizeOmission = tables.length > 40 || totalColumns > 400;
+        const includeColumnDetails = includeColumns !== "none" && !sizeOmission;
+
+        const tableViews: OverviewTableView[] = tables.map((t) => {
+            const base: OverviewTableView = { schema: t.schema, name: t.name };
+            if (!includeColumnDetails) {
+                return base;
+            }
+
+            if (includeColumns === "names") {
+                return { ...base, columns: (t.columns ?? []).map((c) => ({ name: c.name })) };
+            }
+
+            return {
+                ...base,
+                columns: (t.columns ?? []).map((c) => ({ name: c.name, dataType: c.dataType })),
+            };
+        });
+
+        return {
+            tables: tableViews,
+            columnsOmitted: sizeOmission,
+        };
+    }
+
+    private resolveTable(
+        schema: SchemaDesigner.Schema,
+        ref: SchemaDesigner.TableRef,
+    ):
+        | { success: true; table: SchemaDesigner.Table }
+        | { success: false; error: SchemaDesignerToolError } {
+        const tables = schema.tables ?? [];
+        if (ref.id) {
+            const byId = tables.filter((t) => t.id === ref.id);
+            if (byId.length === 1) return { success: true, table: byId[0] };
+            return {
+                success: false,
+                error: {
+                    success: false,
+                    reason: "not_found",
+                    message: `Table id '${ref.id}' not found.`,
+                },
+            };
+        }
+
+        const matches = tables.filter(
+            (t) =>
+                (t.schema ?? "").toLowerCase() === (ref.schema ?? "").toLowerCase() &&
+                (t.name ?? "").toLowerCase() === (ref.name ?? "").toLowerCase(),
+        );
+
+        if (matches.length === 1) return { success: true, table: matches[0] };
+        if (matches.length === 0) {
+            return {
+                success: false,
+                error: {
+                    success: false,
+                    reason: "not_found",
+                    message: `Table '${ref.schema}.${ref.name}' not found.`,
+                },
+            };
+        }
+
+        return {
+            success: false,
+            error: {
+                success: false,
+                reason: "ambiguous_identifier",
+                message: `Table reference '${ref.schema}.${ref.name}' matched more than one table.`,
+            },
+        };
+    }
+
+    private buildTableView(
+        table: SchemaDesigner.Table,
+        includeColumns: IncludeTableColumns,
+        includeForeignKeys: boolean,
+    ): SchemaDesignerTableView {
+        const view: SchemaDesignerTableView = { schema: table.schema, name: table.name };
+        if (includeColumns === "full") {
+            view.id = table.id;
+        }
+
+        if (includeColumns !== "none") {
+            const cols = table.columns ?? [];
+            if (includeColumns === "names") {
+                view.columns = cols.map((c) => ({ name: c.name }));
+            } else if (includeColumns === "namesAndTypes") {
+                view.columns = cols.map((c) => ({
+                    name: c.name,
+                    dataType: c.dataType,
+                    isPrimaryKey: c.isPrimaryKey,
+                    isNullable: c.isNullable,
+                }));
+            } else {
+                view.columns = cols.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    dataType: c.dataType,
+                    maxLength: c.maxLength,
+                    precision: c.precision,
+                    scale: c.scale,
+                    isPrimaryKey: c.isPrimaryKey,
+                    isIdentity: c.isIdentity,
+                    identitySeed: c.identitySeed,
+                    identityIncrement: c.identityIncrement,
+                    isNullable: c.isNullable,
+                    defaultValue: c.defaultValue,
+                    isComputed: c.isComputed,
+                    computedFormula: c.computedFormula,
+                    computedPersisted: c.computedPersisted,
+                }));
+            }
+        }
+
+        if (includeForeignKeys) {
+            view.foreignKeys = (table.foreignKeys ?? []).map((fk) => ({
+                id: includeColumns === "full" ? fk.id : undefined,
+                name: fk.name,
+                referencedTable: { schema: fk.referencedSchemaName, name: fk.referencedTableName },
+                mappings: (fk.columns ?? []).map((col, idx) => ({
+                    column: col,
+                    referencedColumn: (fk.referencedColumns ?? [])[idx],
+                })),
+                onDeleteAction: fk.onDeleteAction,
+                onUpdateAction: fk.onUpdateAction,
+            }));
+        }
+
+        return view;
+    }
+
+    private matchesTarget(designer: SchemaDesignerWebviewController, hint: TargetHint): boolean {
+        const activeServer = (designer.server ?? "").toLowerCase();
+        const activeDb = (designer.database ?? "").toLowerCase();
+        return (
+            activeServer === (hint.server ?? "").toLowerCase() &&
+            activeDb === (hint.database ?? "").toLowerCase()
+        );
+    }
+
+    private summarizeEdits(edits: SchemaDesigner.SchemaDesignerEdit[]): Record<string, unknown> {
+        const changes: Record<string, unknown> = {};
+        const push = <T>(key: string, value: T) => {
+            const arr = (changes[key] as T[] | undefined) ?? [];
+            arr.push(value);
+            changes[key] = arr;
+        };
+
+        for (const edit of edits) {
+            switch (edit.op) {
+                case "add_table":
+                    push("tablesAdded", { schema: edit.table.schema, name: edit.table.name });
+                    break;
+                case "drop_table":
+                    push("tablesDropped", { schema: edit.table.schema, name: edit.table.name });
+                    break;
+                case "set_table":
+                    push("tablesUpdated", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        set: edit.set,
+                    });
+                    break;
+                case "add_column":
+                    push("columnsAdded", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        column: { name: edit.column.name },
+                    });
+                    break;
+                case "drop_column":
+                    push("columnsDropped", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        column: { name: edit.column.name },
+                    });
+                    break;
+                case "set_column":
+                    push("columnsUpdated", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        column: { name: edit.column.name },
+                        set: edit.set,
+                    });
+                    break;
+                case "add_foreign_key":
+                    push("foreignKeysAdded", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        foreignKey: { name: edit.foreignKey.name },
+                    });
+                    break;
+                case "drop_foreign_key":
+                    push("foreignKeysDropped", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        foreignKey: { name: edit.foreignKey.name },
+                    });
+                    break;
+                case "set_foreign_key":
+                    push("foreignKeysUpdated", {
+                        table: { schema: edit.table.schema, name: edit.table.name },
+                        foreignKey: { name: edit.foreignKey.name },
+                        set: edit.set,
+                    });
+                    break;
+            }
+        }
+
+        return changes;
     }
 }

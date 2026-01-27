@@ -2340,7 +2340,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Open or manage the schema designer. If a schema designer is already open/visible, operations work without any chat connection. Use 'show' only to open a designer for a connectionId. Supported operations: 'show' - Opens the schema designer for a connectionId. 'add_table' - Adds a new table to the schema (name/schema or full table). 'update_table' - Updates an existing table (use ids from get_schema). 'delete_table' - Deletes a table by name+schema or tableId (use id from get_schema). 'replace_schema' - Replaces the entire schema model. 'get_schema' - Returns the current schema model. After mutations, the tool returns the latest schema state. For non-'show' operations, a schema designer must already be open (use /showSchema, 'show', or open one in the UI). Do not include id fields for add_table/replace_schema; the designer will generate IDs. Examples: show => {\"operation\":\"show\",\"connectionId\":\"...\"}; add_table => {\"operation\":\"add_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; add_table with full table => {\"operation\":\"add_table\",\"payload\":{\"table\":{\"name\":\"Orders\",\"schema\":\"dbo\",\"columns\":[{\"name\":\"OrderId\",\"dataType\":\"int\"}]}}}; update_table => {\"operation\":\"update_table\",\"payload\":{\"table\":{\"id\":\"<from get_schema>\",\"name\":\"Orders\",\"schema\":\"dbo\",\"columns\":[{\"id\":\"<from get_schema>\",\"name\":\"OrderId\",\"dataType\":\"int\"}]}}}; delete_table => {\"operation\":\"delete_table\",\"payload\":{\"tableName\":\"Orders\",\"schemaName\":\"dbo\"}}; replace_schema => {\"operation\":\"replace_schema\",\"payload\":{\"schema\":{\"tables\":[{\"name\":\"Orders\",\"schema\":\"dbo\",\"columns\":[{\"name\":\"OrderId\",\"dataType\":\"int\"}]}]}},\"options\":{\"keepPositions\":true}}; get_schema => {\"operation\":\"get_schema\"}.",
+                "modelDescription": "Open and manage the active Schema Designer without dumping full schema JSON into the chat transcript. Operations: 'show' opens a designer for a connectionId; 'get_overview' returns a bounded list of tables (and optionally column names/types, omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt + the new version. Mutations require 'expectedVersion' and fail deterministically on mismatch (returns 'stale_state' with currentVersion + bounded currentOverview). Hard rule: tool responses never include the full schema JSON.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2352,16 +2352,14 @@
                     "type": "object",
                     "properties": {
                         "operation": {
-                            "description": "The operation to perform on the schema designer. Supported values: 'show', 'add_table', 'update_table', 'delete_table', 'replace_schema', 'get_schema'.",
+                            "description": "The operation to perform on the schema designer. Supported values: 'show', 'get_overview', 'get_table', 'apply_edits'.",
                             "title": "Operation",
                             "type": "string",
                             "enum": [
                                 "show",
-                                "add_table",
-                                "update_table",
-                                "delete_table",
-                                "replace_schema",
-                                "get_schema"
+                                "get_overview",
+                                "get_table",
+                                "apply_edits"
                             ]
                         },
                         "connectionId": {
@@ -2369,15 +2367,150 @@
                             "title": "Connection ID",
                             "type": "string"
                         },
-                        "payload": {
-                            "description": "Operation-specific payload. add_table: { tableName?, schemaName? } or { table }. update_table: { table } (use ids from get_schema). delete_table: { tableName, schemaName } or { tableId } (use id from get_schema). replace_schema: { schema } (omit ids, designer will generate). get_schema: omit. Schema skeleton for replace_schema: {\"schema\":{\"tables\":[{\"name\":\"Orders\",\"schema\":\"dbo\",\"columns\":[{\"name\":\"OrderId\",\"dataType\":\"int\",\"maxLength\":\"\",\"precision\":0,\"scale\":0,\"isPrimaryKey\":true,\"isIdentity\":true,\"identitySeed\":1,\"identityIncrement\":1,\"isNullable\":false,\"defaultValue\":\"\",\"isComputed\":false,\"computedFormula\":\"\",\"computedPersisted\":false}],\"foreignKeys\":[{\"name\":\"FK_Orders_Customers\",\"columns\":[\"CustomerId\"],\"referencedSchemaName\":\"dbo\",\"referencedTableName\":\"Customers\",\"referencedColumns\":[\"Id\"],\"onDeleteAction\":1,\"onUpdateAction\":1}]}]}}. onDeleteAction/onUpdateAction enum: 0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT.",
-                            "title": "Payload",
-                            "type": "object"
+	                        "payload": {
+	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. expectedVersion is required for mutations. Column data types: provide a base type name only (e.g., \"nvarchar\"), and use maxLength/precision/scale for parameters (e.g., nvarchar(200) => { dataType:\"nvarchar\", maxLength:\"200\" }, nvarchar(max) => { dataType:\"nvarchar\", maxLength:\"max\" }, decimal(18,2) => { dataType:\"decimal\", precision:18, scale:2 }). Foreign keys: use foreignKey.mappings (NOT foreignKey.columns) and numeric actions (0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT). Example add_foreign_key: {\"op\":\"add_foreign_key\",\"table\":{\"schema\":\"dbo\",\"name\":\"Reviews\"},\"foreignKey\":{\"name\":\"FK_Reviews_Businesses\",\"referencedTable\":{\"schema\":\"dbo\",\"name\":\"Businesses\"},\"mappings\":[{\"column\":\"BusinessId\",\"referencedColumn\":\"BusinessId\"}],\"onDeleteAction\":0,\"onUpdateAction\":1}}.",
+	                            "title": "Payload",
+	                            "type": "object",
+	                            "properties": {
+                                "table": {
+                                    "description": "Table reference for get_table (and within edits).",
+                                    "type": "object",
+                                    "properties": {
+                                        "schema": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "id": { "type": "string" }
+                                    }
+                                },
+                                "expectedVersion": {
+                                    "description": "Required for apply_edits. Must match the version returned by the most recent get_overview/get_table.",
+                                    "type": "string"
+                                },
+                                "targetHint": {
+                                    "description": "Optional server+database hint for apply_edits. If provided and does not match the active designer, the tool fails with reason 'target_mismatch' and applies no edits.",
+                                    "type": "object",
+                                    "properties": {
+                                        "server": { "type": "string" },
+                                        "database": { "type": "string" }
+                                    },
+                                    "required": ["server", "database"]
+                                },
+                                "edits": {
+                                    "description": "Sequential list of schema edits for apply_edits (fail-fast, non-atomic). Each successful edit becomes a separate undo step in the UI.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "op": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "add_table",
+                                                    "drop_table",
+                                                    "set_table",
+                                                    "add_column",
+                                                    "drop_column",
+                                                    "set_column",
+                                                    "add_foreign_key",
+                                                    "drop_foreign_key",
+                                                    "set_foreign_key"
+                                                ]
+                                            },
+                                            "table": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "schema": { "type": "string" },
+                                                    "name": { "type": "string" },
+                                                    "id": { "type": "string" }
+                                                }
+                                            },
+                                            "initialColumns": {
+                                                "type": "array",
+                                                "items": { "type": "object" }
+                                            },
+                                            "set": {
+                                                "description": "For set_table: { name?, schema? }. For set_column: any subset of column fields (e.g., { name?, dataType?, isNullable?, isPrimaryKey?, isIdentity?, defaultValue?, maxLength?, precision?, scale? }). For set_foreign_key: { name?, referencedTable?, mappings?, onDeleteAction?, onUpdateAction? }.",
+                                                "type": "object"
+                                            },
+	                                            "column": {
+	                                                "description": "Column payload (create or update). At minimum provide name + dataType for add_column. Important: do not embed length/precision/scale in dataType (avoid \"nvarchar(200)\"); use maxLength/precision/scale fields instead.",
+	                                                "type": "object",
+	                                                "properties": {
+	                                                    "name": { "type": "string" },
+	                                                    "dataType": {
+	                                                        "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here. Use maxLength/precision/scale instead (e.g., nvarchar(max) => maxLength:\"max\").",
+	                                                        "type": "string"
+	                                                    },
+	                                                    "maxLength": { "type": ["string", "null"] },
+	                                                    "precision": { "type": ["number", "null"] },
+	                                                    "scale": { "type": ["number", "null"] },
+                                                    "isPrimaryKey": { "type": ["boolean", "null"] },
+                                                    "isIdentity": { "type": ["boolean", "null"] },
+                                                    "identitySeed": { "type": ["number", "null"] },
+                                                    "identityIncrement": { "type": ["number", "null"] },
+                                                    "isNullable": { "type": ["boolean", "null"] },
+                                                    "defaultValue": { "type": ["string", "null"] },
+                                                    "isComputed": { "type": ["boolean", "null"] },
+                                                    "computedFormula": { "type": ["string", "null"] },
+                                                    "computedPersisted": { "type": ["boolean", "null"] }
+                                                }
+                                            },
+                                            "foreignKey": {
+                                                "description": "Foreign key payload. Use name-first mappings; do not pass internal IDs unless you obtained them via get_table includeColumns='full'.",
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": { "type": "string" },
+                                                    "referencedTable": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"]
+                                                    },
+                                                    "mappings": {
+                                                        "description": "Column mappings (required). Each item maps a column in the source table to a column in the referenced table.",
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "column": { "type": "string" },
+                                                                "referencedColumn": { "type": "string" }
+                                                            },
+                                                            "required": ["column", "referencedColumn"]
+                                                        }
+                                                    },
+                                                    "onDeleteAction": {
+                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                        "type": "number",
+                                                        "enum": [0, 1, 2, 3]
+                                                    },
+                                                    "onUpdateAction": {
+                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                        "type": "number",
+                                                        "enum": [0, 1, 2, 3]
+                                                    }
+                                                },
+                                                "required": ["name", "referencedTable", "mappings"]
+                                            }
+                                        },
+                                        "required": ["op"]
+                                    }
+                                }
+                            }
                         },
                         "options": {
-                            "description": "UI options to apply when executing the operation (e.g., keepPositions, focusTableId). Only relevant for replace_schema.",
+                            "description": "Read options. get_overview.options.includeColumns: 'none'|'names'|'namesAndTypes' (default 'namesAndTypes'). get_table.options.includeColumns: 'none'|'names'|'namesAndTypes'|'full' (default 'namesAndTypes'). get_table.options.includeForeignKeys: boolean (default false).",
                             "title": "Options",
-                            "type": "object"
+                            "type": "object",
+                            "properties": {
+                                "includeColumns": {
+                                    "type": "string",
+                                    "enum": ["none", "names", "namesAndTypes", "full"]
+                                },
+                                "includeForeignKeys": {
+                                    "type": "boolean"
+                                }
+                            }
                         }
                     },
                     "required": [

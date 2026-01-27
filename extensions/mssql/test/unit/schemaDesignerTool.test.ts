@@ -20,10 +20,11 @@ import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDes
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";
+import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 
 chai.use(sinonChai);
 
-suite("SchemaDesignerTool Tests", () => {
+suite("SchemaDesignerTool Tests (vNext)", () => {
     let sandbox: sinon.SinonSandbox;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockToken: vscode.CancellationToken;
@@ -32,6 +33,7 @@ suite("SchemaDesignerTool Tests", () => {
 
     const sampleConnectionId = "connection-schema-123";
     const sampleDatabase = "SampleDb";
+    const sampleServer = "testserver";
 
     const mockSchema: SchemaDesigner.Schema = {
         tables: [
@@ -39,126 +41,136 @@ suite("SchemaDesignerTool Tests", () => {
                 id: "t1",
                 name: "Orders",
                 schema: "dbo",
-                columns: [],
+                columns: [
+                    {
+                        id: "c1",
+                        name: "OrderId",
+                        dataType: "int",
+                        maxLength: "",
+                        precision: 0,
+                        scale: 0,
+                        isPrimaryKey: true,
+                        isIdentity: true,
+                        identitySeed: 1,
+                        identityIncrement: 1,
+                        isNullable: false,
+                        defaultValue: "",
+                        isComputed: false,
+                        computedFormula: "",
+                        computedPersisted: false,
+                    },
+                ],
                 foreignKeys: [],
             },
         ],
     };
 
-    const mockTable: SchemaDesigner.Table = {
-        id: "t2",
-        name: "Customers",
-        schema: "dbo",
-        columns: [],
-        foreignKeys: [],
-    };
-
-    const computeSchemaHash = (schema: SchemaDesigner.Schema) =>
+    const computeSchemaVersion = (schema: SchemaDesigner.Schema) =>
         createHash("sha256")
-            .update(JSON.stringify(normalizeSchemaForHash(schema)))
+            .update(JSON.stringify(normalizeSchemaForVersion(schema)))
             .digest("hex");
 
-    const normalizeSchemaForHash = (schema: SchemaDesigner.Schema): SchemaDesigner.Schema => {
-        const tables = [...(schema.tables ?? [])].sort((a, b) =>
-            compareKeys(tableSortKey(a), tableSortKey(b)),
-        );
+    const normalizeSchemaForVersion = (schema: SchemaDesigner.Schema): SchemaDesigner.Schema => {
+        const tables = [...(schema.tables ?? [])]
+            .map((t) => ({
+                ...t,
+                name: (t.name ?? "").toLowerCase(),
+                schema: (t.schema ?? "").toLowerCase(),
+                columns: (t.columns ?? []).map((c) => ({
+                    ...c,
+                    name: (c.name ?? "").toLowerCase(),
+                    dataType: (c.dataType ?? "").toLowerCase(),
+                })),
+                foreignKeys: (t.foreignKeys ?? []).map((fk) => ({
+                    ...fk,
+                    name: (fk.name ?? "").toLowerCase(),
+                    columns: (fk.columns ?? []).map((c) => c.toLowerCase()),
+                    referencedSchemaName: (fk.referencedSchemaName ?? "").toLowerCase(),
+                    referencedTableName: (fk.referencedTableName ?? "").toLowerCase(),
+                    referencedColumns: (fk.referencedColumns ?? []).map((c) => c.toLowerCase()),
+                })),
+            }))
+            .sort((a, b) => `${a.schema}.${a.name}`.localeCompare(`${b.schema}.${b.name}`));
+
         return {
-            tables: tables.map((table) => ({
-                id: table.id,
-                name: table.name,
-                schema: table.schema,
-                columns: [...(table.columns ?? [])]
-                    .sort((a, b) => compareKeys(columnSortKey(a), columnSortKey(b)))
-                    .map((column) => ({
-                        id: column.id,
-                        name: column.name,
-                        dataType: column.dataType,
-                        maxLength: column.maxLength,
-                        precision: column.precision,
-                        scale: column.scale,
-                        isPrimaryKey: column.isPrimaryKey,
-                        isIdentity: column.isIdentity,
-                        identitySeed: column.identitySeed,
-                        identityIncrement: column.identityIncrement,
-                        isNullable: column.isNullable,
-                        defaultValue: column.defaultValue,
-                        isComputed: column.isComputed,
-                        computedFormula: column.computedFormula,
-                        computedPersisted: column.computedPersisted,
-                    })),
-                foreignKeys: [...(table.foreignKeys ?? [])]
-                    .sort((a, b) => compareKeys(foreignKeySortKey(a), foreignKeySortKey(b)))
-                    .map((foreignKey) => ({
-                        id: foreignKey.id,
-                        name: foreignKey.name,
-                        columns: [...(foreignKey.columns ?? [])],
-                        referencedSchemaName: foreignKey.referencedSchemaName,
-                        referencedTableName: foreignKey.referencedTableName,
-                        referencedColumns: [...(foreignKey.referencedColumns ?? [])],
-                        onDeleteAction: foreignKey.onDeleteAction,
-                        onUpdateAction: foreignKey.onUpdateAction,
-                    })),
-            })),
+            tables: tables.map((t) => ({
+                name: t.name,
+                schema: t.schema,
+                columns: [...(t.columns ?? [])]
+                    .sort((a, b) =>
+                        `${a.name}.${a.dataType}`.localeCompare(`${b.name}.${b.dataType}`),
+                    )
+                    .map((c) => ({
+                        name: c.name,
+                        dataType: c.dataType,
+                        maxLength: c.maxLength,
+                        precision: c.precision,
+                        scale: c.scale,
+                        isPrimaryKey: c.isPrimaryKey,
+                        isIdentity: c.isIdentity,
+                        identitySeed: c.identitySeed,
+                        identityIncrement: c.identityIncrement,
+                        isNullable: c.isNullable,
+                        defaultValue: c.defaultValue,
+                        isComputed: c.isComputed,
+                        computedFormula: c.computedFormula,
+                        computedPersisted: c.computedPersisted,
+                    })) as any,
+                foreignKeys: [...(t.foreignKeys ?? [])]
+                    .sort((a, b) =>
+                        `${a.name}.${a.referencedSchemaName}.${a.referencedTableName}`.localeCompare(
+                            `${b.name}.${b.referencedSchemaName}.${b.referencedTableName}`,
+                        ),
+                    )
+                    .map((fk) => ({
+                        name: fk.name,
+                        columns: fk.columns,
+                        referencedSchemaName: fk.referencedSchemaName,
+                        referencedTableName: fk.referencedTableName,
+                        referencedColumns: fk.referencedColumns,
+                        onDeleteAction: fk.onDeleteAction,
+                        onUpdateAction: fk.onUpdateAction,
+                    })) as any,
+            })) as any,
         };
     };
 
-    const tableSortKey = (table: SchemaDesigner.Table) =>
-        `${table.schema ?? ""}.${table.name ?? ""}.${table.id ?? ""}`;
-    const columnSortKey = (column: SchemaDesigner.Column) =>
-        `${column.id ?? ""}.${column.name ?? ""}.${column.dataType ?? ""}`;
-    const foreignKeySortKey = (foreignKey: SchemaDesigner.ForeignKey) =>
-        `${foreignKey.id ?? ""}.${foreignKey.name ?? ""}.${foreignKey.referencedSchemaName ?? ""}.${foreignKey.referencedTableName ?? ""}`;
-    const compareKeys = (left: string, right: string) => left.localeCompare(right);
+    const expectNoSchemaDump = (parsed: any) => {
+        expect(parsed).to.not.have.property("schema");
+    };
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-        showSchemaStub = sandbox.stub().resolves();
         mockToken = {} as vscode.CancellationToken;
+        showSchemaStub = sandbox.stub();
 
-        schemaDesignerTool = new SchemaDesignerTool(mockConnectionManager, showSchemaStub);
+        schemaDesignerTool = new SchemaDesignerTool(mockConnectionManager, showSchemaStub as any);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    suite("call - show", () => {
-        test("should return error when connectionId is missing", async () => {
+    suite("show", () => {
+        test("returns invalid_request when connectionId is missing", async () => {
             const options = {
                 input: {
                     operation: "show",
                 },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+            } as any as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
 
             const result = await schemaDesignerTool.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
             expect(parsedResult.message).to.equal(loc.schemaDesignerMissingConnectionId);
             expect(showSchemaStub).to.not.have.been.called;
+            expectNoSchemaDump(parsedResult);
         });
 
-        test("should return error when connection is not found", async () => {
-            mockConnectionManager.getConnectionInfo.returns(undefined as any);
-
-            const options = {
-                input: {
-                    operation: "show",
-                    connectionId: sampleConnectionId,
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.message).to.equal(loc.noConnectionError(sampleConnectionId));
-            expect(showSchemaStub).to.not.have.been.called;
-        });
-
-        test("should open designer when connectionId is provided", async () => {
+        test("opens designer and returns a version (no schema)", async () => {
             const mockCredentials = {
                 database: sampleDatabase,
             } as IConnectionProfile;
@@ -169,6 +181,13 @@ suite("SchemaDesignerTool Tests", () => {
             } as unknown as ConnectionInfo;
 
             mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            showSchemaStub.resolves(mockDesigner);
 
             const options = {
                 input: {
@@ -182,370 +201,310 @@ suite("SchemaDesignerTool Tests", () => {
 
             expect(parsedResult.success).to.be.true;
             expect(parsedResult.message).to.equal(loc.showSchemaToolSuccessMessage);
+            expect(parsedResult.version).to.equal(computeSchemaVersion(mockSchema));
+            expect(parsedResult.server).to.equal(sampleServer);
+            expect(parsedResult.database).to.equal(sampleDatabase);
             expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
+            expectNoSchemaDump(parsedResult);
         });
     });
 
-    suite("call - active designer operations", () => {
-        function stubActiveDesigner(
-            designer: any,
-            schema: SchemaDesigner.Schema = mockSchema,
-            previousHash?: string,
-        ) {
+    suite("get_overview", () => {
+        test("returns no_active_designer when no active designer exists", async () => {
             const managerStub = {
-                getActiveDesigner: sandbox.stub().returns(designer),
-                getSchemaHash: sandbox.stub().returns(previousHash),
-                setSchemaHash: sandbox.stub(),
+                getActiveDesigner: sandbox.stub().returns(undefined),
             };
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
-            if (designer) {
-                designer.designerKey = designer.designerKey ?? "designer-key";
-                designer.server = designer.server ?? "testserver";
-                designer.database = designer.database ?? "testdb";
-                designer.getSchemaState = sandbox.stub().resolves(schema);
-            }
-            return managerStub;
-        }
-
-        test("should return error when no active designer exists", async () => {
-            stubActiveDesigner(undefined);
 
             const options = {
-                input: {
-                    operation: "add_table",
-                    payload: {
-                        tableName: "Orders",
-                        schemaName: "dbo",
-                    },
-                },
+                input: { operation: "get_overview" },
             } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
 
             const result = await schemaDesignerTool.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("no_active_designer");
             expect(parsedResult.message).to.equal(loc.schemaDesignerNoActiveDesigner);
+            expectNoSchemaDump(parsedResult);
         });
 
-        test("should return stale state when schema changes between calls", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
+        test("omits columns over threshold (>40 tables)", async () => {
+            const largeSchema: SchemaDesigner.Schema = {
+                tables: Array.from({ length: 41 }).map((_, i) => ({
+                    id: `t${i}`,
+                    name: `T${i}`,
+                    schema: "dbo",
+                    columns: [
+                        {
+                            id: `c${i}`,
+                            name: "Id",
+                            dataType: "int",
+                            maxLength: "",
+                            precision: 0,
+                            scale: 0,
+                            isPrimaryKey: true,
+                            isIdentity: true,
+                            identitySeed: 1,
+                            identityIncrement: 1,
+                            isNullable: false,
+                            defaultValue: "",
+                            isComputed: false,
+                            computedFormula: "",
+                            computedPersisted: false,
+                        },
+                    ],
+                    foreignKeys: [],
+                })),
+            };
 
-            stubActiveDesigner(mockDesigner, mockSchema, "stale-hash");
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(largeSchema);
 
-            const options = {
-                input: {
-                    operation: "add_table",
-                    payload: {
-                        tableName: "Orders",
-                        schemaName: "dbo",
-                    },
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.reason).to.equal("stale_state");
-            expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-        });
-
-        test("should return stale state on first call for a new designer", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, undefined);
-
-            const options = {
-                input: {
-                    operation: "add_table",
-                    payload: {
-                        tableName: "Orders",
-                        schemaName: "dbo",
-                    },
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.reason).to.equal("stale_state");
-            expect(parsedResult.message).to.equal(loc.schemaDesignerStaleState);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-        });
-
-        test("should add a table", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-                addTable: sandbox.stub().resolves({ success: true, schema: { tables: [] } }),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
 
             const options = {
-                input: {
-                    operation: "add_table",
-                    payload: {
-                        tableName: "Orders",
-                        schemaName: "dbo",
-                    },
-                },
+                input: { operation: "get_overview", options: { includeColumns: "namesAndTypes" } },
             } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
 
             const result = await schemaDesignerTool.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerAddTableSuccess);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
-            expect(mockDesigner.addTable).to.have.been.calledOnceWith("Orders", "dbo", undefined);
-        });
-
-        test("should return error when update_table payload is missing", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "update_table",
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerMissingTable);
-            expect(mockDesigner.revealToForeground).to.not.have.been.called;
-        });
-
-        test("should update a table", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-                updateTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "update_table",
-                    payload: {
-                        table: mockTable,
-                    },
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerUpdateTableSuccess);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
-            expect(mockDesigner.updateTable).to.have.been.calledOnceWith(mockTable);
-        });
-
-        test("should return error when delete_table has no target", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "delete_table",
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerMissingDeleteTableTarget);
-            expect(mockDesigner.revealToForeground).to.not.have.been.called;
-        });
-
-        test("should delete a table", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-                deleteTable: sandbox.stub().resolves({ success: true, schema: mockSchema }),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "delete_table",
-                    payload: {
-                        tableName: "Orders",
-                        schemaName: "dbo",
-                    },
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerDeleteTableSuccess);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
-            expect(mockDesigner.deleteTable).to.have.been.calledOnceWith({
-                tableId: undefined,
-                tableName: "Orders",
-                schemaName: "dbo",
-            });
-        });
-
-        test("should return error when replace_schema payload is missing", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "replace_schema",
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerMissingSchema);
-            expect(mockDesigner.revealToForeground).to.not.have.been.called;
-        });
-
-        test("should replace schema", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-                replaceSchemaState: sandbox.stub().resolves({ success: true, schema: mockSchema }),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "replace_schema",
-                    payload: {
-                        schema: mockSchema,
-                    },
-                    options: {
-                        keepPositions: false,
-                        focusTableId: "t1",
-                    },
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerReplaceSchemaSuccess);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
-            expect(mockDesigner.replaceSchemaState).to.have.been.calledOnceWith(
-                mockSchema,
-                false,
-                "t1",
-            );
-        });
-
-        test("should return schema state", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            const managerStub = stubActiveDesigner(
-                mockDesigner,
-                mockSchema,
-                computeSchemaHash(mockSchema),
-            );
-
-            const options = {
-                input: {
-                    operation: "get_schema",
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.true;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerGetSchemaSuccess);
-            expect(parsedResult.schema).to.deep.equal(mockSchema);
-            expect(parsedResult.server).to.equal(mockDesigner.server);
-            expect(parsedResult.database).to.equal(mockDesigner.database);
-            expect(mockDesigner.revealToForeground).to.have.been.calledOnce;
-            expect(mockDesigner.getSchemaState).to.have.been.calledOnce;
-            expect(managerStub.setSchemaHash).to.have.been.calledOnceWith(
-                mockDesigner.designerKey,
-                computeSchemaHash(mockSchema),
-            );
-        });
-
-        test("should return error for unknown operation", async () => {
-            const mockDesigner = {
-                revealToForeground: sandbox.stub(),
-            } as any;
-
-            stubActiveDesigner(mockDesigner, mockSchema, computeSchemaHash(mockSchema));
-
-            const options = {
-                input: {
-                    operation: "unknown" as any,
-                },
-            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
-
-            const result = await schemaDesignerTool.call(options, mockToken);
-            const parsedResult = JSON.parse(result);
-
-            expect(parsedResult.success).to.be.false;
-            expect(parsedResult.message).to.equal(loc.schemaDesignerUnknownOperation("unknown"));
-            expect(mockDesigner.revealToForeground).to.not.have.been.called;
+            expect(parsedResult.version).to.equal(computeSchemaVersion(largeSchema));
+            expect(parsedResult.overview.columnsOmitted).to.equal(true);
+            expect(parsedResult.overview.tables).to.have.length(41);
+            expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
+            expectNoSchemaDump(parsedResult);
         });
     });
 
-    suite("prepareInvocation", () => {
-        test("should include operation in confirmation and invocation messages", async () => {
+    suite("get_table", () => {
+        test("returns not_found for unknown table ref", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
             const options = {
                 input: {
-                    operation: "add_table",
+                    operation: "get_table",
+                    payload: { table: { schema: "dbo", name: "Missing" } },
                 },
-            } as vscode.LanguageModelToolInvocationPrepareOptions<SchemaDesignerToolParams>;
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
 
-            const result = await schemaDesignerTool.prepareInvocation(options, mockToken);
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
 
-            expect(result.confirmationMessages).to.exist;
-            expect(result.confirmationMessages.title).to.include("Schema Designer");
-            expect(result.confirmationMessages.message).to.be.instanceOf(vscode.MarkdownString);
-            expect(result.confirmationMessages.message.value).to.include("add_table");
-            expect(result.invocationMessage).to.include("add_table");
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("not_found");
+            expect(parsedResult.server).to.equal(sampleServer);
+            expect(parsedResult.database).to.equal(sampleDatabase);
+            expectNoSchemaDump(parsedResult);
+        });
+    });
+
+    suite("apply_edits", () => {
+        test("returns target_mismatch when targetHint does not match active designer", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion: computeSchemaVersion(mockSchema),
+                        targetHint: { server: "otherserver", database: sampleDatabase },
+                        edits: [{ op: "add_table", table: { schema: "dbo", name: "X" } }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("target_mismatch");
+            expect(parsedResult.activeTarget).to.deep.equal({
+                server: sampleServer,
+                database: sampleDatabase,
+            });
+            expect(parsedResult.targetHint).to.deep.equal({
+                server: "otherserver",
+                database: sampleDatabase,
+            });
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns stale_state with currentVersion + bounded currentOverview", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion: "some-other-version",
+                        edits: [{ op: "add_table", table: { schema: "dbo", name: "X" } }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("stale_state");
+            expect(parsedResult.currentVersion).to.equal(computeSchemaVersion(mockSchema));
+            expect(parsedResult.currentOverview).to.exist;
+            expect(parsedResult.currentOverview.columnsOmitted).to.equal(false);
+            expect(parsedResult.currentOverview.tables[0]).to.have.property("columns");
+            expect(parsedResult.suggestedNextCall).to.deep.equal({
+                operation: "get_overview",
+                options: { includeColumns: "namesAndTypes" },
+            });
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns validation_error with failedEditIndex/appliedEdits and post-partial currentVersion", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const postPartialSchema: SchemaDesigner.Schema = {
+                tables: [
+                    ...startSchema.tables,
+                    {
+                        id: "t2",
+                        name: "X",
+                        schema: "dbo",
+                        columns: [],
+                        foreignKeys: [],
+                    },
+                ],
+            };
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.resolves({
+                success: false,
+                reason: "validation_error",
+                message: "Column already exists",
+                failedEditIndex: 1,
+                appliedEdits: 1,
+                schema: postPartialSchema,
+            });
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits: [
+                            { op: "add_table", table: { schema: "dbo", name: "X" } },
+                            {
+                                op: "add_column",
+                                table: { schema: "dbo", name: "X" },
+                                column: { name: "Id", dataType: "int" },
+                            },
+                        ],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("validation_error");
+            expect(parsedResult.failedEditIndex).to.equal(1);
+            expect(parsedResult.appliedEdits).to.equal(1);
+            expect(parsedResult.currentVersion).to.equal(computeSchemaVersion(postPartialSchema));
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns receipt + new version on success (no schema)", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const postSchema: SchemaDesigner.Schema = {
+                tables: [
+                    ...startSchema.tables,
+                    {
+                        id: "t2",
+                        name: "X",
+                        schema: "dbo",
+                        columns: [],
+                        foreignKeys: [],
+                    },
+                ],
+            };
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.resolves({
+                success: true,
+                appliedEdits: 1,
+                schema: postSchema,
+            });
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits: [{ op: "add_table", table: { schema: "dbo", name: "X" } }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.version).to.equal(computeSchemaVersion(postSchema));
+            expect(parsedResult.receipt.appliedEdits).to.equal(1);
+            expect(parsedResult.receipt).to.have.property("changes");
+            expectNoSchemaDump(parsedResult);
         });
     });
 });
