@@ -56,8 +56,8 @@ const useStyles = makeStyles({
         ...shorthands.overflow("hidden"),
     },
     filterPanel: {
-        width: "220px",
-        minWidth: "180px",
+        width: "240px",
+        minWidth: "200px",
         ...shorthands.borderRight("1px", "solid", "var(--vscode-panel-border)"),
         ...shorthands.padding("16px"),
         ...shorthands.overflow("auto"),
