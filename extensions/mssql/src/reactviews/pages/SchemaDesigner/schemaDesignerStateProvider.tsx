@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../sharedInterfaces/dab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
@@ -114,6 +115,17 @@ export interface SchemaDesignerContextProps
     structuredSchemaChanges: SchemaChange[];
     revertChange: (change: SchemaChange) => void;
     canRevertChange: (change: SchemaChange) => CanRevertResult;
+
+    // DAB (Data API Builder) state
+    dabConfig: Dab.DabConfig | null;
+    initializeDabConfig: () => void;
+    syncDabConfigWithSchema: () => void;
+    updateDabApiType: (apiType: Dab.ApiType) => void;
+    toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
+    toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
+    updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
+    dabSchemaFilter: string[];
+    setDabSchemaFilter: (schemas: string[]) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -177,6 +189,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         Map<string, string[]>
     >(new Map());
     const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
+
+    // DAB state
+    const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -985,6 +1001,104 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }, 10);
     }
 
+    // DAB functions
+    const initializeDabConfig = useCallback(() => {
+        const schema = extractSchema();
+        const config = Dab.createDefaultConfig(schema.tables);
+        setDabConfig(config);
+    }, [reactFlow]);
+
+    const syncDabConfigWithSchema = useCallback(() => {
+        if (!dabConfig) {
+            return;
+        }
+
+        const schema = extractSchema();
+        const currentTableIds = new Set(schema.tables.map((t) => t.id));
+        const existingEntityIds = new Set(dabConfig.entities.map((e) => e.id));
+
+        // Find new tables that need to be added
+        const newTables = schema.tables.filter((t) => !existingEntityIds.has(t.id));
+
+        // Filter out entities for tables that no longer exist
+        const updatedEntities = dabConfig.entities.filter((e) => currentTableIds.has(e.id));
+
+        // Add new tables with default config
+        const newEntities = newTables.map((t) => Dab.createDefaultEntityConfig(t));
+
+        // Only update if there are changes
+        if (newEntities.length > 0 || updatedEntities.length !== dabConfig.entities.length) {
+            setDabConfig({
+                ...dabConfig,
+                entities: [...updatedEntities, ...newEntities],
+            });
+        }
+    }, [dabConfig, reactFlow]);
+
+    const updateDabApiType = useCallback((apiType: Dab.ApiType) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+            return {
+                ...prev,
+                apiType,
+            };
+        });
+    }, []);
+
+    const toggleDabEntity = useCallback((entityId: string, isEnabled: boolean) => {
+        setDabConfig((prev) => {
+            if (!prev) {
+                return prev;
+            }
+            return {
+                ...prev,
+                entities: prev.entities.map((e) => (e.id === entityId ? { ...e, isEnabled } : e)),
+            };
+        });
+    }, []);
+
+    const toggleDabEntityAction = useCallback(
+        (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => {
+            setDabConfig((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    entities: prev.entities.map((e) => {
+                        if (e.id !== entityId) {
+                            return e;
+                        }
+                        const enabledActions = isEnabled
+                            ? [...e.enabledActions, action]
+                            : e.enabledActions.filter((a) => a !== action);
+                        return { ...e, enabledActions };
+                    }),
+                };
+            });
+        },
+        [],
+    );
+
+    const updateDabEntitySettings = useCallback(
+        (entityId: string, settings: Dab.EntityAdvancedSettings) => {
+            setDabConfig((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    entities: prev.entities.map((e) =>
+                        e.id === entityId ? { ...e, advancedSettings: settings } : e,
+                    ),
+                };
+            });
+        },
+        [],
+    );
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1042,6 +1156,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 structuredSchemaChanges,
                 revertChange,
                 canRevertChange,
+                // DAB state
+                dabConfig,
+                initializeDabConfig,
+                syncDabConfigWithSchema,
+                updateDabApiType,
+                toggleDabEntity,
+                toggleDabEntityAction,
+                updateDabEntitySettings,
+                dabSchemaFilter,
+                setDabSchemaFilter,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
