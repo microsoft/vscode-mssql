@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React from "react";
+import { makeStyles } from "@fluentui/react-components";
 import { VscodeWebviewProvider2, useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import {
     ProfilerDetailsPanelState,
@@ -34,6 +35,7 @@ export const ProfilerDetailsPanelPage: React.FC = () => {
  * Content component that uses the selector pattern for state and context for actions
  */
 const ProfilerDetailsPanelContent: React.FC = () => {
+    const classes = useStyles();
     const { themeKind } = useVscodeWebview2<
         ProfilerDetailsPanelState,
         ProfilerDetailsPanelReducers
@@ -71,7 +73,7 @@ const ProfilerDetailsPanelContent: React.FC = () => {
     }, []);
 
     return (
-        <div className="profiler-details-panel-page">
+        <div className={classes.panelPage}>
             <ProfilerDetailsPanel
                 selectedEvent={selectedEvent}
                 themeKind={themeKind}
@@ -85,5 +87,40 @@ const ProfilerDetailsPanelContent: React.FC = () => {
         </div>
     );
 };
+
+// #region Styles
+
+const useStyles = makeStyles({
+    panelPage: {
+        width: "100%",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        overflowX: "hidden",
+        overflowY: "hidden",
+        backgroundColor: "var(--vscode-editor-background)",
+        // Child panels fill available space
+        "> div": {
+            flex: "1",
+            minHeight: 0,
+        },
+        // Remove border-top for panel view since it's already bordered by VS Code
+        ".profiler-details-panel-container": {
+            borderTop: "none",
+        },
+        // Monaco editor container in panel view
+        ".monaco-editor": {
+            height: "100% !important",
+        },
+        // Properties list scrolling in panel view
+        ".profiler-properties-container": {
+            overflowX: "auto",
+            overflowY: "auto",
+            maxHeight: "100%",
+        },
+    },
+});
+
+// #endregion
 
 export default ProfilerDetailsPanelPage;
