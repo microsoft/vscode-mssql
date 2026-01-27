@@ -960,6 +960,9 @@ export class LocConstants {
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
+            loading: l10n.t("Loading..."),
+            initializingDabConfig: l10n.t("Initializing DAB configuration..."),
+            noEntitiesFound: l10n.t("No entities found"),
         };
     }
 

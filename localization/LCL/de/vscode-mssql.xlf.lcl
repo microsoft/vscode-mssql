@@ -9784,6 +9784,7 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+<<<<<<< HEAD
       <Item ItemId=";bundle.++CODE++ba00b52adf9dcec97ed54898b307de1328526c8df30c80a9a17dc41f6c39a926" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[This connection's group has not been selected, so this connection will be imported to the root.]]></Val>
@@ -9793,6 +9794,8 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+=======
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
       <Item ItemId=";bundle.++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not started]]></Val>
@@ -10819,6 +10822,18 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+<<<<<<< HEAD
+=======
+      <Item ItemId=";bundle.++CODE++ccc5e456ae7df87b1b395c9fa5d4c15810ea3c973bfe52e8b768d92c144f4b18" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This connection's group has not been selected, so this connection will be imported the root.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Gruppe dieser Verbindung wurde nicht ausgewählt, daher wird diese Verbindung in den Stammordner importiert.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+>>>>>>> a9f0f0f21c3da039b037bd03e00c3831ea911142
       <Item ItemId=";bundle.++CODE++cd184ad9e92906aa47b1a2a184c7d63d4c3642b0ee74079f2d428841ff17036c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Overall, how satisfied are you with {0}?]]></Val>

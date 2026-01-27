@@ -64,8 +64,8 @@ export interface SchemaDesignerContextProps
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
-    dabSchemaFilter: string;
-    setDabSchemaFilter: (schemaName: string) => void;
+    dabSchemaFilter: string[];
+    setDabSchemaFilter: (schemas: string[]) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -101,7 +101,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
-    const [dabSchemaFilter, setDabSchemaFilter] = useState<string>("");
+    const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
 
     useEffect(() => {
         const handleScript = () => {

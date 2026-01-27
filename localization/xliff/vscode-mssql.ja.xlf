@@ -337,7 +337,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
         <source xml:lang="en">Apply Changes</source>
-        <target state="new">Apply Changes</target>
+        <target state="translated">変更の適用</target>
       </trans-unit>
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
@@ -3045,6 +3045,10 @@ Error:
         <source xml:lang="en">Indexes</source>
         <target state="translated">インデックス</target>
       </trans-unit>
+      <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
+        <source xml:lang="en">Initializing DAB configuration...</source>
+        <target state="new">Initializing DAB configuration...</target>
+      </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
         <target state="translated">比較を初期化しています。これには時間がかかる場合があります...</target>
@@ -3804,6 +3808,10 @@ Error:
         <source xml:lang="en">No elements found</source>
         <target state="translated">要素が見つかりません</target>
       </trans-unit>
+      <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
+        <source xml:lang="en">No entities found</source>
+        <target state="new">No entities found</target>
+      </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
         <target state="translated">項目がありません</target>
@@ -4402,7 +4410,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
         <source xml:lang="en">Read</source>
-        <target state="new">Read</target>
+        <target state="translated">読み取り</target>
       </trans-unit>
       <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
         <source xml:lang="en">Read docs</source>
@@ -6291,7 +6299,7 @@ Query: {2}</source>
         <source xml:lang="en">{0} of {1} enabled</source>
         <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
-        <target state="new">{0} of {1} enabled</target>
+        <target state="translated">{1} 件中 {0} 件が有効</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>
