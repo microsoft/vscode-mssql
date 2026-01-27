@@ -31,6 +31,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 > {
     // Cache for metadata to avoid repeated API calls
     private _metadataCache: Map<string, ObjectMetadata[]> = new Map();
+    // Cache for transformed SearchResultItems to avoid re-transforming on every filter change
+    private _searchResultItemCache: Map<string, SearchResultItem[]> = new Map();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -181,6 +183,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             const metadata = await this._metadataService.getMetadata(this.state.connectionUri);
             this._metadataCache.set(cacheKey, metadata);
 
+            // Pre-transform all metadata to SearchResultItems and cache them
+            // This avoids re-transforming on every filter change
+            const searchResultItems = metadata.map((obj) => this.toSearchResultItem(obj));
+            this._searchResultItemCache.set(cacheKey, searchResultItems);
+
             this.logger.info(
                 `Loaded ${metadata.length} objects for database ${this.state.selectedDatabase}`,
             );
@@ -196,41 +203,41 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Apply current filters and search term to cached metadata
+     * Apply current filters and search term to cached SearchResultItems
      */
     private applyFiltersAndSearch(): void {
         const cacheKey = `${this.state.connectionUri}:${this.state.selectedDatabase}`;
-        const metadata = this._metadataCache.get(cacheKey) || [];
+        // Use cached SearchResultItems instead of re-transforming from ObjectMetadata
+        const allItems = this._searchResultItemCache.get(cacheKey) || [];
 
-        let results = metadata;
+        let results = allItems;
 
         // Filter by object type
-        results = results.filter((obj) => this.matchesTypeFilter(obj));
+        results = results.filter((item) => this.matchesTypeFilterForItem(item));
 
         // Filter by search term
         if (this.state.searchTerm.trim()) {
             const searchLower = this.state.searchTerm.toLowerCase();
-            results = results.filter((obj) => {
-                const name = (obj.name || "").toLowerCase();
-                const schema = (obj.schema || "").toLowerCase();
+            results = results.filter((item) => {
+                const name = (item.name || "").toLowerCase();
+                const schema = (item.schema || "").toLowerCase();
                 return name.includes(searchLower) || schema.includes(searchLower);
             });
         }
 
-        // Transform to SearchResultItem
-        this.state.searchResults = results.map((obj) => this.toSearchResultItem(obj));
-        this.state.totalResultCount = this.state.searchResults.length;
+        this.state.searchResults = results;
+        this.state.totalResultCount = results.length;
 
         this.updateState();
     }
 
     /**
-     * Check if an object matches the current type filters
+     * Check if a SearchResultItem matches the current type filters
      */
-    private matchesTypeFilter(obj: ObjectMetadata): boolean {
+    private matchesTypeFilterForItem(item: SearchResultItem): boolean {
         const filters = this.state.objectTypeFilters;
 
-        switch (obj.metadataType) {
+        switch (item.type) {
             case MetadataType.Table:
                 return filters.tables;
             case MetadataType.View:
@@ -343,9 +350,10 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("refreshResults", async (state) => {
-            // Clear cache for current database to force refresh
+            // Clear caches for current database to force refresh
             const cacheKey = `${state.connectionUri}:${state.selectedDatabase}`;
             this._metadataCache.delete(cacheKey);
+            this._searchResultItemCache.delete(cacheKey);
             await this.loadMetadata();
             return state;
         });
