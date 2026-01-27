@@ -259,6 +259,9 @@
     <trans-unit id="++CODE++82894a5a07867575dd9f6d0b2acb4a56840d90151d262694bbeab305ef6b5cd0">
       <source xml:lang="en">Database References</source>
     </trans-unit>
+    <trans-unit id="++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b">
+      <source xml:lang="en">Database Trigger</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bdfa565ae34efdec777d66c17a38f2265fd8694c27c4b9f5156f787750a143b">
       <source xml:lang="en">Database location is required for adding a reference to a database</source>
     </trans-unit>
