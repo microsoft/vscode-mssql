@@ -163,6 +163,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
+    // Ref to store pending flow state during undo/redo. This ensures diff calculation
+    // uses the correct state immediately, without waiting for ReactFlow's async updates.
+    const pendingFlowStateRef = useRef<{
+        nodes: Node<SchemaDesigner.Table>[];
+        edges: Edge<SchemaDesigner.ForeignKey>[];
+    } | null>(null);
     const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
     const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
@@ -215,6 +221,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             if (!state) {
                 return;
             }
+            // Store the state in a ref BEFORE calling setNodes/setEdges.
+            // This ensures updateSchemaChanges can read the correct state immediately.
+            pendingFlowStateRef.current = {
+                nodes: state.nodes as Node<SchemaDesigner.Table>[],
+                edges: state.edges as Edge<SchemaDesigner.ForeignKey>[],
+            };
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
@@ -231,6 +243,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             if (!state) {
                 return;
             }
+            // Store the state in a ref BEFORE calling setNodes/setEdges.
+            // This ensures updateSchemaChanges can read the correct state immediately.
+            pendingFlowStateRef.current = {
+                nodes: state.nodes as Node<SchemaDesigner.Table>[],
+                edges: state.edges as Edge<SchemaDesigner.ForeignKey>[],
+            };
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
@@ -263,10 +281,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     return;
                 }
 
-                const currentSchema = flowUtils.extractSchemaModel(
-                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-                );
+                // Use pending flow state if available (set by undo/redo),
+                // otherwise read from ReactFlow's store.
+                const pendingState = pendingFlowStateRef.current;
+                const nodes = pendingState?.nodes ?? (reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                const edges = pendingState?.edges ?? (reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                // Clear the pending state after reading it
+                pendingFlowStateRef.current = null;
+
+                const currentSchema = flowUtils.extractSchemaModel(nodes, edges);
 
                 const summary = calculateSchemaDiff(baselineSchemaRef.current, currentSchema);
 
@@ -388,7 +411,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
 
         const handler = () => {
-            // getScript events can fire in quick succession; schedule after UI updates.
+            // getScript events can fire in quick succession; schedule after current call stack.
+            // Note: undo/redo operations set pendingFlowStateRef before emitting this event,
+            // so updateSchemaChanges will use the correct state even if ReactFlow hasn't updated yet.
             setTimeout(() => {
                 void updateSchemaChanges();
             }, 0);
