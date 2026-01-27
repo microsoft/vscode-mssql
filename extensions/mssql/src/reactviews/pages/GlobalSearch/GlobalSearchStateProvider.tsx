@@ -51,6 +51,10 @@ export const GlobalSearchStateProvider: React.FC<{
                 extensionRpc.action("scriptObject", { object, scriptType });
             },
 
+            editData: (object: SearchResultItem): void => {
+                extensionRpc.action("editData", { object });
+            },
+
             copyObjectName: (object: SearchResultItem): void => {
                 extensionRpc.action("copyObjectName", { object });
             },

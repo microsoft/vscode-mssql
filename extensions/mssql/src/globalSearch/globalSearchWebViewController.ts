@@ -23,6 +23,7 @@ import { getErrorMessage } from "../utils/utils";
 import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { IScriptingObject } from "vscode-mssql";
+import * as Constants from "../constants/constants";
 
 export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     GlobalSearchWebViewState,
@@ -322,6 +323,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("editData", async (state, payload) => {
+            await this.editData(payload.object);
+            return state;
+        });
+
         this.registerReducer("copyObjectName", async (state, payload) => {
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
@@ -457,6 +463,40 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.logger.error(`Error scripting object: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 `Failed to script object: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Open the Edit Data (Table Explorer) view for the specified table object
+     */
+    private async editData(object: SearchResultItem): Promise<void> {
+        try {
+            // Create a synthetic node structure that matches what TableExplorerWebViewController expects
+            // The node needs metadata, connectionProfile, and a parent with database metadata
+            // so that ObjectExplorerUtils.getDatabaseName can find the database name
+            const syntheticNode = {
+                metadata: {
+                    name: object.name,
+                    schema: object.schema,
+                    metadataTypeName: object.metadataTypeName,
+                },
+                connectionProfile: { ...this._targetNode.connectionProfile },
+                nodeType: "Table",
+                parentNode: {
+                    metadata: {
+                        name: this.state.selectedDatabase,
+                        metadataTypeName: Constants.databaseString,
+                    },
+                },
+            };
+
+            // Execute the tableExplorer command with the synthetic node
+            await vscode.commands.executeCommand(Constants.cmdTableExplorer, syntheticNode);
+        } catch (error) {
+            this.logger.error(`Error opening Edit Data: ${getErrorMessage(error)}`);
+            void vscode.window.showErrorMessage(
+                `Failed to open Edit Data: ${getErrorMessage(error)}`,
             );
         }
     }

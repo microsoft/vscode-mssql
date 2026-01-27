@@ -36,6 +36,7 @@ import {
     PlayRegular,
     EditRegular,
     DeleteRegular,
+    TableEditRegular,
 } from "@fluentui/react-icons";
 import { SearchResultItem, ScriptType } from "../../../sharedInterfaces/globalSearch";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
@@ -275,6 +276,14 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             onClick={() => context.scriptObject(item, "EXECUTE")}
                         >
                             Script as Execute
+                        </MenuItem>
+                    )}
+                    {item.type === MetadataType.Table && (
+                        <MenuItem
+                            icon={<TableEditRegular />}
+                            onClick={() => context.editData(item)}
+                        >
+                            Edit Data
                         </MenuItem>
                     )}
                     <MenuItem
