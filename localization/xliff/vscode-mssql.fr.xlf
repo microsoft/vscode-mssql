@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
-        <target state="new">API Type</target>
+        <target state="translated">Type d’API</target>
       </trans-unit>
       <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
         <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="++CODE++59b9bc625f3deaf53650dfb541e848b7452cc3ede80793c43fd3ca68351c7c9d">
         <source xml:lang="en">Advanced Entity Configuration</source>
-        <target state="new">Advanced Entity Configuration</target>
+        <target state="translated">Configuration avancée d’entité</target>
       </trans-unit>
       <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
         <source xml:lang="en">Advanced Options</source>
@@ -205,7 +205,7 @@
       </trans-unit>
       <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
         <source xml:lang="en">All Schemas</source>
-        <target state="new">All Schemas</target>
+        <target state="translated">Tous les schémas</target>
       </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -309,7 +309,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
         <source xml:lang="en">Anonymous</source>
-        <target state="new">Anonymous</target>
+        <target state="translated">Anonyme</target>
       </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
@@ -337,7 +337,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
         <source xml:lang="en">Apply Changes</source>
-        <target state="new">Apply Changes</target>
+        <target state="translated">Appliquer les modifications</target>
       </trans-unit>
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
@@ -398,7 +398,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++6ab694cfc6fa5d8c7045d318bba5f3eb791ab0a859ea54c54b1c660a4ccf8ed1">
         <source xml:lang="en">Authenticated</source>
-        <target state="new">Authenticated</target>
+        <target state="translated">Authentifié</target>
       </trans-unit>
       <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
         <source xml:lang="en">Authentication</source>
@@ -432,7 +432,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++a06725099766746b634d3d1caf6928e6553311ad0e910f795ab97c69fac0f246">
         <source xml:lang="en">Authorization Role</source>
-        <target state="new">Authorization Role</target>
+        <target state="translated">Rôle d’autorisation</target>
       </trans-unit>
       <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
         <source xml:lang="en">Auto Arrange</source>
@@ -548,7 +548,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++760bb46db5b9f7594d6a52062c3f044fac1a2dc55ec95bfd659eb345bd1425fa">
         <source xml:lang="en">Back to Schema</source>
-        <target state="new">Back to Schema</target>
+        <target state="translated">Retour au schéma</target>
       </trans-unit>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
@@ -573,7 +573,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
         <source xml:lang="en">Both</source>
-        <target state="new">Both</target>
+        <target state="translated">Les deux</target>
       </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
@@ -1515,11 +1515,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++c01dcd0e5ceb3a50adfe0ba0d9ab5e70b74daf484cbce1b937f8fa14910f7928">
         <source xml:lang="en">Custom GraphQL Type</source>
-        <target state="new">Custom GraphQL Type</target>
+        <target state="translated">Type GraphQL personnalisé</target>
       </trans-unit>
       <trans-unit id="++CODE++9084f018e1499a8e51a7e04312970c63a473ec7cbe1cdbe804048ad01461983e">
         <source xml:lang="en">Custom REST Path</source>
-        <target state="new">Custom REST Path</target>
+        <target state="translated">Chemin REST personnalisé</target>
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
@@ -1565,7 +1565,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
-        <target state="new">Data API Builder Configuration</target>
+        <target state="translated">Configuration du Générateur d’API de données</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1658,7 +1658,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
         <source xml:lang="en">Define who can access this endpoint</source>
-        <target state="new">Define who can access this endpoint</target>
+        <target state="translated">Définissez qui peut accéder à ce point de terminaison</target>
       </trans-unit>
       <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
         <source xml:lang="en">Definition</source>
@@ -2003,15 +2003,15 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
         <source xml:lang="en">Entity Endpoints</source>
-        <target state="new">Entity Endpoints</target>
+        <target state="translated">Points de terminaison d’entité</target>
       </trans-unit>
       <trans-unit id="++CODE++1a7d4ddcb0e36ec5b7122b03dcf1a9b7d02395011c7daf2e7591c4f71b638702">
         <source xml:lang="en">Entity Name</source>
-        <target state="new">Entity Name</target>
+        <target state="translated">Nom d’entité</target>
       </trans-unit>
       <trans-unit id="++CODE++b1d3adb989e3b895976094fd8242c98ab0d88c5e2dcd929bd6d76a8b52ce3f4c">
         <source xml:lang="en">Entity name used in API routes</source>
-        <target state="new">Entity name used in API routes</target>
+        <target state="translated">Nom d’entité utilisé dans les routes d’API</target>
       </trans-unit>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
@@ -2755,7 +2755,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f">
         <source xml:lang="en">Generate &amp; Run</source>
-        <target state="new">Generate &amp; Run</target>
+        <target state="translated">Générer et exécuter</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -2861,7 +2861,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++ee27322554e46143c3c56f419fc28b71a445380e4e5af7332aabdb87c7d0ec26">
         <source xml:lang="en">GraphQL</source>
-        <target state="new">GraphQL</target>
+        <target state="translated">GraphQL</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -3044,6 +3044,10 @@ Erreur :
       <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
         <source xml:lang="en">Indexes</source>
         <target state="translated">Index</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
+        <source xml:lang="en">Initializing DAB configuration...</source>
+        <target state="new">Initializing DAB configuration...</target>
       </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
@@ -3743,7 +3747,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++0e5e6762f01f3c5690e6d1628a2105cca05b94b94ccfc5d51534f4231aa4a533">
         <source xml:lang="en">No authentication required</source>
-        <target state="new">No authentication required</target>
+        <target state="translated">Aucune authentification obligatoire</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -3803,6 +3807,10 @@ Erreur :
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
         <target state="translated">Aucun élément retrouvé</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
+        <source xml:lang="en">No entities found</source>
+        <target state="new">No entities found</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -4063,11 +4071,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++7f528941bf8224f8dd6956f98aa9ae63472375cfaebddbcb78005f15c5f239df">
         <source xml:lang="en">Optional - Override default GraphQL type name</source>
-        <target state="new">Optional - Override default GraphQL type name</target>
+        <target state="translated">Facultatif – Remplacez le nom de type GraphQL par défaut</target>
       </trans-unit>
       <trans-unit id="++CODE++88f7acca017a3a274d4c9ee22712b49f567fcadb30287e007c1ac2ea00cb6927">
         <source xml:lang="en">Optional - Override default api/entityName path</source>
-        <target state="new">Optional - Override default api/entityName path</target>
+        <target state="translated">Facultatif – Remplacez le chemin api/entityName par défaut</target>
       </trans-unit>
       <trans-unit id="++CODE++d0db8b5e364b6989e4b8f38a2b3846b87d99a51c1592ebf35d21cc66405a8e39">
         <source xml:lang="en">Options</source>
@@ -4398,11 +4406,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
         <source xml:lang="en">REST API</source>
-        <target state="new">REST API</target>
+        <target state="translated">API REST</target>
       </trans-unit>
       <trans-unit id="++CODE++9b9a8d05a7ec353bda84f9c1bb3178c299de3001b5e970508ddc889c487f92ca">
         <source xml:lang="en">Read</source>
-        <target state="new">Read</target>
+        <target state="translated">Lecture</target>
       </trans-unit>
       <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
         <source xml:lang="en">Read docs</source>
@@ -4517,7 +4525,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
         <source xml:lang="en">Requires user authentication</source>
-        <target state="new">Requires user authentication</target>
+        <target state="translated">Nécessite l'authentification de l'utilisateur</target>
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
@@ -5341,7 +5349,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++59462672a9b0690bf1151b63576df991ace5811a13bbcc90f35f43c1a21c0809">
         <source xml:lang="en">Source Table</source>
-        <target state="new">Source Table</target>
+        <target state="translated">Table source</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -5900,7 +5908,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f5e86af62d403420feae11b58a68c8df237889fb279d6a28cc08e11566ad5161">
         <source xml:lang="en">Used in API routes and responses</source>
-        <target state="new">Used in API routes and responses</target>
+        <target state="translated">Utilisé dans les routes et réponses de l’API</target>
       </trans-unit>
       <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
         <source xml:lang="en">User</source>
@@ -5959,7 +5967,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
         <source xml:lang="en">View Config</source>
-        <target state="new">View Config</target>
+        <target state="translated">Voir la configuration</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -6291,7 +6299,7 @@ Requête : {2}</target>
         <source xml:lang="en">{0} of {1} enabled</source>
         <note>{0} is the number of enabled entities
 {1} is the total number of entities</note>
-        <target state="new">{0} of {1} enabled</target>
+        <target state="translated">{0} sur {1} activé(s)</target>
       </trans-unit>
       <trans-unit id="++CODE++fd20691998de3c939ec5fca7c6823619440671dfbe0927a4cf15a4eb6b792dc7">
         <source xml:lang="en">{0} of {1} tenants</source>

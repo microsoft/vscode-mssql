@@ -963,7 +963,6 @@ export class ProjectsController {
 		}
 
 		const itemType = templates.get(itemTypeName);
-
 		const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
 		const isItemTypePublishProfile = itemTypeName === constants.publishProfileFriendlyName || itemTypeName === ItemType.publishProfile;
 		const fileExtension = isItemTypePublishProfile ? constants.publishProfileExtension : constants.sqlFileExtension;
