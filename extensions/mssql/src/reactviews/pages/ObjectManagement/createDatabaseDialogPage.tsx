@@ -15,6 +15,7 @@ import {
     ObjectManagementSubmitRequest,
 } from "../../../sharedInterfaces/objectManagement";
 import { locConstants } from "../../common/locConstants";
+import { getErrorMessage } from "../../common/utils";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
 import { ObjectManagementContext } from "./objectManagementStateProvider";
 import { CreateDatabaseForm, CreateDatabaseFormState } from "./createDatabaseForm";
@@ -126,12 +127,16 @@ export const CreateDatabaseDialogPage = ({
                     ...formState,
                     name: trimmedName,
                 };
-                const result = await context?.extensionRpc?.sendRequest(
-                    ObjectManagementSubmitRequest.type,
-                    { dialogType: ObjectManagementDialogType.CreateDatabase, params },
-                );
-                if (result?.errorMessage) {
-                    setResultApiError(result.errorMessage);
+                try {
+                    const result = await context?.extensionRpc?.sendRequest(
+                        ObjectManagementSubmitRequest.type,
+                        { dialogType: ObjectManagementDialogType.CreateDatabase, params },
+                    );
+                    if (result?.errorMessage) {
+                        setResultApiError(result.errorMessage);
+                    }
+                } catch (error) {
+                    setResultApiError(getErrorMessage(error));
                 }
             }}
             onScript={async () => {
@@ -139,12 +144,16 @@ export const CreateDatabaseDialogPage = ({
                     ...formState,
                     name: trimmedName,
                 };
-                const result = await context?.extensionRpc?.sendRequest(
-                    ObjectManagementScriptRequest.type,
-                    { dialogType: ObjectManagementDialogType.CreateDatabase, params },
-                );
-                if (result?.errorMessage) {
-                    setResultApiError(result.errorMessage);
+                try {
+                    const result = await context?.extensionRpc?.sendRequest(
+                        ObjectManagementScriptRequest.type,
+                        { dialogType: ObjectManagementDialogType.CreateDatabase, params },
+                    );
+                    if (result?.errorMessage) {
+                        setResultApiError(result.errorMessage);
+                    }
+                } catch (error) {
+                    setResultApiError(getErrorMessage(error));
                 }
             }}
             onHelp={() => {

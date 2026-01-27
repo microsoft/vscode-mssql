@@ -15,6 +15,7 @@ import {
     ObjectManagementSubmitRequest,
 } from "../../../sharedInterfaces/objectManagement";
 import { locConstants } from "../../common/locConstants";
+import { getErrorMessage } from "../../common/utils";
 import { ObjectManagementDialog } from "../../common/objectManagementDialog";
 import { ObjectManagementContext } from "./objectManagementStateProvider";
 import { DropDatabaseForm, DropDatabaseFormState } from "./dropDatabaseForm";
@@ -79,24 +80,32 @@ export const DropDatabaseDialogPage = ({
                 const params: DropDatabaseParams = {
                     ...dropForm,
                 };
-                const result = await context?.extensionRpc?.sendRequest(
-                    ObjectManagementSubmitRequest.type,
-                    { dialogType: ObjectManagementDialogType.DropDatabase, params },
-                );
-                if (result?.errorMessage) {
-                    setResultApiError(result.errorMessage);
+                try {
+                    const result = await context?.extensionRpc?.sendRequest(
+                        ObjectManagementSubmitRequest.type,
+                        { dialogType: ObjectManagementDialogType.DropDatabase, params },
+                    );
+                    if (result?.errorMessage) {
+                        setResultApiError(result.errorMessage);
+                    }
+                } catch (error) {
+                    setResultApiError(getErrorMessage(error));
                 }
             }}
             onScript={async () => {
                 const params: DropDatabaseParams = {
                     ...dropForm,
                 };
-                const result = await context?.extensionRpc?.sendRequest(
-                    ObjectManagementScriptRequest.type,
-                    { dialogType: ObjectManagementDialogType.DropDatabase, params },
-                );
-                if (result?.errorMessage) {
-                    setResultApiError(result.errorMessage);
+                try {
+                    const result = await context?.extensionRpc?.sendRequest(
+                        ObjectManagementScriptRequest.type,
+                        { dialogType: ObjectManagementDialogType.DropDatabase, params },
+                    );
+                    if (result?.errorMessage) {
+                        setResultApiError(result.errorMessage);
+                    }
+                } catch (error) {
+                    setResultApiError(getErrorMessage(error));
                 }
             }}
             onHelp={() => {
