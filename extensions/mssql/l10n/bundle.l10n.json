@@ -1907,7 +1907,7 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
-    "Connection profile not found": "Connection profile not found",
+    "Connection profile not found. Please create a new connection using the Connection Dialog.": "Connection profile not found. Please create a new connection using the Connection Dialog.",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
     "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
         "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
