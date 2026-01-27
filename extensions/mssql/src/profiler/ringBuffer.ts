@@ -222,4 +222,20 @@ export class RingBuffer<T extends IndexedRow> {
         const bufferIndex = (this._head + index) % this._capacity;
         return this._rows[bufferIndex];
     }
+
+    /**
+     * Finds a row by its ID.
+     * @param id - The unique ID of the row to find
+     * @returns The row with the matching ID, or undefined if not found
+     */
+    findById(id: string): T | undefined {
+        for (let i = 0; i < this._size; i++) {
+            const bufferIndex = (this._head + i) % this._capacity;
+            const row = this._rows[bufferIndex];
+            if (row && row.id === id) {
+                return row;
+            }
+        }
+        return undefined;
+    }
 }
