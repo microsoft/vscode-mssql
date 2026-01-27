@@ -21,7 +21,6 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "./dockerUtils";
 import MainController from "../controllers/mainController";
-import { arch } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
@@ -32,13 +31,6 @@ export async function initializeLocalContainersState(
 ): Promise<lc.LocalContainersState> {
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
-
-    // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
-    if (arch() === "arm64") {
-        state.dialog = {
-            type: "armSql2025Error",
-        };
-    }
 
     const versions = await dockerUtils.getSqlServerContainerVersions();
     state.formComponents = setLocalContainersFormComponents(versions, groupOptions);
@@ -193,11 +185,6 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         }
         return state;
     });
-    deploymentController.registerReducer("closeArmSql2025ErrorDialog", async (state, _payload) => {
-        state.dialog = undefined;
-        state.deploymentTypeState.dialog = undefined;
-        return state;
-    });
 }
 
 export async function handleLocalContainersFormAction(
@@ -259,17 +246,6 @@ export async function validateDockerConnectionProfile(
         }
     }
     state.formErrors = erroredInputs;
-
-    // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
-    if (
-        (!propertyName || propertyName === "version") &&
-        arch() === "arm64" &&
-        state?.formState?.version?.includes("2025")
-    ) {
-        state.dialog = {
-            type: "armSql2025Error",
-        };
-    }
 
     return state;
 }
@@ -354,20 +330,8 @@ export function setLocalContainersFormComponents(
             propertyName: "version",
             label: LocalContainers.selectImage,
             required: true,
-            tooltip:
-                arch() === "arm64"
-                    ? LocalContainers.sqlServer2025ArmErrorTooltip
-                    : LocalContainers.selectImageTooltip,
+            tooltip: LocalContainers.selectImageTooltip,
             options: versions,
-            validate(_state, value) {
-                // Handle ARM64 architecture case where SQL Server 2025 latest is broken
-                // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
-                const isArm64With2025 = arch() === "arm64" && value?.toString()?.includes("2025");
-                return {
-                    isValid: !isArm64With2025,
-                    validationMessage: isArm64With2025 ? LocalContainers.sqlServer2025ArmError : "",
-                };
-            },
         }),
 
         password: createFormItem({
