@@ -641,6 +641,96 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
+    "Show Changes ({0})/{0} is the number of schema changes": {
+        "message": "Show Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "Changes ({0})/{0} is the number of schema changes": {
+        "message": "Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "No changes yet.": "No changes yet.",
+    "{0}: {1}/{0} is the qualified table name{1} is the change description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is the change description"]
+    },
+    "undefined": "undefined",
+    "{0} changed from '{1}' to '{2}'/{0} is the display name of the property{1} is the old value{2} is the new value": {
+        "message": "{0} changed from '{1}' to '{2}'",
+        "comment": [
+            "{0} is the display name of the property",
+            "{1} is the old value",
+            "{2} is the new value"
+        ]
+    },
+    "Created table {0}/{0} is the qualified table name": {
+        "message": "Created table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Deleted table {0}/{0} is the qualified table name": {
+        "message": "Deleted table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}/{0} is the qualified table name": {
+        "message": "Modified table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}: {1}/{0} is the qualified table name{1} is a list of property changes": {
+        "message": "Modified table {0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is a list of property changes"]
+    },
+    "Added column '{0}'/{0} is the column name": {
+        "message": "Added column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Deleted column '{0}'/{0} is the column name": {
+        "message": "Deleted column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}'/{0} is the column name": {
+        "message": "Modified column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}': {1}/{0} is the column name{1} is a list of property changes": {
+        "message": "Modified column '{0}': {1}",
+        "comment": ["{0} is the column name", "{1} is a list of property changes"]
+    },
+    "Added foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Added foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Deleted foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Deleted foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Modified foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}': {1}/{0} is the foreign key name{1} is a list of property changes": {
+        "message": "Modified foreign key '{0}': {1}",
+        "comment": ["{0} is the foreign key name", "{1} is a list of property changes"]
+    },
+    "Added": "Added",
+    "Modified": "Modified",
+    "Deleted": "Deleted",
+    "All": "All",
+    "Filter changes": "Filter changes",
+    "Action": "Action",
+    "Category": "Category",
+    "Clear all": "Clear all",
+    "Reveal": "Reveal",
+    "Revert": "Revert",
+    "Search changes...": "Search changes...",
+    "No changes match your search.": "No changes match your search.",
+    "Navigate to this item in the diagram": "Navigate to this item in the diagram",
+    "Revert this change to its original state": "Revert this change to its original state",
+    "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
+    "Cannot revert: The column is part of a foreign key that references a deleted table": "Cannot revert: The column is part of a foreign key that references a deleted table",
+    "{0} change(s)/{0} is the number of changes": {
+        "message": "{0} change(s)",
+        "comment": ["{0} is the number of changes"]
+    },
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
@@ -711,7 +801,6 @@
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Source Name": "Source Name",
     "Include": "Include",
-    "Action": "Action",
     "Target Name": "Target Name",
     "Change": "Change",
     "Select Source": "Select Source",
