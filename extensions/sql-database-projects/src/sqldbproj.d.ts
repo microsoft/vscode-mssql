@@ -99,6 +99,7 @@ declare module 'sqldbproj' {
 		view = 'view',
 		storedProcedure = 'storedProcedure',
 		tableValuedFunction = 'tableValuedFunction',
+		trigger = 'trigger',
 		schema = 'schema',
 		dataSource = 'dataSource',
 		fileFormat = 'fileFormat',

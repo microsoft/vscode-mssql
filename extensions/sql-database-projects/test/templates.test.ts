@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 14;
+		const numScriptObjectTypes = 15;
 
 		should(templates.projectScriptTypes().length).equal(numScriptObjectTypes);
 		should(Object.keys(templates.projectScriptTypes()).length).equal(numScriptObjectTypes);
@@ -130,5 +130,15 @@ suite('Templates', function (): void {
 		should(tvfTemplate.templateScript).containEql('RETURNS @returntable TABLE');
 		should(tvfTemplate.templateScript).containEql('@@SCHEMA_NAME@@');
 		should(tvfTemplate.templateScript).containEql('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Trigger item template', async function (): Promise<void> {
+		const triggerTemplate = templates.get(ItemType.trigger);
+		should(triggerTemplate).not.equal(undefined);
+		should(triggerTemplate.type).equal(ItemType.trigger);
+		should(triggerTemplate.friendlyName).equal('Trigger');
+		should(triggerTemplate.templateScript).containEql('CREATE TRIGGER');
+		should(triggerTemplate.templateScript).containEql('@@SCHEMA_NAME@@');
+		should(triggerTemplate.templateScript).containEql('@@OBJECT_NAME@@');
 	});
 });
