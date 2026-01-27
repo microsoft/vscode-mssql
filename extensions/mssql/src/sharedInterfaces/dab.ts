@@ -253,6 +253,30 @@ export namespace Dab {
     }
 
     // ============================================
+    // Service interface
+    // ============================================
+
+    /**
+     * Connection information needed for DAB config generation
+     */
+    export interface DabConnectionInfo {
+        connectionString: string;
+    }
+
+    /**
+     * Service interface for DAB operations
+     */
+    export interface IDabService {
+        /**
+         * Generates a DAB configuration JSON from the internal config model
+         */
+        generateConfig(
+            config: DabConfig,
+            connectionInfo: DabConnectionInfo,
+        ): GenerateConfigResponse;
+    }
+
+    // ============================================
     // Helper functions
     // ============================================
 
