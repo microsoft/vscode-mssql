@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 15;
+		const numScriptObjectTypes = 16;
 
 		should(templates.projectScriptTypes().length).equal(numScriptObjectTypes);
 		should(Object.keys(templates.projectScriptTypes()).length).equal(numScriptObjectTypes);
@@ -140,5 +140,15 @@ suite('Templates', function (): void {
 		should(triggerTemplate.templateScript).containEql('CREATE TRIGGER');
 		should(triggerTemplate.templateScript).containEql('@@SCHEMA_NAME@@');
 		should(triggerTemplate.templateScript).containEql('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Database Trigger item template', async function (): Promise<void> {
+		const dbTriggerTemplate = templates.get(ItemType.databaseTrigger);
+		should(dbTriggerTemplate).not.equal(undefined);
+		should(dbTriggerTemplate.type).equal(ItemType.databaseTrigger);
+		should(dbTriggerTemplate.friendlyName).equal('Database Trigger');
+		should(dbTriggerTemplate.templateScript).containEql('CREATE TRIGGER');
+		should(dbTriggerTemplate.templateScript).containEql('ON DATABASE');
+		should(dbTriggerTemplate.templateScript).containEql('@@OBJECT_NAME@@');
 	});
 });
