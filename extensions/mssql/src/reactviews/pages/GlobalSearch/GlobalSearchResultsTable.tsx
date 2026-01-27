@@ -46,9 +46,16 @@ const useStyles = makeStyles({
     container: {
         width: "100%",
         height: "100%",
+        overflow: "auto",
     },
     grid: {
         width: "100%",
+    },
+    header: {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        backgroundColor: "var(--vscode-editor-background)",
     },
     emptyState: {
         display: "flex",
@@ -163,7 +170,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 size="small"
                 getRowId={(item) => item.fullName}
             >
-                <DataGridHeader>
+                <DataGridHeader className={classes.header}>
                     <DataGridRow>
                         {({ renderHeaderCell }) => (
                             <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
