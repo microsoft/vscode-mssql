@@ -971,6 +971,9 @@
     <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
       <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206">
+      <source xml:lang="en">Trigger</source>
+    </trans-unit>
     <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
       <source xml:lang="en">Unable to construct connection: {0}</source>
     </trans-unit>
