@@ -294,6 +294,26 @@ suite('ProjectsController', function (): void {
 				expect(projController.getDefaultFolderForItemType(ItemType.databaseTrigger, project, ''), 'Should return DatabaseTriggers folder').to.equal('DatabaseTriggers');
 			});
 
+			test('Should return Sequences folder for sequence with schema dependency', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, baselines.newSdkStyleProjectSdkNodeBaseline);
+
+				// Without any folders - should return empty
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return empty when no dbo folder exists').to.equal('');
+
+				// Add dbo folder to project
+				await project.addFolder('dbo');
+
+				// With dbo folder only - should return dbo (Schema folder structure)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return dbo folder when it exists').to.equal('dbo');
+
+				// Add nested dbo/Sequences folder
+				await project.addFolder('dbo/Sequences');
+
+				// With dbo/Sequences folder - should return nested path (Schema/ObjectType folder structure)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return dbo/Sequences when nested folder exists').to.equal('dbo\\Sequences');
+			});
+
 			test('Should parse schema and object name from user input', function (): void {
 				const projController = new ProjectsController(testContext.outputChannel);
 
