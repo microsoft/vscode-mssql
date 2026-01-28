@@ -19,6 +19,7 @@ import {
     ConnectionMode,
     type Node,
     type Edge,
+    type NodeChange,
     addEdge,
     applyNodeChanges,
     FinalConnectionState,
@@ -190,7 +191,6 @@ export const SchemaDesignerFlow = () => {
                 return {
                     ...node,
                     position: existing.position,
-                    positionAbsolute: existing.positionAbsolute,
                 };
             });
         });
@@ -481,8 +481,10 @@ export const SchemaDesignerFlow = () => {
                 edges={displayEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={(changes) => {
-                    const isDeletedNodeChange = (change: { id?: string }) =>
-                        typeof change.id === "string" && change.id.startsWith("deleted-");
+                    const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
+                        "id" in change &&
+                        typeof change.id === "string" &&
+                        change.id.startsWith("deleted-");
                     const deletedChanges = changes.filter(isDeletedNodeChange);
                     const regularChanges = changes.filter((change) => !isDeletedNodeChange(change));
 
