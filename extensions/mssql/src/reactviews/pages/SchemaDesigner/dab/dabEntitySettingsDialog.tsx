@@ -52,10 +52,14 @@ const useStyles = makeStyles({
     roleButtonLabel: {
         fontWeight: 600,
     },
+    roleButtonContent: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+    },
     roleButtonDescription: {
-        fontSize: "12px",
-        color: tokens.colorNeutralForeground3,
-        marginTop: "4px",
+        fontSize: "11px",
+        color: tokens.colorNeutralForeground4,
     },
     sourceTableText: {
         fontSize: "12px",
@@ -161,7 +165,7 @@ export function DabEntitySettingsDialog({
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Anonymous)
                                     }>
-                                    <div>
+                                    <div className={classes.roleButtonContent}>
                                         <Text className={classes.roleButtonLabel}>
                                             {locConstants.schemaDesigner.anonymous}
                                         </Text>
@@ -185,7 +189,7 @@ export function DabEntitySettingsDialog({
                                     onClick={() =>
                                         updateAuthorizationRole(Dab.AuthorizationRole.Authenticated)
                                     }>
-                                    <div>
+                                    <div className={classes.roleButtonContent}>
                                         <Text className={classes.roleButtonLabel}>
                                             {locConstants.schemaDesigner.authenticated}
                                         </Text>

@@ -26,6 +26,50 @@ export class Common {
     public static privateString = l10n.t("Private");
 }
 
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
+export let databaseNameRequired = l10n.t("Database name is required");
+export let msgSelectServerNodeToCreateDatabase = l10n.t(
+    "Please select a server node in Object Explorer to create a database.",
+);
+export let msgSelectDatabaseNodeToDrop = l10n.t(
+    "Please select a database node in Object Explorer to drop.",
+);
+export let msgSelectDatabaseNodeToRename = l10n.t(
+    "Please select a database node in Object Explorer to rename.",
+);
+export function createDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to create database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function dropDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to drop database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function renameDatabaseError(
+    databaseName: string,
+    newDatabaseName: string,
+    errorMessage: string,
+) {
+    return l10n.t({
+        message: "Failed to rename database '{0}' to '{1}'. {2}",
+        args: [databaseName, newDatabaseName, errorMessage],
+        comment: [
+            "{0} is the current database name",
+            "{1} is the new database name",
+            "{2} is the error message",
+        ],
+    });
+}
+
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
     "View mssql for Visual Studio Code release notes?",
@@ -544,6 +588,8 @@ export let msgScriptingFailed = l10n.t(
     "Failed to generate script. Please check the logs for more details.",
 );
 export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export let msgNoScriptGenerated = l10n.t("No script generated.");
+export let msgObjectManagementUnknownDialog = l10n.t("Unknown object management dialog.");
 export function msgScriptingOperationFailed(error: string): string {
     return l10n.t({
         message: "Failed to generate script: {0}",
@@ -2470,7 +2516,7 @@ export class AzureDataStudioMigration {
         });
 
     public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
-        "This connection's group has not been selected, so this connection will be imported the root.",
+        "This connection's group has not been selected, so this connection will be imported to the root.",
     );
 }
 
