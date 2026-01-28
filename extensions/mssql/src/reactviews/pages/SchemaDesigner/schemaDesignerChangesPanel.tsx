@@ -207,6 +207,7 @@ const useStyles = makeStyles({
         display: "block",
         minWidth: 0,
         flex: 1,
+    },
     changeDescription: {
         flex: 1,
         minWidth: 0,

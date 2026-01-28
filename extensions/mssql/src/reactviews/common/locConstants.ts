@@ -920,7 +920,6 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
-
             showChangesButtonLabel: (changeCount: number) =>
                 l10n.t({
                     message: "Show Changes ({0})",
