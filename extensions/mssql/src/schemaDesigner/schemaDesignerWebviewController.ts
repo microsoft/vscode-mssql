@@ -21,61 +21,7 @@ import {
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
-
-const areValuesEqual = (a: unknown, b: unknown): boolean => {
-    if (a === b) {
-        return true;
-    }
-
-    if (typeof a !== typeof b) {
-        return false;
-    }
-
-    if (a === null || b === null) {
-        return false;
-    }
-
-    if (Array.isArray(a) || Array.isArray(b)) {
-        if (!Array.isArray(a) || !Array.isArray(b)) {
-            return false;
-        }
-
-        if (a.length !== b.length) {
-            return false;
-        }
-
-        for (let i = 0; i < a.length; i += 1) {
-            if (!areValuesEqual(a[i], b[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    if (typeof a === "object" && typeof b === "object") {
-        const aObj = a as Record<string, unknown>;
-        const bObj = b as Record<string, unknown>;
-        const keysA = Object.keys(aObj);
-        const keysB = Object.keys(bObj);
-
-        if (keysA.length !== keysB.length) {
-            return false;
-        }
-
-        for (const key of keysA) {
-            if (!Object.prototype.hasOwnProperty.call(bObj, key)) {
-                return false;
-            }
-            if (!areValuesEqual(aObj[key], bObj[key])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    return false;
-};
+import isEqual from "lodash/isEqual";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -204,7 +150,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(payload.updatedSchema, this.hasSchemaChanged(payload.updatedSchema));
+            this.updateCacheItem(
+                payload.updatedSchema,
+                this.hasSchemaChanged(payload.updatedSchema),
+            );
             return script;
         });
 
@@ -480,7 +429,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             return true;
         }
 
-        return !areValuesEqual(baseline, updatedSchema);
+        return !isEqual(baseline, updatedSchema);
     }
 
     override async dispose(): Promise<void> {
