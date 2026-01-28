@@ -275,6 +275,7 @@ export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 export const configEnableDab = "mssql.enableDAB";
+export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
