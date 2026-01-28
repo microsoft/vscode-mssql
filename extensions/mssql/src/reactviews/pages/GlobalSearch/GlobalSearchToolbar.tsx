@@ -80,14 +80,13 @@ export const GlobalSearchToolbar: React.FC = () => {
                     size="medium"
                 />
             </div>
-            <Tooltip content="Refresh results" relationship="label">
-                <Button
-                    appearance="subtle"
-                    icon={<ArrowSyncRegular />}
-                    onClick={handleRefresh}
-                    aria-label="Refresh results"
-                />
-            </Tooltip>
+            <Button
+                appearance="subtle"
+                icon={<ArrowSyncRegular />}
+                onClick={handleRefresh}
+            >
+                Refresh
+            </Button>
         </div>
     );
 };
