@@ -179,7 +179,7 @@ const useStyles = makeStyles({
     },
     columnDiffModified: {
         backgroundColor:
-            "var(--vscode-editorGutter-modifiedBackground, var(--vscode-diffEditor-modifiedTextBackground))",
+            "var(--vscode-editorWarning-background, var(--vscode-inputValidation-warningBackground, var(--vscode-diffEditor-modifiedTextBackground)))",
         boxShadow: "inset 0 0 0 1px var(--vscode-gitDecoration-modifiedResourceForeground)",
         borderRadius: "3px",
     },
@@ -570,6 +570,7 @@ const TableColumn = ({
                                 ? locConstants.schemaDesigner.undo
                                 : (revertInfo?.reason ?? "")
                         }
+                        showDelay={1000}
                         relationship="label">
                         <Button
                             appearance="primary"
