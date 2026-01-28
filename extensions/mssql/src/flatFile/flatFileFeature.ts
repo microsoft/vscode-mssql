@@ -16,7 +16,7 @@ import { ApiType, managerInstance } from "./serviceApiManager";
 import { SqlOpsDataClient, SqlOpsFeature } from "./clientInterfaces";
 
 export class FlatFileFeature extends SqlOpsFeature<undefined> {
-    private static readonly messagesTypes: RPCMessageType[] = [ff.FlatFilePreviewRequest.type];
+    private static readonly messagesTypes: RPCMessageType[] = [ff.ProseDiscoveryRequest.type];
 
     constructor(_sqlOpsDataClient: SqlOpsDataClient) {
         super(_sqlOpsDataClient, FlatFileFeature.messagesTypes);
@@ -46,10 +46,10 @@ export class FlatFileFeature extends SqlOpsFeature<undefined> {
             );
         };
 
-        let sendFlatFilePreviewRequest = (
-            params: ff.FlatFilePreviewParams,
-        ): Thenable<ff.FlatFilePreviewResponse> => {
-            return requestSender(ff.FlatFilePreviewRequest.type, params);
+        let sendProseDiscoveryRequest = (
+            params: ff.ProseDiscoveryParams,
+        ): Thenable<ff.ProseDiscoveryResponse> => {
+            return requestSender(ff.ProseDiscoveryRequest.type, params);
         };
 
         let sendGetColumnInfoRequest = (
@@ -64,11 +64,18 @@ export class FlatFileFeature extends SqlOpsFeature<undefined> {
             return requestSender(ff.ChangeColumnSettingsRequest.type, params);
         };
 
+        let sendInsertDataRequest = (
+            params: ff.InsertDataParams,
+        ): Thenable<ff.InsertDataResponse> => {
+            return requestSender(ff.InsertDataRequest.type, params);
+        };
+
         return managerInstance.registerApi<ff.FlatFileProvider>(ApiType.FlatFileProvider, {
             providerId: client.providerId,
-            sendFlatFilePreviewRequest,
+            sendProseDiscoveryRequest: sendProseDiscoveryRequest,
             sendChangeColumnSettingsRequest,
             sendGetColumnInfoRequest,
+            sendInsertDataRequest,
         });
     }
 }

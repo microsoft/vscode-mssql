@@ -475,6 +475,9 @@
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
     </trans-unit>
+    <trans-unit id="++CODE++ec5bba01c0ecebae4bcbcf149b4aa52c4eea045c03875f558224d2965fb0dd8d">
+      <source xml:lang="en">CSV/TXT Files (*.csv;*.txt)</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9a998bc5b0b1a8720c33d843590e55895977f19f6d8f56e440c778b673ab17a">
       <source xml:lang="en">Calling tool: {0} with {1}.</source>
       <note>{0} is the tool function name
@@ -1244,6 +1247,9 @@
     <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
       <source xml:lang="en">Database changed successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a3b60430561d2e64fd2ce48fdd216da6e79a93e147f7ec6a7702c5658d28f97">
+      <source xml:lang="en">Database is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
       <source xml:lang="en">Database list</source>
     </trans-unit>
@@ -1261,6 +1267,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
+      <source xml:lang="en">Database the table is created in</source>
     </trans-unit>
     <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
       <source xml:lang="en">Default</source>
@@ -1999,6 +2008,9 @@
     <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
       <source xml:lang="en">File path is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++de4c053ce93fdab8261214c50e808306b000f07b8f37d19f843d0462e59f035e">
+      <source xml:lang="en">File to be imported</source>
+    </trans-unit>
     <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
       <source xml:lang="en">Files</source>
     </trans-unit>
@@ -2302,6 +2314,18 @@
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="++CODE++f297587645cd5e7ce0a5f6f74be689bc53dd731e24a946c15ed70df07f084e83">
+      <source xml:lang="en">Import Data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
+      <source xml:lang="en">Import File</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
+      <source xml:lang="en">Import Information</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1e4a87f0347e3ffdfda399805853364283c57e23e938222c1aac71399a458148">
+      <source xml:lang="en">Import Status</source>
+    </trans-unit>
     <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
       <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
     </trans-unit>
@@ -2314,6 +2338,9 @@
     <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
       <source xml:lang="en">Import failed: {0}</source>
       <note>{0} is the error message returned from the import helper.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a08ed3bdb12bc70103aac4b9c62d71981854c89e6d7a4a0a60ae4b0a16d392af">
+      <source xml:lang="en">Import file is required</source>
     </trans-unit>
     <trans-unit id="++CODE++ab74c7fb2fef1b04b1e8fed7e0a32350fffa22538a2ce63d3b70e5c83dfd0d8b">
       <source xml:lang="en">Import from Azure Data Studio</source>
@@ -2634,6 +2661,9 @@
     <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
       <source xml:lang="en">Loading fabric provisioning...</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dd2f1e34594bff7a420c8f7f69d7933114f5f4e7efd583f515691dea65b63d8">
+      <source xml:lang="en">Loading flat file import...</source>
+    </trans-unit>
     <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
       <source xml:lang="en">Loading local containers...</source>
     </trans-unit>
@@ -2646,6 +2676,9 @@
     </trans-unit>
     <trans-unit id="++CODE++128f2373a3147694ff5bcaab3d428611eba44a540cb348d9d263f855c0ee2a2d">
       <source xml:lang="en">Loading table data...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e96fc8b40ca909f818f5677d99cd419b69170253e04fc2848ec08fe2b31c6b0f">
+      <source xml:lang="en">Loading table preview...</source>
     </trans-unit>
     <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
       <source xml:lang="en">Loading tenants...</source>
@@ -2676,6 +2709,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
       <source xml:lang="en">Location (Workspace)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1aa90f6c7d9e7a123d71457bdbe1f733cbe0170eb978723ecf13717f64403cda">
+      <source xml:lang="en">Location of the file to be imported</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -2851,6 +2887,9 @@
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
     </trans-unit>
+    <trans-unit id="++CODE++853562aba61600b2977f2c1e36ed27382069409f9497ac880dd6e8b39b87ca42">
+      <source xml:lang="en">New Table Name</source>
+    </trans-unit>
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
     </trans-unit>
@@ -2943,6 +2982,9 @@
     <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
       <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
       <note>{0} is the name of the workspace</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
+      <source xml:lang="en">No databases found to import into.</source>
     </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
@@ -3765,6 +3807,9 @@
     <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
       <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
+      <source xml:lang="en">Schema is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
       <source xml:lang="en">Schema visualization opened.</source>
     </trans-unit>
@@ -3894,6 +3939,9 @@
     <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
       <source xml:lang="en">Select an operation</source>
     </trans-unit>
+    <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
+      <source xml:lang="en">Select file to import</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
       <source xml:lang="en">Select image</source>
     </trans-unit>
@@ -3937,6 +3985,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
       <source xml:lang="en">Server Edition</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bc4816425ebe8079c4f9aef802a1507b5c519d415762a5cb6549fc4c1cc6dee7">
+      <source xml:lang="en">Server Name</source>
     </trans-unit>
     <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
       <source xml:lang="en">Server Version</source>
@@ -4164,6 +4215,18 @@
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b3ad0a81a146978929aa5ff3cfeb5e1f1b6658c48ca1bed10ba991ca3be97c8">
+      <source xml:lang="en">Step 1: Specify Input File</source>
+    </trans-unit>
+    <trans-unit id="++CODE++64e67d642ec0bb6b76227ac3a15c8338599c92129010ee19d0de12a997fa3006">
+      <source xml:lang="en">Step 2: Preview Data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4733c9b09467407fd987c336994bf9bfef9175b2eca699bab566e0373572578">
+      <source xml:lang="en">Step 3: Modify Columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ebb5f7790ae1660e99a26a345411dcead3a0e54d906277838b984a64aacdd2fd">
+      <source xml:lang="en">Step 4: Summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
     </trans-unit>
@@ -4258,11 +4321,20 @@
       <source xml:lang="en">Table Explorer for &apos;{0}&apos; has unsaved changes. Do you want to save or discard them?</source>
       <note>{0} is the table name</note>
     </trans-unit>
+    <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
+      <source xml:lang="en">Table Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
+      <source xml:lang="en">Table Schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
     <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
       <source xml:lang="en">Table name cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff490dd9f89998ccb0379e44509170c44b5aad8684bf118d6bf96e5b5dd3f87c">
+      <source xml:lang="en">Table name is required</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
@@ -4406,6 +4478,9 @@
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
+    <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
+      <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
     </trans-unit>
@@ -4470,6 +4545,10 @@
     </trans-unit>
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf145a6cceb39bdabc1f9c6bc39d83253c6e1884ab167a82a0f3c8407c804b0f">
+      <source xml:lang="en">Unable to get table preview: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>

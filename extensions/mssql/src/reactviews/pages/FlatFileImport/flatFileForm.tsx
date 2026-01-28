@@ -1,0 +1,166 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { useContext, useState } from "react";
+import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { FormField } from "../../common/forms/form.component";
+import { FlatFileContext } from "./flatFileStateProvider";
+import {
+    FlatFileImportFormItemSpec,
+    FlatFileImportFormState,
+    FlatFileImportProvider,
+    FlatFileImportState,
+} from "../../../sharedInterfaces/flatFileImport";
+import { locConstants } from "../../common/locConstants";
+import { FlatFileHeader } from "./flatFileHeader";
+import { FlatFilePreviewTable } from "./flatFilePreviewTable";
+
+const useStyles = makeStyles({
+    outerDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        marginLeft: "5px",
+        marginRight: "5px",
+        padding: "8px",
+        width: "500px",
+        whiteSpace: "nowrap",
+        minWidth: "800px",
+        height: "80vh",
+    },
+    formDiv: {
+        width: "500px",
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+    },
+    button: {
+        height: "32px",
+        width: "160px",
+    },
+    bottomDiv: {
+        bottom: 0,
+        paddingBottom: "50px",
+    },
+    buttonContent: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "0.5rem",
+    },
+});
+
+export const FlatFileForm: React.FC = () => {
+    const classes = useStyles();
+    const context = useContext(FlatFileContext);
+    const state = context?.state;
+
+    if (!context || !state) return;
+
+    const [showNext, setShowNext] = useState<boolean>(false);
+    const { formComponents } = context.state;
+
+    const handleSubmit = async () => {
+        context.getTablePreview(
+            state.formState.flatFilePath,
+            state.formState.tableName,
+            state.formState.tableSchema,
+            state.fileType,
+        );
+        setShowNext(true);
+    };
+
+    const shouldDisableNext = (): boolean => {
+        return (
+            state.formErrors.length > 0 ||
+            !state.formState.databaseName.trim() ||
+            !state.formState.flatFilePath.trim() ||
+            !state.formState.tableName.trim() ||
+            !state.formState.tableSchema.trim()
+        );
+    };
+
+    return showNext ? (
+        <FlatFilePreviewTable />
+    ) : (
+        <div>
+            <FlatFileHeader
+                headerText={locConstants.flatFileImport.importFile}
+                stepText={locConstants.flatFileImport.stepOne}
+            />
+            <div className={classes.outerDiv}>
+                <div className={classes.formDiv}>
+                    <FormField<
+                        FlatFileImportFormState,
+                        FlatFileImportState,
+                        FlatFileImportFormItemSpec,
+                        FlatFileImportProvider
+                    >
+                        context={context}
+                        component={formComponents["databaseName"] as FlatFileImportFormItemSpec}
+                        idx={0}
+                        componentProps={{
+                            readOnly: state.isDatabase, // set readOnly if connected to a database node
+                        }}
+                    />
+
+                    <FormField<
+                        FlatFileImportFormState,
+                        FlatFileImportState,
+                        FlatFileImportFormItemSpec,
+                        FlatFileImportProvider
+                    >
+                        context={context}
+                        component={formComponents["flatFilePath"] as FlatFileImportFormItemSpec}
+                        idx={0}
+                    />
+                    <div>
+                        <Button
+                            className={classes.button}
+                            type="submit"
+                            onClick={() => context.openVSCodeFileBrowser()}
+                            appearance="secondary"
+                            style={{
+                                width: "80px",
+                                marginLeft: "5px",
+                            }}>
+                            {locConstants.flatFileImport.browse}
+                        </Button>
+                    </div>
+                    <FormField<
+                        FlatFileImportFormState,
+                        FlatFileImportState,
+                        FlatFileImportFormItemSpec,
+                        FlatFileImportProvider
+                    >
+                        context={context}
+                        component={formComponents["tableName"] as FlatFileImportFormItemSpec}
+                        idx={0}
+                    />
+                    <FormField<
+                        FlatFileImportFormState,
+                        FlatFileImportState,
+                        FlatFileImportFormItemSpec,
+                        FlatFileImportProvider
+                    >
+                        context={context}
+                        component={formComponents["tableSchema"] as FlatFileImportFormItemSpec}
+                        idx={0}
+                    />
+                </div>
+                <div className={classes.bottomDiv}>
+                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                    <Button
+                        className={classes.button}
+                        type="submit"
+                        onClick={() => handleSubmit()}
+                        appearance="primary"
+                        disabled={shouldDisableNext()}>
+                        {locConstants.common.next}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+};

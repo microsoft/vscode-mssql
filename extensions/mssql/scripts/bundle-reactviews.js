@@ -20,6 +20,7 @@ const config = {
         DacpacDialog: "src/reactviews/pages/DacpacDialog/index.tsx",
         deployment: "src/reactviews/pages/Deployment/index.tsx",
         executionPlan: "src/reactviews/pages/ExecutionPlan/index.tsx",
+        flatFileImport: "src/reactviews/pages/FlatFileImport/index.tsx",
         tableDesigner: "src/reactviews/pages/TableDesigner/index.tsx",
         objectExplorerFilter: "src/reactviews/pages/ObjectExplorerFilter/index.tsx",
         queryResult: "src/reactviews/pages/QueryResult/index.tsx",

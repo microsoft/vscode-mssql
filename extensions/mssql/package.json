@@ -721,11 +721,6 @@
                     "group": "inline@2"
                 },
                 {
-                    "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "inline@2"
-                },  
-                {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
                     "group": "inline@3"
@@ -761,6 +756,10 @@
                 {
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/"
                 }
             ],
             "commandPalette": [

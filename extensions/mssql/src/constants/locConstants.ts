@@ -2618,7 +2618,7 @@ export class SqlOps {
             args: [serviceName],
             comment: ["{0} is the service name"],
         });
-    public static entryExtracted = (entryName: string, entryFolder: string, entryFile: string) => 
+    public static entryExtracted = (entryName: string, entryFolder: string, entryFile: string) =>
         l10n.t({
             message: "Extracted '{0}' ('{1}'/'{2}').",
             args: [entryName, entryFolder, entryFile],
@@ -2628,4 +2628,21 @@ export class SqlOps {
 
 export class FlatFileImport {
     public static flatFileImportTitle = l10n.t("Flat File Import");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static unableToGetTablePreview = (errorMessage: string) =>
+        l10n.t({
+            message: "Unable to get table preview: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }

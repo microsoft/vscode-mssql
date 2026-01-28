@@ -16,25 +16,26 @@ export interface ColumnInfo {
     name: string;
     sqlType: string;
     isNullable: boolean;
+    isInPrimaryKey?: boolean;
 }
 
 /**
  * FlatFilePreviewRequest
  */
-export interface FlatFilePreviewParams {
+export interface ProseDiscoveryParams {
     filePath: string;
     tableName: string;
     schemaName?: string;
     fileType?: string;
 }
 
-export interface FlatFilePreviewResponse {
+export interface ProseDiscoveryResponse {
     dataPreview: string[][];
     columnInfo: ColumnInfo[];
 }
 
-export namespace FlatFilePreviewRequest {
-    export const type = new RequestType<FlatFilePreviewParams, FlatFilePreviewResponse, void, void>(
+export namespace ProseDiscoveryRequest {
+    export const type = new RequestType<ProseDiscoveryParams, ProseDiscoveryResponse, void, void>(
         "flatfile/proseDiscovery",
     );
 }
@@ -62,7 +63,7 @@ export interface ChangeColumnSettingsParams {
     newName?: string;
     newDataType?: string;
     newNullable?: boolean;
-    newInPrimaryKey?: boolean;
+    newIsPrimaryKey?: boolean;
 }
 
 export interface ChangeColumnSettingsResponse {
@@ -78,14 +79,38 @@ export namespace ChangeColumnSettingsRequest {
     >("flatfile/changeColumnSettings");
 }
 
+/**
+ * InsertDataRequest
+ */
+export interface InsertDataParams {
+    connectionString: string;
+    batchSize: number;
+    /**
+     * For azure MFA connections we need to send the account token to establish a connection
+     * from flatFile service without doing Oauth.
+     */
+    azureAccessToken: string | undefined;
+}
+
+export namespace InsertDataRequest {
+    export const type = new RequestType<InsertDataParams, InsertDataResponse, void, void>(
+        "flatfile/insertData",
+    );
+}
+
+export interface InsertDataResponse {
+    result: Result;
+}
+
 export interface FlatFileProvider {
     providerId?: string;
 
-    sendFlatFilePreviewRequest(params: FlatFilePreviewParams): Thenable<FlatFilePreviewResponse>;
+    sendProseDiscoveryRequest(params: ProseDiscoveryParams): Thenable<ProseDiscoveryResponse>;
     sendGetColumnInfoRequest(params: GetColumnInfoParams): Thenable<GetColumnInfoResponse>;
     sendChangeColumnSettingsRequest(
         params: ChangeColumnSettingsParams,
     ): Thenable<ChangeColumnSettingsResponse>;
+    sendInsertDataRequest(params: InsertDataParams): Thenable<InsertDataResponse>;
 }
 
 export enum FlatFileApiType {

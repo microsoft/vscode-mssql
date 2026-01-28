@@ -1458,11 +1458,27 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdFlatFileImport,
-                async (node: ConnectTreeNode) => {
+                async (node: ConnectionNode) => {
+                    const connectionUri = this.connectionManager.getUriForConnection(
+                        node.connectionProfile,
+                    );
+
+                    const databases = await this.connectionManager.listDatabases(connectionUri);
+                    if (databases.length === 0) {
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+                        );
+                        return;
+                    }
+
                     const flatFileImportDialog = new FlatFileImportController(
                         this._context,
                         this._vscodeWrapper,
+                        SqlToolsServerClient.instance,
+                        this.connectionManager,
                         this.flatFileProvider,
+                        node,
+                        databases,
                     );
                     flatFileImportDialog.revealToForeground();
                 },

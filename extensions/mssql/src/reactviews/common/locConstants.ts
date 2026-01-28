@@ -1570,6 +1570,36 @@ export class LocConstants {
             filesOfType: l10n.t("Files of Type"),
         };
     }
+
+    public get flatFileImport() {
+        return {
+            importFile: l10n.t("Import File"),
+            stepOne: l10n.t("Step 1: Specify Input File"),
+            loadingFlatFileImport: l10n.t("Loading flat file import..."),
+            loadingTablePreview: l10n.t("Loading table preview..."),
+            browse: l10n.t("Browse"),
+            stepTwo: l10n.t("Step 2: Preview Data"),
+            operationPreviewText: l10n.t(
+                "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+            ),
+            stepThree: l10n.t("Step 3: Modify Columns"),
+            columnName: l10n.t("Column Name"),
+            dataType: l10n.t("Data Type"),
+            allowNulls: l10n.t("Allow Nulls"),
+            primaryKey: l10n.t("Primary Key"),
+            importData: l10n.t("Import Data"),
+            stepFour: l10n.t("Step 4: Summary"),
+            importInformation: l10n.t("Import Information"),
+            importStatus: l10n.t("Import Status"),
+            objectType: l10n.t("Object Type"),
+            name: l10n.t("Name"),
+            serverName: l10n.t("Server Name"),
+            databaseName: l10n.t("Database Name"),
+            tableName: l10n.t("Table Name"),
+            tableSchema: l10n.t("Table Schema"),
+            fileToBeImported: l10n.t("File to be imported"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

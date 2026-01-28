@@ -5,13 +5,13 @@
 
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
+import { ChangeColumnSettingsParams, ProseDiscoveryResponse } from "../models/contracts/flatFile";
 
 export class FlatFileImportState
     implements FormState<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string = "";
-    // @ts-ignore
     formState: FlatFileImportFormState = {
         databaseName: "",
         flatFilePath: "",
@@ -22,6 +22,11 @@ export class FlatFileImportState
     formErrors: string[] = [];
     serverName: string = "";
     fileType: string = "";
+    isDatabase: boolean = false;
+    tablePreview: ProseDiscoveryResponse | undefined = undefined;
+    tablePreviewStatus: ApiStatus = ApiStatus.Loading;
+    importDataStatus: ApiStatus = ApiStatus.NotStarted;
+    columnChanges: ChangeColumnSettingsParams[] = [];
 }
 
 export interface FlatFileImportFormState {
@@ -36,7 +41,7 @@ export interface FlatFileImportFormItemSpec
     componentWidth: string;
 }
 
-export interface FlatFileImportContextProps
+export interface FlatFileImportProvider
     extends FormContextProps<
         FlatFileImportFormState,
         FlatFileImportState,
@@ -47,17 +52,23 @@ export interface FlatFileImportContextProps
         tableName: string,
         schemaName?: string,
         fileType?: string,
-    ) => Promise<void>;
+    ) => void;
 
-    getColumnInfo: () => Promise<void>;
+    getColumnInfo: () => void;
+
+    setColumnChanges: (columnChanges: ChangeColumnSettingsParams[]) => void;
 
     changeColumnSettings: (
         index: number,
         newName?: string,
         newDataType?: string,
         newNullable?: boolean,
-        newInPrimaryKey?: boolean,
-    ) => Promise<void>;
+        newIsPrimaryKey?: boolean,
+    ) => void;
+
+    importData: () => void;
+
+    openVSCodeFileBrowser: () => void;
 }
 
 export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormState> {
@@ -68,11 +79,16 @@ export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormS
         fileType?: string;
     };
     getColumnInfo: {};
+    setColumnChanges: {
+        columnChanges: ChangeColumnSettingsParams[];
+    };
     changeColumnSettings: {
         index: number;
         newName?: string;
         newDataType?: string;
         newNullable?: boolean;
-        newInPrimaryKey?: boolean;
+        newIsPrimaryKey?: boolean;
     };
+    importData: {};
+    openVSCodeFileBrowser: {};
 }
