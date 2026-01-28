@@ -839,4 +839,92 @@ suite("SqlDocumentService Tests", () => {
             expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
         });
     });
+
+    suite("transferActiveEditorConnections configuration tests", () => {
+        let getConfigurationStub: sinon.SinonStub;
+        let mockConfig: any;
+
+        setup(() => {
+            mockConfig = {
+                get: sandbox.stub(),
+            };
+            getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration");
+            getConfigurationStub.returns(mockConfig);
+        });
+
+        test("should transfer connection when setting is true (default)", async () => {
+            // Set up the configuration to return true
+            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(true);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            // Call onDidOpenTextDocument
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            // Verify that connect was called with the last active connection
+            expect(connectionManager.connect).to.have.been.calledOnce;
+            expect(connectionManager.connect.firstCall.args[0]).to.equal(document.uri.toString());
+        });
+
+        test("should NOT transfer connection when setting is false", async () => {
+            // Set up the configuration to return false
+            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(false);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            // Call onDidOpenTextDocument
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            // Verify that connect was NOT called
+            expect(connectionManager.connect).to.not.have.been.called;
+        });
+
+        test("should use true as default when configuration is not set", async () => {
+            // Set up the configuration to return the default value (true)
+            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(true);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            // Call onDidOpenTextDocument
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            // Verify that connect was called (default behavior)
+            expect(connectionManager.connect).to.have.been.calledOnce;
+        });
+
+        test("should still propagate to connectionManager regardless of transfer setting", async () => {
+            // Set up the configuration to return false
+            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(false);
+
+            // Set a last active connection
+            const testConnection: IConnectionInfo = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = testConnection;
+
+            // Call onDidOpenTextDocument
+            await sqlDocumentService.onDidOpenTextDocument(document);
+
+            // Verify that onDidOpenTextDocument was still called on connection manager
+            expect(connectionManager.onDidOpenTextDocument).to.have.been.calledOnceWithExactly(
+                document,
+            );
+        });
+    });
 });
