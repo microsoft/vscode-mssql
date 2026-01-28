@@ -115,9 +115,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         isDirty: false,
                     });
                 } else {
-                    // if the cache has the session, the changes have not been saved, and the
-                    // session is dirty
-                    const cacheItem = this.updateCacheItem(undefined, true);
+                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -149,7 +147,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(payload.updatedSchema, true);
+            this.updateCacheItem(payload.updatedSchema);
             return script;
         });
 
@@ -175,7 +173,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             updatedSchema: payload.updatedSchema,
                             sessionId: this._sessionId,
                         });
-                        this.updateCacheItem(payload.updatedSchema, true);
+                        this.updateCacheItem(payload.updatedSchema);
                         return {
                             report,
                         };
@@ -356,6 +354,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onNotification(SchemaDesigner.CloseSchemaDesignerNotification.type, () => {
             // Close the schema designer panel
             this.panel.dispose();
+        });
+
+        this.onNotification(SchemaDesigner.SchemaDesignerDirtyStateNotification.type, (payload) => {
+            this.updateCacheItem(undefined, payload.hasChanges);
         });
 
         this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {
