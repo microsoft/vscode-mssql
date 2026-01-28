@@ -21,7 +21,6 @@ import {
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
-import isEqual from "lodash/isEqual";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -116,9 +115,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         isDirty: false,
                     });
                 } else {
-                    // if the cache has the session, the changes have not been saved, and the
-                    // session is dirty
-                    const cacheItem = this.updateCacheItem(undefined, true);
+                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
                     sessionResponse = cacheItem.schemaDesignerDetails;
                     this.baselineSchema = cacheItem.baselineSchema;
                 }
@@ -150,10 +147,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(
-                payload.updatedSchema,
-                this.hasSchemaChanged(payload.updatedSchema),
-            );
+            this.updateCacheItem(payload.updatedSchema);
             return script;
         });
 
@@ -179,10 +173,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             updatedSchema: payload.updatedSchema,
                             sessionId: this._sessionId,
                         });
-                        this.updateCacheItem(
-                            payload.updatedSchema,
-                            Boolean(report?.hasSchemaChanged),
-                        );
+                        this.updateCacheItem(payload.updatedSchema);
                         return {
                             report,
                         };
@@ -420,16 +411,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         schemaDesignerCacheItem.isDirty = isDirty ?? schemaDesignerCacheItem.isDirty;
         this.schemaDesignerCache.set(this._key, schemaDesignerCacheItem);
         return schemaDesignerCacheItem;
-    }
-
-    private hasSchemaChanged(updatedSchema: SchemaDesigner.Schema): boolean {
-        const cacheItem = this.schemaDesignerCache.get(this._key);
-        const baseline = cacheItem?.baselineSchema ?? this.baselineSchema;
-        if (!baseline) {
-            return true;
-        }
-
-        return !isEqual(baseline, updatedSchema);
     }
 
     override async dispose(): Promise<void> {
