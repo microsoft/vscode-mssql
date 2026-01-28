@@ -7,13 +7,28 @@ import * as vscode from 'vscode';
 import * as constants from '../common/constants';
 import { Project } from '../models/project';
 import { PublishProfile, readPublishProfile } from '../models/publishProfile/publishProfile';
-import { promptForPublishProfile } from './publishDatabaseDialog';
 import { getDefaultPublishDeploymentOptions, getVscodeMssqlApi } from '../common/utils';
 import { IConnectionInfo, IFireWallRuleError } from 'vscode-mssql';
 import { getPublishServerName } from './utils';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
 import { DBProjectConfigurationKey } from '../tools/netcoreTool';
 import { ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
+
+/**
+ * Prompt user to select a publish profile file
+ */
+export function promptForPublishProfile(defaultPath: string): Thenable<vscode.Uri[] | undefined> {
+	return vscode.window.showOpenDialog({
+		title: constants.selectProfile,
+		canSelectFiles: true,
+		canSelectFolders: false,
+		canSelectMany: false,
+		defaultUri: vscode.Uri.file(defaultPath),
+		filters: {
+			[constants.publishSettingsFiles]: ['publish.xml']
+		}
+	});
+}
 
 /**
  * Create flow for Publishing a database using only VS Code-native APIs such as QuickPick

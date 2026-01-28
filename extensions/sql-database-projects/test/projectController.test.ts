@@ -19,19 +19,25 @@ import * as utils from '../src/common/utils';
 import { SqlDatabaseProjectTreeViewProvider } from '../src/controllers/databaseProjectTreeViewProvider';
 import { ProjectsController } from '../src/controllers/projectController';
 import { promises as fs } from 'fs';
-import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from './testContext';
+import { createContext, TestContext, mockDacFxResult } from './testContext';
+// TODO: Used in commented-out ADS dialog tests
+// import { mockConnectionProfile } from './testContext';
 import { Project } from '../src/models/project';
-import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
+// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+// import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
 import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
 import { FolderNode, FileNode } from '../src/models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../src/models/tree/baseTreeItem';
-import { AddDatabaseReferenceDialog } from '../src/dialogs/addDatabaseReferenceDialog';
-import { IDacpacReferenceSettings } from '../src/models/IDatabaseReferenceSettings';
-import { CreateProjectFromDatabaseDialog } from '../src/dialogs/createProjectFromDatabaseDialog';
+// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+// import { AddDatabaseReferenceDialog } from '../src/dialogs/addDatabaseReferenceDialog';
+// import { IDacpacReferenceSettings } from '../src/models/IDatabaseReferenceSettings';
+// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+// import { CreateProjectFromDatabaseDialog } from '../src/dialogs/createProjectFromDatabaseDialog';
 import { ImportDataModel } from '../src/models/api/import';
 import { EntryType, ItemType, SqlTargetPlatform } from 'sqldbproj';
 import { FileProjectEntry } from '../src/models/projectEntry';
-import { SystemDatabase } from 'mssql';
+// TODO: Used in commented-out ADS dialog tests
+// import { SystemDatabase } from 'mssql';
 
 let testContext: TestContext;
 const templatesPath = testUtils.getTemplatesRootPath();
@@ -576,6 +582,8 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
+			// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+			/*
 			test('Publish dialog should open from ProjectController', async function (): Promise<void> {
 				let opened = false;
 
@@ -636,6 +644,7 @@ suite('ProjectsController', function (): void {
 
 				should(holler).equal(generateHoller, 'executionCallback() is supposed to have been setup and called for GenerateScript scenario');
 			});
+			*/
 
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
 				const fakeDacpacContents = 'SwiftFlewHiawathasArrow';
@@ -702,6 +711,8 @@ suite('ProjectsController', function (): void {
 			should(spy.calledWith(msg)).be.true(`showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'`);
 		});
 
+		// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+		/*
 		test('Create project from Database dialog should open from ProjectController', async function (): Promise<void> {
 			let opened = false;
 
@@ -716,7 +727,7 @@ suite('ProjectsController', function (): void {
 			should(opened).equal(true);
 		});
 
-		test.skip('Callbacks are hooked up and called from create project from database dialog', async function (): Promise<void> {
+		test('Callbacks are hooked up and called from create project from database dialog', async function (): Promise<void> {
 			const createProjectFromDbHoller = 'hello from callback for createProjectFromDatabase()';
 
 			let holler = 'nothing';
@@ -750,6 +761,7 @@ suite('ProjectsController', function (): void {
 
 			should(holler).equal(createProjectFromDbHoller, 'executionCallback() is supposed to have been setup and called for create project from database scenario');
 		});
+		*/
 
 		test('Should set model filePath correctly for ExtractType = File', async function (): Promise<void> {
 			let folderPath = await testUtils.generateTestFolderPath(this.test);
@@ -779,6 +791,8 @@ suite('ProjectsController', function (): void {
 	});
 
 	suite('Add database reference', function (): void {
+		// TODO: Convert these ADS dialog tests to VS Code quickpick tests
+		/*
 		test('Add database reference dialog should open from ProjectController', async function (): Promise<void> {
 			let opened = false;
 
@@ -823,6 +837,7 @@ suite('ProjectsController', function (): void {
 
 			should(holler).equal(addDbRefHoller, 'executionCallback() is supposed to have been setup and called for add database reference scenario');
 		});
+		*/
 
 		test.skip('Should not allow adding circular project references', async function (): Promise<void> {
 			const projPath1 = await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline);

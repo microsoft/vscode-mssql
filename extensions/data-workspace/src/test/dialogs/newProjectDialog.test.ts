@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Convert to VS Code native UI tests (replace azdata.window.createModelViewDialog with VS Code API) or remove if scenario not applicable to VS Code
+// Tests commented out because dialogs use ADS-specific APIs (azdata.window.createModelViewDialog) that don't exist in VS Code
+// These need complete rewrites when dialogs are migrated to VS Code native UI (QuickPick, InputBox, etc.)
+
+/*
 import * as should from "should";
 import * as TypeMoq from "typemoq";
 import * as os from "os";
@@ -15,11 +20,7 @@ import { WorkspaceService } from "../../services/workspaceService";
 import { testProjectType } from "../testUtils";
 import { IProjectType } from "dataworkspace";
 
-// TODO: Convert to VS Code native UI tests (replace azdata.window.createModelViewDialog with VS Code API) or remove if scenario not applicable to VS Code
-// Tests commented out because dialogs use ADS-specific APIs (azdata.window.createModelViewDialog) that don't exist in VS Code
-// These need complete rewrites when dialogs are migrated to VS Code native UI (QuickPick, InputBox, etc.)
 suite("New Project Dialog", function (): void {
-  /*
   this.afterEach(() => {
     sinon.restore();
   });
@@ -116,5 +117,5 @@ suite("New Project Dialog", function (): void {
     await dialog.open();
     should.equal(dialog.model.targetPlatform, undefined, "Target platform should be undefined");
   });
-  */
 });
+*/

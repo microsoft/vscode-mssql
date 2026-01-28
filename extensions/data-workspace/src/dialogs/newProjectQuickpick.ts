@@ -10,6 +10,42 @@ import { directoryExist, showInfoMessageWithLearnMoreLink } from "../common/util
 import { defaultProjectSaveLocation } from "../common/projectLocationHelper";
 import { WorkspaceService } from "../services/workspaceService";
 import { isValidBasenameErrorMessage } from "../common/pathUtilsHelper";
+import { IProjectType } from "dataworkspace";
+
+/**
+ * Project type info extracted from IProjectType for quickpick flow
+ */
+interface ProjectTypeInfo {
+  id: string;
+  label: string;
+  description?: string;
+  targetPlatforms?: string[];
+  defaultTargetPlatform?: string;
+  sdkOption?: boolean;
+  sdkLearnMoreUrl?: string;
+  learnMoreUrl?: string;
+}
+
+/**
+ * Opens a new project dialog for a specific project type using VS Code-native quickpick APIs
+ */
+export async function openSpecificProjectNewProjectDialog(
+  projectType: IProjectType,
+  workspaceService: WorkspaceService,
+): Promise<vscode.Uri | undefined> {
+  const projectTypeInfo: ProjectTypeInfo = {
+    id: projectType.id,
+    label: projectType.displayName,
+    description: projectType.description,
+    targetPlatforms: projectType.targetPlatforms,
+    defaultTargetPlatform: projectType.defaultTargetPlatform,
+    sdkOption: projectType.sdkStyleOption,
+    sdkLearnMoreUrl: projectType.sdkStyleLearnMoreUrl,
+    learnMoreUrl: projectType.learnMoreUrl,
+  };
+
+  return createNewProjectWithQuickpickCore(workspaceService, projectTypeInfo);
+}
 
 /**
  * Create flow for a New Project using only VS Code-native APIs such as QuickPick
@@ -28,14 +64,7 @@ export async function createNewProjectWithQuickpick(
       sdkOption: projType.sdkStyleOption,
       sdkLearnMoreUrl: projType.sdkStyleLearnMoreUrl,
       learnMoreUrl: projType.learnMoreUrl,
-    } as vscode.QuickPickItem & {
-      id: string;
-      sdkOption?: boolean;
-      targetPlatforms?: string[];
-      defaultTargetPlatform?: string;
-      sdkLearnMoreUrl?: string;
-      learnMoreUrl?: string;
-    };
+    } as vscode.QuickPickItem & ProjectTypeInfo;
   });
 
   // 1. Prompt for project type
@@ -47,6 +76,17 @@ export async function createNewProjectWithQuickpick(
     return;
   }
 
+  await createNewProjectWithQuickpickCore(workspaceService, projectType);
+}
+
+/**
+ * Core implementation for creating a new project with quickpick
+ * Used by both createNewProjectWithQuickpick and openSpecificProjectNewProjectDialog
+ */
+async function createNewProjectWithQuickpickCore(
+  workspaceService: WorkspaceService,
+  projectType: ProjectTypeInfo,
+): Promise<vscode.Uri | undefined> {
   // 2. Prompt for project name
   const projectName = await vscode.window.showInputBox({
     title: constants.EnterProjectName,
@@ -212,7 +252,7 @@ export async function createNewProjectWithQuickpick(
     // User cancelled
     return;
   }
-  await workspaceService.createProject(
+  const projectUri = await workspaceService.createProject(
     projectName,
     vscode.Uri.file(projectLocation),
     projectType.id,
@@ -229,4 +269,6 @@ export async function createNewProjectWithQuickpick(
       projectType.learnMoreUrl,
     );
   }
+
+  return projectUri;
 }

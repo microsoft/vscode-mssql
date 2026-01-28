@@ -8,11 +8,8 @@ import { WorkspaceTreeDataProvider } from "./common/workspaceTreeDataProvider";
 import { WorkspaceService } from "./services/workspaceService";
 import { WorkspaceTreeItem, IExtension } from "dataworkspace";
 import { DataWorkspaceExtension } from "./common/dataWorkspaceExtension";
-import { NewProjectDialog } from "./dialogs/newProjectDialog";
-import { browseForProject, OpenExistingDialog } from "./dialogs/openExistingDialog";
+import { browseForProject } from "./dialogs/openExistingDialog";
 import { IconPathHelper } from "./common/iconHelper";
-import { ProjectDashboard } from "./dialogs/projectDashboard";
-import { getAzdataApi } from "./common/utils";
 import { createNewProjectWithQuickpick } from "./dialogs/newProjectQuickpick";
 import Logger from "./common/logger";
 import { TelemetryReporter } from "./common/telemetry";
@@ -21,11 +18,6 @@ import { noProjectProvidingExtensionsInstalled } from "./common/constants";
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
   const startTime = new Date().getTime();
   Logger.log(`Starting Data Workspace activate()`);
-
-  const azDataApiStartTime = new Date().getTime();
-  const azdataApi = getAzdataApi();
-  void vscode.commands.executeCommand("setContext", "azdataAvailable", !!azdataApi);
-  Logger.log(`Setting azdataAvailable took ${new Date().getTime() - azDataApiStartTime}ms`);
 
   const workspaceServiceConstructorStartTime = new Date().getTime();
   const workspaceService = new WorkspaceService();
@@ -61,12 +53,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         return;
       }
 
-      if (azdataApi) {
-        const dialog = new NewProjectDialog(workspaceService);
-        await dialog.open();
-      } else {
-        await createNewProjectWithQuickpick(workspaceService);
-      }
+      await createNewProjectWithQuickpick(workspaceService);
     }),
   );
 
@@ -80,16 +67,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         return;
       }
 
-      if (azdataApi) {
-        const dialog = new OpenExistingDialog(workspaceService);
-        await dialog.open();
-      } else {
-        const projectFileUri = await browseForProject(workspaceService);
-        if (!projectFileUri) {
-          return;
-        }
-        await workspaceService.addProjectsToWorkspace([projectFileUri]);
+      const projectFileUri = await browseForProject(workspaceService);
+      if (!projectFileUri) {
+        return;
       }
+      await workspaceService.addProjectsToWorkspace([projectFileUri]);
     }),
   );
 
@@ -112,16 +94,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         await workspaceService.removeProject(
           vscode.Uri.file(treeItem.element.project.projectFilePath),
         );
-      },
-    ),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "projects.manageProject",
-      async (treeItem: WorkspaceTreeItem) => {
-        const dashboard = new ProjectDashboard(workspaceService, treeItem);
-        await dashboard.showDashboard();
       },
     ),
   );
