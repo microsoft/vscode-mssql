@@ -114,7 +114,7 @@ const MainLayout = () => {
                                     ? "block"
                                     : "none",
                         }}>
-                        <DabPage />
+                        <DabPage activeView={activeView} />
                     </div>
                 </div>
             </div>
