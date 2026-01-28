@@ -181,7 +181,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
         <source xml:lang="en">Added</source>
-        <target state="new">Added</target>
+        <target state="translated">Ajouté</target>
       </trans-unit>
       <trans-unit id="++CODE++bc6eb3b452e596a92b620948e6858d0f740a07cec116ff572cf7202785894cbf">
         <source xml:lang="en">Added column '{0}'</source>
@@ -223,7 +223,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
         <source xml:lang="en">All</source>
-        <target state="new">All</target>
+        <target state="translated">Tout</target>
       </trans-unit>
       <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
         <source xml:lang="en">All Schemas</source>
@@ -919,7 +919,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++29a390f9237e3c84e5641785eca25199620e53f7b6f4b9d843b23dcb5c12904f">
         <source xml:lang="en">Clear all</source>
-        <target state="new">Clear all</target>
+        <target state="translated">Effacer tout</target>
       </trans-unit>
       <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
         <source xml:lang="en">Clear all filters</source>
@@ -1771,7 +1771,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++b48ff39c2e0f5451b9b29b09c2a74d2760db230749ffd48a6e901cc91fef9a8d">
         <source xml:lang="en">Deleted</source>
-        <target state="new">Deleted</target>
+        <target state="translated">Supprimé</target>
       </trans-unit>
       <trans-unit id="++CODE++9ca6b97465f4c8972f542c20c953a0d541166912d083694710d9cb1acc8b7e5d">
         <source xml:lang="en">Deleted column '{0}'</source>
@@ -3743,7 +3743,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
         <source xml:lang="en">Modified</source>
-        <target state="new">Modified</target>
+        <target state="translated">Modifié</target>
       </trans-unit>
       <trans-unit id="++CODE++247f907d6e3294abdd7e74f9b418bdfa63295858aa3940a1c9dacaa6984db22d">
         <source xml:lang="en">Modified column '{0}'</source>
@@ -4850,7 +4850,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++0026c505347863ae188a99df6946e16ac83262585044660440699346d24784e7">
         <source xml:lang="en">Revert</source>
-        <target state="new">Revert</target>
+        <target state="translated">Restaurer</target>
       </trans-unit>
       <trans-unit id="++CODE++289de1729d4ea9f6d9ab040fb6f260a4bb860bac27ecd4e88b968575cfc726f0">
         <source xml:lang="en">Revert Cell</source>
