@@ -262,7 +262,15 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     suite("GetDefinitionRequest handler", () => {
         test("should get definition and update cache", async () => {
-            const updatedSchema = mockSchema;
+            // Create a modified schema that differs from the baseline to trigger isDirty = true
+            const updatedSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        ...mockSchema.tables[0],
+                        name: "ModifiedUsers", // Changed name to make schema different
+                    },
+                ],
+            };
             const scriptResponse: SchemaDesigner.GetDefinitionResponse = {
                 script: "CREATE TABLE Users (Id INT);",
             };
