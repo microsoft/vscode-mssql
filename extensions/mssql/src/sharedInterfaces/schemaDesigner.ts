@@ -465,6 +465,15 @@ export namespace SchemaDesigner {
     export namespace ExportToFileNotification {
         export const type = new NotificationType<ExportFileOptions>("exportToFile");
     }
+
+    export interface SchemaDesignerDirtyStateParams {
+        hasChanges: boolean;
+    }
+    export namespace SchemaDesignerDirtyStateNotification {
+        export const type = new NotificationType<SchemaDesignerDirtyStateParams>(
+            "schemaDesignerDirtyState",
+        );
+    }
     export namespace GetDefinitionRequest {
         export const type = new RequestType<UpdatedSchemaParams, GetDefinitionResponse, void>(
             "getDefinition",

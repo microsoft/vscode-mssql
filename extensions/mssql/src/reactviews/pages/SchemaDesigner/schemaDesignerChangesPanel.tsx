@@ -132,6 +132,20 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         textAlign: "center",
     },
+    treeItemLayout: {
+        fontSize: "12px",
+        minWidth: 0,
+        "& > .fui-TreeItemLayout__main": {
+            minWidth: 0,
+            overflow: "visible",
+            whiteSpace: "normal",
+        },
+        "& .fui-TreeItemLayout__main > span": {
+            overflow: "visible",
+            whiteSpace: "normal",
+            textOverflow: "unset",
+        },
+    },
     tableIcon: {
         display: "flex",
         alignItems: "center",
@@ -139,6 +153,23 @@ const useStyles = makeStyles({
         width: "16px",
         height: "16px",
         flexShrink: 0,
+    },
+    tableIconAdded: {
+        color: "var(--vscode-gitDecoration-addedResourceForeground)",
+    },
+    tableIconDeleted: {
+        color: "var(--vscode-gitDecoration-deletedResourceForeground)",
+    },
+    tableIconModified: {
+        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
+    },
+    tableName: {
+        flex: 1,
+        minWidth: 0,
+        display: "block",
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        fontSize: "12px",
     },
     changeIcon: {
         display: "flex",
@@ -176,9 +207,42 @@ const useStyles = makeStyles({
         display: "block",
         minWidth: 0,
         flex: 1,
+    changeDescription: {
+        flex: 1,
+        minWidth: 0,
+        display: "block",
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        fontSize: "12px",
+    },
+    actionToolbar: {
+        flexShrink: 0,
     },
     searchHighlight: {
         backgroundColor: "var(--vscode-editor-findMatchBackground)",
+    },
+    treeItem: {
+        "& .fui-TreeItemLayout__actions": {
+            opacity: 0,
+            transition: "opacity 0.15s ease-in-out",
+            visibility: "hidden",
+            position: "absolute",
+            right: "8px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "var(--vscode-editor-background)",
+        },
+        "&:hover .fui-TreeItemLayout__actions": {
+            opacity: 1,
+            visibility: "visible",
+        },
+        "&:focus-within .fui-TreeItemLayout__actions": {
+            opacity: 1,
+            visibility: "visible",
+        },
+        "& .fui-TreeItemLayout": {
+            position: "relative",
+        },
     },
 });
 
