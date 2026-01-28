@@ -45,7 +45,7 @@ jobs:
           source-dir: "./extensions/sql-database-projects"
 
       - name: Data Workspace - Install dependencies and build
-        uses: ./.github/actions/build-dataworkspace
+        uses: ./.github/actions/build-data-workspace
         with:
           source-dir: "./extensions/data-workspace"
 
