@@ -11,6 +11,9 @@ import {
     foreignKeyUtils,
 } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerUtils";
 
+type DeletedTable = SchemaDesigner.Table & { isDeleted: true };
+type DeletedForeignKey = SchemaDesigner.ForeignKey & { isDeleted: true };
+
 function makeColumn(id: string, name: string): SchemaDesigner.Column {
     return {
         id,
@@ -43,6 +46,14 @@ function makeTable(
         columns,
         foreignKeys: [],
     };
+}
+
+function markDeletedTable(table: SchemaDesigner.Table): DeletedTable {
+    return { ...table, isDeleted: true };
+}
+
+function markDeletedForeignKey(foreignKey: SchemaDesigner.ForeignKey): DeletedForeignKey {
+    return { ...foreignKey, isDeleted: true };
 }
 
 suite("SchemaDesigner utils", () => {
@@ -88,7 +99,7 @@ suite("SchemaDesigner utils", () => {
                 sourceHandle: "right-col-1",
                 targetHandle: "left-col-2",
                 markerEnd: { type: MarkerType.ArrowClosed },
-                data: {
+                data: markDeletedForeignKey({
                     id: "fk-deleted",
                     name: "FK_deleted",
                     columns: ["id"],
@@ -97,8 +108,7 @@ suite("SchemaDesigner utils", () => {
                     referencedColumns: ["order_id"],
                     onDeleteAction: 0,
                     onUpdateAction: 0,
-                    isDeleted: true,
-                } as SchemaDesigner.ForeignKey & { isDeleted: true },
+                }),
             },
         ];
 
@@ -150,7 +160,7 @@ suite("SchemaDesigner utils", () => {
                 sourceHandle: "right-col-1",
                 targetHandle: "left-col-2",
                 markerEnd: { type: MarkerType.ArrowClosed },
-                data: {
+                data: markDeletedForeignKey({
                     id: "fk-deleted",
                     name: "FK_deleted",
                     columns: ["id"],
@@ -159,8 +169,7 @@ suite("SchemaDesigner utils", () => {
                     referencedColumns: ["order_id"],
                     onDeleteAction: 0,
                     onUpdateAction: 0,
-                    isDeleted: true,
-                } as SchemaDesigner.ForeignKey & { isDeleted: true },
+                }),
             },
         ];
 
@@ -183,10 +192,9 @@ suite("SchemaDesigner utils", () => {
                 id: "table-2",
                 type: "tableNode",
                 position: { x: 0, y: 0 },
-                data: {
-                    ...makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
-                    isDeleted: true,
-                } as SchemaDesigner.Table & { isDeleted: true },
+                data: markDeletedTable(
+                    makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+                ),
             },
         ];
 

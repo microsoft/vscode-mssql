@@ -14,6 +14,9 @@ import {
     mergeColumnsWithDeleted,
 } from "../../src/reactviews/pages/SchemaDesigner/diff/deletedVisualUtils";
 
+type DeletedTable = SchemaDesigner.Table & { isDeleted: true };
+type DeletedForeignKey = SchemaDesigner.ForeignKey & { isDeleted: true };
+
 function makeColumn(id: string, name: string): SchemaDesigner.Column {
     return {
         id,
@@ -68,6 +71,14 @@ function makeForeignKey(
     };
 }
 
+function markDeletedTable(table: SchemaDesigner.Table): DeletedTable {
+    return { ...table, isDeleted: true };
+}
+
+function markDeletedForeignKey(foreignKey: SchemaDesigner.ForeignKey): DeletedForeignKey {
+    return { ...foreignKey, isDeleted: true };
+}
+
 suite("SchemaDesigner deleted visuals utils", () => {
     test("filterDeletedNodes removes deleted table nodes", () => {
         const nodes: Node<SchemaDesigner.Table>[] = [
@@ -81,10 +92,9 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 id: "table-2",
                 type: "tableNode",
                 position: { x: 0, y: 0 },
-                data: {
-                    ...makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
-                    isDeleted: true,
-                } as SchemaDesigner.Table & { isDeleted: true },
+                data: markDeletedTable(
+                    makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+                ),
             },
         ];
 
@@ -119,7 +129,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 sourceHandle: "right-col-1",
                 targetHandle: "left-col-2",
                 markerEnd: { type: MarkerType.ArrowClosed },
-                data: {
+                data: markDeletedForeignKey({
                     id: "fk-deleted",
                     name: "FK_deleted",
                     columns: ["id"],
@@ -128,8 +138,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
                     referencedColumns: ["order_id"],
                     onDeleteAction: 0,
                     onUpdateAction: 0,
-                    isDeleted: true,
-                } as SchemaDesigner.ForeignKey & { isDeleted: true },
+                }),
             },
         ];
 
@@ -151,25 +160,21 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 id: "table-1",
                 type: "tableNode",
                 position: { x: 0, y: 0 },
-                data: {
-                    ...makeTable("table-1", "users", [makeColumn("col-1", "id")]),
-                    isDeleted: true,
-                } as SchemaDesigner.Table & { isDeleted: true },
+                data: markDeletedTable(makeTable("table-1", "users", [makeColumn("col-1", "id")])),
             },
             {
                 id: "table-2",
                 type: "tableNode",
                 position: { x: 0, y: 0 },
-                data: {
-                    ...makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
-                    isDeleted: true,
-                } as SchemaDesigner.Table & { isDeleted: true },
+                data: markDeletedTable(
+                    makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+                ),
             },
         ];
 
         const merged = mergeDeletedTableNodes(currentNodes, deletedNodes);
         expect(merged.map((node) => node.id)).to.deep.equal(["table-1", "table-2"]);
-        expect((merged[1].data as { isDeleted?: boolean }).isDeleted).to.equal(true);
+        expect(merged[1].data).to.have.property("isDeleted", true);
     });
 
     test("mergeColumnsWithDeleted preserves baseline ordering", () => {
@@ -181,8 +186,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
 
         const ids = merged.map((c) => c.id);
         expect(ids).to.deep.equal([colA.id, colB.id, colC.id]);
-        const deleted = merged[1] as { isDeleted?: boolean };
-        expect(deleted.isDeleted).to.equal(true);
+        expect(merged[1]).to.have.property("isDeleted", true);
     });
 
     test("buildDeletedForeignKeyEdges uses baseline column ids when current column is missing", () => {
@@ -229,7 +233,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
         expect(edges[0].sourceHandle).to.equal("right-col-1");
         expect(edges[0].targetHandle).to.equal("left-col-3");
         expect(edges[0].markerEnd).to.deep.equal({ type: MarkerType.ArrowClosed });
-        expect((edges[0].data as { isDeleted?: boolean }).isDeleted).to.equal(true);
+        expect(edges[0].data).to.have.property("isDeleted", true);
     });
 
     test("buildDeletedForeignKeyEdges targets deleted table nodes when provided", () => {
@@ -263,10 +267,9 @@ suite("SchemaDesigner deleted visuals utils", () => {
                 id: "deleted-table-2",
                 type: "tableNode",
                 position: { x: 0, y: 0 },
-                data: {
-                    ...makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
-                    isDeleted: true,
-                } as SchemaDesigner.Table & { isDeleted: true },
+                data: markDeletedTable(
+                    makeTable("table-2", "orders", [makeColumn("col-2", "order_id")]),
+                ),
             },
         ];
 
