@@ -517,7 +517,9 @@ export const SchemaDesignerFlow = () => {
                         return;
                     }
 
-                    const isDeleted = Boolean((edge.data as { isDeleted?: boolean })?.isDeleted);
+                    const isDeleted = Boolean(
+                        (edge.data as SchemaDesigner.ForeignKeyWithDeletedFlag)?.isDeleted,
+                    );
                     const changeAction = isDeleted
                         ? ChangeAction.Delete
                         : context.newForeignKeyIds.has(foreignKeyId)

@@ -94,8 +94,6 @@ const ConditionalTooltip = ({
     return childWithRef;
 };
 
-type SchemaDesignerTableRender = SchemaDesigner.Table & { isDeleted?: boolean };
-
 // Styles for the table node components
 const useStyles = makeStyles({
     tableNodeContainer: {
@@ -330,7 +328,7 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesignerTableRender }) => {
+const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const isDeletedTable = table.isDeleted === true;
@@ -419,8 +417,6 @@ const TableHeader = ({ table }: { table: SchemaDesignerTableRender }) => {
     );
 };
 
-type SchemaDesignerColumnRender = SchemaDesigner.Column & { isDeleted?: boolean };
-
 // TableColumn component for rendering a single column
 const TableColumn = ({
     column,
@@ -428,8 +424,8 @@ const TableColumn = ({
     isTableDeleted,
     onRequestUndo,
 }: {
-    column: SchemaDesignerColumnRender;
-    table: SchemaDesignerTableRender;
+    column: SchemaDesigner.ColumnWithDeletedFlag;
+    table: SchemaDesigner.TableWithDeletedFlag;
     isTableDeleted: boolean;
     onRequestUndo: (change: SchemaChange) => void;
 }) => {
@@ -570,7 +566,6 @@ const TableColumn = ({
                                 ? locConstants.schemaDesigner.undo
                                 : (revertInfo?.reason ?? "")
                         }
-                        showDelay={1000}
                         relationship="label">
                         <Button
                             appearance="primary"
@@ -605,7 +600,7 @@ const ConsolidatedHandles = ({
     hiddenColumns,
     isTableDeleted,
 }: {
-    hiddenColumns: SchemaDesignerColumnRender[];
+    hiddenColumns: SchemaDesigner.ColumnWithDeletedFlag[];
     isTableDeleted: boolean;
 }) => {
     return (
@@ -663,7 +658,7 @@ const TableColumns = ({
     onRequestUndo,
 }: {
     columns: SchemaDesigner.Column[];
-    table: SchemaDesignerTableRender;
+    table: SchemaDesigner.TableWithDeletedFlag;
     isDeletedTable: boolean;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
@@ -735,7 +730,7 @@ const TableColumns = ({
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const table = props.data as SchemaDesignerTableRender;
+    const table = props.data as SchemaDesigner.TableWithDeletedFlag;
     const isDeletedTable = table.isDeleted === true;
     // Default to collapsed state if table has more than 10 columns
     const [isCollapsed, setIsCollapsed] = useState(!isDeletedTable && table.columns.length > 10);
