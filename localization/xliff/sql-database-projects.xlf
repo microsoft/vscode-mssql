@@ -866,6 +866,9 @@
     <trans-unit id="++CODE++8d66c11ffe9d849ccb39c04ce5d102192c452fc9c89d376887dd576170ac2793">
       <source xml:lang="en">Select where to publish the project to</source>
     </trans-unit>
+    <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
+      <source xml:lang="en">Sequence</source>
+    </trans-unit>
     <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
       <source xml:lang="en">Server</source>
     </trans-unit>
