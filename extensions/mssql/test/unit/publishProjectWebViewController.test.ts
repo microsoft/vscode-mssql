@@ -450,6 +450,12 @@ suite("PublishProjectWebViewController Tests", () => {
 
         await controller.initialized.promise;
 
+        // Set up connection URI so getConnectionStringOnDemand works
+        controller["_connectionUri"] = "mssql://test-connection";
+        mockConnectionManager.getConnectionString.resolves(
+            "Server=myserver.database.windows.net;Database=ProductionDB",
+        );
+
         // Set up server and database state
         controller.state.formState.serverName = "myserver.database.windows.net";
         controller.state.formState.databaseName = "ProductionDB";
