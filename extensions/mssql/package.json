@@ -554,6 +554,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@1"
                 },
                 {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@2"
+                },
+                {
                     "command": "mssql.editConnection",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@2"
@@ -577,6 +582,16 @@
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
+                },
+                {
+                    "command": "mssql.renameDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
+                    "command": "mssql.dropDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
@@ -702,6 +717,11 @@
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
                     "group": "inline@1"
                 },
                 {
@@ -1021,6 +1041,22 @@
             {
                 "command": "mssql.objectExplorerNewQuery",
                 "title": "%mssql.objectExplorerNewQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.createDatabase",
+                "title": "%mssql.createDatabase%",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.dropDatabase",
+                "title": "%mssql.dropDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.renameDatabase",
+                "title": "%mssql.renameDatabase%",
                 "category": "MS SQL"
             },
             {
