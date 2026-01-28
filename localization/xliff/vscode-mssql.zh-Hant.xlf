@@ -43,6 +43,10 @@
         <source xml:lang="en">+ Create Connection Group</source>
         <target state="translated">+ 建立連線群組</target>
       </trans-unit>
+      <trans-unit id="++CODE++3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112">
+        <source xml:lang="en">-</source>
+        <target state="new">-</target>
+      </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">在執行此命令之前，SQL 編輯器必須聚焦</target>
@@ -1009,6 +1013,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Collapse connections</source>
         <target state="translated">摺疊連線</target>
       </trans-unit>
+      <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
+        <source xml:lang="en">Collation</source>
+        <target state="new">Collation</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
         <target state="translated">色彩</target>
@@ -1099,6 +1107,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
         <target state="translated">比較詳細資料</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
+        <source xml:lang="en">Compatibility Level</source>
+        <target state="new">Compatibility Level</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -1369,6 +1381,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
         <target state="translated">容器未能在逾時期間內啟動。請稍候幾分鐘，然後再試一次。</target>
       </trans-unit>
+      <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
+        <source xml:lang="en">Containment Type</source>
+        <target state="new">Containment Type</target>
+      </trans-unit>
       <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
         <source xml:lang="en">Contains</source>
         <target state="translated">包含</target>
@@ -1504,6 +1520,11 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
         <target state="translated">在 Fabric 中建立 SQL 資料庫 (預覽)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c4e11ad9f72c183a2ea2cdf1ed42c358aee2b87c96cad4d22d7d22b967dd3b8">
+        <source xml:lang="en">Create a new database on '{0}'.</source>
+        <note>{0} is the name of the server</note>
+        <target state="new">Create a new database on '{0}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
@@ -1652,6 +1673,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Database Description</source>
         <target state="translated">資料庫描述</target>
       </trans-unit>
+      <trans-unit id="++CODE++331a6c931050da7a047695a8068d30760c2c3abcdc09249f23c6a68a585d2ca7">
+        <source xml:lang="en">Database Details</source>
+        <target state="new">Database Details</target>
+      </trans-unit>
       <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
         <source xml:lang="en">Database Name</source>
         <target state="translated">資料庫名稱</target>
@@ -1687,6 +1712,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e64407cd183c9ac5788f9e96fbcebb236838ab1361d3a1106833f30dc63a9a6e">
         <source xml:lang="en">Database name is too long. Maximum length is 128 characters</source>
         <target state="translated">檔案名稱過長。長度上限為 128 個字元</target>
+      </trans-unit>
+      <trans-unit id="++CODE++402d00d25022d7d90590017acaa8ef375ab6ddd4f14be17bb58c7003175216ae">
+        <source xml:lang="en">Database name must be 128 characters or fewer</source>
+        <target state="new">Database name must be 128 characters or fewer</target>
       </trans-unit>
       <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
         <source xml:lang="en">Database not found on the server</source>
@@ -1731,6 +1760,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
         <source xml:lang="en">Delete Row</source>
         <target state="translated">刪除資料列</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
+        <source xml:lang="en">Delete backup and restore history</source>
+        <target state="new">Delete backup and restore history</target>
       </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
@@ -1917,6 +1950,28 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">不要再顯示</target>
       </trans-unit>
+      <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
+        <source xml:lang="en">Drop</source>
+        <target state="new">Drop</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6762af3cf8c17ce017132a6670e2e67054ec353ed41c80d24e252f402aec1550">
+        <source xml:lang="en">Drop '{0}' from '{1}'. This action cannot be undone.</source>
+        <note>{0} is the database name
+{1} is the server name</note>
+        <target state="new">Drop '{0}' from '{1}'. This action cannot be undone.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
+        <source xml:lang="en">Drop Database</source>
+        <target state="new">Drop Database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
+        <source xml:lang="en">Drop Database Options</source>
+        <target state="new">Drop Database Options</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
+        <source xml:lang="en">Drop active connections</source>
+        <target state="new">Drop active connections</target>
+      </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">輕鬆設定本機 SQL Server，而不需離開 VS Code 延伸模組。只要按幾下滑鼠就能輕鬆安裝、設定及管理您的伺服器！</target>
@@ -2059,6 +2114,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Enter the SQL Login password for user '{0}'.</source>
         <note>{0} is the SQL Login username</note>
         <target state="translated">請輸入使用者 '{0}' 的 SQL 登入密碼。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++493f89b5d0c917509476602a7ad84ca70dd6bba7558fa30416f54c5c0458e15c">
+        <source xml:lang="en">Enter the new database name</source>
+        <target state="new">Enter the new database name</target>
       </trans-unit>
       <trans-unit id="++CODE++41058600ed8ab3d197264132f1b22ed25b7b2d9fa6afdffd559fc08bca9e6075">
         <source xml:lang="en">Enter the path for the output file</source>
@@ -2440,6 +2499,12 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">無法建立新資料列: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++1d1ece53e805a9b638cb289253e56faa6197e148738b75e24f6670b681717ff0">
+        <source xml:lang="en">Failed to create database '{0}'. {1}</source>
+        <note>{0} is the database name
+{1} is the error message</note>
+        <target state="new">Failed to create database '{0}'. {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
         <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
         <note>{0} is the id
@@ -2450,6 +2515,12 @@ Error:
         <source xml:lang="en">Failed to delete {0}.</source>
         <note>Failed to delete {0}.</note>
         <target state="translated">無法刪除 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7a651621eb764f916f46ebe62caf229dac567051acd6540f0e2b87d50e3f59c">
+        <source xml:lang="en">Failed to drop database '{0}'. {1}</source>
+        <note>{0} is the database name
+{1} is the error message</note>
+        <target state="new">Failed to drop database '{0}'. {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
@@ -2560,6 +2631,13 @@ Error:
         <source xml:lang="en">Failed to remove row: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">無法移除資料列: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++309bc0739401a907fa1d222eff128feb5fc0feb86312e4f727ad14c7f8c20e95">
+        <source xml:lang="en">Failed to rename database '{0}' to '{1}'. {2}</source>
+        <note>{0} is the current database name
+{1} is the new database name
+{2} is the error message</note>
+        <target state="new">Failed to rename database '{0}' to '{1}'. {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
         <source xml:lang="en">Failed to revert cell: {0}</source>
@@ -3196,6 +3274,10 @@ Error:
       <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
         <source xml:lang="en">Is Identity</source>
         <target state="translated">為識別值</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ea66fb270a32f7ef42424605fcee4a35665033b151fafac0c648fe3d8cb8129">
+        <source xml:lang="en">Is Ledger Database</source>
+        <target state="new">Is Ledger Database</target>
       </trans-unit>
       <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
         <source xml:lang="en">Is Persisted</source>
@@ -3974,6 +4056,10 @@ Error:
         <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
         <target state="translated">沒有可用的指令碼。請先變更資料表資料並產生指令碼。</target>
       </trans-unit>
+      <trans-unit id="++CODE++4208eed39129c84332acd1dcb2c74e8e6073039e80862fc02cb09aa3fae5ed8e">
+        <source xml:lang="en">No script generated.</source>
+        <target state="new">No script generated.</target>
+      </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">沒有任何可使用的訂用帳戶。請調整您的訂用帳戶篩選，然後再試一次。</target>
@@ -4214,6 +4300,10 @@ Error:
         <note>{0} is the feature name</note>
         <target state="translated">整體而言，您對 {0} 的滿意程度如何?</target>
       </trans-unit>
+      <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
+        <source xml:lang="en">Owner</source>
+        <target state="new">Owner</target>
+      </trans-unit>
       <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
         <source xml:lang="en">PNG</source>
         <target state="translated">PNG</target>
@@ -4298,9 +4388,21 @@ Error:
         <source xml:lang="en">Please make your password 8-128 characters long.</source>
         <target state="translated">請將您的密碼設定為 8-128 個字元長。</target>
       </trans-unit>
+      <trans-unit id="++CODE++0f179525aa14d186654c204026817bf67502b1de9f993418f8de58aab9e05ce6">
+        <source xml:lang="en">Please select a database node in Object Explorer to drop.</source>
+        <target state="new">Please select a database node in Object Explorer to drop.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++42990e221cd66206bd59e10ce7ba785f6e8a88282b99827f844bbe43089294d5">
+        <source xml:lang="en">Please select a database node in Object Explorer to rename.</source>
+        <target state="new">Please select a database node in Object Explorer to rename.</target>
+      </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
         <target state="translated">請從物件總管中選取一個節點來產生指令碼。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3b03607c2bb1ba12950e5d6e40b67962fbaf476154b4ce14c11d5d918d9df58">
+        <source xml:lang="en">Please select a server node in Object Explorer to create a database.</source>
+        <target state="new">Please select a server node in Object Explorer to create a database.</target>
       </trans-unit>
       <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
         <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
@@ -4568,6 +4670,10 @@ Error:
         <source xml:lang="en">Recent connections list cleared</source>
         <target state="translated">已清除最近的連線清單</target>
       </trans-unit>
+      <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
+        <source xml:lang="en">Recovery Model</source>
+        <target state="new">Recovery Model</target>
+      </trans-unit>
       <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
         <source xml:lang="en">Redo</source>
         <target state="translated">重做</target>
@@ -4626,6 +4732,10 @@ Error:
         <source xml:lang="en">Remove {0}</source>
         <note>{0} is the object type</note>
         <target state="translated">移除 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
+        <source xml:lang="en">Rename Database</source>
+        <target state="new">Rename Database</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -5991,6 +6101,10 @@ Query: {2}</source>
         <source xml:lang="en">Unknown error</source>
         <target state="translated">未知的錯誤</target>
       </trans-unit>
+      <trans-unit id="++CODE++47910f2afddaf1712b164656a035d7fd1f09b784038c43c65b190ea778c68f58">
+        <source xml:lang="en">Unknown object management dialog.</source>
+        <target state="new">Unknown object management dialog.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
         <source xml:lang="en">Unknown tenant ID</source>
         <target state="translated">未知的租用戶識別碼</target>
@@ -6699,6 +6813,10 @@ Query: {2}</source>
         <source xml:lang="en">Create Azure Function with SQL binding</source>
         <target state="translated">使用 SQL 繫結建立 Azure 函數</target>
       </trans-unit>
+      <trans-unit id="mssql.createDatabase">
+        <source xml:lang="en">Create Database</source>
+        <target state="new">Create Database</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
         <target state="translated">使用資料表設計工具建立資料表</target>
@@ -6768,6 +6886,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.enableRichExperiencesDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to enable UI-based features</source>
         <target state="translated">不要顯示提示來啟用以 UI 為基礎的功能</target>
+      </trans-unit>
+      <trans-unit id="mssql.dropDatabase">
+        <source xml:lang="en">Drop Database</source>
+        <target state="new">Drop Database</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -7124,6 +7246,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.removeAadAccount">
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">移除 Microsoft Entra 帳戶</target>
+      </trans-unit>
+      <trans-unit id="mssql.renameDatabase">
+        <source xml:lang="en">Rename Database</source>
+        <target state="new">Rename Database</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
