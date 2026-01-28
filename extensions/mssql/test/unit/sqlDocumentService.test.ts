@@ -854,7 +854,9 @@ suite("SqlDocumentService Tests", () => {
 
         test("should transfer connection when setting is true (default)", async () => {
             // Set up the configuration to return true
-            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(true);
+            mockConfig.get
+                .withArgs(Constants.configTransferActiveEditorConnections, true)
+                .returns(true);
 
             // Set a last active connection
             const testConnection: IConnectionInfo = {
@@ -873,7 +875,9 @@ suite("SqlDocumentService Tests", () => {
 
         test("should NOT transfer connection when setting is false", async () => {
             // Set up the configuration to return false
-            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(false);
+            mockConfig.get
+                .withArgs(Constants.configTransferActiveEditorConnections, true)
+                .returns(false);
 
             // Set a last active connection
             const testConnection: IConnectionInfo = {
@@ -891,7 +895,9 @@ suite("SqlDocumentService Tests", () => {
 
         test("should use true as default when configuration is not set", async () => {
             // Set up the configuration to return the default value (true)
-            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(true);
+            mockConfig.get
+                .withArgs(Constants.configTransferActiveEditorConnections, true)
+                .returns(true);
 
             // Set a last active connection
             const testConnection: IConnectionInfo = {
@@ -909,7 +915,9 @@ suite("SqlDocumentService Tests", () => {
 
         test("should still propagate to connectionManager regardless of transfer setting", async () => {
             // Set up the configuration to return false
-            mockConfig.get.withArgs("transferActiveEditorConnections", true).returns(false);
+            mockConfig.get
+                .withArgs(Constants.configTransferActiveEditorConnections, true)
+                .returns(false);
 
             // Set a last active connection
             const testConnection: IConnectionInfo = {
