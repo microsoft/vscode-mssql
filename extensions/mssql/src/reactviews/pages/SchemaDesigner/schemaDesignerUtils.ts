@@ -9,6 +9,12 @@ import { Connection, ConnectionLineType, Edge, MarkerType, Node } from "@xyflow/
 import dagre from "@dagrejs/dagre";
 import { v4 as uuidv4 } from "uuid";
 
+type TableWithDeletedFlag = SchemaDesigner.Table & { isDeleted?: boolean };
+type ForeignKeyWithDeletedFlag = SchemaDesigner.ForeignKey & { isDeleted?: boolean };
+
+const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean =>
+    value?.isDeleted === true;
+
 export const namingUtils = {
     getNextColumnName: (columns: SchemaDesigner.Column[]): string => {
         let index = 1;
@@ -578,11 +584,13 @@ export const foreignKeyUtils = {
     },
 
     extractForeignKeysFromEdges: (
-        edges: Edge<SchemaDesigner.ForeignKey>[],
+        edges: Edge<ForeignKeyWithDeletedFlag>[],
         sourceTableId: string,
         schema: SchemaDesigner.Schema,
     ): SchemaDesigner.ForeignKey[] => {
-        const filteredEdges = edges.filter((edge) => edge.source === sourceTableId);
+        const filteredEdges = edges.filter(
+            (edge) => edge.source === sourceTableId && !isDeleted(edge.data),
+        );
         const edgesMap = new Map<string, SchemaDesigner.ForeignKey>();
 
         filteredEdges.forEach((edge) => {
@@ -949,21 +957,23 @@ export const flowUtils = {
     },
 
     extractSchemaModel: (
-        nodes: Node<SchemaDesigner.Table>[],
-        edges: Edge<SchemaDesigner.ForeignKey>[],
+        nodes: Node<TableWithDeletedFlag>[],
+        edges: Edge<ForeignKeyWithDeletedFlag>[],
     ): SchemaDesigner.Schema => {
+        const filteredNodes = nodes.filter((node) => !isDeleted(node.data));
+
         // Create a deep copy of the nodes to avoid mutating the original data
-        const tables = nodes.map((node) => ({
+        const tables = filteredNodes.map((node) => ({
             ...node.data,
             foreignKeys: [] as SchemaDesigner.ForeignKey[],
         }));
 
         // Process edges to create foreign keys
         edges.forEach((edge) => {
-            const sourceNode = nodes.find((node) => node.id === edge.source);
-            const targetNode = nodes.find((node) => node.id === edge.target);
+            const sourceNode = filteredNodes.find((node) => node.id === edge.source);
+            const targetNode = filteredNodes.find((node) => node.id === edge.target);
 
-            if (!sourceNode || !targetNode || !edge.data) {
+            if (!sourceNode || !targetNode || !edge.data || isDeleted(edge.data)) {
                 console.warn(`Edge ${edge.id} references non-existent nodes or has no data`);
                 return;
             }
