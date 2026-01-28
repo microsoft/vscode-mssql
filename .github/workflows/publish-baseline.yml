@@ -44,6 +44,11 @@ jobs:
         with:
           source-dir: "./extensions/sql-database-projects"
 
+      - name: Data Workspace - Install dependencies and build
+        uses: ./.github/actions/build-dataworkspace
+        with:
+          source-dir: "./extensions/data-workspace"
+
       - name: MSSQL - Package extension
         run: |
           cd extensions/mssql
@@ -52,6 +57,11 @@ jobs:
       - name: SqlProj - Package extension
         run: |
           cd extensions/sql-database-projects
+          vsce package
+
+      - name: Data Workspace - Package extension
+        run: |
+          cd extensions/data-workspace
           vsce package
 
       - name: Calculate and save sizes
