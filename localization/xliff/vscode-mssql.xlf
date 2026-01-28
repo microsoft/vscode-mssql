@@ -1918,6 +1918,9 @@
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c75609a1b51d70bffe904347742f828a9c32853120f6c72e96dffd05b68b010c">
+      <source xml:lang="en">Failed to get connection string: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
       <source xml:lang="en">Failed to get tenant &apos;{0}&apos; for account &apos;{1}&apos;.</source>
       <note>{0} is the tenant id

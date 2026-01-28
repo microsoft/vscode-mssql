@@ -8,7 +8,7 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
-import { IConnectionDialogProfile } from "./connectionDialog";
+import { ApiStatus } from "./webview";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -96,11 +96,8 @@ export interface PublishDialogState
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
-    availableConnections?: IConnectionDialogProfile[];
     selectedProfileId?: string;
-    connectionOwnerUri?: string;
-    isLoadingDatabases?: boolean;
-    isConnecting?: boolean;
+    loadConnectionStatus?: ApiStatus;
 }
 
 /**

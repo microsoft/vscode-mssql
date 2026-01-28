@@ -9,6 +9,7 @@ import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import { renderCombobox, renderSearchableDropdown } from "./FormFieldComponents";
 import { locConstants } from "../../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
@@ -27,8 +28,9 @@ export const ConnectionSection: React.FC = () => {
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
     const selectedProfileId = usePublishDialogSelector((s) => s.selectedProfileId);
-    const isConnecting = usePublishDialogSelector((s) => s.isConnecting);
-    const isLoadingDatabases = usePublishDialogSelector((s) => s.isLoadingDatabases);
+    const loadConnectionStatus = usePublishDialogSelector((s) => s.loadConnectionStatus);
+
+    const isConnecting = loadConnectionStatus === ApiStatus.Loading;
 
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
@@ -73,7 +75,7 @@ export const ConnectionSection: React.FC = () => {
                 localDatabase,
                 true, // freeform - always allow typing database name
                 handleDatabaseChange,
-                isLoadingDatabases ?? false, // disabled while loading
+                isConnecting, // disabled while loading
             )}
         </div>
     );

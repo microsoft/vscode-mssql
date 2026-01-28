@@ -1914,6 +1914,8 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "Failed to get connection string: {0}": "Failed to get connection string: {0}",
+    "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
@@ -2199,7 +2201,6 @@
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
     "No connection information found": "No connection information found",
-    "No active connection": "No active connection",
     "Opening schema designer...": "Opening schema designer...",
     "No connection credentials found": "No connection credentials found",
     "No active connection for schema view": "No active connection for schema view",

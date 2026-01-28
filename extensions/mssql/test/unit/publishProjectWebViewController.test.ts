@@ -24,6 +24,7 @@ import {
     PublishDialogState,
     MaskMode,
 } from "../../src/sharedInterfaces/publishDialog";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { SqlPackageService } from "../../src/services/sqlPackageService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
@@ -558,8 +559,11 @@ suite("PublishProjectWebViewController Tests", () => {
         // Configure listDatabases stub to return sample databases
         mockConnectionManager.listDatabases.resolves(["testdb", "master", "model"]);
 
-        // Call the private method
-        const result = await controller["connectAndPopulateDatabases"](azureMfaConnectionString);
+        // Call the private method with state as first argument
+        const result = await controller["connectAndPopulateDatabases"](
+            controller.state,
+            azureMfaConnectionString,
+        );
 
         // Verify the helper was called to populate missing accountId
         expect(mockConnectionManager.ensureAccountIdForAzureMfa).to.have.been.calledOnce;
@@ -572,9 +576,9 @@ suite("PublishProjectWebViewController Tests", () => {
         // Verify connect was called (which means accountId was populated successfully)
         expect(mockConnectionManager.connect).to.have.been.calledOnce;
 
-        // Verify connection succeeded
-        expect(result.connectionUri).to.exist;
-        expect(result.errorMessage).to.be.undefined;
+        // Verify connection succeeded (returns connection URI string, not undefined)
+        expect(result).to.exist;
+        expect(result).to.be.a("string");
 
         // Verify databases were populated in the component
         const databaseComponent = controller.state.formComponents.databaseName;
@@ -666,7 +670,6 @@ suite("PublishProjectWebViewController Tests", () => {
         await controller.initialized.promise;
 
         // Verify server dropdown is populated from saved connections
-        expect(controller.state.availableConnections).to.have.length(1);
         const serverComponent = controller.state.formComponents.serverName;
         expect(serverComponent.options).to.have.length(1);
         expect(serverComponent.options[0].displayName).to.equal("Test Server");
@@ -687,8 +690,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Verify state is updated correctly
         expect(controller.state.selectedProfileId).to.equal("profile-1");
-        expect(controller.state.isConnecting).to.be.false;
-        expect(controller.state.isLoadingDatabases).to.be.false;
+        expect(controller.state.loadConnectionStatus).to.equal(ApiStatus.Loaded);
     });
 
     test("connectToServer reducer handles connection failure and displays error", async () => {
@@ -726,9 +728,8 @@ suite("PublishProjectWebViewController Tests", () => {
         const databaseComponent = controller.state.formComponents.databaseName;
         expect(databaseComponent.options).to.have.length(0);
 
-        // Verify loading states are properly reset
-        expect(controller.state.isConnecting).to.be.false;
-        expect(controller.state.isLoadingDatabases).to.be.false;
+        // Verify loading status is properly set to error
+        expect(controller.state.loadConnectionStatus).to.equal(ApiStatus.Error);
     });
     //#endregion
 
