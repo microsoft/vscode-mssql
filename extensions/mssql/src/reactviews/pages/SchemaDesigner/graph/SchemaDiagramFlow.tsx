@@ -25,9 +25,14 @@ import {
     FinalConnectionState,
     ConnectionLineType,
 } from "@xyflow/react";
+import { ArrowUndo16Regular } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { filterDeletedNodes, mergeDeletedTableNodes } from "../diff/deletedVisualUtils";
+import {
+    filterDeletedEdges,
+    filterDeletedNodes,
+    mergeDeletedTableNodes,
+} from "../diff/deletedVisualUtils";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
@@ -42,6 +47,7 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
+    Tooltip,
     Toast,
     ToastBody,
     Toaster,
@@ -52,6 +58,7 @@ import {
 import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
 import { locConstants } from "../../../common/locConstants.js";
+import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -82,12 +89,77 @@ export const SchemaDesignerFlow = () => {
     const reactFlow = useReactFlow();
 
     const refreshRafId = useRef<number | undefined>(undefined);
+    const flowWrapperRef = useRef<HTMLDivElement | null>(null);
+    const edgeUndoWrapperRef = useRef<HTMLDivElement | null>(null);
 
     const deleteNodeConfirmationPromise = useRef<
         ((value: boolean | PromiseLike<boolean>) => void) | undefined
     >(undefined);
 
     const [open, setOpen] = useState(false);
+    const [edgeUndoState, setEdgeUndoState] = useState<{
+        change: SchemaChange;
+        canRevert: boolean;
+        reason?: string;
+        position: { x: number; y: number };
+    } | null>(null);
+    const [edgeUndoDialogOpen, setEdgeUndoDialogOpen] = useState(false);
+    const [pendingEdgeUndoChange, setPendingEdgeUndoChange] = useState<SchemaChange | null>(null);
+
+    const highlightedEdges = useMemo(() => {
+        const addedClass = "schema-designer-edge-added";
+        const modifiedClass = "schema-designer-edge-modified";
+        let didChange = false;
+        const nextEdges = relationshipEdges.map((edge) => {
+            const foreignKeyId = edge.data?.id;
+            const shouldHighlight =
+                context.isChangesPanelVisible &&
+                !!foreignKeyId &&
+                context.newForeignKeyIds.has(foreignKeyId);
+            const shouldShowModified =
+                context.isChangesPanelVisible &&
+                !!foreignKeyId &&
+                context.modifiedForeignKeyIds.has(foreignKeyId);
+
+            const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
+            const classSet = new Set(baseClass);
+
+            if (shouldHighlight) {
+                classSet.add(addedClass);
+            } else {
+                classSet.delete(addedClass);
+            }
+
+            if (shouldShowModified) {
+                classSet.add(modifiedClass);
+            } else {
+                classSet.delete(modifiedClass);
+            }
+
+            const nextClassName = classSet.size > 0 ? Array.from(classSet).join(" ") : undefined;
+            if (nextClassName === edge.className) {
+                return edge;
+            }
+
+            didChange = true;
+            return { ...edge, className: nextClassName };
+        });
+
+        return didChange ? nextEdges : relationshipEdges;
+    }, [
+        context.isChangesPanelVisible,
+        context.newForeignKeyIds,
+        context.modifiedForeignKeyIds,
+        relationshipEdges,
+    ]);
+
+    const displayEdges = useMemo(() => {
+        if (!context.isChangesPanelVisible || context.deletedForeignKeyEdges.length === 0) {
+            return highlightedEdges;
+        }
+
+        return [...highlightedEdges, ...context.deletedForeignKeyEdges];
+    }, [context.deletedForeignKeyEdges, context.isChangesPanelVisible, highlightedEdges]);
 
     const displayNodes = useMemo(() => {
         if (!context.isChangesPanelVisible) {
@@ -96,6 +168,12 @@ export const SchemaDesignerFlow = () => {
 
         return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
     }, [context.isChangesPanelVisible, deletedSchemaNodes, schemaNodes]);
+
+    useEffect(() => {
+        if (!context.isChangesPanelVisible) {
+            setEdgeUndoState(null);
+        }
+    }, [context.isChangesPanelVisible]);
 
     useEffect(() => {
         setDeletedSchemaNodes((prev) => {
@@ -153,7 +231,9 @@ export const SchemaDesignerFlow = () => {
                 setSchemaNodes(
                     filterDeletedNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]),
                 );
-                setRelationshipEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                setRelationshipEdges(
+                    filterDeletedEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]),
+                );
             });
         };
 
@@ -175,7 +255,9 @@ export const SchemaDesignerFlow = () => {
                 return;
             }
 
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const matchingEdges = edgesFromStore.filter((e) => e.data?.id === foreignKeyId);
 
             if (matchingEdges.length === 0) {
@@ -214,7 +296,9 @@ export const SchemaDesignerFlow = () => {
         eventBus.on("revealForeignKeyEdges", revealForeignKeyEdges);
 
         const clearEdgeSelection = () => {
-            const edgesFromStore = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const edgesFromStore = filterDeletedEdges(
+                reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+            );
             const updatedEdges = edgesFromStore.map((e) => ({
                 ...e,
                 selected: false,
@@ -390,11 +474,11 @@ export const SchemaDesignerFlow = () => {
     };
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
                 nodes={displayNodes}
-                edges={relationshipEdges}
+                edges={displayEdges}
                 nodeTypes={NODE_TYPES}
                 onNodesChange={(changes) => {
                     const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
@@ -421,6 +505,84 @@ export const SchemaDesignerFlow = () => {
                 }}
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
+                onEdgeMouseEnter={(event, edge) => {
+                    if (!context.isChangesPanelVisible || context.isExporting) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const foreignKeyId = edge.data?.id;
+                    if (!foreignKeyId) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const isDeleted = Boolean(
+                        (edge.data as SchemaDesigner.ForeignKeyWithDeletedFlag)?.isDeleted,
+                    );
+                    const changeAction = isDeleted
+                        ? ChangeAction.Delete
+                        : context.newForeignKeyIds.has(foreignKeyId)
+                          ? ChangeAction.Add
+                          : context.modifiedForeignKeyIds.has(foreignKeyId)
+                            ? ChangeAction.Modify
+                            : undefined;
+
+                    if (!changeAction) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const sourceNode =
+                        displayNodes.find((node) => node.id === edge.source) ??
+                        (reactFlow.getNode(edge.source) as Node<SchemaDesigner.Table> | undefined);
+                    if (!sourceNode) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const rawTableId = sourceNode.id;
+                    const tableId = rawTableId.startsWith("deleted-")
+                        ? rawTableId.replace(/^deleted-/, "")
+                        : rawTableId;
+
+                    const change: SchemaChange = {
+                        id: `foreignKey:${changeAction}:${tableId}:${foreignKeyId}`,
+                        action: changeAction,
+                        category: ChangeCategory.ForeignKey,
+                        tableId,
+                        tableName: sourceNode.data.name,
+                        tableSchema: sourceNode.data.schema,
+                        objectId: foreignKeyId,
+                        objectName: edge.data?.name,
+                    };
+
+                    const rect = flowWrapperRef.current?.getBoundingClientRect();
+                    if (!rect) {
+                        setEdgeUndoState(null);
+                        return;
+                    }
+
+                    const x = event.clientX - rect.left + 6;
+                    const y = event.clientY - rect.top - 6;
+                    const revertInfo = context.canRevertChange(change);
+                    setEdgeUndoState({
+                        change,
+                        canRevert: revertInfo.canRevert,
+                        reason: revertInfo.reason,
+                        position: { x, y },
+                    });
+                }}
+                onEdgeMouseLeave={(event) => {
+                    if (
+                        edgeUndoWrapperRef.current?.contains(
+                            event.relatedTarget as unknown as globalThis.Node,
+                        )
+                    ) {
+                        return;
+                    }
+                    setEdgeUndoState(null);
+                }}
                 onDelete={() => {
                     eventBus.emit("getScript");
                     eventBus.emit("pushState");
@@ -440,6 +602,41 @@ export const SchemaDesignerFlow = () => {
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
+            {edgeUndoState && (
+                <div
+                    ref={edgeUndoWrapperRef}
+                    style={{
+                        position: "absolute",
+                        left: edgeUndoState.position.x,
+                        top: edgeUndoState.position.y,
+                        zIndex: 5,
+                        padding: "10px",
+                    }}
+                    onMouseLeave={() => setEdgeUndoState(null)}>
+                    <Tooltip
+                        content={
+                            edgeUndoState.canRevert
+                                ? locConstants.schemaDesigner.undo
+                                : (edgeUndoState.reason ?? "")
+                        }
+                        relationship="label">
+                        <Button
+                            appearance="primary"
+                            size="small"
+                            icon={<ArrowUndo16Regular />}
+                            disabled={!edgeUndoState.canRevert}
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                if (!edgeUndoState.canRevert) {
+                                    return;
+                                }
+                                setPendingEdgeUndoChange(edgeUndoState.change);
+                                setEdgeUndoDialogOpen(true);
+                            }}
+                        />
+                    </Tooltip>
+                </div>
+            )}
             <Dialog
                 open={open}
                 onOpenChange={(_event, data) => {
@@ -477,6 +674,41 @@ export const SchemaDesignerFlow = () => {
                                     {locConstants.schemaDesigner.cancel}
                                 </Button>
                             </DialogTrigger>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+            <Dialog
+                open={edgeUndoDialogOpen}
+                onOpenChange={(_event, data) => {
+                    setEdgeUndoDialogOpen(data.open);
+                    if (!data.open) {
+                        setPendingEdgeUndoChange(null);
+                    }
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.deleteConfirmation}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.deleteConfirmationContent}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    if (pendingEdgeUndoChange) {
+                                        context.revertChange(pendingEdgeUndoChange);
+                                    }
+                                    setEdgeUndoDialogOpen(false);
+                                    setEdgeUndoState(null);
+                                }}>
+                                {locConstants.schemaDesigner.undo}
+                            </Button>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => setEdgeUndoDialogOpen(false)}>
+                                {locConstants.schemaDesigner.cancel}
+                            </Button>
                         </DialogActions>
                     </DialogBody>
                 </DialogSurface>
