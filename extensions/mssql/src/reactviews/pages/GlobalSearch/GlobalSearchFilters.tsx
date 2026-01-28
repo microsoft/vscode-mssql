@@ -13,7 +13,7 @@ import {
     Checkbox,
     Label,
     Divider,
-    Button,
+    Link,
 } from "@fluentui/react-components";
 import {
     TableRegular,
@@ -197,20 +197,12 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         <div className={classes.schemaSectionHeader}>
                             <Label className={classes.sectionTitle}>Schemas</Label>
                             <div className={classes.schemaActions}>
-                                <Button
-                                    size="small"
-                                    appearance="subtle"
-                                    onClick={() => context.selectAllSchemas()}
-                                >
+                                <Link onClick={() => context.selectAllSchemas()}>
                                     All
-                                </Button>
-                                <Button
-                                    size="small"
-                                    appearance="subtle"
-                                    onClick={() => context.clearSchemaSelection()}
-                                >
+                                </Link>
+                                <Link onClick={() => context.clearSchemaSelection()}>
                                     None
-                                </Button>
+                                </Link>
                             </div>
                         </div>
                         <div className={classes.schemaList}>
