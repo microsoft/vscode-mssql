@@ -641,6 +641,132 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
+    "Show Changes ({0})/{0} is the number of schema changes": {
+        "message": "Show Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "Changes ({0})/{0} is the number of schema changes": {
+        "message": "Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "No changes yet.": "No changes yet.",
+    "{0}: {1}/{0} is the qualified table name{1} is the change description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is the change description"]
+    },
+    "undefined": "undefined",
+    "{0} changed from '{1}' to '{2}'/{0} is the display name of the property{1} is the old value{2} is the new value": {
+        "message": "{0} changed from '{1}' to '{2}'",
+        "comment": [
+            "{0} is the display name of the property",
+            "{1} is the old value",
+            "{2} is the new value"
+        ]
+    },
+    "Created table {0}/{0} is the qualified table name": {
+        "message": "Created table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Deleted table {0}/{0} is the qualified table name": {
+        "message": "Deleted table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}/{0} is the qualified table name": {
+        "message": "Modified table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}: {1}/{0} is the qualified table name{1} is a list of property changes": {
+        "message": "Modified table {0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is a list of property changes"]
+    },
+    "Added column '{0}'/{0} is the column name": {
+        "message": "Added column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Deleted column '{0}'/{0} is the column name": {
+        "message": "Deleted column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}'/{0} is the column name": {
+        "message": "Modified column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}': {1}/{0} is the column name{1} is a list of property changes": {
+        "message": "Modified column '{0}': {1}",
+        "comment": ["{0} is the column name", "{1} is a list of property changes"]
+    },
+    "Added foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Added foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Deleted foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Deleted foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Modified foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}': {1}/{0} is the foreign key name{1} is a list of property changes": {
+        "message": "Modified foreign key '{0}': {1}",
+        "comment": ["{0} is the foreign key name", "{1} is a list of property changes"]
+    },
+    "Added": "Added",
+    "Modified": "Modified",
+    "Deleted": "Deleted",
+    "All": "All",
+    "Filter changes": "Filter changes",
+    "Action": "Action",
+    "Category": "Category",
+    "Clear all": "Clear all",
+    "Reveal": "Reveal",
+    "Revert": "Revert",
+    "Search changes...": "Search changes...",
+    "No changes match your search.": "No changes match your search.",
+    "Navigate to this item in the diagram": "Navigate to this item in the diagram",
+    "Revert this change to its original state": "Revert this change to its original state",
+    "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
+    "Cannot revert: The column is part of a foreign key that references a deleted table": "Cannot revert: The column is part of a foreign key that references a deleted table",
+    "{0} change(s)/{0} is the number of changes": {
+        "message": "{0} change(s)",
+        "comment": ["{0} is the number of changes"]
+    },
+    "Data API Builder Configuration": "Data API Builder Configuration",
+    "API Type": "API Type",
+    "REST API": "REST API",
+    "GraphQL": "GraphQL",
+    "Both": "Both",
+    "Entity Endpoints": "Entity Endpoints",
+    "All Schemas": "All Schemas",
+    "{0} of {1} enabled/{0} is the number of enabled entities{1} is the total number of entities": {
+        "message": "{0} of {1} enabled",
+        "comment": ["{0} is the number of enabled entities", "{1} is the total number of entities"]
+    },
+    "Create": "Create",
+    "Read": "Read",
+    "Update": "Update",
+    "Entity name used in API routes": "Entity name used in API routes",
+    "View Config": "View Config",
+    "Generate & Run": "Generate & Run",
+    "Back to Schema": "Back to Schema",
+    "Advanced Entity Configuration": "Advanced Entity Configuration",
+    "Entity Name": "Entity Name",
+    "Used in API routes and responses": "Used in API routes and responses",
+    "Authorization Role": "Authorization Role",
+    "Define who can access this endpoint": "Define who can access this endpoint",
+    "Anonymous": "Anonymous",
+    "No authentication required": "No authentication required",
+    "Authenticated": "Authenticated",
+    "Requires user authentication": "Requires user authentication",
+    "Custom REST Path": "Custom REST Path",
+    "Optional - Override default api/entityName path": "Optional - Override default api/entityName path",
+    "Custom GraphQL Type": "Custom GraphQL Type",
+    "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
+    "Apply Changes": "Apply Changes",
+    "Source Table": "Source Table",
+    "Loading...": "Loading...",
+    "Initializing DAB configuration...": "Initializing DAB configuration...",
+    "No entities found": "No entities found",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -675,7 +801,6 @@
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Source Name": "Source Name",
     "Include": "Include",
-    "Action": "Action",
     "Target Name": "Target Name",
     "Change": "Change",
     "Select Source": "Select Source",
@@ -821,9 +946,36 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create a new database on '{0}'./{0} is the name of the server": {
+        "message": "Create a new database on '{0}'.",
+        "comment": ["{0} is the name of the server"]
+    },
+    "General": "General",
+    "Database Name": "Database Name",
+    "Enter database name": "Enter database name",
+    "Database name is required": "Database name is required",
+    "Database name must be 128 characters or fewer": "Database name must be 128 characters or fewer",
+    "Owner": "Owner",
+    "Collation": "Collation",
+    "Recovery Model": "Recovery Model",
+    "Compatibility Level": "Compatibility Level",
+    "Containment Type": "Containment Type",
+    "Is Ledger Database": "Is Ledger Database",
+    "Help": "Help",
+    "Drop Database": "Drop Database",
+    "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
+        "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
+        "comment": ["{0} is the database name", "{1} is the server name"]
+    },
+    "Database Details": "Database Details",
+    "Drop Database Options": "Drop Database Options",
+    "Status": "Status",
+    "-": "-",
+    "Drop active connections": "Drop active connections",
+    "Delete backup and restore history": "Delete backup and restore history",
+    "Drop": "Drop",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
-    "Loading...": "Loading...",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
     "Select a server": "Select a server",
@@ -845,18 +997,15 @@
     "Browse...": "Browse...",
     "Target Database": "Target Database",
     "Source Database": "Source Database",
-    "Database Name": "Database Name",
     "New Database": "New Database",
     "Existing Database": "Existing Database",
     "Select a database": "Select a database",
-    "Enter database name": "Enter database name",
     "Application Name": "Application Name",
     "Enter application name": "Enter application name",
     "Application Version": "Application Version",
     "Execute": "Execute",
     "File path is required": "File path is required",
     "Invalid file": "Invalid file",
-    "Database name is required": "Database name is required",
     "Invalid database": "Invalid database",
     "Validation failed": "Validation failed",
     "Deploying DACPAC...": "Deploying DACPAC...",
@@ -991,7 +1140,6 @@
     "<default>": "<default>",
     "Auth type": "Auth type",
     "User ID": "User ID",
-    "Status": "Status",
     "Toggle selection for {0}/{0} is the connection display name": {
         "message": "Toggle selection for {0}",
         "comment": ["{0} is the connection display name"]
@@ -1079,6 +1227,27 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
+    "Rename Database": "Rename Database",
+    "Enter the new database name": "Enter the new database name",
+    "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
+    "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
+    "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
+    "Failed to create database '{0}'. {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to create database '{0}'. {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
+    "Failed to drop database '{0}'. {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to drop database '{0}'. {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
+    "Failed to rename database '{0}' to '{1}'. {2}/{0} is the current database name{1} is the new database name{2} is the error message": {
+        "message": "Failed to rename database '{0}' to '{1}'. {2}",
+        "comment": [
+            "{0} is the current database name",
+            "{1} is the new database name",
+            "{2} is the error message"
+        ]
+    },
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
     "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -1120,7 +1289,6 @@
     "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
     "Choose a connection profile from the list below": "Choose a connection profile from the list below",
     "Create Connection Profile": "Create Connection Profile",
-    "Create": "Create",
     "Clear Recent Connections List": "Clear Recent Connections List",
     "Edit": "Edit",
     "Remove": "Remove",
@@ -1312,7 +1480,6 @@
         "message": "Disconnected on document \"{0}\"",
         "comment": ["{0} is the document name"]
     },
-    "Help": "Help",
     "macOS Sierra or newer is required to use this feature.": "macOS Sierra or newer is required to use this feature.",
     "Getting definition ...": "Getting definition ...",
     "DefinitionRequested": "DefinitionRequested",
@@ -1386,6 +1553,8 @@
     },
     "Failed to generate script. Please check the logs for more details.": "Failed to generate script. Please check the logs for more details.",
     "Failed to open script in editor.": "Failed to open script in editor.",
+    "No script generated.": "No script generated.",
+    "Unknown object management dialog.": "Unknown object management dialog.",
     "Failed to generate script: {0}/{0} is the error message": {
         "message": "Failed to generate script: {0}",
         "comment": ["{0} is the error message"]
@@ -1449,7 +1618,6 @@
         "comment": ["{0} is the script type"]
     },
     "Insert": "Insert",
-    "Update": "Update",
     "Alter": "Alter",
     "Signing in to Azure...": "Signing in to Azure...",
     "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder./{0} is the group name": {
@@ -1786,7 +1954,6 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
-    "General": "General",
     "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
@@ -2311,7 +2478,7 @@
         "message": "Import failed: {0}",
         "comment": ["{0} is the error message returned from the import helper."]
     },
-    "This connection's group has not been selected, so this connection will be imported the root.": "This connection's group has not been selected, so this connection will be imported the root.",
+    "This connection's group has not been selected, so this connection will be imported to the root.": "This connection's group has not been selected, so this connection will be imported to the root.",
     "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
     "Try it": "Try it",
     "Watch demo": "Watch demo",
@@ -2319,9 +2486,34 @@
     "Read docs": "Read docs",
     "Watch demos on YouTube": "Watch demos on YouTube",
     "View roadmap": "View roadmap",
-    "Read the documentation": "Read the documentation",
+    "Read docs on Microsoft Learn": "Read docs on Microsoft Learn",
     "Join the discussions": "Join the discussions",
     "Customize keyboard shortcuts": "Customize keyboard shortcuts",
+    "Azure Data Studio Connection Migration Toolkit": "Azure Data Studio Connection Migration Toolkit",
+    "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.": "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+    "Edit Data (Preview)": "Edit Data (Preview)",
+    "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.": "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)": "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
+    "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.": "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
+    "SQL Database Projects – Publish Dialog (Preview)": "SQL Database Projects – Publish Dialog (Preview)",
+    "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.": "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
+    "In case you missed it": "In case you missed it",
+    "Previously released features you may not have explored yet.": "Previously released features you may not have explored yet.",
+    "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.": "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.": "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    "Local SQL Server Container": "Local SQL Server Container",
+    "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.": "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
+    "GitHub Copilot integration": "GitHub Copilot integration",
+    "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.": "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    "Explore tutorials, docs, and what's coming next.": "Explore tutorials, docs, and what's coming next.",
+    "Feedback": "Feedback",
+    "Help us improve by sharing your thoughts.": "Help us improve by sharing your thoughts.",
+    "Open a new bug": "Open a new bug",
+    "Request a new feature": "Request a new feature",
+    "GitHub Copilot survey": "GitHub Copilot survey",
+    "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
+    "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
+    "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
     "Failed to launch profiler: {0}/{0} is the error message": {
         "message": "Failed to launch profiler: {0}",
         "comment": ["{0} is the error message"]

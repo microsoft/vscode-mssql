@@ -37,6 +37,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SqlPackageService } from "../services/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
+import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
@@ -48,6 +49,8 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
+import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
+import { DropDatabaseWebviewController } from "./dropDatabaseWebviewController";
 import {
     DacpacDialogWebviewState,
     DacPacDialogOperationType,
@@ -132,6 +135,7 @@ export default class MainController implements vscode.Disposable {
 
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
+    public objectManagementService: ObjectManagementService;
     public schemaCompareService: SchemaCompareService;
     public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
@@ -599,6 +603,9 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(
                 SqlToolsServerClient.instance,
                 this.sqlTasksService,
+            );
+            this.objectManagementService = new ObjectManagementService(
+                SqlToolsServerClient.instance,
             );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
@@ -1399,6 +1406,205 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        const resolveSelectedNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                return this.objectExplorerTree.selection[0];
+            }
+            return node;
+        };
+
+        const refreshNodeChildren = async (node?: TreeNodeInfo): Promise<void> => {
+            if (!node) {
+                return;
+            }
+            await this._objectExplorerProvider.refreshNode(node);
+        };
+
+        const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
+
+        const findServerNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            let current = node;
+            while (current) {
+                if (current.nodeType === Constants.serverLabel) {
+                    return current;
+                }
+                current = current.parentNode;
+            }
+            return undefined;
+        };
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCreateDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectServerNodeToCreateDatabase,
+                        );
+                        return;
+                    }
+
+                    const isDatabasesFolder =
+                        targetNode.context.type === Constants.folderLabel &&
+                        targetNode.context.subType === "Databases";
+                    const serverNode =
+                        targetNode.nodeType === Constants.serverLabel
+                            ? targetNode
+                            : isDatabasesFolder
+                              ? findServerNode(targetNode)
+                              : undefined;
+
+                    if (!serverNode || serverNode.nodeType !== Constants.serverLabel) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectServerNodeToCreateDatabase,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = serverNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const controller = new CreateDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        connectionProfile.database || Constants.defaultDatabase,
+                        serverNode.metadata?.urn ?? "Server",
+                        LocalizedConstants.createDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const createdDatabase = await controller.dialogResult.promise;
+                    if (createdDatabase) {
+                        await refreshNodeChildren(isDatabasesFolder ? targetNode : serverNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDropDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectDatabaseNodeToDrop,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const parentUrn = targetNode.parentNode?.metadata?.urn ?? "Server";
+                    const objectUrn = targetNode.metadata?.urn;
+                    const controller = new DropDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        objectUrn,
+                        LocalizedConstants.dropDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const droppedDatabase = await controller.dialogResult.promise;
+                    if (droppedDatabase) {
+                        await refreshNodeChildren(targetNode.parentNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRenameDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectDatabaseNodeToRename,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const newName = await vscode.window.showInputBox({
+                        title: LocalizedConstants.renameDatabaseDialogTitle,
+                        value: databaseName,
+                        placeHolder: LocalizedConstants.renameDatabaseInputPlaceholder,
+                        validateInput: (value: string): string | undefined => {
+                            if (!value.trim()) {
+                                return LocalizedConstants.databaseNameRequired;
+                            }
+                            return undefined;
+                        },
+                    });
+
+                    if (!newName || newName === databaseName) {
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const objectUrn =
+                        targetNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
+
+                    try {
+                        await this.objectManagementService.rename(
+                            connectionUri,
+                            Constants.databaseString,
+                            objectUrn,
+                            newName,
+                        );
+                        await refreshNodeChildren(targetNode.parentNode);
+                    } catch (error) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.renameDatabaseError(
+                                databaseName,
+                                newName,
+                                getErrorMessage(error),
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
         const connectParentNode = async (node: AccountSignInTreeNode | ConnectTreeNode) => {
             this._objectExplorerProvider.deleteChildrenCache(node.parentNode);
             void this._objectExplorerProvider.refresh(node.parentNode);
@@ -1743,13 +1949,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands (only register if experimental features are enabled)
-        if (this.isExperimentalEnabled) {
-            registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-            registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-            registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
-        }
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(

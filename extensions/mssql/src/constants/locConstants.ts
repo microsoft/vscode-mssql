@@ -26,6 +26,50 @@ export class Common {
     public static privateString = l10n.t("Private");
 }
 
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
+export let databaseNameRequired = l10n.t("Database name is required");
+export let msgSelectServerNodeToCreateDatabase = l10n.t(
+    "Please select a server node in Object Explorer to create a database.",
+);
+export let msgSelectDatabaseNodeToDrop = l10n.t(
+    "Please select a database node in Object Explorer to drop.",
+);
+export let msgSelectDatabaseNodeToRename = l10n.t(
+    "Please select a database node in Object Explorer to rename.",
+);
+export function createDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to create database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function dropDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to drop database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function renameDatabaseError(
+    databaseName: string,
+    newDatabaseName: string,
+    errorMessage: string,
+) {
+    return l10n.t({
+        message: "Failed to rename database '{0}' to '{1}'. {2}",
+        args: [databaseName, newDatabaseName, errorMessage],
+        comment: [
+            "{0} is the current database name",
+            "{1} is the new database name",
+            "{2} is the error message",
+        ],
+    });
+}
+
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
     "View mssql for Visual Studio Code release notes?",
@@ -544,6 +588,8 @@ export let msgScriptingFailed = l10n.t(
     "Failed to generate script. Please check the logs for more details.",
 );
 export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export let msgNoScriptGenerated = l10n.t("No script generated.");
+export let msgObjectManagementUnknownDialog = l10n.t("Unknown object management dialog.");
 export function msgScriptingOperationFailed(error: string): string {
     return l10n.t({
         message: "Failed to generate script: {0}",
@@ -2470,7 +2516,7 @@ export class AzureDataStudioMigration {
         });
 
     public static groupNotSelectedWillBeMovedToRootWarning = l10n.t(
-        "This connection's group has not been selected, so this connection will be imported the root.",
+        "This connection's group has not been selected, so this connection will be imported to the root.",
     );
 }
 
@@ -2482,9 +2528,67 @@ export class Changelog {
     public static readDocs = l10n.t("Read docs");
     public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
     public static viewRoadmap = l10n.t("View roadmap");
-    public static readTheDocumentation = l10n.t("Read the documentation");
+    public static readTheDocumentation = l10n.t("Read docs on Microsoft Learn");
     public static joinTheDiscussions = l10n.t("Join the discussions");
     public static customizeKeyboardShortcuts = l10n.t("Customize keyboard shortcuts");
+
+    // Main content
+    public static mainContentTitle = l10n.t("Highlights");
+    public static adsMigrationTitle = l10n.t("Azure Data Studio Connection Migration Toolkit");
+    public static adsMigrationDescription = l10n.t(
+        "Migrate saved connections and connection groups from Azure Data Studio into the MSSQL extension. This guided experience helps you continue working with familiar environments with minimal setup.",
+    );
+    public static editDataTitle = l10n.t("Edit Data (Preview)");
+    public static editDataDescription = l10n.t(
+        "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
+    );
+    public static dacpacTitle = l10n.t(
+        "Data-Tier Application (DACPAC / BACPAC) Import & Export (Preview)",
+    );
+    public static dacpacDescription = l10n.t(
+        "Deploy and extract .dacpac files or import/export .bacpac packages using an integrated, streamlined workflow in the MSSQL extension.",
+    );
+    public static sqlProjPublishTitle = l10n.t("SQL Database Projects – Publish Dialog (Preview)");
+    public static sqlProjPublishDescription = l10n.t(
+        "Deploy database changes using a guided Publish Dialog in SQL Database Projects, with script preview for SQL Server and Azure SQL databases.",
+    );
+
+    // Secondary content
+    public static secondaryContentTitle = l10n.t("In case you missed it");
+    public static secondaryContentDescription = l10n.t(
+        "Previously released features you may not have explored yet.",
+    );
+    public static schemaDesignerTitle = l10n.t("Schema Designer");
+    public static schemaDesignerDescription = l10n.t(
+        "Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.",
+    );
+    public static schemaCompareTitle = l10n.t("Schema Compare");
+    public static schemaCompareDescription = l10n.t(
+        "Compare database schemas across databases, DACPAC files, or SQL projects. Review differences and apply changes or generate deployment scripts to keep schemas in sync.",
+    );
+    public static localContainerTitle = l10n.t("Local SQL Server Container");
+    public static localContainerDescription = l10n.t(
+        "Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.",
+    );
+    public static copilotIntegrationTitle = l10n.t("GitHub Copilot integration");
+    public static copilotIntegrationDescription = l10n.t(
+        "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.",
+    );
+
+    // Sidebar content
+    public static resourcesTitle = l10n.t("Resources");
+    public static resourcesDescription = l10n.t("Explore tutorials, docs, and what's coming next.");
+    public static feedbackTitle = l10n.t("Feedback");
+    public static feedbackDescription = l10n.t("Help us improve by sharing your thoughts.");
+    public static openNewBug = l10n.t("Open a new bug");
+    public static requestNewFeature = l10n.t("Request a new feature");
+    public static copilotSurvey = l10n.t("GitHub Copilot survey");
+    public static gettingStartedTitle = l10n.t("Getting Started");
+    public static gettingStartedDescription = l10n.t(
+        "New to the MSSQL extension? Check out our quick-start guide.",
+    );
+    public static mssqlWalkthrough = l10n.t("MSSQL - VS Code walkthrough");
+    public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 }
 
 export class Profiler {
