@@ -16,6 +16,7 @@ import {
     DataGridRow,
     TableCellLayout,
     TableColumnDefinition,
+    TableColumnSizingOptions,
     createTableColumn,
     Menu,
     MenuTrigger,
@@ -108,6 +109,25 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
     const classes = useStyles();
     const context = useGlobalSearchContext();
 
+    const columnSizingOptions: TableColumnSizingOptions = {
+        name: {
+            minWidth: 200,
+            defaultWidth: 250,
+        },
+        schema: {
+            minWidth: 80,
+            defaultWidth: 100,
+        },
+        type: {
+            minWidth: 120,
+            defaultWidth: 160,
+        },
+        actions: {
+            minWidth: 80,
+            defaultWidth: 80,
+        },
+    };
+
     // Empty state
     if (results.length === 0) {
         return (
@@ -168,6 +188,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 columns={columns}
                 sortable
                 resizableColumns
+                columnSizingOptions={columnSizingOptions}
                 size="small"
                 getRowId={(item) => item.fullName}
             >
