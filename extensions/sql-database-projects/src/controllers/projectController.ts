@@ -904,7 +904,8 @@ export class ProjectsController {
 
 	/**
 	 * Gets the default folder path for a given item type when creating at project root.
-	 * Checks for nested folder structure: Schema/ObjectType/ (e.g., Sales/Functions/)
+	 * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
+	 * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
 	 * @param itemType The type of item being created
 	 * @param project The project to check for existing folders
 	 * @param schemaName Optional schema name to look for schema-named folders
@@ -913,6 +914,22 @@ export class ProjectsController {
 	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject, schemaName?: string): string {
 		let relativePath = '';
 
+		// Get the folder config for this item type (defaults to schema-dependent if not in map)
+		const folderConfig = templates.itemTypeToFolderMap.get(itemType);
+		const isSchemaDependent = folderConfig?.schemaDependent ?? true;
+		const folderName = folderConfig?.folderName;
+
+		// Non-schema-dependent items - check root-level folder only
+		if (!isSchemaDependent && folderName) {
+			const rootFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
+			if (rootFolder) {
+				relativePath = rootFolder.relativePath;
+			}
+			return relativePath;
+		}
+
+		// For schema-dependent items, check schema folders
 		if (schemaName) {
 			// Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
 			const schemaFolder = project.folders.find(f =>
@@ -922,9 +939,8 @@ export class ProjectsController {
 				relativePath = schemaFolder.relativePath;
 
 				// Case 2: Check for nested object type folder (e.g., "Sales/Functions")
-				const objectTypeFolder = templates.itemTypeToDefaultFolderMap.get(itemType);
-				if (objectTypeFolder) {
-					const nestedPath = path.join(schemaFolder.relativePath, objectTypeFolder);
+				if (folderName) {
+					const nestedPath = path.join(schemaFolder.relativePath, folderName);
 					const nestedFolder = project.folders.find(f =>
 						f.relativePath.toLowerCase() === nestedPath.toLowerCase());
 
