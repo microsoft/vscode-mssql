@@ -66,6 +66,10 @@ export interface SchemaDesignerContextProps
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabSchemaFilter: string[];
     setDabSchemaFilter: (schemas: string[]) => void;
+    dabConfigContent: string;
+    dabConfigRequestId: number;
+    generateDabConfig: () => Promise<void>;
+    openDabConfigInEditor: (configContent: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -102,6 +106,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
+    const [dabConfigContent, setDabConfigContent] = useState<string>("");
+    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
 
     useEffect(() => {
         const handleScript = () => {
@@ -579,6 +585,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [],
     );
 
+    const generateDabConfig = useCallback(async () => {
+        if (!dabConfig) {
+            return;
+        }
+        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
+            config: dabConfig,
+        });
+        if (response.success) {
+            setDabConfigContent(response.configContent);
+            setDabConfigRequestId((id) => id + 1);
+        }
+    }, [dabConfig, extensionRpc]);
+
+    const openDabConfigInEditor = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -628,6 +656,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 updateDabEntitySettings,
                 dabSchemaFilter,
                 setDabSchemaFilter,
+                dabConfigContent,
+                dabConfigRequestId,
+                generateDabConfig,
+                openDabConfigInEditor,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

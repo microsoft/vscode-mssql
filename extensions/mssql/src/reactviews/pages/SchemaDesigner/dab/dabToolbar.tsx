@@ -88,7 +88,8 @@ const useStyles = makeStyles({
 export function DabToolbar() {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter } = context;
+    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter, generateDabConfig } =
+        context;
 
     if (!dabConfig) {
         return null;
@@ -120,15 +121,16 @@ export function DabToolbar() {
                         appearance="subtle"
                         icon={<FluentIcons.DocumentCopy16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.viewConfig}>
-                        {locConstants.schemaDesigner.viewConfig}
+                        title={locConstants.schemaDesigner.generateConfig}
+                        onClick={() => void generateDabConfig()}>
+                        {locConstants.schemaDesigner.generateConfig}
                     </Button>
                     <Button
                         appearance="primary"
                         icon={<FluentIcons.Play16Filled />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateAndRun}>
-                        {locConstants.schemaDesigner.generateAndRun}
+                        title={locConstants.schemaDesigner.deploy}>
+                        {locConstants.schemaDesigner.deploy}
                     </Button>
                 </div>
             </div>
@@ -139,8 +141,7 @@ export function DabToolbar() {
                 <Toolbar size="small" className={classes.apiTypeButtons}>
                     {apiTypeOptions.map(({ type, label }) => {
                         const isSelected = dabConfig.apiTypes.includes(type);
-                        const isLastSelected =
-                            isSelected && dabConfig.apiTypes.length === 1;
+                        const isLastSelected = isSelected && dabConfig.apiTypes.length === 1;
                         return (
                             <ToggleButton
                                 key={type}

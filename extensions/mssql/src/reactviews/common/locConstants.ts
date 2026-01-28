@@ -941,8 +941,8 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            viewConfig: l10n.t("View Config"),
-            generateAndRun: l10n.t("Generate & Run"),
+            generateConfig: l10n.t("Generate Config"),
+            deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
