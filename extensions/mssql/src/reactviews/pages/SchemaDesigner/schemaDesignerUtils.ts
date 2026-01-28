@@ -12,7 +12,8 @@ import { v4 as uuidv4 } from "uuid";
 type TableWithDeletedFlag = SchemaDesigner.Table & { isDeleted?: boolean };
 type ForeignKeyWithDeletedFlag = SchemaDesigner.ForeignKey & { isDeleted?: boolean };
 
-const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean => value?.isDeleted === true;
+const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean =>
+    value?.isDeleted === true;
 
 export const namingUtils = {
     getNextColumnName: (columns: SchemaDesigner.Column[]): string => {
