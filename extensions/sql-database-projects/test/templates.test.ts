@@ -134,21 +134,21 @@ suite('Templates', function (): void {
 
 	test('Should have Trigger item template', async function (): Promise<void> {
 		const triggerTemplate = templates.get(ItemType.trigger);
-		should(triggerTemplate).not.equal(undefined);
-		should(triggerTemplate.type).equal(ItemType.trigger);
-		should(triggerTemplate.friendlyName).equal('Trigger');
-		should(triggerTemplate.templateScript).containEql('CREATE TRIGGER');
-		should(triggerTemplate.templateScript).containEql('@@SCHEMA_NAME@@');
-		should(triggerTemplate.templateScript).containEql('@@OBJECT_NAME@@');
+		expect(triggerTemplate, 'Trigger template should be defined').to.not.be.undefined;
+		expect(triggerTemplate.type, 'Trigger template type should match').to.equal(ItemType.trigger);
+		expect(triggerTemplate.friendlyName, 'Trigger template friendly name should be "Trigger"').to.equal('Trigger');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain CREATE TRIGGER').to.include('CREATE TRIGGER');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain @@SCHEMA_NAME@@ placeholder').to.include('@@SCHEMA_NAME@@');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
 	});
 
 	test('Should have Database Trigger item template', async function (): Promise<void> {
 		const dbTriggerTemplate = templates.get(ItemType.databaseTrigger);
-		should(dbTriggerTemplate).not.equal(undefined);
-		should(dbTriggerTemplate.type).equal(ItemType.databaseTrigger);
-		should(dbTriggerTemplate.friendlyName).equal('Database Trigger');
-		should(dbTriggerTemplate.templateScript).containEql('CREATE TRIGGER');
-		should(dbTriggerTemplate.templateScript).containEql('ON DATABASE');
-		should(dbTriggerTemplate.templateScript).containEql('@@OBJECT_NAME@@');
+		expect(dbTriggerTemplate, 'Database Trigger template should be defined').to.not.be.undefined;
+		expect(dbTriggerTemplate.type, 'Database Trigger template type should match').to.equal(ItemType.databaseTrigger);
+		expect(dbTriggerTemplate.friendlyName, 'Database Trigger template friendly name should be "Database Trigger"').to.equal('Database Trigger');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain CREATE TRIGGER').to.include('CREATE TRIGGER');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain ON DATABASE').to.include('ON DATABASE');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
 	});
 });
