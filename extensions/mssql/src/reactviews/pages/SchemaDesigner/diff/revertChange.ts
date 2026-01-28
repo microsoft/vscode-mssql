@@ -50,8 +50,11 @@ export function canRevertChange(
     _allChanges: SchemaChange[],
     messages: RevertMessages,
 ): CanRevertResult {
-    // For foreign key deletions, check if referenced table/column still exists
-    if (change.category === ChangeCategory.ForeignKey && change.action === ChangeAction.Delete) {
+    // For foreign key deletions/modifications, check if referenced table/column still exists
+    if (
+        change.category === ChangeCategory.ForeignKey &&
+        (change.action === ChangeAction.Delete || change.action === ChangeAction.Modify)
+    ) {
         const baselineTable = baselineSchema.tables.find((t) => t.id === change.tableId);
         const baselineFk = baselineTable?.foreignKeys?.find((fk) => fk.id === change.objectId);
 
