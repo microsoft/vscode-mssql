@@ -9,7 +9,6 @@ import {
     shorthands,
     SearchBox,
     Button,
-    Tooltip,
 } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
