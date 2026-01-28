@@ -950,7 +950,6 @@
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
     },
-    "Loading...": "Loading...",
     "General": "General",
     "Database Name": "Database Name",
     "Enter database name": "Enter database name",
