@@ -1187,11 +1187,11 @@
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>
     </trans-unit>
-    <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
-      <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
-    </trans-unit>
     <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
       <source xml:lang="en">Create a new profiling session</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
+      <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
     </trans-unit>
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
@@ -1945,11 +1945,8 @@
     </trans-unit>
     <trans-unit id="++CODE++1d1ece53e805a9b638cb289253e56faa6197e148738b75e24f6670b681717ff0">
       <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
-      <note>{0} is the database name {1} is the error message</note>
-    </trans-unit>
-    <trans-unit id="++CODE++1d1ece53e805a9b638cb289253e56faa6197e148738b75e24f6670b681717ff0">
-      <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
-      <note>{0} is the database name {1} is the error message</note>
+      <note>{0} is the database name
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1">
       <source xml:lang="en">Failed to create profiler session: {0}</source>
@@ -1957,7 +1954,8 @@
     </trans-unit>
     <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
       <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
-      <note>{0} is the id {1} is the error</note>
+      <note>{0} is the id
+{1} is the error</note>
     </trans-unit>
     <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
       <source xml:lang="en">Failed to delete {0}.</source>
