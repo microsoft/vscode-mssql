@@ -942,39 +942,46 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     // Update UI immediately with profile data
                     this.updateState();
 
-                    // If profile has a connection string, connect in background (non-blocking)
+                    // If profile has a connection string, connect and populate databases
                     if (parsedProfile.connectionString) {
-                        void this.connectAndPopulateDatabases(parsedProfile.connectionString).then(
-                            async (connectionResult) => {
-                                // Update connection fields after background connection completes
-                                this._connectionUri =
-                                    connectionResult.connectionUri || this._connectionUri;
-                                this.state.connectionOwnerUri = this._connectionUri;
-                                if (connectionResult.errorMessage) {
-                                    this.state.formMessage = {
-                                        message: Loc.ProfileLoadedConnectionFailed(
-                                            this.state.formState.serverName,
-                                        ),
-                                        intent: "error",
-                                    };
-                                } else if (connectionResult.connectionUri) {
-                                    // Refresh connections and update server dropdown
-                                    this.state.availableConnections =
-                                        await this.listSavedConnections();
-                                    this.updateServerDropdownOptions();
+                        // Show loading indicators
+                        this.state.isConnecting = true;
+                        this.state.isLoadingDatabases = true;
+                        this.updateState();
 
-                                    // Find and select the matching connection profile
-                                    const serverName = this.state.formState.serverName;
-                                    const matchingProfile = this.state.availableConnections.find(
-                                        (conn) => conn.server === serverName,
-                                    );
-                                    if (matchingProfile?.id) {
-                                        this.state.selectedProfileId = matchingProfile.id;
-                                    }
-                                }
-                                this.updateState();
-                            },
+                        const connectionResult = await this.connectAndPopulateDatabases(
+                            parsedProfile.connectionString,
                         );
+
+                        // Clear loading indicators
+                        this.state.isConnecting = false;
+                        this.state.isLoadingDatabases = false;
+
+                        // Update connection fields after connection completes
+                        this._connectionUri = connectionResult.connectionUri || this._connectionUri;
+                        this.state.connectionOwnerUri = this._connectionUri;
+
+                        if (connectionResult.errorMessage) {
+                            this.state.formMessage = {
+                                message: Loc.ProfileLoadedConnectionFailed(
+                                    this.state.formState.serverName,
+                                ),
+                                intent: "error",
+                            };
+                        } else if (connectionResult.connectionUri) {
+                            // Refresh connections and update server dropdown
+                            this.state.availableConnections = await this.listSavedConnections();
+                            this.updateServerDropdownOptions();
+
+                            // Find and select the matching connection profile
+                            const serverName = this.state.formState.serverName;
+                            const matchingProfile = this.state.availableConnections.find(
+                                (conn) => conn.server === serverName,
+                            );
+                            if (matchingProfile?.id) {
+                                this.state.selectedProfileId = matchingProfile.id;
+                            }
+                        }
                     }
 
                     return this.state;
