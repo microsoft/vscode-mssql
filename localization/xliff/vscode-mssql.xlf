@@ -5734,6 +5734,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
+    <trans-unit id="mssql.transferActiveEditorConnections.description">
+      <source xml:lang="en">When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.</source>
+    </trans-unit>
     <trans-unit id="mssql.statusBar.enableConnectionColor">
       <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder&apos;s color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
     </trans-unit>
