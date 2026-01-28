@@ -274,10 +274,10 @@ suite("DabConfigFileBuilder Tests", () => {
         });
 
         suite("entity REST property", () => {
-            test("should return true when no customRestPath is set", () => {
+            test("should not include rest property when no customRestPath is set", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.entities["Users"].rest).to.equal(true);
+                expect(parsed.entities["Users"].rest).to.be.undefined;
             });
 
             test("should return object with path when customRestPath is set", () => {
@@ -335,14 +335,15 @@ suite("DabConfigFileBuilder Tests", () => {
         });
 
         suite("entity GraphQL property", () => {
-            test("should return true when no customGraphQLType is set", () => {
+            test("should not include graphql property when no customGraphQLType is set", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.entities["Users"].graphql).to.equal(true);
+                expect(parsed.entities["Users"].graphql).to.be.undefined;
             });
 
             test("should return object with type when customGraphQLType is set", () => {
                 const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
                     entities: [
                         createTestEntity({
                             advancedSettings: {
@@ -505,8 +506,6 @@ suite("DabConfigFileBuilder Tests", () => {
                 // First entity - defaults
                 const user = parsed.entities["User"];
                 expect(user.source.object).to.equal("dbo.Users");
-                expect(user.rest).to.equal(true);
-                expect(user.graphql).to.equal(true);
                 expect(user.permissions[0].role).to.equal("anonymous");
                 expect(user.permissions[0].actions).to.deep.equal([
                     "create",
