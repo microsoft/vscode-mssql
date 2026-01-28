@@ -30,6 +30,7 @@ export const itemTypeToFolderMap: ReadonlyMap<ItemType, ItemTypeFolderConfig> = 
 	[ItemType.schema, { folderName: constants.securityFolderName, schemaDependent: false }],
 	[ItemType.tableValuedFunction, { folderName: constants.functionsFolderName, schemaDependent: true }],
 	[ItemType.databaseTrigger, { folderName: constants.databaseTriggersFolderName, schemaDependent: false }],
+	[ItemType.sequence, { folderName: constants.sequencesFolderName, schemaDependent: true }],
 ]);
 
 // Object maps
@@ -75,7 +76,8 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.publishProfile, constants.publishProfileFriendlyName, templateFolderPath, 'newPublishProfileTemplate.publish.xml'),
 		loadObjectTypeInfo(ItemType.tasks, constants.tasksJsonFriendlyName, templateFolderPath, 'tasksTemplate.json'),
 		loadObjectTypeInfo(ItemType.trigger, constants.triggerFriendlyName, templateFolderPath, 'newTsqlTriggerTemplate.sql'),
-		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql')
+		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql'),
+		loadObjectTypeInfo(ItemType.sequence, constants.sequenceFriendlyName, templateFolderPath, 'newTsqlSequenceTemplate.sql')
 	]);
 
 	for (const scriptType of scriptTypes) {

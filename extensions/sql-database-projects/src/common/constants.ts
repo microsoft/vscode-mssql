@@ -468,6 +468,7 @@ export const dataSourceFriendlyName = l10n.t("Data Source");
 export const fileFormatFriendlyName = l10n.t("File Format");
 export const externalStreamFriendlyName = l10n.t("External Stream");
 export const externalStreamingJobFriendlyName = l10n.t("External Streaming Job");
+export const sequenceFriendlyName = l10n.t("Sequence");
 export const preDeployScriptFriendlyName = l10n.t("Script.PreDeployment");
 export const postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
 export const publishProfileFriendlyName = l10n.t("Publish Profile");
@@ -479,6 +480,7 @@ export const tasksJsonFriendlyName = l10n.t("Tasks.json");
 export const securityFolderName = 'Security';
 export const functionsFolderName = 'Functions';
 export const databaseTriggersFolderName = 'DatabaseTriggers';
+export const sequencesFolderName = 'Sequences';
 export const defaultSchemaName = 'dbo';
 //#endregion
 
