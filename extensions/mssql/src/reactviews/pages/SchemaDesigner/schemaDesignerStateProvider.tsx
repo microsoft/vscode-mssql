@@ -351,7 +351,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                                       ...node,
                                       id: `deleted-${node.id}`,
                                       data: { ...node.data, isDeleted: true },
-                                      draggable: false,
+                                      draggable: true,
                                       selectable: false,
                                       connectable: false,
                                       deletable: false,
