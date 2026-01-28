@@ -131,7 +131,13 @@ const useStyles = makeStyles({
         minWidth: 0,
         "& > .fui-TreeItemLayout__main": {
             minWidth: 0,
-            overflow: "hidden",
+            overflow: "visible",
+            whiteSpace: "normal",
+        },
+        "& .fui-TreeItemLayout__main > span": {
+            overflow: "visible",
+            whiteSpace: "normal",
+            textOverflow: "unset",
         },
     },
     tableIcon: {
@@ -155,9 +161,8 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         display: "block",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
+        whiteSpace: "normal",
+        wordBreak: "break-word",
         fontSize: "12px",
     },
     changeIcon: {
@@ -181,9 +186,8 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         display: "block",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
+        whiteSpace: "normal",
+        wordBreak: "break-word",
         fontSize: "12px",
     },
     actionToolbar: {
@@ -196,12 +200,23 @@ const useStyles = makeStyles({
         "& .fui-TreeItemLayout__actions": {
             opacity: 0,
             transition: "opacity 0.15s ease-in-out",
+            visibility: "hidden",
+            position: "absolute",
+            right: "8px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "var(--vscode-editor-background)",
         },
         "&:hover .fui-TreeItemLayout__actions": {
             opacity: 1,
+            visibility: "visible",
         },
         "&:focus-within .fui-TreeItemLayout__actions": {
             opacity: 1,
+            visibility: "visible",
+        },
+        "& .fui-TreeItemLayout": {
+            position: "relative",
         },
     },
 });
@@ -240,6 +255,7 @@ export const SchemaDesignerChangesPanel = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const panelRef = useRef<ImperativePanelHandle | undefined>(undefined);
+    const { setIsChangesPanelVisible } = context;
 
     const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
@@ -253,6 +269,7 @@ export const SchemaDesignerChangesPanel = () => {
     useEffect(() => {
         // Ensure panel starts collapsed
         panelRef.current?.collapse();
+        setIsChangesPanelVisible(false);
 
         const toggle = () => {
             if (!panelRef.current) {
@@ -261,16 +278,19 @@ export const SchemaDesignerChangesPanel = () => {
 
             if (panelRef.current.isCollapsed()) {
                 panelRef.current.expand(DEFAULT_PANEL_SIZE);
+                setIsChangesPanelVisible(true);
             } else {
                 panelRef.current.collapse();
+                setIsChangesPanelVisible(false);
             }
         };
 
         eventBus.on("toggleChangesPanel", toggle);
         return () => {
             eventBus.off("toggleChangesPanel", toggle);
+            setIsChangesPanelVisible(false);
         };
-    }, []);
+    }, [setIsChangesPanelVisible]);
 
     const filteredGroups = useMemo(() => {
         if (!context.schemaChangesSummary?.groups) {
@@ -485,6 +505,9 @@ export const SchemaDesignerChangesPanel = () => {
             collapsible
             defaultSize={DEFAULT_PANEL_SIZE}
             minSize={MIN_PANEL_SIZE}
+            onResize={(size) => {
+                setIsChangesPanelVisible(size > 0);
+            }}
             ref={(ref) => {
                 panelRef.current = ref ?? undefined;
             }}>
@@ -499,7 +522,10 @@ export const SchemaDesignerChangesPanel = () => {
                         icon={<Dismiss12Regular />}
                         title={locConstants.schemaDesigner.close}
                         aria-label={locConstants.schemaDesigner.close}
-                        onClick={() => panelRef.current?.collapse()}
+                        onClick={() => {
+                            panelRef.current?.collapse();
+                            setIsChangesPanelVisible(false);
+                        }}
                     />
                 </div>
 
