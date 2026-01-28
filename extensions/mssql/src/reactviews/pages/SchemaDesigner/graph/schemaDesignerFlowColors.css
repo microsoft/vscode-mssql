@@ -114,6 +114,10 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
     stroke: var(--vscode-gitDecoration-deletedResourceForeground);
 }
 
+.react-flow__edge.schema-designer-edge-deleted {
+    pointer-events: visibleStroke;
+}
+
 .react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
     width: 10px;
