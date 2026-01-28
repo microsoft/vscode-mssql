@@ -26,7 +26,6 @@ import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useMarkdownStyles } from "../../../common/styles";
-import { SaveIcon16 } from "../../../common/icons/fluentIcons";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -91,7 +90,7 @@ export function PublishChangesDialogButton() {
             <Tooltip content={locConstants.schemaDesigner.publishChanges} relationship="label">
                 <ToolbarButton
                     appearance="primary"
-                    icon={<SaveIcon16 />}
+                    icon={<FluentIcons.Save20Regular />}
                     disabled={publishButtonDisabled || !hasSchemaChanges}
                     onClick={async () => {
                         setState({

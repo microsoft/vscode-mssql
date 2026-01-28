@@ -17,7 +17,7 @@ import * as htmlToImage from "html-to-image";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
-import { ExportIcon16 } from "../../../common/icons/fluentIcons";
+import * as FluentIcons from "@fluentui/react-icons";
 
 export function ExportDiagramButton() {
     const { getNodes } = useReactFlow();
@@ -121,7 +121,10 @@ export function ExportDiagramButton() {
         <Menu>
             <MenuTrigger disableButtonEnhancement>
                 <Tooltip content={locConstants.schemaDesigner.export} relationship="label">
-                    <ToolbarButton appearance="subtle" icon={<ExportIcon16 />} />
+                    <ToolbarButton
+                        appearance="subtle"
+                        icon={<FluentIcons.ArrowExport20Regular />}
+                    />
                 </Tooltip>
             </MenuTrigger>
 
