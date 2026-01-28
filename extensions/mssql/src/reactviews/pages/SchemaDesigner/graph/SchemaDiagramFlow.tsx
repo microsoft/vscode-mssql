@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -19,12 +19,15 @@ import {
     ConnectionMode,
     type Node,
     type Edge,
+    type NodeChange,
     addEdge,
+    applyNodeChanges,
     FinalConnectionState,
     ConnectionLineType,
 } from "@xyflow/react";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { filterDeletedNodes, mergeDeletedTableNodes } from "../diff/deletedVisualUtils";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
@@ -71,6 +74,7 @@ export const SchemaDesignerFlow = () => {
     const [schemaNodes, setSchemaNodes, onNodesChange] = useNodesState<Node<SchemaDesigner.Table>>(
         [],
     );
+    const [deletedSchemaNodes, setDeletedSchemaNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
     const [relationshipEdges, setRelationshipEdges, onEdgesChange] = useEdgesState<
         Edge<SchemaDesigner.ForeignKey>
     >([]);
@@ -84,6 +88,35 @@ export const SchemaDesignerFlow = () => {
     >(undefined);
 
     const [open, setOpen] = useState(false);
+
+    const displayNodes = useMemo(() => {
+        if (!context.isChangesPanelVisible) {
+            return schemaNodes;
+        }
+
+        return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
+    }, [context.isChangesPanelVisible, deletedSchemaNodes, schemaNodes]);
+
+    useEffect(() => {
+        setDeletedSchemaNodes((prev) => {
+            if (context.deletedTableNodes.length === 0) {
+                return [];
+            }
+
+            const prevById = new Map(prev.map((node) => [node.id, node]));
+            return context.deletedTableNodes.map((node) => {
+                const existing = prevById.get(node.id);
+                if (!existing) {
+                    return node;
+                }
+
+                return {
+                    ...node,
+                    position: existing.position,
+                };
+            });
+        });
+    }, [context.deletedTableNodes]);
 
     useEffect(() => {
         const intialize = async () => {
@@ -117,7 +150,9 @@ export const SchemaDesignerFlow = () => {
             // defer to the next frame so we read the updated store.
             refreshRafId.current = requestAnimationFrame(() => {
                 refreshRafId.current = undefined;
-                setSchemaNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                setSchemaNodes(
+                    filterDeletedNodes(reactFlow.getNodes() as Node<SchemaDesigner.Table>[]),
+                );
                 setRelationshipEdges(reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
             });
         };
@@ -197,7 +232,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Displays an error toast notification
-     * @param {string} errorMessage - The error message to display
+     * @param errorMessage - The error message to display
      */
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
@@ -210,7 +245,7 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles new connections between nodes
-     * @param {Connection} params - Connection parameters
+     * @param params - Connection parameters
      */
     const handleConnect = (params: Connection) => {
         const sourceNode = schemaNodes.find((node) => node.id === params.source);
@@ -271,8 +306,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Handles the end of a connection attempt
-     * @param {Event} _event - The connection event
-     * @param {FinalConnectionState} connectionState - The final connection state
+     * @param _event - The connection event
+     * @param connectionState - The final connection state
      */
     const handleConnectEnd = (_event: Event, connectionState: FinalConnectionState) => {
         if (!connectionState.isValid) {
@@ -331,8 +366,8 @@ export const SchemaDesignerFlow = () => {
 
     /**
      * Validates if a connection is valid
-     * @param {Connection | Edge} connection - The connection to validate
-     * @returns {boolean} Whether the connection is valid
+     * @param connection - The connection to validate
+     * @returns Whether the connection is valid
      */
     const validateConnection = (
         connection: Connection | Edge<SchemaDesigner.ForeignKey>,
@@ -358,10 +393,25 @@ export const SchemaDesignerFlow = () => {
         <div style={{ width: "100%", height: "100%" }}>
             <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
-                nodes={schemaNodes}
+                nodes={displayNodes}
                 edges={relationshipEdges}
                 nodeTypes={NODE_TYPES}
-                onNodesChange={onNodesChange}
+                onNodesChange={(changes) => {
+                    const isDeletedNodeChange = (change: NodeChange<Node<SchemaDesigner.Table>>) =>
+                        "id" in change &&
+                        typeof change.id === "string" &&
+                        change.id.startsWith("deleted-");
+                    const deletedChanges = changes.filter(isDeletedNodeChange);
+                    const regularChanges = changes.filter((change) => !isDeletedNodeChange(change));
+
+                    if (regularChanges.length > 0) {
+                        onNodesChange(regularChanges);
+                    }
+
+                    if (deletedChanges.length > 0) {
+                        setDeletedSchemaNodes((nodes) => applyNodeChanges(deletedChanges, nodes));
+                    }
+                }}
                 onEdgesChange={onEdgesChange}
                 onConnect={handleConnect}
                 onConnectEnd={handleConnectEnd}
