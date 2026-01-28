@@ -22,6 +22,7 @@ import {
     PublishTarget,
     GenerateSqlPackageCommandRequest,
 } from "../sharedInterfaces/publishDialog";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { SqlPackageService } from "../services/sqlPackageService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
@@ -496,13 +497,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * Lists all saved connections from the connection store.
      * Returns all connection profiles, not just active connections.
      */
-    private async listSavedConnections(): Promise<IConnectionProfile[]> {
+    private async listSavedConnections(): Promise<IConnectionDialogProfile[]> {
         try {
             const savedConnections =
                 await this._connectionManager.connectionStore.readAllConnections();
-            return savedConnections as IConnectionProfile[];
+            return savedConnections as IConnectionDialogProfile[];
         } catch (error) {
             this.logger.error(`Failed to list saved connections: ${getErrorMessage(error)}`);
+            return [];
+        }
+    }
+
+    /**
+     * Fetches the list of databases for the given connection URI.
+     * Returns an empty array if the fetch fails.
+     */
+    private async fetchDatabaseList(ownerUri: string): Promise<string[]> {
+        try {
+            return await this._connectionManager.listDatabases(ownerUri);
+        } catch (error) {
+            this.logger.warn(`Failed to list databases: ${getErrorMessage(error)}`);
             return [];
         }
     }
@@ -538,13 +552,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // Check if already connected
             let ownerUri = this._connectionManager.getUriForConnection(profile);
             if (ownerUri && this._connectionManager.isConnected(ownerUri)) {
-                // Connection is active - try to get databases
-                let databases: string[] = [];
-                try {
-                    databases = await this._connectionManager.listDatabases(ownerUri);
-                } catch (dbError) {
-                    this.logger.warn(`Failed to list databases: ${getErrorMessage(dbError)}`);
-                }
+                // Connection is active - fetch databases
+                const databases = await this.fetchDatabaseList(ownerUri);
 
                 return {
                     ownerUri,
@@ -560,13 +569,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             if (result) {
                 ownerUri = this._connectionManager.getUriForConnection(profile);
 
-                // Try to get databases, but don't fail the connection if this errors
-                let databases: string[] = [];
-                try {
-                    databases = await this._connectionManager.listDatabases(ownerUri);
-                } catch (dbError) {
-                    this.logger.warn(`Failed to list databases: ${getErrorMessage(dbError)}`);
-                }
+                // Fetch databases from the new connection
+                const databases = await this.fetchDatabaseList(ownerUri);
 
                 return {
                     ownerUri,
@@ -1008,19 +1012,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 state.isConnecting = false;
                 state.isLoadingDatabases = false;
 
-                // Always update database dropdown options (clear on error, populate on success)
+                // Update database dropdown options (clear on error, populate on success)
                 const databaseComponent = state.formComponents[PublishFormFields.DatabaseName];
-                if (databaseComponent) {
-                    if (result.errorMessage || !result.databases) {
-                        // Clear options on error or no databases
-                        databaseComponent.options = [];
-                    } else {
-                        // Populate with database list
-                        databaseComponent.options = result.databases.map((db) => ({
-                            displayName: db,
-                            value: db,
-                        }));
-                    }
+                if (result.errorMessage || !result.databases) {
+                    // Clear options on error or no databases
+                    databaseComponent.options = [];
+                } else {
+                    // Populate with database list
+                    databaseComponent.options = result.databases.map((db) => ({
+                        displayName: db,
+                        value: db,
+                    }));
                 }
 
                 if (result.errorMessage) {

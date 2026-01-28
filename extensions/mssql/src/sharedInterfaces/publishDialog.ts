@@ -8,7 +8,7 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
-import { IConnectionProfile } from "../models/interfaces";
+import { IConnectionDialogProfile } from "./connectionDialog";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -96,11 +96,8 @@ export interface PublishDialogState
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
-    /** All saved connection profiles available for selection */
-    availableConnections?: IConnectionProfile[];
-    /** The profile ID of the currently selected connection */
+    availableConnections?: IConnectionDialogProfile[];
     selectedProfileId?: string;
-    /** The ownerUri for the active connection (used for database listing and DacFx operations) */
     connectionOwnerUri?: string;
     isLoadingDatabases?: boolean;
     isConnecting?: boolean;
