@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sd from "../../../../sharedInterfaces/schemaDesigner";
+import isEqual from "lodash/isEqual";
 
 export enum ChangeAction {
     Add = "add",
@@ -91,56 +92,6 @@ export const FOREIGN_KEY_PROPERTIES: PropertyMetadata[] = [
     { key: "onUpdateAction", displayName: "On Update Action" },
 ];
 
-function isDeepEqual(a: unknown, b: unknown): boolean {
-    if (Object.is(a, b)) {
-        return true;
-    }
-
-    // Treat null/undefined equivalently without explicitly referencing null.
-    const aIsNil = a === undefined || (typeof a === "object" && !a);
-    const bIsNil = b === undefined || (typeof b === "object" && !b);
-    if (aIsNil || bIsNil) {
-        return false;
-    }
-
-    if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) {
-            return false;
-        }
-
-        for (let i = 0; i < a.length; i++) {
-            if (!isDeepEqual(a[i], b[i])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    if (typeof a === "object" && typeof b === "object") {
-        const aObj = a as Record<string, unknown>;
-        const bObj = b as Record<string, unknown>;
-        const aKeys = Object.keys(aObj);
-        const bKeys = Object.keys(bObj);
-        if (aKeys.length !== bKeys.length) {
-            return false;
-        }
-
-        for (const key of aKeys) {
-            if (!Object.prototype.hasOwnProperty.call(bObj, key)) {
-                return false;
-            }
-            if (!isDeepEqual(aObj[key], bObj[key])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
 export function diffObject<T extends object>(
     original: T,
     current: T,
@@ -151,7 +102,7 @@ export function diffObject<T extends object>(
     for (const prop of properties) {
         const oldValue = (original as Record<string, unknown>)[prop.key];
         const newValue = (current as Record<string, unknown>)[prop.key];
-        if (!isDeepEqual(oldValue, newValue)) {
+        if (!isEqual(oldValue, newValue)) {
             changes.push({
                 property: prop.key,
                 displayName: prop.displayName,
