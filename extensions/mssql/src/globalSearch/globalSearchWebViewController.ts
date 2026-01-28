@@ -63,6 +63,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                     storedProcedures: true,
                     functions: true,
                 },
+                availableSchemas: [],
+                selectedSchemas: [],
                 searchResults: [],
                 totalResultCount: 0,
                 loadStatus: ApiStatus.Loading,
@@ -172,6 +174,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         // Check cache first
         if (this._metadataCache.has(cacheKey)) {
             this.logger.info(`Using cached metadata for ${this.state.selectedDatabase}`);
+            // Restore schema state from cached metadata
+            const cachedMetadata = this._metadataCache.get(cacheKey)!;
+            const uniqueSchemas = [...new Set(cachedMetadata.map((obj) => obj.schema).filter(Boolean))];
+            uniqueSchemas.sort((a, b) => a.localeCompare(b));
+            this.state.availableSchemas = uniqueSchemas;
+            this.state.selectedSchemas = [...uniqueSchemas];
             this.applyFiltersAndSearch();
             return;
         }
@@ -187,6 +195,13 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             // This avoids re-transforming on every filter change
             const searchResultItems = metadata.map((obj) => this.toSearchResultItem(obj));
             this._searchResultItemCache.set(cacheKey, searchResultItems);
+
+            // Extract unique schemas and sort alphabetically
+            const uniqueSchemas = [...new Set(metadata.map((obj) => obj.schema).filter(Boolean))];
+            uniqueSchemas.sort((a, b) => a.localeCompare(b));
+            this.state.availableSchemas = uniqueSchemas;
+            // Select all schemas by default
+            this.state.selectedSchemas = [...uniqueSchemas];
 
             this.logger.info(
                 `Loaded ${metadata.length} objects for database ${this.state.selectedDatabase}`,
@@ -214,6 +229,15 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         // Filter by object type
         results = results.filter((item) => this.matchesTypeFilterForItem(item));
+
+        // Filter by schema
+        if (this.state.selectedSchemas.length > 0) {
+            const selectedSchemaSet = new Set(this.state.selectedSchemas);
+            results = results.filter((item) => selectedSchemaSet.has(item.schema));
+        } else {
+            // If no schemas are selected, show no results (user explicitly cleared all)
+            results = [];
+        }
 
         // Filter by search term
         if (this.state.searchTerm.trim()) {
@@ -306,6 +330,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 state.selectedDatabase = payload.database;
                 state.searchResults = [];
                 state.totalResultCount = 0;
+                state.availableSchemas = [];
+                state.selectedSchemas = [];
 
                 // Update connection for new database
                 const connectionUri = this.generateConnectionUri();
@@ -320,6 +346,30 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         this.registerReducer("toggleObjectTypeFilter", async (state, payload) => {
             const filterKey = payload.objectType as keyof ObjectTypeFilters;
             state.objectTypeFilters[filterKey] = !state.objectTypeFilters[filterKey];
+            this.applyFiltersAndSearch();
+            return state;
+        });
+
+        this.registerReducer("toggleSchemaFilter", async (state, payload) => {
+            const schema = payload.schema;
+            const index = state.selectedSchemas.indexOf(schema);
+            if (index === -1) {
+                state.selectedSchemas = [...state.selectedSchemas, schema];
+            } else {
+                state.selectedSchemas = state.selectedSchemas.filter((s) => s !== schema);
+            }
+            this.applyFiltersAndSearch();
+            return state;
+        });
+
+        this.registerReducer("selectAllSchemas", async (state) => {
+            state.selectedSchemas = [...state.availableSchemas];
+            this.applyFiltersAndSearch();
+            return state;
+        });
+
+        this.registerReducer("clearSchemaSelection", async (state) => {
+            state.selectedSchemas = [];
             this.applyFiltersAndSearch();
             return state;
         });

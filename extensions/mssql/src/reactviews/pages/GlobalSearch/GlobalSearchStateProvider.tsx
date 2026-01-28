@@ -46,6 +46,18 @@ export const GlobalSearchStateProvider: React.FC<{
                 extensionRpc.action("toggleObjectTypeFilter", { objectType });
             },
 
+            toggleSchemaFilter: (schema: string): void => {
+                extensionRpc.action("toggleSchemaFilter", { schema });
+            },
+
+            selectAllSchemas: (): void => {
+                extensionRpc.action("selectAllSchemas", {});
+            },
+
+            clearSchemaSelection: (): void => {
+                extensionRpc.action("clearSchemaSelection", {});
+            },
+
             // Object Actions
             scriptObject: (object: SearchResultItem, scriptType: ScriptType): void => {
                 extensionRpc.action("scriptObject", { object, scriptType });

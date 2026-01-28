@@ -13,6 +13,7 @@ import {
     Checkbox,
     Label,
     Divider,
+    Button,
 } from "@fluentui/react-components";
 import {
     TableRegular,
@@ -58,6 +59,30 @@ const useStyles = makeStyles({
         fontSize: "16px",
         color: "var(--vscode-foreground)",
     },
+    schemaSection: {
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.gap("8px"),
+        minHeight: 0,
+        flexShrink: 1,
+        overflow: "hidden",
+    },
+    schemaSectionHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    schemaActions: {
+        display: "flex",
+        ...shorthands.gap("4px"),
+    },
+    schemaList: {
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.gap("4px"),
+        overflowY: "auto",
+        maxHeight: "200px",
+    },
 });
 
 export const GlobalSearchFilters: React.FC = React.memo(() => {
@@ -68,6 +93,14 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
     const selectedDatabase = useGlobalSearchSelector((s) => s.selectedDatabase);
     const availableDatabases = useGlobalSearchSelector((s) => s.availableDatabases);
     const objectTypeFilters = useGlobalSearchSelector((s) => s.objectTypeFilters);
+    const availableSchemas = useGlobalSearchSelector((s) => s.availableSchemas);
+    const selectedSchemas = useGlobalSearchSelector((s) => s.selectedSchemas);
+
+    // Create a Set for O(1) lookup of selected schemas
+    const selectedSchemaSet = React.useMemo(
+        () => new Set(selectedSchemas),
+        [selectedSchemas],
+    );
 
     const handleDatabaseChange = (
         _event: React.SyntheticEvent,
@@ -80,6 +113,10 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
 
     const handleFilterToggle = (filterKey: keyof ObjectTypeFilters) => {
         context.toggleObjectTypeFilter(filterKey);
+    };
+
+    const handleSchemaToggle = (schema: string) => {
+        context.toggleSchemaFilter(schema);
     };
 
     return (
@@ -150,6 +187,45 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                     />
                 </div>
             </div>
+
+            {availableSchemas.length > 0 && (
+                <>
+                    <Divider />
+
+                    {/* Schema Filters */}
+                    <div className={classes.schemaSection}>
+                        <div className={classes.schemaSectionHeader}>
+                            <Label className={classes.sectionTitle}>Schemas</Label>
+                            <div className={classes.schemaActions}>
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    onClick={() => context.selectAllSchemas()}
+                                >
+                                    All
+                                </Button>
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    onClick={() => context.clearSchemaSelection()}
+                                >
+                                    None
+                                </Button>
+                            </div>
+                        </div>
+                        <div className={classes.schemaList}>
+                            {availableSchemas.map((schema) => (
+                                <Checkbox
+                                    key={schema}
+                                    checked={selectedSchemaSet.has(schema)}
+                                    onChange={() => handleSchemaToggle(schema)}
+                                    label={schema}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 });

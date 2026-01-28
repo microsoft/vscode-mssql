@@ -51,6 +51,8 @@ export interface GlobalSearchWebViewState {
 
     // Filter state
     objectTypeFilters: ObjectTypeFilters;
+    availableSchemas: string[];
+    selectedSchemas: string[];
 
     // Results
     searchResults: SearchResultItem[];
@@ -72,6 +74,9 @@ export interface GlobalSearchContextProps {
     // Filters
     setDatabase: (database: string) => void;
     toggleObjectTypeFilter: (objectType: keyof ObjectTypeFilters) => void;
+    toggleSchemaFilter: (schema: string) => void;
+    selectAllSchemas: () => void;
+    clearSchemaSelection: () => void;
 
     // Object Actions
     scriptObject: (object: SearchResultItem, scriptType: ScriptType) => void;
@@ -94,6 +99,9 @@ export interface GlobalSearchReducers {
     // Filters
     setDatabase: { database: string };
     toggleObjectTypeFilter: { objectType: keyof ObjectTypeFilters };
+    toggleSchemaFilter: { schema: string };
+    selectAllSchemas: {};
+    clearSchemaSelection: {};
 
     // Object Actions
     scriptObject: { object: SearchResultItem; scriptType: ScriptType };
