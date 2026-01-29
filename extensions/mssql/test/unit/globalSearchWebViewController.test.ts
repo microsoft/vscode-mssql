@@ -290,6 +290,75 @@ suite("GlobalSearchWebViewController", () => {
             );
             expect(nonTableResults.length).to.equal(0);
         });
+
+        test("toggleSchemaFilter reducer adds schema when not selected", async () => {
+            createController();
+            await waitForInitialization();
+
+            const toggleReducer = controller["_reducerHandlers"].get("toggleSchemaFilter");
+            expect(toggleReducer, "ToggleSchemaFilter reducer was not registered").to.be.a("function");
+
+            // First clear all schemas to have a clean state
+            const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
+            let result = await clearReducer!(controller.state, {});
+
+            // Toggle a schema to add it
+            result = await toggleReducer!(result, { schema: "dbo" });
+            expect(result.selectedSchemas).to.include("dbo");
+        });
+
+        test("toggleSchemaFilter reducer removes schema when already selected", async () => {
+            createController();
+            await waitForInitialization();
+
+            const toggleReducer = controller["_reducerHandlers"].get("toggleSchemaFilter");
+
+            // Initially all schemas are selected, so toggle should remove
+            const result = await toggleReducer!(controller.state, { schema: "dbo" });
+            expect(result.selectedSchemas).to.not.include("dbo");
+        });
+
+        test("selectAllSchemas reducer selects all available schemas", async () => {
+            createController();
+            await waitForInitialization();
+
+            const selectAllReducer = controller["_reducerHandlers"].get("selectAllSchemas");
+            expect(selectAllReducer, "SelectAllSchemas reducer was not registered").to.be.a("function");
+
+            // First clear schemas
+            const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
+            let result = await clearReducer!(controller.state, {});
+            expect(result.selectedSchemas.length).to.equal(0);
+
+            // Then select all
+            result = await selectAllReducer!(result, {});
+            expect(result.selectedSchemas.length).to.equal(result.availableSchemas.length);
+            expect(result.selectedSchemas).to.deep.equal(result.availableSchemas);
+        });
+
+        test("clearSchemaSelection reducer clears all selected schemas", async () => {
+            createController();
+            await waitForInitialization();
+
+            const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
+            expect(clearReducer, "ClearSchemaSelection reducer was not registered").to.be.a("function");
+
+            // Initially schemas are selected
+            expect(controller.state.selectedSchemas.length).to.be.greaterThan(0);
+
+            const result = await clearReducer!(controller.state, {});
+            expect(result.selectedSchemas.length).to.equal(0);
+        });
+
+        test("clearSchemaSelection filters out all results", async () => {
+            createController();
+            await waitForInitialization();
+
+            const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
+
+            const result = await clearReducer!(controller.state, {});
+            expect(result.searchResults.length).to.equal(0);
+        });
     });
 
     suite("Object Action Reducers", () => {
@@ -391,6 +460,54 @@ suite("GlobalSearchWebViewController", () => {
             expect(writeTextStub.calledOnceWith("dbo.Users")).to.be.true;
             expect(showInformationMessageStub.calledOnceWith('Copied "dbo.Users" to clipboard')).to.be.true;
         });
+
+        test("editData reducer executes tableExplorer command for table", async () => {
+            createController();
+            await waitForInitialization();
+
+            const editDataReducer = controller["_reducerHandlers"].get("editData");
+            expect(editDataReducer, "EditData reducer was not registered").to.be.a("function");
+
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const testObject: SearchResultItem = {
+                name: "Users",
+                schema: "dbo",
+                type: MetadataType.Table,
+                typeName: "Table",
+                metadataTypeName: "Table",
+                fullName: "dbo.Users",
+            };
+
+            await editDataReducer!(controller.state, { object: testObject });
+
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.tableExplorer");
+        });
+
+        test("editData reducer creates synthetic node with correct metadata", async () => {
+            createController();
+            await waitForInitialization();
+
+            const editDataReducer = controller["_reducerHandlers"].get("editData");
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const testObject: SearchResultItem = {
+                name: "Products",
+                schema: "sales",
+                type: MetadataType.Table,
+                typeName: "Table",
+                metadataTypeName: "Table",
+                fullName: "sales.Products",
+            };
+
+            await editDataReducer!(controller.state, { object: testObject });
+
+            const syntheticNode = executeCommandStub.firstCall.args[1];
+            expect(syntheticNode.metadata.name).to.equal("Products");
+            expect(syntheticNode.metadata.schema).to.equal("sales");
+            expect(syntheticNode.nodeType).to.equal("Table");
+        });
     });
 
     suite("Data Refresh Reducers", () => {
@@ -443,7 +560,11 @@ suite("GlobalSearchWebViewController", () => {
             expect(controller["_reducerHandlers"].has("clearSearch")).to.be.true;
             expect(controller["_reducerHandlers"].has("setDatabase")).to.be.true;
             expect(controller["_reducerHandlers"].has("toggleObjectTypeFilter")).to.be.true;
+            expect(controller["_reducerHandlers"].has("toggleSchemaFilter")).to.be.true;
+            expect(controller["_reducerHandlers"].has("selectAllSchemas")).to.be.true;
+            expect(controller["_reducerHandlers"].has("clearSchemaSelection")).to.be.true;
             expect(controller["_reducerHandlers"].has("scriptObject")).to.be.true;
+            expect(controller["_reducerHandlers"].has("editData")).to.be.true;
             expect(controller["_reducerHandlers"].has("copyObjectName")).to.be.true;
             expect(controller["_reducerHandlers"].has("refreshDatabases")).to.be.true;
             expect(controller["_reducerHandlers"].has("refreshResults")).to.be.true;
