@@ -940,6 +940,10 @@
     <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
       <source xml:lang="en">Copied</source>
     </trans-unit>
+    <trans-unit id="++CODE++5729bfc2e8db943201613faaab43256239d22b9beff66b83b894a92fcf29264e">
+      <source xml:lang="en">Copied &quot;{0}&quot; to clipboard</source>
+      <note>{0} is the object name</note>
+    </trans-unit>
     <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
       <source xml:lang="en">Copy</source>
     </trans-unit>
@@ -1671,6 +1675,9 @@
       <source xml:lang="en">Failed to delete {0}.</source>
       <note>Failed to delete {0}.</note>
     </trans-unit>
+    <trans-unit id="++CODE++ec36557c2f318d8966fdfacc5138a375d61790690acf99e7a902d2c17146b17e">
+      <source xml:lang="en">Failed to establish connection for scripting</source>
+    </trans-unit>
     <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
       <note>{0} is the connection ID</note>
@@ -1728,6 +1735,10 @@
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
+      <source xml:lang="en">Failed to open Edit Data: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
@@ -1772,6 +1783,10 @@
     <trans-unit id="++CODE++d264deec475c02adeccd53122253873cb7011b90f23c7af978cbfff13f3f92a6">
       <source xml:lang="en">Failed to save scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the save scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
+      <source xml:lang="en">Failed to script object: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
       <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
@@ -1934,6 +1949,9 @@
     <trans-unit id="++CODE++bb2f46cfafa54c18afeb7e7efc7ccf3b2d72b160c0381d2ad116e8f7139be42d">
       <source xml:lang="en">Freeze columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
+      <source xml:lang="en">Function</source>
+    </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
@@ -2001,6 +2019,10 @@
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5930753b2a87c4f052f0ad8869c5df62df2d9c38464a45a43733608c6ae84e2">
+      <source xml:lang="en">Global Search - {0}</source>
+      <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
       <source xml:lang="en">Got invalid tool use parameters: &quot;{0}&quot;. ({1})</source>
@@ -3781,6 +3803,9 @@
     <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
       <source xml:lang="en">Stopping Container...</source>
     </trans-unit>
+    <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
+      <source xml:lang="en">Stored Procedure</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -4083,6 +4108,9 @@
     <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
       <source xml:lang="en">Unfreeze columns/rows</source>
     </trans-unit>
+    <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
+      <source xml:lang="en">Unknown</source>
+    </trans-unit>
     <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
       <source xml:lang="en">Unknown Connection</source>
     </trans-unit>
@@ -4164,6 +4192,9 @@
     </trans-unit>
     <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
       <source xml:lang="en">Very Satisfied</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
+      <source xml:lang="en">View</source>
     </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>

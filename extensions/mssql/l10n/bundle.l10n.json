@@ -2103,6 +2103,27 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
+    "Global Search - {0}/{0} is the server name": {
+        "message": "Global Search - {0}",
+        "comment": ["{0} is the server name"]
+    },
+    "Failed to establish connection for scripting": "Failed to establish connection for scripting",
+    "View": "View",
+    "Stored Procedure": "Stored Procedure",
+    "Function": "Function",
+    "Unknown": "Unknown",
+    "Copied \"{0}\" to clipboard/{0} is the object name": {
+        "message": "Copied \"{0}\" to clipboard",
+        "comment": ["{0} is the object name"]
+    },
+    "Failed to script object: {0}/{0} is the error message": {
+        "message": "Failed to script object: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Edit Data: {0}/{0} is the error message": {
+        "message": "Failed to open Edit Data: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
