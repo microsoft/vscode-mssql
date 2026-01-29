@@ -62,6 +62,9 @@ export class ConnectionDialogWebviewState
     public selectedTenantId: string | undefined;
     public fabricWorkspacesLoadStatus: Status = { status: ApiStatus.NotStarted };
     public fabricWorkspaces: FabricWorkspaceInfo[] = [];
+    public databaseOptions: string[] = ["<default>"];
+    public databaseOptionsStatus: ApiStatus = ApiStatus.NotStarted;
+    public databaseOptionsKey: string | undefined;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -252,6 +255,9 @@ export interface ConnectionDialogContextProps
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
     getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
+    listDatabases: (
+        connectionProfile: IConnectionDialogProfile,
+    ) => Promise<{ databases: string[] }>;
     changePassword: (newPassword: string) => Promise<ChangePasswordResult>;
 }
 
@@ -305,5 +311,11 @@ export namespace GetConnectionDisplayNameRequest {
 export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
     export const type = new RequestType<FabricSqlDbInfo, string, void>(
         "getSqlAnalyticsEndpointUriFromFabric",
+    );
+}
+
+export namespace ListDatabasesRequest {
+    export const type = new RequestType<IConnectionDialogProfile, { databases: string[] }, void>(
+        "connectionDialog/listDatabases",
     );
 }

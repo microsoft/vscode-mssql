@@ -28,6 +28,7 @@ import {
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
+    ListDatabasesRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
@@ -100,6 +101,7 @@ import { ConnectionConfig } from "./connectionconfig";
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
+const DEFAULT_DATABASE_OPTION = "<default>";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -651,6 +653,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return getConnectionDisplayName(payload);
         });
 
+        this.onRequest(ListDatabasesRequest.type, async (payload) => {
+            return await this.loadDatabaseOptions(payload);
+        });
+
         this.registerReducer("signIntoAzureForFirewallRule", async (state) => {
             if (state.dialog?.type !== "addFirewallRule") {
                 return state;
@@ -885,6 +891,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
         await this.handleAzureMFAEdits(propertyName);
+        if (this.isDatabaseOptionsDependency(propertyName)) {
+            this.resetDatabaseOptions();
+        }
     }
 
     private async checkReadyToConnect(): Promise<void> {
@@ -953,12 +962,113 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         cleanedConnection.connectionString = undefined;
 
+        if (cleanedConnection.database === DEFAULT_DATABASE_OPTION) {
+            cleanedConnection.database = "";
+        }
+
         if (cleanedConnection.secureEnclaves !== "Enabled") {
             cleanedConnection.attestationProtocol = undefined;
             cleanedConnection.enclaveAttestationUrl = undefined;
         }
 
         return cleanedConnection;
+    }
+
+    private isDatabaseOptionsDependency(propertyName: keyof IConnectionDialogProfile): boolean {
+        return (
+            propertyName === "server" ||
+            propertyName === "authenticationType" ||
+            propertyName === "user" ||
+            propertyName === "password" ||
+            propertyName === "accountId" ||
+            propertyName === "tenantId"
+        );
+    }
+
+    private resetDatabaseOptions(): void {
+        this.state.databaseOptions = [DEFAULT_DATABASE_OPTION];
+        this.state.databaseOptionsStatus = ApiStatus.NotStarted;
+        this.state.databaseOptionsKey = undefined;
+    }
+
+    private buildDatabaseOptionsKey(connection: IConnectionDialogProfile): string {
+        return [
+            connection.authenticationType ?? "",
+            connection.server ?? "",
+            connection.user ?? "",
+            connection.password ?? "",
+            connection.accountId ?? "",
+            connection.tenantId ?? "",
+        ].join("|");
+    }
+
+    private ensureDefaultDatabaseOption(databases: string[]): string[] {
+        const trimmed = databases
+            .map((database) => database.trim())
+            .filter((database) => database.length > 0);
+        const unique = Array.from(new Set(trimmed));
+
+        if (!unique.includes(DEFAULT_DATABASE_OPTION)) {
+            unique.unshift(DEFAULT_DATABASE_OPTION);
+        } else if (unique[0] !== DEFAULT_DATABASE_OPTION) {
+            unique.splice(unique.indexOf(DEFAULT_DATABASE_OPTION), 1);
+            unique.unshift(DEFAULT_DATABASE_OPTION);
+        }
+
+        return unique;
+    }
+
+    private async loadDatabaseOptions(
+        connectionProfile: IConnectionDialogProfile,
+    ): Promise<{ databases: string[] }> {
+        const cleanedConnection = this.cleanConnection(connectionProfile);
+        const requestKey = this.buildDatabaseOptionsKey(cleanedConnection);
+
+        this.state.databaseOptionsStatus = ApiStatus.Loading;
+        this.state.databaseOptionsKey = requestKey;
+        this.updateState();
+
+        let databases: string[] = [];
+        let connectionUri: string | undefined;
+
+        try {
+            connectionUri = Utils.generateGuid();
+            const connected = await this._mainController.connectionManager.connect(
+                connectionUri,
+                cleanedConnection,
+                {
+                    shouldHandleErrors: false,
+                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                },
+            );
+
+            if (connected) {
+                databases =
+                    await this._mainController.connectionManager.listDatabases(connectionUri);
+            }
+        } catch (error) {
+            this.logger.error(
+                `Failed to list databases for connection dialog: ${getErrorMessage(error)}`,
+            );
+        } finally {
+            if (connectionUri) {
+                try {
+                    await this._mainController.connectionManager.disconnect(connectionUri);
+                } catch {
+                    // best-effort cleanup; ignore errors
+                }
+            }
+        }
+
+        const options = this.ensureDefaultDatabaseOption(databases);
+
+        if (this.state.databaseOptionsKey === requestKey) {
+            this.state.databaseOptions = options;
+            this.state.databaseOptionsStatus = ApiStatus.Loaded;
+            this.updateState();
+        }
+
+        return { databases: options };
     }
 
     private async loadConnections(): Promise<{

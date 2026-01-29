@@ -321,6 +321,37 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
     });
 
+    suite("Database options", () => {
+        test("should reset database options when a dependent field changes", async () => {
+            controller.state.databaseOptions = ["<default>", "userdb"];
+            controller.state.databaseOptionsStatus = ApiStatus.Loaded;
+            controller.state.databaseOptionsKey = "server|user";
+
+            await (controller as unknown as any).afterSetFormProperty("server");
+
+            expect(controller.state.databaseOptions).to.deep.equal(["<default>"]);
+            expect(controller.state.databaseOptionsStatus).to.equal(ApiStatus.NotStarted);
+            expect(controller.state.databaseOptionsKey).to.equal(undefined);
+        });
+
+        test("should load database options and include <default>", async () => {
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["db1", "db2"]);
+            connectionManager.disconnect.resolves(true);
+
+            const response = await (controller as unknown as any).loadDatabaseOptions({
+                authenticationType: AuthenticationType.SqlLogin,
+                server: "server",
+                user: "user",
+                password: "password",
+            } as IConnectionDialogProfile);
+
+            expect(response.databases[0]).to.equal("<default>");
+            expect(controller.state.databaseOptions).to.deep.equal(response.databases);
+            expect(controller.state.databaseOptionsStatus).to.equal(ApiStatus.Loaded);
+        });
+    });
+
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
