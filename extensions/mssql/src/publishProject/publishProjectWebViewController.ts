@@ -100,9 +100,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
-                defaultDeploymentOptions: deploymentOptions
-                    ? structuredClone(deploymentOptions)
-                    : undefined,
+                defaultDeploymentOptions: undefined,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -126,6 +124,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
         if (deploymentOptions?.excludeObjectTypes !== undefined) {
             deploymentOptions.excludeObjectTypes.value = [];
         }
+
+        // Clone after clearing excludeObjectTypes so reset uses the correct defaults
+        this.state.defaultDeploymentOptions = deploymentOptions
+            ? structuredClone(deploymentOptions)
+            : undefined;
 
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
