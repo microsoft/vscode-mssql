@@ -16,6 +16,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     datatypes: string[];
     waitForNextFrame: () => Promise<void>;
     extractSchema: () => SchemaDesigner.Schema;
+    onMaybeAutoArrange: (preTableCount: number, postTableCount: number) => Promise<void> | void;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
@@ -36,6 +37,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         datatypes,
         waitForNextFrame,
         extractSchema,
+        onMaybeAutoArrange,
         addTable,
         updateTable,
         deleteTable,
@@ -349,6 +351,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         let appliedEdits = 0;
         let needsScriptRefresh = false;
         let workingSchema = extractSchema();
+        const preTableCount = workingSchema.tables.length;
 
         try {
             for (let i = 0; i < params.edits.length; i++) {
@@ -968,6 +971,13 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                     workingSchema = extractSchema();
                     onPushUndoState();
                 }
+            }
+
+            const postTableCount = workingSchema.tables.length;
+            try {
+                await onMaybeAutoArrange(preTableCount, postTableCount);
+            } catch (error) {
+                console.warn("Schema Designer tool auto-arrange failed", error);
             }
 
             return {

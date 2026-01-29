@@ -11,7 +11,7 @@ import { getCoreRPCs, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
-import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
+import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
@@ -19,7 +19,6 @@ import {
 } from "./schemaDesignerRpcHandlers";
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
-import { v4 as uuidv4 } from "uuid";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -54,6 +53,13 @@ import {
     buildForeignKeyEdgeId,
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
+import {
+    normalizeColumn,
+    normalizeTable,
+    useMaybeAutoArrangeForToolBatch,
+    validateTable,
+    waitForNextFrame,
+} from "./schemaDesignerToolBatchUtils";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -196,14 +202,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
 
-    // TODO: Replace RAF wait with a deterministic schema-commit signal for tool-driven ops.
-    const waitForNextFrame = useCallback(
-        () =>
-            new Promise<void>((resolve) => {
-                requestAnimationFrame(() => resolve());
-            }),
-        [],
-    );
+    const onPushUndoState = useCallback(() => {
+        const state = reactFlow.toObject() as ReactFlowJsonObject<
+            Node<SchemaDesigner.Table>,
+            Edge<SchemaDesigner.ForeignKey>
+        >;
+        stateStack.pushState(state);
+        eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+    }, [reactFlow]);
+
+    const maybeAutoArrangeForToolBatch = useMaybeAutoArrangeForToolBatch({
+        reactFlow,
+        resetView,
+        onPushUndoState,
+    });
 
     useEffect(() => {
         const handleScript = () => {
@@ -255,122 +267,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
     }, []);
 
-    const normalizeColumn = (column: SchemaDesigner.Column): SchemaDesigner.Column => {
-        const dataType = column.dataType || "int";
-        const isPrimaryKey = column.isPrimaryKey ?? false;
-        const isNullable = column.isNullable !== undefined ? column.isNullable : !isPrimaryKey;
-        const normalized: SchemaDesigner.Column = {
-            id: column.id || uuidv4(),
-            name: column.name ?? "",
-            dataType,
-            maxLength: column.maxLength ?? "",
-            precision: column.precision ?? 0,
-            scale: column.scale ?? 0,
-            isPrimaryKey,
-            isIdentity: column.isIdentity ?? false,
-            identitySeed: column.identitySeed ?? 1,
-            identityIncrement: column.identityIncrement ?? 1,
-            isNullable,
-            defaultValue: column.defaultValue ?? "",
-            isComputed: column.isComputed ?? false,
-            computedFormula: column.computedFormula ?? "",
-            computedPersisted: column.computedPersisted ?? false,
-        };
-
-        if (columnUtils.isLengthBasedType(dataType) && normalized.maxLength === "") {
-            normalized.maxLength = columnUtils.getDefaultLength(dataType);
-        }
-        if (columnUtils.isPrecisionBasedType(dataType)) {
-            if (column.precision === undefined) {
-                normalized.precision = columnUtils.getDefaultPrecision(dataType);
-            }
-            if (column.scale === undefined) {
-                normalized.scale = columnUtils.getDefaultScale(dataType);
-            }
-        }
-        if (columnUtils.isTimeBasedWithScale(dataType) && column.scale === undefined) {
-            normalized.scale = columnUtils.getDefaultScale(dataType);
-        }
-
-        return normalized;
-    };
-
-    const normalizeTable = (table: SchemaDesigner.Table): SchemaDesigner.Table | undefined => {
-        if (!table || !Array.isArray(table.columns)) {
-            return undefined;
-        }
-
-        const normalizedColumns = table.columns.map((column) => normalizeColumn(column));
-
-        const normalizedForeignKeys = Array.isArray(table.foreignKeys)
-            ? table.foreignKeys.map((fk) => ({
-                  ...fk,
-                  id: fk.id || uuidv4(),
-                  columns: Array.isArray(fk.columns) ? fk.columns : [],
-                  referencedColumns: Array.isArray(fk.referencedColumns)
-                      ? fk.referencedColumns
-                      : [],
-              }))
-            : [];
-
-        return {
-            ...table,
-            id: table.id || uuidv4(),
-            columns: normalizedColumns,
-            foreignKeys: normalizedForeignKeys,
-        };
-    };
-
-    const validateTable = (
-        schema: SchemaDesigner.Schema,
-        table: SchemaDesigner.Table,
-        schemas: string[],
-    ): string | undefined => {
-        if (!table.columns || table.columns.length === 0) {
-            return locConstants.schemaDesigner.tableMustHaveColumns;
-        }
-        if (!schemas.includes(table.schema)) {
-            return locConstants.schemaDesigner.schemaNotAvailable(table.schema);
-        }
-
-        const normalizedSchema: SchemaDesigner.Schema = {
-            tables: [...schema.tables.filter((t) => t.id !== table.id), table],
-        };
-
-        const nameError = tableUtils.tableNameValidationError(normalizedSchema, table);
-        if (nameError) {
-            return nameError;
-        }
-
-        for (const column of table.columns) {
-            const columnError = columnUtils.isColumnValid(column, table.columns);
-            if (columnError) {
-                return columnError;
-            }
-        }
-
-        for (const fk of table.foreignKeys) {
-            if (fk.columns.length === 0 || fk.referencedColumns.length === 0) {
-                return locConstants.schemaDesigner.foreignKeyMappingRequired;
-            }
-            if (fk.columns.length !== fk.referencedColumns.length) {
-                return locConstants.schemaDesigner.foreignKeyMappingLengthMismatch;
-            }
-            const foreignKeyErrors = foreignKeyUtils.isForeignKeyValid(
-                normalizedSchema.tables,
-                table,
-                fk,
-            );
-            if (!foreignKeyErrors.isValid) {
-                return (
-                    foreignKeyErrors.errorMessage ?? locConstants.schemaDesigner.invalidForeignKey
-                );
-            }
-        }
-
-        return undefined;
-    };
-
     // Handle bulk edits (vNext LM tool plumbing) from extension
     useEffect(() => {
         registerSchemaDesignerApplyEditsHandler({
@@ -380,23 +276,17 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             datatypes,
             waitForNextFrame,
             extractSchema,
+            onMaybeAutoArrange: maybeAutoArrangeForToolBatch,
             addTable,
             updateTable,
             deleteTable,
             normalizeColumn,
             normalizeTable,
             validateTable,
-            onPushUndoState: () => {
-                const state = reactFlow.toObject() as ReactFlowJsonObject<
-                    Node<SchemaDesigner.Table>,
-                    Edge<SchemaDesigner.ForeignKey>
-                >;
-                stateStack.pushState(state);
-                eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
-            },
+            onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
         });
-    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, waitForNextFrame]);
+    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
 
     // Respond with the current schema state
     useEffect(() => {
