@@ -313,9 +313,7 @@ suite("ProfilerController Tests", () => {
         };
 
         test("should display error message on command error", async () => {
-            (mockConnectionManager.connect as sinon.SinonStub).rejects(
-                new Error("Test error"),
-            );
+            (mockConnectionManager.connect as sinon.SinonStub).rejects(new Error("Test error"));
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
