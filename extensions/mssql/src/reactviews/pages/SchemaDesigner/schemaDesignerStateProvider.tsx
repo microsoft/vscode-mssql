@@ -345,15 +345,42 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         }
                     }
 
+                    // Get current nodes to position deleted tables below them
+                    const currentNodes = filterDeletedNodes(
+                        reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                    );
+
+                    // Calculate the bottommost Y position of current tables
+                    let bottomY = 100; // Default starting position
+                    if (currentNodes.length > 0) {
+                        const visibleCurrentNodes = currentNodes.filter((n) => n.hidden !== true);
+                        if (visibleCurrentNodes.length > 0) {
+                            bottomY = visibleCurrentNodes.reduce((maxY, node) => {
+                                const nodeBottom =
+                                    node.position.y + flowUtils.getTableHeight(node.data);
+                                return Math.max(maxY, nodeBottom);
+                            }, 0);
+                            bottomY += 50; // Add spacing below current tables
+                        }
+                    }
+
                     const deletedNodes =
                         deletedTableIds.size > 0
                             ? flowUtils
                                   .generateSchemaDesignerFlowComponents(baselineSchemaRef.current)
                                   .nodes.filter((node) => deletedTableIds.has(node.id))
-                                  .map((node) => ({
+                                  .map((node, index) => ({
                                       ...node,
                                       id: `deleted-${node.id}`,
                                       data: { ...node.data, isDeleted: true },
+                                      // Position deleted tables below current tables
+                                      position: {
+                                          x: 100 + (index % 3) * (flowUtils.getTableWidth() + 50),
+                                          y:
+                                              bottomY +
+                                              Math.floor(index / 3) *
+                                                  (flowUtils.getTableHeight(node.data) + 50),
+                                      },
                                       draggable: true,
                                       selectable: false,
                                       connectable: false,
