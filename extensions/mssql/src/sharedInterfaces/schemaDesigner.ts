@@ -456,6 +456,15 @@ export namespace SchemaDesigner {
     export namespace ExportToFileNotification {
         export const type = new NotificationType<ExportFileOptions>("exportToFile");
     }
+
+    export interface SchemaDesignerDirtyStateParams {
+        hasChanges: boolean;
+    }
+    export namespace SchemaDesignerDirtyStateNotification {
+        export const type = new NotificationType<SchemaDesignerDirtyStateParams>(
+            "schemaDesignerDirtyState",
+        );
+    }
     export namespace GetDefinitionRequest {
         export const type = new RequestType<UpdatedSchemaParams, GetDefinitionResponse, void>(
             "getDefinition",
@@ -470,6 +479,11 @@ export namespace SchemaDesigner {
     export namespace GetBaselineSchemaRequest {
         export const type = new RequestType<void, Schema, void>("getBaselineSchema");
     }
+
+    // Types with isDeleted flag for tracking deletions in the UI
+    export type TableWithDeletedFlag = Table & { isDeleted?: boolean };
+    export type ColumnWithDeletedFlag = Column & { isDeleted?: boolean };
+    export type ForeignKeyWithDeletedFlag = ForeignKey & { isDeleted?: boolean };
 
     export interface GetSchemaStateResponse {
         schema: Schema;

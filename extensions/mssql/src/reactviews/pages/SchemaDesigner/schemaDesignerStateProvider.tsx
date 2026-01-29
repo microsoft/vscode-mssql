@@ -27,6 +27,20 @@ import {
     SchemaChange,
     SchemaChangesSummary,
 } from "./diff/diffUtils";
+import {
+    getDeletedColumnIdsByTable,
+    getDeletedForeignKeyIds,
+    getDeletedTableIds,
+    getModifiedColumnHighlights,
+    getModifiedForeignKeyIds,
+    getModifiedTableHighlights,
+    getNewColumnIds,
+    getNewForeignKeyIds,
+    getNewTableIds,
+    type ModifiedColumnHighlight,
+    type ModifiedTableHighlight,
+} from "./diff/diffHighlights";
+import { buildDeletedForeignKeyEdges, filterDeletedNodes } from "./diff/deletedVisualUtils";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -82,6 +96,18 @@ export interface SchemaDesignerContextProps
     setRenderOnlyVisibleTables: (value: boolean) => void;
     isExporting: boolean;
     setIsExporting: (value: boolean) => void;
+    isChangesPanelVisible: boolean;
+    setIsChangesPanelVisible: (value: boolean) => void;
+    newTableIds: Set<string>;
+    newColumnIds: Set<string>;
+    newForeignKeyIds: Set<string>;
+    modifiedForeignKeyIds: Set<string>;
+    modifiedColumnHighlights: Map<string, ModifiedColumnHighlight>;
+    modifiedTableHighlights: Map<string, ModifiedTableHighlight>;
+    deletedColumnsByTable: Map<string, SchemaDesigner.Column[]>;
+    deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
+    baselineColumnOrderByTable: Map<string, string[]>;
+    deletedTableNodes: Node<SchemaDesigner.Table>[];
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -134,15 +160,37 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
     const skipDeleteConfirmationRef = useRef(false);
+    const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
+    const lastHasChangesRef = useRef<boolean | undefined>(undefined);
     const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
     const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
         SchemaChangesSummary | undefined
     >(undefined);
     const [structuredSchemaChanges, setStructuredSchemaChanges] = useState<SchemaChange[]>([]);
+    const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
+    const [newColumnIds, setNewColumnIds] = useState<Set<string>>(new Set());
+    const [newForeignKeyIds, setNewForeignKeyIds] = useState<Set<string>>(new Set());
+    const [modifiedForeignKeyIds, setModifiedForeignKeyIds] = useState<Set<string>>(new Set());
+    const [modifiedColumnHighlights, setModifiedColumnHighlights] = useState<
+        Map<string, ModifiedColumnHighlight>
+    >(new Map());
+    const [modifiedTableHighlights, setModifiedTableHighlights] = useState<
+        Map<string, ModifiedTableHighlight>
+    >(new Map());
+    const [deletedColumnsByTable, setDeletedColumnsByTable] = useState<
+        Map<string, SchemaDesigner.Column[]>
+    >(new Map());
+    const [deletedForeignKeyEdges, setDeletedForeignKeyEdges] = useState<
+        Edge<SchemaDesigner.ForeignKey>[]
+    >([]);
+    const [baselineColumnOrderByTable, setBaselineColumnOrderByTable] = useState<
+        Map<string, string[]>
+    >(new Map());
+    const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
@@ -386,6 +434,88 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 const allChanges = summary.groups.flatMap((group) => group.changes);
                 setStructuredSchemaChanges(allChanges);
                 setSchemaChangesSummary(summary);
+                if (baselineSchemaRef.current) {
+                    const orderMap = new Map<string, string[]>();
+                    for (const table of baselineSchemaRef.current.tables) {
+                        orderMap.set(
+                            table.id,
+                            (table.columns ?? []).map((column) => column.id),
+                        );
+                    }
+                    setBaselineColumnOrderByTable(orderMap);
+                } else {
+                    setBaselineColumnOrderByTable(new Map());
+                }
+                setNewTableIds(getNewTableIds(summary));
+                setNewColumnIds(getNewColumnIds(summary));
+                setNewForeignKeyIds(getNewForeignKeyIds(summary));
+                setModifiedColumnHighlights(getModifiedColumnHighlights(summary));
+                setModifiedTableHighlights(getModifiedTableHighlights(summary));
+                setModifiedForeignKeyIds(getModifiedForeignKeyIds(summary));
+                const deletedColumnsByTableIds = getDeletedColumnIdsByTable(summary);
+                const deletedForeignKeyIds = getDeletedForeignKeyIds(summary);
+                const deletedTableIds = getDeletedTableIds(summary);
+
+                if (baselineSchemaRef.current) {
+                    const baselineTablesById = new Map(
+                        baselineSchemaRef.current.tables.map((table) => [table.id, table]),
+                    );
+                    const deletedColumns = new Map<string, SchemaDesigner.Column[]>();
+                    if (deletedColumnsByTableIds.size > 0) {
+                        for (const [tableId, columnIds] of deletedColumnsByTableIds) {
+                            const baselineTable = baselineTablesById.get(tableId);
+                            if (!baselineTable) {
+                                continue;
+                            }
+                            const columns = baselineTable.columns.filter((column) =>
+                                columnIds.has(column.id),
+                            );
+                            if (columns.length > 0) {
+                                deletedColumns.set(
+                                    tableId,
+                                    columns.map((column) => ({ ...column })),
+                                );
+                            }
+                        }
+                    }
+
+                    const deletedNodes =
+                        deletedTableIds.size > 0
+                            ? flowUtils
+                                  .generateSchemaDesignerFlowComponents(baselineSchemaRef.current)
+                                  .nodes.filter((node) => deletedTableIds.has(node.id))
+                                  .map((node) => ({
+                                      ...node,
+                                      id: `deleted-${node.id}`,
+                                      data: { ...node.data, isDeleted: true },
+                                      draggable: true,
+                                      selectable: false,
+                                      connectable: false,
+                                      deletable: false,
+                                      focusable: false,
+                                  }))
+                            : [];
+
+                    const deletedEdges =
+                        deletedForeignKeyIds.size > 0
+                            ? buildDeletedForeignKeyEdges({
+                                  baselineSchema: baselineSchemaRef.current,
+                                  currentNodes: filterDeletedNodes(
+                                      reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                                  ),
+                                  deletedForeignKeyIds,
+                                  deletedTableNodes: deletedNodes,
+                              })
+                            : [];
+
+                    setDeletedColumnsByTable(deletedColumns);
+                    setDeletedForeignKeyEdges(deletedEdges);
+                    setDeletedTableNodes(deletedNodes);
+                } else {
+                    setDeletedColumnsByTable(new Map());
+                    setDeletedForeignKeyEdges([]);
+                    setDeletedTableNodes([]);
+                }
 
                 const changeStrings = summary.groups.flatMap((group) =>
                     group.changes.map((change) => {
@@ -403,6 +533,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
                 setSchemaChangesCount(summary.totalChanges);
                 setSchemaChanges(changeStrings);
+
+                const hasChanges = summary.totalChanges > 0;
+                if (lastHasChangesRef.current !== hasChanges) {
+                    lastHasChangesRef.current = hasChanges;
+                    void extensionRpc.sendNotification(
+                        SchemaDesigner.SchemaDesignerDirtyStateNotification.type,
+                        { hasChanges },
+                    );
+                }
             } catch {
                 // Ignore diff errors; schema designer should remain usable.
             }
@@ -991,6 +1130,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
         setSchemaChangesCount(0);
         setSchemaChanges([]);
+        setSchemaChangesSummary(undefined);
+        setStructuredSchemaChanges([]);
+        setNewTableIds(new Set());
+        setNewColumnIds(new Set());
+        setNewForeignKeyIds(new Set());
+        setModifiedColumnHighlights(new Map());
+        setModifiedTableHighlights(new Map());
+        setModifiedForeignKeyIds(new Set());
+        setDeletedColumnsByTable(new Map());
+        setDeletedForeignKeyEdges([]);
+        setBaselineColumnOrderByTable(new Map());
+        setDeletedTableNodes([]);
         return response;
     };
 
@@ -1149,6 +1300,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setRenderOnlyVisibleTables,
                 isExporting,
                 setIsExporting,
+                isChangesPanelVisible,
+                setIsChangesPanelVisible,
+                newTableIds,
+                newColumnIds,
+                newForeignKeyIds,
+                modifiedForeignKeyIds,
+                modifiedColumnHighlights,
+                modifiedTableHighlights,
+                deletedColumnsByTable,
+                deletedForeignKeyEdges,
+                baselineColumnOrderByTable,
+                deletedTableNodes,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

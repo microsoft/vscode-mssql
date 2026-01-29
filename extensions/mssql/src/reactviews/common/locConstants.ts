@@ -1463,6 +1463,61 @@ export class LocConstants {
         };
     }
 
+    public get createDatabase() {
+        return {
+            title: l10n.t("Create Database"),
+            description: (serverName: string) =>
+                l10n.t({
+                    message: "Create a new database on '{0}'.",
+                    args: [serverName],
+                    comment: ["{0} is the name of the server"],
+                }),
+            loading: l10n.t("Loading..."),
+            generalSection: l10n.t("General"),
+            optionsSection: l10n.t("Advanced Options"),
+            nameLabel: l10n.t("Database Name"),
+            namePlaceholder: l10n.t("Enter database name"),
+            nameRequired: l10n.t("Database name is required"),
+            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            ownerLabel: l10n.t("Owner"),
+            collationLabel: l10n.t("Collation"),
+            recoveryModelLabel: l10n.t("Recovery Model"),
+            compatibilityLevelLabel: l10n.t("Compatibility Level"),
+            containmentTypeLabel: l10n.t("Containment Type"),
+            isLedgerDatabaseLabel: l10n.t("Is Ledger Database"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            createButton: l10n.t("Create"),
+            cancelButton: l10n.t("Cancel"),
+        };
+    }
+
+    public get dropDatabase() {
+        return {
+            title: l10n.t("Drop Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Drop '{0}' from '{1}'. This action cannot be undone.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Drop Database Options"),
+            nameLabel: l10n.t("Database"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            dropConnections: l10n.t("Drop active connections"),
+            deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            dropButton: l10n.t("Drop"),
+            cancelButton: l10n.t("Cancel"),
+        };
+    }
+
     public get dacpacDialog() {
         return {
             title: l10n.t("Data-tier Application (Preview)"),

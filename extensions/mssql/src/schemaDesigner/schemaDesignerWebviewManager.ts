@@ -145,7 +145,8 @@ export class SchemaDesignerWebviewManager {
                 if (this._activeDesigner === schemaDesigner) {
                     this._activeDesigner = undefined;
                 }
-                if (this.schemaDesignerCache.get(key).isDirty) {
+                const cacheItem = this.schemaDesignerCache.get(key);
+                if (cacheItem?.isDirty) {
                     // Ensure the user wants to exit without saving
                     const choice = await vscode.window.showInformationMessage(
                         LocConstants.Webview.webviewRestorePrompt(
@@ -176,10 +177,11 @@ export class SchemaDesignerWebviewManager {
                 }
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
-                    schemaDesignerService.disposeSession({
-                        sessionId:
-                            this.schemaDesignerCache.get(key).schemaDesignerDetails.sessionId,
-                    });
+                    if (cacheItem?.schemaDesignerDetails?.sessionId) {
+                        schemaDesignerService.disposeSession({
+                            sessionId: cacheItem.schemaDesignerDetails.sessionId,
+                        });
+                    }
                 } catch (error) {
                     console.error(`Error disposing schema designer session: ${error}`);
                 }

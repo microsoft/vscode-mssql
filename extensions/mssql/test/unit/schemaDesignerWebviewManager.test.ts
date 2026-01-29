@@ -497,6 +497,34 @@ suite("SchemaDesignerWebviewManager tests", () => {
             expect(showInfoStub).to.have.been.calledOnce;
         });
 
+        test("should not show restore prompt when cache is clean", async () => {
+            const showInfoStub = sandbox.stub(vscode.window, "showInformationMessage");
+            showInfoStub.resolves(undefined);
+
+            const designer = await manager.getSchemaDesigner(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                databaseName,
+                treeNode,
+                undefined,
+            );
+
+            const key = `${connectionString}-${databaseName}`;
+
+            (manager as any).schemaDesignerCache.set(key, {
+                schemaDesignerDetails: mockCreateSessionResponse,
+                isDirty: false,
+            });
+
+            await designer.dispose();
+
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            expect(showInfoStub).to.not.have.been.called;
+        });
+
         test("should restore designer when user chooses Restore", async () => {
             const showInfoStub = sandbox.stub(vscode.window, "showInformationMessage");
             showInfoStub.resolves(LocConstants.Webview.Restore as any);
