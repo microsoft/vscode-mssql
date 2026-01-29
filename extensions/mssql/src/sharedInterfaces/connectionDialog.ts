@@ -65,6 +65,7 @@ export class ConnectionDialogWebviewState
     public databaseOptions: string[] = ["<default>"];
     public databaseOptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public databaseOptionsKey: string | undefined;
+    public databaseOptionsCache: Record<string, string[]> = {};
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {

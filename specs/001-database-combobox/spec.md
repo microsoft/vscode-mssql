@@ -31,6 +31,9 @@ As a user configuring a connection, I want the database field to load options wh
 2. **Given** Entra Authentication is selected and server and an Entra account are selected, **When** the database field is opened, **Then** a list of available databases is shown for those details.
 3. **Given** Windows Authentication is selected and server is populated, **When** the database field is opened, **Then** a list of available databases is shown for those details.
 4. **Given** database options are loading, **When** the database field has focus, **Then** a loading spinner is shown next to the database label.
+5. **Given** the same connection details were previously used, **When** the database field is opened again, **Then** cached database options are shown without reloading.
+6. **Given** a database is already selected, **When** the database field is opened, **Then** all available database options are shown (not just the selected value).
+7. **Given** multiple load attempts for the same credentials are triggered before the first completes, **When** the database field is opened repeatedly, **Then** only one list request is sent and subsequent attempts wait for the first response.
 
 ---
 
@@ -70,6 +73,7 @@ As a user, I want to search within the database list, so I can quickly find a da
 - What happens when the list request returns no databases (only <default> available)?
 - How does the system handle invalid credentials or expired sessions while loading the list (silent, manual entry allowed)?
 - What happens when the user changes the server after a database is selected?
+- How does the system behave when cached options exist for the current credential combination?
 
 ## Requirements *(mandatory)*
 
@@ -86,6 +90,9 @@ As a user, I want to search within the database list, so I can quickly find a da
 - **FR-009**: If loading database options fails, the system MUST show an empty list without surfacing an error and MUST still allow manual entry.
 - **FR-010**: While database options are loading, the connection dialog MUST show a loading spinner next to the database field label.
 - **FR-011**: Database option loading MUST use the current connection dialog form values at the moment the combobox is focused.
+- **FR-012**: The system MUST cache database options per credential combination and reuse cached options when the same connection details are used again.
+- **FR-013**: When the database combobox is opened, the full option list MUST be shown regardless of the currently selected value; filtering only occurs when the user types.
+- **FR-014**: The system MUST deduplicate concurrent database list requests per credential combination and reuse the first in-flight response for any subsequent requests with the same key.
 
 ### Key Entities *(include if feature involves data)*
 

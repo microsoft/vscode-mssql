@@ -29,9 +29,9 @@
 
 ## Phase 3: User Story 1 - Select from loaded databases (Priority: P1) 🎯 MVP
 
-**Goal**: Load database options on focus when required fields are populated and allow selection.
+**Goal**: Load database options on focus when required fields are populated, allow selection, and reuse cached options when available.
 
-**Independent Test**: Populate required fields for each auth type, focus database field, and select a database from the list.
+**Independent Test**: Populate required fields, focus database field, select a database, then focus again with the same credentials and verify cached options are used without reload; trigger multiple opens quickly and confirm only one list request runs.
 
 ### Implementation for User Story 1
 
@@ -39,6 +39,8 @@
 - [x] T006 [US1] Render database combobox instead of default field in `extensions/mssql/src/reactviews/pages/ConnectionDialog/connectionFormPage.tsx`
 - [x] T007 [US1] Bind combobox options to `context.state.databaseOptions` and ensure `<default>` is present in `extensions/mssql/src/reactviews/pages/ConnectionDialog/components/databaseCombobox.component.tsx`
 - [x] T008 [US1] Update `connectionProfile.database` on option selection via `context.formAction` in `extensions/mssql/src/reactviews/pages/ConnectionDialog/components/databaseCombobox.component.tsx`
+- [x] T013 [US1] Validate cached database options reuse for repeated credentials in `extensions/mssql/src/connectionconfig/connectionDialogWebviewController.ts`
+- [x] T014 [US1] Deduplicate concurrent list requests per credential key in `extensions/mssql/src/connectionconfig/connectionDialogWebviewController.ts`
 
 **Checkpoint**: User Story 1 is fully functional and testable independently
 

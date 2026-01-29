@@ -112,6 +112,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Properties
 
     public readonly initialized: Deferred<void> = new Deferred<void>();
+    private _databaseOptionsInFlight: Map<string, Promise<string[]>> = new Map();
 
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
@@ -1024,51 +1025,83 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const cleanedConnection = this.cleanConnection(connectionProfile);
         const requestKey = this.buildDatabaseOptionsKey(cleanedConnection);
 
+        const cachedOptions = this.state.databaseOptionsCache?.[requestKey];
+        if (cachedOptions) {
+            const options = this.ensureDefaultDatabaseOption(cachedOptions);
+            this.state.databaseOptions = options;
+            this.state.databaseOptionsStatus = ApiStatus.Loaded;
+            this.state.databaseOptionsKey = requestKey;
+            this.updateState();
+            return { databases: options };
+        }
+
+        const inFlight = this._databaseOptionsInFlight.get(requestKey);
+        if (inFlight) {
+            const options = this.ensureDefaultDatabaseOption(await inFlight);
+            return { databases: options };
+        }
+
         this.state.databaseOptionsStatus = ApiStatus.Loading;
         this.state.databaseOptionsKey = requestKey;
         this.updateState();
 
-        let databases: string[] = [];
-        let connectionUri: string | undefined;
+        const loadPromise = (async () => {
+            let databases: string[] = [];
+            let connectionUri: string | undefined;
+            let shouldCache = false;
 
-        try {
-            connectionUri = Utils.generateGuid();
-            const connected = await this._mainController.connectionManager.connect(
-                connectionUri,
-                cleanedConnection,
-                {
-                    shouldHandleErrors: false,
-                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
-                },
-            );
+            try {
+                connectionUri = Utils.generateGuid();
+                const connected = await this._mainController.connectionManager.connect(
+                    connectionUri,
+                    cleanedConnection,
+                    {
+                        shouldHandleErrors: false,
+                        connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                    },
+                );
 
-            if (connected) {
-                databases =
-                    await this._mainController.connectionManager.listDatabases(connectionUri);
-            }
-        } catch (error) {
-            this.logger.error(
-                `Failed to list databases for connection dialog: ${getErrorMessage(error)}`,
-            );
-        } finally {
-            if (connectionUri) {
-                try {
-                    await this._mainController.connectionManager.disconnect(connectionUri);
-                } catch {
-                    // best-effort cleanup; ignore errors
+                if (connected) {
+                    databases =
+                        await this._mainController.connectionManager.listDatabases(connectionUri);
+                    shouldCache = true;
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Failed to list databases for connection dialog: ${getErrorMessage(error)}`,
+                );
+            } finally {
+                if (connectionUri) {
+                    try {
+                        await this._mainController.connectionManager.disconnect(connectionUri);
+                    } catch {
+                        // best-effort cleanup; ignore errors
+                    }
                 }
             }
+
+            const options = this.ensureDefaultDatabaseOption(databases);
+
+            if (shouldCache) {
+                this.state.databaseOptionsCache[requestKey] = options;
+            }
+
+            if (this.state.databaseOptionsKey === requestKey) {
+                this.state.databaseOptions = options;
+                this.state.databaseOptionsStatus = ApiStatus.Loaded;
+                this.updateState();
+            }
+
+            return options;
+        })();
+
+        this._databaseOptionsInFlight.set(requestKey, loadPromise);
+        try {
+            const options = await loadPromise;
+            return { databases: options };
+        } finally {
+            this._databaseOptionsInFlight.delete(requestKey);
         }
-
-        const options = this.ensureDefaultDatabaseOption(databases);
-
-        if (this.state.databaseOptionsKey === requestKey) {
-            this.state.databaseOptions = options;
-            this.state.databaseOptionsStatus = ApiStatus.Loaded;
-            this.updateState();
-        }
-
-        return { databases: options };
     }
 
     private async loadConnections(): Promise<{

@@ -84,6 +84,7 @@ export const DatabaseCombobox = ({
     const context = useContext(ConnectionDialogContext);
     const formStyles = useFormStyles();
     const [inputValue, setInputValue] = useState("");
+    const [isFiltering, setIsFiltering] = useState(false);
 
     const connectionProfile = context?.state.formState ?? ({} as IConnectionDialogProfile);
     const isLoading = context?.state.databaseOptionsStatus === ApiStatus.Loading;
@@ -93,12 +94,13 @@ export const DatabaseCombobox = ({
     );
 
     const filteredOptions = useMemo(
-        () => filterOptions(options, inputValue),
-        [options, inputValue],
+        () => filterOptions(options, isFiltering ? inputValue : ""),
+        [options, inputValue, isFiltering],
     );
 
     useEffect(() => {
         setInputValue(connectionProfile.database ?? "");
+        setIsFiltering(false);
     }, [connectionProfile.database]);
 
     const loadDatabaseOptions = useCallback(async () => {
@@ -190,23 +192,28 @@ export const DatabaseCombobox = ({
                     placeholder={DEFAULT_DATABASE_OPTION}
                     onFocus={() => {
                         void loadDatabaseOptions();
+                        setIsFiltering(false);
                     }}
                     onClick={() => {
                         void loadDatabaseOptions();
+                        setIsFiltering(false);
                     }}
                     onOptionSelect={(_event, data) => {
                         const nextValue = data.optionValue ?? "";
                         setInputValue(nextValue);
+                        setIsFiltering(false);
                         updateDatabaseValue(nextValue, true);
                     }}
                     onChange={(event) => {
                         const nextValue = event.currentTarget.value;
                         setInputValue(nextValue);
+                        setIsFiltering(true);
                         updateDatabaseValue(nextValue, false);
                         void loadDatabaseOptions();
                     }}
                     onBlur={() => {
                         updateDatabaseValue(inputValue, true);
+                        setIsFiltering(false);
                     }}>
                     {filteredOptions.map((option) => (
                         <Option key={option} value={option}>
