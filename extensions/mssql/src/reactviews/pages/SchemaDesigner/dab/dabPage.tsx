@@ -9,7 +9,9 @@ import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTile } from "./dabEntityTile";
+import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 const useStyles = makeStyles({
     root: {
@@ -65,6 +67,10 @@ const useStyles = makeStyles({
         justifyContent: "center",
         height: "200px",
         color: tokens.colorNeutralForeground3,
+    },
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
     },
 });
 
@@ -153,55 +159,79 @@ export const DabPage = ({ activeView }: DabPageProps) => {
 
     return (
         <div className={classes.root}>
-            <DabToolbar />
-            <div className={classes.content}>
-                {filteredEntities.length === 0 ? (
-                    <div className={classes.emptyState}>
-                        <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
+            <PanelGroup direction="vertical">
+                <Panel defaultSize={100}>
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                        <DabToolbar />
+                        <div className={classes.content}>
+                            {filteredEntities.length === 0 ? (
+                                <div className={classes.emptyState}>
+                                    <Text>{locConstants.schemaDesigner.noEntitiesFound}</Text>
+                                </div>
+                            ) : (
+                                entitiesBySchema.map(([schemaName, entities]) => {
+                                    const enabledCount = entities.filter((e) => e.isEnabled).length;
+                                    const allChecked = enabledCount === entities.length;
+                                    const noneChecked = enabledCount === 0;
+                                    return (
+                                        <div key={schemaName} className={classes.schemaSection}>
+                                            <div className={classes.schemaHeader}>
+                                                <Checkbox
+                                                    checked={
+                                                        allChecked
+                                                            ? true
+                                                            : noneChecked
+                                                              ? false
+                                                              : "mixed"
+                                                    }
+                                                    onChange={(_, data) => {
+                                                        const enable =
+                                                            data.checked === true ||
+                                                            data.checked === "mixed";
+                                                        for (const entity of entities) {
+                                                            toggleDabEntity(entity.id, enable);
+                                                        }
+                                                    }}
+                                                />
+                                                <Text className={classes.schemaLabel}>
+                                                    {schemaName}
+                                                </Text>
+                                                <div className={classes.schemaDivider} />
+                                            </div>
+                                            <div className={classes.entityGrid}>
+                                                {entities.map((entity) => (
+                                                    <DabEntityTile
+                                                        key={entity.id}
+                                                        entity={entity}
+                                                        onToggleEnabled={(isEnabled) =>
+                                                            toggleDabEntity(entity.id, isEnabled)
+                                                        }
+                                                        onToggleAction={(action, isEnabled) =>
+                                                            toggleDabEntityAction(
+                                                                entity.id,
+                                                                action,
+                                                                isEnabled,
+                                                            )
+                                                        }
+                                                        onUpdateSettings={(settings) =>
+                                                            updateDabEntitySettings(
+                                                                entity.id,
+                                                                settings,
+                                                            )
+                                                        }
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
                     </div>
-                ) : (
-                    entitiesBySchema.map(([schemaName, entities]) => {
-                        const enabledCount = entities.filter((e) => e.isEnabled).length;
-                        const allChecked = enabledCount === entities.length;
-                        const noneChecked = enabledCount === 0;
-                        return (
-                            <div key={schemaName} className={classes.schemaSection}>
-                                <div className={classes.schemaHeader}>
-                                    <Checkbox
-                                        checked={allChecked ? true : noneChecked ? false : "mixed"}
-                                        onChange={(_, data) => {
-                                            const enable =
-                                                data.checked === true || data.checked === "mixed";
-                                            for (const entity of entities) {
-                                                toggleDabEntity(entity.id, enable);
-                                            }
-                                        }}
-                                    />
-                                    <Text className={classes.schemaLabel}>{schemaName}</Text>
-                                    <div className={classes.schemaDivider} />
-                                </div>
-                                <div className={classes.entityGrid}>
-                                    {entities.map((entity) => (
-                                        <DabEntityTile
-                                            key={entity.id}
-                                            entity={entity}
-                                            onToggleEnabled={(isEnabled) =>
-                                                toggleDabEntity(entity.id, isEnabled)
-                                            }
-                                            onToggleAction={(action, isEnabled) =>
-                                                toggleDabEntityAction(entity.id, action, isEnabled)
-                                            }
-                                            onUpdateSettings={(settings) =>
-                                                updateDabEntitySettings(entity.id, settings)
-                                            }
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
+                </Panel>
+                <PanelResizeHandle className={classes.resizeHandle} />
+                <DabDefinitionsPanel />
+            </PanelGroup>
         </div>
     );
 };

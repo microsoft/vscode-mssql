@@ -120,12 +120,16 @@ export interface SchemaDesignerContextProps
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
-    updateDabApiType: (apiType: Dab.ApiType) => void;
+    updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabSchemaFilter: string[];
     setDabSchemaFilter: (schemas: string[]) => void;
+    dabConfigContent: string;
+    dabConfigRequestId: number;
+    generateDabConfig: () => Promise<void>;
+    openDabConfigInEditor: (configContent: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -200,6 +204,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
+    const [dabConfigContent, setDabConfigContent] = useState<string>("");
+    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
 
     useEffect(() => {
         const handleScript = () => {
@@ -1094,14 +1100,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     }, [dabConfig, reactFlow]);
 
-    const updateDabApiType = useCallback((apiType: Dab.ApiType) => {
+    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
             if (!prev) {
                 return prev;
             }
             return {
                 ...prev,
-                apiType,
+                apiTypes,
             };
         });
     }, []);
@@ -1156,6 +1162,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             });
         },
         [],
+    );
+
+    const generateDabConfig = useCallback(async () => {
+        if (!dabConfig) {
+            return;
+        }
+        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
+            config: dabConfig,
+        });
+        if (response.success) {
+            setDabConfigContent(response.configContent);
+            setDabConfigRequestId((id) => id + 1);
+        }
+    }, [dabConfig, extensionRpc]);
+
+    const openDabConfigInEditor = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
     );
 
     return (
@@ -1219,12 +1247,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
-                updateDabApiType,
+                updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
                 updateDabEntitySettings,
                 dabSchemaFilter,
                 setDabSchemaFilter,
+                dabConfigContent,
+                dabConfigRequestId,
+                generateDabConfig,
+                openDabConfigInEditor,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
