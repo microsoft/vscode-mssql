@@ -76,6 +76,9 @@
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
+      <source xml:lang="en">Actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
     </trans-unit>
@@ -144,6 +147,9 @@
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++a52ace420f2175d08b1577a1bea5445e36801229c074ef9ed6c55a73401fd9c2">
+      <source xml:lang="en">All</source>
+    </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
     </trans-unit>
@@ -181,6 +187,9 @@
     <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
       <source xml:lang="en">An error occurred while copying results: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
+      <source xml:lang="en">An error occurred while loading data.</source>
     </trans-unit>
     <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
       <source xml:lang="en">An error occurred while processing your request.</source>
@@ -846,6 +855,10 @@
       <source xml:lang="en">Connecting to {0}...</source>
       <note>{0} is the connection display name</note>
     </trans-unit>
+    <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
+      <source xml:lang="en">Connecting to {0}...</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
     </trans-unit>
@@ -952,6 +965,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
       <source xml:lang="en">Copy Headers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
+      <source xml:lang="en">Copy Object Name</source>
     </trans-unit>
     <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
       <source xml:lang="en">Copy Script</source>
@@ -1313,6 +1329,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
       <source xml:lang="en">Edit Connection Profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
+      <source xml:lang="en">Edit Data</source>
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
@@ -1952,6 +1971,9 @@
     <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
       <source xml:lang="en">Function</source>
     </trans-unit>
+    <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
+      <source xml:lang="en">Functions</source>
+    </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
     </trans-unit>
@@ -2019,6 +2041,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++63175eb76c6f73e396f5ba39f708f72813c5419b0b19be916afb039acb1669c5">
+      <source xml:lang="en">Global Search</source>
     </trans-unit>
     <trans-unit id="++CODE++b5930753b2a87c4f052f0ad8869c5df62df2d9c38464a45a43733608c6ae84e2">
       <source xml:lang="en">Global Search - {0}</source>
@@ -2695,6 +2720,9 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
+      <source xml:lang="en">No objects found</source>
+    </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
     </trans-unit>
@@ -2791,6 +2819,9 @@
     </trans-unit>
     <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
       <source xml:lang="en">Object Type</source>
+    </trans-unit>
+    <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
+      <source xml:lang="en">Object Types</source>
     </trans-unit>
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
@@ -3457,11 +3488,23 @@
     <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
       <source xml:lang="en">Schema/Object Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
+      <source xml:lang="en">Schemas</source>
+    </trans-unit>
     <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
       <source xml:lang="en">Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
+      <source xml:lang="en">Script as Alter</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
       <source xml:lang="en">Script as Create</source>
+    </trans-unit>
+    <trans-unit id="++CODE++322de6924dbe3c139348ee124dcc19e9ca0de352f0b03a3846d60ec82eb1f44d">
+      <source xml:lang="en">Script as Drop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff98ebd77a41e1bbbde627a6d59c75d1f0c638d766414f8a1d10734624710015">
+      <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
@@ -3474,6 +3517,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30777e8c58d5054af4a2324c8dfb881ce5fd4ace167c9aaa8f872477d556b8fa">
+      <source xml:lang="en">Search database objects...</source>
     </trans-unit>
     <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
       <source xml:lang="en">Search for database objects...</source>
@@ -3495,6 +3541,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
+      <source xml:lang="en">Searching...</source>
     </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
@@ -3522,6 +3571,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
+      <source xml:lang="en">Select Top 1000</source>
     </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
@@ -3806,6 +3858,9 @@
     <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
       <source xml:lang="en">Stored Procedure</source>
     </trans-unit>
+    <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
+      <source xml:lang="en">Stored Procedures</source>
+    </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
     </trans-unit>
@@ -3899,6 +3954,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
       <source xml:lang="en">Table name cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
+      <source xml:lang="en">Tables</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
@@ -4078,6 +4136,9 @@
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
+    <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
+      <source xml:lang="en">Try adjusting your search or filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
       <source xml:lang="en">Try it</source>
     </trans-unit>
@@ -4204,6 +4265,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>
+    </trans-unit>
+    <trans-unit id="++CODE++69c404591e99d86fd11f5ae1b15ebd246d4836aaa88a29f75f3f3d61c028357a">
+      <source xml:lang="en">Views</source>
     </trans-unit>
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -4423,6 +4487,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4e3dfe569dd01b20bd65b9a6b915a78c41d24443f6809ead3e60bb7450f7f808">
+      <source xml:lang="en">{0} object(s) found</source>
+      <note>{0} is the number of objects found</note>
     </trans-unit>
     <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
       <source xml:lang="en">{0} of {1}</source>
