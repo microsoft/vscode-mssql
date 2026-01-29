@@ -217,6 +217,7 @@
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
+    "mssql.transferActiveEditorConnections.description": "When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.",
     "mssql.defaultQueryResultsViewMode.description": "Default view mode for query results display.",
     "mssql.defaultQueryResultsViewMode.grid.description": "Display results in a tabular grid format (default)",
     "mssql.defaultQueryResultsViewMode.text.description": "Display results in a formatted text format.",

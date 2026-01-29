@@ -1422,6 +1422,12 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
+                "mssql.transferActiveEditorConnections": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.transferActiveEditorConnections.description%",
+                    "scope": "application"
+                },
                 "mssql.defaultQueryResultsViewMode": {
                     "type": "string",
                     "default": "Grid",
