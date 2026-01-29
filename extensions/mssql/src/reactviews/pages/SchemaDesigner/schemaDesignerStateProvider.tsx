@@ -411,9 +411,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
 
         const handler = () => {
-            // getScript events can fire in quick succession; schedule after current call stack.
-            // Note: undo/redo operations set pendingFlowStateRef before emitting this event,
-            // so updateSchemaChanges will use the correct state even if ReactFlow hasn't updated yet.
+            // getScript events can fire in quick succession; schedule after UI updates.
             setTimeout(() => {
                 void updateSchemaChanges();
             }, 0);
