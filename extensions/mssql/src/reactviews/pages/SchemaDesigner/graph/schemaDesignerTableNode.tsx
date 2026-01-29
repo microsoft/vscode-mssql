@@ -111,8 +111,6 @@ const useStyles = makeStyles({
     },
     tableNodeDeleted: {
         boxShadow: "0 0 0 2px var(--vscode-gitDecoration-deletedResourceForeground)",
-        filter: "grayscale(0.6)",
-        opacity: 0.75,
     },
     tableHeader: {
         width: "100%",
@@ -248,6 +246,8 @@ const useStyles = makeStyles({
     tableContentDisabled: {
         pointerEvents: "none",
         userSelect: "none",
+        filter: "grayscale(0.6)",
+        opacity: 0.75,
     },
     undoButtonWrapper: {
         position: "absolute",

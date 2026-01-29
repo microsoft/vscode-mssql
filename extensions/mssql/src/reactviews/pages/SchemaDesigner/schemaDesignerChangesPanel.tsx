@@ -19,7 +19,6 @@ import {
     Toolbar,
     ToolbarButton,
     Tooltip,
-    CounterBadge,
     Dropdown,
     Option,
     Popover,
@@ -41,7 +40,7 @@ import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
 import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "./diff/diffUtils";
 import { describeChange } from "./diff/schemaDiff";
-import { PendingChangesIcon16 } from "../../common/icons/fluentIcons";
+import * as FluentIcons from "@fluentui/react-icons";
 
 const DEFAULT_PANEL_SIZE = 25;
 const MIN_PANEL_SIZE = 10;
@@ -107,6 +106,13 @@ const useStyles = makeStyles({
         flex: 1,
         overflow: "auto",
         minHeight: 0,
+        "& .fui-TreeItemLayout": {
+            minWidth: 0,
+        },
+        "& .fui-TreeItemLayout__main": {
+            minWidth: 0,
+            overflow: "hidden",
+        },
     },
     empty: {
         flex: 1,
@@ -173,14 +179,34 @@ const useStyles = makeStyles({
         height: "16px",
         flexShrink: 0,
     },
-    changeIconAdded: {
+    actionBadge: {
+        fontSize: "11px",
+        fontWeight: 600,
+        marginLeft: "4px",
+        flexShrink: 0,
+    },
+    actionBadgeAdded: {
         color: "var(--vscode-gitDecoration-addedResourceForeground)",
     },
-    changeIconModified: {
+    actionBadgeModified: {
         color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
     },
-    changeIconDeleted: {
+    actionBadgeDeleted: {
         color: "var(--vscode-gitDecoration-deletedResourceForeground)",
+    },
+    changeSummary: {
+        display: "flex",
+        gap: "6px",
+        fontSize: "11px",
+        fontWeight: 600,
+    },
+    ellipsisText: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        display: "block",
+        minWidth: 0,
+        flex: 1,
     },
     changeDescription: {
         flex: 1,
@@ -448,31 +474,52 @@ export const SchemaDesignerChangesPanel = () => {
         searchText.trim() !== "" || actionFilter !== ALL_FILTER || categoryFilter !== ALL_FILTER;
     const hasNoResults = filteredGroups.length === 0 && !hasNoChanges;
 
-    const getTableIconClass = (group: TableChangeGroup) => {
-        if (group.isNew) {
-            return classes.tableIconAdded;
+    const renderChangeIcon = (change: SchemaChange) => {
+        switch (change.category) {
+            case ChangeCategory.Table:
+                return <FluentIcons.Table20Regular />;
+            case ChangeCategory.Column:
+                return <FluentIcons.Column20Regular />;
+            case ChangeCategory.ForeignKey:
+                return <FluentIcons.Key20Regular />;
         }
-        if (group.isDeleted) {
-            return classes.tableIconDeleted;
-        }
-        return classes.tableIconModified;
     };
 
-    const getChangeIconClass = (change: SchemaChange) => {
+    const getActionBadge = (change: SchemaChange) => {
         switch (change.action) {
             case ChangeAction.Add:
-                return classes.changeIconAdded;
+                return { letter: "A", className: classes.actionBadgeAdded };
             case ChangeAction.Modify:
-                return classes.changeIconModified;
+                return { letter: "M", className: classes.actionBadgeModified };
             case ChangeAction.Delete:
-                return classes.changeIconDeleted;
+                return { letter: "D", className: classes.actionBadgeDeleted };
         }
+    };
+
+    const renderChangeSummary = (group: TableChangeGroup) => {
+        const counts = { add: 0, modify: 0, delete: 0 };
+        for (const change of group.changes) {
+            if (change.action === ChangeAction.Add) counts.add++;
+            else if (change.action === ChangeAction.Modify) counts.modify++;
+            else if (change.action === ChangeAction.Delete) counts.delete++;
+        }
+        return (
+            <span className={classes.changeSummary}>
+                {counts.add > 0 && <span className={classes.actionBadgeAdded}>{counts.add} A</span>}
+                {counts.modify > 0 && (
+                    <span className={classes.actionBadgeModified}>{counts.modify} M</span>
+                )}
+                {counts.delete > 0 && (
+                    <span className={classes.actionBadgeDeleted}>{counts.delete} D</span>
+                )}
+            </span>
+        );
     };
 
     const renderChangeActions = (change: SchemaChange) => {
         const revertInfo = getCanRevert(change);
         return (
-            <Toolbar size="small" className={mergeClasses(classes.actionToolbar, "actionToolbar")}>
+            <Toolbar size="small">
                 <Tooltip content={loc.revealTooltip} relationship="label">
                     <ToolbarButton
                         aria-label={loc.reveal}
@@ -677,69 +724,65 @@ export const SchemaDesignerChangesPanel = () => {
                                 if (item.nodeType === "table" && item.tableGroup) {
                                     const group = item.tableGroup;
                                     return (
-                                        <TreeItem
-                                            key={flatTreeItem.value}
-                                            {...treeItemProps}
-                                            className={classes.treeItem}>
+                                        <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                             <TreeItemLayout
-                                                className={classes.treeItemLayout}
                                                 iconBefore={
-                                                    <span
-                                                        className={mergeClasses(
-                                                            classes.tableIcon,
-                                                            getTableIconClass(group),
-                                                        )}>
-                                                        <PendingChangesIcon16 />
+                                                    <span className={classes.tableIcon}>
+                                                        <FluentIcons.Table20Regular />
                                                     </span>
                                                 }
-                                                aside={
-                                                    <CounterBadge
-                                                        count={group.changes.length}
-                                                        size="small"
-                                                        appearance="filled"
-                                                        color="informative"
-                                                    />
-                                                }>
-                                                <span
-                                                    className={classes.tableName}
-                                                    title={content as string}>
-                                                    {highlightMatches(
-                                                        content as string,
-                                                        searchText,
-                                                        classes.searchHighlight,
-                                                    )}
-                                                </span>
+                                                aside={renderChangeSummary(group)}>
+                                                <Tooltip
+                                                    content={content as string}
+                                                    relationship="label"
+                                                    positioning="above">
+                                                    <span className={classes.ellipsisText}>
+                                                        {highlightMatches(
+                                                            content as string,
+                                                            searchText,
+                                                            classes.searchHighlight,
+                                                        )}
+                                                    </span>
+                                                </Tooltip>
                                             </TreeItemLayout>
                                         </TreeItem>
                                     );
                                 } else if (item.nodeType === "change" && item.change) {
                                     const change = item.change;
                                     return (
-                                        <TreeItem
-                                            key={flatTreeItem.value}
-                                            {...treeItemProps}
-                                            className={classes.treeItem}>
+                                        <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                             <TreeItemLayout
-                                                className={classes.treeItemLayout}
                                                 iconBefore={
                                                     <span
                                                         className={mergeClasses(
                                                             classes.changeIcon,
-                                                            getChangeIconClass(change),
+                                                            getActionBadge(change).className,
                                                         )}>
-                                                        <PendingChangesIcon16 />
+                                                        {renderChangeIcon(change)}
+                                                    </span>
+                                                }
+                                                aside={
+                                                    <span
+                                                        className={mergeClasses(
+                                                            classes.actionBadge,
+                                                            getActionBadge(change).className,
+                                                        )}>
+                                                        {getActionBadge(change).letter}
                                                     </span>
                                                 }
                                                 actions={renderChangeActions(change)}>
-                                                <span
-                                                    className={classes.changeDescription}
-                                                    title={content as string}>
-                                                    {highlightMatches(
-                                                        content as string,
-                                                        searchText,
-                                                        classes.searchHighlight,
-                                                    )}
-                                                </span>
+                                                <Tooltip
+                                                    content={content as string}
+                                                    relationship="label"
+                                                    positioning="above">
+                                                    <span className={classes.ellipsisText}>
+                                                        {highlightMatches(
+                                                            content as string,
+                                                            searchText,
+                                                            classes.searchHighlight,
+                                                        )}
+                                                    </span>
+                                                </Tooltip>
                                             </TreeItemLayout>
                                         </TreeItem>
                                     );
