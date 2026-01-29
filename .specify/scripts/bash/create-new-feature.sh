@@ -103,18 +103,20 @@ get_highest_from_specs() {
 # Function to get highest number from git branches
 get_highest_from_branches() {
     local highest=0
-    
+
     # Get all branches (local and remote)
     branches=$(git branch -a 2>/dev/null || echo "")
-    
+
     if [ -n "$branches" ]; then
         while IFS= read -r branch; do
             # Clean branch name: remove leading markers and remote prefixes
             clean_branch=$(echo "$branch" | sed 's/^[* ]*//; s|^remotes/[^/]*/||')
-            
-            # Extract feature number if branch matches pattern ###-*
-            if echo "$clean_branch" | grep -q '^[0-9]\{3\}-'; then
-                number=$(echo "$clean_branch" | grep -o '^[0-9]\{3\}' || echo "0")
+
+            # Extract feature number if branch matches pattern ###-* (at start or after prefix/)
+            # Handles both "001-feature" and "prefix/feat/001-feature"
+            if echo "$clean_branch" | grep -qE '(^|/)[0-9]{3}-'; then
+                # Extract the 3-digit number
+                number=$(echo "$clean_branch" | grep -oE '(^|/)[0-9]{3}-' | grep -o '[0-9]\{3\}' || echo "0")
                 number=$((10#$number))
                 if [ "$number" -gt "$highest" ]; then
                     highest=$number
@@ -122,7 +124,7 @@ get_highest_from_branches() {
             fi
         done <<< "$branches"
     fi
-    
+
     echo "$highest"
 }
 
@@ -153,6 +155,34 @@ check_existing_branches() {
 clean_branch_name() {
     local name="$1"
     echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//'
+}
+
+# Get branch prefix from config.json or fall back to git username
+get_branch_prefix() {
+    local repo_root="$1"
+    local config_file="$repo_root/.specify/config.json"
+    local prefix=""
+
+    # Try to read from config.json
+    if [[ -f "$config_file" ]]; then
+        # Use grep/sed to parse JSON (avoids jq dependency)
+        prefix=$(grep -o '"branchPrefix"[[:space:]]*:[[:space:]]*"[^"]*"' "$config_file" 2>/dev/null | sed 's/.*:.*"\([^"]*\)"/\1/')
+    fi
+
+    # If empty, fall back to git username
+    if [[ -z "$prefix" ]]; then
+        local git_user=""
+        if git rev-parse --show-toplevel >/dev/null 2>&1; then
+            git_user=$(git config user.name 2>/dev/null || echo "")
+        fi
+        if [[ -n "$git_user" ]]; then
+            # Convert to lowercase, replace spaces/special chars with hyphens
+            prefix=$(echo "$git_user" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
+            prefix="$prefix/feat"
+        fi
+    fi
+
+    echo "$prefix"
 }
 
 # Resolve repository root. Prefer git information when available, but fall back
@@ -248,24 +278,45 @@ fi
 
 # Force base-10 interpretation to prevent octal conversion (e.g., 010 → 8 in octal, but should be 10 in decimal)
 FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
-BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+SPEC_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+
+# Get branch prefix (from config or git username)
+BRANCH_PREFIX=$(get_branch_prefix "$REPO_ROOT")
+
+# Construct full branch name with prefix
+if [ -n "$BRANCH_PREFIX" ]; then
+    BRANCH_NAME="${BRANCH_PREFIX}/${SPEC_NAME}"
+else
+    BRANCH_NAME="${SPEC_NAME}"
+fi
 
 # GitHub enforces a 244-byte limit on branch names
 # Validate and truncate if necessary
 MAX_BRANCH_LENGTH=244
 if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
+    # Calculate prefix length (if any)
+    PREFIX_LENGTH=0
+    if [ -n "$BRANCH_PREFIX" ]; then
+        PREFIX_LENGTH=$((${#BRANCH_PREFIX} + 1))  # +1 for the slash
+    fi
+
     # Calculate how much we need to trim from suffix
-    # Account for: feature number (3) + hyphen (1) = 4 chars
-    MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - 4))
-    
+    # Account for: prefix + feature number (3) + hyphen (1) = prefix + 4 chars
+    MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - PREFIX_LENGTH - 4))
+
     # Truncate suffix at word boundary if possible
     TRUNCATED_SUFFIX=$(echo "$BRANCH_SUFFIX" | cut -c1-$MAX_SUFFIX_LENGTH)
     # Remove trailing hyphen if truncation created one
     TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
-    
+
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
-    BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
-    
+    SPEC_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
+    if [ -n "$BRANCH_PREFIX" ]; then
+        BRANCH_NAME="${BRANCH_PREFIX}/${SPEC_NAME}"
+    else
+        BRANCH_NAME="${SPEC_NAME}"
+    fi
+
     >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
     >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"
     >&2 echo "[specify] Truncated to: $BRANCH_NAME (${#BRANCH_NAME} bytes)"
@@ -277,7 +328,8 @@ else
     >&2 echo "[specify] Warning: Git repository not detected; skipped branch creation for $BRANCH_NAME"
 fi
 
-FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
+# Feature directory uses spec name (without prefix) for consistency
+FEATURE_DIR="$SPECS_DIR/$SPEC_NAME"
 mkdir -p "$FEATURE_DIR"
 
 TEMPLATE="$REPO_ROOT/.specify/templates/spec-template.md"
@@ -288,10 +340,14 @@ if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$SPEC_FILE"; else touch "$SPEC_FILE"
 export SPECIFY_FEATURE="$BRANCH_NAME"
 
 if $JSON_MODE; then
-    printf '{"BRANCH_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s"}\n' "$BRANCH_NAME" "$SPEC_FILE" "$FEATURE_NUM"
+    printf '{"BRANCH_NAME":"%s","SPEC_NAME":"%s","SPEC_FILE":"%s","FEATURE_NUM":"%s","BRANCH_PREFIX":"%s"}\n' "$BRANCH_NAME" "$SPEC_NAME" "$SPEC_FILE" "$FEATURE_NUM" "$BRANCH_PREFIX"
 else
     echo "BRANCH_NAME: $BRANCH_NAME"
+    echo "SPEC_NAME: $SPEC_NAME"
     echo "SPEC_FILE: $SPEC_FILE"
     echo "FEATURE_NUM: $FEATURE_NUM"
+    if [ -n "$BRANCH_PREFIX" ]; then
+        echo "BRANCH_PREFIX: $BRANCH_PREFIX"
+    fi
     echo "SPECIFY_FEATURE environment variable set to: $BRANCH_NAME"
 fi

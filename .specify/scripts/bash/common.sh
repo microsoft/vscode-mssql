@@ -1,6 +1,40 @@
 #!/usr/bin/env bash
 # Common functions and variables for all scripts
 
+# Get branch prefix from config.json or fall back to git username
+get_branch_prefix() {
+    local repo_root
+    if git rev-parse --show-toplevel >/dev/null 2>&1; then
+        repo_root=$(git rev-parse --show-toplevel)
+    else
+        repo_root="$(get_repo_root)"
+    fi
+
+    local config_file="$repo_root/.specify/config.json"
+    local prefix=""
+
+    # Try to read from config.json
+    if [[ -f "$config_file" ]]; then
+        # Use grep/sed to parse JSON (avoids jq dependency)
+        prefix=$(grep -o '"branchPrefix"[[:space:]]*:[[:space:]]*"[^"]*"' "$config_file" 2>/dev/null | sed 's/.*:.*"\([^"]*\)"/\1/')
+    fi
+
+    # If empty, fall back to git username
+    if [[ -z "$prefix" ]]; then
+        local git_user=""
+        if git rev-parse --show-toplevel >/dev/null 2>&1; then
+            git_user=$(git config user.name 2>/dev/null || echo "")
+        fi
+        if [[ -n "$git_user" ]]; then
+            # Convert to lowercase, replace spaces/special chars with hyphens
+            prefix=$(echo "$git_user" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//')
+            prefix="$prefix/feat"
+        fi
+    fi
+
+    echo "$prefix"
+}
+
 # Get repository root, with fallback for non-git repositories
 get_repo_root() {
     if git rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -72,28 +106,45 @@ check_feature_branch() {
         return 0
     fi
 
-    if [[ ! "$branch" =~ ^[0-9]{3}- ]]; then
+    # Match both prefixed (user/feat/001-name) and non-prefixed (001-name) branches
+    if [[ ! "$branch" =~ (^|/)[0-9]{3}- ]]; then
         echo "ERROR: Not on a feature branch. Current branch: $branch" >&2
-        echo "Feature branches should be named like: 001-feature-name" >&2
+        echo "Feature branches should be named like: 001-feature-name or prefix/001-feature-name" >&2
         return 1
     fi
 
     return 0
 }
 
+# Extract the spec name (###-suffix) from a potentially prefixed branch name
+# e.g., "aasim/feat/001-auth" -> "001-auth"
+extract_spec_name() {
+    local branch="$1"
+    # Extract the ###-suffix part from the end of the branch name
+    if [[ "$branch" =~ ([0-9]{3}-[^/]+)$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+    else
+        echo "$branch"
+    fi
+}
+
 get_feature_dir() { echo "$1/specs/$2"; }
 
 # Find feature directory by numeric prefix instead of exact branch match
 # This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
+# Also handles prefixed branches (e.g., aasim/feat/004-whatever)
 find_feature_dir_by_prefix() {
     local repo_root="$1"
     local branch_name="$2"
     local specs_dir="$repo_root/specs"
 
-    # Extract numeric prefix from branch (e.g., "004" from "004-whatever")
-    if [[ ! "$branch_name" =~ ^([0-9]{3})- ]]; then
+    # Extract spec name from potentially prefixed branch
+    local spec_name=$(extract_spec_name "$branch_name")
+
+    # Extract numeric prefix from spec name (e.g., "004" from "004-whatever")
+    if [[ ! "$spec_name" =~ ^([0-9]{3})- ]]; then
         # If branch doesn't have numeric prefix, fall back to exact match
-        echo "$specs_dir/$branch_name"
+        echo "$specs_dir/$spec_name"
         return
     fi
 

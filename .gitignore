@@ -36,6 +36,9 @@ test/resources/launchDir
 # Environment
 .env
 
+# Specify user config (use config.template.json as reference)
+.specify/config.json
+
 # Build artifacts
 *BROWSE.VC*
 examples
