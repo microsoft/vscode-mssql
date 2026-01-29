@@ -693,7 +693,7 @@ suite("RingBuffer Tests", () => {
     suite("edge cases", () => {
         test("should handle buffer with capacity 1", () => {
             const buffer = new RingBuffer<TestRow>(1);
-            
+
             buffer.add(createTestRow("row1", 1, 100));
             expect(buffer.size).to.equal(1);
             expect(buffer.getAt(0)?.name).to.equal("row1");

@@ -3,7 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IndexedRow } from "./profilerTypes";
+/**
+ * This is an adaptation of the ring buffer implementation from SQL Tools Service (STS).
+ * It provides a circular buffer for storing profiler events with automatic overflow handling.
+ */
+
+import { IndexedRow, Filter, QueryResult } from "./profilerTypes";
 
 /**
  * A circular buffer for storing rows with automatic sequence numbering.
