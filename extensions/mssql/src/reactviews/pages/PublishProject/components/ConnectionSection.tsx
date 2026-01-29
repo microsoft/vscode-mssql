@@ -68,6 +68,7 @@ export const ConnectionSection: React.FC = () => {
             ) : (
                 renderSearchableDropdown(serverComponent, selectedProfileId, handleServerSelect, {
                     searchBoxPlaceholder: locConstants.queryResult.search,
+                    showPlaceholder: true,
                 })
             )}
             {renderCombobox(
