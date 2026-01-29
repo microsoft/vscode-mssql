@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sd from "../../../../sharedInterfaces/schemaDesigner";
-import isEqual from "lodash/isEqual";
+import * as lodash from "lodash";
 
 export enum ChangeAction {
     Add = "add",
@@ -102,7 +102,7 @@ export function diffObject<T extends object>(
     for (const prop of properties) {
         const oldValue = (original as Record<string, unknown>)[prop.key];
         const newValue = (current as Record<string, unknown>)[prop.key];
-        if (!isEqual(oldValue, newValue)) {
+        if (!lodash.isEqual(oldValue, newValue)) {
             changes.push({
                 property: prop.key,
                 displayName: prop.displayName,
