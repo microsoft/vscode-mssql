@@ -142,16 +142,7 @@ export function generatePublishFormComponents(
         },
         acceptContainerLicense: {
             propertyName: PublishFormFields.AcceptContainerLicense,
-            label: `<span>
-						${Common.accept}
-						<a
-							href="${constants.licenseAgreementUrl}"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							${Loc.SqlServerLicenseAgreement}
-						</a>
-					</span>`,
+            label: `<span>${Common.accept} <a href="${constants.licenseAgreementUrl}" target="_blank" rel="noopener noreferrer">${Loc.SqlServerLicenseAgreement}</a></span>`,
             required: true,
             type: FormItemType.Checkbox,
             validate: (_state: PublishDialogState, value) => {

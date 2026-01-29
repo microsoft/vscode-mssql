@@ -269,7 +269,7 @@ suite("PublishProjectWebViewController Tests", () => {
         );
 
         expect(existingServerOption?.displayName).to.equal("Existing SQL server");
-        expect(containerOption?.displayName).to.equal("New SQL Server Local development container");
+        expect(containerOption?.displayName).to.equal("New Local Docker SQL Server");
     });
 
     test("field validators enforce container and server requirements", () => {
