@@ -11,6 +11,7 @@ import {
     ConnectionInputMode,
     GetConnectionDisplayNameRequest,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
+    ListDatabasesRequest,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
@@ -157,6 +158,14 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     return await webviewContext.extensionRpc.sendRequest(
                         GetSqlAnalyticsEndpointUriFromFabricRequest.type,
                         sqlDb,
+                    );
+                },
+                listDatabases: async function (
+                    connectionProfile: IConnectionDialogProfile,
+                ): Promise<{ databases: string[] }> {
+                    return await webviewContext.extensionRpc.sendRequest(
+                        ListDatabasesRequest.type,
+                        connectionProfile,
                     );
                 },
                 changePassword: async function (

@@ -16,6 +16,7 @@ import {
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
+import { DatabaseCombobox } from "./components/databaseCombobox.component";
 
 export const ConnectionFormPage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -33,6 +34,10 @@ export const ConnectionFormPage = () => {
                     context.state.formComponents[inputName as keyof IConnectionDialogProfile];
                 if (component?.hidden !== false) {
                     return undefined;
+                }
+
+                if (inputName === "database") {
+                    return <DatabaseCombobox key={idx} component={component} idx={idx} />;
                 }
 
                 return (

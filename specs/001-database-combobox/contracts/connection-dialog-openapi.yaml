@@ -1,0 +1,69 @@
+openapi: 3.0.3
+info:
+  title: Connection Dialog Database List API
+  version: 1.0.0
+  description: Internal API used by the connection dialog to load database options.
+servers:
+  - url: https://localhost
+paths:
+  /connection-dialog/databases:
+    post:
+      summary: List databases for a connection profile
+      operationId: listConnectionDialogDatabases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DatabaseListRequest"
+      responses:
+        "200":
+          description: Database options for the connection profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatabaseListResponse"
+        "400":
+          description: Required fields not populated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    DatabaseListRequest:
+      type: object
+      required:
+        - server
+        - authenticationType
+      properties:
+        server:
+          type: string
+        authenticationType:
+          type: string
+          enum: [SqlLogin, Integrated, AzureMFA, AzureMFAAndUser, dstsAuth, None]
+        user:
+          type: string
+        password:
+          type: string
+        accountId:
+          type: string
+        tenantId:
+          type: string
+    DatabaseListResponse:
+      type: object
+      required:
+        - databases
+      properties:
+        databases:
+          type: array
+          description: Always includes the literal "<default>" option.
+          items:
+            type: string
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string

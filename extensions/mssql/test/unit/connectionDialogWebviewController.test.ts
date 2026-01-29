@@ -321,6 +321,83 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
     });
 
+    suite("Database options", () => {
+        test("should reset database options when a dependent field changes", async () => {
+            controller.state.databaseOptions = ["<default>", "userdb"];
+            controller.state.databaseOptionsStatus = ApiStatus.Loaded;
+            controller.state.databaseOptionsKey = "server|user";
+
+            await (controller as unknown as any).afterSetFormProperty("server");
+
+            expect(controller.state.databaseOptions).to.deep.equal(["<default>"]);
+            expect(controller.state.databaseOptionsStatus).to.equal(ApiStatus.NotStarted);
+            expect(controller.state.databaseOptionsKey).to.equal(undefined);
+        });
+
+        test("should load database options and include <default>", async () => {
+            connectionManager.connect.resolves(true);
+            connectionManager.listDatabases.resolves(["db1", "db2"]);
+            connectionManager.disconnect.resolves(true);
+
+            const response = await (controller as unknown as any).loadDatabaseOptions({
+                authenticationType: AuthenticationType.SqlLogin,
+                server: "server",
+                user: "user",
+                password: "password",
+            } as IConnectionDialogProfile);
+
+            expect(response.databases[0]).to.equal("<default>");
+            expect(controller.state.databaseOptions).to.deep.equal(response.databases);
+            expect(controller.state.databaseOptionsStatus).to.equal(ApiStatus.Loaded);
+        });
+
+        test("should use cached database options for the same credentials", async () => {
+            controller.state.databaseOptionsCache = {
+                "SqlLogin|server|user|password||": ["<default>", "cachedDb"],
+            };
+
+            const response = await (controller as unknown as any).loadDatabaseOptions({
+                authenticationType: AuthenticationType.SqlLogin,
+                server: "server",
+                user: "user",
+                password: "password",
+            } as IConnectionDialogProfile);
+
+            expect(response.databases).to.deep.equal(["<default>", "cachedDb"]);
+            expect(controller.state.databaseOptionsStatus).to.equal(ApiStatus.Loaded);
+            expect(connectionManager.connect).to.not.have.been.called;
+        });
+
+        test("should dedupe in-flight database option requests for the same key", async () => {
+            let resolveConnect: (value: boolean) => void = () => {};
+            const connectPromise = new Promise<boolean>((resolve) => {
+                resolveConnect = resolve;
+            });
+
+            connectionManager.connect.returns(connectPromise as unknown as Promise<boolean>);
+            connectionManager.listDatabases.resolves(["db1"]);
+            connectionManager.disconnect.resolves(true);
+
+            const profile = {
+                authenticationType: AuthenticationType.SqlLogin,
+                server: "server",
+                user: "user",
+                password: "password",
+            } as IConnectionDialogProfile;
+
+            const firstPromise = (controller as unknown as any).loadDatabaseOptions(profile);
+            const secondPromise = (controller as unknown as any).loadDatabaseOptions(profile);
+
+            expect(connectionManager.connect).to.have.been.calledOnce;
+
+            resolveConnect(true);
+            const [first, second] = await Promise.all([firstPromise, secondPromise]);
+
+            expect(first.databases).to.deep.equal(second.databases);
+            expect(connectionManager.connect).to.have.been.calledOnce;
+        });
+    });
+
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
