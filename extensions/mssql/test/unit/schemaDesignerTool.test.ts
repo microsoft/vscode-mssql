@@ -122,15 +122,28 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
                             `${b.name}.${b.referencedSchemaName}.${b.referencedTableName}`,
                         ),
                     )
-                    .map((fk) => ({
-                        name: fk.name,
-                        columns: fk.columns,
-                        referencedSchemaName: fk.referencedSchemaName,
-                        referencedTableName: fk.referencedTableName,
-                        referencedColumns: fk.referencedColumns,
-                        onDeleteAction: fk.onDeleteAction,
-                        onUpdateAction: fk.onUpdateAction,
-                    })) as any,
+                    .map((fk) => {
+                        const refs = fk.referencedColumns ?? [];
+                        const pairs = (fk.columns ?? []).map((column, i) => ({
+                            column,
+                            referencedColumn: refs[i] ?? "",
+                        }));
+                        pairs.sort((a, b) =>
+                            `${a.column}.${a.referencedColumn}`.localeCompare(
+                                `${b.column}.${b.referencedColumn}`,
+                            ),
+                        );
+
+                        return {
+                            name: fk.name,
+                            columns: pairs.map((p) => p.column),
+                            referencedSchemaName: fk.referencedSchemaName,
+                            referencedTableName: fk.referencedTableName,
+                            referencedColumns: pairs.map((p) => p.referencedColumn),
+                            onDeleteAction: fk.onDeleteAction,
+                            onUpdateAction: fk.onUpdateAction,
+                        };
+                    }) as any,
             })) as any,
         };
     };
@@ -281,6 +294,128 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.overview.tables).to.have.length(41);
             expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
             expectNoSchemaDump(parsedResult);
+        });
+
+        test("includes server/database on internal_error when available", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.rejects(new Error("boom"));
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: { operation: "get_overview" },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("internal_error");
+            expect(parsedResult.message).to.equal("boom");
+            expect(parsedResult.server).to.equal(sampleServer);
+            expect(parsedResult.database).to.equal(sampleDatabase);
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("treats foreign key mapping order as stable for version hashing", async () => {
+            const baseColumn = {
+                dataType: "int",
+                maxLength: "",
+                precision: 0,
+                scale: 0,
+                isPrimaryKey: true,
+                isIdentity: false,
+                identitySeed: 0,
+                identityIncrement: 0,
+                isNullable: false,
+                defaultValue: "",
+                isComputed: false,
+                computedFormula: "",
+                computedPersisted: false,
+            };
+
+            const schemaOne: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        id: "p1",
+                        name: "Parent",
+                        schema: "dbo",
+                        columns: [
+                            { id: "pc1", name: "KeyA", ...baseColumn },
+                            { id: "pc2", name: "KeyB", ...baseColumn },
+                        ] as any,
+                        foreignKeys: [],
+                    },
+                    {
+                        id: "c1",
+                        name: "Child",
+                        schema: "dbo",
+                        columns: [
+                            { id: "cc1", name: "KeyA", ...baseColumn },
+                            { id: "cc2", name: "KeyB", ...baseColumn },
+                        ] as any,
+                        foreignKeys: [
+                            {
+                                id: "fk1",
+                                name: "FK_Child_Parent",
+                                columns: ["KeyA", "KeyB"],
+                                referencedSchemaName: "dbo",
+                                referencedTableName: "Parent",
+                                referencedColumns: ["KeyA", "KeyB"],
+                                onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                                onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const schemaTwo: SchemaDesigner.Schema = {
+                ...schemaOne,
+                tables: schemaOne.tables.map((t) =>
+                    t.name === "Child"
+                        ? {
+                              ...t,
+                              foreignKeys: [
+                                  {
+                                      ...(t.foreignKeys?.[0] as any),
+                                      columns: ["KeyB", "KeyA"],
+                                      referencedColumns: ["KeyB", "KeyA"],
+                                  },
+                              ],
+                          }
+                        : t,
+                ),
+            };
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.onCall(0).resolves(schemaOne);
+            mockDesigner.getSchemaState.onCall(1).resolves(schemaTwo);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: { operation: "get_overview", options: { includeColumns: "none" } },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const resultOne = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+            const resultTwo = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(resultOne.success).to.be.true;
+            expect(resultTwo.success).to.be.true;
+            expect(resultOne.version).to.equal(resultTwo.version);
+            expectNoSchemaDump(resultOne);
+            expectNoSchemaDump(resultTwo);
         });
     });
 

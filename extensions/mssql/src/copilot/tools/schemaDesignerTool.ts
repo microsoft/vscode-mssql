@@ -397,7 +397,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 reason: "internal_error",
                 message: error instanceof Error ? error.message : String(error),
             };
-            return json(payload);
+            return json(withTarget(payload, schemaDesignerManager.getActiveDesigner()));
         }
     }
 
