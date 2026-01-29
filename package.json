@@ -1,15 +1,41 @@
 {
-  "name": "vscode-mssql",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Monorepo for SQL Server extensions for Visual Studio Code",
-  "scripts": {
-    "localization": "node scripts/localization-extract.js",
-    "prepare": "husky"
-  },
-  "devDependencies": {
-    "@vscode/l10n-dev": "^0.0.35",
-    "prettier": "^3.3.3",
-    "husky": "^9.0.11"
-  }
+    "name": "vscode-mssql",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Monorepo for SQL Server extensions for Visual Studio Code",
+    "scripts": {
+        "lint": "eslint extensions/",
+        "lint:fix": "eslint extensions/ --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "localization": "node scripts/localization-extract.js",
+        "prepare": "husky",
+        "precommit": "lint-staged --quiet"
+    },
+    "lint-staged": {
+        "*.{ts,tsx}": [
+            "eslint --quiet --cache --fix",
+            "prettier --write"
+        ],
+        "*.{js,mjs,json,yml,yaml,md,html,svg,css}": "prettier --write"
+    },
+    "devDependencies": {
+        "@eslint/compat": "^1.1.0",
+        "@stylistic/eslint-plugin": "^2.8.0",
+        "@typescript-eslint/eslint-plugin": "^8.7.0",
+        "@typescript-eslint/parser": "^8.7.0",
+        "@vscode/l10n-dev": "^0.0.35",
+        "eslint": "^9.32.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-custom-eslint-rules": "file:eslint/custom-rules",
+        "eslint-plugin-jsdoc": "^50.2.2",
+        "eslint-plugin-notice": "^1.0.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "eslint-plugin-react": "^7.35.2",
+        "husky": "^9.0.11",
+        "lint-staged": "^15.2.10",
+        "prettier": "^3.3.3",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.34.0"
+    }
 }

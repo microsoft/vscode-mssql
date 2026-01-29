@@ -1,11 +1,19 @@
-// Also update the Prettier options in settings.json so that both CLI and VS Code formatting use the same options!
+// Prettier configuration for the monorepo
+// Uses CRLF line endings to match .gitattributes default
 
 const config = {
     tabWidth: 4,
     printWidth: 100,
     bracketSameLine: true,
-    endOfLine: "lf",
+    endOfLine: "crlf",
     overrides: [
+        {
+            // Shell scripts and husky hooks use LF per .gitattributes
+            files: ["*.sh", "*.init", ".husky/**/*"],
+            options: {
+                endOfLine: "lf",
+            },
+        },
         {
             files: "*.svg",
             options: {
