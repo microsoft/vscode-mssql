@@ -11,6 +11,15 @@ import { ItemType } from 'sqldbproj';
 export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
 
+/**
+ * Maps item types to their default folder locations.
+ * Following SSDT conventions for folder structure (ObjectType and SchemaObjectType).
+ * Add new mappings here when adding item types that should be placed in specific folders.
+ */
+export const itemTypeToDefaultFolderMap: ReadonlyMap<ItemType, string> = new Map([
+	[ItemType.schema, constants.securityFolderName],
+]);
+
 // Object maps
 
 let scriptTypeMap: Map<string, ProjectScriptType> = new Map();
@@ -43,6 +52,7 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.table, constants.tableFriendlyName, templateFolderPath, 'newTsqlTableTemplate.sql'),
 		loadObjectTypeInfo(ItemType.view, constants.viewFriendlyName, templateFolderPath, 'newTsqlViewTemplate.sql'),
 		loadObjectTypeInfo(ItemType.storedProcedure, constants.storedProcedureFriendlyName, templateFolderPath, 'newTsqlStoredProcedureTemplate.sql'),
+		loadObjectTypeInfo(ItemType.schema, constants.schemaFriendlyName, templateFolderPath, 'newTsqlSchemaTemplate.sql'),
 		loadObjectTypeInfo(ItemType.preDeployScript, constants.preDeployScriptFriendlyName, templateFolderPath, 'newTsqlPreDeployScriptTemplate.sql'),
 		loadObjectTypeInfo(ItemType.postDeployScript, constants.postDeployScriptFriendlyName, templateFolderPath, 'newTsqlPostDeployScriptTemplate.sql'),
 		loadObjectTypeInfo(ItemType.dataSource, constants.dataSourceFriendlyName, templateFolderPath, 'newTsqlDataSourceTemplate.sql'),

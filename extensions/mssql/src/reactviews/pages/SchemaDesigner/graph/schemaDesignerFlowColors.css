@@ -84,6 +84,40 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
     background-color: var(--vscode-list-hoverBackground);
 }
 
+.react-flow__edge.schema-designer-edge-added .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-addedResourceForeground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-designer-edge-added .react-flow__arrowhead path {
+    fill: var(--vscode-gitDecoration-addedResourceForeground);
+    stroke: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.react-flow__edge.schema-designer-edge-modified .react-flow__edge-path {
+    stroke: var(--vscode-editorWarning-foreground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-designer-edge-modified .react-flow__arrowhead path {
+    fill: var(--vscode-editorWarning-foreground);
+    stroke: var(--vscode-editorWarning-foreground);
+}
+
+.react-flow__edge.schema-designer-edge-deleted .react-flow__edge-path {
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke-width: 2;
+}
+
+.react-flow__edge.schema-designer-edge-deleted .react-flow__arrowhead path {
+    fill: var(--vscode-gitDecoration-deletedResourceForeground);
+    stroke: var(--vscode-gitDecoration-deletedResourceForeground);
+}
+
+.react-flow__edge.schema-designer-edge-deleted {
+    pointer-events: visibleStroke;
+}
+
 .react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
     width: 10px;

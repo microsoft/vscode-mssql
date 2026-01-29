@@ -641,6 +641,96 @@
     "Show table relationships": "Show table relationships",
     "Schema Designer": "Schema Designer",
     "DAB": "DAB",
+    "Show Changes ({0})/{0} is the number of schema changes": {
+        "message": "Show Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "Changes ({0})/{0} is the number of schema changes": {
+        "message": "Changes ({0})",
+        "comment": ["{0} is the number of schema changes"]
+    },
+    "No changes yet.": "No changes yet.",
+    "{0}: {1}/{0} is the qualified table name{1} is the change description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is the change description"]
+    },
+    "undefined": "undefined",
+    "{0} changed from '{1}' to '{2}'/{0} is the display name of the property{1} is the old value{2} is the new value": {
+        "message": "{0} changed from '{1}' to '{2}'",
+        "comment": [
+            "{0} is the display name of the property",
+            "{1} is the old value",
+            "{2} is the new value"
+        ]
+    },
+    "Created table {0}/{0} is the qualified table name": {
+        "message": "Created table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Deleted table {0}/{0} is the qualified table name": {
+        "message": "Deleted table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}/{0} is the qualified table name": {
+        "message": "Modified table {0}",
+        "comment": ["{0} is the qualified table name"]
+    },
+    "Modified table {0}: {1}/{0} is the qualified table name{1} is a list of property changes": {
+        "message": "Modified table {0}: {1}",
+        "comment": ["{0} is the qualified table name", "{1} is a list of property changes"]
+    },
+    "Added column '{0}'/{0} is the column name": {
+        "message": "Added column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Deleted column '{0}'/{0} is the column name": {
+        "message": "Deleted column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}'/{0} is the column name": {
+        "message": "Modified column '{0}'",
+        "comment": ["{0} is the column name"]
+    },
+    "Modified column '{0}': {1}/{0} is the column name{1} is a list of property changes": {
+        "message": "Modified column '{0}': {1}",
+        "comment": ["{0} is the column name", "{1} is a list of property changes"]
+    },
+    "Added foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Added foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Deleted foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Deleted foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}'/{0} is the foreign key name": {
+        "message": "Modified foreign key '{0}'",
+        "comment": ["{0} is the foreign key name"]
+    },
+    "Modified foreign key '{0}': {1}/{0} is the foreign key name{1} is a list of property changes": {
+        "message": "Modified foreign key '{0}': {1}",
+        "comment": ["{0} is the foreign key name", "{1} is a list of property changes"]
+    },
+    "Added": "Added",
+    "Modified": "Modified",
+    "Deleted": "Deleted",
+    "All": "All",
+    "Filter changes": "Filter changes",
+    "Action": "Action",
+    "Category": "Category",
+    "Clear all": "Clear all",
+    "Reveal": "Reveal",
+    "Revert": "Revert",
+    "Search changes...": "Search changes...",
+    "No changes match your search.": "No changes match your search.",
+    "Navigate to this item in the diagram": "Navigate to this item in the diagram",
+    "Revert this change to its original state": "Revert this change to its original state",
+    "Cannot revert: The referenced table or column has been deleted": "Cannot revert: The referenced table or column has been deleted",
+    "Cannot revert: The column is part of a foreign key that references a deleted table": "Cannot revert: The column is part of a foreign key that references a deleted table",
+    "{0} change(s)/{0} is the number of changes": {
+        "message": "{0} change(s)",
+        "comment": ["{0} is the number of changes"]
+    },
     "Data API Builder Configuration": "Data API Builder Configuration",
     "API Type": "API Type",
     "REST API": "REST API",
@@ -674,6 +764,9 @@
     "Optional - Override default GraphQL type name": "Optional - Override default GraphQL type name",
     "Apply Changes": "Apply Changes",
     "Source Table": "Source Table",
+    "Loading...": "Loading...",
+    "Initializing DAB configuration...": "Initializing DAB configuration...",
+    "No entities found": "No entities found",
     "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
     "Select Source Schema": "Select Source Schema",
     "Select Target Schema": "Select Target Schema",
@@ -708,7 +801,6 @@
     "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
     "Source Name": "Source Name",
     "Include": "Include",
-    "Action": "Action",
     "Target Name": "Target Name",
     "Change": "Change",
     "Select Source": "Select Source",
@@ -854,9 +946,36 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create a new database on '{0}'./{0} is the name of the server": {
+        "message": "Create a new database on '{0}'.",
+        "comment": ["{0} is the name of the server"]
+    },
+    "General": "General",
+    "Database Name": "Database Name",
+    "Enter database name": "Enter database name",
+    "Database name is required": "Database name is required",
+    "Database name must be 128 characters or fewer": "Database name must be 128 characters or fewer",
+    "Owner": "Owner",
+    "Collation": "Collation",
+    "Recovery Model": "Recovery Model",
+    "Compatibility Level": "Compatibility Level",
+    "Containment Type": "Containment Type",
+    "Is Ledger Database": "Is Ledger Database",
+    "Help": "Help",
+    "Drop Database": "Drop Database",
+    "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
+        "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
+        "comment": ["{0} is the database name", "{1} is the server name"]
+    },
+    "Database Details": "Database Details",
+    "Drop Database Options": "Drop Database Options",
+    "Status": "Status",
+    "-": "-",
+    "Drop active connections": "Drop active connections",
+    "Delete backup and restore history": "Delete backup and restore history",
+    "Drop": "Drop",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
-    "Loading...": "Loading...",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
     "Select a server": "Select a server",
@@ -878,18 +997,15 @@
     "Browse...": "Browse...",
     "Target Database": "Target Database",
     "Source Database": "Source Database",
-    "Database Name": "Database Name",
     "New Database": "New Database",
     "Existing Database": "Existing Database",
     "Select a database": "Select a database",
-    "Enter database name": "Enter database name",
     "Application Name": "Application Name",
     "Enter application name": "Enter application name",
     "Application Version": "Application Version",
     "Execute": "Execute",
     "File path is required": "File path is required",
     "Invalid file": "Invalid file",
-    "Database name is required": "Database name is required",
     "Invalid database": "Invalid database",
     "Validation failed": "Validation failed",
     "Deploying DACPAC...": "Deploying DACPAC...",
@@ -1024,7 +1140,6 @@
     "<default>": "<default>",
     "Auth type": "Auth type",
     "User ID": "User ID",
-    "Status": "Status",
     "Toggle selection for {0}/{0} is the connection display name": {
         "message": "Toggle selection for {0}",
         "comment": ["{0} is the connection display name"]
@@ -1079,6 +1194,27 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
+    "Rename Database": "Rename Database",
+    "Enter the new database name": "Enter the new database name",
+    "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
+    "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
+    "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
+    "Failed to create database '{0}'. {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to create database '{0}'. {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
+    "Failed to drop database '{0}'. {1}/{0} is the database name{1} is the error message": {
+        "message": "Failed to drop database '{0}'. {1}",
+        "comment": ["{0} is the database name", "{1} is the error message"]
+    },
+    "Failed to rename database '{0}' to '{1}'. {2}/{0} is the current database name{1} is the new database name{2} is the error message": {
+        "message": "Failed to rename database '{0}' to '{1}'. {2}",
+        "comment": [
+            "{0} is the current database name",
+            "{1} is the new database name",
+            "{2} is the error message"
+        ]
+    },
     "View More": "View More",
     "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
     "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -1311,7 +1447,6 @@
         "message": "Disconnected on document \"{0}\"",
         "comment": ["{0} is the document name"]
     },
-    "Help": "Help",
     "macOS Sierra or newer is required to use this feature.": "macOS Sierra or newer is required to use this feature.",
     "Getting definition ...": "Getting definition ...",
     "DefinitionRequested": "DefinitionRequested",
@@ -1385,6 +1520,8 @@
     },
     "Failed to generate script. Please check the logs for more details.": "Failed to generate script. Please check the logs for more details.",
     "Failed to open script in editor.": "Failed to open script in editor.",
+    "No script generated.": "No script generated.",
+    "Unknown object management dialog.": "Unknown object management dialog.",
     "Failed to generate script: {0}/{0} is the error message": {
         "message": "Failed to generate script: {0}",
         "comment": ["{0} is the error message"]
@@ -1784,7 +1921,6 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
-    "General": "General",
     "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
@@ -1816,12 +1952,15 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Connection profile not found. Please create a new connection using the Connection Dialog.": "Connection profile not found. Please create a new connection using the Connection Dialog.",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
     "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
         "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
         "comment": ["{0} is the server name"]
     },
     "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "Failed to get connection string: {0}": "Failed to get connection string: {0}",
+    "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
@@ -2107,7 +2246,6 @@
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
     "No connection information found": "No connection information found",
-    "No active connection": "No active connection",
     "Opening schema designer...": "Opening schema designer...",
     "No connection credentials found": "No connection credentials found",
     "No active connection for schema view": "No active connection for schema view",
