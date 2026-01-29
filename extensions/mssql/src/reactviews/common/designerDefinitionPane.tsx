@@ -125,6 +125,7 @@ export const DesignerDefinitionPane = forwardRef<
         activeTab?: DesignerDefinitionTabs;
         setActiveTab?: (tab: DesignerDefinitionTabs) => void;
         onClose?: () => void;
+        language?: string;
     }
 >(
     (
@@ -138,6 +139,7 @@ export const DesignerDefinitionPane = forwardRef<
             activeTab,
             setActiveTab,
             onClose,
+            language = "sql",
         },
         ref,
     ) => {
@@ -274,7 +276,7 @@ export const DesignerDefinitionPane = forwardRef<
                             <Editor
                                 height={"100%"}
                                 width={"100%"}
-                                language="sql"
+                                language={language}
                                 theme={resolveVscodeThemeType(themeKind)}
                                 value={script}
                                 options={{

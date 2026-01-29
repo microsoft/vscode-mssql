@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useEffect, useState, useRef, useCallback } from "react";
+import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -39,7 +39,12 @@ import {
     type ModifiedColumnHighlight,
     type ModifiedTableHighlight,
 } from "./diff/diffHighlights";
-import { buildDeletedForeignKeyEdges, filterDeletedNodes } from "./diff/deletedVisualUtils";
+import {
+    buildDeletedForeignKeyEdges,
+    filterDeletedEdges,
+    filterDeletedNodes,
+    toSchemaTables,
+} from "./diff/deletedVisualUtils";
 import { describeChange } from "./diff/schemaDiff";
 import {
     canRevertChange as canRevertChangeCore,
@@ -127,12 +132,16 @@ export interface SchemaDesignerContextProps
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
-    updateDabApiType: (apiType: Dab.ApiType) => void;
+    updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabSchemaFilter: string[];
     setDabSchemaFilter: (schemas: string[]) => void;
+    dabConfigContent: string;
+    dabConfigRequestId: number;
+    generateDabConfig: () => Promise<void>;
+    openDabConfigInEditor: (configContent: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -160,6 +169,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
     const [isInitialized, setIsInitialized] = useState(false);
+    const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
     const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
@@ -171,6 +181,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
+    // Ref to store pending flow state during undo/redo. This ensures diff calculation
+    // uses the correct state immediately, without waiting for ReactFlow's async updates.
+    const pendingFlowStateRef = useRef<{
+        nodes: Node<SchemaDesigner.Table>[];
+        edges: Edge<SchemaDesigner.ForeignKey>[];
+    } | null>(null);
     const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
     const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
@@ -201,6 +217,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
+    const [dabConfigContent, setDabConfigContent] = useState<string>("");
+    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
 
     const onPushUndoState = useCallback(() => {
         const state = reactFlow.toObject() as ReactFlowJsonObject<
@@ -238,9 +256,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             if (!state) {
                 return;
             }
+            // Store the state in a ref BEFORE calling setNodes/setEdges.
+            // This ensures updateSchemaChanges can read the correct state immediately.
+            pendingFlowStateRef.current = {
+                nodes: state.nodes as Node<SchemaDesigner.Table>[],
+                edges: state.edges as Edge<SchemaDesigner.ForeignKey>[],
+            };
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
+            eventBus.emit("getScript");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("undo", handleUndo);
@@ -253,9 +278,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             if (!state) {
                 return;
             }
+            // Store the state in a ref BEFORE calling setNodes/setEdges.
+            // This ensures updateSchemaChanges can read the correct state immediately.
+            pendingFlowStateRef.current = {
+                nodes: state.nodes as Node<SchemaDesigner.Table>[],
+                edges: state.edges as Edge<SchemaDesigner.ForeignKey>[],
+            };
             reactFlow.setNodes(state.nodes);
             reactFlow.setEdges(state.edges);
             eventBus.emit("refreshFlowState");
+            eventBus.emit("getScript");
             eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
         };
         eventBus.on("redo", handleRedo);
@@ -298,7 +330,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, [isInitialized, extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
-            if (!isInitialized) {
+            // Use ref instead of state to avoid stale closure issues
+            if (!isInitializedRef.current) {
                 return;
             }
 
@@ -313,10 +346,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     return;
                 }
 
-                const currentSchema = flowUtils.extractSchemaModel(
-                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-                );
+                // Use pending flow state if available (set by undo/redo),
+                // otherwise read from ReactFlow's store.
+                const pendingState = pendingFlowStateRef.current;
+                const nodes =
+                    pendingState?.nodes ?? (reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                const edges =
+                    pendingState?.edges ??
+                    (reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                // Clear the pending state after reading it
+                pendingFlowStateRef.current = null;
+
+                const currentSchema = flowUtils.extractSchemaModel(nodes, edges);
 
                 const summary = calculateSchemaDiff(baselineSchemaRef.current, currentSchema);
 
@@ -369,15 +410,42 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         }
                     }
 
+                    // Get current nodes to position deleted tables below them
+                    const currentNodes = filterDeletedNodes(
+                        reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                    );
+
+                    // Calculate the bottommost Y position of current tables
+                    let bottomY = 100; // Default starting position
+                    if (currentNodes.length > 0) {
+                        const visibleCurrentNodes = currentNodes.filter((n) => n.hidden !== true);
+                        if (visibleCurrentNodes.length > 0) {
+                            bottomY = visibleCurrentNodes.reduce((maxY, node) => {
+                                const nodeBottom =
+                                    node.position.y + flowUtils.getTableHeight(node.data);
+                                return Math.max(maxY, nodeBottom);
+                            }, 0);
+                            bottomY += 50; // Add spacing below current tables
+                        }
+                    }
+
                     const deletedNodes =
                         deletedTableIds.size > 0
                             ? flowUtils
                                   .generateSchemaDesignerFlowComponents(baselineSchemaRef.current)
                                   .nodes.filter((node) => deletedTableIds.has(node.id))
-                                  .map((node) => ({
+                                  .map((node, index) => ({
                                       ...node,
                                       id: `deleted-${node.id}`,
                                       data: { ...node.data, isDeleted: true },
+                                      // Position deleted tables below current tables
+                                      position: {
+                                          x: 100 + (index % 3) * (flowUtils.getTableWidth() + 50),
+                                          y:
+                                              bottomY +
+                                              Math.floor(index / 3) *
+                                                  (flowUtils.getTableHeight(node.data) + 50),
+                                      },
                                       draggable: true,
                                       selectable: false,
                                       connectable: false,
@@ -448,11 +516,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return () => {
             eventBus.off("getScript", handler);
         };
-    }, [extensionRpc, isInitialized, reactFlow]);
+    }, [extensionRpc, reactFlow]);
 
     const initializeSchemaDesigner = async () => {
         try {
             setIsInitialized(false);
+            isInitializedRef.current = false;
             setInitializationError(undefined);
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
@@ -472,6 +541,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setDatatypes(model.dataTypes);
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
+            isInitializedRef.current = true;
 
             setTimeout(() => {
                 stateStack.setInitialState(
@@ -490,6 +560,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const errorMessage = getErrorMessage(error);
             setInitializationError(errorMessage);
             setIsInitialized(false);
+            isInitializedRef.current = false;
             throw error;
         }
     };
@@ -497,6 +568,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const triggerInitialization = () => {
         setInitializationError(undefined);
         setIsInitialized(false);
+        isInitializedRef.current = false;
         setInitializationRequestId((id) => id + 1);
     };
 
@@ -560,8 +632,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
      * Adds a new table to the flow
      */
     const addTable = async (table: SchemaDesigner.Table) => {
-        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
-        const existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const existingNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
+        const existingEdges = filterDeletedEdges(
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
 
         const schemaModel = flowUtils.extractSchemaModel(existingNodes, existingEdges);
 
@@ -794,10 +870,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return { canRevert: false, reason: loc.cannotRevertForeignKey };
         }
 
-        // Get current tables from React Flow nodes
-        const currentNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        // Get current tables from React Flow nodes, excluding deleted ghost nodes
+        const currentNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
         const currentSchema = {
-            tables: currentNodes.map((node) => node.data),
+            tables: toSchemaTables(currentNodes),
         };
 
         // Pass localized messages to the core function
@@ -825,10 +903,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
 
         // Get current state from React Flow
-        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const existingNodes = filterDeletedNodes(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+        );
         let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
         const currentSchema = {
-            tables: existingNodes.map((node) => node.data),
+            tables: toSchemaTables(existingNodes),
         };
 
         // For table add revert (delete), use React Flow's deleteElements for proper cleanup
@@ -1086,14 +1166,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     }, [dabConfig, reactFlow]);
 
-    const updateDabApiType = useCallback((apiType: Dab.ApiType) => {
+    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
             if (!prev) {
                 return prev;
             }
             return {
                 ...prev,
-                apiType,
+                apiTypes,
             };
         });
     }, []);
@@ -1148,6 +1228,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             });
         },
         [],
+    );
+
+    const generateDabConfig = useCallback(async () => {
+        if (!dabConfig) {
+            return;
+        }
+        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
+            config: dabConfig,
+        });
+        if (response.success) {
+            setDabConfigContent(response.configContent);
+            setDabConfigRequestId((id) => id + 1);
+        }
+    }, [dabConfig, extensionRpc]);
+
+    const openDabConfigInEditor = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
     );
 
     return (
@@ -1212,12 +1314,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
-                updateDabApiType,
+                updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
                 updateDabEntitySettings,
                 dabSchemaFilter,
                 setDabSchemaFilter,
+                dabConfigContent,
+                dabConfigRequestId,
+                generateDabConfig,
+                openDabConfigInEditor,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

@@ -21,6 +21,8 @@ import {
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
+import { DabService } from "../services/dabService";
+import { Dab } from "../sharedInterfaces/dab";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -41,6 +43,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     private _sessionId: string = "";
     private _key: string = "";
     private _serverName: string | undefined;
+    private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
@@ -377,6 +380,26 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     tables: [],
                 }
             );
+        });
+
+        // DAB request handlers
+        this.onRequest(Dab.GenerateConfigRequest.type, async (payload) => {
+            return this._dabService.generateConfig(payload.config, {
+                connectionString: this.connectionString,
+            });
+        });
+
+        this.onNotification(Dab.OpenConfigInEditorNotification.type, async (payload) => {
+            const doc = await vscode.workspace.openTextDocument({
+                content: payload.configContent,
+                language: "json",
+            });
+            await vscode.window.showTextDocument(doc);
+        });
+
+        this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
+            await vscode.env.clipboard.writeText(payload.configContent);
+            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
         });
     }
 
