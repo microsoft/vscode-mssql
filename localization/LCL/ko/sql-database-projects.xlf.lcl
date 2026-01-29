@@ -1369,6 +1369,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작업 영역에 tasks.json 파일이 이미 있습니다. 기존 파일에 SQL 프로젝트 빌드 작업을 추가하는 중입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6cb3dca39ad52025ee137c36426bc3f1924c5899b7182ba173a8a9b8b5b881fd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter new default value for variable '{0}']]></Val>
@@ -3721,6 +3730,9 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[게시 (미리 보기)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Publish]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

@@ -13,7 +13,7 @@ import { ProfilingSessionType } from "../models/contracts/profiler";
 /**
  * Default event buffer capacity
  */
-const DEFAULT_BUFFER_CAPACITY = 10000;
+const DEFAULT_BUFFER_CAPACITY = 10_000;
 
 /**
  * Fields to index for fast filtering

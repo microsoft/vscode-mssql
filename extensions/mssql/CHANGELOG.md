@@ -1,5 +1,20 @@
 # Change Log
 
+## Version 1.39.0
+
+-   Release date: January 28, 2026
+-   Release status: GA
+
+### What’s new in 1.39.0
+
+- Added the Azure Data Studio Migration Toolkit to help to import existing Azure Data Studio connections and connection groups into the MSSQL extension
+- Enabled Table Explorer/Edit Data, Data-Tier Application Dialog, and Publish Project feature previews default
+- Added workspace-level support for extension connections and connection groups
+- Improved usability and fixed auto-run for Schema Compare
+- Added support for copying and exporting data in Table Explorer/Edit Data
+- Improved usability for deleting rows and undoing changes in Table Explorer/Edit Data
+- Fixed issues in Query Editor and Language Service
+
 ## Version 1.38.0
 
 -   Release date: December 16, 2025
