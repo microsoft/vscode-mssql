@@ -17,7 +17,6 @@ import {
     registerSchemaDesignerApplyEditsHandler,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
@@ -61,10 +60,11 @@ import {
 import {
     normalizeColumn,
     normalizeTable,
-    useMaybeAutoArrangeForToolBatch,
-    validateTable,
     waitForNextFrame,
+    validateTable,
 } from "./schemaDesignerToolBatchUtils";
+import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
+import { stateStack } from "./schemaDesignerUndoState";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -152,10 +152,6 @@ interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
 
-export const stateStack = new UndoRedoStack<
-    ReactFlowJsonObject<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>
->();
-
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
     const webviewContext = useVscodeWebview<
@@ -167,7 +163,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
-    const reactFlow = useReactFlow();
+    const reactFlow = useReactFlow<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>();
     const [isInitialized, setIsInitialized] = useState(false);
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
@@ -220,19 +216,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
 
-    const onPushUndoState = useCallback(() => {
-        const state = reactFlow.toObject() as ReactFlowJsonObject<
-            Node<SchemaDesigner.Table>,
-            Edge<SchemaDesigner.ForeignKey>
-        >;
-        stateStack.pushState(state);
-        eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
-    }, [reactFlow]);
-
-    const maybeAutoArrangeForToolBatch = useMaybeAutoArrangeForToolBatch({
+    const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
         resetView,
-        onPushUndoState,
     });
 
     useEffect(() => {

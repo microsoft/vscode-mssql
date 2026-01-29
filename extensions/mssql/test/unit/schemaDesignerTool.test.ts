@@ -296,6 +296,61 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expectNoSchemaDump(parsedResult);
         });
 
+        test("omits columns over threshold (>400 columns)", async () => {
+            const baseColumn = {
+                dataType: "int",
+                maxLength: "",
+                precision: 0,
+                scale: 0,
+                isPrimaryKey: false,
+                isIdentity: false,
+                identitySeed: 0,
+                identityIncrement: 0,
+                isNullable: true,
+                defaultValue: "",
+                isComputed: false,
+                computedFormula: "",
+                computedPersisted: false,
+            };
+
+            const tables = Array.from({ length: 10 }).map((_, i) => ({
+                id: `t${i}`,
+                name: `T${i}`,
+                schema: "dbo",
+                columns: Array.from({ length: 41 }).map((__, j) => ({
+                    id: `c${i}_${j}`,
+                    name: `C${j}`,
+                    ...baseColumn,
+                })),
+                foreignKeys: [],
+            }));
+
+            const largeSchema: SchemaDesigner.Schema = { tables } as any;
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(largeSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: { operation: "get_overview", options: { includeColumns: "namesAndTypes" } },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.overview.columnsOmitted).to.equal(true);
+            expect(parsedResult.overview.tables).to.have.length(10);
+            expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
+            expectNoSchemaDump(parsedResult);
+        });
+
         test("includes server/database on internal_error when available", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
@@ -586,6 +641,43 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.failedEditIndex).to.equal(1);
             expect(parsedResult.appliedEdits).to.equal(1);
             expect(parsedResult.currentVersion).to.equal(computeSchemaVersion(postPartialSchema));
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("includes server/database on internal_error when available", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.rejects(new Error("boom"));
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits: [{ op: "add_table", table: { schema: "dbo", name: "X" } }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("internal_error");
+            expect(parsedResult.message).to.equal("boom");
+            expect(parsedResult.server).to.equal(sampleServer);
+            expect(parsedResult.database).to.equal(sampleDatabase);
             expectNoSchemaDump(parsedResult);
         });
 

@@ -18,6 +18,22 @@ export const waitForNextFrame = (): Promise<void> =>
         requestAnimationFrame(() => resolve());
     });
 
+export const shouldAutoArrangeForToolBatch = (params: {
+    preTableCount: number;
+    postTableCount: number;
+    didAutoArrange: boolean;
+}): boolean => {
+    const { preTableCount, postTableCount, didAutoArrange } = params;
+    if (didAutoArrange) {
+        return false;
+    }
+
+    return (
+        preTableCount < TOOL_AUTO_ARRANGE_TABLE_THRESHOLD &&
+        postTableCount >= TOOL_AUTO_ARRANGE_TABLE_THRESHOLD
+    );
+};
+
 export const normalizeColumn = (column: SchemaDesigner.Column): SchemaDesigner.Column => {
     const dataType = column.dataType || "int";
     const isPrimaryKey = column.isPrimaryKey ?? false;
@@ -131,7 +147,7 @@ export const validateTable = (
 };
 
 export function useMaybeAutoArrangeForToolBatch(params: {
-    reactFlow: ReactFlowInstance;
+    reactFlow: ReactFlowInstance<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>;
     resetView: () => void;
     onPushUndoState: () => void;
 }) {
@@ -140,14 +156,12 @@ export function useMaybeAutoArrangeForToolBatch(params: {
 
     return useCallback(
         async (preTableCount: number, postTableCount: number) => {
-            if (didAutoArrangeRef.current) {
-                return;
-            }
             if (
-                !(
-                    preTableCount < TOOL_AUTO_ARRANGE_TABLE_THRESHOLD &&
-                    postTableCount >= TOOL_AUTO_ARRANGE_TABLE_THRESHOLD
-                )
+                !shouldAutoArrangeForToolBatch({
+                    preTableCount,
+                    postTableCount,
+                    didAutoArrange: didAutoArrangeRef.current,
+                })
             ) {
                 return;
             }
