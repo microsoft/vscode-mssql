@@ -153,6 +153,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
     const [isInitialized, setIsInitialized] = useState(false);
+    const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
     const [initializationRequestId, setInitializationRequestId] = useState(0);
     const [findTableText, setFindTableText] = useState<string>("");
@@ -266,7 +267,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     useEffect(() => {
         const updateSchemaChanges = async () => {
-            if (!isInitialized) {
+            // Use ref instead of state to avoid stale closure issues
+            if (!isInitializedRef.current) {
                 return;
             }
 
@@ -451,11 +453,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return () => {
             eventBus.off("getScript", handler);
         };
-    }, [extensionRpc, isInitialized, reactFlow]);
+    }, [extensionRpc, reactFlow]);
 
     const initializeSchemaDesigner = async () => {
         try {
             setIsInitialized(false);
+            isInitializedRef.current = false;
             setInitializationError(undefined);
             const model = await extensionRpc.sendRequest(
                 SchemaDesigner.InitializeSchemaDesignerRequest.type,
@@ -475,6 +478,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             setDatatypes(model.dataTypes);
             setSchemaNames(model.schemaNames);
             setIsInitialized(true);
+            isInitializedRef.current = true;
 
             setTimeout(() => {
                 stateStack.setInitialState(
@@ -493,6 +497,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const errorMessage = getErrorMessage(error);
             setInitializationError(errorMessage);
             setIsInitialized(false);
+            isInitializedRef.current = false;
             throw error;
         }
     };
@@ -500,6 +505,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const triggerInitialization = () => {
         setInitializationError(undefined);
         setIsInitialized(false);
+        isInitializedRef.current = false;
         setInitializationRequestId((id) => id + 1);
     };
 
