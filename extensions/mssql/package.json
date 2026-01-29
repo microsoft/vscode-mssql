@@ -214,6 +214,11 @@
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
                     "icon": "media/SignIn.svg"
+                },
+                {
+                    "id": "profilerDetails",
+                    "title": "%extension.profilerDetails%",
+                    "icon": "media/executionPlan_dark.svg"
                 }
             ]
         },
@@ -224,6 +229,14 @@
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
                     "when": "!config.mssql.openQueryResultsInTabByDefault"
+                }
+            ],
+            "profilerDetails": [
+                {
+                    "type": "webview",
+                    "id": "profilerDetails",
+                    "name": "%extension.profilerDetails%",
+                    "when": "mssql.profilerDetailsVisible"
                 }
             ],
             "objectExplorer": [
