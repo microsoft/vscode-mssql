@@ -1403,7 +1403,7 @@ export class PublishProject {
     public static DatabaseRequiredMessage = l10n.t("Database name is required");
     public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
     public static PublishTargetLabel = l10n.t("Publish Target");
-    public static PublishTargetExisting = l10n.t("Existing SQL server");
+    public static PublishTargetExisting = l10n.t("Existing SQL Server");
     public static PublishTargetContainer = l10n.t("New Local Docker SQL Server");
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");

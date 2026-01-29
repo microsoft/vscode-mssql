@@ -289,7 +289,7 @@ suite("PublishProjectWebViewController Tests", () => {
             (opt) => opt.value === PublishTarget.LocalContainer,
         );
 
-        expect(existingServerOption?.displayName).to.equal("Existing SQL server");
+        expect(existingServerOption?.displayName).to.equal("Existing SQL Server");
         expect(containerOption?.displayName).to.equal("New Local Docker SQL Server");
     });
 
