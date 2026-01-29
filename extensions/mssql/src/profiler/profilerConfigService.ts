@@ -11,19 +11,62 @@ import {
     EventRow,
     EngineType,
     ViewColumn,
+    FIELD_TIMESTAMP,
+    FIELD_ADDITIONAL_DATA,
+    TYPE_NUMBER,
 } from "./profilerTypes";
 import { defaultProfilerConfig } from "./profilerDefaultConfig";
 
 /**
- * Service for managing profiler templates and view configurations
+ * Service for managing profiler templates and view configurations.
+ * Maps between views and sessions are computed at runtime from the templates'
+ * defaultView property to avoid configuration drift.
  */
 export class ProfilerConfigService {
     private static _instance: ProfilerConfigService;
     private _config: ProfilerConfig;
+    /** Maps view IDs to compatible session template IDs (computed at runtime) */
+    private _viewToSessionMap: Map<string, string[]>;
+    /** Maps session template IDs to compatible view IDs (computed at runtime) */
+    private _sessionToViewMap: Map<string, string[]>;
 
     private constructor() {
         // Load the default configuration
         this._config = defaultProfilerConfig;
+        // Compute the view-session mappings at runtime
+        this._viewToSessionMap = new Map();
+        this._sessionToViewMap = new Map();
+        this.computeMaps();
+    }
+
+    /**
+     * Computes the view-to-session and session-to-view maps from the templates' defaultView property.
+     * This ensures the maps stay in sync with the actual template definitions.
+     */
+    private computeMaps(): void {
+        // Build maps from templates' defaultView property
+        for (const template of this._config.templates) {
+            const templateId = template.id;
+            const defaultViewId = template.defaultView;
+
+            // Add to sessionToViewMap (each template maps to its default view)
+            if (!this._sessionToViewMap.has(templateId)) {
+                this._sessionToViewMap.set(templateId, []);
+            }
+            const sessionViews = this._sessionToViewMap.get(templateId)!;
+            if (!sessionViews.includes(defaultViewId)) {
+                sessionViews.push(defaultViewId);
+            }
+
+            // Add to viewToSessionMap (each view maps to templates that use it as default)
+            if (!this._viewToSessionMap.has(defaultViewId)) {
+                this._viewToSessionMap.set(defaultViewId, []);
+            }
+            const viewSessions = this._viewToSessionMap.get(defaultViewId)!;
+            if (!viewSessions.includes(templateId)) {
+                viewSessions.push(templateId);
+            }
+        }
     }
 
     /**
@@ -40,10 +83,7 @@ export class ProfilerConfigService {
      * Get all available templates
      */
     public getTemplates(): ProfilerTemplate[] {
-        return Object.entries(this._config.templates).map(([id, template]) => ({
-            ...template,
-            id,
-        }));
+        return this._config.templates;
     }
 
     /**
@@ -57,35 +97,33 @@ export class ProfilerConfigService {
      * Get a specific template by ID
      */
     public getTemplate(id: string): ProfilerTemplate | undefined {
-        const template = this._config.templates[id];
-        return template ? { ...template, id } : undefined;
+        return this._config.templates.find((t) => t.id === id);
     }
 
     /**
      * Get all available views
      */
     public getViews(): ViewTemplate[] {
-        return Object.entries(this._config.views).map(([id, view]) => ({
-            ...view,
-            id,
-        }));
+        return this._config.views;
     }
 
     /**
-     * Get views compatible with a specific session template
+     * Get views compatible with a specific session template.
+     * Computed at runtime from the template's defaultView property.
      */
     public getViewsForSession(sessionId: string): ViewTemplate[] {
-        const viewIds = this._config.sessionToViewMap[sessionId] || [];
+        const viewIds = this._sessionToViewMap.get(sessionId) || [];
         return viewIds
             .map((id) => this.getView(id))
             .filter((v): v is ViewTemplate => v !== undefined);
     }
 
     /**
-     * Get session templates compatible with a specific view
+     * Get session templates compatible with a specific view.
+     * Computed at runtime from templates that use this view as their default.
      */
     public getSessionsForView(viewId: string): ProfilerTemplate[] {
-        const sessionIds = this._config.viewToSessionMap[viewId] || [];
+        const sessionIds = this._viewToSessionMap.get(viewId) || [];
         return sessionIds
             .map((id) => this.getTemplate(id))
             .filter((t): t is ProfilerTemplate => t !== undefined);
@@ -95,8 +133,7 @@ export class ProfilerConfigService {
      * Get a specific view by ID
      */
     public getView(id: string): ViewTemplate | undefined {
-        const view = this._config.views[id];
-        return view ? { ...view, id } : undefined;
+        return this._config.views.find((v) => v.id === id);
     }
 
     /**
@@ -135,7 +172,7 @@ export class ProfilerConfigService {
      * Get the value for a column from an event row.
      * Iterates through eventsMapped array and returns the first matching value.
      */
-    private getColumnValue(event: EventRow, column: ViewColumn): string | number | null {
+    private getColumnValue(event: EventRow, column: ViewColumn): string | number | undefined {
         // Try each mapped event field until we find a value
         for (const mappedField of column.eventsMapped) {
             const value = this.getFieldValue(event, mappedField);
@@ -157,33 +194,35 @@ export class ProfilerConfigService {
     /**
      * Get a field value from an EventRow, checking both direct properties and additionalData
      */
-    private getFieldValue(event: EventRow, field: string): string | number | null {
+    private getFieldValue(event: EventRow, field: string): string | number | undefined {
         // Check if it's a direct property of EventRow
-        if (field in event && field !== "additionalData") {
+        if (field in event && field !== FIELD_ADDITIONAL_DATA) {
             const value = (event as unknown as Record<string, unknown>)[field];
             if (value === undefined || value === null) {
-                return null;
+                return undefined;
             }
             // Format specific fields
-            if (field === "timestamp") {
+            if (field === FIELD_TIMESTAMP) {
                 return this.formatTimestamp(value as number);
             }
-            if (typeof value === "number") {
-                return value;
+            if (typeof value === TYPE_NUMBER) {
+                return value as number;
             }
             return String(value);
         }
 
         // Check additionalData
         if (event.additionalData && field in event.additionalData) {
-            return event.additionalData[field] ?? null;
+            return event.additionalData[field] ?? undefined;
         }
 
-        return null;
+        return undefined;
     }
 
     /**
-     * Format a timestamp for display
+     * Format a timestamp for display.
+     * Converts timestamp to ISO 8601 format: "YYYY-MM-DD HH:mm:ss.sss"
+     * Example output: "2026-01-29 14:30:45.123"
      */
     private formatTimestamp(timestamp: number): string {
         try {

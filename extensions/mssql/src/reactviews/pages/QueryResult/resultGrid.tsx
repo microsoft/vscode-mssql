@@ -21,8 +21,8 @@ import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
-import { deepEqual } from "../../common/utils";
 import { MARGIN_BOTTOM } from "./queryResultsGridView";
+import isEqual from "lodash/isEqual";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -74,7 +74,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
     const resultSetSummary = useQueryResultSelector(
         (state) => state.resultSetSummaries[props.batchId]?.[props.resultId],
-        (a, b) => deepEqual(a, b), // Deep equality check to avoid unnecessary re-renders
+        (a, b) => isEqual(a, b), // Deep equality check to avoid unnecessary re-renders
     );
 
     const gridContainerRef = useRef<HTMLDivElement>(null);

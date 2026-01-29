@@ -19,7 +19,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState } from "./profilerTypes";
+import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 
 /**
@@ -59,7 +59,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         sessionManager: ProfilerSessionManager,
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
-        templateId: string = "Standard_OnPrem",
+        templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
     ) {
         const configService = getProfilerConfigService();
         const template = configService.getTemplate(templateId);

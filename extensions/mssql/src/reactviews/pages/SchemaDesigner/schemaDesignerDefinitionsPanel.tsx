@@ -15,7 +15,9 @@ import {
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
     const [code, setCode] = useState<string>("");
-    const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
+    const definitionPaneRef = useRef<DesignerDefinitionPaneRef | null>(
+        undefined as unknown as DesignerDefinitionPaneRef | null,
+    );
 
     useEffect(() => {
         eventBus.on("getScript", () => {

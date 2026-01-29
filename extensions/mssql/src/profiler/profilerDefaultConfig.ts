@@ -3,16 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EngineType, ProfilerConfig } from "./profilerTypes";
+import {
+    EngineType,
+    ProfilerConfig,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    TEMPLATE_ID_STANDARD_AZURE,
+    TEMPLATE_ID_TSQL_ONPREM,
+    TEMPLATE_ID_TSQL_AZURE,
+    TEMPLATE_ID_TSQL_LOCKS_ONPREM,
+    TEMPLATE_ID_TSQL_DURATION_ONPREM,
+    VIEW_ID_STANDARD,
+    VIEW_ID_TSQL,
+    VIEW_ID_TUNING,
+    VIEW_ID_TSQL_LOCKS,
+    VIEW_ID_TSQL_DURATION,
+} from "./profilerTypes";
 
 /**
  * Default profiler configuration with templates and views
  * Based on Azure Data Studio profiler configuration
  */
 export const defaultProfilerConfig: ProfilerConfig = {
-    views: {
-        "Standard View": {
-            id: "Standard View",
+    views: [
+        {
+            id: VIEW_ID_STANDARD,
             name: "Standard View",
             columns: [
                 {
@@ -82,8 +96,8 @@ export const defaultProfilerConfig: ProfilerConfig = {
                 },
             ],
         },
-        "TSQL View": {
-            id: "TSQL View",
+        {
+            id: VIEW_ID_TSQL,
             name: "TSQL View",
             columns: [
                 {
@@ -125,8 +139,8 @@ export const defaultProfilerConfig: ProfilerConfig = {
                 },
             ],
         },
-        "Tuning View": {
-            id: "Tuning View",
+        {
+            id: VIEW_ID_TUNING,
             name: "Tuning View",
             columns: [
                 {
@@ -175,8 +189,8 @@ export const defaultProfilerConfig: ProfilerConfig = {
                 },
             ],
         },
-        "TSQL_Locks View": {
-            id: "TSQL_Locks View",
+        {
+            id: VIEW_ID_TSQL_LOCKS,
             name: "TSQL_Locks View",
             columns: [
                 {
@@ -251,8 +265,8 @@ export const defaultProfilerConfig: ProfilerConfig = {
                 },
             ],
         },
-        "TSQL_Duration View": {
-            id: "TSQL_Duration View",
+        {
+            id: VIEW_ID_TSQL_DURATION,
             name: "TSQL_Duration View",
             columns: [
                 {
@@ -289,14 +303,14 @@ export const defaultProfilerConfig: ProfilerConfig = {
                 },
             ],
         },
-    },
-    templates: {
-        Standard_OnPrem: {
-            id: "Standard_OnPrem",
+    ],
+    templates: [
+        {
+            id: TEMPLATE_ID_STANDARD_ONPREM,
             name: "Standard (default)",
             description: "Standard profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
-            defaultView: "Standard View",
+            defaultView: VIEW_ID_STANDARD,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -342,12 +356,12 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-        Standard_Azure: {
-            id: "Standard_Azure",
+        {
+            id: TEMPLATE_ID_STANDARD_AZURE,
             name: "Standard (default)",
             description: "Standard profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
-            defaultView: "Standard View",
+            defaultView: VIEW_ID_STANDARD,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -385,12 +399,12 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-        TSQL_OnPrem: {
-            id: "TSQL_OnPrem",
+        {
+            id: TEMPLATE_ID_TSQL_ONPREM,
             name: "TSQL",
             description: "TSQL profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
-            defaultView: "TSQL View",
+            defaultView: VIEW_ID_TSQL,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -416,12 +430,12 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-        TSQL_Azure: {
-            id: "TSQL_Azure",
+        {
+            id: TEMPLATE_ID_TSQL_AZURE,
             name: "TSQL",
             description: "TSQL profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
-            defaultView: "TSQL View",
+            defaultView: VIEW_ID_TSQL,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -447,12 +461,12 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-        TSQL_Locks_OnPrem: {
-            id: "TSQL_Locks_OnPrem",
+        {
+            id: TEMPLATE_ID_TSQL_LOCKS_ONPREM,
             name: "TSQL_Locks",
             description: "TSQL profiling template with lock events for on-premises SQL Server",
             engineType: EngineType.Standalone,
-            defaultView: "TSQL_Locks View",
+            defaultView: VIEW_ID_TSQL_LOCKS,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -486,12 +500,12 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-        TSQL_Duration_OnPrem: {
-            id: "TSQL_Duration_OnPrem",
+        {
+            id: TEMPLATE_ID_TSQL_DURATION_ONPREM,
             name: "TSQL_Duration",
             description: "TSQL profiling template filtering by duration for on-premises SQL Server",
             engineType: EngineType.Standalone,
-            defaultView: "TSQL_Duration View",
+            defaultView: VIEW_ID_TSQL_DURATION,
             eventsCaptured: [
                 "sql_batch_completed",
                 "sql_batch_starting",
@@ -517,20 +531,5 @@ ADD EVENT sqlserver.sql_batch_starting(
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
-    },
-    viewToSessionMap: {
-        "Standard View": ["Standard_OnPrem", "Standard_Azure"],
-        "TSQL View": ["TSQL_OnPrem", "TSQL_Azure", "TSQL_Duration_OnPrem"],
-        "Tuning View": ["Standard_OnPrem", "Standard_Azure"],
-        "TSQL_Locks View": ["TSQL_Locks_OnPrem"],
-        "TSQL_Duration View": ["TSQL_Duration_OnPrem"],
-    },
-    sessionToViewMap: {
-        Standard_OnPrem: ["Standard View", "Tuning View"],
-        Standard_Azure: ["Standard View", "Tuning View"],
-        TSQL_OnPrem: ["TSQL View"],
-        TSQL_Azure: ["TSQL View"],
-        TSQL_Locks_OnPrem: ["TSQL_Locks View", "TSQL View"],
-        TSQL_Duration_OnPrem: ["TSQL_Duration View", "TSQL View"],
-    },
+    ],
 };
