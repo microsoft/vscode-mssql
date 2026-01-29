@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report:
-- Version change: 1.0.0 → 1.1.0 (MINOR - expanded scope to multi-extension monorepo)
-- Modified principles: None renamed
-- Added sections: Multi-Extension Monorepo Structure (under Additional Constraints)
+- Version change: 1.1.0 → 1.2.0 (MINOR - add unit test requirement + linting scope)
+- Modified principles: IV. Test-First (NON-NEGOTIABLE), V. Build Verification
+- Added sections: None
 - Removed sections: None
-- Templates requiring updates: ✅ plan-template.md (no updates needed), ✅ spec-template.md (no updates needed), ✅ tasks-template.md (no updates needed)
+- Templates requiring updates: ✅ tasks-template.md (updated tests guidance), ✅ plan-template.md (no updates needed), ✅ spec-template.md (no updates needed)
 - Follow-up TODOs: None
 -->
 
@@ -56,6 +56,7 @@ Webview code MUST follow React best practices with VS Code-specific optimization
 
 Tests MUST be written and verified to fail before implementation code.
 
+- New features MUST include unit tests that cover the added behavior
 - Unit tests run via `yarn test` within each extension directory (requires VS Code download, may fail in sandboxed environments)
 - E2E smoke tests run via `yarn smoketest` for MSSQL extension (requires SQL Server instance)
 - Use targeted test patterns: `yarn test --grep "ComponentName"`
@@ -71,7 +72,7 @@ All code changes MUST pass build verification before merge.
 
 - **NEVER CANCEL** build or test commands; they MUST be allowed to complete
 - Full build via `yarn build` within each extension MUST complete successfully
-- Linting via `yarn lint src/ test/` MUST pass with zero errors
+- Linting via `yarn lint src/ test/` MUST pass with zero errors for modified extensions and cover modified files
   - **DO NOT** run `yarn lint` without arguments (fails on build output)
 - Packaging via `yarn package` MUST produce valid VSIX for each extension
 - VSIX size increase MUST NOT exceed 5% compared to baseline per extension
@@ -206,7 +207,7 @@ All changes MUST pass these checks before committing. Run from within the affect
 # For each modified extension (e.g., extensions/mssql/):
 cd extensions/<extension-name>
 yarn build               # Ensure code compiles
-yarn lint src/ test/     # Ensure code meets style standards
+yarn lint src/ test/     # Lint modified files in src/ and test/
 yarn package             # Ensure extension can be packaged
 ```
 
@@ -254,4 +255,4 @@ This constitution supersedes all other development practices for all extensions 
 - Complexity MUST be justified in PR descriptions when deviating from Simplicity principle
 - Use extension-specific guidance files (e.g., `extensions/mssql/agents.md`) for detailed runtime development guidance
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-28 | **Last Amended**: 2026-01-28
+**Version**: 1.2.0 | **Ratified**: 2026-01-28 | **Last Amended**: 2026-01-29
