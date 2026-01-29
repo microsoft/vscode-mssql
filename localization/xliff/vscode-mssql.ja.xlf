@@ -1328,6 +1328,10 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the profile ID</note>
         <target state="translated">接続プロファイル '{0}' が見つかりません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
+        <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
+        <target state="new">Connection profile not found. Please create a new connection using the Connection Dialog.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
         <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
         <note>{0} is the extension ID</note>
@@ -2579,6 +2583,10 @@ Error:
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
         <target state="translated">認証方法を取得できませんでした。アカウントを削除して再追加してください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c75609a1b51d70bffe904347742f828a9c32853120f6c72e96dffd05b68b010c">
+        <source xml:lang="en">Failed to get connection string: {0}</source>
+        <target state="new">Failed to get connection string: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
         <source xml:lang="en">Failed to get tenant '{0}' for account '{1}'.</source>
