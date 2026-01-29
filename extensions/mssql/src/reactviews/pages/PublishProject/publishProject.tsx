@@ -41,6 +41,7 @@ function PublishProjectDialog() {
     const inProgress = usePublishDialogSelector((s) => s.inProgress);
     const hasFormErrors = usePublishDialogSelector((s) => s.hasFormErrors);
     const formMessage = usePublishDialogSelector((s) => s.formMessage);
+    const projectName = usePublishDialogSelector((s) => s.projectProperties?.projectName) ?? "";
 
     // Check if component is properly initialized and ready for user interaction
     const isComponentReady = !!context && !!formState;
@@ -56,7 +57,7 @@ function PublishProjectDialog() {
             <DialogHeader
                 iconLight={publishProjectIconLight}
                 iconDark={publishProjectIconDark}
-                title={loc.publishProjectTitle(formState?.databaseName || "")}
+                title={loc.publishProjectTitle(projectName)}
                 themeKind={context.themeKind}
             />
 
