@@ -1032,25 +1032,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this.updateState();
 
                 const result = await this.connectToServerByConnectionId(payload.connectionId);
-
-                state.loadConnectionStatus = result.errorMessage
-                    ? ApiStatus.Error
-                    : ApiStatus.Loaded;
-
-                // Update database dropdown options (clear on error, populate on success)
                 const databaseComponent = state.formComponents[PublishFormFields.DatabaseName];
-                if (result.errorMessage || !result.databases) {
-                    // Clear options on error or no databases
-                    databaseComponent.options = [];
-                } else {
-                    // Populate with database list
-                    databaseComponent.options = result.databases.map((db) => ({
-                        displayName: db,
-                        value: db,
-                    }));
-                }
 
+                // Handle error case: set error status, clear options, show message, and return early
                 if (result.errorMessage) {
+                    state.loadConnectionStatus = ApiStatus.Error;
+                    databaseComponent.options = [];
                     state.formMessage = {
                         message: result.errorMessage,
                         intent: "error",
@@ -1058,7 +1045,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     return state;
                 }
 
-                // Update connection info
+                // Success case: update status, populate databases, and set connection info
+                state.loadConnectionStatus = ApiStatus.Loaded;
+                databaseComponent.options = (result.databases || []).map((db) => ({
+                    displayName: db,
+                    value: db,
+                }));
+
                 this._connectionUri = result.ownerUri;
                 state.formState.serverName = result.serverName || "";
 
