@@ -331,6 +331,16 @@
                     }
                 ],
                 "priority": "default"
+            },
+            {
+                "viewType": "mssql.profilerXelView",
+                "displayName": "%mssql.profiler.xelEditorDisplayName%",
+                "selector": [
+                    {
+                        "filenamePattern": "*.xel"
+                    }
+                ],
+                "priority": "default"
             }
         ],
         "languages": [
@@ -1359,6 +1369,11 @@
             {
                 "command": "mssql.profiler.launchFromObjectExplorer",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.profiler.openXelFile",
+                "title": "%mssql.profiler.openXelFile%",
                 "category": "MS SQL"
             },
             {

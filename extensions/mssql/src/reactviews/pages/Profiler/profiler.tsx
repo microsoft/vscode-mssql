@@ -107,6 +107,8 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
+    const xelFileName = useProfilerSelector((s) => s.xelFileName);
 
     const {
         pauseResume,
@@ -426,6 +428,8 @@ export const Profiler: React.FC = () => {
                 selectedSessionId={selectedSessionId}
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
+                isReadOnly={isReadOnly}
+                xelFileName={xelFileName}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
