@@ -8,6 +8,7 @@ import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
 import { RequestType } from "vscode-jsonrpc";
+import { ApiStatus } from "./webview";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -92,10 +93,11 @@ export interface PublishDialogState
     projectProperties?: ProjectPropertiesResult;
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
-    waitingForNewConnection?: boolean;
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
+    selectedProfileId?: string;
+    loadConnectionStatus?: ApiStatus;
 }
 
 /**
@@ -118,11 +120,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     generatePublishScript: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
-    openConnectionDialog: {};
     closeMessage: {};
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
     updateSqlCmdVariables: { variables: { [key: string]: string } };
     revertSqlCmdVariables: {};
+    connectToServer: { connectionId: string };
 }
 
 /**
@@ -141,12 +143,12 @@ export interface PublishProjectProvider {
     generatePublishScript(): void;
     selectPublishProfile(): void;
     savePublishProfile(publishProfileName: string): void;
-    openConnectionDialog(): void;
     closeMessage(): void;
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
     updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
     generateSqlPackageCommand(maskMode?: MaskMode): Promise<mssql.SqlPackageCommandResult>;
+    connectToServer(connectionId: string): void;
 }
 
 /**

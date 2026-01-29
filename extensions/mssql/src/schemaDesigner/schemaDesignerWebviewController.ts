@@ -44,6 +44,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     private _key: string = "";
     private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
+    public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -110,14 +111,16 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         accessToken: this.accessToken,
                         databaseName: this.databaseName,
                     });
+                    this.baselineSchema = sessionResponse.schema;
                     this.schemaDesignerCache.set(this._key, {
                         schemaDesignerDetails: sessionResponse,
+                        baselineSchema: sessionResponse.schema,
                         isDirty: false,
                     });
                 } else {
-                    // if the cache has the session, the changes have not been saved, and the
-                    // session is dirty
-                    sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
+                    const cacheItem = this.schemaDesignerCache.get(this._key)!;
+                    sessionResponse = cacheItem.schemaDesignerDetails;
+                    this.baselineSchema = cacheItem.baselineSchema;
                 }
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
@@ -147,7 +150,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             definitionActivity.end(ActivityStatus.Succeeded, undefined, {
                 tableCount: payload.updatedSchema.tables.length,
             });
-            this.updateCacheItem(payload.updatedSchema, true);
+            this.updateCacheItem(payload.updatedSchema);
             return script;
         });
 
@@ -173,7 +176,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             updatedSchema: payload.updatedSchema,
                             sessionId: this._sessionId,
                         });
-                        this.updateCacheItem(payload.updatedSchema, true);
+                        this.updateCacheItem(payload.updatedSchema);
                         return {
                             report,
                         };
@@ -218,15 +221,29 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 });
                 this.updateCacheItem(undefined, false);
 
+                // After publishing, reset baseline to current (published) schema so change count clears.
+                const publishedSchema = this.schemaDesignerDetails?.schema;
+                if (publishedSchema) {
+                    this.baselineSchema = publishedSchema;
+                    const cacheItem = this.schemaDesignerCache.get(this._key);
+                    if (cacheItem) {
+                        cacheItem.baselineSchema = publishedSchema;
+                        this.schemaDesignerCache.set(this._key, cacheItem);
+                    }
+                }
+
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_DESIGNER_VIEW_ID);
                 return {
                     success: true,
+                    error: undefined,
+                    updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             } catch (error) {
                 publishActivity.endFailed(error, false);
                 return {
                     success: false,
                     error: error.toString(),
+                    updatedSchema: this.schemaDesignerDetails?.schema ?? payload.schema,
                 };
             }
         });
@@ -340,6 +357,27 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onNotification(SchemaDesigner.CloseSchemaDesignerNotification.type, () => {
             // Close the schema designer panel
             this.panel.dispose();
+        });
+
+        this.onNotification(SchemaDesigner.SchemaDesignerDirtyStateNotification.type, (payload) => {
+            this.updateCacheItem(undefined, payload.hasChanges);
+        });
+
+        this.onRequest(SchemaDesigner.GetBaselineSchemaRequest.type, async () => {
+            const cacheItem = this.schemaDesignerCache.get(this._key);
+            // Prefer cached baseline so it survives controller recreation (webview restore)
+            if (cacheItem?.baselineSchema) {
+                this.baselineSchema = cacheItem.baselineSchema;
+                return cacheItem.baselineSchema;
+            }
+
+            // Fallback (should be rare): use controller field or current schema
+            return (
+                this.baselineSchema ??
+                this.schemaDesignerDetails?.schema ?? {
+                    tables: [],
+                }
+            );
         });
 
         // DAB request handlers
