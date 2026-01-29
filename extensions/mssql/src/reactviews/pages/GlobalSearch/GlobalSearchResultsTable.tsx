@@ -42,6 +42,7 @@ import {
 import { SearchResultItem, ScriptType } from "../../../sharedInterfaces/globalSearch";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     container: {
@@ -133,8 +134,8 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         return (
             <div className={classes.emptyState}>
                 <DocumentRegular style={{ fontSize: "48px" }} />
-                <Body1>No objects found</Body1>
-                <Body1>Try adjusting your search or filters</Body1>
+                <Body1>{loc.globalSearch.noObjectsFound}</Body1>
+                <Body1>{loc.globalSearch.tryAdjustingFilters}</Body1>
             </div>
         );
     }
@@ -143,7 +144,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         createTableColumn<SearchResultItem>({
             columnId: "name",
             compare: (a, b) => a.name.localeCompare(b.name),
-            renderHeaderCell: () => <span className={classes.headerCell}>Name</span>,
+            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.name}</span>,
             renderCell: (item) => (
                 <TableCellLayout truncate title={item.fullName}>
                     {item.name}
@@ -153,7 +154,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         createTableColumn<SearchResultItem>({
             columnId: "schema",
             compare: (a, b) => a.schema.localeCompare(b.schema),
-            renderHeaderCell: () => <span className={classes.headerCell}>Schema</span>,
+            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.schema}</span>,
             renderCell: (item) => (
                 <TableCellLayout truncate title={item.schema}>
                     {item.schema}
@@ -163,7 +164,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         createTableColumn<SearchResultItem>({
             columnId: "type",
             compare: (a, b) => a.typeName.localeCompare(b.typeName),
-            renderHeaderCell: () => <span className={classes.headerCell}>Type</span>,
+            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.type}</span>,
             renderCell: (item) => (
                 <TableCellLayout>
                     <span className={classes.typeCell}>
@@ -175,7 +176,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         }),
         createTableColumn<SearchResultItem>({
             columnId: "actions",
-            renderHeaderCell: () => <span className={classes.headerCell}>Actions</span>,
+            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.actions}</span>,
             renderCell: (item) => <ActionsMenu item={item} context={context} />,
         }),
     ];
@@ -262,7 +263,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                     appearance="subtle"
                     icon={<MoreHorizontalRegular />}
                     size="small"
-                    aria-label="Actions"
+                    aria-label={loc.globalSearch.actions}
                 />
             </MenuTrigger>
             <MenuPopover>
@@ -272,7 +273,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<PlayRegular />}
                             onClick={() => context.scriptObject(item, "SELECT")}
                         >
-                            Select Top 1000
+                            {loc.globalSearch.selectTop1000}
                         </MenuItem>
                     )}
                     {availableActions.includes("CREATE") && (
@@ -280,7 +281,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<DocumentRegular />}
                             onClick={() => context.scriptObject(item, "CREATE")}
                         >
-                            Script as Create
+                            {loc.globalSearch.scriptAsCreate}
                         </MenuItem>
                     )}
                     {availableActions.includes("DROP") && (
@@ -288,7 +289,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<DeleteRegular />}
                             onClick={() => context.scriptObject(item, "DROP")}
                         >
-                            Script as Drop
+                            {loc.globalSearch.scriptAsDrop}
                         </MenuItem>
                     )}
                     {availableActions.includes("ALTER") && (
@@ -296,7 +297,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<EditRegular />}
                             onClick={() => context.scriptObject(item, "ALTER")}
                         >
-                            Script as Alter
+                            {loc.globalSearch.scriptAsAlter}
                         </MenuItem>
                     )}
                     {availableActions.includes("EXECUTE") && (
@@ -304,7 +305,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<PlayRegular />}
                             onClick={() => context.scriptObject(item, "EXECUTE")}
                         >
-                            Script as Execute
+                            {loc.globalSearch.scriptAsExecute}
                         </MenuItem>
                     )}
                     {item.type === MetadataType.Table && (
@@ -312,14 +313,14 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             icon={<TableEditRegular />}
                             onClick={() => context.editData(item)}
                         >
-                            Edit Data
+                            {loc.globalSearch.editData}
                         </MenuItem>
                     )}
                     <MenuItem
                         icon={<CopyRegular />}
                         onClick={() => context.copyObjectName(item)}
                     >
-                        Copy Object Name
+                        {loc.globalSearch.copyObjectName}
                     </MenuItem>
                 </MenuList>
             </MenuPopover>

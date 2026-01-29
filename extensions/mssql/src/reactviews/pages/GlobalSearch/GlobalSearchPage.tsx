@@ -19,6 +19,7 @@ import { GlobalSearchToolbar } from "./GlobalSearchToolbar";
 import { GlobalSearchFilters } from "./GlobalSearchFilters";
 import { GlobalSearchResultsTable } from "./GlobalSearchResultsTable";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -113,8 +114,8 @@ export const GlobalSearchPage: React.FC = () => {
         return (
             <div className={classes.root}>
                 <div className={classes.loadingContainer}>
-                    <Spinner size="large" label="Loading..." />
-                    <Body1>Connecting to {serverName}...</Body1>
+                    <Spinner size="large" label={loc.globalSearch.loading} />
+                    <Body1>{loc.globalSearch.connectingTo(serverName)}</Body1>
                 </div>
             </div>
         );
@@ -126,13 +127,13 @@ export const GlobalSearchPage: React.FC = () => {
             <div className={classes.root}>
                 <div className={classes.header}>
                     <div className={classes.titleRow}>
-                        <Title3 className={classes.title}>Global Search</Title3>
+                        <Title3 className={classes.title}>{loc.globalSearch.title}</Title3>
                     </div>
                 </div>
                 <div className={classes.errorContainer}>
                     <MessageBar intent="error">
                         <MessageBarBody>
-                            {errorMessage || "An error occurred while loading data."}
+                            {errorMessage || loc.globalSearch.defaultError}
                         </MessageBarBody>
                     </MessageBar>
                 </div>
@@ -146,7 +147,7 @@ export const GlobalSearchPage: React.FC = () => {
             <div className={classes.header}>
                 <div className={classes.titleRow}>
                     <div>
-                        <Title3 className={classes.title}>Global Search</Title3>
+                        <Title3 className={classes.title}>{loc.globalSearch.title}</Title3>
                         <span className={classes.serverInfo}>
                             {serverName} / {selectedDatabase}
                         </span>
@@ -167,8 +168,8 @@ export const GlobalSearchPage: React.FC = () => {
                     <div className={classes.resultsHeader}>
                         <span className={classes.resultsCount}>
                             {isSearching
-                                ? "Searching..."
-                                : `${totalResultCount} object${totalResultCount !== 1 ? "s" : ""} found`}
+                                ? loc.globalSearch.searching
+                                : loc.globalSearch.objectsFound(totalResultCount)}
                         </span>
                     </div>
                     <div className={classes.resultsTable}>

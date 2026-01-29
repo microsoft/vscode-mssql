@@ -24,6 +24,7 @@ import {
 import { useGlobalSearchSelector } from "./globalSearchSelector";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
 import { ObjectTypeFilters } from "../../../sharedInterfaces/globalSearch";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     container: {
@@ -123,7 +124,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
         <div className={classes.container}>
             {/* Database Selector */}
             <div className={classes.section}>
-                <Label className={classes.sectionTitle}>Database</Label>
+                <Label className={classes.sectionTitle}>{loc.globalSearch.database}</Label>
                 <Dropdown
                     className={classes.dropdown}
                     value={selectedDatabase}
@@ -143,7 +144,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
 
             {/* Object Type Filters */}
             <div className={classes.section}>
-                <Label className={classes.sectionTitle}>Object Types</Label>
+                <Label className={classes.sectionTitle}>{loc.globalSearch.objectTypes}</Label>
                 <div className={classes.checkboxGroup}>
                     <Checkbox
                         checked={objectTypeFilters.tables}
@@ -151,7 +152,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <TableRegular className={classes.typeIcon} />
-                                Tables
+                                {loc.globalSearch.tables}
                             </span>
                         }
                     />
@@ -161,7 +162,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <EyeRegular className={classes.typeIcon} />
-                                Views
+                                {loc.globalSearch.views}
                             </span>
                         }
                     />
@@ -171,7 +172,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <CodeRegular className={classes.typeIcon} />
-                                Stored Procedures
+                                {loc.globalSearch.storedProcedures}
                             </span>
                         }
                     />
@@ -181,7 +182,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <MathFormulaRegular className={classes.typeIcon} />
-                                Functions
+                                {loc.globalSearch.functions}
                             </span>
                         }
                     />
@@ -195,13 +196,13 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                     {/* Schema Filters */}
                     <div className={classes.schemaSection}>
                         <div className={classes.schemaSectionHeader}>
-                            <Label className={classes.sectionTitle}>Schemas</Label>
+                            <Label className={classes.sectionTitle}>{loc.globalSearch.schemas}</Label>
                             <div className={classes.schemaActions}>
                                 <Link onClick={() => context.selectAllSchemas()}>
-                                    All
+                                    {loc.globalSearch.all}
                                 </Link>
                                 <Link onClick={() => context.clearSchemaSelection()}>
-                                    None
+                                    {loc.globalSearch.none}
                                 </Link>
                             </div>
                         </div>

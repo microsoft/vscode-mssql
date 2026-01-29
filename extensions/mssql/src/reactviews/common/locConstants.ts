@@ -1328,6 +1328,62 @@ export class LocConstants {
         };
     }
 
+    public get globalSearch() {
+        return {
+            // Page titles and headers
+            title: l10n.t("Global Search"),
+            loading: l10n.t("Loading..."),
+            connectingTo: (serverName: string) =>
+                l10n.t({
+                    message: "Connecting to {0}...",
+                    args: [serverName],
+                    comment: ["{0} is the server name"],
+                }),
+            defaultError: l10n.t("An error occurred while loading data."),
+            searching: l10n.t("Searching..."),
+            objectsFound: (count: number) =>
+                l10n.t({
+                    message: "{0} object(s) found",
+                    args: [count],
+                    comment: ["{0} is the number of objects found"],
+                }),
+
+            // Filter labels
+            database: l10n.t("Database"),
+            objectTypes: l10n.t("Object Types"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            functions: l10n.t("Functions"),
+            schemas: l10n.t("Schemas"),
+            all: l10n.t("All"),
+            none: l10n.t("None"),
+
+            // Toolbar
+            searchPlaceholder: l10n.t("Search database objects..."),
+            refresh: l10n.t("Refresh"),
+
+            // Results table headers
+            name: l10n.t("Name"),
+            schema: l10n.t("Schema"),
+            type: l10n.t("Type"),
+            actions: l10n.t("Actions"),
+
+            // Empty state
+            noObjectsFound: l10n.t("No objects found"),
+            tryAdjustingFilters: l10n.t("Try adjusting your search or filters"),
+
+            // Action menu items
+            selectTop1000: l10n.t("Select Top 1000"),
+            scriptAsCreate: l10n.t("Script as Create"),
+            scriptAsDrop: l10n.t("Script as Drop"),
+            scriptAsAlter: l10n.t("Script as Alter"),
+            scriptAsExecute: l10n.t("Script as Execute"),
+            editData: l10n.t("Edit Data"),
+            copyObjectName: l10n.t("Copy Object Name"),
+        };
+    }
+
     // SlickGrid-specific localization strings
     public get slickGrid() {
         return {

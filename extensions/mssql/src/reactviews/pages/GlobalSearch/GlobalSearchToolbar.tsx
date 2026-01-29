@@ -12,6 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     toolbar: {
@@ -73,7 +74,7 @@ export const GlobalSearchToolbar: React.FC = () => {
             <div className={classes.searchContainer}>
                 <SearchBox
                     className={classes.searchBox}
-                    placeholder="Search database objects..."
+                    placeholder={loc.globalSearch.searchPlaceholder}
                     value={localSearchValue}
                     onChange={handleSearchChange}
                     size="medium"
@@ -84,7 +85,7 @@ export const GlobalSearchToolbar: React.FC = () => {
                 icon={<ArrowSyncRegular />}
                 onClick={handleRefresh}
             >
-                Refresh
+                {loc.globalSearch.refresh}
             </Button>
         </div>
     );
