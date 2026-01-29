@@ -24,6 +24,7 @@ import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
+import * as LocConstants from "../constants/locConstants";
 
 export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     GlobalSearchWebViewState,
@@ -71,7 +72,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 errorMessage: undefined,
             },
             {
-                title: `Global Search - ${serverName}`,
+                title: LocConstants.GlobalSearch.title(serverName),
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -146,7 +147,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         }
 
         if (!this._connectionManager.isConnected(connectionUri)) {
-            throw new Error("Failed to establish connection for scripting");
+            throw new Error(LocConstants.GlobalSearch.failedToEstablishConnection);
         }
     }
 
@@ -295,15 +296,15 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private getFriendlyTypeName(type: MetadataType): string {
         switch (type) {
             case MetadataType.Table:
-                return "Table";
+                return LocConstants.GlobalSearch.typeTable;
             case MetadataType.View:
-                return "View";
+                return LocConstants.GlobalSearch.typeView;
             case MetadataType.SProc:
-                return "Stored Procedure";
+                return LocConstants.GlobalSearch.typeStoredProcedure;
             case MetadataType.Function:
-                return "Function";
+                return LocConstants.GlobalSearch.typeFunction;
             default:
-                return "Unknown";
+                return LocConstants.GlobalSearch.typeUnknown;
         }
     }
 
@@ -388,7 +389,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         this.registerReducer("copyObjectName", async (state, payload) => {
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
-                `Copied "${payload.object.fullName}" to clipboard`,
+                LocConstants.GlobalSearch.copiedToClipboard(payload.object.fullName),
             );
             return state;
         });
@@ -520,7 +521,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         } catch (error) {
             this.logger.error(`Error scripting object: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
-                `Failed to script object: ${getErrorMessage(error)}`,
+                LocConstants.GlobalSearch.failedToScriptObject(getErrorMessage(error)),
             );
         }
     }
@@ -554,7 +555,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         } catch (error) {
             this.logger.error(`Error opening Edit Data: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
-                `Failed to open Edit Data: ${getErrorMessage(error)}`,
+                LocConstants.GlobalSearch.failedToOpenEditData(getErrorMessage(error)),
             );
         }
     }

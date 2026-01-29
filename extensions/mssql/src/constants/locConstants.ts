@@ -2264,6 +2264,46 @@ export class DacpacDialog {
     }
 }
 
+export class GlobalSearch {
+    public static title = (serverName: string) =>
+        l10n.t({
+            message: "Global Search - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+
+    public static failedToEstablishConnection = l10n.t(
+        "Failed to establish connection for scripting",
+    );
+
+    public static typeTable = l10n.t("Table");
+    public static typeView = l10n.t("View");
+    public static typeStoredProcedure = l10n.t("Stored Procedure");
+    public static typeFunction = l10n.t("Function");
+    public static typeUnknown = l10n.t("Unknown");
+
+    public static copiedToClipboard = (objectName: string) =>
+        l10n.t({
+            message: 'Copied "{0}" to clipboard',
+            args: [objectName],
+            comment: ["{0} is the object name"],
+        });
+
+    public static failedToScriptObject = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to script object: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenEditData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Edit Data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
 export class TableExplorer {
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",
