@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
-import { createContext } from "react";
+import { createContext, useMemo } from "react";
 import {
     ConnectionGroupContextProps,
     ConnectionGroupReducers,
     ConnectionGroupSpec,
     ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs } from "../../common/utils";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs2 } from "../../common/utils";
 
 const ConnectionGroupContext = createContext<ConnectionGroupContextProps | undefined>(undefined);
 
@@ -22,19 +22,20 @@ interface ConnectionGroupProviderProps {
 
 // Connection Group State Provider component
 const ConnectionGroupStateProvider: React.FC<ConnectionGroupProviderProps> = ({ children }) => {
-    const webviewContext = useVscodeWebview<ConnectionGroupState, ConnectionGroupReducers>();
+    const { extensionRpc } = useVscodeWebview2<ConnectionGroupState, ConnectionGroupReducers>();
+
+    const commands = useMemo<ConnectionGroupContextProps>(
+        () => ({
+            ...getCoreRPCs2(extensionRpc),
+            closeDialog: () => extensionRpc.action("closeDialog"),
+            saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
+                extensionRpc.action("saveConnectionGroup", connectionGroupSpec),
+        }),
+        [extensionRpc],
+    );
 
     return (
-        <ConnectionGroupContext.Provider
-            value={{
-                state: webviewContext.state,
-                themeKind: webviewContext.themeKind,
-                keyBindings: webviewContext.keyBindings,
-                ...getCoreRPCs(webviewContext),
-                closeDialog: () => webviewContext?.extensionRpc.action("closeDialog"),
-                saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
-                    webviewContext?.extensionRpc.action("saveConnectionGroup", connectionGroupSpec),
-            }}>
+        <ConnectionGroupContext.Provider value={commands}>
             {children}
         </ConnectionGroupContext.Provider>
     );
