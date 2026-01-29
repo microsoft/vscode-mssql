@@ -848,6 +848,10 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project": "Publish Project",
+    "Publish Project - {0}/{0} is the name of the project being published": {
+        "message": "Publish Project - {0}",
+        "comment": ["{0} is the name of the project being published"]
+    },
     "Select Profile": "Select Profile",
     "Save As...": "Save As...",
     "Advanced Publish Options": "Advanced Publish Options",
