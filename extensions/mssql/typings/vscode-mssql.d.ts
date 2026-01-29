@@ -540,7 +540,7 @@ declare module "vscode-mssql" {
             sqlCommandVariableValues?: Map<string, string>,
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
-        getDeploymentOptions(scenario?: DeploymentScenario | number): Thenable<GetDeploymentOptionsResult>;
+        getDeploymentOptions(scenario?: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
     }
 
     /**
@@ -1373,7 +1373,7 @@ declare module "vscode-mssql" {
          */
         Deployment = 0,
         /**
-         * Schema Compare scenario - uses modified defaults that match SSMS behavior
+     * Schema Compare scenario - uses modified defaults optimized for schema comparison
          */
         SchemaCompare = 1,
     }
@@ -1387,7 +1387,7 @@ declare module "vscode-mssql" {
          * Deployment (default): Returns DacFx native defaults (for Publish operations).
          * SchemaCompare: Returns modified defaults that match SSMS behavior.
          */
-        scenario?: DeploymentScenario | number;
+        scenario?: DeploymentScenario;
     }
 
     /**

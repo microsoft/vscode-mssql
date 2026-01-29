@@ -440,7 +440,7 @@ declare module 'vscode-mssql' {
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
 		savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<ResultStatus>;
-		getDeploymentOptions(scenario?: DeploymentScenario | number): Thenable<GetDeploymentOptionsResult>;
+		getDeploymentOptions(scenario?: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
 	}
 
 	/**
@@ -1091,7 +1091,7 @@ declare module 'vscode-mssql' {
 		 */
 		Deployment = 0,
 		/**
-		 * Schema Compare scenario - uses modified defaults that match SSMS behavior
+		 * Schema Compare scenario - uses modified defaults
 		 */
 		SchemaCompare = 1
 	}
@@ -1103,9 +1103,9 @@ declare module 'vscode-mssql' {
 		/**
 		 * Specifies the scenario for which to retrieve default deployment options.
 		 * Deployment (default): Returns DacFx native defaults (for Publish operations).
-		 * SchemaCompare: Returns modified defaults that match SSMS behavior.
+		 * SchemaCompare: Returns modified defaults.
 		 */
-		scenario?: DeploymentScenario | number;
+		scenario?: DeploymentScenario;
 	}
 
 	/**

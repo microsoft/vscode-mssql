@@ -47,11 +47,6 @@ export const enum TaskExecutionMode {
     executeAndScript = 2,
 }
 
-export const enum DeploymentScenario {
-    Deployment = 0,
-    SchemaCompare = 1,
-}
-
 export const enum SchemaDifferenceType {
     Object = 0,
     Property = 1,

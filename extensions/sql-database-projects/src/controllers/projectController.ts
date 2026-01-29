@@ -49,6 +49,7 @@ import { ConnectionService } from '../models/connections/connectionService';
 import { getPublishToDockerSettings } from '../dialogs/publishToDockerQuickpick';
 import { SqlCmdVariableTreeItem } from '../models/tree/sqlcmdVariableTreeItem';
 import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
+import { DeploymentScenario } from '../common/enums';
 
 const maxTableLength = 10;
 
@@ -63,15 +64,6 @@ export enum TaskExecutionMode {
 	execute = 0,
 	script = 1,
 	executeAndScript = 2
-}
-
-/**
- * This is a duplicate of the DeploymentScenario from vscode-mssql.d.ts, which is needed
- * for using when running in VS Code since we don't have an actual implementation of the enum at runtime.
- */
-export enum DeploymentScenario {
-	Deployment = 0,
-	SchemaCompare = 1
 }
 
 export type AddDatabaseReferenceSettings = ISystemDatabaseReferenceSettings | IDacpacReferenceSettings | IProjectReferenceSettings | INugetPackageReferenceSettings;

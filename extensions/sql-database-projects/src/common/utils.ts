@@ -16,7 +16,8 @@ import * as fse from 'fs-extra';
 import * as which from 'which';
 import { promises as fs } from 'fs';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
-import { DeploymentScenario, SystemDatabase } from './typeHelper';
+import { SystemDatabase } from './typeHelper';
+import { DeploymentScenario } from './enums';
 
 export interface ValidationResult {
 	errorMessage: string;
