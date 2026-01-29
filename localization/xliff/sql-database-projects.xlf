@@ -908,6 +908,9 @@
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
+      <source xml:lang="en">Table-Valued Function</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b02abaa1e421efb6c10a960e3f128b0a641ea7cc47df22947c3f695cf1cb505">
       <source xml:lang="en">Target Database</source>
     </trans-unit>
