@@ -8,10 +8,8 @@ import VscodeWrapper from "./vscodeWrapper";
 import {
     BackupComponent,
     BackupCompression,
-    BackupDatabaseFormItemSpec,
-    BackupDatabaseFormState,
-    BackupDatabaseReducers,
-    BackupDatabaseState,
+    BackupDatabaseParams,
+    BackupDatabaseViewModel,
     BackupEncryptor,
     BackupInfo,
     BackupType,
@@ -22,11 +20,10 @@ import {
     LogOption,
     MediaDeviceType,
     MediaSet,
-    BackupService,
     PhysicalDeviceType,
 } from "../sharedInterfaces/backup";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { FormWebviewController } from "../forms/formWebviewController";
+import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import {
     FormItemActionButton,
@@ -47,7 +44,6 @@ import { registerFileBrowserReducers } from "./fileBrowserUtils";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
-import { BackupResponse } from "azdata";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getExpirationDateForSas } from "../utils/utils";
@@ -56,60 +52,58 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
+import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
+import {
+    ObjectManagementActionParams,
+    ObjectManagementActionResult,
+    ObjectManagementDialogType,
+    ObjectManagementFormItemSpec,
+    ObjectManagementFormState,
+    ObjectManagementWebviewState,
+} from "../sharedInterfaces/objectManagement";
+import { ObjectManagementService } from "../services/objectManagementService";
 
-export class BackupDatabaseWebviewController extends FormWebviewController<
-    BackupDatabaseFormState,
-    BackupDatabaseState,
-    BackupDatabaseFormItemSpec,
-    BackupDatabaseReducers
-> {
+export class BackupDatabaseWebviewController extends ObjectManagementWebviewController {
     public readonly BACKUP_DATABASE_TASK_NAME = "Backup Database";
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        private backupService: BackupService,
+        objectManagementService: ObjectManagementService,
         private fileBrowserService: FileBrowserService,
         private azureBlobService: AzureBlobService,
-        private ownerUri: string,
-        private databaseName: string,
+        connectionUri: string,
+        serverName: string,
+        databaseName: string,
+        parentUrn?: string,
+        dialogTitle?: string,
     ) {
         super(
             context,
             vscodeWrapper,
-            "backupDatabase",
-            "backupDatabase",
-            new BackupDatabaseState(),
-            {
-                title: LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
-                viewColumn: vscode.ViewColumn.Active, // Sets the view column of the webview
-                iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "backup_dark.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "backup_light.svg"),
-                },
-            },
+            objectManagementService,
+            ObjectManagementDialogType.BackupDatabase,
+            dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            "backupDatabaseDialog",
+            connectionUri,
+            serverName,
+            databaseName,
+            parentUrn,
         );
-        void this.initialize();
+
+        this.start();
     }
 
-    private async initialize() {
-        this.state.databaseName = this.databaseName;
-        this.state.ownerUri = this.ownerUri;
+    protected async initializeDialog(): Promise<void> {
+        const backupModel = new BackupDatabaseViewModel();
+        this.state.ownerUri = this.connectionUri;
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
-        const backupConfigInfo = (await this.backupService.getBackupConfigInfo(this.state.ownerUri))
-            ?.backupConfigInfo;
-        this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
-        this.state.backupEncryptors = backupConfigInfo.backupEncryptors;
-        this.state.recoveryModel = backupConfigInfo.recoveryModel;
+        const backupConfigInfo = (
+            await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
+        )?.backupConfigInfo;
 
-        // Set default backup file props
-        this.state.defaultBackupName = this.getDefaultBackupFileName(this.state);
-        this.state.backupFiles = [
-            {
-                filePath: `${this.state.defaultFileBrowserExpandPath}/${this.state.defaultBackupName}`,
-                isExisting: false,
-            },
-        ];
+        // File Browser setup
+        this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
         this.state.fileFilterOptions = [
             {
                 displayName: LocConstants.BackupDatabase.backupFileTypes,
@@ -121,8 +115,21 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             },
         ];
 
+        backupModel.databaseName = this.databaseName;
+        backupModel.backupEncryptors = backupConfigInfo.backupEncryptors;
+        backupModel.recoveryModel = backupConfigInfo.recoveryModel;
+
+        // Set default backup file props
+        backupModel.defaultBackupName = this.getDefaultBackupFileName(backupModel);
+        backupModel.backupFiles = [
+            {
+                filePath: `${this.state.defaultFileBrowserExpandPath}/${backupModel.defaultBackupName}`,
+                isExisting: false,
+            },
+        ];
+
         // Set initial azure component statuses
-        this.state.azureComponentStatuses = {
+        backupModel.azureComponentStatuses = {
             accountId: ApiStatus.NotStarted,
             tenantId: ApiStatus.NotStarted,
             subscriptionId: ApiStatus.NotStarted,
@@ -130,11 +137,12 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             blobContainerId: ApiStatus.NotStarted,
         };
 
-        this.state.formComponents = this.setBackupDatabaseFormComponents();
+        this.state.viewModel.model = backupModel;
 
-        // Set default form state values
+        // Set default form values
+        this.state.formComponents = this.setFormComponents();
         this.state.formState = {
-            backupName: this.state.defaultBackupName,
+            backupName: backupModel.defaultBackupName,
             backupType: BackupType.Full,
             copyOnly: false,
             backupCompression: BackupCompression.Default,
@@ -147,8 +155,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             transactionLog: LogOption.Truncate,
             encryptionEnabled: false,
             encryptionAlgorithm: EncryptionAlgorithm.AES128,
-            encryptorName: this.state.backupEncryptors.length
-                ? this.state.backupEncryptors[0].encryptorName
+            encryptorName: backupModel.backupEncryptors.length
+                ? backupModel.backupEncryptors[0].encryptorName
                 : undefined,
             retainDays: 0,
             accountId: "",
@@ -163,13 +171,13 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             const { task, progress } = taskCompletedEvent;
             if (task.name === this.BACKUP_DATABASE_TASK_NAME && progress.script) {
                 let includesBackupLocation = false;
-                if (!this.state.saveToUrl) {
-                    const filePaths = this.state.backupFiles.map((file) => file.filePath);
+                if (!backupModel.saveToUrl) {
+                    const filePaths = backupModel.backupFiles.map((file) => file.filePath);
                     includesBackupLocation = filePaths.every((path) =>
                         progress.script?.includes(path),
                     );
                 } else {
-                    includesBackupLocation = progress.script?.includes(this.state.backupUrl);
+                    includesBackupLocation = progress.script?.includes(backupModel.backupUrl);
                 }
 
                 if (includesBackupLocation) {
@@ -181,12 +189,30 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         sendActionEvent(TelemetryViews.Backup, TelemetryActions.StartBackup);
 
-        this.registerRpcHandlers();
-        this.state.loadState = ApiStatus.Loaded;
+        this.registerBackupRpcHandlers();
         this.updateState();
+        backupModel.loadState = ApiStatus.Loaded;
     }
 
-    private registerRpcHandlers() {
+    protected get helpLink(): string {
+        return Constants.backupDatabaseHelpLink;
+    }
+
+    protected handleScript(
+        params: ObjectManagementActionParams["params"],
+    ): Promise<ObjectManagementActionResult> {
+        const backupParams = params as BackupDatabaseParams;
+        return this.backupHelper(backupParams.taskExecutionMode, backupParams.state);
+    }
+
+    protected handleSubmit(
+        params: ObjectManagementActionParams["params"],
+    ): Promise<ObjectManagementActionResult> {
+        const backupParams = params as BackupDatabaseParams;
+        return this.backupHelper(backupParams.taskExecutionMode, backupParams.state);
+    }
+
+    private registerBackupRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
             // isAction indicates whether the event was triggered by an action button
             if (payload.event.isAction) {
@@ -238,10 +264,13 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         this.registerReducer("backupDatabase", async (state, _payload) => {
             void this.backupHelper(TaskExecutionMode.executeAndScript, state);
 
+            const backupViewModel = this.backupViewModel(state);
+
             sendActionEvent(TelemetryViews.Backup, TelemetryActions.Backup, {
-                backupToUrl: state.saveToUrl ? "true" : "false",
+                backupToUrl: backupViewModel.saveToUrl ? "true" : "false",
                 backupWithExistingFiles:
-                    state.saveToUrl && state.backupFiles.some((file) => file.isExisting)
+                    backupViewModel.saveToUrl &&
+                    backupViewModel.backupFiles.some((file) => file.isExisting)
                         ? "true"
                         : "false",
             });
@@ -257,21 +286,25 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         this.registerReducer("setSaveLocation", async (state, payload) => {
             // Set save to URL or local files; reload form errors
-            state.saveToUrl = payload.saveToUrl;
+            const backupViewModel = this.backupViewModel(state);
+            backupViewModel.saveToUrl = payload.saveToUrl;
+            state.viewModel.model = backupViewModel;
             state.formErrors = [];
             return state;
         });
 
         this.registerReducer("removeBackupFile", async (state, payload) => {
-            state.backupFiles = state.backupFiles.filter(
+            const backupViewModel = this.backupViewModel(state);
+            backupViewModel.backupFiles = backupViewModel.backupFiles.filter(
                 (file) => file.filePath !== payload.filePath,
             );
-            state = this.setMediaOptionsIfExistingFiles(state);
-            return state;
+            state.viewModel.model = backupViewModel;
+            return this.setMediaOptionsIfExistingFiles(state);
         });
 
         this.registerReducer("handleFileChange", async (state, payload) => {
-            const currentFilePath = state.backupFiles[payload.index].filePath;
+            const backupViewModel = this.backupViewModel(state);
+            const currentFilePath = backupViewModel.backupFiles[payload.index].filePath;
             let newFilePath: string = "";
             if (payload.isFolderChange) {
                 newFilePath = `${payload.newValue}/${currentFilePath.substring(
@@ -280,13 +313,18 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             } else {
                 newFilePath = `${currentFilePath.substring(0, currentFilePath.lastIndexOf("/") + 1)}${payload.newValue}`;
             }
-            state.backupFiles[payload.index].filePath = newFilePath;
+            backupViewModel.backupFiles[payload.index].filePath = newFilePath;
+            state.viewModel.model = backupViewModel;
             return state;
         });
 
         this.registerReducer("loadAzureComponent", async (state, payload) => {
+            let backupViewModel = this.backupViewModel(state);
             // Only start loading if not already started
-            if (state.azureComponentStatuses[payload.componentName] !== ApiStatus.NotStarted)
+            if (
+                backupViewModel.azureComponentStatuses[payload.componentName] !==
+                ApiStatus.NotStarted
+            )
                 return state;
 
             switch (payload.componentName) {
@@ -307,7 +345,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                     break;
             }
 
-            state.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
+            backupViewModel = this.backupViewModel(state);
+            backupViewModel.azureComponentStatuses[payload.componentName] = ApiStatus.Loaded;
+            state.viewModel.model = backupViewModel;
 
             return state;
         });
@@ -320,28 +360,33 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
 
         // Override default file browser submitFilePath reducer
         this.registerReducer("submitFilePath", async (state, payload) => {
+            const backupViewModel = this.backupViewModel(state);
             // Check if an existing file was selected
             const isExisting = payload.selectedPath.includes(".");
 
             // Folder selected, generate default backup name
             if (!isExisting) {
-                const defaultFileName = this.getDefaultBackupFileName(state);
+                const defaultFileName = this.getDefaultBackupFileName(backupViewModel);
                 payload.selectedPath = `${payload.selectedPath}/${defaultFileName}`;
             }
 
-            const paths = state.backupFiles.map((f) => f.filePath);
+            const paths = backupViewModel.backupFiles.map((f) => f.filePath);
             if (!paths.includes(payload.selectedPath)) {
-                state.backupFiles.push({
+                backupViewModel.backupFiles.push({
                     filePath: payload.selectedPath,
                     isExisting: isExisting,
                 });
             }
 
             // Update media options if there are existing files
-            state = this.setMediaOptionsIfExistingFiles(state);
-
-            return state;
+            state.viewModel.model = backupViewModel;
+            return this.setMediaOptionsIfExistingFiles(state);
         });
+    }
+
+    private backupViewModel(state?: ObjectManagementWebviewState): BackupDatabaseViewModel {
+        const webviewState = state ?? this.state;
+        return webviewState.viewModel.model as BackupDatabaseViewModel;
     }
 
     /**
@@ -349,7 +394,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @param state Current backup database state
      * @returns Default backup file name
      */
-    private getDefaultBackupFileName(state: BackupDatabaseState): string {
+    private getDefaultBackupFileName(state: BackupDatabaseViewModel): string {
         const newFiles = state.backupFiles.filter((file) => !file.isExisting);
         let name = state.databaseName;
         if (newFiles.length > 0) {
@@ -366,8 +411,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      */
     private async backupHelper(
         mode: TaskExecutionMode,
-        state: BackupDatabaseState,
-    ): Promise<BackupResponse> {
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementActionResult> {
+        const backupViewModel = this.backupViewModel(state);
         const createNewMediaSet = state.formState.mediaSet === MediaSet.Create;
         const overwriteMediaSet = state.formState.mediaSet === MediaSet.Overwrite;
 
@@ -376,7 +422,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             encryptorName: "",
         };
         if (state.formState.encryptionEnabled) {
-            encryptor = state.backupEncryptors.find(
+            encryptor = backupViewModel.backupEncryptors.find(
                 (be) => be.encryptorName === state.formState.encryptorName,
             );
         }
@@ -385,25 +431,25 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         const backupPathList: string[] = [];
 
         // If saving to URL, construct the Blob URL and get SAS token
-        if (state.saveToUrl) {
+        if (backupViewModel.saveToUrl) {
             const accountEndpoint =
                 getCloudProviderSettings().settings.azureStorageResource.endpoint.replace(
                     https,
                     "",
                 );
-            const subscription = state.subscriptions.find(
+            const subscription = backupViewModel.subscriptions.find(
                 (s) => s.subscriptionId === state.formState.subscriptionId,
             );
-            const storageAccount = state.storageAccounts.find(
+            const storageAccount = backupViewModel.storageAccounts.find(
                 (sa) => sa.id === state.formState.storageAccountId,
             );
-            const blobContainer = state.blobContainers.find(
+            const blobContainer = backupViewModel.blobContainers.find(
                 (bc) => bc.id === state.formState.blobContainerId,
             );
 
             const blobContainerUrl = `${https}${storageAccount.name}.${accountEndpoint}${blobContainer.name}`;
             const backupUrl = `${blobContainerUrl}/${state.formState.backupName}`;
-            state.backupUrl = backupUrl;
+            backupViewModel.backupUrl = backupUrl;
             backupPathDevices[backupUrl] = MediaDeviceType.Url;
             backupPathList.push(backupUrl);
 
@@ -421,26 +467,28 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             }
 
             void this.azureBlobService.createSas(
-                state.ownerUri,
+                this.connectionUri,
                 blobContainerUrl,
                 sasKeyResult.keys[0].value,
                 storageAccount.name,
                 getExpirationDateForSas(),
             );
         } else {
-            for (const file of state.backupFiles) {
+            for (const file of backupViewModel.backupFiles) {
                 backupPathDevices[file.filePath] = MediaDeviceType.File;
                 backupPathList.push(file.filePath);
             }
         }
 
         const backupInfo: BackupInfo = {
-            databaseName: state.databaseName,
+            databaseName: backupViewModel.databaseName,
             backupType: getBackupTypeNumber(state.formState.backupType),
             backupComponent: BackupComponent.Database, // always database for this scenario
-            backupDeviceType: state.saveToUrl ? PhysicalDeviceType.Url : PhysicalDeviceType.Disk, // always disk or URL
+            backupDeviceType: backupViewModel.saveToUrl
+                ? PhysicalDeviceType.Url
+                : PhysicalDeviceType.Disk, // always disk or URL
             selectedFiles: undefined,
-            backupsetName: state.formState.backupName ?? state.defaultBackupName,
+            backupsetName: state.formState.backupName ?? backupViewModel.defaultBackupName,
             selectedFileGroup: undefined,
             backupPathDevices: backupPathDevices,
             backupPathList: backupPathList,
@@ -461,29 +509,30 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             encryptorType: encryptor.encryptorType,
             encryptorName: encryptor.encryptorName,
         };
-        return this.backupService.backupDatabase(state.ownerUri, backupInfo, mode);
+        const backupResult = await this.objectManagementService.backupDatabase(
+            this.connectionUri,
+            backupInfo,
+            mode,
+        );
+        return { success: backupResult.result };
     }
 
     //#region Form Helpers
-    async updateItemVisibility() {}
-
-    protected getActiveFormComponents(
-        state: BackupDatabaseState,
-    ): (keyof BackupDatabaseFormState)[] {
-        return Object.keys(state.formComponents) as (keyof BackupDatabaseFormState)[];
-    }
-
-    private setBackupDatabaseFormComponents(): Record<
+    protected setFormComponents(): Record<
         string,
-        FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec>
+        FormItemSpec<
+            ObjectManagementFormState,
+            ObjectManagementWebviewState,
+            ObjectManagementFormItemSpec
+        >
     > {
         const createFormItem = (
-            spec: Partial<BackupDatabaseFormItemSpec>,
-        ): BackupDatabaseFormItemSpec =>
+            spec: Partial<ObjectManagementFormItemSpec>,
+        ): ObjectManagementFormItemSpec =>
             ({
                 required: false,
                 ...spec,
-            }) as BackupDatabaseFormItemSpec;
+            }) as ObjectManagementFormItemSpec;
 
         return {
             backupName: createFormItem({
@@ -517,7 +566,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 isAdvancedOption: false,
                 groupName: url,
                 validate(state, value) {
-                    const isValid = value !== "" || !state.saveToUrl;
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+                    const isValid = value !== "" || !backupViewModel.saveToUrl;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -536,7 +586,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 placeholder: LocConstants.ConnectionDialog.selectATenant,
                 groupName: url,
                 validate(state, value) {
-                    const isValid = value !== "" || !state.saveToUrl;
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+                    const isValid = value !== "" || !backupViewModel.saveToUrl;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -555,7 +606,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 placeholder: LocConstants.BackupDatabase.selectASubscription,
                 groupName: url,
                 validate(state, value) {
-                    const isValid = value !== "" || !state.saveToUrl;
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+                    const isValid = value !== "" || !backupViewModel.saveToUrl;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -574,7 +626,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 placeholder: LocConstants.BackupDatabase.selectAStorageAccount,
                 groupName: url,
                 validate(state, value) {
-                    const isValid = value !== "" || !state.saveToUrl;
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+                    const isValid = value !== "" || !backupViewModel.saveToUrl;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -593,7 +646,8 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 placeholder: LocConstants.BackupDatabase.selectABlobContainer,
                 groupName: url,
                 validate(state, value) {
-                    const isValid = value !== "" || !state.saveToUrl;
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+                    const isValid = value !== "" || !backupViewModel.saveToUrl;
                     return {
                         isValid: isValid,
                         validationMessage: isValid
@@ -620,8 +674,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
                 validate(state, value) {
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
                     const isValid =
-                        !state.backupFiles.some((file) => file.isExisting) ||
+                        !backupViewModel.backupFiles.some((file) => file.isExisting) ||
                         value === MediaSet.Create;
                     return {
                         isValid: isValid,
@@ -639,8 +694,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
                 validate(state, value) {
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
                     const isValid =
-                        !state.backupFiles.some((file) => file.isExisting) ||
+                        !backupViewModel.backupFiles.some((file) => file.isExisting) ||
                         value.toString().trim() !== "";
                     return {
                         isValid: isValid,
@@ -658,8 +714,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
                 isAdvancedOption: true,
                 groupName: LocConstants.BackupDatabase.media,
                 validate(state, value) {
+                    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
                     const isValid =
-                        !state.backupFiles.some((file) => file.isExisting) ||
+                        !backupViewModel.backupFiles.some((file) => file.isExisting) ||
                         value.toString().trim() !== "";
                     return {
                         isValid: isValid,
@@ -751,14 +808,14 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         ];
 
         // If the database is not master, then add Differential option
-        if (this.state.databaseName !== defaultDatabase) {
+        if (this.backupViewModel().databaseName !== defaultDatabase) {
             backupTypeOptions.push({
                 displayName: LocConstants.BackupDatabase.differential,
                 value: BackupType.Differential,
             });
         }
         // Only add Transaction Log option if the database is not in Simple recovery model
-        if (this.state.recoveryModel !== simple) {
+        if (this.backupViewModel().recoveryModel !== simple) {
             backupTypeOptions.push({
                 displayName: LocConstants.BackupDatabase.transactionLog,
                 value: BackupType.TransactionLog,
@@ -821,9 +878,13 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @param state The current state of the backup database form
      * @returns The updated state with media options set
      */
-    private setMediaOptionsIfExistingFiles(state: BackupDatabaseState): BackupDatabaseState {
+    private setMediaOptionsIfExistingFiles(
+        state: ObjectManagementWebviewState,
+    ): ObjectManagementWebviewState {
+        const backupViewModel = this.backupViewModel(state);
+
         const { mediaSet, mediaSetName, mediaSetDescription } = state.formComponents;
-        const hasExistingFiles = state.backupFiles.some((f) => f.isExisting);
+        const hasExistingFiles = backupViewModel.backupFiles.some((f) => f.isExisting);
         const setByExistingFiles = !mediaSet.isAdvancedOption;
 
         // If there are existing files, and media set was not already set by existing files, set to Create
@@ -841,6 +902,7 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             c.required = hasExistingFiles;
         });
 
+        state.viewModel.model = backupViewModel;
         return state;
     }
 
@@ -879,16 +941,16 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
     }
 
     private getEncryptorNameOptions(): FormItemOptions[] {
-        return this.state.backupEncryptors.map((be) => ({
+        return this.backupViewModel().backupEncryptors.map((be) => ({
             displayName: be.encryptorName,
             value: be.encryptorName,
         }));
     }
-
     //#endregion
+
     //#region Azure Loading and Helpers
     private async getAzureActionButton(
-        state: BackupDatabaseState,
+        state: ObjectManagementWebviewState,
     ): Promise<FormItemActionButton[]> {
         const accountFormComponentId = "accountId";
 
@@ -928,7 +990,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @param state Current backup database state
      * @returns Updated backup database state with account component options loaded
      */
-    private async loadAccountComponent(state: BackupDatabaseState): Promise<BackupDatabaseState> {
+    private async loadAccountComponent(
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementWebviewState> {
         const accountComponent = state.formComponents["accountId"];
         const azureAccounts = await VsCodeAzureHelper.getAccounts();
         const azureAccountOptions = azureAccounts.map((account) => ({
@@ -948,12 +1012,15 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @param state Current backup database state
      * @returns Updated backup database state with tenant component options loaded
      */
-    private async loadTenantComponent(state: BackupDatabaseState): Promise<BackupDatabaseState> {
+    private async loadTenantComponent(
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementWebviewState> {
+        const backupViewModel = this.backupViewModel(state);
         const tenantComponent = state.formComponents["tenantId"];
 
         // If no account selected, set error state and return
         if (!state.formState.accountId) {
-            state.azureComponentStatuses["tenantId"] = ApiStatus.Error;
+            backupViewModel.azureComponentStatuses["tenantId"] = ApiStatus.Error;
             tenantComponent.placeholder = LocConstants.BackupDatabase.noTenantsFound;
             return state;
         }
@@ -971,8 +1038,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             ? LocConstants.ConnectionDialog.selectATenant
             : LocConstants.BackupDatabase.noTenantsFound;
         state.formState.tenantId = getDefaultTenantId(state.formState.accountId, tenants);
-        state.tenants = tenants;
+        backupViewModel.tenants = tenants;
 
+        state.viewModel.model = backupViewModel;
         return state;
     }
 
@@ -982,19 +1050,20 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @returns Updated backup database state with subscription component options loaded
      */
     private async loadSubscriptionComponent(
-        state: BackupDatabaseState,
-    ): Promise<BackupDatabaseState> {
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementWebviewState> {
+        const backupViewModel = this.backupViewModel(state);
         const subscriptionComponent = state.formComponents["subscriptionId"];
 
         // if no tenant selected, set error state and return
         if (!state.formState.tenantId) {
-            state.azureComponentStatuses["subscriptionId"] = ApiStatus.Error;
+            backupViewModel.azureComponentStatuses["subscriptionId"] = ApiStatus.Error;
             subscriptionComponent.placeholder = LocConstants.BackupDatabase.noSubscriptionsFound;
             return state;
         }
 
         // Load subscriptions for selected tenant
-        const tenant = state.tenants.find((t) => t.tenantId === state.formState.tenantId);
+        const tenant = backupViewModel.tenants.find((t) => t.tenantId === state.formState.tenantId);
         const subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
         const subscriptionOptions = subscriptions.map((subscription) => ({
             displayName: subscription.name,
@@ -1008,8 +1077,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
         subscriptionComponent.placeholder = subscriptions.length
             ? LocConstants.BackupDatabase.selectASubscription
             : LocConstants.BackupDatabase.noSubscriptionsFound;
-        state.subscriptions = subscriptions;
+        backupViewModel.subscriptions = subscriptions;
 
+        state.viewModel.model = backupViewModel;
         return state;
     }
 
@@ -1019,20 +1089,21 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @returns Updated backup database state with storage account component options loaded
      */
     private async loadStorageAccountComponent(
-        state: BackupDatabaseState,
-    ): Promise<BackupDatabaseState> {
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementWebviewState> {
+        const backupViewModel = this.backupViewModel(state);
         const storageAccountComponent = state.formComponents["storageAccountId"];
 
         // if no subscription selected, set error state and return
         if (!state.formState.subscriptionId) {
-            state.azureComponentStatuses["storageAccountId"] = ApiStatus.Error;
+            backupViewModel.azureComponentStatuses["storageAccountId"] = ApiStatus.Error;
             storageAccountComponent.placeholder =
                 LocConstants.BackupDatabase.noStorageAccountsFound;
             return state;
         }
 
         // Load storage accounts for selected subscription
-        const subscription = state.subscriptions.find(
+        const subscription = backupViewModel.subscriptions.find(
             (s) => s.subscriptionId === state.formState.subscriptionId,
         );
         let storageAccounts: StorageAccount[] = [];
@@ -1055,8 +1126,9 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             storageAccounts.length > 0
                 ? LocConstants.BackupDatabase.selectAStorageAccount
                 : LocConstants.BackupDatabase.noStorageAccountsFound;
-        state.storageAccounts = storageAccounts;
+        backupViewModel.storageAccounts = storageAccounts;
 
+        state.viewModel.model = backupViewModel;
         return state;
     }
 
@@ -1066,22 +1138,23 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
      * @returns Updated backup database state with blob container component options loaded
      */
     private async loadBlobContainerComponent(
-        state: BackupDatabaseState,
-    ): Promise<BackupDatabaseState> {
+        state: ObjectManagementWebviewState,
+    ): Promise<ObjectManagementWebviewState> {
+        const backupViewModel = this.backupViewModel(state);
         const blobContainerComponent = state.formComponents["blobContainerId"];
 
         // if no storage account or subscription selected, set error state and return
         if (!state.formState.storageAccountId || !state.formState.subscriptionId) {
-            state.azureComponentStatuses["blobContainerId"] = ApiStatus.Error;
+            backupViewModel.azureComponentStatuses["blobContainerId"] = ApiStatus.Error;
             blobContainerComponent.placeholder = LocConstants.BackupDatabase.noBlobContainersFound;
             return state;
         }
 
         // Load blob containers for selected storage account and subscription
-        const subscription = state.subscriptions.find(
+        const subscription = backupViewModel.subscriptions.find(
             (s) => s.subscriptionId === state.formState.subscriptionId,
         );
-        const storageAccount = state.storageAccounts.find(
+        const storageAccount = backupViewModel.storageAccounts.find(
             (sa) => sa.id === state.formState.storageAccountId,
         );
 
@@ -1108,29 +1181,34 @@ export class BackupDatabaseWebviewController extends FormWebviewController<
             blobContainers.length > 0
                 ? LocConstants.BackupDatabase.selectABlobContainer
                 : LocConstants.BackupDatabase.noBlobContainersFound;
-        state.blobContainers = blobContainers;
+        backupViewModel.blobContainers = blobContainers;
 
+        state.viewModel.model = backupViewModel;
         return state;
     }
 
     /**
      * Reloads Azure components starting from the specified component
      * @param state Current backup database state
-     * @param fromComponent Component ID to start reloading from
+     * @param formComponent Component ID to start reloading from
      * @returns Updated backup database state with components reloaded
      */
     private reloadAzureComponents(
-        state: BackupDatabaseState,
-        fromComponent: string,
-    ): BackupDatabaseState {
-        const azureComponents = Object.keys(state.azureComponentStatuses);
-        const reloadComponentsFromIndex = azureComponents.indexOf(fromComponent) + 1;
-        // for every component after the fromComponent, set status to NotStarted to trigger reload
+        state: ObjectManagementWebviewState,
+        formComponent: string,
+    ): ObjectManagementWebviewState {
+        const backupViewModel = this.backupViewModel(state);
+        const azureComponents = Object.keys(backupViewModel.azureComponentStatuses);
+        const reloadComponentsFromIndex = azureComponents.indexOf(formComponent) + 1;
+
+        // for every component after the formComponent, set status to NotStarted to trigger reload
         for (let i = reloadComponentsFromIndex; i < azureComponents.length; i++) {
-            state.azureComponentStatuses[azureComponents[i]] = ApiStatus.NotStarted;
+            backupViewModel.azureComponentStatuses[azureComponents[i]] = ApiStatus.NotStarted;
             state.formComponents[azureComponents[i]].options = [];
             state.formState[azureComponents[i]] = "";
         }
+
+        state.viewModel.model = backupViewModel;
         return state;
     }
     //#endregion

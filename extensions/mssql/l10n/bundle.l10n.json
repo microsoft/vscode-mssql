@@ -951,8 +951,6 @@
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
     },
-    "Loading...": "Loading...",
-    "General": "General",
     "Database Name": "Database Name",
     "Enter database name": "Enter database name",
     "Database name is required": "Database name is required",
@@ -2519,7 +2517,6 @@
         "comment": ["{0} is the database name"]
     },
     "Backup Name": "Backup Name",
-    "Recovery Model": "Recovery Model",
     "Full": "Full",
     "Bulk-logged": "Bulk-logged",
     "Simple": "Simple",

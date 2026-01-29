@@ -110,7 +110,6 @@ import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
-import { BackupService } from "../services/backupService";
 import { AzureBlobService } from "../services/azureBlobService";
 
 /**
@@ -151,7 +150,6 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
-    public backupDatabaseService: BackupService;
 
     /**
      * The main controller constructor
@@ -857,8 +855,6 @@ export default class MainController implements vscode.Disposable {
             SqlToolsServerClient.instance,
         );
 
-        this.backupDatabaseService = new BackupService(SqlToolsServerClient.instance);
-
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
             this._context,
@@ -1360,7 +1356,6 @@ export default class MainController implements vscode.Disposable {
                 async (treeNodeInfo: TreeNodeInfo) => {
                     const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-                    console.log(this._connectionMgr.getConnectionInfoFromUri("test"));
 
                     if (
                         databaseName !== connectionCredentials.database &&
@@ -1911,10 +1906,11 @@ export default class MainController implements vscode.Disposable {
                         const reactPanel = new BackupDatabaseWebviewController(
                             this._context,
                             this._vscodeWrapper,
-                            this.backupDatabaseService,
+                            this.objectManagementService,
                             this.fileBrowserService,
                             this.azureBlobService,
                             ownerUri,
+                            node.connectionProfile.server || "",
                             databaseName,
                         );
                         reactPanel.revealToForeground();

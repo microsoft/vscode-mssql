@@ -16,20 +16,18 @@ import {
     SearchBox,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
-
-import { locConstants } from "../../common/locConstants";
+import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormField } from "../../common/forms/form.component";
-import { useAccordionStyles } from "../../common/styles";
-import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
+import { FormField } from "../../../common/forms/form.component";
+import { useAccordionStyles } from "../../../common/styles";
+import { BackupDatabaseContext, BackupDatabaseProvider } from "./backupDatabaseStateProvider";
 import {
-    BackupDatabaseFormItemSpec,
-    BackupDatabaseFormState,
-    BackupDatabaseProvider,
-    BackupDatabaseState,
+    BackupDatabaseViewModel,
     BackupType,
     MediaSet,
-} from "../../../sharedInterfaces/backup";
+} from "../../../../sharedInterfaces/backup";
+import { useObjectManagementSelector } from "../objectManagementSelector";
+import { ObjectManagementFormItemSpec, ObjectManagementFormState, ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -39,19 +37,24 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>([]);
     const accordionStyles = useAccordionStyles();
 
-    if (!context || !state) {
+    if (!context) {
         return;
     }
 
-    const advancedOptionsByGroup: Record<string, BackupDatabaseFormItemSpec[]> = Object.values(
-        context.state.formComponents,
+    const state = useObjectManagementSelector((state) => state);
+
+    const backupViewModel = useObjectManagementSelector(
+        (state) => state.viewModel.model as BackupDatabaseViewModel,
+    );
+
+    const advancedOptionsByGroup: Record<string, ObjectManagementFormItemSpec[]> = Object.values(
+        state.formComponents,
     )
-        .filter((component): component is BackupDatabaseFormItemSpec =>
+        .filter((component): component is ObjectManagementFormItemSpec =>
             Boolean(component && component.isAdvancedOption),
         )
         .reduce(
@@ -63,10 +66,10 @@ export const AdvancedOptionsDrawer = ({
                 acc[group].push(component);
                 return acc;
             },
-            {} as Record<string, BackupDatabaseFormItemSpec[]>,
+            {} as Record<string, ObjectManagementFormItemSpec[]>,
         );
 
-    function isOptionVisible(option: BackupDatabaseFormItemSpec) {
+    function isOptionVisible(option: ObjectManagementFormItemSpec) {
         if (searchSettingsText) {
             return (
                 option.label.toLowerCase().includes(searchSettingsText.toLowerCase()) ||
@@ -82,7 +85,7 @@ export const AdvancedOptionsDrawer = ({
             case locConstants.backupDatabase.transactionLog:
                 return state.formState.backupType === BackupType.TransactionLog;
             case locConstants.backupDatabase.encryption:
-                return state.backupEncryptors.length > 0;
+                return backupViewModel.backupEncryptors.length > 0;
             default:
                 return true;
         }
@@ -172,9 +175,9 @@ export const AdvancedOptionsDrawer = ({
                                                             option.propertyName,
                                                         ) && (
                                                             <FormField<
-                                                                BackupDatabaseFormState,
-                                                                BackupDatabaseState,
-                                                                BackupDatabaseFormItemSpec,
+                                                                ObjectManagementFormState,
+                                                                ObjectManagementWebviewState,
+                                                                ObjectManagementFormItemSpec,
                                                                 BackupDatabaseProvider
                                                             >
                                                                 key={idx}

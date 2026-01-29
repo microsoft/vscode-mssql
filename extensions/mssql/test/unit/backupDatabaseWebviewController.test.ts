@@ -9,13 +9,12 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { BackupDatabaseWebviewController } from "../../src/controllers/backupDatabaseWebviewController";
-import { BackupService } from "../../src/services/backupService";
+import { ObjectManagementService } from "../../src/services/objectManagementService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import {
     BackupCompression,
-    BackupDatabaseFormState,
-    BackupDatabaseState,
+    BackupDatabaseViewModel,
     BackupType,
     EncryptionAlgorithm,
     LogOption,
@@ -31,17 +30,22 @@ import { allFileTypes, defaultBackupFileTypes, url } from "../../src/constants/c
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import {
+    ObjectManagementDialogType,
+    ObjectManagementFormState,
+    ObjectManagementWebviewState,
+} from "../../src/sharedInterfaces/objectManagement";
 
 chai.use(sinonChai);
 
 suite("BackupDatabaseWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockBackupService: BackupService;
+    let mockObjectManagementService: ObjectManagementService;
     let mockFileBrowserService: FileBrowserService;
     let mockAzureBlobService: AzureBlobService;
     let controller: BackupDatabaseWebviewController;
-    let mockInitialState: BackupDatabaseState;
+    let mockInitialState: ObjectManagementWebviewState;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sendActionEvent: sinon.SinonStub;
     let getBackupConfigInfoStub: sinon.SinonStub;
@@ -57,7 +61,7 @@ suite("BackupDatabaseWebviewController", () => {
         vscodeWrapper = stubVscodeWrapper(sandbox);
         ({ sendActionEvent } = stubTelemetry(sandbox));
 
-        mockBackupService = sandbox.createStubInstance(BackupService);
+        mockObjectManagementService = sandbox.createStubInstance(ObjectManagementService);
         mockAzureBlobService = sandbox.createStubInstance(AzureBlobService);
 
         const mockConfigInfo = {
@@ -66,8 +70,8 @@ suite("BackupDatabaseWebviewController", () => {
             recoveryModel: "Simple",
         };
 
-        getBackupConfigInfoStub = mockBackupService.getBackupConfigInfo as sinon.SinonStub;
-
+        getBackupConfigInfoStub =
+            mockObjectManagementService.getBackupConfigInfo as sinon.SinonStub;
         getBackupConfigInfoStub.resolves({
             backupConfigInfo: {
                 ...mockConfigInfo,
@@ -77,22 +81,47 @@ suite("BackupDatabaseWebviewController", () => {
         controller = new BackupDatabaseWebviewController(
             mockContext,
             vscodeWrapper,
-            mockBackupService,
+            mockObjectManagementService,
             mockFileBrowserService,
             mockAzureBlobService,
             "ownerUri",
+            "serverName",
             "testDatabase",
         );
 
-        const formComponents = await controller["setBackupDatabaseFormComponents"]();
-
         mockInitialState = {
+            viewModel: {
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+                model: {
+                    loadState: ApiStatus.Loaded,
+                    azureComponentStatuses: {
+                        accountId: ApiStatus.NotStarted,
+                        tenantId: ApiStatus.NotStarted,
+                        subscriptionId: ApiStatus.NotStarted,
+                        storageAccountId: ApiStatus.NotStarted,
+                        blobContainerId: ApiStatus.NotStarted,
+                    },
+                    databaseName: "testDatabase",
+                    backupEncryptors: mockConfigInfo.backupEncryptors,
+                    recoveryModel: mockConfigInfo.recoveryModel,
+                    defaultBackupName: defaultBackupName,
+                    saveToUrl: false,
+                    backupFiles: [
+                        {
+                            filePath: `${mockConfigInfo.defaultBackupFolder}/${defaultBackupName}`,
+                            isExisting: false,
+                        },
+                    ],
+                    tenants: [],
+                    subscriptions: [],
+                    storageAccounts: [],
+                    blobContainers: [],
+                    backupUrl: "",
+                } as BackupDatabaseViewModel,
+            },
             ownerUri: "ownerUri",
             databaseName: "testDatabase",
             defaultFileBrowserExpandPath: mockConfigInfo.defaultBackupFolder,
-            recoveryModel: mockConfigInfo.recoveryModel,
-            backupEncryptors: mockConfigInfo.backupEncryptors,
-            defaultBackupName: defaultBackupName,
             formState: {
                 backupName: "testDatabase_YYYYMMDD_HHMMSS.bak",
                 backupType: BackupType.Full,
@@ -114,30 +143,11 @@ suite("BackupDatabaseWebviewController", () => {
                 subscriptionId: "",
                 storageAccountId: "",
                 blobContainerId: "",
-            } as BackupDatabaseFormState,
-            azureComponentStatuses: {
-                accountId: ApiStatus.NotStarted,
-                tenantId: ApiStatus.NotStarted,
-                subscriptionId: ApiStatus.NotStarted,
-                storageAccountId: ApiStatus.NotStarted,
-                blobContainerId: ApiStatus.NotStarted,
-            },
-            formComponents: formComponents,
+            } as ObjectManagementFormState,
+            formComponents: {},
             fileBrowserState: undefined,
             dialog: undefined,
-            loadState: ApiStatus.Loaded,
             formErrors: [],
-            saveToUrl: false,
-            backupFiles: [
-                {
-                    filePath: `${mockConfigInfo.defaultBackupFolder}/${defaultBackupName}`,
-                    isExisting: false,
-                },
-            ],
-            tenants: [],
-            subscriptions: [],
-            storageAccounts: [],
-            blobContainers: [],
             fileFilterOptions: [
                 {
                     displayName: LocConstants.BackupDatabase.backupFileTypes,
@@ -148,12 +158,18 @@ suite("BackupDatabaseWebviewController", () => {
                     value: allFileTypes,
                 },
             ],
-            backupUrl: "",
-        } as BackupDatabaseState;
+        } as ObjectManagementWebviewState;
 
-        expect(getBackupConfigInfoStub).to.have.been.calledOnce;
+        await controller["initializeDialog"]();
+
+        mockInitialState.formComponents = controller[
+            "setFormComponents"
+        ] as typeof mockInitialState.formComponents;
+
+        expect(getBackupConfigInfoStub).to.have.been.called;
 
         await controller["registerRpcHandlers"]();
+        await controller["registerBackupRpcHandlers"]();
     });
 
     teardown(() => {
@@ -163,25 +179,30 @@ suite("BackupDatabaseWebviewController", () => {
     test("should initialize with correct state", async () => {
         const defaultStub = sandbox
             .stub(controller as any, "getDefaultBackupFileName")
-            .returns(mockInitialState.defaultBackupName);
+            .returns(
+                (mockInitialState.viewModel.model as BackupDatabaseViewModel).defaultBackupName,
+            );
 
-        await controller["initialize"]();
+        await controller["initializeDialog"]();
 
-        expect(controller.state.azureComponentStatuses).to.deep.equal(
-            mockInitialState.azureComponentStatuses,
+        let backupViewModel = controller.state.viewModel.model as BackupDatabaseViewModel;
+        const mockBackupViewModel = mockInitialState.viewModel.model as BackupDatabaseViewModel;
+
+        expect(backupViewModel.azureComponentStatuses).to.deep.equal(
+            mockBackupViewModel.azureComponentStatuses,
         );
-        expect(controller.state.defaultBackupName).to.equal(mockInitialState.defaultBackupName);
+        expect(backupViewModel.defaultBackupName).to.equal(mockBackupViewModel.defaultBackupName);
         expect(controller.state.defaultFileBrowserExpandPath).to.equal(
             mockInitialState.defaultFileBrowserExpandPath,
         );
-        expect(controller.state.databaseName).to.equal(mockInitialState.databaseName);
-        expect(controller.state.recoveryModel).to.equal(mockInitialState.recoveryModel);
-        expect(controller.state.backupFiles).to.deep.equal(mockInitialState.backupFiles);
+        expect(backupViewModel.databaseName).to.equal(mockBackupViewModel.databaseName);
+        expect(backupViewModel.recoveryModel).to.equal(mockBackupViewModel.recoveryModel);
+        expect(backupViewModel.backupFiles).to.deep.equal(mockBackupViewModel.backupFiles);
         expect(controller.state.fileFilterOptions).to.deep.equal(
             mockInitialState.fileFilterOptions,
         );
         expect(controller.state.formState.encryptorName).to.be.undefined;
-        expect(controller.state.loadState).to.equal(ApiStatus.Loaded);
+        expect(backupViewModel.loadState).to.equal(ApiStatus.Loaded);
 
         getBackupConfigInfoStub.resolves({
             backupConfigInfo: {
@@ -191,10 +212,12 @@ suite("BackupDatabaseWebviewController", () => {
             },
         });
 
-        await controller["initialize"]();
+        await controller["initializeDialog"]();
+
+        backupViewModel = controller.state.viewModel.model as BackupDatabaseViewModel;
 
         expect(controller.state.formState.encryptorName).to.equal("Encryptor1");
-        expect(controller.state.loadState).to.equal(ApiStatus.Loaded);
+        expect(backupViewModel.loadState).to.equal(ApiStatus.Loaded);
 
         expect(sendActionEvent).to.have.been.calledWith(
             TelemetryViews.Backup,
@@ -205,6 +228,20 @@ suite("BackupDatabaseWebviewController", () => {
     });
 
     test("setBackupDatabaseFormComponents sets form components correctly", async () => {
+        const diskMockState = {
+            viewModel: {
+                model: { saveToUrl: false } as BackupDatabaseViewModel,
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
+
+        const urlMockState = {
+            viewModel: {
+                model: { saveToUrl: true } as BackupDatabaseViewModel,
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
+
         expect(controller["getActiveFormComponents"](controller.state).length).to.equal(20);
 
         const backupNameComponent = controller.state.formComponents["backupName"];
@@ -224,104 +261,68 @@ suite("BackupDatabaseWebviewController", () => {
         expect(accountIdComponent.type).to.equal("dropdown");
         expect(accountIdComponent.required).to.be.true;
         expect(accountIdComponent.groupName).to.equal(url);
-        let validation = accountIdComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "",
-        );
+        let validation = accountIdComponent.validate(urlMockState, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.azureAccountIsRequired,
         );
-        validation = accountIdComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "some-id",
-        );
+        validation = accountIdComponent.validate(urlMockState, "some-id");
         expect(validation.isValid).to.be.true;
-        validation = accountIdComponent.validate({ saveToUrl: false } as BackupDatabaseState, "");
+        validation = accountIdComponent.validate(diskMockState, "");
         expect(validation.isValid).to.be.true;
 
         const tenantIdComponent = controller.state.formComponents["tenantId"];
         expect(tenantIdComponent.type).to.equal("dropdown");
         expect(tenantIdComponent.required).to.be.true;
         expect(tenantIdComponent.groupName).to.equal(url);
-        validation = tenantIdComponent.validate({ saveToUrl: true } as BackupDatabaseState, "");
+        validation = tenantIdComponent.validate(urlMockState, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(LocConstants.BackupDatabase.tenantIsRequired);
-        validation = tenantIdComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "some-id",
-        );
+        validation = tenantIdComponent.validate(urlMockState, "some-id");
         expect(validation.isValid).to.be.true;
-        validation = tenantIdComponent.validate({ saveToUrl: false } as BackupDatabaseState, "");
+        validation = tenantIdComponent.validate(diskMockState, "");
         expect(validation.isValid).to.be.true;
 
         const subscriptionIdComponent = controller.state.formComponents["subscriptionId"];
         expect(subscriptionIdComponent.type).to.equal("searchableDropdown");
         expect(subscriptionIdComponent.required).to.be.true;
         expect(subscriptionIdComponent.groupName).to.equal(url);
-        validation = subscriptionIdComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "",
-        );
+        validation = subscriptionIdComponent.validate(urlMockState, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.subscriptionIsRequired,
         );
-        validation = subscriptionIdComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "some-id",
-        );
+        validation = subscriptionIdComponent.validate(urlMockState, "some-id");
         expect(validation.isValid).to.be.true;
-        validation = subscriptionIdComponent.validate(
-            { saveToUrl: false } as BackupDatabaseState,
-            "",
-        );
+        validation = subscriptionIdComponent.validate(diskMockState, "");
         expect(validation.isValid).to.be.true;
 
         const storageAccountComponent = controller.state.formComponents["storageAccountId"];
         expect(storageAccountComponent.type).to.equal("searchableDropdown");
         expect(storageAccountComponent.required).to.be.true;
         expect(storageAccountComponent.groupName).to.equal(url);
-        validation = storageAccountComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "",
-        );
+        validation = storageAccountComponent.validate(urlMockState, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.storageAccountIsRequired,
         );
-        validation = storageAccountComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "some-id",
-        );
+        validation = storageAccountComponent.validate(urlMockState, "some-id");
         expect(validation.isValid).to.be.true;
-        validation = storageAccountComponent.validate(
-            { saveToUrl: false } as BackupDatabaseState,
-            "",
-        );
+        validation = storageAccountComponent.validate(diskMockState, "");
         expect(validation.isValid).to.be.true;
 
         const blobContainerComponent = controller.state.formComponents["blobContainerId"];
         expect(blobContainerComponent.type).to.equal("searchableDropdown");
         expect(blobContainerComponent.required).to.be.true;
         expect(blobContainerComponent.groupName).to.equal(url);
-        validation = blobContainerComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "",
-        );
+        validation = blobContainerComponent.validate(urlMockState, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.blobContainerIsRequired,
         );
-        validation = blobContainerComponent.validate(
-            { saveToUrl: true } as BackupDatabaseState,
-            "some-id",
-        );
+        validation = blobContainerComponent.validate(urlMockState, "some-id");
         expect(validation.isValid).to.be.true;
-        validation = blobContainerComponent.validate(
-            { saveToUrl: false } as BackupDatabaseState,
-            "",
-        );
+        validation = blobContainerComponent.validate(diskMockState, "");
         expect(validation.isValid).to.be.true;
 
         const backupCompressionComponent = controller.state.formComponents["backupCompression"];
@@ -331,43 +332,47 @@ suite("BackupDatabaseWebviewController", () => {
             controller["getCompressionOptions"](),
         );
 
+        const mockExistingFiles = {
+            viewModel: {
+                model: { backupFiles: [{ filePath: "some-path", isExisting: true }] },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
+        const mockNewFiles = {
+            viewModel: {
+                model: { backupFiles: [{ filePath: "some-path", isExisting: false }] },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
+        const mockNoFiles = {
+            viewModel: {
+                model: { backupFiles: [] },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
+
         const mediaSetComponent = controller.state.formComponents["mediaSet"];
         expect(mediaSetComponent.type).to.equal("dropdown");
         expect(mediaSetComponent.required).to.be.false;
         expect(mediaSetComponent.options).to.deep.equal(controller["getMediaSetOptions"]());
-        validation = mediaSetComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: false }] } as BackupDatabaseState,
-            MediaSet.Overwrite,
-        );
+        validation = mediaSetComponent.validate(mockNewFiles, MediaSet.Overwrite);
         expect(validation.isValid).to.be.true;
-        validation = mediaSetComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            MediaSet.Append,
-        );
+        validation = mediaSetComponent.validate(mockExistingFiles, MediaSet.Append);
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.pleaseChooseValidMediaOption,
         );
-        validation = mediaSetComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            MediaSet.Create,
-        );
+        validation = mediaSetComponent.validate(mockExistingFiles, MediaSet.Create);
         expect(validation.isValid).to.be.true;
 
         const mediaSetNameComponent = controller.state.formComponents["mediaSetName"];
         expect(mediaSetNameComponent.type).to.equal("input");
         expect(mediaSetNameComponent.required).to.be.false;
-        validation = mediaSetNameComponent.validate({ backupFiles: [] } as BackupDatabaseState, "");
+        validation = mediaSetNameComponent.validate(mockNoFiles, "");
         expect(validation.isValid).to.be.true;
-        validation = mediaSetNameComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            "ValidName",
-        );
+        validation = mediaSetNameComponent.validate(mockExistingFiles, "ValidName");
         expect(validation.isValid).to.be.true;
-        validation = mediaSetNameComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            "",
-        );
+        validation = mediaSetNameComponent.validate(mockExistingFiles, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.mediaSetNameIsRequired,
@@ -376,20 +381,11 @@ suite("BackupDatabaseWebviewController", () => {
         const mediaSetDescriptionComponent = controller.state.formComponents["mediaSetDescription"];
         expect(mediaSetDescriptionComponent.type).to.equal("input");
         expect(mediaSetDescriptionComponent.required).to.be.false;
-        validation = mediaSetDescriptionComponent.validate(
-            { backupFiles: [] } as BackupDatabaseState,
-            "",
-        );
+        validation = mediaSetDescriptionComponent.validate(mockNoFiles, "");
         expect(validation.isValid).to.be.true;
-        validation = mediaSetDescriptionComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            "ValidDescription",
-        );
+        validation = mediaSetDescriptionComponent.validate(mockExistingFiles, "ValidDescription");
         expect(validation.isValid).to.be.true;
-        validation = mediaSetDescriptionComponent.validate(
-            { backupFiles: [{ filePath: "some-path", isExisting: true }] } as BackupDatabaseState,
-            "",
-        );
+        validation = mediaSetDescriptionComponent.validate(mockExistingFiles, "");
         expect(validation.isValid).to.be.false;
         expect(validation.validationMessage).to.equal(
             LocConstants.BackupDatabase.mediaSetDescriptionIsRequired,
@@ -443,9 +439,16 @@ suite("BackupDatabaseWebviewController", () => {
 
     //#region Reducer Tests
     test("formActionReducer", async () => {
+        const state = {
+            ...mockInitialState,
+            formComponents: {
+                accountId: { options: [], placeholder: "", isAdvancedOption: false },
+            },
+        } as any;
+
         // Test action button callback
         const testStub = sinon.stub();
-        mockInitialState.formComponents.accountId.actionButtons = [
+        controller.state.formComponents.accountId.actionButtons = [
             {
                 label: "testButton",
                 id: "testButtonId",
@@ -454,10 +457,6 @@ suite("BackupDatabaseWebviewController", () => {
                 },
             },
         ];
-        let result = await controller["_reducerHandlers"].get("formAction")(mockInitialState, {
-            event: { isAction: true, propertyName: "accountId", value: "testButtonId" },
-        });
-        expect(testStub).to.have.been.calledOnce;
 
         const reloadStub = sandbox
             .stub(controller as any, "reloadAzureComponents")
@@ -466,6 +465,12 @@ suite("BackupDatabaseWebviewController", () => {
             .stub(controller as any, "validateForm")
             .returns(["accountId"]);
 
+        let result = await controller["_reducerHandlers"].get("formAction")(state, {
+            event: { isAction: true, propertyName: "accountId", value: "testButtonId" },
+        });
+        expect(reloadStub).to.have.been.calledOnce;
+        reloadStub.resetHistory();
+
         result = await controller["_reducerHandlers"].get("formAction")(mockInitialState, {
             event: { isAction: false, propertyName: "accountId", value: "" },
         });
@@ -473,8 +478,8 @@ suite("BackupDatabaseWebviewController", () => {
         expect(validateFormStub).to.have.been.calledOnce;
         expect(reloadStub).to.have.been.calledOnce;
 
-        reloadStub.resetHistory();
         validateFormStub.resetHistory();
+        reloadStub.resetHistory();
 
         validateFormStub.returns([]);
         result = await controller["_reducerHandlers"].get("formAction")(mockInitialState, {
@@ -524,9 +529,15 @@ suite("BackupDatabaseWebviewController", () => {
         result = await controller["_reducerHandlers"].get("backupDatabase")(
             {
                 ...mockInitialState,
-                saveToUrl: true,
-                backupFiles: [{ filePath: "some-path", isExisting: true }],
-            },
+                viewModel: {
+                    model: {
+                        ...mockInitialState.viewModel.model,
+                        saveToUrl: true,
+                        backupFiles: [{ filePath: "some-path", isExisting: true }],
+                    },
+                    dialogType: ObjectManagementDialogType.BackupDatabase,
+                },
+            } as ObjectManagementWebviewState,
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
@@ -545,9 +556,15 @@ suite("BackupDatabaseWebviewController", () => {
         result = await controller["_reducerHandlers"].get("backupDatabase")(
             {
                 ...mockInitialState,
-                saveToUrl: true,
-                backupFiles: [{ filePath: "some-path", isExisting: false }],
-            },
+                viewModel: {
+                    model: {
+                        ...mockInitialState.viewModel.model,
+                        saveToUrl: true,
+                        backupFiles: [{ filePath: "some-path", isExisting: false }],
+                    },
+                    dialogType: ObjectManagementDialogType.BackupDatabase,
+                },
+            } as ObjectManagementWebviewState,
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
@@ -585,22 +602,38 @@ suite("BackupDatabaseWebviewController", () => {
     });
 
     test("setSaveLocation Reducer", async () => {
-        const state = { ...mockInitialState, saveToUrl: false, formErrors: ["test"] };
+        const state = {
+            ...mockInitialState,
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    saveToUrl: false,
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+            formErrors: ["test"],
+        } as ObjectManagementWebviewState;
         const result = await controller["_reducerHandlers"].get("setSaveLocation")(state, {
             saveToUrl: true,
         });
-        expect(result.saveToUrl).to.be.true;
+        expect((result.viewModel.model as BackupDatabaseViewModel).saveToUrl).to.be.true;
         expect(result.formErrors).to.be.empty;
     });
 
     test("removeBackupFile Reducer", async () => {
         const state = {
             ...mockInitialState,
-            backupFiles: [
-                { filePath: "path1", isExisting: true },
-                { filePath: "path2", isExisting: false },
-            ],
-        };
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    backupFiles: [
+                        { filePath: "path1", isExisting: true },
+                        { filePath: "path2", isExisting: false },
+                    ],
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
         const mediaStub = sandbox
             .stub(controller as any, "setMediaOptionsIfExistingFiles")
             .callsFake((state) => state);
@@ -608,8 +641,10 @@ suite("BackupDatabaseWebviewController", () => {
         const result = await controller["_reducerHandlers"].get("removeBackupFile")(state, {
             filePath: "path1",
         });
-        expect(result.backupFiles.length).to.equal(1);
-        expect(result.backupFiles[0].filePath).to.equal("path2");
+        expect((result.viewModel.model as BackupDatabaseViewModel).backupFiles.length).to.equal(1);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).backupFiles[0].filePath,
+        ).to.equal("path2");
         expect(mediaStub).to.have.been.calledOnce;
         mediaStub.restore();
     });
@@ -617,11 +652,17 @@ suite("BackupDatabaseWebviewController", () => {
     test("handleFileChange Reducer", async () => {
         const state = {
             ...mockInitialState,
-            backupFiles: [
-                { filePath: "path1/file1", isExisting: true },
-                { filePath: "path2", isExisting: false },
-            ],
-        };
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    backupFiles: [
+                        { filePath: "path1/file1", isExisting: true },
+                        { filePath: "path2", isExisting: false },
+                    ],
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+        } as ObjectManagementWebviewState;
 
         let result = await controller["_reducerHandlers"].get("handleFileChange")(state, {
             index: 0,
@@ -629,14 +670,18 @@ suite("BackupDatabaseWebviewController", () => {
             isFolderChange: false,
         });
 
-        expect(result.backupFiles[0].filePath).to.equal("path1/newFile1");
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).backupFiles[0].filePath,
+        ).to.equal("path1/newFile1");
 
         result = await controller["_reducerHandlers"].get("handleFileChange")(state, {
             index: 1,
             newValue: "newPath2",
             isFolderChange: true,
         });
-        expect(result.backupFiles[1].filePath).to.equal("newPath2/path2");
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).backupFiles[1].filePath,
+        ).to.equal("newPath2/path2");
     });
 
     test("loadAzureComponent Reducer", async () => {
@@ -665,10 +710,14 @@ suite("BackupDatabaseWebviewController", () => {
             { componentName: "accountId" },
         );
         expect(loadAccountStub).to.have.been.calledOnce;
-        expect(result.azureComponentStatuses.accountId).to.equal(ApiStatus.Loaded);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).azureComponentStatuses.accountId,
+        ).to.equal(ApiStatus.Loaded);
 
         loadAccountStub.resetHistory();
-        mockInitialState.azureComponentStatuses.accountId = ApiStatus.Loaded;
+        (
+            mockInitialState.viewModel.model as BackupDatabaseViewModel
+        ).azureComponentStatuses.accountId = ApiStatus.Loaded;
         result = await controller["_reducerHandlers"].get("loadAzureComponent")(mockInitialState, {
             componentName: "accountId",
         });
@@ -678,45 +727,68 @@ suite("BackupDatabaseWebviewController", () => {
             componentName: "tenantId",
         });
         expect(loadTenantStub).to.have.been.calledOnce;
-        expect(result.azureComponentStatuses.tenantId).to.equal(ApiStatus.Loaded);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).azureComponentStatuses.tenantId,
+        ).to.equal(ApiStatus.Loaded);
 
         result = await controller["_reducerHandlers"].get("loadAzureComponent")(mockInitialState, {
             componentName: "subscriptionId",
         });
         expect(loadSubscriptionStub).to.have.been.calledOnce;
-        expect(result.azureComponentStatuses.subscriptionId).to.equal(ApiStatus.Loaded);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).azureComponentStatuses
+                .subscriptionId,
+        ).to.equal(ApiStatus.Loaded);
 
         result = await controller["_reducerHandlers"].get("loadAzureComponent")(mockInitialState, {
             componentName: "storageAccountId",
         });
         expect(loadStorageAccountStub).to.have.been.calledOnce;
-        expect(result.azureComponentStatuses.storageAccountId).to.equal(ApiStatus.Loaded);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).azureComponentStatuses
+                .storageAccountId,
+        ).to.equal(ApiStatus.Loaded);
 
         result = await controller["_reducerHandlers"].get("loadAzureComponent")(mockInitialState, {
             componentName: "blobContainerId",
         });
         expect(loadBlobContainerStub).to.have.been.calledOnce;
-        expect(result.azureComponentStatuses.blobContainerId).to.equal(ApiStatus.Loaded);
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).azureComponentStatuses
+                .blobContainerId,
+        ).to.equal(ApiStatus.Loaded);
     });
 
     test("submitFilePath reducer", async () => {
         const mediaStub = sandbox
             .stub(controller as any, "setMediaOptionsIfExistingFiles")
             .callsFake((state) => state);
-        const state = { ...mockInitialState, backupFiles: [] };
+        const state = {
+            ...mockInitialState,
+            viewModel: {
+                ...mockInitialState.viewModel,
+                model: { ...mockInitialState.viewModel.model, backupFiles: [] },
+            },
+        } as ObjectManagementWebviewState;
         let result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath/newFile.bak",
         });
-        expect(result.backupFiles[0].filePath).to.equal("newPath/newFile.bak");
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).backupFiles[0].filePath,
+        ).to.equal("newPath/newFile.bak");
         expect(mediaStub).to.have.been.calledOnce;
 
         mediaStub.resetHistory();
 
-        mockInitialState.backupFiles = [{ filePath: "newPath/newFile.bak", isExisting: false }];
+        mockInitialState.viewModel.model = {
+            ...mockInitialState.viewModel.model,
+            backupFiles: [{ filePath: "newPath/newFile.bak", isExisting: false }],
+        } as BackupDatabaseViewModel;
+
         result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath/newFile.bak",
         });
-        expect(result.backupFiles.length).to.equal(1);
+        expect((result.viewModel.model as BackupDatabaseViewModel).backupFiles.length).to.equal(1);
         expect(mediaStub).to.have.been.calledOnce;
 
         mediaStub.resetHistory();
@@ -725,11 +797,17 @@ suite("BackupDatabaseWebviewController", () => {
             .stub(controller as any, "getDefaultBackupFileName")
             .returns("default");
 
-        state.backupFiles = [];
+        state.viewModel.model = {
+            ...state.viewModel.model,
+            backupFiles: [],
+        } as BackupDatabaseViewModel;
+
         result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath",
         });
-        expect(result.backupFiles[0].filePath).to.equal("newPath/default");
+        expect(
+            (result.viewModel.model as BackupDatabaseViewModel).backupFiles[0].filePath,
+        ).to.equal("newPath/default");
         expect(mediaStub).to.have.been.calledOnce;
         expect(defaultStub).to.have.been.calledOnce;
 
@@ -740,12 +818,18 @@ suite("BackupDatabaseWebviewController", () => {
 
     //#region Helper Method Tests
     test("getDefaultBackupFileName", () => {
-        const state = { ...mockInitialState };
-        const backupName = controller["getDefaultBackupFileName"](state);
+        const backupName = controller["getDefaultBackupFileName"](
+            mockInitialState.viewModel.model as BackupDatabaseViewModel,
+        );
         expect(backupName).to.include("testDatabase_");
 
-        state.backupFiles = [{ filePath: "path/to/backup.bak", isExisting: false }];
-        const backupName2 = controller["getDefaultBackupFileName"](state);
+        mockInitialState.viewModel.model = {
+            ...mockInitialState.viewModel.model,
+            backupFiles: [{ filePath: "path/to/backup.bak", isExisting: false }],
+        } as BackupDatabaseViewModel;
+        const backupName2 = controller["getDefaultBackupFileName"](
+            mockInitialState.viewModel.model as BackupDatabaseViewModel,
+        );
         expect(backupName2).to.include("testDatabase_1");
     });
 
@@ -759,9 +843,17 @@ suite("BackupDatabaseWebviewController", () => {
                 hasExistingFiles ? mediaOptionsForExisting : mediaOptionsForNew,
             );
 
-        const state: BackupDatabaseState = {
-            backupFiles: [],
+        let mockState = {
+            ...mockInitialState,
+            viewModel: {
+                model: {
+                    backupFiles: [],
+                    ...mockInitialState.viewModel.model,
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
             formState: {
+                ...mockInitialState.formState,
                 mediaSet: MediaSet.Create,
             },
             formComponents: {
@@ -778,10 +870,10 @@ suite("BackupDatabaseWebviewController", () => {
                     required: false,
                 },
             },
-        } as any;
+        };
 
         /* ---------- No existing files: mediaSet should be Append ---------- */
-        let result = (controller as any).setMediaOptionsIfExistingFiles(state);
+        let result = (controller as any).setMediaOptionsIfExistingFiles(mockState);
 
         expect(result.formState.mediaSet).to.equal(MediaSet.Append);
         expect(result.formComponents.mediaSet.isAdvancedOption).to.be.true;
@@ -793,10 +885,23 @@ suite("BackupDatabaseWebviewController", () => {
         expect(result.formComponents.mediaSetDescription.required).to.be.false;
 
         /* ---------- Existing file present: mediaSet should be Create ---------- */
-        result.backupFiles.push({
-            filePath: "existing.bak",
-            isExisting: true,
-        });
+        result.backupFiles = [
+            {
+                filePath: "existing.bak",
+                isExisting: true,
+            },
+        ];
+
+        mockState.viewModel.model = {
+            ...mockState.viewModel.model,
+            backupFiles: [
+                ...result.backupFiles,
+                {
+                    filePath: "existing.bak",
+                    isExisting: true,
+                },
+            ],
+        };
 
         result.formComponents.mediaSet.isAdvancedOption = true;
 
@@ -869,31 +974,44 @@ suite("BackupDatabaseWebviewController", () => {
     });
 
     test("backupHelper builds BackupInfo correctly and calls backupService for file-based backup", async () => {
-        const backupResult = { success: true };
+        const backupResult = { result: true };
 
-        const backupDatabaseStub = mockBackupService.backupDatabase as sinon.SinonStub;
+        const backupDatabaseStub = mockObjectManagementService.backupDatabase as sinon.SinonStub;
         backupDatabaseStub.resolves(backupResult as any);
 
         const state = {
             ...mockInitialState,
-            backupEncryptors: [{ encryptorName: "enc1", encryptorType: 1 }],
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    backupEncryptors: [{ encryptorName: "enc1", encryptorType: 1 }],
+                    backupFiles: [
+                        { filePath: "/tmp/a.bak", isExisting: false },
+                        { filePath: "/tmp/b.bak", isExisting: true },
+                    ],
+                    databaseName: "db1",
+                    mediaSet: MediaSet.Overwrite,
+                    mediaSetName: "media",
+                    mediaSetDescription: "desc",
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
             formState: {
                 ...mockInitialState.formState,
                 encryptionEnabled: true,
                 encryptorName: "enc1",
             },
-            backupFiles: [
-                { filePath: "/tmp/a.bak", isExisting: false },
-                { filePath: "/tmp/b.bak", isExisting: true },
-            ],
-            databaseName: "db1",
-            mediaSet: MediaSet.Overwrite,
-            mediaSetName: "media",
-            mediaSetDescription: "desc",
         } as any;
+
+        const backupViewModelStub = sandbox
+            .stub(controller as any, "backupViewModel")
+            .callsFake((_s) => state.viewModel.model);
 
         const result = await controller["backupHelper"](TaskExecutionMode.executeAndScript, state);
 
+        expect(backupViewModelStub).to.have.returned(state.viewModel.model);
+
+        expect(backupViewModelStub).to.have.been.calledOnceWith();
         expect(backupDatabaseStub).to.have.been.calledOnce;
 
         const [, backupInfo, mode] = backupDatabaseStub.firstCall.args;
@@ -913,9 +1031,10 @@ suite("BackupDatabaseWebviewController", () => {
             "/tmp/b.bak": MediaDeviceType.File,
         });
 
-        expect(result).to.equal(backupResult);
+        expect(result.success).to.be.true;
 
         backupDatabaseStub.resetHistory();
+        backupViewModelStub.resetHistory();
 
         const stateWithoutEncryption = {
             ...state,
@@ -927,19 +1046,20 @@ suite("BackupDatabaseWebviewController", () => {
         );
 
         expect(backupDatabaseStub).to.have.been.calledOnce;
+        expect(backupViewModelStub).to.have.been.calledOnce;
 
         const [, backupInfo2] = backupDatabaseStub.firstCall.args;
         expect(backupInfo2.encryptorName).to.equal("");
-        expect(result2).to.equal(backupResult);
+        expect(result2.success).to.be.true;
 
         backupDatabaseStub.restore();
     });
 
     test("backupHelper builds Azure blob URL, creates SAS, and calls backupService", async () => {
-        const backupResult = { success: true };
+        const backupResult = { result: true };
 
         /* ---------- Stubs ---------- */
-        const backupDatabaseStub = mockBackupService.backupDatabase as sinon.SinonStub;
+        const backupDatabaseStub = mockObjectManagementService.backupDatabase as sinon.SinonStub;
         backupDatabaseStub.resolves(backupResult as any);
 
         const getStorageKeysStub = sandbox
@@ -954,10 +1074,19 @@ suite("BackupDatabaseWebviewController", () => {
         /* ---------- State ---------- */
         const state = {
             ...mockInitialState,
-            saveToUrl: true,
-            subscriptions: [{ subscriptionId: "sub1" }],
-            storageAccounts: [{ id: "sa1", name: "storageacct" }],
-            blobContainers: [{ id: "bc1", name: "container" }],
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    saveToUrl: true,
+                    subscriptions: [{ subscriptionId: "sub1" }],
+                    storageAccounts: [{ id: "sa1", name: "storageacct" }],
+                    blobContainers: [{ id: "bc1", name: "container" }],
+                    backupFiles: [],
+                    backupEncryptors: [],
+                    defaultBackupName: "default",
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
             formState: {
                 ...mockInitialState.formState,
                 subscriptionId: "sub1",
@@ -967,18 +1096,17 @@ suite("BackupDatabaseWebviewController", () => {
             },
         } as any;
 
-        controller["state"] = {
-            defaultBackupName: "default",
-            backupEncryptors: [],
-        } as any;
+        const backupViewModelStub = sandbox
+            .stub(controller as any, "backupViewModel")
+            .callsFake((_s) => state.viewModel.model);
 
         /* ---------- Execute ---------- */
         const result = await controller["backupHelper"](TaskExecutionMode.executeAndScript, state);
 
         /* ---------- Assertions ---------- */
         expect(getStorageKeysStub).to.have.been.calledOnceWith(
-            state.subscriptions[0],
-            state.storageAccounts[0],
+            state.viewModel.model.subscriptions[0],
+            state.viewModel.model.storageAccounts[0],
         );
 
         expect(createSasStub).to.have.been.calledOnce;
@@ -999,19 +1127,25 @@ suite("BackupDatabaseWebviewController", () => {
         });
 
         expect(backupInfo.backupDeviceType).to.equal(PhysicalDeviceType.Url);
-        expect(result).to.equal(backupResult);
+        expect(result.success).to.be.true;
 
         /* ---------- Cleanup ---------- */
         backupDatabaseStub.restore();
         getStorageKeysStub.restore();
         createSasStub.restore();
+        backupViewModelStub.restore();
     });
 
     //#endregion
 
     //#region Azure Related Tests
     test("getAzureActionButton", async () => {
-        const state = mockInitialState;
+        const state = {
+            ...mockInitialState,
+            formComponents: {
+                accountId: { options: [], placeholder: "", isAdvancedOption: false },
+            },
+        };
         const signInStub = sandbox.stub(azureHelpers.VsCodeAzureHelper, "signIn").resolves();
 
         const accountsStub = sandbox.stub(azureHelpers.VsCodeAzureHelper, "getAccounts").resolves([
@@ -1064,7 +1198,12 @@ suite("BackupDatabaseWebviewController", () => {
             .stub(controller as any, "getAzureActionButton")
             .resolves(actionButtons);
 
-        const state = mockInitialState;
+        const state = {
+            ...mockInitialState,
+            formComponents: {
+                accountId: { options: [], placeholder: "", isAdvancedOption: false },
+            },
+        };
 
         const result = await (controller as any).loadAccountComponent(state);
 
@@ -1103,12 +1242,17 @@ suite("BackupDatabaseWebviewController", () => {
 
         const defaultTenantStub = sandbox.stub(azureHelpers, "getDefaultTenantId").returns("t1");
 
-        const state = mockInitialState;
+        const state = {
+            ...mockInitialState,
+            formComponents: {
+                tenantId: { options: [], placeholder: "", isAdvancedOption: false },
+            },
+        };
 
         /* ---------- No accountId: error path ---------- */
         let result = await (controller as any).loadTenantComponent(state);
 
-        expect(result.azureComponentStatuses.tenantId).to.equal(ApiStatus.Error);
+        expect(result.viewModel.model.azureComponentStatuses.tenantId).to.equal(ApiStatus.Error);
         expect(result.formComponents.tenantId.placeholder).to.equal(
             LocConstants.BackupDatabase.noTenantsFound,
         );
@@ -1117,7 +1261,7 @@ suite("BackupDatabaseWebviewController", () => {
 
         /* ----------- AccountId set: success path ----------- */
         result.formState.accountId = "account1";
-        result.azureComponentStatuses.tenantId = ApiStatus.NotStarted;
+        result.viewModel.model.azureComponentStatuses.tenantId = ApiStatus.NotStarted;
 
         result = await (controller as any).loadTenantComponent(result);
 
@@ -1133,7 +1277,7 @@ suite("BackupDatabaseWebviewController", () => {
         );
 
         expect(result.formState.tenantId).to.equal("t1");
-        expect(result.tenants).to.equal(tenants);
+        expect(result.viewModel.model.tenants).to.equal(tenants);
 
         getTenantsStub.restore();
         defaultTenantStub.restore();
@@ -1151,12 +1295,23 @@ suite("BackupDatabaseWebviewController", () => {
 
         const state = {
             ...mockInitialState,
-            tenants: [{ tenantId: "tenant1", displayName: "Tenant 1" }],
+            viewModel: {
+                model: {
+                    ...mockInitialState.viewModel.model,
+                    tenants: [{ tenantId: "tenant1", displayName: "Tenant 1" }],
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
+            formComponents: {
+                subscriptionId: { options: [], placeholder: "", isAdvancedOption: false },
+            },
         };
         /* ---------- No tenantId: error path ---------- */
         let result = await (controller as any).loadSubscriptionComponent(state);
 
-        expect(result.azureComponentStatuses.subscriptionId).to.equal(ApiStatus.Error);
+        expect(result.viewModel.model.azureComponentStatuses.subscriptionId).to.equal(
+            ApiStatus.Error,
+        );
         expect(result.formComponents.subscriptionId.placeholder).to.equal(
             LocConstants.BackupDatabase.noSubscriptionsFound,
         );
@@ -1165,11 +1320,10 @@ suite("BackupDatabaseWebviewController", () => {
 
         /* ---------- TenantId set: success path ---------- */
         result.formState.tenantId = "tenant1";
-        result.azureComponentStatuses.subscriptionId = ApiStatus.NotStarted;
-
+        result.viewModel.model.azureComponentStatuses.subscriptionId = ApiStatus.NotStarted;
         result = await (controller as any).loadSubscriptionComponent(result);
 
-        expect(getSubscriptionsStub).to.have.been.calledOnceWith(result.tenants[0]);
+        expect(getSubscriptionsStub).to.have.been.calledOnceWith(result.viewModel.model.tenants[0]);
 
         expect(result.formComponents.subscriptionId.options).to.deep.equal([
             { displayName: "Subscription One", value: "sub1" },
@@ -1182,7 +1336,7 @@ suite("BackupDatabaseWebviewController", () => {
             LocConstants.BackupDatabase.selectASubscription,
         );
 
-        expect(result.subscriptions).to.equal(subscriptions);
+        expect(result.viewModel.model.subscriptions).to.equal(subscriptions);
 
         getSubscriptionsStub.restore();
     });
@@ -1200,17 +1354,24 @@ suite("BackupDatabaseWebviewController", () => {
 
         const state: any = {
             ...mockInitialState,
-            subscriptions: [{ subscriptionId: "sub1", displayName: "Subscription 1" }],
+            viewModel: {
+                model: {
+                    subscriptions: [{ subscriptionId: "sub1", displayName: "Subscription 1" }],
+                    azureComponentStatuses: { storageAccountId: ApiStatus.NotStarted },
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
             formComponents: {
                 storageAccountId: { options: [], placeholder: "", isAdvancedOption: false },
             },
-            azureComponentStatuses: { storageAccountId: ApiStatus.NotStarted },
         };
 
         /* ---------- No subscriptionId: error path ---------- */
         let result = await (controller as any).loadStorageAccountComponent(state);
 
-        expect(result.azureComponentStatuses.storageAccountId).to.equal(ApiStatus.Error);
+        expect(result.viewModel.model.azureComponentStatuses.storageAccountId).to.equal(
+            ApiStatus.Error,
+        );
         expect(result.formComponents.storageAccountId.placeholder).to.equal(
             LocConstants.BackupDatabase.noStorageAccountsFound,
         );
@@ -1219,8 +1380,7 @@ suite("BackupDatabaseWebviewController", () => {
 
         /* ---------- Subscription set, fetch throws Error ---------- */
         result.formState.subscriptionId = "sub1";
-        result.azureComponentStatuses.storageAccountId = ApiStatus.NotStarted;
-
+        result.viewModel.model.azureComponentStatuses.storageAccountId = ApiStatus.NotStarted;
         fetchStorageAccountsStub.rejects(new Error("fetch failed"));
 
         result = await (controller as any).loadStorageAccountComponent(result);
@@ -1229,7 +1389,7 @@ suite("BackupDatabaseWebviewController", () => {
             LocConstants.BackupDatabase.noStorageAccountsFound,
         );
         expect(result.formComponents.storageAccountId.options).to.deep.equal([]);
-        expect(result.storageAccounts).to.deep.equal([]);
+        expect(result.viewModel.model.storageAccounts).to.deep.equal([]);
         expect(result.formState.storageAccountId).to.equal("");
         expect(result.errorMessage).to.equal("fetch failed");
 
@@ -1242,7 +1402,7 @@ suite("BackupDatabaseWebviewController", () => {
             LocConstants.BackupDatabase.noStorageAccountsFound,
         );
         expect(result.formComponents.storageAccountId.options).to.deep.equal([]);
-        expect(result.storageAccounts).to.deep.equal([]);
+        expect(result.viewModel.model.storageAccounts).to.deep.equal([]);
         expect(result.formState.storageAccountId).to.equal("");
 
         /* ---------- Fetch returns storage accounts ---------- */
@@ -1250,7 +1410,9 @@ suite("BackupDatabaseWebviewController", () => {
 
         result = await (controller as any).loadStorageAccountComponent(result);
 
-        expect(fetchStorageAccountsStub).to.have.been.calledWith(result.subscriptions[0]);
+        expect(fetchStorageAccountsStub).to.have.been.calledWith(
+            result.viewModel.model.subscriptions[0],
+        );
 
         expect(result.formComponents.storageAccountId.options).to.deep.equal([
             { displayName: "Storage Account 1", value: "sa1" },
@@ -1262,8 +1424,7 @@ suite("BackupDatabaseWebviewController", () => {
         );
 
         expect(result.formState.storageAccountId).to.equal("sa1");
-        expect(result.storageAccounts).to.equal(storageAccounts);
-
+        expect(result.viewModel.model.storageAccounts).to.equal(storageAccounts);
         fetchStorageAccountsStub.restore();
     });
 
@@ -1280,18 +1441,25 @@ suite("BackupDatabaseWebviewController", () => {
 
         const state: any = {
             ...mockInitialState,
-            subscriptions: [{ subscriptionId: "sub1", displayName: "Subscription 1" }],
-            storageAccounts: [{ id: "sa1", name: "Storage Account 1" }],
+            viewModel: {
+                model: {
+                    subscriptions: [{ subscriptionId: "sub1", displayName: "Subscription 1" }],
+                    storageAccounts: [{ id: "sa1", name: "Storage Account 1" }],
+                    azureComponentStatuses: { blobContainerId: ApiStatus.NotStarted },
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
+            },
             formComponents: {
                 blobContainerId: { options: [], placeholder: "", isAdvancedOption: false },
             },
-            azureComponentStatuses: { blobContainerId: ApiStatus.NotStarted },
         };
 
         /* ---------- Missing subscriptionId or storageAccountId ---------- */
         let result = await (controller as any).loadBlobContainerComponent(state);
 
-        expect(result.azureComponentStatuses.blobContainerId).to.equal(ApiStatus.Error);
+        expect(result.viewModel.model.azureComponentStatuses.blobContainerId).to.equal(
+            ApiStatus.Error,
+        );
         expect(result.formComponents.blobContainerId.placeholder).to.equal(
             LocConstants.BackupDatabase.noBlobContainersFound,
         );
@@ -1301,7 +1469,7 @@ suite("BackupDatabaseWebviewController", () => {
         /* ---------- IDs set, fetch throws Error ---------- */
         result.formState.subscriptionId = "sub1";
         result.formState.storageAccountId = "sa1";
-        result.azureComponentStatuses.blobContainerId = ApiStatus.NotStarted;
+        result.viewModel.model.azureComponentStatuses.blobContainerId = ApiStatus.NotStarted;
 
         fetchBlobContainersStub.rejects(new Error("fetch failed"));
 
@@ -1311,7 +1479,7 @@ suite("BackupDatabaseWebviewController", () => {
             LocConstants.BackupDatabase.noBlobContainersFound,
         );
         expect(result.formComponents.blobContainerId.options).to.deep.equal([]);
-        expect(result.blobContainers).to.deep.equal([]);
+        expect(result.viewModel.model.blobContainers).to.deep.equal([]);
         expect(result.formState.blobContainerId).to.equal("");
         expect(result.errorMessage).to.equal("fetch failed");
 
@@ -1324,7 +1492,7 @@ suite("BackupDatabaseWebviewController", () => {
             LocConstants.BackupDatabase.noBlobContainersFound,
         );
         expect(result.formComponents.blobContainerId.options).to.deep.equal([]);
-        expect(result.blobContainers).to.deep.equal([]);
+        expect(result.viewModel.model.blobContainers).to.deep.equal([]);
         expect(result.formState.blobContainerId).to.equal("");
 
         /* ---------- Fetch returns blob containers ---------- */
@@ -1333,8 +1501,8 @@ suite("BackupDatabaseWebviewController", () => {
         result = await (controller as any).loadBlobContainerComponent(result);
 
         expect(fetchBlobContainersStub).to.have.been.calledWith(
-            result.subscriptions[0],
-            result.storageAccounts[0],
+            result.viewModel.model.subscriptions[0],
+            result.viewModel.model.storageAccounts[0],
         );
 
         expect(result.formComponents.blobContainerId.options).to.deep.equal([
@@ -1347,19 +1515,24 @@ suite("BackupDatabaseWebviewController", () => {
         );
 
         expect(result.formState.blobContainerId).to.equal("bc1");
-        expect(result.blobContainers).to.equal(blobContainers);
+        expect(result.viewModel.model.blobContainers).to.equal(blobContainers);
 
         fetchBlobContainersStub.restore();
     });
 
     test("reloadAzureComponents resets downstream Azure components", () => {
-        const state: BackupDatabaseState = {
-            azureComponentStatuses: {
-                accountId: ApiStatus.Loaded,
-                tenantId: ApiStatus.Loaded,
-                subscriptionId: ApiStatus.Loaded,
-                storageAccountId: ApiStatus.Loaded,
-                blobContainerId: ApiStatus.Loaded,
+        const state: BackupDatabaseViewModel = {
+            viewModel: {
+                model: {
+                    azureComponentStatuses: {
+                        accountId: ApiStatus.Loaded,
+                        tenantId: ApiStatus.Loaded,
+                        subscriptionId: ApiStatus.Loaded,
+                        storageAccountId: ApiStatus.Loaded,
+                        blobContainerId: ApiStatus.Loaded,
+                    },
+                },
+                dialogType: ObjectManagementDialogType.BackupDatabase,
             },
             formState: {
                 accountId: "acc1",
@@ -1379,19 +1552,24 @@ suite("BackupDatabaseWebviewController", () => {
 
         const result = (controller as any).reloadAzureComponents(state, "tenantId");
 
-        /* ---------- Components BEFORE fromComponent remain unchanged ---------- */
-        expect(result.azureComponentStatuses.accountId).to.equal(ApiStatus.Loaded);
-        expect(result.azureComponentStatuses.tenantId).to.equal(ApiStatus.Loaded);
+        /* ---------- Components BEFORE formComponent remain unchanged ---------- */
+        expect(result.viewModel.model.azureComponentStatuses.accountId).to.equal(ApiStatus.Loaded);
+        expect(result.viewModel.model.azureComponentStatuses.tenantId).to.equal(ApiStatus.Loaded);
         expect(result.formState.accountId).to.equal("acc1");
         expect(result.formState.tenantId).to.equal("tenant1");
         expect(result.formComponents.accountId.options).to.not.be.empty;
         expect(result.formComponents.tenantId.options).to.not.be.empty;
 
-        /* ---------- Components AFTER fromComponent are reset ---------- */
-        expect(result.azureComponentStatuses.subscriptionId).to.equal(ApiStatus.NotStarted);
-        expect(result.azureComponentStatuses.storageAccountId).to.equal(ApiStatus.NotStarted);
-        expect(result.azureComponentStatuses.blobContainerId).to.equal(ApiStatus.NotStarted);
-
+        /* ---------- Components AFTER formComponent are reset ---------- */
+        expect(result.viewModel.model.azureComponentStatuses.subscriptionId).to.equal(
+            ApiStatus.NotStarted,
+        );
+        expect(result.viewModel.model.azureComponentStatuses.storageAccountId).to.equal(
+            ApiStatus.NotStarted,
+        );
+        expect(result.viewModel.model.azureComponentStatuses.blobContainerId).to.equal(
+            ApiStatus.NotStarted,
+        );
         expect(result.formState.subscriptionId).to.equal("");
         expect(result.formState.storageAccountId).to.equal("");
         expect(result.formState.blobContainerId).to.equal("");

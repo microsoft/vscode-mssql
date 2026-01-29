@@ -64,7 +64,7 @@ const useStyles = makeStyles({
 });
 
 export interface ObjectManagementDialogProps {
-    title: string;
+    title?: string;
     description?: string;
     errorMessage?: string;
     primaryLabel: string;
@@ -102,7 +102,7 @@ export const ObjectManagementDialog = ({
         <div className={styles.page} aria-label={title}>
             <div className={styles.content}>
                 <div className={styles.header}>
-                    <div className={styles.title}>{title}</div>
+                    {title && <div className={styles.title}>{title}</div>}
                     {description && <div className={styles.description}>{description}</div>}
                 </div>
                 {errorMessage && (

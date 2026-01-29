@@ -14,26 +14,26 @@ import {
     RadioGroup,
     Spinner,
     Text,
-    tokens,
 } from "@fluentui/react-components";
-import { locConstants } from "../../common/locConstants";
-import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
-import {
-    BackupDatabaseFormItemSpec,
-    BackupDatabaseFormState,
-    BackupDatabaseProvider,
-    BackupDatabaseState,
-} from "../../../sharedInterfaces/backup";
-import { FileBrowserDialog } from "../../common/FileBrowserDialog";
-import { FileBrowserProvider } from "../../../sharedInterfaces/fileBrowser";
+import { locConstants } from "../../../common/locConstants";
+import { BackupDatabaseContext, BackupDatabaseProvider } from "./backupDatabaseStateProvider";
+import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
+import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
+import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
-import { AzureIcon20 } from "../../common/icons/fluentIcons";
+import { FormField, useFormStyles } from "../../../common/forms/form.component";
+import { AzureIcon20 } from "../../../common/icons/fluentIcons";
 import { Save20Regular } from "@fluentui/react-icons";
-import { url } from "../../common/constants";
-import { azureLogoColor } from "../ConnectionDialog/azureBrowsePage";
+import { url } from "../../../common/constants";
+import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
 import { BackupFileCard } from "./backupFileCard";
-import { ApiStatus, ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
+import { useObjectManagementSelector } from "../objectManagementSelector";
+import {
+    ObjectManagementFormItemSpec,
+    ObjectManagementFormState,
+    ObjectManagementWebviewState,
+} from "../../../../sharedInterfaces/objectManagement";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -45,7 +45,6 @@ const useStyles = makeStyles({
         padding: "8px",
         whiteSpace: "nowrap",
         width: "650px",
-        height: "100%",
     },
     button: {
         height: "32px",
@@ -79,20 +78,10 @@ const useStyles = makeStyles({
         gap: "8px",
         marginLeft: "10px",
     },
-    buttonDiv: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        gap: "8px",
-    },
-    leftButtonDiv: {
+    advancedButtonDiv: {
         display: "flex",
         alignItems: "center",
-    },
-    rightButtonDiv: {
-        display: "flex",
-        gap: "8px",
-        alignItems: "center",
+        marginTop: "20px",
     },
     icon: {
         width: "75px",
@@ -122,23 +111,30 @@ const useStyles = makeStyles({
     },
 });
 
-const backupLightIcon = require("../../../../media/backup_light.svg");
-const backupDarkIcon = require("../../../../media/backup_dark.svg");
+const backupLightIcon = require("../../../../../media/backup_light.svg");
+const backupDarkIcon = require("../../../../../media/backup_dark.svg");
 
-export const BackupDatabaseForm: React.FC = () => {
+export interface BackupFormProps {
+    fileErrors: number[];
+    setFileErrors: (errors: number[]) => void;
+}
+
+export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
 
-    const state = context?.state;
-
-    if (!context || !state) {
+    if (!context) {
         return;
     }
 
+    const state = useObjectManagementSelector((state) => state);
+    const backupViewModel = useObjectManagementSelector(
+        (state) => state.viewModel.model as BackupDatabaseViewModel,
+    );
+
     const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-    const [fileErrors, setFileErrors] = useState<number[]>([]);
-    const { formComponents } = state;
+    const formComponents = useObjectManagementSelector((state) => state.formComponents);
 
     const renderFormFields = () =>
         Object.values(formComponents)
@@ -159,9 +155,9 @@ export const BackupDatabaseForm: React.FC = () => {
                             : {}
                     }>
                     <FormField<
-                        BackupDatabaseFormState,
-                        BackupDatabaseState,
-                        BackupDatabaseFormItemSpec,
+                        ObjectManagementFormState,
+                        ObjectManagementWebviewState,
+                        ObjectManagementFormItemSpec,
                         BackupDatabaseProvider
                     >
                         context={context}
@@ -175,7 +171,7 @@ export const BackupDatabaseForm: React.FC = () => {
         Object.values(formComponents)
             .filter((component) => component.groupName === url)
             .map((component, index) => {
-                const loadStatus = state.azureComponentStatuses[component.propertyName];
+                const loadStatus = backupViewModel.azureComponentStatuses[component.propertyName];
                 // Trigger loading only if not started or loaded
                 if (loadStatus === ApiStatus.NotStarted) {
                     handleLoadAzureComponents();
@@ -197,9 +193,9 @@ export const BackupDatabaseForm: React.FC = () => {
                                 : {}
                         }>
                         <FormField<
-                            BackupDatabaseFormState,
-                            BackupDatabaseState,
-                            BackupDatabaseFormItemSpec,
+                            ObjectManagementFormState,
+                            ObjectManagementWebviewState,
+                            ObjectManagementFormItemSpec,
                             BackupDatabaseProvider
                         >
                             context={context}
@@ -252,9 +248,9 @@ export const BackupDatabaseForm: React.FC = () => {
                             : {}
                     }>
                     <FormField<
-                        BackupDatabaseFormState,
-                        BackupDatabaseState,
-                        BackupDatabaseFormItemSpec,
+                        ObjectManagementFormState,
+                        ObjectManagementWebviewState,
+                        ObjectManagementFormItemSpec,
                         BackupDatabaseProvider
                     >
                         context={context}
@@ -263,17 +259,12 @@ export const BackupDatabaseForm: React.FC = () => {
                     />
                 </div>
             ));
-
-    const handleSubmit = async () => {
-        await context.backupDatabase();
-    };
-
     const handleLoadAzureComponents = () => {
-        if (!context || !state) return;
+        if (!context || !backupViewModel) return;
 
-        const azureComponents = Object.keys(state.azureComponentStatuses);
+        const azureComponents = Object.keys(backupViewModel.azureComponentStatuses);
         const azureComponentToLoad = azureComponents.find(
-            (component) => state.azureComponentStatuses[component] === ApiStatus.NotStarted,
+            (component) => backupViewModel.azureComponentStatuses[component] === ApiStatus.NotStarted,
         );
         if (azureComponentToLoad) {
             context.loadAzureComponent(azureComponentToLoad);
@@ -281,38 +272,9 @@ export const BackupDatabaseForm: React.FC = () => {
     };
 
     const getFileValidationMessage = (): string => {
-        return state.backupFiles.length > 0 ? "" : locConstants.backupDatabase.chooseAtLeastOneFile;
-    };
-
-    const shouldDisableBackupButton = (): boolean => {
-        const isUrlBackup = state.saveToUrl;
-
-        const requiredComponents = Object.values(formComponents).filter((component) => {
-            if (!component.required) {
-                return false;
-            }
-
-            return isUrlBackup ? component.groupName === url : component.groupName !== url;
-        });
-
-        const hasMissingRequiredValue = requiredComponents.some((component) => {
-            const value = state.formState[component.propertyName as keyof typeof state.formState];
-            return value === undefined || value === null || value === "";
-        });
-
-        const hasFormErrors = state.formErrors.length > 0;
-        const hasNoBackupFiles = !isUrlBackup && state.backupFiles.length === 0;
-        const hasFileErrors = !isUrlBackup && fileErrors.length > 0;
-        const isAzureNotReady =
-            isUrlBackup && state.azureComponentStatuses["blobContainerId"] !== ApiStatus.Loaded;
-
-        return (
-            hasMissingRequiredValue ||
-            hasFormErrors ||
-            hasNoBackupFiles ||
-            hasFileErrors ||
-            isAzureNotReady
-        );
+        return backupViewModel.backupFiles.length > 0
+            ? ""
+            : locConstants.backupDatabase.chooseAtLeastOneFile;
     };
 
     return (
@@ -323,8 +285,12 @@ export const BackupDatabaseForm: React.FC = () => {
                         style={{
                             padding: "10px",
                         }}
-                        src={ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
-                        alt={`${locConstants.backupDatabase.backup} - ${context.state.databaseName}`}
+                        src={
+                            context.themeKind === ColorThemeKind.Dark
+                                ? backupDarkIcon
+                                : backupLightIcon
+                        }
+                        alt={`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
                         height={60}
                         width={60}
                     />
@@ -334,7 +300,7 @@ export const BackupDatabaseForm: React.FC = () => {
                             lineHeight: "60px",
                         }}
                         weight="medium">
-                        {`${locConstants.backupDatabase.backup} - ${context.state.databaseName}`}
+                        {`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
                     </Text>
                 </div>
                 {state.dialog?.type === "fileBrowser" && state.fileBrowserState && (
@@ -365,7 +331,7 @@ export const BackupDatabaseForm: React.FC = () => {
                                 }
                             }}
                             value={
-                                context.state.saveToUrl
+                                backupViewModel.saveToUrl
                                     ? locConstants.backupDatabase.saveToUrl
                                     : locConstants.backupDatabase.saveToDisk
                             }>
@@ -390,8 +356,8 @@ export const BackupDatabaseForm: React.FC = () => {
                         </RadioGroup>
                     </Field>
                 </div>
-                {state.saveToUrl ? (
-                    state.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
+                {backupViewModel.saveToUrl ? (
+                    backupViewModel.azureComponentStatuses["accountId"] === ApiStatus.Loaded ? (
                         renderBackupSaveToUrlFields()
                     ) : (
                         <div className={classes.azureLoadingContainer}>
@@ -415,7 +381,7 @@ export const BackupDatabaseForm: React.FC = () => {
                             orientation="horizontal">
                             <div className={classes.fileDiv}>
                                 <div className={classes.fileList}>
-                                    {state.backupFiles.map((file, index) => (
+                                    {backupViewModel.backupFiles.map((file, index) => (
                                         <BackupFileCard
                                             key={file.filePath}
                                             file={file}
@@ -454,35 +420,15 @@ export const BackupDatabaseForm: React.FC = () => {
                 setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
             />
             <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                <div className={classes.buttonDiv}>
-                    <div className={classes.leftButtonDiv}>
-                        <Button
-                            className={classes.button}
-                            appearance="secondary"
-                            onClick={(_event) => {
-                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                            }}>
-                            {locConstants.backupDatabase.advanced}
-                        </Button>
-                    </div>
-                    <div className={classes.rightButtonDiv}>
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            onClick={() => context.openBackupScript()}
-                            appearance="primary">
-                            {locConstants.backupDatabase.script}
-                        </Button>
-                        <Button
-                            className={classes.button}
-                            type="submit"
-                            disabled={shouldDisableBackupButton()}
-                            onClick={() => handleSubmit()}
-                            appearance="primary">
-                            {locConstants.backupDatabase.backup}
-                        </Button>
-                    </div>
+                <div className={classes.advancedButtonDiv}>
+                    <Button
+                        className={classes.button}
+                        appearance="secondary"
+                        onClick={(_event) => {
+                            setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                        }}>
+                        {locConstants.backupDatabase.advanced}
+                    </Button>
                 </div>
             </div>
         </div>

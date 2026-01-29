@@ -3,40 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
+import { FormReducers } from "./form";
 import { ApiStatus } from "./webview";
-import {
-    FileBrowserProvider,
-    FileBrowserReducers,
-    FileBrowserState,
-    FileTypeOption,
-} from "./fileBrowser";
-import { IDialogProps } from "./connectionDialog";
+import { FileBrowserReducers } from "./fileBrowser";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
-
-export interface BackupService {
-    /**
-     * Backup a database.
-     * @param connectionUri The URI of the server connection.
-     * @returns A response containing backup configuration information.
-     */
-    getBackupConfigInfo(connectionUri: string): Thenable<BackupConfigInfoResponse>;
-
-    /**
-     * Backup a database.
-     * @param connectionUri The URI of the server connection.
-     * @param backupInfo Various settings for how to backup the database.
-     * @param taskMode Whether to run the backup operation, generate a script for it, or both.
-     * @returns A response indicating if the backup or scripting operation started successfully.
-     */
-    backupDatabase(
-        connectionUri: string,
-        backupInfo: BackupInfo,
-        taskMode: TaskExecutionMode,
-    ): Thenable<BackupResponse>;
-}
+import { ObjectManagementWebviewState } from "./objectManagement";
 
 //#region Sql Tools Service Interfaces
 
@@ -201,16 +174,10 @@ export interface BackupEncryptor {
     encryptorName: string;
 }
 
-export class BackupDatabaseState
-    implements FormState<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec>
-{
+export class BackupDatabaseViewModel {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
-    ownerUri: string = "";
     databaseName: string = "";
-    formState: BackupDatabaseFormState = {} as BackupDatabaseFormState;
-    formComponents: Partial<Record<keyof BackupDatabaseFormState, BackupDatabaseFormItemSpec>> = {};
-    formErrors: string[] = [];
     backupEncryptors: BackupEncryptor[] = [];
     recoveryModel: string = "";
     defaultBackupName: string = "";
@@ -224,12 +191,11 @@ export class BackupDatabaseState
     storageAccounts: StorageAccount[] = [];
     blobContainers: BlobContainer[] = [];
     azureComponentStatuses: Record<string, ApiStatus> = {};
+}
 
-    // File browser properties
-    fileFilterOptions: FileTypeOption[] = [];
-    fileBrowserState: FileBrowserState | undefined;
-    defaultFileBrowserExpandPath: string = "";
-    dialog: IDialogProps | undefined;
+export interface BackupDatabaseParams {
+    state: ObjectManagementWebviewState;
+    taskExecutionMode: TaskExecutionMode;
 }
 
 export interface BackupDatabaseNode {
@@ -284,68 +250,6 @@ export interface BackupDatabaseReducers
      * Loads the specified Azure component for backup to URL operations
      */
     loadAzureComponent: { componentName: string };
-}
-
-export interface BackupDatabaseProvider
-    extends FormContextProps<
-            BackupDatabaseFormState,
-            BackupDatabaseState,
-            BackupDatabaseFormItemSpec
-        >,
-        FileBrowserProvider {
-    /**
-     * Gets the database information associated with the backup operation
-     */
-    backupDatabase(): void;
-
-    /**
-     * Opens the generated backup script in a new editor window
-     */
-    openBackupScript(): void;
-
-    /**
-     * Sets the backup save location.
-     * @param saveToUrl Indicates whether to save the backup to a URL or to disk.
-     */
-    setSaveLocation(saveToUrl: boolean): void;
-
-    /**
-     *  Removes a backup file from the list
-     * @param filePath  The file path to remove
-     */
-    removeBackupFile(filePath: string): void;
-
-    /**
-     *  Handles changes to backup file paths
-     * @param index    The index of the backup file being changed
-     * @param newValue  The new value for the backup file path
-     * @param isFolderChange  Indicates whether the change is for the folder path or the file name
-     */
-    handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
-
-    /**
-     * Loads the specified Azure component for backup to URL operations
-     * @param componentName  The name of the Azure component to load
-     */
-    loadAzureComponent(componentName: string): void;
-}
-
-export interface BackupDatabaseFormItemSpec
-    extends FormItemSpec<BackupDatabaseFormState, BackupDatabaseState, BackupDatabaseFormItemSpec> {
-    /**
-     * The width of the form item component
-     */
-    componentWidth?: string;
-
-    /**
-     * The name of the advanced options group this item belongs to
-     */
-    groupName?: string;
-
-    /**
-     * Misc props for the form item component
-     */
-    componentProps?: any;
 }
 
 export interface BackupDatabaseFormState {

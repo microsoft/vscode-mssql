@@ -5,14 +5,15 @@
 
 import { useContext } from "react";
 import { Button, Card, Field, Input, Text, makeStyles } from "@fluentui/react-components";
-import { locConstants } from "../../common/locConstants";
+import { locConstants } from "../../../common/locConstants";
 import { BackupDatabaseContext } from "./backupDatabaseStateProvider";
 import {
     Dismiss20Regular,
     DocumentAdd24Regular,
     DocumentEdit24Regular,
 } from "@fluentui/react-icons";
-import { BackupFile } from "../../../sharedInterfaces/backup";
+import { BackupDatabaseViewModel, BackupFile } from "../../../../sharedInterfaces/backup";
+import { useObjectManagementSelector } from "../objectManagementSelector";
 
 const useStyles = makeStyles({
     cardDiv: {
@@ -59,11 +60,13 @@ export const BackupFileCard = ({
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
 
-    const state = context?.state;
-
-    if (!context || !state) {
+    if (!context) {
         return;
     }
+
+    const state = useObjectManagementSelector(
+        (state) => state.viewModel.model as BackupDatabaseViewModel,
+    );
 
     const getFileNameErrorMessage = (filePath: string) => {
         const fileName = getFileNameFromPath(filePath);
