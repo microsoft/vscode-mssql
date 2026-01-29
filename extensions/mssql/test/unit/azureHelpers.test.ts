@@ -13,6 +13,7 @@ import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import * as armSql from "@azure/arm-sql";
+import * as armStorage from "@azure/arm-storage";
 import {
     mockAccounts,
     mockSqlDbList,
@@ -22,6 +23,7 @@ import {
     mockTenants,
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import * as utils from "../../src/utils/utils";
 
 chai.use(sinonChai);
 
@@ -136,7 +138,7 @@ suite("Azure Helpers", () => {
             const subscriptions =
                 await azureHelpers.VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
             expect(subscriptions).to.have.lengthOf(1);
-            expect(subscriptions[0].displayName).to.equal(mockSubscriptions[0].name);
+            expect(subscriptions[0].name).to.equal(mockSubscriptions[0].name);
         });
     });
 
@@ -284,5 +286,141 @@ suite("Azure Helpers", () => {
         expect(result).to.deep.equal(expectedResult);
         expect(listServersFactory).to.have.been.calledOnce;
         expect(listDatabasesFactory).to.have.been.calledOnce;
+    });
+
+    test("fetchStorageAccountsForSubscription", async () => {
+        const mockAccounts = [mockAzureResources.storageAccount];
+
+        const clientStub = {
+            storageAccounts: {
+                list: sinon.stub().resolves(mockAccounts),
+            },
+        };
+
+        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+            mockSubscriptions[0],
+            clientStub as unknown as armStorage.StorageManagementClient,
+        );
+
+        expect(result).to.deep.equal(mockAccounts);
+        expect(listStub.calledOnce, "listAllIterator should be called once").to.be.true;
+        expect(
+            clientStub.storageAccounts.list.calledOnce,
+            "storageAccounts.list should be called once",
+        ).to.be.true;
+
+        clientStub.storageAccounts.list = sinon.stub().rejects(new Error("Test error"));
+
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchStorageAccountsForSubscription(
+                mockSubscriptions[0],
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+            expect.fail("Expected fetchStorageAccountsForSubscription to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
+        listStub.restore();
+    });
+
+    test("fetchBlobContainersForStorageAccount", async () => {
+        const mockBlobs = [mockAzureResources.blobContainer];
+
+        const clientStub = {
+            blobContainers: {
+                list: sinon.stub().resolves(mockBlobs),
+            },
+        };
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        const listStub = sinon.stub(utils, "listAllIterator").callsFake((input) => input as any);
+
+        let result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            clientStub as unknown as armStorage.StorageManagementClient,
+        );
+
+        expect(result).to.deep.equal([mockAzureResources.blobContainer]);
+        expect(listStub.calledOnce, "listAllIterator should be called once").to.be.true;
+        expect(
+            clientStub.blobContainers.list.calledOnce,
+            "blobContainers.list should be called once",
+        ).to.be.true;
+
+        clientStub.blobContainers.list = sinon.stub().rejects(new Error("Test error"));
+        try {
+            result = await azureHelpers.VsCodeAzureHelper.fetchBlobContainersForStorageAccount(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            );
+            expect.fail("Expected fetchBlobContainersForStorageAccount to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
+        listStub.restore();
+    });
+
+    test("getStorageAccountKeys", async () => {
+        const mockKeys: armStorage.StorageAccountKey[] = [
+            { keyName: "key1", value: "value1" },
+            { keyName: "key2", value: "value2" },
+        ];
+
+        const clientStub = {
+            storageAccounts: {
+                listKeys: sinon
+                    .stub()
+                    .resolves({ keys: mockKeys } as armStorage.StorageAccountsListKeysResponse),
+            },
+        };
+
+        // Stub the class constructor to return your stub instance
+        const storageStub = sinon
+            .stub(armStorage, "StorageManagementClient")
+            .callsFake(() => clientStub);
+
+        let result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+            mockSubscriptions[0],
+            mockAzureResources.storageAccount,
+            clientStub as unknown as armStorage.StorageManagementClient,
+        )) as armStorage.StorageAccountsListKeysResponse;
+
+        expect(result.keys).to.deep.equal(mockKeys);
+        expect(
+            clientStub.storageAccounts.listKeys.calledOnce,
+            "storageAccounts.listKeys should be called once",
+        ).to.be.true;
+
+        clientStub.storageAccounts.listKeys = sinon.stub().rejects(new Error("Test error"));
+
+        try {
+            result = (await azureHelpers.VsCodeAzureHelper.getStorageAccountKeys(
+                mockSubscriptions[0],
+                mockAzureResources.storageAccount,
+                clientStub as unknown as armStorage.StorageManagementClient,
+            )) as armStorage.StorageAccountsListKeysResponse;
+            expect.fail("Expected getStorageAccountKeys to throw");
+        } catch (e) {
+            expect(e.message).to.equal("Test error");
+        }
+
+        storageStub.restore();
     });
 });

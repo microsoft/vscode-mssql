@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState } from "./profilerTypes";
+import { SessionType, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
@@ -61,19 +61,57 @@ export class ProfilerController {
         this._logger.verbose("Profiler details panel view registered");
     }
 
-    private registerCommands(): void {
-        // Launch Profiler command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand("mssql.profiler.launch", async () => {
-                try {
-                    await this.launchProfiler();
-                } catch (e) {
-                    this._logger.error(`Command error: ${e}`);
-                    vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-                }
-            }),
+    // ============================================================
+    // Public Methods
+    // ============================================================
+
+    /**
+     * Launches the profiler UI with a provided connection profile (from Object Explorer).
+     * This is the main entry point - profiler can only be launched via right-click context menu.
+     * @param connectionProfile - The connection profile to use for profiling
+     */
+    public async launchProfilerWithConnection(
+        connectionProfile: IConnectionProfile,
+    ): Promise<void> {
+        this._logger.verbose(
+            `Launching profiler with connection to ${connectionProfile.server}...`,
         );
 
+        try {
+            // Generate a unique URI for this profiler connection
+            const profilerUri = `profiler://${Utils.generateGuid()}`;
+            this._logger.verbose(
+                `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
+            );
+
+            // Connect using the connection manager with the provided profile
+            const connected = await this._connectionManager.connect(profilerUri, connectionProfile);
+
+            if (!connected) {
+                this._logger.verbose("Connection failed");
+                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
+                return;
+            }
+
+            this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
+
+            // Use the common setup method
+            await this.setupProfilerUI(profilerUri);
+        } catch (e) {
+            this._logger.error(`Error launching profiler: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
+        }
+    }
+
+    public async dispose(): Promise<void> {
+        await this._sessionManager.dispose();
+    }
+
+    // ============================================================
+    // Private Methods
+    // ============================================================
+
+    private registerCommands(): void {
         // Launch Profiler from Object Explorer (uses selected connection)
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
@@ -93,57 +131,6 @@ export class ProfilerController {
         );
 
         this._logger.verbose("Profiler commands registered");
-    }
-
-    /**
-     * Prompts the user to select a saved connection profile and connects to it.
-     * Creates a dedicated profiler connection.
-     * @returns The connection URI if successful, undefined if cancelled or failed
-     */
-    private async promptForNewConnection(): Promise<string | undefined> {
-        try {
-            // Get available connection profiles
-            const connectionProfiles =
-                await this._connectionManager.connectionStore.getPickListItems();
-
-            if (connectionProfiles.length === 0) {
-                vscode.window.showWarningMessage(LocProfiler.noSavedConnections);
-                return undefined;
-            }
-
-            // Show quick pick for connection selection
-            const connectionCreds = await this._connectionManager.connectionUI.promptForConnection(
-                connectionProfiles,
-                true, // ignoreFocusOut
-            );
-
-            if (!connectionCreds) {
-                this._logger.verbose("User cancelled connection selection");
-                return undefined;
-            }
-
-            // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
-            this._logger.verbose(
-                `Connecting to ${connectionCreds.server} with URI: ${profilerUri}`,
-            );
-
-            // Connect using the connection manager
-            const connected = await this._connectionManager.connect(profilerUri, connectionCreds);
-
-            if (connected) {
-                this._logger.verbose(`Successfully connected to ${connectionCreds.server}`);
-                return profilerUri;
-            } else {
-                this._logger.verbose("Connection failed");
-                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
-                return undefined;
-            }
-        } catch (e) {
-            this._logger.error(`Error connecting: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.connectionError(String(e)));
-            return undefined;
-        }
     }
 
     /**
@@ -365,69 +352,6 @@ export class ProfilerController {
     }
 
     /**
-     * Launches the profiler UI with a connection to manage profiling sessions.
-     * This is the main entry point for opening a profiler window.
-     */
-    public async launchProfiler(): Promise<void> {
-        this._logger.verbose("Launching profiler...");
-
-        try {
-            // Prompt user to select a server and create a dedicated profiler connection
-            this._logger.verbose("Prompting user to select a server for profiling...");
-            const profilerUri = await this.promptForNewConnection();
-            if (!profilerUri) {
-                this._logger.verbose("User cancelled or connection failed");
-                return;
-            }
-            this._logger.verbose(`Profiler connection created: ${profilerUri}`);
-
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
-        } catch (e) {
-            this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-        }
-    }
-
-    /**
-     * Launches the profiler UI with a provided connection profile (from Object Explorer).
-     * This skips the connection prompt and uses the provided connection directly.
-     * @param connectionProfile - The connection profile to use for profiling
-     */
-    public async launchProfilerWithConnection(
-        connectionProfile: IConnectionProfile,
-    ): Promise<void> {
-        this._logger.verbose(
-            `Launching profiler with connection to ${connectionProfile.server}...`,
-        );
-
-        try {
-            // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
-            this._logger.verbose(
-                `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
-            );
-
-            // Connect using the connection manager with the provided profile
-            const connected = await this._connectionManager.connect(profilerUri, connectionProfile);
-
-            if (!connected) {
-                this._logger.verbose("Connection failed");
-                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
-                return;
-            }
-
-            this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
-
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
-        } catch (e) {
-            this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-        }
-    }
-
-    /**
      * Common setup for the profiler UI after a connection has been established.
      * Creates the webview, sets up event handlers, and prepares for profiling.
      * @param profilerUri - The URI of the established profiler connection
@@ -454,7 +378,7 @@ export class ProfilerController {
             this._sessionManager,
             availableSessions,
             undefined, // No initial session name
-            "Standard_OnPrem", // templateId
+            TEMPLATE_ID_STANDARD_ONPREM,
         );
 
         // Connect the details panel controller to this webview so row selections update the panel
@@ -547,9 +471,5 @@ export class ProfilerController {
             "Profiler UI created. Select a session and click Start to begin profiling.",
         );
         vscode.window.showInformationMessage(LocProfiler.profilerReady);
-    }
-
-    public async dispose(): Promise<void> {
-        await this._sessionManager.dispose();
     }
 }

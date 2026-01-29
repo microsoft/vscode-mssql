@@ -150,11 +150,13 @@
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
         "xliff": "^6.2.1",
-        "yargs": "^17.7.2"
+        "yargs": "^17.7.2",
+        "@types/lodash": "^4.17.21"
     },
     "dependencies": {
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^10.0.0",
+        "@azure/arm-storage": "^19.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
         "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
@@ -187,7 +189,8 @@
         "vscode-languageclient": "5.2.1",
         "xml-formatter": "^3.6.7",
         "yallist": "^5.0.0",
-        "yauzl": "^3.2.0"
+        "yauzl": "^3.2.0",
+        "lodash": "^4.17.21"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -566,6 +569,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@1"
                 },
                 {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@2"
+                },
+                {
                     "command": "mssql.editConnection",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@2"
@@ -596,8 +604,18 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.renameDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
+                    "command": "mssql.dropDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@4"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
@@ -607,7 +625,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && mssql.experimentalFeaturesEnabled",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_tableActions@1"
                 },
                 {
@@ -719,6 +737,11 @@
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.createDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
                     "group": "inline@1"
                 },
                 {
@@ -848,24 +871,19 @@
                     "when": "false"
                 },
                 {
-                    "command": "mssql.dacpacDialog.launch",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.launch"
                 },
                 {
-                    "command": "mssql.dacpacDialog.deploy",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.deploy"
                 },
                 {
-                    "command": "mssql.dacpacDialog.extract",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.extract"
                 },
                 {
-                    "command": "mssql.dacpacDialog.import",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.import"
                 },
                 {
-                    "command": "mssql.dacpacDialog.export",
-                    "when": "mssql.experimentalFeaturesEnabled"
+                    "command": "mssql.dacpacDialog.export"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
@@ -1043,6 +1061,22 @@
             {
                 "command": "mssql.objectExplorerNewQuery",
                 "title": "%mssql.objectExplorerNewQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.createDatabase",
+                "title": "%mssql.createDatabase%",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.dropDatabase",
+                "title": "%mssql.dropDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.renameDatabase",
+                "title": "%mssql.renameDatabase%",
                 "category": "MS SQL"
             },
             {
@@ -1333,11 +1367,6 @@
             {
                 "command": "mssql.openChangelog",
                 "title": "%mssql.openChangelog%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.profiler.launch",
-                "title": "Launch Profiler",
                 "category": "MS SQL"
             },
             {

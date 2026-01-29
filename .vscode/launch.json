@@ -21,6 +21,11 @@
         "${workspaceFolder}/extensions/sql-database-projects/out/**",
         "${workspaceFolder}/extensions/data-workspace/out/**"
       ],
+      "debugWebviews": true,
+      "rendererDebugOptions": {
+        "sourceMaps": true,
+        "webRoot": "${workspaceFolder}/extensions/mssql"
+      },
       "env": {
         // Uncomment this to use a specified version of STS, see
         // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable

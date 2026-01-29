@@ -485,7 +485,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                 },
                 {
                     profile: {
-                        id: "conn-3",
+                        id: "conn-already-imported",
                         groupId: "group-1",
                         authenticationType: AuthenticationType.Integrated,
                     } as IConnectionDialogProfile,
@@ -495,8 +495,18 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                 },
                 {
                     profile: {
-                        id: "conn-3",
+                        id: "conn-other-group",
                         groupId: "group-2",
+                        authenticationType: AuthenticationType.Integrated,
+                    } as IConnectionDialogProfile,
+                    status: MigrationStatus.Ready,
+                    statusMessage: "",
+                    selected: false,
+                },
+                {
+                    profile: {
+                        id: "conn-root-group",
+                        groupId: "ROOT",
                         authenticationType: AuthenticationType.Integrated,
                     } as IConnectionDialogProfile,
                     status: MigrationStatus.Ready,
@@ -555,11 +565,20 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
         await controller["_reducerHandlers"].get("setConnectionGroupSelections")!(state, {
             selected: true,
+            groupId: undefined, // bulk-select all groups
         });
 
-        expect(
-            state.connections.map((c) => c.selected),
-            "Bulk-selecting groups should not affect connection selection",
-        ).to.deep.equal([false, false, false, false]);
+        const selectedConnections = state.connections.filter((c) => c.selected);
+        const unselectedConnections = state.connections.filter((c) => !c.selected);
+
+        expect(selectedConnections.map((c) => c.profile.id)).to.deep.equal([
+            "conn-1",
+            "conn-2",
+            "conn-other-group",
+        ]);
+        expect(unselectedConnections.map((c) => c.profile.id)).to.deep.equal(
+            ["conn-already-imported", "conn-root-group"],
+            "already-imported and ROOT connections should remain unselected",
+        );
     });
 });
