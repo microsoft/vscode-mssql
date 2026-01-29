@@ -284,8 +284,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 // Use pending flow state if available (set by undo/redo),
                 // otherwise read from ReactFlow's store.
                 const pendingState = pendingFlowStateRef.current;
-                const nodes = pendingState?.nodes ?? (reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
-                const edges = pendingState?.edges ?? (reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
+                const nodes =
+                    pendingState?.nodes ?? (reactFlow.getNodes() as Node<SchemaDesigner.Table>[]);
+                const edges =
+                    pendingState?.edges ??
+                    (reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
                 // Clear the pending state after reading it
                 pendingFlowStateRef.current = null;
 
