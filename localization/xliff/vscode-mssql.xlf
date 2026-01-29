@@ -449,9 +449,6 @@
     <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
       <source xml:lang="en">Block this extension from accessing your connections</source>
     </trans-unit>
-    <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
-      <source xml:lang="en">Both</source>
-    </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
     </trans-unit>
@@ -1013,6 +1010,9 @@
     <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
       <source xml:lang="en">Connection profile &apos;{0}&apos; not found.</source>
       <note>{0} is the profile ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
+      <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
       <source xml:lang="en">Connection sharing permission denied for extension: &apos;{0}&apos;. Use the permission management commands to change this.</source>
@@ -1970,6 +1970,9 @@
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c75609a1b51d70bffe904347742f828a9c32853120f6c72e96dffd05b68b010c">
+      <source xml:lang="en">Failed to get connection string: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
       <source xml:lang="en">Failed to get tenant &apos;{0}&apos; for account &apos;{1}&apos;.</source>
       <note>{0} is the tenant id
@@ -2215,8 +2218,8 @@
     <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
       <source xml:lang="en">General Options</source>
     </trans-unit>
-    <trans-unit id="++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f">
-      <source xml:lang="en">Generate &amp; Run</source>
+    <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
+      <source xml:lang="en">Generate Config</source>
     </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
@@ -2752,6 +2755,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
       <source xml:lang="en">Location (Workspace)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
+      <source xml:lang="en">MCP</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -4736,9 +4742,6 @@
     </trans-unit>
     <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
       <source xml:lang="en">Very Satisfied</source>
-    </trans-unit>
-    <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
-      <source xml:lang="en">View Config</source>
     </trans-unit>
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>

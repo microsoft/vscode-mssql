@@ -593,10 +593,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Block this extension from accessing your connections</source>
         <target state="translated">이 확장이 연결에 액세스하지 못하도록 차단하세요.</target>
       </trans-unit>
-      <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
-        <source xml:lang="en">Both</source>
-        <target state="translated">둘 다</target>
-      </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
         <target state="translated">밝기</target>
@@ -1327,6 +1323,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connection profile '{0}' not found.</source>
         <note>{0} is the profile ID</note>
         <target state="translated">연결 프로필 '{0}'을(를) 찾을 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56417c812e9849fa389e329e3239fd0a5abc5778b3ff738ce7c6d3c49f8739df">
+        <source xml:lang="en">Connection profile not found. Please create a new connection using the Connection Dialog.</source>
+        <target state="new">Connection profile not found. Please create a new connection using the Connection Dialog.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
         <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
@@ -2580,6 +2580,10 @@ Error:
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
         <target state="translated">인증 방법을 가져오지 못했습니다. 계정을 제거하고 다시 추가하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c75609a1b51d70bffe904347742f828a9c32853120f6c72e96dffd05b68b010c">
+        <source xml:lang="en">Failed to get connection string: {0}</source>
+        <target state="new">Failed to get connection string: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
         <source xml:lang="en">Failed to get tenant '{0}' for account '{1}'.</source>
         <note>{0} is the tenant id
@@ -2898,9 +2902,9 @@ Error:
         <source xml:lang="en">General Options</source>
         <target state="translated">일반 옵션</target>
       </trans-unit>
-      <trans-unit id="++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f">
-        <source xml:lang="en">Generate &amp; Run</source>
-        <target state="translated">생성 및 실행</target>
+      <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
+        <source xml:lang="en">Generate Config</source>
+        <target state="new">Generate Config</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -3599,6 +3603,10 @@ Error:
       <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
         <source xml:lang="en">Location (Workspace)</source>
         <target state="translated">위치(작업 영역)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
+        <source xml:lang="en">MCP</source>
+        <target state="new">MCP</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -6215,10 +6223,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">매우 만족</target>
-      </trans-unit>
-      <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
-        <source xml:lang="en">View Config</source>
-        <target state="translated">구성 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>

@@ -1087,12 +1087,13 @@ export class LocConstants {
                         comment: ["{0} is the number of changes"],
                     }),
             },
+
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
-            both: l10n.t("Both"),
+            mcp: l10n.t("MCP"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>
@@ -1108,8 +1109,8 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            viewConfig: l10n.t("View Config"),
-            generateAndRun: l10n.t("Generate & Run"),
+            generateConfig: l10n.t("Generate Config"),
+            deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),

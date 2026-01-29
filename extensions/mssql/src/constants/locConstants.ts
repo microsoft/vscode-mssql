@@ -1450,6 +1450,10 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToConnectToServer = l10n.t("Failed to connect to server");
+    public static ConnectionProfileNotFound = l10n.t(
+        "Connection profile not found. Please create a new connection using the Connection Dialog.",
+    );
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
@@ -1463,6 +1467,10 @@ export class PublishProject {
     public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
         return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
     }
+    public static FailedToGetConnectionString(errorMessage: string) {
+        return l10n.t("Failed to get connection string: {0}", errorMessage);
+    }
+    public static NoActiveConnection = l10n.t("No active connection");
     public static DacpacPathNotFound = l10n.t(
         "DACPAC path not found. Please build the project first.",
     );
