@@ -1764,8 +1764,8 @@
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
     </trans-unit>
-    <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
-      <source xml:lang="en">Existing SQL server</source>
+    <trans-unit id="++CODE++a0baf048fc70b962b423e80885feddf2c187a9065862349721b834f31b083029">
+      <source xml:lang="en">Existing SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
       <source xml:lang="en">Expand</source>
