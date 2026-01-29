@@ -7,7 +7,6 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import type * as mssql from "vscode-mssql";
 import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
@@ -2843,7 +2842,7 @@ export default class MainController implements vscode.Disposable {
         runComparison: boolean = false,
     ): Promise<void> {
         const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
-            DeploymentScenario.SchemaCompare as unknown as mssql.DeploymentScenario,
+            DeploymentScenario.SchemaCompare,
         );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
@@ -2880,7 +2879,7 @@ export default class MainController implements vscode.Disposable {
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
         const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
-            DeploymentScenario.Deployment as unknown as mssql.DeploymentScenario,
+            DeploymentScenario.Deployment,
         );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,

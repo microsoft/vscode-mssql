@@ -1365,27 +1365,13 @@ declare module "vscode-mssql" {
     export interface ValidateStreamingJobResult extends ResultStatus { }
 
     /**
-     * Specifies the scenario for which to retrieve default deployment options
-     */
-    export const enum DeploymentScenario {
-        /**
-         * Deployment/Publish scenario - uses DacFx native defaults (this is the default)
-         */
-        Deployment = 0,
-        /**
-     * Schema Compare scenario - uses modified defaults optimized for schema comparison
-         */
-        SchemaCompare = 1,
-    }
-
-    /**
      * Parameters for getting deployment options based on scenario
      */
     export interface GetDeploymentOptionsParams {
         /**
          * Specifies the scenario for which to retrieve default deployment options.
          * Deployment (default): Returns DacFx native defaults (for Publish operations).
-         * SchemaCompare: Returns modified defaults that match SSMS behavior.
+         * SchemaCompare: Returns modified defaults.
          */
         scenario?: DeploymentScenario;
     }
