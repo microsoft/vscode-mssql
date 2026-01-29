@@ -2378,7 +2378,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_schema_designer",
-                "modelDescription": "Open and manage the active Schema Designer without dumping full schema JSON into the chat transcript. Operations: 'show' opens a designer for a connectionId; 'get_overview' returns a bounded list of tables (and optionally column names/types, omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt + the new version. Mutations require 'expectedVersion' and fail deterministically on mismatch (returns 'stale_state' with currentVersion + bounded currentOverview). Hard rule: tool responses never include the full schema JSON.",
+                "modelDescription": "Work with the currently active Schema Designer. Use 'show' to open a designer for a connectionId when needed. Operations: 'get_overview' returns a bounded list of tables (and optionally column names/types; omitted automatically for large schemas); 'get_table' returns bounded details for a single table; 'apply_edits' applies a sequential list of edits and returns only a small receipt plus the post-mutation version. Mutations require 'expectedVersion'; on mismatch, returns 'stale_state' with currentVersion and a bounded currentOverview.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2406,7 +2406,7 @@
                             "type": "string"
                         },
 	                        "payload": {
-	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. expectedVersion is required for mutations. Column data types: provide a base type name only (e.g., \"nvarchar\"), and use maxLength/precision/scale for parameters (e.g., nvarchar(200) => { dataType:\"nvarchar\", maxLength:\"200\" }, nvarchar(max) => { dataType:\"nvarchar\", maxLength:\"MAX\" }, decimal(18,2) => { dataType:\"decimal\", precision:18, scale:2 }). Foreign keys: use foreignKey.mappings (NOT foreignKey.columns) and numeric actions (0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT). Example add_foreign_key: {\"op\":\"add_foreign_key\",\"table\":{\"schema\":\"dbo\",\"name\":\"Reviews\"},\"foreignKey\":{\"name\":\"FK_Reviews_Businesses\",\"referencedTable\":{\"schema\":\"dbo\",\"name\":\"Businesses\"},\"mappings\":[{\"column\":\"BusinessId\",\"referencedColumn\":\"BusinessId\"}],\"onDeleteAction\":0,\"onUpdateAction\":1}}.",
+	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. See field descriptions for column type parameters (maxLength/precision/scale) and foreign key mappings/actions.",
 	                            "title": "Payload",
 	                            "type": "object",
 	                            "properties": {
@@ -2436,102 +2436,377 @@
                                     "description": "Sequential list of schema edits for apply_edits (fail-fast, non-atomic). Each successful edit becomes a separate undo step in the UI.",
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "op": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "add_table",
-                                                    "drop_table",
-                                                    "set_table",
-                                                    "add_column",
-                                                    "drop_column",
-                                                    "set_column",
-                                                    "add_foreign_key",
-                                                    "drop_foreign_key",
-                                                    "set_foreign_key"
-                                                ]
-                                            },
-                                            "table": {
+                                        "oneOf": [
+                                            {
                                                 "type": "object",
                                                 "properties": {
-                                                    "schema": { "type": "string" },
-                                                    "name": { "type": "string" },
-                                                    "id": { "type": "string" }
-                                                }
-                                            },
-                                            "initialColumns": {
-                                                "type": "array",
-                                                "items": { "type": "object" }
-                                            },
-                                            "set": {
-                                                "description": "For set_table: { name?, schema? }. For set_column: any subset of column fields (e.g., { name?, dataType?, isNullable?, isPrimaryKey?, isIdentity?, defaultValue?, maxLength?, precision?, scale? }). For set_foreign_key: { name?, referencedTable?, mappings?, onDeleteAction?, onUpdateAction? }.",
-                                                "type": "object"
-                                            },
-	                                            "column": {
-	                                                "description": "Column payload (create or update). At minimum provide name + dataType for add_column. Important: do not embed length/precision/scale in dataType (avoid \"nvarchar(200)\"); use maxLength/precision/scale fields instead.",
-	                                                "type": "object",
-	                                                "properties": {
-	                                                    "name": { "type": "string" },
-	                                                    "dataType": {
-	                                                        "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here. Use maxLength/precision/scale instead (e.g., nvarchar(max) => maxLength:\"MAX\").",
-	                                                        "type": "string"
-	                                                    },
-	                                                    "maxLength": { "type": ["string", "null"] },
-	                                                    "precision": { "type": ["number", "null"] },
-	                                                    "scale": { "type": ["number", "null"] },
-                                                    "isPrimaryKey": { "type": ["boolean", "null"] },
-                                                    "isIdentity": { "type": ["boolean", "null"] },
-                                                    "identitySeed": { "type": ["number", "null"] },
-                                                    "identityIncrement": { "type": ["number", "null"] },
-                                                    "isNullable": { "type": ["boolean", "null"] },
-                                                    "defaultValue": { "type": ["string", "null"] },
-                                                    "isComputed": { "type": ["boolean", "null"] },
-                                                    "computedFormula": { "type": ["string", "null"] },
-                                                    "computedPersisted": { "type": ["boolean", "null"] }
-                                                }
-                                            },
-                                            "foreignKey": {
-                                                "description": "Foreign key payload. Use name-first mappings; do not pass internal IDs unless you obtained them via get_table includeColumns='full'.",
-                                                "type": "object",
-                                                "properties": {
-                                                    "name": { "type": "string" },
-                                                    "referencedTable": {
+                                                    "op": { "type": "string", "enum": ["add_table"] },
+                                                    "table": {
                                                         "type": "object",
                                                         "properties": {
                                                             "schema": { "type": "string" },
                                                             "name": { "type": "string" },
                                                             "id": { "type": "string" }
                                                         },
-                                                        "required": ["schema", "name"]
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
                                                     },
-                                                    "mappings": {
-                                                        "description": "Column mappings (required). Each item maps a column in the source table to a column in the referenced table.",
+                                                    "initialColumns": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "object",
+                                                            "description": "Column payload for add_table/add_column. Provide base dataType plus maxLength/precision/scale parameters (do not embed parameters in dataType).",
                                                             "properties": {
-                                                                "column": { "type": "string" },
-                                                                "referencedColumn": { "type": "string" }
+                                                                "name": { "type": "string" },
+                                                                "dataType": {
+                                                                    "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here.",
+                                                                    "type": "string"
+                                                                },
+                                                                "maxLength": {
+                                                                    "description": "Optional. For types that take a length, use a numeric string (e.g., \"200\") or \"MAX\".",
+                                                                    "type": ["string", "null"]
+                                                                },
+                                                                "precision": { "type": ["number", "null"] },
+                                                                "scale": { "type": ["number", "null"] },
+                                                                "isPrimaryKey": { "type": ["boolean", "null"] },
+                                                                "isIdentity": { "type": ["boolean", "null"] },
+                                                                "identitySeed": { "type": ["number", "null"] },
+                                                                "identityIncrement": { "type": ["number", "null"] },
+                                                                "isNullable": { "type": ["boolean", "null"] },
+                                                                "defaultValue": { "type": ["string", "null"] },
+                                                                "isComputed": { "type": ["boolean", "null"] },
+                                                                "computedFormula": { "type": ["string", "null"] },
+                                                                "computedPersisted": { "type": ["boolean", "null"] }
                                                             },
-                                                            "required": ["column", "referencedColumn"]
+                                                            "required": ["name", "dataType"],
+                                                            "additionalProperties": false
                                                         }
-                                                    },
-                                                    "onDeleteAction": {
-                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                        "type": "number",
-                                                        "enum": [0, 1, 2, 3]
-                                                    },
-                                                    "onUpdateAction": {
-                                                        "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                        "type": "number",
-                                                        "enum": [0, 1, 2, 3]
                                                     }
                                                 },
-                                                "required": ["name", "referencedTable", "mappings"]
+                                                "required": ["op", "table"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["drop_table"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["set_table"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "set": {
+                                                        "description": "For set_table, include name and/or schema (at least one field).",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "schema": { "type": "string" }
+                                                        },
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "set"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["add_column"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "column": {
+                                                        "type": "object",
+                                                        "description": "Column payload for add_table/add_column. Provide base dataType plus maxLength/precision/scale parameters (do not embed parameters in dataType).",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "dataType": {
+                                                                "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here.",
+                                                                "type": "string"
+                                                            },
+                                                            "maxLength": {
+                                                                "description": "Optional. For types that take a length, use a numeric string (e.g., \"200\") or \"MAX\".",
+                                                                "type": ["string", "null"]
+                                                            },
+                                                            "precision": { "type": ["number", "null"] },
+                                                            "scale": { "type": ["number", "null"] },
+                                                            "isPrimaryKey": { "type": ["boolean", "null"] },
+                                                            "isIdentity": { "type": ["boolean", "null"] },
+                                                            "identitySeed": { "type": ["number", "null"] },
+                                                            "identityIncrement": { "type": ["number", "null"] },
+                                                            "isNullable": { "type": ["boolean", "null"] },
+                                                            "defaultValue": { "type": ["string", "null"] },
+                                                            "isComputed": { "type": ["boolean", "null"] },
+                                                            "computedFormula": { "type": ["string", "null"] },
+                                                            "computedPersisted": { "type": ["boolean", "null"] }
+                                                        },
+                                                        "required": ["name", "dataType"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "column"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["drop_column"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "column": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["name"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "column"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["set_column"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "column": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "set": {
+                                                        "description": "For set_column, include any subset of column fields (at least one field). Do not embed parameters in dataType.",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "dataType": { "type": "string" },
+                                                            "maxLength": { "type": ["string", "null"] },
+                                                            "precision": { "type": ["number", "null"] },
+                                                            "scale": { "type": ["number", "null"] },
+                                                            "isPrimaryKey": { "type": ["boolean", "null"] },
+                                                            "isIdentity": { "type": ["boolean", "null"] },
+                                                            "identitySeed": { "type": ["number", "null"] },
+                                                            "identityIncrement": { "type": ["number", "null"] },
+                                                            "isNullable": { "type": ["boolean", "null"] },
+                                                            "defaultValue": { "type": ["string", "null"] },
+                                                            "isComputed": { "type": ["boolean", "null"] },
+                                                            "computedFormula": { "type": ["string", "null"] },
+                                                            "computedPersisted": { "type": ["boolean", "null"] }
+                                                        },
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "column", "set"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["add_foreign_key"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "foreignKey": {
+                                                        "description": "Foreign key payload. Use foreignKey.mappings (NOT foreignKey.columns).",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "referencedTable": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "schema": { "type": "string" },
+                                                                    "name": { "type": "string" },
+                                                                    "id": { "type": "string" }
+                                                                },
+                                                                "required": ["schema", "name"],
+                                                                "additionalProperties": false
+                                                            },
+                                                            "mappings": {
+                                                                "description": "Column mappings (required). Each item maps a column in the source table to a column in the referenced table.",
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "column": { "type": "string" },
+                                                                        "referencedColumn": { "type": "string" }
+                                                                    },
+                                                                    "required": ["column", "referencedColumn"],
+                                                                    "additionalProperties": false
+                                                                }
+                                                            },
+                                                            "onDeleteAction": {
+                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                                "type": "number",
+                                                                "enum": [0, 1, 2, 3]
+                                                            },
+                                                            "onUpdateAction": {
+                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                                "type": "number",
+                                                                "enum": [0, 1, 2, 3]
+                                                            }
+                                                        },
+                                                        "required": ["name", "referencedTable", "mappings", "onDeleteAction", "onUpdateAction"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "foreignKey"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["drop_foreign_key"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "foreignKey": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["name"],
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "foreignKey"],
+                                                "additionalProperties": false
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "op": { "type": "string", "enum": ["set_foreign_key"] },
+                                                    "table": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "schema": { "type": "string" },
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["schema", "name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "foreignKey": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "id": { "type": "string" }
+                                                        },
+                                                        "required": ["name"],
+                                                        "additionalProperties": false
+                                                    },
+                                                    "set": {
+                                                        "description": "For set_foreign_key, include any subset of foreign key fields (at least one field). Use mappings (NOT columns/referencedColumns).",
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "name": { "type": "string" },
+                                                            "referencedTable": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "schema": { "type": "string" },
+                                                                    "name": { "type": "string" },
+                                                                    "id": { "type": "string" }
+                                                                },
+                                                                "required": ["schema", "name"],
+                                                                "additionalProperties": false
+                                                            },
+                                                            "mappings": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "column": { "type": "string" },
+                                                                        "referencedColumn": { "type": "string" }
+                                                                    },
+                                                                    "required": ["column", "referencedColumn"],
+                                                                    "additionalProperties": false
+                                                                }
+                                                            },
+                                                            "onDeleteAction": {
+                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                                "type": ["number", "null"],
+                                                                "enum": [0, 1, 2, 3, null]
+                                                            },
+                                                            "onUpdateAction": {
+                                                                "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
+                                                                "type": ["number", "null"],
+                                                                "enum": [0, 1, 2, 3, null]
+                                                            }
+                                                        },
+                                                        "additionalProperties": false
+                                                    }
+                                                },
+                                                "required": ["op", "table", "foreignKey", "set"],
+                                                "additionalProperties": false
                                             }
-                                        },
-                                        "required": ["op"]
+                                        ]
                                     }
                                 }
                             }
