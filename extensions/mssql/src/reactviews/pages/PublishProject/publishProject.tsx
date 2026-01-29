@@ -56,7 +56,7 @@ function PublishProjectDialog() {
             <DialogHeader
                 iconLight={publishProjectIconLight}
                 iconDark={publishProjectIconDark}
-                title={loc.publishProject}
+                title={loc.publishProjectTitle(formState?.databaseName || "")}
                 themeKind={context.themeKind}
             />
 
