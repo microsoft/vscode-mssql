@@ -2406,7 +2406,7 @@
                             "type": "string"
                         },
 	                        "payload": {
-	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. expectedVersion is required for mutations. Column data types: provide a base type name only (e.g., \"nvarchar\"), and use maxLength/precision/scale for parameters (e.g., nvarchar(200) => { dataType:\"nvarchar\", maxLength:\"200\" }, nvarchar(max) => { dataType:\"nvarchar\", maxLength:\"max\" }, decimal(18,2) => { dataType:\"decimal\", precision:18, scale:2 }). Foreign keys: use foreignKey.mappings (NOT foreignKey.columns) and numeric actions (0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT). Example add_foreign_key: {\"op\":\"add_foreign_key\",\"table\":{\"schema\":\"dbo\",\"name\":\"Reviews\"},\"foreignKey\":{\"name\":\"FK_Reviews_Businesses\",\"referencedTable\":{\"schema\":\"dbo\",\"name\":\"Businesses\"},\"mappings\":[{\"column\":\"BusinessId\",\"referencedColumn\":\"BusinessId\"}],\"onDeleteAction\":0,\"onUpdateAction\":1}}.",
+	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. expectedVersion is required for mutations. Column data types: provide a base type name only (e.g., \"nvarchar\"), and use maxLength/precision/scale for parameters (e.g., nvarchar(200) => { dataType:\"nvarchar\", maxLength:\"200\" }, nvarchar(max) => { dataType:\"nvarchar\", maxLength:\"MAX\" }, decimal(18,2) => { dataType:\"decimal\", precision:18, scale:2 }). Foreign keys: use foreignKey.mappings (NOT foreignKey.columns) and numeric actions (0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT). Example add_foreign_key: {\"op\":\"add_foreign_key\",\"table\":{\"schema\":\"dbo\",\"name\":\"Reviews\"},\"foreignKey\":{\"name\":\"FK_Reviews_Businesses\",\"referencedTable\":{\"schema\":\"dbo\",\"name\":\"Businesses\"},\"mappings\":[{\"column\":\"BusinessId\",\"referencedColumn\":\"BusinessId\"}],\"onDeleteAction\":0,\"onUpdateAction\":1}}.",
 	                            "title": "Payload",
 	                            "type": "object",
 	                            "properties": {
@@ -2474,7 +2474,7 @@
 	                                                "properties": {
 	                                                    "name": { "type": "string" },
 	                                                    "dataType": {
-	                                                        "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here. Use maxLength/precision/scale instead (e.g., nvarchar(max) => maxLength:\"max\").",
+	                                                        "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here. Use maxLength/precision/scale instead (e.g., nvarchar(max) => maxLength:\"MAX\").",
 	                                                        "type": "string"
 	                                                    },
 	                                                    "maxLength": { "type": ["string", "null"] },
