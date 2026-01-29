@@ -102,7 +102,6 @@ suite("ProfilerController Tests", () => {
     let mockStatusBarItem: vscode.StatusBarItem;
     let showQuickPickStub: sinon.SinonStub;
     let showInformationMessageStub: sinon.SinonStub;
-    let showWarningMessageStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
     let registeredCommands: Map<string, (...args: unknown[]) => unknown>;
 
@@ -148,7 +147,7 @@ suite("ProfilerController Tests", () => {
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
         sandbox.stub(vscode.window, "showInputBox");
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
+        sandbox.stub(vscode.window, "showWarningMessage");
         showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
 
         // Capture registered commands
@@ -188,49 +187,38 @@ suite("ProfilerController Tests", () => {
     }
 
     suite("constructor", () => {
-        test("should register profiler launch command", () => {
+        test("should register profiler launchFromObjectExplorer command", () => {
             createController();
 
             expect(registerCommandStub).to.have.been.called;
-            expect(registeredCommands.has("mssql.profiler.launch")).to.be.true;
+            expect(registeredCommands.has("mssql.profiler.launchFromObjectExplorer")).to.be.true;
+        });
+
+        test("should not register mssql.profiler.launch command", () => {
+            createController();
+
+            expect(registeredCommands.has("mssql.profiler.launch")).to.be.false;
         });
     });
 
-    suite("mssql.profiler.launch command", () => {
-        test("should show warning when no saved connections", async () => {
-            (mockConnectionManager.connectionStore.getPickListItems as sinon.SinonStub).resolves(
-                [],
-            );
-
-            createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
-            expect(launchCommand).to.exist;
-
-            await launchCommand!();
-
-            expect(showWarningMessageStub).to.have.been.called;
-        });
-
-        test("should handle user cancelling connection selection", async () => {
-            (mockConnectionManager.connectionUI.promptForConnection as sinon.SinonStub).resolves(
-                undefined,
-            );
-
-            createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
-
-            await launchCommand!();
-
-            expect(createWebviewPanelStub).to.not.have.been.called;
-        });
+    suite("mssql.profiler.launchFromObjectExplorer command", () => {
+        // Mock TreeNodeInfo with connection profile
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+            },
+        };
 
         test("should handle connection failure", async () => {
             (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(showErrorMessageStub).to.have.been.called;
             expect(createWebviewPanelStub).to.not.have.been.called;
@@ -238,9 +226,9 @@ suite("ProfilerController Tests", () => {
 
         test("should create webview panel on successful connection", async () => {
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(createWebviewPanelStub).to.have.been.calledOnce;
         });
@@ -249,18 +237,18 @@ suite("ProfilerController Tests", () => {
             const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(getXEventSessionsStub).to.have.been.called;
         });
 
         test("should show information message when profiler is ready", async () => {
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(showInformationMessageStub).to.have.been.called;
         });
@@ -271,9 +259,9 @@ suite("ProfilerController Tests", () => {
             );
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(showErrorMessageStub).to.have.been.called;
         });
@@ -290,13 +278,23 @@ suite("ProfilerController Tests", () => {
     });
 
     suite("session management", () => {
+        // Mock TreeNodeInfo with connection profile
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+            },
+        };
+
         test("should handle creating a new session with template selection cancelled", async () => {
             showQuickPickStub.resolves(undefined); // User cancelled template selection
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             // The webview should be created, but no session should be started
             expect(createWebviewPanelStub).to.have.been.calledOnce;
@@ -304,15 +302,25 @@ suite("ProfilerController Tests", () => {
     });
 
     suite("error handling", () => {
+        // Mock TreeNodeInfo with connection profile
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+            },
+        };
+
         test("should display error message on command error", async () => {
-            (mockConnectionManager.connectionStore.getPickListItems as sinon.SinonStub).rejects(
+            (mockConnectionManager.connect as sinon.SinonStub).rejects(
                 new Error("Test error"),
             );
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launch");
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!();
+            await launchCommand!(mockTreeNodeInfo);
 
             expect(showErrorMessageStub).to.have.been.called;
         });

@@ -1357,11 +1357,6 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.profiler.launch",
-                "title": "Launch Profiler",
-                "category": "MS SQL"
-            },
-            {
                 "command": "mssql.profiler.launchFromObjectExplorer",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"

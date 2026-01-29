@@ -194,17 +194,45 @@ export interface ProfilerTemplate {
 }
 
 /**
- * Configuration structure for profiler templates and views
+ * Template ID constants
+ */
+export const TEMPLATE_ID_STANDARD_ONPREM = "Standard_OnPrem";
+export const TEMPLATE_ID_STANDARD_AZURE = "Standard_Azure";
+export const TEMPLATE_ID_TSQL_ONPREM = "TSQL_OnPrem";
+export const TEMPLATE_ID_TSQL_AZURE = "TSQL_Azure";
+export const TEMPLATE_ID_TSQL_LOCKS_ONPREM = "TSQL_Locks_OnPrem";
+export const TEMPLATE_ID_TSQL_DURATION_ONPREM = "TSQL_Duration_OnPrem";
+
+/**
+ * View ID constants
+ */
+export const VIEW_ID_STANDARD = "Standard View";
+export const VIEW_ID_TSQL = "TSQL View";
+export const VIEW_ID_TUNING = "Tuning View";
+export const VIEW_ID_TSQL_LOCKS = "TSQL_Locks View";
+export const VIEW_ID_TSQL_DURATION = "TSQL_Duration View";
+
+/**
+ * EventRow field name constants for type-safe field access
+ */
+export const FIELD_TIMESTAMP = "timestamp";
+export const FIELD_ADDITIONAL_DATA = "additionalData";
+
+/**
+ * JavaScript typeof result constants
+ */
+export const TYPE_NUMBER = "number";
+
+/**
+ * Configuration structure for profiler templates and views.
+ * Note: viewToSessionMap and sessionToViewMap are computed at runtime
+ * from the templates' defaultView property to avoid drift.
  */
 export interface ProfilerConfig {
-    /** Available view templates keyed by ID */
-    views: Record<string, ViewTemplate>;
-    /** Available session templates keyed by ID */
-    templates: Record<string, ProfilerTemplate>;
-    /** Maps view IDs to compatible session template IDs */
-    viewToSessionMap: Record<string, string[]>;
-    /** Maps session template IDs to compatible view IDs */
-    sessionToViewMap: Record<string, string[]>;
+    /** Available view templates */
+    views: ViewTemplate[];
+    /** Available session templates */
+    templates: ProfilerTemplate[];
 }
 
 /**
