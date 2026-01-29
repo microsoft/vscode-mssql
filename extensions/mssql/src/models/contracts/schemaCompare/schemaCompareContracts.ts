@@ -42,15 +42,6 @@ export namespace SchemaComparePublishProjectChangesRequest {
     >("schemaCompare/publishProject");
 }
 
-export namespace SchemaCompareGetDefaultOptionsRequest {
-    export const type = new RequestType<
-        mssql.SchemaCompareGetOptionsParams,
-        mssql.SchemaCompareOptionsResult,
-        void,
-        void
-    >("schemaCompare/getDefaultOptions");
-}
-
 export namespace SchemaCompareIncludeExcludeAllNodesRequest {
     export const type = new RequestType<
         mssql.SchemaCompareIncludeExcludeAllNodesParams,

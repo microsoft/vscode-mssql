@@ -5,8 +5,12 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as dacFxContracts from "../models/contracts/dacFx/dacFxContracts";
-import * as mssql from "vscode-mssql";
-import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
+import type * as mssql from "vscode-mssql";
+import {
+    DeploymentScenario,
+    ExtractTarget,
+    TaskExecutionMode,
+} from "../sharedInterfaces/schemaCompare";
 import { SqlTasksService } from "./sqlTasksService";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -253,5 +257,14 @@ export class DacFxService implements mssql.IDacFxService {
             deploymentOptions: deploymentOptions,
         };
         return this._client.sendRequest(dacFxContracts.SavePublishProfileRequest.type, params);
+    }
+
+    public getDeploymentOptions(
+        scenario?: DeploymentScenario,
+    ): Thenable<mssql.GetDeploymentOptionsResult> {
+        const params: mssql.GetDeploymentOptionsParams = {
+            scenario: scenario,
+        };
+        return this._client.sendRequest(dacFxContracts.GetDeploymentOptionsRequest.type, params);
     }
 }

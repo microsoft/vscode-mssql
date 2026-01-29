@@ -7,7 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../sharedInterfaces/schemaCompare";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -2840,7 +2841,9 @@ export default class MainController implements vscode.Disposable {
         targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.SchemaCompare,
+        );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2849,7 +2852,7 @@ export default class MainController implements vscode.Disposable {
             runComparison,
             this.schemaCompareService,
             this._connectionMgr,
-            result,
+            schemaCompareOptionsResult,
             SchemaCompare.Title,
         );
 
@@ -2875,7 +2878,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.Deployment,
+        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2885,7 +2890,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptions.defaultDeploymentOptions,
+            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();

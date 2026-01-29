@@ -280,20 +280,6 @@ export async function publishProjectChanges(
 }
 
 /**
- * Retrieves the default schema compare options from the provided schema compare service.
- *
- * @param schemaCompareService - The service used to get the default schema compare options.
- * @returns A promise that resolves to the default schema compare options result.
- */
-export async function getDefaultOptions(
-    schemaCompareService: mssql.ISchemaCompareService,
-): Promise<mssql.SchemaCompareOptionsResult> {
-    const result = await schemaCompareService.schemaCompareGetDefaultOptions();
-
-    return result;
-}
-
-/**
  * Includes or excludes a node in the schema comparison.
  *
  * @param operationId - The ID of the schema comparison operation.
