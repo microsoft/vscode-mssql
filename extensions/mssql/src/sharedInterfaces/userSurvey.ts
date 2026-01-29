@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebviewContextProps } from "./webview";
+import { CoreRPCs } from "./webview";
 
 export interface UserSurveyState {
     /**
@@ -72,7 +72,7 @@ export interface Divider {
     type: "divider";
 }
 
-export interface UserSurveyContextProps extends WebviewContextProps<UserSurveyState> {
+export interface UserSurveyContextProps extends CoreRPCs {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;

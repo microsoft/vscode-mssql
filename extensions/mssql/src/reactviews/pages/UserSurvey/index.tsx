@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ReactDOM from "react-dom/client";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { UserSurveyStateProvider } from "./userSurveryStateProvider";
 import { UserSurveyPage } from "./userSurveyPage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <UserSurveyStateProvider>
             <UserSurveyPage />
         </UserSurveyStateProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );
