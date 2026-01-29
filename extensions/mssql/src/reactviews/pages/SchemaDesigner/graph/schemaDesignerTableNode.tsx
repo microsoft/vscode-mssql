@@ -324,7 +324,7 @@ const TableColumn = ({
             <Handle
                 type="source"
                 position={Position.Left}
-                id={`left-${column.name}`}
+                id={`left-${column.id}`}
                 isConnectable={true}
                 className={styles.handleLeft}
             />
@@ -347,7 +347,7 @@ const TableColumn = ({
             <Handle
                 type="source"
                 position={Position.Right}
-                id={`right-${column.name}`}
+                id={`right-${column.id}`}
                 isConnectable={true}
                 className={styles.handleRight}
             />
@@ -369,11 +369,11 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                 zIndex: 1,
             }}>
             {hiddenColumns.map((column) => (
-                <div key={column.name}>
+                <div key={column.id}>
                     <Handle
                         type="source"
                         position={Position.Left}
-                        id={`left-${column.name}`}
+                        id={`left-${column.id}`}
                         isConnectable={true}
                         style={{
                             visibility: "hidden",
@@ -386,7 +386,7 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                     <Handle
                         type="source"
                         position={Position.Right}
-                        id={`right-${column.name}`}
+                        id={`right-${column.id}`}
                         isConnectable={true}
                         style={{
                             visibility: "hidden",

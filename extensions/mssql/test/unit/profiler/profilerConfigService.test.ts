@@ -8,7 +8,12 @@ import {
     ProfilerConfigService,
     getProfilerConfigService,
 } from "../../../src/profiler/profilerConfigService";
-import { EventRow, EngineType, ViewTemplate } from "../../../src/profiler/profilerTypes";
+import {
+    EventRow,
+    EngineType,
+    ViewTemplate,
+    TEMPLATE_ID_STANDARD_ONPREM,
+} from "../../../src/profiler/profilerTypes";
 
 suite("ProfilerConfigService Tests", () => {
     let configService: ProfilerConfigService;
@@ -51,7 +56,7 @@ suite("ProfilerConfigService Tests", () => {
 
         test("should include Standard_OnPrem template", () => {
             const templates = configService.getTemplates();
-            const standardTemplate = templates.find((t) => t.id === "Standard_OnPrem");
+            const standardTemplate = templates.find((t) => t.id === TEMPLATE_ID_STANDARD_ONPREM);
             expect(standardTemplate).to.exist;
             expect(standardTemplate?.name).to.include("Standard");
         });
@@ -83,9 +88,9 @@ suite("ProfilerConfigService Tests", () => {
 
     suite("getTemplate", () => {
         test("should return a specific template by ID", () => {
-            const template = configService.getTemplate("Standard_OnPrem");
+            const template = configService.getTemplate(TEMPLATE_ID_STANDARD_ONPREM);
             expect(template).to.exist;
-            expect(template?.id).to.equal("Standard_OnPrem");
+            expect(template?.id).to.equal(TEMPLATE_ID_STANDARD_ONPREM);
         });
 
         test("should return undefined for non-existent template", () => {
@@ -164,7 +169,7 @@ suite("ProfilerConfigService Tests", () => {
 
     suite("getDefaultViewForTemplate", () => {
         test("should return default view for a template", () => {
-            const view = configService.getDefaultViewForTemplate("Standard_OnPrem");
+            const view = configService.getDefaultViewForTemplate(TEMPLATE_ID_STANDARD_ONPREM);
             expect(view).to.exist;
         });
 
@@ -430,7 +435,7 @@ suite("ProfilerConfigService Tests", () => {
 
     suite("generateCreateStatement", () => {
         test("should replace {sessionName} placeholder in create statement", () => {
-            const template = configService.getTemplate("Standard_OnPrem");
+            const template = configService.getTemplate(TEMPLATE_ID_STANDARD_ONPREM);
             expect(template).to.exist;
 
             const statement = configService.generateCreateStatement(template!, "MyTestSession");

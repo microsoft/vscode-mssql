@@ -7,7 +7,12 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState, EngineType } from "./profilerTypes";
+import {
+    SessionType,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    EngineType,
+} from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
@@ -17,53 +22,8 @@ import { ProfilerSessionTemplate } from "../models/contracts/profiler";
 import { Logger } from "../models/logger";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
-import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { ProfilerTelemetry } from "./profilerTelemetry";
-import { IServerInfo } from "vscode-mssql";
-
-/**
- * Azure SQL Database engine edition IDs from DatabaseEngineEdition const enum.
- * These values are duplicated here because the vscode-mssql module cannot be imported
- * at runtime (it's a declaration-only module). The const enum values are inlined
- * during TypeScript compilation, but ts-node test execution requires runtime resolution.
- *
- * Values from vscode-mssql.d.ts DatabaseEngineEdition:
- * - SqlDatabase = 5: Azure SQL Database
- * - SqlDataWarehouse = 6: Azure Synapse Analytics (SQL DW)
- * - SqlManagedInstance = 8: Azure SQL Managed Instance
- * - SqlOnDemand = 11: Azure Synapse Serverless SQL
- * - SqlDbFabric = 12: Microsoft Fabric SQL Database
- */
-const AzureEngineEditions = [5, 6, 8, 11, 12];
-
-/**
- * Determines the engine type from server info for profiler template filtering.
- * Uses engineEditionId as the primary indicator since it's more reliable than isCloud.
- *
- * @param serverInfo The server info from the connection
- * @returns EngineType.AzureSQLDB for Azure-hosted SQL, EngineType.Standalone otherwise
- */
-function getEngineTypeFromServerInfo(serverInfo: IServerInfo | undefined): EngineType {
-    if (!serverInfo) {
-        return EngineType.Standalone;
-    }
-
-    const engineEdition = serverInfo.engineEditionId;
-
-    // Check for Azure SQL Database editions by engineEditionId
-    // This is more reliable than isCloud which may not always be set correctly
-    if (AzureEngineEditions.includes(engineEdition)) {
-        return EngineType.AzureSQLDB;
-    }
-
-    // Fall back to isCloud check for any edge cases not covered by engineEditionId
-    if (serverInfo.isCloud) {
-        return EngineType.AzureSQLDB;
-    }
-
-    return EngineType.Standalone;
-}
 
 /**
  * Controller for the profiler feature.
@@ -83,7 +43,6 @@ export class ProfilerController {
         private _sessionManager: ProfilerSessionManager,
     ) {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "Profiler");
-        this.registerCommands();
         this.registerDetailsPanelView();
     }
 
@@ -105,105 +64,6 @@ export class ProfilerController {
         );
 
         this._logger.verbose("Profiler details panel view registered");
-    }
-
-    private registerCommands(): void {
-        // Launch Profiler command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand("mssql.profiler.launch", async () => {
-                try {
-                    await this.launchProfiler();
-                } catch (e) {
-                    this._logger.error(`Command error: ${e}`);
-                    vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-                }
-            }),
-        );
-
-        // Launch Profiler from Object Explorer (uses selected connection)
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "mssql.profiler.launchFromObjectExplorer",
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    try {
-                        const connectionProfile = treeNodeInfo.connectionProfile;
-                        await this.launchProfilerWithConnection(connectionProfile);
-                    } catch (e) {
-                        this._logger.error(`Command error: ${e}`);
-                        vscode.window.showErrorMessage(
-                            LocProfiler.failedToLaunchProfiler(String(e)),
-                        );
-                    }
-                },
-            ),
-        );
-
-        this._logger.verbose("Profiler commands registered");
-    }
-
-    /**
-     * Prompts the user to select a saved connection profile and connects to it.
-     * Creates a dedicated profiler connection.
-     * @returns The connection URI if successful, undefined if cancelled or failed
-     */
-    private async promptForNewConnection(): Promise<string | undefined> {
-        try {
-            // Get available connection profiles
-            const connectionProfiles =
-                await this._connectionManager.connectionStore.getPickListItems();
-
-            if (connectionProfiles.length === 0) {
-                vscode.window.showWarningMessage(LocProfiler.noSavedConnections);
-                return undefined;
-            }
-
-            // Show quick pick for connection selection
-            const connectionCreds = await this._connectionManager.connectionUI.promptForConnection(
-                connectionProfiles,
-                true, // ignoreFocusOut
-            );
-
-            if (!connectionCreds) {
-                this._logger.verbose("User cancelled connection selection");
-                return undefined;
-            }
-
-            // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
-            this._logger.verbose(
-                `Connecting to ${connectionCreds.server} with URI: ${profilerUri}`,
-            );
-
-            // Connect using the connection manager
-            const connected = await this._connectionManager.connect(profilerUri, connectionCreds);
-
-            if (connected) {
-                this._logger.verbose(`Successfully connected to ${connectionCreds.server}`);
-                this.detectAndSetEngineType(profilerUri);
-                return profilerUri;
-            } else {
-                this._logger.verbose("Connection failed");
-                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
-                return undefined;
-            }
-        } catch (e) {
-            this._logger.error(`Error connecting: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.connectionError(String(e)));
-            return undefined;
-        }
-    }
-
-    /**
-     * Detects and sets the engine type from the server info for a given profiler URI.
-     * @param profilerUri - The URI of the profiler connection
-     */
-    private detectAndSetEngineType(profilerUri: string): void {
-        const connectionInfo = this._connectionManager.getConnectionInfo(profilerUri);
-        const serverInfo = connectionInfo?.serverInfo;
-        this._engineType = getEngineTypeFromServerInfo(serverInfo);
-        this._logger.verbose(
-            `Detected engine type: ${this._engineType} (engineEditionId: ${serverInfo?.engineEditionId}, isCloud: ${serverInfo?.isCloud})`,
-        );
     }
 
     /**
@@ -450,31 +310,6 @@ export class ProfilerController {
     }
 
     /**
-     * Launches the profiler UI with a connection to manage profiling sessions.
-     * This is the main entry point for opening a profiler window.
-     */
-    public async launchProfiler(): Promise<void> {
-        this._logger.verbose("Launching profiler...");
-
-        try {
-            // Prompt user to select a server and create a dedicated profiler connection
-            this._logger.verbose("Prompting user to select a server for profiling...");
-            const profilerUri = await this.promptForNewConnection();
-            if (!profilerUri) {
-                this._logger.verbose("User cancelled or connection failed");
-                return;
-            }
-            this._logger.verbose(`Profiler connection created: ${profilerUri}`);
-
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
-        } catch (e) {
-            this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-        }
-    }
-
-    /**
      * Launches the profiler UI with a provided connection profile (from Object Explorer).
      * This skips the connection prompt and uses the provided connection directly.
      * For Azure SQL Database connections to system databases, prompts user to select a user database.
@@ -504,7 +339,6 @@ export class ProfilerController {
             }
 
             this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
-            this.detectAndSetEngineType(profilerUri);
 
             // For Azure SQL Database, check if connected to a system database and prompt for database selection
             if (this._engineType === EngineType.AzureSQLDB) {
@@ -644,7 +478,7 @@ export class ProfilerController {
             this._sessionManager,
             availableSessions,
             undefined, // No initial session name
-            defaultTemplateId, // templateId based on engine type
+            TEMPLATE_ID_STANDARD_ONPREM, // templateId based on engine type
         );
 
         // Connect the details panel controller to this webview so row selections update the panel

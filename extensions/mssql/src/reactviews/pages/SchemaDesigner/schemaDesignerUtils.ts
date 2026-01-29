@@ -9,6 +9,12 @@ import { Connection, ConnectionLineType, Edge, MarkerType, Node } from "@xyflow/
 import dagre from "@dagrejs/dagre";
 import { v4 as uuidv4 } from "uuid";
 
+type TableWithDeletedFlag = SchemaDesigner.Table & { isDeleted?: boolean };
+type ForeignKeyWithDeletedFlag = SchemaDesigner.ForeignKey & { isDeleted?: boolean };
+
+const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean =>
+    value?.isDeleted === true;
+
 export const namingUtils = {
     getNextColumnName: (columns: SchemaDesigner.Column[]): string => {
         let index = 1;
@@ -578,11 +584,13 @@ export const foreignKeyUtils = {
     },
 
     extractForeignKeysFromEdges: (
-        edges: Edge<SchemaDesigner.ForeignKey>[],
+        edges: Edge<ForeignKeyWithDeletedFlag>[],
         sourceTableId: string,
         schema: SchemaDesigner.Schema,
     ): SchemaDesigner.ForeignKey[] => {
-        const filteredEdges = edges.filter((edge) => edge.source === sourceTableId);
+        const filteredEdges = edges.filter(
+            (edge) => edge.source === sourceTableId && !isDeleted(edge.data),
+        );
         const edgesMap = new Map<string, SchemaDesigner.ForeignKey>();
 
         filteredEdges.forEach((edge) => {
@@ -620,9 +628,9 @@ export const foreignKeyUtils = {
     },
 
     /**
-     * Extract column name from a handle ID
+     * Extract column id from a handle ID
      */
-    extractColumnNameFromHandle: (handleId: string): string => {
+    extractColumnIdFromHandle: (handleId: string): string => {
         return handleId.replace("left-", "").replace("right-", "");
     },
 
@@ -671,12 +679,24 @@ export const foreignKeyUtils = {
             };
         }
 
-        const sourceColumnName = connection.sourceHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(connection.sourceHandle)
+        const sourceColumnId = connection.sourceHandle
+            ? foreignKeyUtils.extractColumnIdFromHandle(connection.sourceHandle)
             : "";
-        const targetColumnName = connection.targetHandle
-            ? foreignKeyUtils.extractColumnNameFromHandle(connection.targetHandle)
+        const targetColumnId = connection.targetHandle
+            ? foreignKeyUtils.extractColumnIdFromHandle(connection.targetHandle)
             : "";
+
+        if (!sourceColumnId || !targetColumnId) {
+            return {
+                isValid: false,
+                errorMessage: "Source or target column not found",
+            };
+        }
+
+        const sourceColumnName =
+            sourceTable.data.columns.find((c) => c.id === sourceColumnId)?.name ?? "";
+        const targetColumnName =
+            targetTable.data.columns.find((c) => c.id === targetColumnId)?.name ?? "";
 
         if (!sourceColumnName || !targetColumnName) {
             return {
@@ -887,15 +907,27 @@ export const flowUtils = {
 
                 if (!referencedTable) continue;
 
+                const findColumnIdByName = (
+                    table: SchemaDesigner.Table,
+                    columnName: string,
+                ): string | undefined => table.columns.find((c) => c.name === columnName)?.id;
+
                 fk.columns.forEach((col, idx) => {
                     const refCol = fk.referencedColumns[idx];
 
+                    const sourceColId = findColumnIdByName(table, col);
+                    const refColId = findColumnIdByName(referencedTable, refCol);
+
+                    if (!sourceColId || !refColId) {
+                        return;
+                    }
+
                     edges.push({
-                        id: `${table.name}-${referencedTable.name}-${col}-${refCol}`,
+                        id: `${table.id}-${referencedTable.id}-${sourceColId}-${refColId}`,
                         source: table.id,
                         target: referencedTable.id,
-                        sourceHandle: `right-${col}`,
-                        targetHandle: `left-${refCol}`,
+                        sourceHandle: `right-${sourceColId}`,
+                        targetHandle: `left-${refColId}`,
                         markerEnd: {
                             type: MarkerType.ArrowClosed,
                         },
@@ -925,21 +957,23 @@ export const flowUtils = {
     },
 
     extractSchemaModel: (
-        nodes: Node<SchemaDesigner.Table>[],
-        edges: Edge<SchemaDesigner.ForeignKey>[],
+        nodes: Node<TableWithDeletedFlag>[],
+        edges: Edge<ForeignKeyWithDeletedFlag>[],
     ): SchemaDesigner.Schema => {
+        const filteredNodes = nodes.filter((node) => !isDeleted(node.data));
+
         // Create a deep copy of the nodes to avoid mutating the original data
-        const tables = nodes.map((node) => ({
+        const tables = filteredNodes.map((node) => ({
             ...node.data,
             foreignKeys: [] as SchemaDesigner.ForeignKey[],
         }));
 
         // Process edges to create foreign keys
         edges.forEach((edge) => {
-            const sourceNode = nodes.find((node) => node.id === edge.source);
-            const targetNode = nodes.find((node) => node.id === edge.target);
+            const sourceNode = filteredNodes.find((node) => node.id === edge.source);
+            const targetNode = filteredNodes.find((node) => node.id === edge.target);
 
-            if (!sourceNode || !targetNode || !edge.data) {
+            if (!sourceNode || !targetNode || !edge.data || isDeleted(edge.data)) {
                 console.warn(`Edge ${edge.id} references non-existent nodes or has no data`);
                 return;
             }
