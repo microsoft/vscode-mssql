@@ -294,6 +294,44 @@ suite('ProjectsController', function (): void {
 				expect(projController.getDefaultFolderForItemType(ItemType.databaseTrigger, project, ''), 'Should return DatabaseTriggers folder').to.equal('DatabaseTriggers');
 			});
 
+			test('Should return Sequences folder for sequence with root-first priority', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, baselines.newSdkStyleProjectSdkNodeBaseline);
+
+				// Without any folders - should return empty (root level)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return empty when no folders exist').to.equal('');
+
+				// Add dbo folder only (no Sequences folders)
+				await project.addFolder('dbo');
+
+				// With only dbo folder - should return dbo (schema folder)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return dbo folder when it exists').to.equal('dbo');
+
+				// Add root-level Sequences folder
+				await project.addFolder('Sequences');
+
+				// With root Sequences folder - should return it (root-level has priority for Sequence)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return root Sequences folder').to.equal('Sequences');
+
+				// Add nested dbo/Sequences folder
+				await project.addFolder('dbo/Sequences');
+
+				// With both folders - should still return root Sequences (root has higher priority)
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should still return root Sequences even when dbo/Sequences exists').to.equal('Sequences');
+			});
+
+			test('Should return schema/Sequences folder when only nested folder exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, baselines.newSdkStyleProjectSdkNodeBaseline);
+
+				// Add dbo folder and dbo/Sequences (but no root Sequences)
+				await project.addFolder('dbo');
+				await project.addFolder('dbo/Sequences');
+
+				// With only dbo/Sequences - should return it since no root Sequences exists
+				expect(projController.getDefaultFolderForItemType(ItemType.sequence, project, 'dbo'), 'Should return dbo/Sequences when no root Sequences exists').to.equal('dbo\\Sequences');
+			});
+
 			test('Should parse schema and object name from user input', function (): void {
 				const projController = new ProjectsController(testContext.outputChannel);
 

@@ -111,6 +111,7 @@ declare module 'sqldbproj' {
 		tasks = 'tasks',
 		trigger = 'trigger',
 		databaseTrigger = 'databaseTrigger',
+		sequence = 'sequence',
 	}
 
 	/**

@@ -23,6 +23,17 @@ export interface ItemTypeFolderConfig {
 
 /**
  * Maps item types to their default folder locations and schema dependency.
+ * Configuration for item type default folder placement.
+ */
+export interface ItemTypeFolderConfig {
+	/** The default folder name for this item type */
+	folderName: string;
+	/** If true, the folder can be nested under schema folders (e.g., Sales/Functions). If false, only root-level folder is checked. */
+	schemaDependent: boolean;
+}
+
+/**
+ * Maps item types to their default folder locations and schema dependency.
  * Following SSDT conventions for folder structure (ObjectType and SchemaObjectType).
  * Add new mappings here when adding item types that should be placed in specific folders.
  */
@@ -30,6 +41,7 @@ export const itemTypeToFolderMap: ReadonlyMap<ItemType, ItemTypeFolderConfig> = 
 	[ItemType.schema, { folderName: constants.securityFolderName, schemaDependent: false }],
 	[ItemType.tableValuedFunction, { folderName: constants.functionsFolderName, schemaDependent: true }],
 	[ItemType.databaseTrigger, { folderName: constants.databaseTriggersFolderName, schemaDependent: false }],
+	[ItemType.sequence, { folderName: constants.sequencesFolderName, schemaDependent: true }],
 ]);
 
 // Object maps
@@ -75,7 +87,8 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.publishProfile, constants.publishProfileFriendlyName, templateFolderPath, 'newPublishProfileTemplate.publish.xml'),
 		loadObjectTypeInfo(ItemType.tasks, constants.tasksJsonFriendlyName, templateFolderPath, 'tasksTemplate.json'),
 		loadObjectTypeInfo(ItemType.trigger, constants.triggerFriendlyName, templateFolderPath, 'newTsqlTriggerTemplate.sql'),
-		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql')
+		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql'),
+		loadObjectTypeInfo(ItemType.sequence, constants.sequenceFriendlyName, templateFolderPath, 'newTsqlSequenceTemplate.sql')
 	]);
 
 	for (const scriptType of scriptTypes) {

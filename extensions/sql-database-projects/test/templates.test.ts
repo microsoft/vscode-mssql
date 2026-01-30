@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 16;
+		const numScriptObjectTypes = 17;
 
 		expect(templates.projectScriptTypes().length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} script object types to be loaded`);
 		expect(Object.keys(templates.projectScriptTypes()).length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} keys in script object types`);
@@ -150,5 +150,18 @@ suite('Templates', function (): void {
 		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain CREATE TRIGGER').to.include('CREATE TRIGGER');
 		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain ON DATABASE').to.include('ON DATABASE');
 		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Sequence item template', async function (): Promise<void> {
+		const sequenceTemplate = templates.get(ItemType.sequence);
+		expect(sequenceTemplate, 'Sequence template should be defined').to.not.be.undefined;
+		expect(sequenceTemplate.type, 'Sequence template type should match').to.equal(ItemType.sequence);
+		expect(sequenceTemplate.friendlyName, 'Sequence template friendly name should be "Sequence"').to.equal('Sequence');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain CREATE SEQUENCE').to.include('CREATE SEQUENCE');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain @@SCHEMA_NAME@@ placeholder').to.include('@@SCHEMA_NAME@@');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain AS BIGINT').to.include('AS BIGINT');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain START WITH').to.include('START WITH');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain INCREMENT BY').to.include('INCREMENT BY');
 	});
 });

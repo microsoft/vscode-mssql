@@ -929,6 +929,16 @@ export class ProjectsController {
 			return relativePath;
 		}
 
+		// Case for Sequence: Check root-level Sequences folder first
+		if (itemType === ItemType.sequence && folderName) {
+			const rootObjectFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
+
+			if (rootObjectFolder) {
+				return rootObjectFolder.relativePath;
+			}
+		}
+
 		// For schema-dependent items, check schema folders
 		if (schemaName) {
 			// Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
