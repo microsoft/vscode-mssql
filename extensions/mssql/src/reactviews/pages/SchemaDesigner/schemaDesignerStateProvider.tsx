@@ -285,7 +285,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
     }, []);
 
-    // Handle bulk edits (vNext LM tool plumbing) from extension
+    // Handle bulk edits (schema designer LM tool) from extension
     useEffect(() => {
         registerSchemaDesignerApplyEditsHandler({
             isInitialized,

@@ -455,7 +455,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     /**
-     * Applies a batch of semantic schema edits in the webview (used by vNext LM tool).
+     * Applies a batch of semantic schema edits in the webview (used by the schema designer LM tool).
      * This method must never be treated as a transcript schema source; it is only used to compute receipts.
      */
     public async applyEdits(

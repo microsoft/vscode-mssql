@@ -26,7 +26,7 @@ import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/tel
 
 chai.use(sinonChai);
 
-suite("SchemaDesignerTool Tests (vNext)", () => {
+suite("SchemaDesignerTool Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockToken: vscode.CancellationToken;
