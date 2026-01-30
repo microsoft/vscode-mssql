@@ -280,6 +280,20 @@ suite('ProjectsController', function (): void {
 				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo'), 'Should return dbo folder when it exists').to.equal('dbo');
 			});
 
+			test('Should return DatabaseTriggers folder for database trigger regardless of schema', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, baselines.newSdkStyleProjectSdkNodeBaseline);
+
+				// Without DatabaseTriggers folder - should return empty
+				expect(projController.getDefaultFolderForItemType(ItemType.databaseTrigger, project, ''), 'Should return empty when DatabaseTriggers folder does not exist').to.equal('');
+
+				// Add DatabaseTriggers folder at root
+				await project.addFolder('DatabaseTriggers');
+
+				// With DatabaseTriggers folder - should return it (schema is ignored for database triggers)
+				expect(projController.getDefaultFolderForItemType(ItemType.databaseTrigger, project, ''), 'Should return DatabaseTriggers folder').to.equal('DatabaseTriggers');
+			});
+
 			test('Should parse schema and object name from user input', function (): void {
 				const projController = new ProjectsController(testContext.outputChannel);
 

@@ -109,6 +109,8 @@ declare module 'sqldbproj' {
 		postDeployScript = 'postDeployScript',
 		publishProfile = 'publishProfile',
 		tasks = 'tasks',
+		trigger = 'trigger',
+		databaseTrigger = 'databaseTrigger',
 	}
 
 	/**
