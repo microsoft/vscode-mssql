@@ -2354,7 +2354,7 @@ export class DacpacDialog {
 export class GlobalSearch {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Global Search - {0}",
+            message: "Global Search - {0} (Preview)",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
