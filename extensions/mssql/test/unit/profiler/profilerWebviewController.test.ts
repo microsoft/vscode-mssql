@@ -11,7 +11,12 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { ProfilerWebviewController } from "../../../src/profiler/profilerWebviewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
-import { SessionState, SessionType, EventRow } from "../../../src/profiler/profilerTypes";
+import {
+    SessionState,
+    SessionType,
+    EventRow,
+    TEMPLATE_ID_STANDARD_ONPREM,
+} from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
 import VscodeWrapper from "../../../src/controllers/vscodeWrapper";
 
@@ -147,7 +152,7 @@ suite("ProfilerWebviewController Tests", () => {
     function createController(
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
-        templateId: string = "Standard_OnPrem",
+        templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
     ): ProfilerWebviewController {
         return new ProfilerWebviewController(
             mockContext,
