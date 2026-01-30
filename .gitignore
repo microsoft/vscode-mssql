@@ -2,7 +2,7 @@
 out
 dist
 packages
-BuildDirectory
+**/BuildDirectory/*.*
 
 # Dependencies
 node_modules
