@@ -1211,6 +1211,10 @@
         <source xml:lang="en">Table</source>
         <target state="translated">Tabla</target>
       </trans-unit>
+      <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
+        <source xml:lang="en">Table-Valued Function</source>
+        <target state="new">Table-Valued Function</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b02abaa1e421efb6c10a960e3f128b0a641ea7cc47df22947c3f695cf1cb505">
         <source xml:lang="en">Target Database</source>
         <target state="translated">Base de datos de destino</target>
