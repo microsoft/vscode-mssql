@@ -245,7 +245,13 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         await this.waitForOngoingCreates();
 
+        // Check if the transfer active editor connections setting is enabled
+        const transferConnectionToOpenedDoc = vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configTransferActiveEditorConnections);
+
         if (
+            transferConnectionToOpenedDoc &&
             this._lastActiveConnectionInfo &&
             doc.languageId === Constants.languageId &&
             !this._ownedDocuments.has(doc)
