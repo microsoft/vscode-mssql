@@ -198,6 +198,33 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             });
         });
 
+        test("returns invalid_request when connectionId is unknown", async () => {
+            mockConnectionManager.getConnectionInfo.returns(undefined as any);
+
+            const options = {
+                input: {
+                    operation: "show",
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expect(parsedResult.message).to.equal(loc.noConnectionError(sampleConnectionId));
+            expect(showSchemaStub).to.not.have.been.called;
+            expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "show",
+                success: "false",
+                reason: "invalid_request",
+            });
+        });
+
         test("opens designer and returns a version (no schema)", async () => {
             const mockCredentials = {
                 database: sampleDatabase,
@@ -260,6 +287,54 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.success).to.be.false;
             expect(parsedResult.reason).to.equal("no_active_designer");
             expect(parsedResult.message).to.equal(loc.schemaDesignerNoActiveDesigner);
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("includeColumns=names returns only column names", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: { operation: "get_overview", options: { includeColumns: "names" } },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.overview.columnsOmitted).to.equal(false);
+            expect(parsedResult.overview.tables[0].columns[0]).to.deep.equal({ name: "OrderId" });
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("includeColumns=none returns no columns and columnsOmitted=false for small schemas", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: { operation: "get_overview", options: { includeColumns: "none" } },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.overview.columnsOmitted).to.equal(false);
+            expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
             expectNoSchemaDump(parsedResult);
         });
 
@@ -506,6 +581,88 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
     });
 
     suite("get_table", () => {
+        test("returns invalid_request when table ref is missing schema/name", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "get_table",
+                    payload: { table: { schema: "dbo" } as any },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns not_found when table id is unknown", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "get_table",
+                    payload: { table: { id: "does-not-exist" } as any },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("not_found");
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns ambiguous_identifier when schema+name matches more than one table", async () => {
+            const ambiguousSchema: SchemaDesigner.Schema = {
+                tables: [
+                    { id: "t1", schema: "dbo", name: "Dup", columns: [], foreignKeys: [] },
+                    { id: "t2", schema: "dbo", name: "Dup", columns: [], foreignKeys: [] },
+                ],
+            } as any;
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(ambiguousSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "get_table",
+                    payload: { table: { schema: "dbo", name: "Dup" } },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("ambiguous_identifier");
+            expectNoSchemaDump(parsedResult);
+        });
+
         test("returns not_found for unknown table ref", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
@@ -533,9 +690,173 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.database).to.equal(sampleDatabase);
             expectNoSchemaDump(parsedResult);
         });
+
+        test("supports includeForeignKeys + includeColumns=full", async () => {
+            const fkSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        id: "t1",
+                        schema: "dbo",
+                        name: "Parent",
+                        columns: [
+                            {
+                                id: "pc1",
+                                name: "Id",
+                                dataType: "int",
+                                maxLength: "",
+                                precision: 0,
+                                scale: 0,
+                                isPrimaryKey: true,
+                                isIdentity: false,
+                                identitySeed: 0,
+                                identityIncrement: 0,
+                                isNullable: false,
+                                defaultValue: "",
+                                isComputed: false,
+                                computedFormula: "",
+                                computedPersisted: false,
+                            },
+                        ],
+                        foreignKeys: [],
+                    },
+                    {
+                        id: "t2",
+                        schema: "dbo",
+                        name: "Child",
+                        columns: [
+                            {
+                                id: "cc1",
+                                name: "ParentId",
+                                dataType: "int",
+                                maxLength: "",
+                                precision: 0,
+                                scale: 0,
+                                isPrimaryKey: false,
+                                isIdentity: false,
+                                identitySeed: 0,
+                                identityIncrement: 0,
+                                isNullable: false,
+                                defaultValue: "",
+                                isComputed: false,
+                                computedFormula: "",
+                                computedPersisted: false,
+                            },
+                        ],
+                        foreignKeys: [
+                            {
+                                id: "fk1",
+                                name: "FK_Child_Parent",
+                                columns: ["ParentId"],
+                                referencedSchemaName: "dbo",
+                                referencedTableName: "Parent",
+                                referencedColumns: [],
+                                onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                                onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(fkSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "get_table",
+                    payload: { table: { schema: "dbo", name: "Child" } },
+                    options: { includeColumns: "full", includeForeignKeys: true },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const result = await schemaDesignerTool.call(options, mockToken);
+            const parsedResult = JSON.parse(result);
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.table.id).to.equal("t2");
+            expect(parsedResult.table.columns[0]).to.have.property("id", "cc1");
+            expect(parsedResult.table.foreignKeys[0]).to.have.property("id", "fk1");
+            expect(parsedResult.table.foreignKeys[0].mappings[0]).to.deep.equal({
+                column: "ParentId",
+                referencedColumn: undefined,
+            });
+            expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "get_table",
+                success: "true",
+            });
+            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
+                columnCount: 1,
+                foreignKeyCount: 1,
+            });
+        });
     });
 
     suite("apply_edits", () => {
+        test("returns invalid_request when expectedVersion is missing", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        edits: [{ op: "add_table", table: { schema: "dbo", name: "X" } }],
+                    },
+                },
+            } as any as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expectNoSchemaDump(parsedResult);
+        });
+
+        test("returns invalid_request when edits is missing/empty", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.getSchemaState.resolves(mockSchema);
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion: computeSchemaVersion(mockSchema),
+                        edits: [],
+                    },
+                },
+            } as any as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.false;
+            expect(parsedResult.reason).to.equal("invalid_request");
+            expectNoSchemaDump(parsedResult);
+        });
+
         test("returns target_mismatch when targetHint does not match active designer", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
@@ -774,6 +1095,131 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
                 appliedEdits: 1,
                 add_table_count: 1,
             });
+        });
+
+        test("includes per-edit op counts and summarizes all edit types", async () => {
+            const startSchema = mockSchema;
+            const expectedVersion = computeSchemaVersion(startSchema);
+
+            const edits: SchemaDesigner.SchemaDesignerEdit[] = [
+                { op: "add_table", table: { schema: "dbo", name: "T1" } } as any,
+                { op: "drop_table", table: { schema: "dbo", name: "Orders" } } as any,
+                {
+                    op: "set_table",
+                    table: { schema: "dbo", name: "Orders" },
+                    set: { name: "Orders2" },
+                } as any,
+                {
+                    op: "add_column",
+                    table: { schema: "dbo", name: "Orders" },
+                    column: { name: "NewCol", dataType: "int" },
+                } as any,
+                {
+                    op: "drop_column",
+                    table: { schema: "dbo", name: "Orders" },
+                    column: { name: "OrderId" },
+                } as any,
+                {
+                    op: "set_column",
+                    table: { schema: "dbo", name: "Orders" },
+                    column: { name: "OrderId" },
+                    set: { isNullable: true },
+                } as any,
+                {
+                    op: "add_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: {
+                        name: "FK_Orders_Parent",
+                        referencedTable: { schema: "dbo", name: "Parent" },
+                        mappings: [{ column: "OrderId", referencedColumn: "Id" }],
+                        onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                        onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                    },
+                } as any,
+                {
+                    op: "drop_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: { name: "FK_Orders_Parent" },
+                } as any,
+                {
+                    op: "set_foreign_key",
+                    table: { schema: "dbo", name: "Orders" },
+                    foreignKey: { name: "FK_Orders_Parent" },
+                    set: { name: "FK_Orders_Parent2" },
+                } as any,
+            ];
+
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => sampleServer);
+            sandbox.stub(mockDesigner as any, "database").get(() => sampleDatabase);
+            mockDesigner.revealToForeground = sandbox.stub() as any;
+            mockDesigner.getSchemaState.resolves(startSchema);
+            mockDesigner.applyEdits.resolves({
+                success: true,
+                appliedEdits: edits.length,
+                schema: startSchema,
+            });
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_edits",
+                    payload: {
+                        expectedVersion,
+                        edits,
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<SchemaDesignerToolParams>;
+
+            const parsedResult = JSON.parse(await schemaDesignerTool.call(options, mockToken));
+
+            expect(parsedResult.success).to.be.true;
+            expect(parsedResult.receipt.appliedEdits).to.equal(edits.length);
+            expect(parsedResult.receipt.changes.tablesAdded).to.have.length(1);
+            expect(parsedResult.receipt.changes.tablesDropped).to.have.length(1);
+            expect(parsedResult.receipt.changes.tablesUpdated).to.have.length(1);
+            expect(parsedResult.receipt.changes.columnsAdded).to.have.length(1);
+            expect(parsedResult.receipt.changes.columnsDropped).to.have.length(1);
+            expect(parsedResult.receipt.changes.columnsUpdated).to.have.length(1);
+            expect(parsedResult.receipt.changes.foreignKeysAdded).to.have.length(1);
+            expect(parsedResult.receipt.changes.foreignKeysDropped).to.have.length(1);
+            expect(parsedResult.receipt.changes.foreignKeysUpdated).to.have.length(1);
+            expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
+                editsCount: edits.length,
+                appliedEdits: edits.length,
+                add_table_count: 1,
+                drop_table_count: 1,
+                set_table_count: 1,
+                add_column_count: 1,
+                drop_column_count: 1,
+                set_column_count: 1,
+                add_foreign_key_count: 1,
+                drop_foreign_key_count: 1,
+                set_foreign_key_count: 1,
+            });
+        });
+    });
+
+    suite("prepareInvocation", () => {
+        test("returns invocation and confirmation messages", async () => {
+            const options = {
+                input: {
+                    operation: "get_overview",
+                },
+            } as any as vscode.LanguageModelToolInvocationPrepareOptions<SchemaDesignerToolParams>;
+
+            const prepared = await schemaDesignerTool.prepareInvocation(options, mockToken);
+
+            expect(prepared.invocationMessage).to.be.a("string");
+            expect(prepared.confirmationMessages.title).to.be.a("string");
+            expect(prepared.confirmationMessages.message).to.be.instanceOf(vscode.MarkdownString);
         });
     });
 });

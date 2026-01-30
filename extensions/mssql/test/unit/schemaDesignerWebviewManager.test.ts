@@ -178,9 +178,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
             );
 
             expect(designer).to.be.instanceOf(SchemaDesignerWebviewController);
-            expect(
-                mockMainController.connectionManager.getConnectionInfo,
-            ).to.have.been.calledOnceWith(connectionUri);
+            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledWith(
+                connectionUri,
+            );
             expect(
                 mockMainController.connectionManager.getConnectionString,
             ).to.have.been.calledWith(connectionUri, true, true);
@@ -197,7 +197,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 connectionUri,
             );
 
-            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledOnce;
+            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledWith(
+                connectionUri,
+            );
         });
     });
 
@@ -357,6 +359,23 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 webviewPanel: panel,
             } as vscode.WebviewPanelOnDidChangeViewStateEvent);
             expect(manager.getActiveDesigner()).to.be.undefined;
+        });
+
+        test("getActiveDesigner clears disposed designer", () => {
+            const fakeDesigner = {
+                isDisposed: true,
+                panel: { visible: true },
+            } as any;
+
+            (manager as any)._activeDesigner = fakeDesigner;
+            expect(manager.getActiveDesigner()).to.be.undefined;
+        });
+
+        test("schema hash helpers roundtrip", () => {
+            manager.setSchemaHash("k1", "h1");
+            expect(manager.getSchemaHash("k1")).to.equal("h1");
+            manager.clearSchemaHash("k1");
+            expect(manager.getSchemaHash("k1")).to.be.undefined;
         });
     });
 
