@@ -903,28 +903,6 @@ export class ProjectsController {
 	}
 
 	/**
-	 * Parses a schema-qualified object name (e.g., "sales.MyFunction") into schema and object name parts.
-	 * If no schema is specified, returns 'dbo' as the default schema.
-	 * @param input The user-provided object name, optionally schema-qualified
-	 * @returns An object containing the schema name and object name
-	 */
-	public parseSchemaAndObjectName(input: string): { schemaName: string; objectName: string } {
-		const dotIndex = input.indexOf('.');
-		if (dotIndex > 0 && dotIndex < input.length - 1) {
-			// Format: schema.objectName
-			return {
-				schemaName: input.substring(0, dotIndex),
-				objectName: input.substring(dotIndex + 1)
-			};
-		}
-		// No schema specified, use default schema
-		return {
-			schemaName: constants.defaultSchemaName,
-			objectName: input
-		};
-	}
-
-	/**
 	 * Gets the default folder path for a given item type when creating at project root.
 	 * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
 	 * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
