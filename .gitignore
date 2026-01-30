@@ -2,7 +2,9 @@
 out
 dist
 packages
-BuildDirectory
+# Ignore BuildDirectory contents (downloaded DLLs) but track SystemDacpacs
+BuildDirectory/*
+!BuildDirectory/SystemDacpacs/
 
 # Dependencies
 node_modules
