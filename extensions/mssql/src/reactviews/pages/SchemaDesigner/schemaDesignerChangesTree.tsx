@@ -127,7 +127,7 @@ const useStyles = makeStyles({
             "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 25%, transparent)",
     },
     actionBadgeButton: {
-        minWidth: "auto",
+        minWidth: "20px",
         height: "auto",
         padding: 0,
         borderRadius: "3px",
@@ -159,7 +159,7 @@ const useStyles = makeStyles({
         },
     },
     actionBadgeButtonWithBg: {
-        padding: "2px",
+        padding: "2px 4px",
         "&:disabled, &[disabled]": {
             opacity: 1,
             color: "inherit",
@@ -192,12 +192,16 @@ const useStyles = makeStyles({
     },
     changeSummary: {
         display: "flex",
-        gap: "6px",
+        gap: "4px",
         fontSize: "11px",
         fontWeight: 600,
+        alignItems: "center",
+    },
+    changeSummaryBadge: {
+        minWidth: "20px",
+        textAlign: "right",
     },
     tableHeaderBase: {
-        borderRadius: "6px",
         padding: "2px 0",
     },
     tableHeaderAdded: {
@@ -317,12 +321,20 @@ export const SchemaDesignerChangesTree = ({
         }
         return (
             <span className={classes.changeSummary}>
-                {counts.add > 0 && <span className={classes.iconAdded}>{counts.add} A</span>}
+                {counts.add > 0 && (
+                    <span className={mergeClasses(classes.iconAdded, classes.changeSummaryBadge)}>
+                        {counts.add} A
+                    </span>
+                )}
                 {counts.modify > 0 && (
-                    <span className={classes.iconModified}>{counts.modify} M</span>
+                    <span className={mergeClasses(classes.iconModified, classes.changeSummaryBadge)}>
+                        {counts.modify} M
+                    </span>
                 )}
                 {counts.delete > 0 && (
-                    <span className={classes.iconDeleted}>{counts.delete} D</span>
+                    <span className={mergeClasses(classes.iconDeleted, classes.changeSummaryBadge)}>
+                        {counts.delete} D
+                    </span>
                 )}
             </span>
         );

@@ -40,7 +40,7 @@ export const SchemaDesignerChangesPanel = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
     const panelRef = useRef<ImperativePanelHandle | undefined>(undefined);
-    const { setIsChangesPanelVisible } = context;
+    const { setIsChangesPanelVisible, setShowChangesHighlight } = context;
 
     const [searchText, setSearchText] = useState("");
     const [openItems, setOpenItems] = useState<Set<TreeItemValue>>(new Set());
@@ -62,9 +62,11 @@ export const SchemaDesignerChangesPanel = () => {
             if (panelRef.current.isCollapsed()) {
                 panelRef.current.expand(DEFAULT_PANEL_SIZE);
                 setIsChangesPanelVisible(true);
+                setShowChangesHighlight(true);
             } else {
                 panelRef.current.collapse();
                 setIsChangesPanelVisible(false);
+                setShowChangesHighlight(false);
             }
         };
 
@@ -73,7 +75,7 @@ export const SchemaDesignerChangesPanel = () => {
             eventBus.off("toggleChangesPanel", toggle);
             setIsChangesPanelVisible(false);
         };
-    }, [setIsChangesPanelVisible]);
+    }, [setIsChangesPanelVisible, setShowChangesHighlight]);
 
     const filteredGroups = useMemo(() => {
         if (!context.schemaChangesSummary?.groups) {
@@ -285,6 +287,7 @@ export const SchemaDesignerChangesPanel = () => {
                     onClose={() => {
                         panelRef.current?.collapse();
                         setIsChangesPanelVisible(false);
+                        setShowChangesHighlight(false);
                     }}
                 />
 

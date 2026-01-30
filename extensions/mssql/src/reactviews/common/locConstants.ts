@@ -947,6 +947,8 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            highlightChanges: l10n.t("Highlight Changes"),
+            hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
                 l10n.t({
                     message: "Changes ({0})",
