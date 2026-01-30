@@ -27,7 +27,6 @@ import {
     compare,
     generateScript,
     generateOperationId,
-    getDefaultOptions,
     includeExcludeNode,
     openScmp,
     publishDatabaseChanges,
@@ -43,7 +42,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
@@ -99,7 +97,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
-                defaultDeploymentOptionsResult: schemaCompareOptionsResult,
+                defaultDeploymentOptionsResult: structuredClone(schemaCompareOptionsResult),
                 intermediaryOptionsResult: undefined,
                 endpointsSwitched: false,
                 auxiliaryEndpointInfo: undefined,
@@ -758,7 +756,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.verbose(
                 `Setting intermediary schema options - OperationId: ${this.operationId}`,
             );
-            state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+            state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
             this.logger.info(
                 `Cloned deployment options for editing - OperationId: ${this.operationId}`,
             );
@@ -839,7 +837,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Confirming schema comparison options - OperationId: ${this.operationId}`,
             );
 
-            state.defaultDeploymentOptionsResult.defaultDeploymentOptions = deepClone(
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions = structuredClone(
                 state.intermediaryOptionsResult.defaultDeploymentOptions,
             );
             this.logger.verbose(
@@ -1522,36 +1520,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
-            try {
-                const result = await getDefaultOptions(this.schemaCompareService);
-                this.logger.verbose(
-                    `Retrieved default options from schema compare service - OperationId: ${this.operationId}`,
-                );
+            state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
+            this.logger.info(`Reset options to defaults - OperationId: ${this.operationId}`);
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-
-                state.intermediaryOptionsResult = deepClone(result);
-                this.logger.info(`Reset options to defaults - OperationId: ${this.operationId}`);
-                this.updateState(state);
-            } catch (error) {
-                this.logger.error(
-                    `Failed to reset options: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error(`Failed to reset options: ${getErrorMessage(error)}`),
-                    true,
-                    undefined,
-                    undefined,
-                    {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                    },
-                );
-            }
+            endActivity.end(ActivityStatus.Succeeded, {
+                elapsedTime: (Date.now() - startTime).toString(),
+                operationId: this.operationId,
+            });
 
             return state;
         });
@@ -2048,7 +2023,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 result.deploymentOptions;
 
             // Update intermediaryOptionsResult to ensure UI reflects loaded options
-            state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+            state.intermediaryOptionsResult = structuredClone(state.defaultDeploymentOptionsResult);
 
             this.logger.info(
                 `Loading excluded elements - source: ${result.excludedSourceElements?.length || 0}, target: ${result.excludedTargetElements?.length || 0} - OperationId: ${this.operationId}`,
