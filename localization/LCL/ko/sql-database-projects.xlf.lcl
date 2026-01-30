@@ -1873,15 +1873,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Project]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[프로젝트]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++98a2edd8ece1e8c17c93a67d5556a7c86cadc90fa3f4549a4b824cf43919bd3e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unknown data source type: ]]></Val>
@@ -1932,6 +1923,15 @@
           <Val><![CDATA[Downloading {0} nuget to get build DLLs ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[빌드 DLL을 가져오기 위해 {0} nuget 다운로드 ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Project (.sqlproj)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프로젝트(.sqlproj)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
