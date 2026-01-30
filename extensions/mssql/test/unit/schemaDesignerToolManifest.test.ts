@@ -9,7 +9,7 @@ import * as path from "path";
 
 suite("Schema Designer LM tool manifest schema", () => {
     test("mssql_schema_designer edits use op-specific oneOf schemas", () => {
-        const packageJsonPath = path.join(__dirname, "..", "..", "package.json");
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
         const tool = (packageJson.contributes?.languageModelTools ?? []).find(
