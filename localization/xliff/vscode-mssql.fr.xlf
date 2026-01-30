@@ -2442,9 +2442,9 @@ Erreur :
         <source xml:lang="en">Existing File</source>
         <target state="new">Existing File</target>
       </trans-unit>
-      <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
-        <source xml:lang="en">Existing SQL server</source>
-        <target state="translated">Serveur SQL existant</target>
+      <trans-unit id="++CODE++a0baf048fc70b962b423e80885feddf2c187a9065862349721b834f31b083029">
+        <source xml:lang="en">Existing SQL Server</source>
+        <target state="new">Existing SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
@@ -4099,6 +4099,10 @@ Erreur :
         <source xml:lang="en">New Index</source>
         <target state="translated">Nouvel index</target>
       </trans-unit>
+      <trans-unit id="++CODE++46a4cd170a1f296ad0457b5f1a01d4daa1c42d2b22e4a70ef46d1e137ca197de">
+        <source xml:lang="en">New Local Docker SQL Server</source>
+        <target state="new">New Local Docker SQL Server</target>
+      </trans-unit>
       <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">Le nouveau compte Microsoft Entra n’a pas pu être ajouté.</target>
@@ -4106,10 +4110,6 @@ Erreur :
       <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
         <source xml:lang="en">New Password</source>
         <target state="translated">Nouveau mot de passe</target>
-      </trans-unit>
-      <trans-unit id="++CODE++652b81589c6b1b34e452b1d3a3f326e1b3796877eca3c750be3e84412a6d9777">
-        <source xml:lang="en">New SQL Server Local development container</source>
-        <target state="translated">Nouveau conteneur de développement local SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -4857,6 +4857,11 @@ Erreur :
       <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
         <source xml:lang="en">Publish Project (Preview)</source>
         <target state="translated">Publier un projet (préversion)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++71aa5c7a75828ce61b76e517dd10ea3c23ff9149be8b5fb6006ccb9f784bd38c">
+        <source xml:lang="en">Publish Project - {0}</source>
+        <note>{0} is the name of the project being published</note>
+        <target state="new">Publish Project - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
