@@ -16,7 +16,7 @@ import {
     Text,
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { BackupDatabaseContext, BackupDatabaseProvider } from "./backupDatabaseStateProvider";
+import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
 import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
@@ -28,7 +28,6 @@ import { url } from "../../../common/constants";
 import { azureLogoColor } from "../../ConnectionDialog/azureBrowsePage";
 import { BackupFileCard } from "./backupFileCard";
 import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
-import { useObjectManagementSelector } from "../objectManagementSelector";
 import {
     ObjectManagementFormItemSpec,
     ObjectManagementFormState,
@@ -45,17 +44,15 @@ const useStyles = makeStyles({
         padding: "8px",
         whiteSpace: "nowrap",
         width: "650px",
+        overflow: "auto",
     },
     button: {
         height: "32px",
-        width: "160px",
+        width: "120px",
     },
     bottomDiv: {
         marginTop: "auto",
         paddingBottom: "50px",
-    },
-    formDiv: {
-        flexGrow: 1,
     },
     header: {
         display: "flex",
@@ -122,19 +119,17 @@ export interface BackupFormProps {
 export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
+    const state = context?.state;
 
-    if (!context) {
-        return;
+    if (!context || !state) {
+        return null;
     }
 
-    const state = useObjectManagementSelector((state) => state);
-    const backupViewModel = useObjectManagementSelector(
-        (state) => state.viewModel.model as BackupDatabaseViewModel,
-    );
+    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
 
     const formStyles = useFormStyles();
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-    const formComponents = useObjectManagementSelector((state) => state.formComponents);
+    const formComponents = state.formComponents;
 
     const renderFormFields = () =>
         Object.values(formComponents)
@@ -158,7 +153,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,
-                        BackupDatabaseProvider
+                        BackupDatabaseContextProps
                     >
                         context={context}
                         component={component}
@@ -196,7 +191,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             ObjectManagementFormState,
                             ObjectManagementWebviewState,
                             ObjectManagementFormItemSpec,
-                            BackupDatabaseProvider
+                            BackupDatabaseContextProps
                         >
                             context={context}
                             component={component}
@@ -251,7 +246,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,
-                        BackupDatabaseProvider
+                        BackupDatabaseContextProps
                     >
                         context={context}
                         component={component}
@@ -264,7 +259,8 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
 
         const azureComponents = Object.keys(backupViewModel.azureComponentStatuses);
         const azureComponentToLoad = azureComponents.find(
-            (component) => backupViewModel.azureComponentStatuses[component] === ApiStatus.NotStarted,
+            (component) =>
+                backupViewModel.azureComponentStatuses[component] === ApiStatus.NotStarted,
         );
         if (azureComponentToLoad) {
             context.loadAzureComponent(azureComponentToLoad);
@@ -279,7 +275,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
 
     return (
         <div className={classes.outerDiv}>
-            <div className={classes.formDiv}>
+            <div>
                 <div className={classes.header}>
                     <Image
                         style={{

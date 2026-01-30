@@ -207,6 +207,7 @@ export enum TelemetryActions {
     StartBackup = "StartBackup",
     Backup = "Backup",
     ScriptBackup = "ScriptBackup",
+    FinishBackup = "FinishBackup",
 }
 
 /**

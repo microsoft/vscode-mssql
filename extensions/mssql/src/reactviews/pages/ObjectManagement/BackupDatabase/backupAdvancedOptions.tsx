@@ -20,14 +20,13 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
 import { FormField } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
-import { BackupDatabaseContext, BackupDatabaseProvider } from "./backupDatabaseStateProvider";
+import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
+import { BackupDatabaseViewModel, BackupType, MediaSet } from "../../../../sharedInterfaces/backup";
 import {
-    BackupDatabaseViewModel,
-    BackupType,
-    MediaSet,
-} from "../../../../sharedInterfaces/backup";
-import { useObjectManagementSelector } from "../objectManagementSelector";
-import { ObjectManagementFormItemSpec, ObjectManagementFormState, ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
+    ObjectManagementFormItemSpec,
+    ObjectManagementFormState,
+    ObjectManagementWebviewState,
+} from "../../../../sharedInterfaces/objectManagement";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -37,19 +36,17 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(BackupDatabaseContext);
+    const state = context?.state;
+
+    if (!context || !state) {
+        return;
+    }
+
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>([]);
     const accordionStyles = useAccordionStyles();
 
-    if (!context) {
-        return;
-    }
-
-    const state = useObjectManagementSelector((state) => state);
-
-    const backupViewModel = useObjectManagementSelector(
-        (state) => state.viewModel.model as BackupDatabaseViewModel,
-    );
+    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
 
     const advancedOptionsByGroup: Record<string, ObjectManagementFormItemSpec[]> = Object.values(
         state.formComponents,
@@ -178,7 +175,7 @@ export const AdvancedOptionsDrawer = ({
                                                                 ObjectManagementFormState,
                                                                 ObjectManagementWebviewState,
                                                                 ObjectManagementFormItemSpec,
-                                                                BackupDatabaseProvider
+                                                                BackupDatabaseContextProps
                                                             >
                                                                 key={idx}
                                                                 context={context}

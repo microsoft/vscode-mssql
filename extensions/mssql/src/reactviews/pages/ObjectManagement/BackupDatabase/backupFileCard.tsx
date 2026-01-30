@@ -13,7 +13,6 @@ import {
     DocumentEdit24Regular,
 } from "@fluentui/react-icons";
 import { BackupDatabaseViewModel, BackupFile } from "../../../../sharedInterfaces/backup";
-import { useObjectManagementSelector } from "../objectManagementSelector";
 
 const useStyles = makeStyles({
     cardDiv: {
@@ -59,19 +58,18 @@ export const BackupFileCard = ({
 }) => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
+    const state = context?.state;
 
-    if (!context) {
-        return;
+    if (!context || !state) {
+        return null;
     }
 
-    const state = useObjectManagementSelector(
-        (state) => state.viewModel.model as BackupDatabaseViewModel,
-    );
+    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
 
     const getFileNameErrorMessage = (filePath: string) => {
         const fileName = getFileNameFromPath(filePath);
         if (fileName.trim() === "") return locConstants.backupDatabase.fileNameRequired;
-        const files = state.backupFiles.filter((file) => file.filePath === filePath);
+        const files = backupViewModel.backupFiles.filter((file) => file.filePath === filePath);
         return files.length <= 1 ? "" : locConstants.backupDatabase.chooseUniqueFile;
     };
 
@@ -161,7 +159,7 @@ export const BackupFileCard = ({
                                 value={getFileNameFromPath(file.filePath)}
                                 onChange={(e) => {
                                     const newPath = `${getFolderNameFromPath(
-                                        state.backupFiles[index].filePath,
+                                        backupViewModel.backupFiles[index].filePath,
                                     )}/${e.target.value}`;
 
                                     context.handleFileChange(index, e.target.value, false);

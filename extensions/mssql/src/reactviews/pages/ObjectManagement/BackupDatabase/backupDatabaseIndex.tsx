@@ -3,22 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FluentProvider } from "@fluentui/react-components";
-import { VscodeWebviewProvider2 } from "../../../common/vscodeWebviewProvider2";
 import "../../../index.css";
 import { createRoot } from "react-dom/client";
 import { BackupDatabaseDialogPage } from "./backupDatabaseDialogPage";
 import { BackupDatabaseStateProvider } from "./backupDatabaseStateProvider";
+import { VscodeWebviewProvider } from "../../../common/vscodeWebviewProvider";
 
 const App = () => {
     return (
-        <VscodeWebviewProvider2>
+        <VscodeWebviewProvider>
             <BackupDatabaseStateProvider>
-                <FluentProvider>
-                    <BackupDatabaseDialogPage />;
-                </FluentProvider>
+                <BackupDatabaseDialogPage />
             </BackupDatabaseStateProvider>
-        </VscodeWebviewProvider2>
+        </VscodeWebviewProvider>
     );
 };
 

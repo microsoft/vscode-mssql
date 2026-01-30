@@ -15,7 +15,6 @@ import {
     ObjectManagementCancelNotification,
     ObjectManagementHelpNotification,
 } from "../../../../sharedInterfaces/objectManagement";
-import { useObjectManagementSelector } from "../objectManagementSelector";
 import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { url } from "../../../common/constants";
 
@@ -24,8 +23,6 @@ const useStyles = makeStyles({
         height: "100%",
         width: "100%",
         position: "relative",
-        overflowY: "auto",
-        overflowX: "unset",
     },
     spinnerDiv: {
         height: "100%",
@@ -45,10 +42,10 @@ const useStyles = makeStyles({
 export const BackupDatabaseDialogPage = () => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
-    const state = useObjectManagementSelector((state) => state);
+    const state = context?.state;
 
     if (!context || !state) {
-        return;
+        return null;
     }
 
     const [fileErrors, setFileErrors] = useState<number[]>([]);
@@ -116,12 +113,12 @@ export const BackupDatabaseDialogPage = () => {
                             context.openBackupScript();
                         }}
                         onHelp={() => {
-                            void context?.extensionRpc?.sendNotification(
+                            void context?.extensionRpc.sendNotification(
                                 ObjectManagementHelpNotification.type,
                             );
                         }}
                         onCancel={() => {
-                            void context?.extensionRpc?.sendNotification(
+                            void context?.extensionRpc.sendNotification(
                                 ObjectManagementCancelNotification.type,
                             );
                         }}>

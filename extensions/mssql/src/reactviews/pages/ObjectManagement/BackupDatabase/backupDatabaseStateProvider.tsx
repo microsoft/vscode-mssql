@@ -3,84 +3,64 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextProps, FormEvent } from "../../../../sharedInterfaces/form";
 import { ReactNode, createContext } from "react";
-import { ObjectManagementReactProvider } from "../objectManagementStateProvider";
+import { BackupDatabaseProvider } from "../../../../sharedInterfaces/backup";
+import { getCoreRPCs } from "../../../common/utils";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
-    ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
     ObjectManagementReducers,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../../common/utils";
+import { WebviewRpc } from "../../../common/rpc";
 
-export interface BackupDatabaseProvider
-    extends ObjectManagementReactProvider,
-        FormContextProps<
-            ObjectManagementFormState,
-            ObjectManagementWebviewState,
-            ObjectManagementFormItemSpec
-        > {
-    formAction(event: FormEvent<ObjectManagementFormState>): void;
-    backupDatabase(): void;
-    openBackupScript(): void;
-    setSaveLocation(saveToUrl: boolean): void;
-    removeBackupFile(filePath: string): void;
-    openFileBrowser(
-        ownerUri: string,
-        expandPath: string,
-        fileFilters: string[],
-        changeFilter: boolean,
-        showFoldersOnly: boolean,
-    ): void;
-    expandNode(ownerUri: string, nodePath: string): void;
-    submitFilePath(selectedPath: string): void;
-    closeFileBrowser(ownerUri: string): void;
-    toggleFileBrowserDialog(foldersOnly: boolean, shouldOpen: boolean): void;
-    handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
-    loadAzureComponent(componentName: string): void;
+export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
+    extensionRpc: WebviewRpc<ObjectManagementReducers>;
 }
 
-const BackupDatabaseContext = createContext<BackupDatabaseProvider | undefined>(undefined);
+const BackupDatabaseContext = createContext<BackupDatabaseContextProps | undefined>(undefined);
 
 interface BackupDatabaseProviderProps {
     children: ReactNode;
 }
 
 const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
-    const { extensionRpc, getSnapshot, themeKind, keyBindings } = useVscodeWebview2<
-        ObjectManagementWebviewState,
-        ObjectManagementReducers
-    >();
+    const webviewState = useVscodeWebview<ObjectManagementWebviewState, ObjectManagementReducers>();
 
     return (
         <BackupDatabaseContext.Provider
             value={{
-                extensionRpc,
-                ...getCoreRPCs2(extensionRpc),
-                state: getSnapshot(),
-                themeKind,
-                keyBindings,
+                extensionRpc: webviewState!.extensionRpc,
+                state: webviewState?.state as any,
+                themeKind: webviewState?.themeKind,
+                keyBindings: webviewState?.keyBindings,
+                ...getCoreRPCs(webviewState),
                 formAction(event) {
-                    extensionRpc.action("formAction", {
-                        event: event as FormEvent<ObjectManagementFormState>,
+                    webviewState?.extensionRpc.action("formAction", { event });
+                },
+                backupDatabase: function (): void {
+                    webviewState?.extensionRpc.action("backupDatabase", {});
+                },
+                openBackupScript: function (): void {
+                    webviewState?.extensionRpc.action("openBackupScript", {});
+                },
+                setSaveLocation: function (saveToUrl: boolean): void {
+                    webviewState?.extensionRpc.action("setSaveLocation", {
+                        saveToUrl,
                     });
                 },
-                backupDatabase() {
-                    extensionRpc.action("backupDatabase", {});
+                removeBackupFile: function (filePath: string): void {
+                    webviewState?.extensionRpc.action("removeBackupFile", {
+                        filePath,
+                    });
                 },
-                openBackupScript() {
-                    extensionRpc.action("openBackupScript", {});
-                },
-                setSaveLocation(saveToUrl) {
-                    extensionRpc.action("setSaveLocation", { saveToUrl });
-                },
-                removeBackupFile(filePath) {
-                    extensionRpc.action("removeBackupFile", { filePath });
-                },
-                openFileBrowser(ownerUri, expandPath, fileFilters, changeFilter, showFoldersOnly) {
-                    extensionRpc.action("openFileBrowser", {
+                openFileBrowser: function (
+                    ownerUri: string,
+                    expandPath: string,
+                    fileFilters: string[],
+                    changeFilter: boolean,
+                    showFoldersOnly: boolean,
+                ): void {
+                    webviewState?.extensionRpc.action("openFileBrowser", {
                         ownerUri,
                         expandPath,
                         fileFilters,
@@ -88,37 +68,37 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         showFoldersOnly,
                     });
                 },
-                expandNode(ownerUri, nodePath) {
-                    extensionRpc.action("expandNode", {
+                expandNode(ownerUri: string, nodePath: string): void {
+                    webviewState?.extensionRpc.action("expandNode", {
                         ownerUri,
                         nodePath,
                     });
                 },
-                submitFilePath(selectedPath) {
-                    extensionRpc.action("submitFilePath", {
+                submitFilePath(selectedPath: string): void {
+                    webviewState?.extensionRpc.action("submitFilePath", {
                         selectedPath,
                     });
                 },
-                closeFileBrowser(ownerUri) {
-                    extensionRpc.action("closeFileBrowser", {
+                closeFileBrowser(ownerUri: string): void {
+                    webviewState?.extensionRpc.action("closeFileBrowser", {
                         ownerUri,
                     });
                 },
-                toggleFileBrowserDialog(foldersOnly, shouldOpen) {
-                    extensionRpc.action("toggleFileBrowserDialog", {
+                toggleFileBrowserDialog(foldersOnly: boolean, shouldOpen: boolean): void {
+                    webviewState?.extensionRpc.action("toggleFileBrowserDialog", {
                         foldersOnly,
                         shouldOpen,
                     });
                 },
-                handleFileChange(index, newValue, isFolderChange) {
-                    extensionRpc.action("handleFileChange", {
+                handleFileChange(index: number, newValue: string, isFolderChange: boolean): void {
+                    webviewState?.extensionRpc.action("handleFileChange", {
                         index,
                         newValue,
                         isFolderChange,
                     });
                 },
-                loadAzureComponent(componentName) {
-                    extensionRpc.action("loadAzureComponent", {
+                loadAzureComponent(componentName: string): void {
+                    webviewState?.extensionRpc.action("loadAzureComponent", {
                         componentName,
                     });
                 },

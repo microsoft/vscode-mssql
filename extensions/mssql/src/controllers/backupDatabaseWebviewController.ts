@@ -183,6 +183,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
                 if (includesBackupLocation) {
                     this.panel.dispose();
                     this.dispose();
+                    sendActionEvent(TelemetryViews.Backup, TelemetryActions.FinishBackup);
                 }
             }
         });
@@ -190,8 +191,9 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         sendActionEvent(TelemetryViews.Backup, TelemetryActions.StartBackup);
 
         this.registerBackupRpcHandlers();
-        this.updateState();
         backupModel.loadState = ApiStatus.Loaded;
+
+        this.updateState();
     }
 
     protected get helpLink(): string {

@@ -101,10 +101,12 @@ export const ObjectManagementDialog = ({
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.content}>
-                <div className={styles.header}>
-                    {title && <div className={styles.title}>{title}</div>}
-                    {description && <div className={styles.description}>{description}</div>}
-                </div>
+                {title || description ? (
+                    <div className={styles.header}>
+                        {title && <div className={styles.title}>{title}</div>}
+                        {description && <div className={styles.description}>{description}</div>}
+                    </div>
+                ) : null}
                 {errorMessage && (
                     <MessageBar intent={"error"}>
                         <MessageBarBody>{errorMessage}</MessageBarBody>
