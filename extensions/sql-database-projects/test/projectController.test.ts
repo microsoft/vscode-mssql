@@ -216,6 +216,22 @@ suite('ProjectsController', function (): void {
 				}
 			});
 
+			test('Should return default folder for item type only when folder exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
+
+				// Without folders - all should return empty string (root level)
+				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal('', 'Schema should return empty when Security folder does not exist');
+				should(projController.getDefaultFolderForItemType(ItemType.table, project)).equal('', 'Table should not have a default folder');
+				should(projController.getDefaultFolderForItemType(ItemType.view, project)).equal('', 'View should not have a default folder');
+
+				// Add Security folder to project
+				await project.addFolder(constants.securityFolderName);
+
+				// With Security folder - Schema should return Security, others unchanged
+				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal(constants.securityFolderName, 'Schema should return Security folder when it exists');
+			});
+
 			test('Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true', async function (): Promise<void> {
 				const projController = new ProjectsController(testContext.outputChannel);
 				const projFileDir = await testUtils.generateTestFolderPath(this.test);
