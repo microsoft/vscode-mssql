@@ -64,9 +64,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("8px"),
-        minHeight: 0,
-        flexShrink: 1,
-        overflow: "hidden",
     },
     schemaSectionHeader: {
         display: "flex",
@@ -81,8 +78,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("4px"),
-        overflowY: "auto",
-        maxHeight: "200px",
     },
 });
 
