@@ -1290,6 +1290,12 @@ export class LocConstants {
     public get publishProject() {
         return {
             publishProject: l10n.t("Publish Project"),
+            publishProjectTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Publish Project - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the project being published"],
+                }),
             SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),

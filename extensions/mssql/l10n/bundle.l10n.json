@@ -863,6 +863,10 @@
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project": "Publish Project",
+    "Publish Project - {0}/{0} is the name of the project being published": {
+        "message": "Publish Project - {0}",
+        "comment": ["{0} is the name of the project being published"]
+    },
     "Select Profile": "Select Profile",
     "Save As...": "Save As...",
     "Advanced Publish Options": "Advanced Publish Options",
@@ -1963,8 +1967,8 @@
     "Save As": "Save As",
     "Publish Settings File": "Publish Settings File",
     "Publish Target": "Publish Target",
-    "Existing SQL server": "Existing SQL server",
-    "New SQL Server Local development container": "New SQL Server Local development container",
+    "Existing SQL Server": "Existing SQL Server",
+    "New Local Docker SQL Server": "New Local Docker SQL Server",
     "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
     "Build {0}": "Build {0}",
     "Building {0}...": "Building {0}...",
