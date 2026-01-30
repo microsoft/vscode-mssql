@@ -910,6 +910,32 @@ suite("SchemaDesigner revert logic", () => {
             expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
         });
 
+        test("prevents reverting FK modification when referenced table no longer exists", () => {
+            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
+            currentSchema.tables[0].name = "members"; // Rename users table
+
+            const fkModifyChange: SchemaChange = {
+                id: "foreignKey:modify:table-orders:fk-orders-users",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.ForeignKey,
+                tableId: "table-orders",
+                tableName: "orders",
+                tableSchema: "dbo",
+                objectId: "fk-orders-users",
+                objectName: "FK_orders_users",
+            };
+
+            const result = canRevertChange(
+                fkModifyChange,
+                baselineSchema,
+                currentSchema,
+                [fkModifyChange],
+                testRevertMessages,
+            );
+            expect(result.canRevert).to.equal(false);
+            expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
+        });
+
         test("allows reverting FK deletion when referenced table and columns exist", () => {
             // Current schema with all tables and columns intact, just FK removed
             const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
@@ -934,6 +960,32 @@ suite("SchemaDesigner revert logic", () => {
                 testRevertMessages,
             );
             expect(result.canRevert).to.equal(true);
+        });
+
+        test("prevents reverting FK modification when referenced table no longer exists", () => {
+            const currentSchema: SchemaState = deepClone({ tables: baselineSchema.tables });
+            currentSchema.tables[0].name = "members"; // Rename users table
+
+            const fkModifyChange: SchemaChange = {
+                id: "foreignKey:modify:table-orders:fk-orders-users",
+                action: ChangeAction.Modify,
+                category: ChangeCategory.ForeignKey,
+                tableId: "table-orders",
+                tableName: "orders",
+                tableSchema: "dbo",
+                objectId: "fk-orders-users",
+                objectName: "FK_orders_users",
+            };
+
+            const result = canRevertChange(
+                fkModifyChange,
+                baselineSchema,
+                currentSchema,
+                [fkModifyChange],
+                testRevertMessages,
+            );
+            expect(result.canRevert).to.equal(false);
+            expect(result.reason).to.equal(testRevertMessages.cannotRevertForeignKey);
         });
 
         test("allows reverting column deletion even when a related FK was deleted", () => {

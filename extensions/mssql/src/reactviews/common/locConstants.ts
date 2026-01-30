@@ -741,6 +741,26 @@ export class LocConstants {
                     args: [tableName],
                     comment: ["{0} is the table name"],
                 }),
+            schemaDesignerNotInitialized: l10n.t("Schema designer is not initialized."),
+            invalidTablePayload: l10n.t(
+                "Invalid table payload. Expected table with columns array.",
+            ),
+            failedToAddTable: l10n.t("Failed to add table."),
+            failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToDeleteTable: l10n.t("Failed to delete table."),
+            tableIdAlreadyExists: l10n.t("Table id already exists."),
+            foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
+            foreignKeyMappingLengthMismatch: l10n.t(
+                "Foreign key column mappings must be the same length.",
+            ),
+            invalidForeignKey: l10n.t("Invalid foreign key."),
+            tableMustHaveColumns: l10n.t("Table must include at least one column."),
+            schemaNotAvailable: (schema: string) =>
+                l10n.t({
+                    message: "Schema '{0}' is not available.",
+                    args: [schema],
+                    comment: ["{0} is the schema name"],
+                }),
             referencedTableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Referenced table '{0}' not found",
@@ -1087,12 +1107,13 @@ export class LocConstants {
                         comment: ["{0} is the number of changes"],
                     }),
             },
+
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
-            both: l10n.t("Both"),
+            mcp: l10n.t("MCP"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>
@@ -1108,8 +1129,8 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            viewConfig: l10n.t("View Config"),
-            generateAndRun: l10n.t("Generate & Run"),
+            generateConfig: l10n.t("Generate Config"),
+            deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
@@ -1440,6 +1461,61 @@ export class LocConstants {
             changePasswordButton: l10n.t("Change Password"),
             cancelButton: l10n.t("Cancel"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
+        };
+    }
+
+    public get createDatabase() {
+        return {
+            title: l10n.t("Create Database"),
+            description: (serverName: string) =>
+                l10n.t({
+                    message: "Create a new database on '{0}'.",
+                    args: [serverName],
+                    comment: ["{0} is the name of the server"],
+                }),
+            loading: l10n.t("Loading..."),
+            generalSection: l10n.t("General"),
+            optionsSection: l10n.t("Advanced Options"),
+            nameLabel: l10n.t("Database Name"),
+            namePlaceholder: l10n.t("Enter database name"),
+            nameRequired: l10n.t("Database name is required"),
+            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            ownerLabel: l10n.t("Owner"),
+            collationLabel: l10n.t("Collation"),
+            recoveryModelLabel: l10n.t("Recovery Model"),
+            compatibilityLevelLabel: l10n.t("Compatibility Level"),
+            containmentTypeLabel: l10n.t("Containment Type"),
+            isLedgerDatabaseLabel: l10n.t("Is Ledger Database"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            createButton: l10n.t("Create"),
+            cancelButton: l10n.t("Cancel"),
+        };
+    }
+
+    public get dropDatabase() {
+        return {
+            title: l10n.t("Drop Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Drop '{0}' from '{1}'. This action cannot be undone.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Drop Database Options"),
+            nameLabel: l10n.t("Database"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            dropConnections: l10n.t("Drop active connections"),
+            deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            dropButton: l10n.t("Drop"),
+            cancelButton: l10n.t("Cancel"),
         };
     }
 

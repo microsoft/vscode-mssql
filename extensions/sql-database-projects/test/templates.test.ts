@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from 'chai';
+import { expect } from 'chai';
 import * as templates from '../src/templates/templates';
 import { shouldThrowSpecificError, getTemplatesRootPath } from './testUtils';
 import { ItemType } from 'sqldbproj';
