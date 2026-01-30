@@ -103,7 +103,9 @@ import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest"
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { GlobalSearchWebViewController } from "../globalSearch/globalSearchWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
@@ -138,6 +140,7 @@ export default class MainController implements vscode.Disposable {
     public schemaCompareService: SchemaCompareService;
     public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
+    public metadataService: IMetadataService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -610,6 +613,7 @@ export default class MainController implements vscode.Disposable {
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
+            this.metadataService = new MetadataService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -1748,6 +1752,12 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
                     this.onTableExplorer(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdGlobalSearch, async (node: any) =>
+                    this.onGlobalSearch(node),
                 ),
             );
 
@@ -2914,6 +2924,19 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    public async onGlobalSearch(node?: any): Promise<void> {
+        const globalSearchWebView = new GlobalSearchWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            this.metadataService,
+            this._connectionMgr,
+            node,
+            this._scriptingService,
+        );
+
+        globalSearchWebView.revealToForeground();
     }
 
     /**
