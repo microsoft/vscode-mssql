@@ -190,23 +190,34 @@ const highlightMatches = (text: string, searchText: string, highlightClass: stri
 
     const lowerText = text.toLowerCase();
     const lowerSearch = searchText.toLowerCase().trim();
-    const index = lowerText.indexOf(lowerSearch);
+    const parts = lowerText.split(lowerSearch);
 
-    if (index === -1) {
+    if (parts.length === 1) {
         return text;
     }
 
-    const before = text.slice(0, index);
-    const match = text.slice(index, index + searchText.trim().length);
-    const after = text.slice(index + searchText.trim().length);
+    const result: ReactNode[] = [];
+    let currentIndex = 0;
 
-    return (
-        <>
-            {before}
-            <span className={highlightClass}>{match}</span>
-            {highlightMatches(after, searchText, highlightClass)}
-        </>
-    );
+    parts.forEach((part, i) => {
+        // Add the non-matching part (using original case)
+        if (part.length > 0) {
+            result.push(text.slice(currentIndex, currentIndex + part.length));
+            currentIndex += part.length;
+        }
+
+        // Add the matching part (using original case) if not the last segment
+        if (i < parts.length - 1) {
+            result.push(
+                <span key={i} className={highlightClass}>
+                    {text.slice(currentIndex, currentIndex + lowerSearch.length)}
+                </span>,
+            );
+            currentIndex += lowerSearch.length;
+        }
+    });
+
+    return <>{result}</>;
 };
 
 export const SchemaDesignerChangesTree = ({
