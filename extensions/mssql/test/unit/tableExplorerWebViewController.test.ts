@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import * as chai from "chai";
-import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-
-chai.use(sinonChai);
 import * as vscode from "vscode";
 import { TableExplorerWebViewController } from "../../src/tableExplorer/tableExplorerWebViewController";
 import { TableExplorerService } from "../../src/services/tableExplorerService";
@@ -194,10 +190,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.commit).to.have.been.calledOnceWith("test-owner-uri");
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.changesSavedSuccessfully,
-            );
+            expect(mockTableExplorerService.commit.calledOnceWith("test-owner-uri")).to.be.true;
+            expect(
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.changesSavedSuccessfully,
+                ),
+            ).to.be.true;
             expect(controller.state.newRows).to.have.length(0);
         });
 
@@ -211,8 +209,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.commit).to.have.been.calledOnce;
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
         });
     });
@@ -233,8 +231,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.subset).to.have.been.calledOnce;
-            expect(mockTableExplorerService.subset).to.have.been.calledWith("test-owner-uri", 0, 100);
+            expect(mockTableExplorerService.subset.calledOnce).to.be.true;
+            expect(mockTableExplorerService.subset.calledWith("test-owner-uri", 0, 100)).to.be.true;
             expect(controller.state.currentRowCount).to.equal(100);
             expect(controller.state.resultSet?.rowCount).to.equal(2);
             expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
@@ -295,7 +293,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to load data");
             expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
         });
@@ -318,10 +316,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.createRow).to.have.been.calledOnceWith("test-owner-uri");
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.rowCreatedSuccessfully,
-            );
+            expect(mockTableExplorerService.createRow.calledOnceWith("test-owner-uri")).to.be.true;
+            expect(
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.rowCreatedSuccessfully,
+                ),
+            ).to.be.true;
             expect(controller.state.newRows).to.have.length(1);
             expect(controller.state.newRows[0].id).to.equal(100);
             expect(controller.state.resultSet?.rowCount).to.equal(3);
@@ -347,7 +347,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnce;
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when createRow fails", async () => {
@@ -362,7 +362,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to create a new row");
         });
     });
@@ -378,13 +378,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(mockTableExplorerService.deleteRow).to.have.been.calledOnceWith(
-                "test-owner-uri",
-                0,
-            );
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.rowMarkedForRemoval,
-            );
+            expect(mockTableExplorerService.deleteRow.calledOnceWith("test-owner-uri", 0)).to.be
+                .true;
+            expect(
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.rowMarkedForRemoval,
+                ),
+            ).to.be.true;
             // Row should still be in resultSet (not physically removed, just marked for deletion)
             expect(controller.state.resultSet?.rowCount).to.equal(2);
             expect(controller.state.resultSet?.subset).to.have.length(2);
@@ -427,9 +427,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             ).to.not.include(100);
             expect(controller.state.deletedRows, "deletedRows should be empty").to.have.lengthOf(0);
             expect(
-                showInformationMessageStub,
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.rowDeletedSuccessfully,
+                ),
                 'Should show "Row deleted" message instead of "Row marked for removal"',
-            ).to.have.been.calledOnceWith(LocConstants.TableExplorer.rowDeletedSuccessfully);
+            ).to.be.true;
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -446,7 +448,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnce;
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when deleteRow fails", async () => {
@@ -459,7 +461,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to remove row");
         });
     });
@@ -488,12 +490,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.updateCell).to.have.been.calledOnceWith(
-                "test-owner-uri",
-                0,
-                1,
-                "Updated",
-            );
+            expect(
+                mockTableExplorerService.updateCell.calledOnceWith(
+                    "test-owner-uri",
+                    0,
+                    1,
+                    "Updated",
+                ),
+            ).to.be.true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Updated");
         });
 
@@ -524,7 +528,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnce;
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when updateCell fails", async () => {
@@ -541,7 +545,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to update cell");
         });
     });
@@ -569,11 +573,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.revertCell).to.have.been.calledOnceWith(
-                "test-owner-uri",
-                0,
-                1,
-            );
+            expect(mockTableExplorerService.revertCell.calledOnceWith("test-owner-uri", 0, 1)).to.be
+                .true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
         });
 
@@ -601,7 +602,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnce;
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when revertCell fails", async () => {
@@ -617,7 +618,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert cell");
         });
     });
@@ -636,10 +637,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(mockTableExplorerService.revertRow).to.have.been.calledOnceWith(
-                "test-owner-uri",
-                0,
-            );
+            expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 0)).to.be
+                .true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
         });
 
@@ -658,7 +657,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnce;
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when revertRow fails", async () => {
@@ -671,7 +670,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert row");
         });
 
@@ -701,10 +700,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 2 });
 
             // Assert
-            expect(mockTableExplorerService.revertRow).to.have.been.calledOnceWith(
-                "test-owner-uri",
-                2,
-            );
+            expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 2)).to.be
+                .true;
             expect(controller.state.newRows).to.have.lengthOf(0);
             expect(controller.state.resultSet?.subset).to.have.lengthOf(2);
             expect(controller.state.resultSet?.rowCount).to.equal(2);
@@ -729,9 +726,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("generateScript")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.generateScripts).to.have.been.calledOnceWith(
-                "test-owner-uri",
-            );
+            expect(mockTableExplorerService.generateScripts.calledOnceWith("test-owner-uri")).to.be
+                .true;
             expect(controller.state.updateScript).to.include("UPDATE TestTable");
             expect(controller.state.updateScript).to.include("DELETE FROM TestTable");
             expect(controller.state.showScriptPane).to.be.true;
@@ -763,7 +759,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("generateScript")(controller.state, {});
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to generate script");
         });
     });
@@ -780,11 +776,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            expect(openTextDocumentStub).to.have.been.calledOnce;
+            expect(openTextDocumentStub.calledOnce).to.be.true;
             const callArgs = openTextDocumentStub.firstCall.args[0];
             expect(callArgs.content).to.equal("SELECT * FROM TestTable;");
             expect(callArgs.language).to.equal("sql");
-            expect(showTextDocumentStub).to.have.been.calledOnceWith(mockDocument);
+            expect(showTextDocumentStub.calledOnceWith(mockDocument)).to.be.true;
         });
 
         test("should show warning when no script to open", async () => {
@@ -795,10 +791,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            expect(openTextDocumentStub).to.not.have.been.called;
-            expect(showWarningMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.noScriptToOpen,
-            );
+            expect(openTextDocumentStub.notCalled).to.be.true;
+            expect(showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToOpen))
+                .to.be.true;
         });
 
         test("should show error message when opening script fails", async () => {
@@ -811,7 +806,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to open script");
         });
     });
@@ -826,10 +821,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            expect(writeTextStub).to.have.been.calledOnceWith("SELECT * FROM TestTable;");
-            expect(showInformationMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.scriptCopiedToClipboard,
-            );
+            expect(writeTextStub.calledOnceWith("SELECT * FROM TestTable;")).to.be.true;
+            expect(
+                showInformationMessageStub.calledOnceWith(
+                    LocConstants.TableExplorer.scriptCopiedToClipboard,
+                ),
+            ).to.be.true;
         });
 
         test("should show warning when no script to copy", async () => {
@@ -840,10 +837,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            expect(writeTextStub).to.not.have.been.called;
-            expect(showWarningMessageStub).to.have.been.calledOnceWith(
-                LocConstants.TableExplorer.noScriptToCopy,
-            );
+            expect(writeTextStub.notCalled).to.be.true;
+            expect(showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToCopy))
+                .to.be.true;
         });
 
         test("should show error message when copying script fails", async () => {
@@ -856,7 +852,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to copy script");
         });
     });
@@ -936,13 +932,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showSaveDialogStub).to.have.been.calledOnce;
+            expect(showSaveDialogStub.calledOnce).to.be.true;
             const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
             expect(saveDialogOptions.filters).to.deep.equal({
                 "CSV Files": ["csv"],
                 "All Files": ["*"],
             });
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
             // Verify serializeData was called with correct parameters
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
@@ -952,7 +948,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
 
-            expect(showInformationMessageStub).to.have.been.calledOnce;
+            expect(showInformationMessageStub.calledOnce).to.be.true;
         });
 
         test("should save results as JSON format", async () => {
@@ -968,13 +964,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showSaveDialogStub).to.have.been.calledOnce;
+            expect(showSaveDialogStub.calledOnce).to.be.true;
             const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
             expect(saveDialogOptions.filters).to.deep.equal({
                 "JSON Files": ["json"],
                 "All Files": ["*"],
             });
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
             // Verify serializeData was called with correct parameters
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
@@ -984,7 +980,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
 
-            expect(showInformationMessageStub).to.have.been.calledOnce;
+            expect(showInformationMessageStub.calledOnce).to.be.true;
         });
 
         test("should save results as Excel format", async () => {
@@ -1000,13 +996,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showSaveDialogStub).to.have.been.calledOnce;
+            expect(showSaveDialogStub.calledOnce).to.be.true;
             const saveDialogOptions = showSaveDialogStub.firstCall.args[0];
             expect(saveDialogOptions.filters).to.deep.equal({
                 "Excel Files": ["xlsx"],
                 "All Files": ["*"],
             });
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
 
             // Verify serializeData was called with correct parameters
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
@@ -1016,7 +1012,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(callArgs[2]).to.deep.equal(mockHeaders);
             expect(callArgs[3]).to.deep.equal(mockRows);
 
-            expect(showInformationMessageStub).to.have.been.calledOnce;
+            expect(showInformationMessageStub.calledOnce).to.be.true;
         });
 
         test("should handle user cancelling save dialog", async () => {
@@ -1031,10 +1027,10 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showSaveDialogStub).to.have.been.calledOnce;
-            expect(mockTableExplorerService.serializeData).to.not.have.been.called;
-            expect(showInformationMessageStub).to.not.have.been.called;
-            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.notCalled).to.be.true;
+            expect(showInformationMessageStub.notCalled).to.be.true;
+            expect(showErrorMessageStub.notCalled).to.be.true;
         });
 
         test("should show error message when save fails", async () => {
@@ -1052,9 +1048,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(showSaveDialogStub).to.have.been.calledOnce;
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
-            expect(showErrorMessageStub).to.have.been.calledOnce;
+            expect(showSaveDialogStub.calledOnce).to.be.true;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Serialization failed");
         });
 
@@ -1073,7 +1069,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
                 .args;
             expect(callArgs[0]).to.equal(mockUri.fsPath);
@@ -1097,7 +1093,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
                 .args;
             expect(callArgs[0]).to.equal(mockUri.fsPath);
@@ -1119,7 +1115,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            expect(mockTableExplorerService.serializeData).to.have.been.calledOnce;
+            expect(mockTableExplorerService.serializeData.calledOnce).to.be.true;
             const callArgs = (mockTableExplorerService.serializeData as sinon.SinonStub).firstCall
                 .args;
             expect(callArgs[0]).to.equal(mockUri.fsPath);
