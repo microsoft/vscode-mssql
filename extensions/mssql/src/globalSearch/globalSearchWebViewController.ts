@@ -386,6 +386,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("modifyTable", async (state, payload) => {
+            await this.modifyTable(payload.object);
+            return state;
+        });
+
         this.registerReducer("copyObjectName", async (state, payload) => {
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
@@ -556,6 +561,46 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.logger.error(`Error opening Edit Data: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToOpenEditData(getErrorMessage(error)),
+            );
+        }
+    }
+
+    /**
+     * Open the Table Designer (Modify Table) view for the specified table object
+     */
+    private async modifyTable(object: SearchResultItem): Promise<void> {
+        try {
+            // Create a synthetic node structure that matches what TableDesignerWebviewController expects
+            // The node needs nodeType, label, metadata, connectionProfile, and a parent with database metadata
+            // so that getDatabaseNameForNode can find the database name.
+            // It also needs updateConnectionProfile method which the controller calls during initialization.
+            const connectionProfile = { ...this._targetNode.connectionProfile };
+            const syntheticNode = {
+                metadata: {
+                    name: object.name,
+                    schema: object.schema,
+                    metadataTypeName: object.metadataTypeName,
+                },
+                connectionProfile: connectionProfile,
+                nodeType: "Table",
+                label: object.name,
+                parentNode: {
+                    metadata: {
+                        name: this.state.selectedDatabase,
+                        metadataTypeName: Constants.databaseString,
+                    },
+                },
+                updateConnectionProfile: function (value: unknown) {
+                    this.connectionProfile = value;
+                },
+            };
+
+            // Execute the editTable command with the synthetic node
+            await vscode.commands.executeCommand(Constants.cmdEditTable, syntheticNode);
+        } catch (error) {
+            this.logger.error(`Error opening Modify Table: ${getErrorMessage(error)}`);
+            void vscode.window.showErrorMessage(
+                LocConstants.GlobalSearch.failedToOpenModifyTable(getErrorMessage(error)),
             );
         }
     }

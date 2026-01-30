@@ -2302,6 +2302,13 @@ export class GlobalSearch {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToOpenModifyTable = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Modify Table: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class TableExplorer {

@@ -1380,6 +1380,7 @@ export class LocConstants {
             scriptAsAlter: l10n.t("Script as Alter"),
             scriptAsExecute: l10n.t("Script as Execute"),
             editData: l10n.t("Edit Data"),
+            modifyTable: l10n.t("Modify Table"),
             copyObjectName: l10n.t("Copy Object Name"),
         };
     }

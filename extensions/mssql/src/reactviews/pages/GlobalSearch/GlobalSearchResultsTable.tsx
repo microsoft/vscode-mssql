@@ -38,6 +38,7 @@ import {
     EditRegular,
     DeleteRegular,
     TableEditRegular,
+    WrenchRegular,
 } from "@fluentui/react-icons";
 import { SearchResultItem, ScriptType } from "../../../sharedInterfaces/globalSearch";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
@@ -314,6 +315,14 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                             onClick={() => context.editData(item)}
                         >
                             {loc.globalSearch.editData}
+                        </MenuItem>
+                    )}
+                    {item.type === MetadataType.Table && (
+                        <MenuItem
+                            icon={<WrenchRegular />}
+                            onClick={() => context.modifyTable(item)}
+                        >
+                            {loc.globalSearch.modifyTable}
                         </MenuItem>
                     )}
                     <MenuItem

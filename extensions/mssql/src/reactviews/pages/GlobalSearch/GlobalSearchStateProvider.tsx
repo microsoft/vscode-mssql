@@ -67,6 +67,10 @@ export const GlobalSearchStateProvider: React.FC<{
                 extensionRpc.action("editData", { object });
             },
 
+            modifyTable: (object: SearchResultItem): void => {
+                extensionRpc.action("modifyTable", { object });
+            },
+
             copyObjectName: (object: SearchResultItem): void => {
                 extensionRpc.action("copyObjectName", { object });
             },

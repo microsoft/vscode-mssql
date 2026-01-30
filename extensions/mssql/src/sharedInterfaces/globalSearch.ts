@@ -81,6 +81,7 @@ export interface GlobalSearchContextProps {
     // Object Actions
     scriptObject: (object: SearchResultItem, scriptType: ScriptType) => void;
     editData: (object: SearchResultItem) => void;
+    modifyTable: (object: SearchResultItem) => void;
     copyObjectName: (object: SearchResultItem) => void;
 
     // Data refresh
@@ -106,6 +107,7 @@ export interface GlobalSearchReducers {
     // Object Actions
     scriptObject: { object: SearchResultItem; scriptType: ScriptType };
     editData: { object: SearchResultItem };
+    modifyTable: { object: SearchResultItem };
     copyObjectName: { object: SearchResultItem };
 
     // Data refresh
