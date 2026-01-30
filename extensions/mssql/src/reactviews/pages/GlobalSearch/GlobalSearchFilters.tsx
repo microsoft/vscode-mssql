@@ -15,12 +15,7 @@ import {
     Divider,
     Link,
 } from "@fluentui/react-components";
-import {
-    TableRegular,
-    EyeRegular,
-    CodeRegular,
-    MathFormulaRegular,
-} from "@fluentui/react-icons";
+import { TableRegular, EyeRegular, CodeRegular, MathFormulaRegular } from "@fluentui/react-icons";
 import { useGlobalSearchSelector } from "./globalSearchSelector";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
 import { ObjectTypeFilters } from "../../../sharedInterfaces/globalSearch";
@@ -93,15 +88,9 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
     const selectedSchemas = useGlobalSearchSelector((s) => s.selectedSchemas);
 
     // Create a Set for O(1) lookup of selected schemas
-    const selectedSchemaSet = React.useMemo(
-        () => new Set(selectedSchemas),
-        [selectedSchemas],
-    );
+    const selectedSchemaSet = React.useMemo(() => new Set(selectedSchemas), [selectedSchemas]);
 
-    const handleDatabaseChange = (
-        _event: React.SyntheticEvent,
-        data: { optionValue?: string },
-    ) => {
+    const handleDatabaseChange = (_event: React.SyntheticEvent, data: { optionValue?: string }) => {
         if (data.optionValue) {
             context.setDatabase(data.optionValue);
         }
@@ -125,8 +114,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                     value={selectedDatabase}
                     selectedOptions={[selectedDatabase]}
                     onOptionSelect={handleDatabaseChange}
-                    size="small"
-                >
+                    size="small">
                     {availableDatabases.map((db) => (
                         <Option key={db} value={db}>
                             {db}
@@ -191,7 +179,9 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                     {/* Schema Filters */}
                     <div className={classes.schemaSection}>
                         <div className={classes.schemaSectionHeader}>
-                            <Label className={classes.sectionTitle}>{loc.globalSearch.schemas}</Label>
+                            <Label className={classes.sectionTitle}>
+                                {loc.globalSearch.schemas}
+                            </Label>
                             <div className={classes.schemaActions}>
                                 <Link onClick={() => context.selectAllSchemas()}>
                                     {loc.globalSearch.all}

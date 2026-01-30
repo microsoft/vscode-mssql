@@ -177,7 +177,9 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.logger.info(`Using cached metadata for ${this.state.selectedDatabase}`);
             // Restore schema state from cached metadata
             const cachedMetadata = this._metadataCache.get(cacheKey)!;
-            const uniqueSchemas = [...new Set(cachedMetadata.map((obj) => obj.schema).filter(Boolean))];
+            const uniqueSchemas = [
+                ...new Set(cachedMetadata.map((obj) => obj.schema).filter(Boolean)),
+            ];
             uniqueSchemas.sort((a, b) => a.localeCompare(b));
             this.state.availableSchemas = uniqueSchemas;
             this.state.selectedSchemas = [...uniqueSchemas];

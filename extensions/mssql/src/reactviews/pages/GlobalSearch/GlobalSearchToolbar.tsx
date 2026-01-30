@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import {
-    makeStyles,
-    shorthands,
-    SearchBox,
-    Button,
-} from "@fluentui/react-components";
+import { makeStyles, shorthands, SearchBox, Button } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
 import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
 import { locConstants as loc } from "../../common/locConstants";
@@ -80,11 +75,7 @@ export const GlobalSearchToolbar: React.FC = () => {
                     size="medium"
                 />
             </div>
-            <Button
-                appearance="subtle"
-                icon={<ArrowSyncRegular />}
-                onClick={handleRefresh}
-            >
+            <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh}>
                 {loc.globalSearch.refresh}
             </Button>
         </div>

@@ -106,116 +106,122 @@ const getTypeIcon = (type: MetadataType): React.ReactNode => {
     }
 };
 
-export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> = React.memo(({ results }) => {
-    const classes = useStyles();
-    const context = useGlobalSearchContext();
+export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> = React.memo(
+    ({ results }) => {
+        const classes = useStyles();
+        const context = useGlobalSearchContext();
 
-    const columnSizingOptions: TableColumnSizingOptions = {
-        name: {
-            minWidth: 200,
-            defaultWidth: 250,
-        },
-        schema: {
-            minWidth: 80,
-            defaultWidth: 100,
-        },
-        type: {
-            minWidth: 120,
-            defaultWidth: 160,
-        },
-        actions: {
-            minWidth: 80,
-            defaultWidth: 80,
-        },
-    };
+        const columnSizingOptions: TableColumnSizingOptions = {
+            name: {
+                minWidth: 200,
+                defaultWidth: 250,
+            },
+            schema: {
+                minWidth: 80,
+                defaultWidth: 100,
+            },
+            type: {
+                minWidth: 120,
+                defaultWidth: 160,
+            },
+            actions: {
+                minWidth: 80,
+                defaultWidth: 80,
+            },
+        };
 
-    // Empty state
-    if (results.length === 0) {
+        // Empty state
+        if (results.length === 0) {
+            return (
+                <div className={classes.emptyState}>
+                    <DocumentRegular style={{ fontSize: "48px" }} />
+                    <Body1>{loc.globalSearch.noObjectsFound}</Body1>
+                    <Body1>{loc.globalSearch.tryAdjustingFilters}</Body1>
+                </div>
+            );
+        }
+
+        const columns: TableColumnDefinition<SearchResultItem>[] = [
+            createTableColumn<SearchResultItem>({
+                columnId: "name",
+                compare: (a, b) => a.name.localeCompare(b.name),
+                renderHeaderCell: () => (
+                    <span className={classes.headerCell}>{loc.globalSearch.name}</span>
+                ),
+                renderCell: (item) => (
+                    <TableCellLayout truncate title={item.fullName}>
+                        {item.name}
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SearchResultItem>({
+                columnId: "schema",
+                compare: (a, b) => a.schema.localeCompare(b.schema),
+                renderHeaderCell: () => (
+                    <span className={classes.headerCell}>{loc.globalSearch.schema}</span>
+                ),
+                renderCell: (item) => (
+                    <TableCellLayout truncate title={item.schema}>
+                        {item.schema}
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SearchResultItem>({
+                columnId: "type",
+                compare: (a, b) => a.typeName.localeCompare(b.typeName),
+                renderHeaderCell: () => (
+                    <span className={classes.headerCell}>{loc.globalSearch.type}</span>
+                ),
+                renderCell: (item) => (
+                    <TableCellLayout>
+                        <span className={classes.typeCell}>
+                            {getTypeIcon(item.type)}
+                            {item.typeName}
+                        </span>
+                    </TableCellLayout>
+                ),
+            }),
+            createTableColumn<SearchResultItem>({
+                columnId: "actions",
+                renderHeaderCell: () => (
+                    <span className={classes.headerCell}>{loc.globalSearch.actions}</span>
+                ),
+                renderCell: (item) => <ActionsMenu item={item} context={context} />,
+            }),
+        ];
+
         return (
-            <div className={classes.emptyState}>
-                <DocumentRegular style={{ fontSize: "48px" }} />
-                <Body1>{loc.globalSearch.noObjectsFound}</Body1>
-                <Body1>{loc.globalSearch.tryAdjustingFilters}</Body1>
-            </div>
-        );
-    }
-
-    const columns: TableColumnDefinition<SearchResultItem>[] = [
-        createTableColumn<SearchResultItem>({
-            columnId: "name",
-            compare: (a, b) => a.name.localeCompare(b.name),
-            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.name}</span>,
-            renderCell: (item) => (
-                <TableCellLayout truncate title={item.fullName}>
-                    {item.name}
-                </TableCellLayout>
-            ),
-        }),
-        createTableColumn<SearchResultItem>({
-            columnId: "schema",
-            compare: (a, b) => a.schema.localeCompare(b.schema),
-            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.schema}</span>,
-            renderCell: (item) => (
-                <TableCellLayout truncate title={item.schema}>
-                    {item.schema}
-                </TableCellLayout>
-            ),
-        }),
-        createTableColumn<SearchResultItem>({
-            columnId: "type",
-            compare: (a, b) => a.typeName.localeCompare(b.typeName),
-            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.type}</span>,
-            renderCell: (item) => (
-                <TableCellLayout>
-                    <span className={classes.typeCell}>
-                        {getTypeIcon(item.type)}
-                        {item.typeName}
-                    </span>
-                </TableCellLayout>
-            ),
-        }),
-        createTableColumn<SearchResultItem>({
-            columnId: "actions",
-            renderHeaderCell: () => <span className={classes.headerCell}>{loc.globalSearch.actions}</span>,
-            renderCell: (item) => <ActionsMenu item={item} context={context} />,
-        }),
-    ];
-
-    return (
-        <div className={classes.container}>
-            <DataGrid
-                className={classes.grid}
-                items={results}
-                columns={columns}
-                sortable
-                resizableColumns
-                columnSizingOptions={columnSizingOptions}
-                size="small"
-                getRowId={(item) => item.fullName}
-            >
-                <DataGridHeader className={classes.header}>
-                    <DataGridRow>
-                        {({ renderHeaderCell }) => (
-                            <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-                        )}
-                    </DataGridRow>
-                </DataGridHeader>
-                <DataGridBody<SearchResultItem>>
-                    {({ item, rowId }) => (
-                        <DataGridRow<SearchResultItem>
-                            key={rowId}
-                            className={classes.row}
-                        >
-                            {({ renderCell }) => (
-                                <DataGridCell>{renderCell(item)}</DataGridCell>
+            <div className={classes.container}>
+                <DataGrid
+                    className={classes.grid}
+                    items={results}
+                    columns={columns}
+                    sortable
+                    resizableColumns
+                    columnSizingOptions={columnSizingOptions}
+                    size="small"
+                    getRowId={(item) => item.fullName}>
+                    <DataGridHeader className={classes.header}>
+                        <DataGridRow>
+                            {({ renderHeaderCell }) => (
+                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
                             )}
                         </DataGridRow>
-                    )}
-                </DataGridBody>
-            </DataGrid>
-        </div>
-    );
-});
+                    </DataGridHeader>
+                    <DataGridBody<SearchResultItem>>
+                        {({ item, rowId }) => (
+                            <DataGridRow<SearchResultItem> key={rowId} className={classes.row}>
+                                {({ renderCell }) => (
+                                    <DataGridCell>{renderCell(item)}</DataGridCell>
+                                )}
+                            </DataGridRow>
+                        )}
+                    </DataGridBody>
+                </DataGrid>
+            </div>
+        );
+    },
+);
 
 /**
  * Determines which script actions are available for a given object type
@@ -271,63 +277,51 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                     {availableActions.includes("SELECT") && (
                         <MenuItem
                             icon={<PlayRegular />}
-                            onClick={() => context.scriptObject(item, "SELECT")}
-                        >
+                            onClick={() => context.scriptObject(item, "SELECT")}>
                             {loc.globalSearch.selectTop1000}
                         </MenuItem>
                     )}
                     {availableActions.includes("CREATE") && (
                         <MenuItem
                             icon={<DocumentRegular />}
-                            onClick={() => context.scriptObject(item, "CREATE")}
-                        >
+                            onClick={() => context.scriptObject(item, "CREATE")}>
                             {loc.globalSearch.scriptAsCreate}
                         </MenuItem>
                     )}
                     {availableActions.includes("DROP") && (
                         <MenuItem
                             icon={<DeleteRegular />}
-                            onClick={() => context.scriptObject(item, "DROP")}
-                        >
+                            onClick={() => context.scriptObject(item, "DROP")}>
                             {loc.globalSearch.scriptAsDrop}
                         </MenuItem>
                     )}
                     {availableActions.includes("ALTER") && (
                         <MenuItem
                             icon={<EditRegular />}
-                            onClick={() => context.scriptObject(item, "ALTER")}
-                        >
+                            onClick={() => context.scriptObject(item, "ALTER")}>
                             {loc.globalSearch.scriptAsAlter}
                         </MenuItem>
                     )}
                     {availableActions.includes("EXECUTE") && (
                         <MenuItem
                             icon={<PlayRegular />}
-                            onClick={() => context.scriptObject(item, "EXECUTE")}
-                        >
+                            onClick={() => context.scriptObject(item, "EXECUTE")}>
                             {loc.globalSearch.scriptAsExecute}
                         </MenuItem>
                     )}
                     {item.type === MetadataType.Table && (
                         <MenuItem
                             icon={<TableEditRegular />}
-                            onClick={() => context.editData(item)}
-                        >
+                            onClick={() => context.editData(item)}>
                             {loc.globalSearch.editData}
                         </MenuItem>
                     )}
                     {item.type === MetadataType.Table && (
-                        <MenuItem
-                            icon={<TableRegular />}
-                            onClick={() => context.modifyTable(item)}
-                        >
+                        <MenuItem icon={<TableRegular />} onClick={() => context.modifyTable(item)}>
                             {loc.globalSearch.modifyTable}
                         </MenuItem>
                     )}
-                    <MenuItem
-                        icon={<CopyRegular />}
-                        onClick={() => context.copyObjectName(item)}
-                    >
+                    <MenuItem icon={<CopyRegular />} onClick={() => context.copyObjectName(item)}>
                         {loc.globalSearch.copyObjectName}
                     </MenuItem>
                 </MenuList>

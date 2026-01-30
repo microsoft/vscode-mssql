@@ -15,9 +15,7 @@ import {
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { getCoreRPCs2 } from "../../common/utils";
 
-const GlobalSearchContext = createContext<GlobalSearchContextProps>(
-    {} as GlobalSearchContextProps,
-);
+const GlobalSearchContext = createContext<GlobalSearchContextProps>({} as GlobalSearchContextProps);
 
 export const GlobalSearchStateProvider: React.FC<{
     children: React.ReactNode;
@@ -87,9 +85,7 @@ export const GlobalSearchStateProvider: React.FC<{
         [extensionRpc],
     );
 
-    return (
-        <GlobalSearchContext.Provider value={commands}>{children}</GlobalSearchContext.Provider>
-    );
+    return <GlobalSearchContext.Provider value={commands}>{children}</GlobalSearchContext.Provider>;
 };
 
 export const useGlobalSearchContext = (): GlobalSearchContextProps => {

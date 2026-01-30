@@ -37,12 +37,42 @@ suite("GlobalSearchWebViewController", () => {
     let writeTextStub: sinon.SinonStub;
 
     const mockMetadata: ObjectMetadata[] = [
-        { name: "Users", schema: "dbo", metadataType: MetadataType.Table, metadataTypeName: "Table" },
-        { name: "Orders", schema: "dbo", metadataType: MetadataType.Table, metadataTypeName: "Table" },
-        { name: "Products", schema: "sales", metadataType: MetadataType.Table, metadataTypeName: "Table" },
-        { name: "vw_UserOrders", schema: "dbo", metadataType: MetadataType.View, metadataTypeName: "View" },
-        { name: "sp_GetUsers", schema: "dbo", metadataType: MetadataType.SProc, metadataTypeName: "StoredProcedure" },
-        { name: "fn_CalculateTotal", schema: "dbo", metadataType: MetadataType.Function, metadataTypeName: "UserDefinedFunction" },
+        {
+            name: "Users",
+            schema: "dbo",
+            metadataType: MetadataType.Table,
+            metadataTypeName: "Table",
+        },
+        {
+            name: "Orders",
+            schema: "dbo",
+            metadataType: MetadataType.Table,
+            metadataTypeName: "Table",
+        },
+        {
+            name: "Products",
+            schema: "sales",
+            metadataType: MetadataType.Table,
+            metadataTypeName: "Table",
+        },
+        {
+            name: "vw_UserOrders",
+            schema: "dbo",
+            metadataType: MetadataType.View,
+            metadataTypeName: "View",
+        },
+        {
+            name: "sp_GetUsers",
+            schema: "dbo",
+            metadataType: MetadataType.SProc,
+            metadataTypeName: "StoredProcedure",
+        },
+        {
+            name: "fn_CalculateTotal",
+            schema: "dbo",
+            metadataType: MetadataType.Function,
+            metadataTypeName: "UserDefinedFunction",
+        },
     ];
 
     setup(() => {
@@ -204,9 +234,13 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const setDatabaseReducer = controller["_reducerHandlers"].get("setDatabase");
-            expect(setDatabaseReducer, "SetDatabase reducer was not registered").to.be.a("function");
+            expect(setDatabaseReducer, "SetDatabase reducer was not registered").to.be.a(
+                "function",
+            );
 
-            const result = await setDatabaseReducer!(controller.state, { database: "AdventureWorks" });
+            const result = await setDatabaseReducer!(controller.state, {
+                database: "AdventureWorks",
+            });
 
             expect(result.selectedDatabase).to.equal("AdventureWorks");
             expect(result.searchResults).to.be.an("array");
@@ -227,7 +261,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const toggleReducer = controller["_reducerHandlers"].get("toggleObjectTypeFilter");
-            expect(toggleReducer, "ToggleObjectTypeFilter reducer was not registered").to.be.a("function");
+            expect(toggleReducer, "ToggleObjectTypeFilter reducer was not registered").to.be.a(
+                "function",
+            );
 
             // Initially tables should be true
             let result = await toggleReducer!(controller.state, { objectType: "tables" });
@@ -300,7 +336,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const toggleReducer = controller["_reducerHandlers"].get("toggleSchemaFilter");
-            expect(toggleReducer, "ToggleSchemaFilter reducer was not registered").to.be.a("function");
+            expect(toggleReducer, "ToggleSchemaFilter reducer was not registered").to.be.a(
+                "function",
+            );
 
             // First clear all schemas to have a clean state
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
@@ -327,7 +365,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const selectAllReducer = controller["_reducerHandlers"].get("selectAllSchemas");
-            expect(selectAllReducer, "SelectAllSchemas reducer was not registered").to.be.a("function");
+            expect(selectAllReducer, "SelectAllSchemas reducer was not registered").to.be.a(
+                "function",
+            );
 
             // First clear schemas
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
@@ -345,7 +385,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
-            expect(clearReducer, "ClearSchemaSelection reducer was not registered").to.be.a("function");
+            expect(clearReducer, "ClearSchemaSelection reducer was not registered").to.be.a(
+                "function",
+            );
 
             // Initially schemas are selected
             expect(controller.state.selectedSchemas.length).to.be.greaterThan(0);
@@ -520,7 +562,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const modifyTableReducer = controller["_reducerHandlers"].get("modifyTable");
-            expect(modifyTableReducer, "ModifyTable reducer was not registered").to.be.a("function");
+            expect(modifyTableReducer, "ModifyTable reducer was not registered").to.be.a(
+                "function",
+            );
 
             const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
 
@@ -598,7 +642,9 @@ suite("GlobalSearchWebViewController", () => {
             await waitForInitialization();
 
             const refreshReducer = controller["_reducerHandlers"].get("refreshDatabases");
-            expect(refreshReducer, "RefreshDatabases reducer was not registered").to.be.a("function");
+            expect(refreshReducer, "RefreshDatabases reducer was not registered").to.be.a(
+                "function",
+            );
 
             // Reset stub to track new calls
             (mockMetadataService.getDatabases as sinon.SinonStub).resetHistory();
