@@ -16,7 +16,7 @@ export namespace Dab {
     export enum ApiType {
         Rest = "rest",
         GraphQL = "graphql",
-        Both = "both",
+        Mcp = "mcp",
     }
 
     /**
@@ -94,9 +94,9 @@ export namespace Dab {
      */
     export interface DabConfig {
         /**
-         * Selected API type
+         * Selected API types
          */
-        apiType: ApiType;
+        apiTypes: ApiType[];
         /**
          * Entity configurations for each table
          */
@@ -245,11 +245,35 @@ export namespace Dab {
     // ============================================
 
     export interface DabReducers {
-        updateApiType: { apiType: ApiType };
+        updateApiTypes: { apiTypes: ApiType[] };
         toggleEntity: { entityId: string; isEnabled: boolean };
         toggleEntityAction: { entityId: string; action: EntityAction; isEnabled: boolean };
         updateEntityAdvancedSettings: { entityId: string; settings: EntityAdvancedSettings };
         setSchemaFilter: { schemaName: string };
+    }
+
+    // ============================================
+    // Service interface
+    // ============================================
+
+    /**
+     * Connection information needed for DAB config generation
+     */
+    export interface DabConnectionInfo {
+        connectionString: string;
+    }
+
+    /**
+     * Service interface for DAB operations
+     */
+    export interface IDabService {
+        /**
+         * Generates a DAB configuration JSON from the internal config model
+         */
+        generateConfig(
+            config: DabConfig,
+            connectionInfo: DabConnectionInfo,
+        ): GenerateConfigResponse;
     }
 
     // ============================================
@@ -283,7 +307,7 @@ export namespace Dab {
      */
     export function createDefaultConfig(tables: SchemaDesigner.Table[]): DabConfig {
         return {
-            apiType: ApiType.Rest,
+            apiTypes: [ApiType.Rest],
             entities: tables.map((table) => createDefaultEntityConfig(table)),
         };
     }

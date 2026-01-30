@@ -186,12 +186,12 @@
       <trans-unit id="++CODE++bc6eb3b452e596a92b620948e6858d0f740a07cec116ff572cf7202785894cbf">
         <source xml:lang="en">Added column '{0}'</source>
         <note>{0} is the column name</note>
-        <target state="new">Added column '{0}'</target>
+        <target state="translated">Colonne « {0} » ajoutée</target>
       </trans-unit>
       <trans-unit id="++CODE++f1488f38e72433af73c22c2016b43e97e5d652e4cdd8ee0baa86d2ddd19e4447">
         <source xml:lang="en">Added foreign key '{0}'</source>
         <note>{0} is the foreign key name</note>
-        <target state="new">Added foreign key '{0}'</target>
+        <target state="translated">Clé étrangère « {0} » ajoutée</target>
       </trans-unit>
       <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
         <source xml:lang="en">Additional parameters</source>
@@ -593,10 +593,6 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Block this extension from accessing your connections</source>
         <target state="translated">Empêcher cette extension d’accéder à vos connexions</target>
       </trans-unit>
-      <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
-        <source xml:lang="en">Both</source>
-        <target state="translated">Les deux</target>
-      </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
         <target state="translated">Luminosité</target>
@@ -718,11 +714,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++6911a1b423a04fe5c7be67cef3b8f03bd45b8ef5c986041317322d8131df5edf">
         <source xml:lang="en">Cannot revert: The column is part of a foreign key that references a deleted table</source>
-        <target state="new">Cannot revert: The column is part of a foreign key that references a deleted table</target>
+        <target state="translated">Impossible de rétablir : la colonne fait partie d’une clé étrangère qui référence une table supprimée</target>
       </trans-unit>
       <trans-unit id="++CODE++cb0415b7eba8d09fece0299cef934d73da69c94720cfc5583914aca2a16fcac2">
         <source xml:lang="en">Cannot revert: The referenced table or column has been deleted</source>
-        <target state="new">Cannot revert: The referenced table or column has been deleted</target>
+        <target state="translated">Impossible de rétablir : la table ou la colonne référencée a été supprimée</target>
       </trans-unit>
       <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
         <source xml:lang="en">Cascade</source>
@@ -730,7 +726,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
         <source xml:lang="en">Category</source>
-        <target state="new">Category</target>
+        <target state="translated">Catégorie</target>
       </trans-unit>
       <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
         <source xml:lang="en">Change</source>
@@ -771,7 +767,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++720013ab95347611fa0f2918e0e719accc806e30e5f0cb349c8594b2a0e46dc2">
         <source xml:lang="en">Changes ({0})</source>
         <note>{0} is the number of schema changes</note>
-        <target state="new">Changes ({0})</target>
+        <target state="translated">Modifications ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
         <source xml:lang="en">Changes published successfully</source>
@@ -1550,7 +1546,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
         <source xml:lang="en">Created table {0}</source>
         <note>{0} is the qualified table name</note>
-        <target state="new">Created table {0}</target>
+        <target state="translated">Table créée {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
         <source xml:lang="en">Creating Container</source>
@@ -1780,17 +1776,17 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++9ca6b97465f4c8972f542c20c953a0d541166912d083694710d9cb1acc8b7e5d">
         <source xml:lang="en">Deleted column '{0}'</source>
         <note>{0} is the column name</note>
-        <target state="new">Deleted column '{0}'</target>
+        <target state="translated">Colonne « {0} » supprimée</target>
       </trans-unit>
       <trans-unit id="++CODE++1927927f4e169b240939c3ed252262deee4fe1099424c667f89b962549c01dd9">
         <source xml:lang="en">Deleted foreign key '{0}'</source>
         <note>{0} is the foreign key name</note>
-        <target state="new">Deleted foreign key '{0}'</target>
+        <target state="translated">Clé étrangère « {0} » supprimée</target>
       </trans-unit>
       <trans-unit id="++CODE++a5b956b22e4c5bb017d2718dae7b2f61356ba499722efe676ae4feb162cf49e9">
         <source xml:lang="en">Deleted table {0}</source>
         <note>{0} is the qualified table name</note>
-        <target state="new">Deleted table {0}</target>
+        <target state="translated">Table supprimée {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
         <source xml:lang="en">Deleting Container...</source>
@@ -2307,6 +2303,16 @@ Erreur :
         <source xml:lang="en">Execute</source>
         <target state="translated">Exécuter</target>
       </trans-unit>
+      <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
+        <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Execute '{0}' operation on the schema designer?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
+        <source xml:lang="en">Executing '{0}' operation on schema designer</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Executing '{0}' operation on schema designer</target>
+      </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
         <target state="translated">Exécution de la requête...</target>
@@ -2462,6 +2468,14 @@ Erreur :
         <note>{0} is the error message</note>
         <target state="translated">Échec de la suppression de la requête : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
+        <source xml:lang="en">Failed to add table to schema designer.</source>
+        <target state="new">Failed to add table to schema designer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3927725937fc2d8467f978ee4999cb561f8e2ab71290423f122a8dc95f4f2e51">
+        <source xml:lang="en">Failed to add table.</source>
+        <target state="new">Failed to add table.</target>
+      </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
@@ -2514,6 +2528,14 @@ Erreur :
         <note>{0} is the id
 {1} is the error</note>
         <target state="translated">Échec de la suppression de l’identifiant avec l’id : {0}. {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2e31c592bfe2100cad5d507bb6dafa31670ef44185a28a9cfbf04a4894890edd">
+        <source xml:lang="en">Failed to delete table from schema designer.</source>
+        <target state="new">Failed to delete table from schema designer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0600a350078b90778fc586a469220c82bcebe6a66dd1e9c99577e88bb7544a28">
+        <source xml:lang="en">Failed to delete table.</source>
+        <target state="new">Failed to delete table.</target>
       </trans-unit>
       <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
         <source xml:lang="en">Failed to delete {0}.</source>
@@ -2698,6 +2720,18 @@ Erreur :
         <note>{0} is the error message</note>
         <target state="translated">Échec de la mise à jour de la cellule : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++2ceacde7ca940d5c674a3e4f6a065f6b1685242070287e1674384624572e5112">
+        <source xml:lang="en">Failed to update schema designer.</source>
+        <target state="new">Failed to update schema designer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1d67edd010ff15a6a63697ef986d3e7e4a4921ce4e990716031c70c1ccbc1d0f">
+        <source xml:lang="en">Failed to update table in schema designer.</source>
+        <target state="new">Failed to update table in schema designer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
+        <source xml:lang="en">Failed to update table.</source>
+        <target state="new">Failed to update table.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
         <source xml:lang="en">Favorites</source>
         <target state="translated">Favoris</target>
@@ -2770,7 +2804,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
         <source xml:lang="en">Filter changes</source>
-        <target state="new">Filter changes</target>
+        <target state="translated">Filtrer les changements</target>
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
@@ -2875,6 +2909,14 @@ Erreur :
         <note>{0} is the foreign key name</note>
         <target state="translated">La clé étrangère « {0} » existe déjà</target>
       </trans-unit>
+      <trans-unit id="++CODE++d9a7c4d6b82cf221cfaff6e3440828e91c7d480d7b16f50081c78ff9179f1be2">
+        <source xml:lang="en">Foreign key column mappings are required.</source>
+        <target state="new">Foreign key column mappings are required.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
+        <source xml:lang="en">Foreign key column mappings must be the same length.</source>
+        <target state="new">Foreign key column mappings must be the same length.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
         <target state="translated">Formule</target>
@@ -2906,9 +2948,9 @@ Erreur :
         <source xml:lang="en">General Options</source>
         <target state="translated">Options générales</target>
       </trans-unit>
-      <trans-unit id="++CODE++e3b6c3b07e47adb535f9d3691bd7ed7dcf7f4bd4f352345751f992ad5549849f">
-        <source xml:lang="en">Generate &amp; Run</source>
-        <target state="translated">Générer et exécuter</target>
+      <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
+        <source xml:lang="en">Generate Config</source>
+        <target state="new">Generate Config</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -3200,7 +3242,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++7d5a4174a3753666f30d8be2beadced4087df37a4af22a189e7b5abc55e1c382">
         <source xml:lang="en">Initializing DAB configuration...</source>
-        <target state="new">Initializing DAB configuration...</target>
+        <target state="translated">Initialisation de la configuration du DAB...</target>
       </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
@@ -3270,10 +3312,18 @@ Erreur :
         <source xml:lang="en">Invalid file extension. Expected .dacpac or .bacpac</source>
         <target state="translated">Extension de fichier invalide. Fichier attendu : .dacpac ou .bacpac</target>
       </trans-unit>
+      <trans-unit id="++CODE++e5c80eb59009f1fab46fd7792746146894347c65227b637e12724e17ecf613e0">
+        <source xml:lang="en">Invalid foreign key.</source>
+        <target state="new">Invalid foreign key.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
         <source xml:lang="en">Invalid max length '{0}'</source>
         <note>{0} is the max length</note>
         <target state="translated">La longueur maximale « {0} » n’est pas valide</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9016773670b0f5d483d2239742b7dc99fc82cff1ebbc8400a3894971977e823f">
+        <source xml:lang="en">Invalid table payload. Expected table with columns array.</source>
+        <target state="new">Invalid table payload. Expected table with columns array.</target>
       </trans-unit>
       <trans-unit id="++CODE++d1a326f448eac64b9ec46d31b9dce63a30f305179abc83e734c8d960bcaa9631">
         <source xml:lang="en">Is Computed</source>
@@ -3608,6 +3658,10 @@ Erreur :
         <source xml:lang="en">Location (Workspace)</source>
         <target state="translated">Emplacement (espace de travail)</target>
       </trans-unit>
+      <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
+        <source xml:lang="en">MCP</source>
+        <target state="new">MCP</target>
+      </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
         <target state="translated">MSSQL</target>
@@ -3749,6 +3803,22 @@ Erreur :
         <note>{0} is the min</note>
         <target state="translated">Minimum : {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
+        <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
+        <target state="new">Missing connectionId. Please provide a connectionId to open the schema designer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
+        <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
+        <target state="new">Missing schema payload for replace_schema operation.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0ca7c62f0d234b663c644ed907220f1f620372cdc09e18121d5184a0c9b3ac41">
+        <source xml:lang="en">Missing table payload for update_table operation.</source>
+        <target state="new">Missing table payload for update_table operation.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
+        <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
+        <target state="new">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
         <source xml:lang="en">Modified</source>
         <target state="translated">Modifié</target>
@@ -3756,35 +3826,35 @@ Erreur :
       <trans-unit id="++CODE++247f907d6e3294abdd7e74f9b418bdfa63295858aa3940a1c9dacaa6984db22d">
         <source xml:lang="en">Modified column '{0}'</source>
         <note>{0} is the column name</note>
-        <target state="new">Modified column '{0}'</target>
+        <target state="translated">Colonne « {0} » modifiée</target>
       </trans-unit>
       <trans-unit id="++CODE++8b8b2b1f92276bfac16ca4c1b219a0e14fe085e1a8ff20ed241c980d75605b69">
         <source xml:lang="en">Modified column '{0}': {1}</source>
         <note>{0} is the column name
 {1} is a list of property changes</note>
-        <target state="new">Modified column '{0}': {1}</target>
+        <target state="translated">Colonne « {0} » modifiée : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++f3fed3ac5260e9d962afa7e9c3976fbe1f820afd3a1abe010faf7abb2e047092">
         <source xml:lang="en">Modified foreign key '{0}'</source>
         <note>{0} is the foreign key name</note>
-        <target state="new">Modified foreign key '{0}'</target>
+        <target state="translated">Clé étrangère « {0} » modifiée</target>
       </trans-unit>
       <trans-unit id="++CODE++5eb923d79b1a10036893ddc34f902b9ba8483b479ce9f10fd9d859e1dc7e95a7">
         <source xml:lang="en">Modified foreign key '{0}': {1}</source>
         <note>{0} is the foreign key name
 {1} is a list of property changes</note>
-        <target state="new">Modified foreign key '{0}': {1}</target>
+        <target state="translated">Clé étrangère « {0} » modifiée : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++262d63bdafc4465b907e032f39a38463f560d64dba52d428ab76cf70bc97bf57">
         <source xml:lang="en">Modified table {0}</source>
         <note>{0} is the qualified table name</note>
-        <target state="new">Modified table {0}</target>
+        <target state="translated">Table modifiée {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++8c1da131c78db5c203dbde2e003b7644fc26985dbf4afee3e4f3b9d618474186">
         <source xml:lang="en">Modified table {0}: {1}</source>
         <note>{0} is the qualified table name
 {1} is a list of property changes</note>
-        <target state="new">Modified table {0}: {1}</target>
+        <target state="translated">Table modifiée {0} : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
@@ -3825,7 +3895,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
         <source xml:lang="en">Navigate to this item in the diagram</source>
-        <target state="new">Navigate to this item in the diagram</target>
+        <target state="translated">Accédez à cet élément dans le diagramme</target>
       </trans-unit>
       <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
         <source xml:lang="en">Needs attention</source>
@@ -3939,6 +4009,10 @@ Erreur :
         <source xml:lang="en">No active database connection. Please connect to a database first.</source>
         <target state="translated">Aucune connexion de base de données active. Connectez-vous d’abord à une base de données.</target>
       </trans-unit>
+      <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
+        <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
+        <target state="new">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</target>
+      </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
         <target state="translated">Éditeur de texte actif introuvable. Ouvrez un fichier avec une connexion de base de données active.</target>
@@ -3953,11 +4027,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++3b2b9748d5fb147e1033227d9b53a65f26f62ff8fff7f66f037a1b020166a30a">
         <source xml:lang="en">No changes match your search.</source>
-        <target state="new">No changes match your search.</target>
+        <target state="translated">Désolé, aucun changement ne correspond à votre recherche.</target>
       </trans-unit>
       <trans-unit id="++CODE++9b1d0a5f102cd0f86d612e1c6b0860d5e918d9bb28966b29acbf500dd9df5b70">
         <source xml:lang="en">No changes yet.</source>
-        <target state="new">No changes yet.</target>
+        <target state="translated">Aucune modification encore.</target>
       </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
@@ -4016,7 +4090,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
         <source xml:lang="en">No entities found</source>
-        <target state="new">No entities found</target>
+        <target state="translated">Désolé, aucune entité n’a été trouvée</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -4838,7 +4912,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++36b830bdb447f8c758a9b58f190eed468c4bd53e9c7662ee19bca9c53d3a3e3d">
         <source xml:lang="en">Reveal</source>
-        <target state="new">Reveal</target>
+        <target state="translated">Révéler</target>
       </trans-unit>
       <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
         <source xml:lang="en">Reveal in Explorer</source>
@@ -4870,7 +4944,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2cd8b391ded485370b446d5df90c1cdb4fb6690d6cfd939c851fd2704c5114f7">
         <source xml:lang="en">Revert this change to its original state</source>
-        <target state="new">Revert this change to its original state</target>
+        <target state="translated">Rétablir cette modification à son état d’origine</target>
       </trans-unit>
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
@@ -5116,6 +5190,11 @@ Requête : {2}</target>
         <source xml:lang="en">Schema</source>
         <target state="translated">Schéma</target>
       </trans-unit>
+      <trans-unit id="++CODE++44841865223bfd2a59ba806b31b82474c8b63b5dbaf2cf7877aadaab758c2304">
+        <source xml:lang="en">Schema '{0}' is not available.</source>
+        <note>{0} is the schema name</note>
+        <target state="new">Schema '{0}' is not available.</target>
+      </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">Comparer les schémas</target>
@@ -5136,6 +5215,22 @@ Requête : {2}</target>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">Le modèle de Concepteur de schéma est prêt. Les modifications peuvent maintenant être publiées.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
+        <source xml:lang="en">Schema designer is not initialized.</source>
+        <target state="new">Schema designer is not initialized.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
+        <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
+        <target state="new">Schema designer state changed. Fetch the latest schema and retry the operation.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++60ff1fa0767a4ec721cbddea244bc9d84d18b46ad68a9e894dda437f413be240">
+        <source xml:lang="en">Schema designer state retrieved successfully.</source>
+        <target state="new">Schema designer state retrieved successfully.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22c32b443d8259ab1a9f2a388a56124f882e9356d7aeb64f41eb84ba2bdf48fd">
+        <source xml:lang="en">Schema designer updated successfully.</source>
+        <target state="new">Schema designer updated successfully.</target>
       </trans-unit>
       <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
         <source xml:lang="en">Schema visualization opened.</source>
@@ -5167,7 +5262,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
         <source xml:lang="en">Search changes...</source>
-        <target state="new">Search changes...</target>
+        <target state="translated">Rechercher des modifications...</target>
       </trans-unit>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
@@ -5430,7 +5525,7 @@ Requête : {2}</target>
       <trans-unit id="++CODE++dcbf82a20d3f8aa6064bc6fb7d8fdbca30e2444075d3055ccf3346f8be51dc26">
         <source xml:lang="en">Show Changes ({0})</source>
         <note>{0} is the number of schema changes</note>
-        <target state="new">Show Changes ({0})</target>
+        <target state="translated">Afficher les changements ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
@@ -5790,6 +5885,22 @@ Requête : {2}</target>
         <note>{0} is the table name</note>
         <target state="translated">L’Explorateur de tables pour « {0} » a des modifications non enregistrées. Voulez-vous les enregistrer ou les ignorer ?</target>
       </trans-unit>
+      <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
+        <source xml:lang="en">Table added to schema designer successfully.</source>
+        <target state="new">Table added to schema designer successfully.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
+        <source xml:lang="en">Table deleted from schema designer successfully.</source>
+        <target state="new">Table deleted from schema designer successfully.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
+        <source xml:lang="en">Table id already exists.</source>
+        <target state="new">Table id already exists.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
+        <source xml:lang="en">Table must include at least one column.</source>
+        <target state="new">Table must include at least one column.</target>
+      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">Nom de la table</target>
@@ -5797,6 +5908,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
         <source xml:lang="en">Table name cannot be empty</source>
         <target state="translated">Le nom de table ne peut pas être vide</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
+        <source xml:lang="en">Table updated in schema designer successfully.</source>
+        <target state="new">Table updated in schema designer successfully.</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6113,6 +6228,11 @@ Requête : {2}</target>
         <source xml:lang="en">Unknown object management dialog.</source>
         <target state="new">Unknown object management dialog.</target>
       </trans-unit>
+      <trans-unit id="++CODE++6be78b6adb46377e4065b25ea7e2029e22996a8bc9fa551165a40832ab253d2b">
+        <source xml:lang="en">Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
         <source xml:lang="en">Unknown tenant ID</source>
         <target state="translated">ID de locataire inconnu</target>
@@ -6223,10 +6343,6 @@ Requête : {2}</target>
       <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">Très satisfait</target>
-      </trans-unit>
-      <trans-unit id="++CODE++07d5733e461951eef89bb78ab9c94b24c319ea29f79a98d58b07c4dfc3ab7011">
-        <source xml:lang="en">View Config</source>
-        <target state="translated">Voir la configuration</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -6466,7 +6582,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
         <source xml:lang="en">undefined</source>
-        <target state="new">undefined</target>
+        <target state="translated">non défini</target>
       </trans-unit>
       <trans-unit id="++CODE++630c74b2de45669259227b267211f2cbc1b0d85d38728a506258a9e8bdf42acc">
         <source xml:lang="en">untitled</source>
@@ -6502,14 +6618,14 @@ Requête : {2}</target>
       <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
         <source xml:lang="en">{0} change(s)</source>
         <note>{0} is the number of changes</note>
-        <target state="new">{0} change(s)</target>
+        <target state="translated">{0} modification(s)</target>
       </trans-unit>
       <trans-unit id="++CODE++150b51443c0b62043c983238adcc405fe66b3fe237a6a5dc21758c5f47b52f17">
         <source xml:lang="en">{0} changed from '{1}' to '{2}'</source>
         <note>{0} is the display name of the property
 {1} is the old value
 {2} is the new value</note>
-        <target state="new">{0} changed from '{1}' to '{2}'</target>
+        <target state="translated">{0} a changé de « {1} » à « {2} »</target>
       </trans-unit>
       <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
         <source xml:lang="en">{0} color swatch ({1})</source>
@@ -6644,7 +6760,7 @@ Requête : {2}</target>
         <source xml:lang="en">{0}: {1}</source>
         <note>{0} is the qualified table name
 {1} is the change description</note>
-        <target state="new">{0}: {1}</target>
+        <target state="translated">{0} : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++657a1d2beff87023ec2d92b03f58feb984cb2ea13dc6e7269ed84f0b64158591">
         <source xml:lang="en">{0}: {1}. {2}</source>

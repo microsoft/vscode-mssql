@@ -64,6 +64,7 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
+            general: l10n.t("General"),
         };
     }
 
@@ -741,6 +742,26 @@ export class LocConstants {
                     args: [tableName],
                     comment: ["{0} is the table name"],
                 }),
+            schemaDesignerNotInitialized: l10n.t("Schema designer is not initialized."),
+            invalidTablePayload: l10n.t(
+                "Invalid table payload. Expected table with columns array.",
+            ),
+            failedToAddTable: l10n.t("Failed to add table."),
+            failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToDeleteTable: l10n.t("Failed to delete table."),
+            tableIdAlreadyExists: l10n.t("Table id already exists."),
+            foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
+            foreignKeyMappingLengthMismatch: l10n.t(
+                "Foreign key column mappings must be the same length.",
+            ),
+            invalidForeignKey: l10n.t("Invalid foreign key."),
+            tableMustHaveColumns: l10n.t("Table must include at least one column."),
+            schemaNotAvailable: (schema: string) =>
+                l10n.t({
+                    message: "Schema '{0}' is not available.",
+                    args: [schema],
+                    comment: ["{0} is the schema name"],
+                }),
             referencedTableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Referenced table '{0}' not found",
@@ -1110,7 +1131,7 @@ export class LocConstants {
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
-            both: l10n.t("Both"),
+            mcp: l10n.t("MCP"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>
@@ -1126,8 +1147,8 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            viewConfig: l10n.t("View Config"),
-            generateAndRun: l10n.t("Generate & Run"),
+            generateConfig: l10n.t("Generate Config"),
+            deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
@@ -1811,6 +1832,37 @@ export class LocConstants {
             fileBrowserTitle: l10n.t("Select a file"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+        };
+    }
+
+    public get backupDatabase() {
+        return {
+            loadingBackupDatabase: l10n.t("Loading backup database..."),
+            backup: l10n.t("Backup"),
+            script: l10n.t("Script"),
+            advanced: l10n.t("Advanced"),
+            advancedBackupOptions: l10n.t("Advanced Backup Options"),
+            searchOptions: l10n.t("Search options"),
+            saveToUrl: l10n.t("Save to URL"),
+            saveToDisk: l10n.t("Save to Disk"),
+            backupLocation: l10n.t("Backup Location"),
+            backupFiles: l10n.t("Backup Files"),
+            createNew: l10n.t("Create New"),
+            chooseExisting: l10n.t("Choose Existing"),
+            folderPath: l10n.t("Folder Path"),
+            fileName: l10n.t("File Name"),
+            existingFile: l10n.t("Existing File"),
+            newFile: l10n.t("New File"),
+            browseForPath: l10n.t("Browse forvpath"),
+            removeFile: l10n.t("Remove file"),
+            chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
+            chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
+            loading: l10n.t("Loading..."),
+            folderPathRequired: l10n.t("Folder path is required"),
+            fileNameRequired: l10n.t("File name is required"),
+            transactionLog: l10n.t("Transaction Log"),
+            encryption: l10n.t("Encryption"),
+            media: l10n.t("Media"),
         };
     }
 }

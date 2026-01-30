@@ -3,6 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Migrate all tests from 'should' to 'chai expect' syntax.
+// New tests should use: import { expect } from 'chai'; with expect().to.equal() pattern.
+// Existing tests using should() will be migrated in a future PR.
+
+import { expect } from 'chai';
 import should = require('should/as-function');
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -221,15 +226,82 @@ suite('ProjectsController', function (): void {
 				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
 
 				// Without folders - all should return empty string (root level)
-				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal('', 'Schema should return empty when Security folder does not exist');
-				should(projController.getDefaultFolderForItemType(ItemType.table, project)).equal('', 'Table should not have a default folder');
-				should(projController.getDefaultFolderForItemType(ItemType.view, project)).equal('', 'View should not have a default folder');
+				expect(projController.getDefaultFolderForItemType(ItemType.schema, project), 'Schema should return empty when Security folder does not exist').to.equal('');
+				expect(projController.getDefaultFolderForItemType(ItemType.table, project), 'Table should not have a default folder').to.equal('');
+				expect(projController.getDefaultFolderForItemType(ItemType.view, project), 'View should not have a default folder').to.equal('');
 
 				// Add Security folder to project
 				await project.addFolder(constants.securityFolderName);
 
 				// With Security folder - Schema should return Security, others unchanged
-				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal(constants.securityFolderName, 'Schema should return Security folder when it exists');
+				expect(projController.getDefaultFolderForItemType(ItemType.schema, project), 'Schema should return Security folder when it exists').to.equal(constants.securityFolderName);
+			});
+
+			test('Should return empty when no schema folder exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
+
+				// Without schema folder - should return empty string (root level)
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo'), 'Should return empty when no dbo folder exists').to.equal('');
+
+				// Add dbo folder to project
+				await project.addFolder('dbo');
+
+				// With dbo folder - should return dbo
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo'), 'Should return dbo folder when it exists').to.equal('dbo');
+			});
+
+			test('Should return nested schema/object-type folder when it exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
+
+				// No folders - should return empty
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales'), 'Should return empty when no Sales folder').to.equal('');
+
+				// Add Sales folder to project
+				await project.addFolder('Sales');
+
+				// With Sales folder only - should return Sales folder
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales'), 'Should return Sales folder when no nested Functions folder').to.equal('Sales');
+
+				// Add nested Sales/Functions folder
+				await project.addFolder('Sales/Functions');
+
+				// With Sales/Functions folder - should return nested path
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'sales'), 'Should return Sales/Functions when nested folder exists').to.equal('Sales\\Functions');
+
+				// With dbo schema and no dbo folder - should return empty (place at root)
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo'), 'Should return empty when dbo folder does not exist').to.equal('');
+
+				// Add dbo folder
+				await project.addFolder('dbo');
+
+				// With dbo folder and schema=dbo - should return dbo folder
+				expect(projController.getDefaultFolderForItemType(ItemType.tableValuedFunction, project, 'dbo'), 'Should return dbo folder when it exists').to.equal('dbo');
+			});
+
+			test('Should parse schema and object name from user input', function (): void {
+				const projController = new ProjectsController(testContext.outputChannel);
+
+				// Test schema-qualified name
+				let result = projController.parseSchemaAndObjectName('sales.MyFunction');
+				expect(result.schemaName, 'Schema should be parsed correctly').to.equal('sales');
+				expect(result.objectName, 'Object name should be parsed correctly').to.equal('MyFunction');
+
+				// Test simple name (no schema)
+				result = projController.parseSchemaAndObjectName('MyFunction');
+				expect(result.schemaName, 'Default schema should be dbo').to.equal('dbo');
+				expect(result.objectName, 'Object name should remain unchanged').to.equal('MyFunction');
+
+				// Test edge case: leading dot
+				result = projController.parseSchemaAndObjectName('.MyFunction');
+				expect(result.schemaName, 'Leading dot should not be treated as schema').to.equal('dbo');
+				expect(result.objectName, 'Full string should be the object name').to.equal('.MyFunction');
+
+				// Test edge case: trailing dot
+				result = projController.parseSchemaAndObjectName('MyFunction.');
+				expect(result.schemaName, 'Trailing dot should not be treated as schema').to.equal('dbo');
+				expect(result.objectName, 'Full string should be the object name').to.equal('MyFunction.');
 			});
 
 			test('Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true', async function (): Promise<void> {
