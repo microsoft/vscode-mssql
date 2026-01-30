@@ -98,6 +98,7 @@ declare module 'sqldbproj' {
 		table = 'table',
 		view = 'view',
 		storedProcedure = 'storedProcedure',
+		tableValuedFunction = 'tableValuedFunction',
 		schema = 'schema',
 		dataSource = 'dataSource',
 		fileFormat = 'fileFormat',
@@ -108,6 +109,8 @@ declare module 'sqldbproj' {
 		postDeployScript = 'postDeployScript',
 		publishProfile = 'publishProfile',
 		tasks = 'tasks',
+		trigger = 'trigger',
+		databaseTrigger = 'databaseTrigger',
 	}
 
 	/**

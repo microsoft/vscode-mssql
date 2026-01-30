@@ -12,12 +12,24 @@ export let newSqlProjectTemplate: string;
 export let newSdkSqlProjectTemplate: string;
 
 /**
- * Maps item types to their default folder locations.
+ * Configuration for item type default folder placement.
+ */
+export interface ItemTypeFolderConfig {
+	/** The default folder name for this item type */
+	folderName: string;
+	/** If true, the folder can be nested under schema folders (e.g., Sales/Functions). If false, only root-level folder is checked. */
+	schemaDependent: boolean;
+}
+
+/**
+ * Maps item types to their default folder locations and schema dependency.
  * Following SSDT conventions for folder structure (ObjectType and SchemaObjectType).
  * Add new mappings here when adding item types that should be placed in specific folders.
  */
-export const itemTypeToDefaultFolderMap: ReadonlyMap<ItemType, string> = new Map([
-	[ItemType.schema, constants.securityFolderName],
+export const itemTypeToFolderMap: ReadonlyMap<ItemType, ItemTypeFolderConfig> = new Map([
+	[ItemType.schema, { folderName: constants.securityFolderName, schemaDependent: false }],
+	[ItemType.tableValuedFunction, { folderName: constants.functionsFolderName, schemaDependent: true }],
+	[ItemType.databaseTrigger, { folderName: constants.databaseTriggersFolderName, schemaDependent: false }],
 ]);
 
 // Object maps
@@ -52,6 +64,7 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.table, constants.tableFriendlyName, templateFolderPath, 'newTsqlTableTemplate.sql'),
 		loadObjectTypeInfo(ItemType.view, constants.viewFriendlyName, templateFolderPath, 'newTsqlViewTemplate.sql'),
 		loadObjectTypeInfo(ItemType.storedProcedure, constants.storedProcedureFriendlyName, templateFolderPath, 'newTsqlStoredProcedureTemplate.sql'),
+		loadObjectTypeInfo(ItemType.tableValuedFunction, constants.tableValuedFunctionFriendlyName, templateFolderPath, 'newTsqlTableValuedFunctionTemplate.sql'),
 		loadObjectTypeInfo(ItemType.schema, constants.schemaFriendlyName, templateFolderPath, 'newTsqlSchemaTemplate.sql'),
 		loadObjectTypeInfo(ItemType.preDeployScript, constants.preDeployScriptFriendlyName, templateFolderPath, 'newTsqlPreDeployScriptTemplate.sql'),
 		loadObjectTypeInfo(ItemType.postDeployScript, constants.postDeployScriptFriendlyName, templateFolderPath, 'newTsqlPostDeployScriptTemplate.sql'),
@@ -60,7 +73,9 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.externalStream, constants.externalStreamFriendlyName, templateFolderPath, 'newTsqlExternalStreamTemplate.sql'),
 		loadObjectTypeInfo(ItemType.externalStreamingJob, constants.externalStreamingJobFriendlyName, templateFolderPath, 'newTsqlExternalStreamingJobTemplate.sql'),
 		loadObjectTypeInfo(ItemType.publishProfile, constants.publishProfileFriendlyName, templateFolderPath, 'newPublishProfileTemplate.publish.xml'),
-		loadObjectTypeInfo(ItemType.tasks, constants.tasksJsonFriendlyName, templateFolderPath, 'tasksTemplate.json')
+		loadObjectTypeInfo(ItemType.tasks, constants.tasksJsonFriendlyName, templateFolderPath, 'tasksTemplate.json'),
+		loadObjectTypeInfo(ItemType.trigger, constants.triggerFriendlyName, templateFolderPath, 'newTsqlTriggerTemplate.sql'),
+		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql')
 	]);
 
 	for (const scriptType of scriptTypes) {
