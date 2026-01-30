@@ -2559,6 +2559,9 @@
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
     },
+    "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
+    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
+    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

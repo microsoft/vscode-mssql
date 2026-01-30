@@ -7,7 +7,13 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
+import {
+    SessionType,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    TEMPLATE_ID_STANDARD_AZURE,
+    EngineType,
+} from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -18,6 +24,10 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
+import { getServerTypes, ServerType } from "../models/connectionInfo";
+
+/** System databases that cannot be used for Azure SQL profiling */
+const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
 
 /**
  * Controller for the profiler feature.
@@ -27,6 +37,7 @@ export class ProfilerController {
     private _logger: Logger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
+    private _currentEngineType: EngineType = EngineType.Standalone;
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -55,14 +66,41 @@ export class ProfilerController {
         );
 
         try {
+            // Check server type and handle accordingly
+            const serverTypes = getServerTypes(connectionProfile);
+            this._logger.verbose(`Server types detected: ${serverTypes.join(", ")}`);
+
+            // Determine engine type based on server type
+            this._currentEngineType = serverTypes.includes(ServerType.Azure)
+                ? EngineType.AzureSQLDB
+                : EngineType.Standalone;
+            this._logger.verbose(`Engine type set to: ${this._currentEngineType}`);
+
+            // Block Fabric connections - profiler is not supported
+            if (serverTypes.includes(ServerType.Fabric)) {
+                this._logger.verbose("Profiler not supported on Fabric");
+                vscode.window.showWarningMessage(LocProfiler.profilerNotSupportedOnFabric);
+                return;
+            }
+
+            // For Azure SQL, we need to ensure a user database is selected
+            let profileToUse = connectionProfile;
+            if (serverTypes.includes(ServerType.Azure)) {
+                const updatedProfile = await this.ensureAzureDatabaseSelected(connectionProfile);
+                if (!updatedProfile) {
+                    // User cancelled database selection
+                    this._logger.verbose("User cancelled database selection");
+                    return;
+                }
+                profileToUse = updatedProfile;
+            }
+
             // Generate a unique URI for this profiler connection
             const profilerUri = `profiler://${Utils.generateGuid()}`;
-            this._logger.verbose(
-                `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
-            );
+            this._logger.verbose(`Connecting to ${profileToUse.server} with URI: ${profilerUri}`);
 
             // Connect using the connection manager with the provided profile
-            const connected = await this._connectionManager.connect(profilerUri, connectionProfile);
+            const connected = await this._connectionManager.connect(profilerUri, profileToUse);
 
             if (!connected) {
                 this._logger.verbose("Connection failed");
@@ -70,7 +108,7 @@ export class ProfilerController {
                 return;
             }
 
-            this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
+            this._logger.verbose(`Successfully connected to ${profileToUse.server}`);
 
             // Use the common setup method
             await this.setupProfilerUI(profilerUri);
@@ -87,6 +125,87 @@ export class ProfilerController {
     // ============================================================
     // Private Methods
     // ============================================================
+
+    /**
+     * Checks if a database is a system database.
+     * @param databaseName - The name of the database to check
+     * @returns true if the database is a system database
+     */
+    private isSystemDatabase(databaseName: string | undefined): boolean {
+        if (!databaseName) {
+            return true; // No database selected is treated as system database for this purpose
+        }
+        return SYSTEM_DATABASES.includes(databaseName.toLowerCase());
+    }
+
+    /**
+     * Ensures a user database is selected for Azure SQL connections.
+     * If no database or a system database is selected, prompts the user to select one.
+     * @param connectionProfile - The connection profile to check/update
+     * @returns The connection profile with a user database, or undefined if cancelled
+     */
+    private async ensureAzureDatabaseSelected(
+        connectionProfile: IConnectionProfile,
+    ): Promise<IConnectionProfile | undefined> {
+        // Check if a user database is already selected
+        if (!this.isSystemDatabase(connectionProfile.database)) {
+            this._logger.verbose(`User database already selected: ${connectionProfile.database}`);
+            return connectionProfile;
+        }
+
+        this._logger.verbose(
+            "No user database selected for Azure SQL, prompting for database selection",
+        );
+
+        // Need to connect temporarily to get the list of databases
+        const tempUri = `profiler-temp://${Utils.generateGuid()}`;
+        try {
+            const connected = await this._connectionManager.connect(tempUri, connectionProfile);
+            if (!connected) {
+                this._logger.verbose("Failed to connect to get database list");
+                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
+                return undefined;
+            }
+
+            // Get list of databases
+            const databases = await this._connectionManager.listDatabases(tempUri);
+
+            // Filter out system databases
+            const userDatabases = databases.filter((db) => !this.isSystemDatabase(db));
+
+            if (userDatabases.length === 0) {
+                this._logger.verbose("No user databases found");
+                vscode.window.showWarningMessage(LocProfiler.noDatabasesFound);
+                return undefined;
+            }
+
+            // Show quick pick for database selection
+            const selectedDatabase = await vscode.window.showQuickPick(userDatabases, {
+                placeHolder: LocProfiler.selectDatabaseForProfiler,
+                ignoreFocusOut: true,
+            });
+
+            if (!selectedDatabase) {
+                this._logger.verbose("User cancelled database selection");
+                return undefined;
+            }
+
+            this._logger.verbose(`User selected database: ${selectedDatabase}`);
+
+            // Create a new connection profile with the selected database
+            const updatedProfile: IConnectionProfile = {
+                ...connectionProfile,
+                database: selectedDatabase,
+            };
+
+            return updatedProfile;
+        } finally {
+            // Clean up the temporary connection
+            await this._connectionManager.disconnect(tempUri).catch((err) => {
+                this._logger.verbose(`Error disconnecting temp connection: ${err}`);
+            });
+        }
+    }
 
     private registerCommands(): void {
         // Launch Profiler from Object Explorer (uses selected connection)
@@ -201,9 +320,12 @@ export class ProfilerController {
         }
 
         try {
-            // Step 1: Show template selection quick pick
+            // Step 1: Show template selection quick pick (filtered by engine type)
             const configService = getProfilerConfigService();
-            const templates = configService.getTemplates();
+            const templates = configService.getTemplatesForEngine(this._currentEngineType);
+            this._logger.verbose(
+                `Filtered templates for engine ${this._currentEngineType}: ${templates.length} available`,
+            );
 
             if (templates.length === 0) {
                 vscode.window.showWarningMessage(LocProfiler.noTemplatesAvailable);
@@ -347,7 +469,13 @@ export class ProfilerController {
             name: name,
         }));
 
-        // Create the webview to display events with the standard template
+        // Determine the appropriate default template based on engine type
+        const defaultTemplateId =
+            this._currentEngineType === EngineType.AzureSQLDB
+                ? TEMPLATE_ID_STANDARD_AZURE
+                : TEMPLATE_ID_STANDARD_ONPREM;
+
+        // Create the webview to display events with the appropriate template
         // Don't create a ProfilerSession yet - wait for user to select and click Start
         const webviewController = new ProfilerWebviewController(
             this._context,
@@ -355,7 +483,7 @@ export class ProfilerController {
             this._sessionManager,
             availableSessions,
             undefined, // No initial session name
-            TEMPLATE_ID_STANDARD_ONPREM,
+            defaultTemplateId,
         );
 
         // Track this webview controller along with its profiler URI for cleanup
