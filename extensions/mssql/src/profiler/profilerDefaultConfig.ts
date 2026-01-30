@@ -307,7 +307,7 @@ export const defaultProfilerConfig: ProfilerConfig = {
     templates: [
         {
             id: TEMPLATE_ID_STANDARD_ONPREM,
-            name: "Standard (default)",
+            name: "Standard_OnPrem",
             description: "Standard profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
             defaultView: VIEW_ID_STANDARD,
@@ -358,7 +358,7 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
         },
         {
             id: TEMPLATE_ID_STANDARD_AZURE,
-            name: "Standard (default)",
+            name: "Standard_Azure",
             description: "Standard profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
             defaultView: VIEW_ID_STANDARD,
@@ -401,7 +401,7 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
         },
         {
             id: TEMPLATE_ID_TSQL_ONPREM,
-            name: "TSQL",
+            name: "TSQL_OnPrem",
             description: "TSQL profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
             defaultView: VIEW_ID_TSQL,
@@ -432,7 +432,7 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
         },
         {
             id: TEMPLATE_ID_TSQL_AZURE,
-            name: "TSQL",
+            name: "TSQL_Azure",
             description: "TSQL profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
             defaultView: VIEW_ID_TSQL,

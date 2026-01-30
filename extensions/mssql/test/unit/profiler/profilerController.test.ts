@@ -212,6 +212,19 @@ suite("ProfilerController Tests", () => {
             },
         };
 
+        // Mock template selection item
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
         test("should handle connection failure", async () => {
             (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
 
@@ -224,7 +237,21 @@ suite("ProfilerController Tests", () => {
             expect(createWebviewPanelStub).to.not.have.been.called;
         });
 
-        test("should create webview panel on successful connection", async () => {
+        test("should create webview panel after template and session name selection", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    // Simulate session created notification after a short delay
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
@@ -233,7 +260,20 @@ suite("ProfilerController Tests", () => {
             expect(createWebviewPanelStub).to.have.been.calledOnce;
         });
 
-        test("should fetch available XEvent sessions after connection", async () => {
+        test("should fetch available XEvent sessions after template selection", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
 
             createController();
@@ -244,7 +284,20 @@ suite("ProfilerController Tests", () => {
             expect(getXEventSessionsStub).to.have.been.called;
         });
 
-        test("should show information message when profiler is ready", async () => {
+        test("should show information message when session is created successfully", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
@@ -264,6 +317,33 @@ suite("ProfilerController Tests", () => {
             await launchCommand!(mockTreeNodeInfo);
 
             expect(showErrorMessageStub).to.have.been.called;
+        });
+
+        test("should disconnect when template selection is cancelled", async () => {
+            showQuickPickStub.resolves(undefined); // User cancelled template selection
+
+            createController();
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+            await launchCommand!(mockTreeNodeInfo);
+
+            // The webview should NOT be created since user cancelled
+            expect(createWebviewPanelStub).to.not.have.been.called;
+            expect(mockConnectionManager.disconnect).to.have.been.called;
+        });
+
+        test("should disconnect when session name input is cancelled", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves(undefined); // User cancelled input
+
+            createController();
+            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+            await launchCommand!(mockTreeNodeInfo);
+
+            // The webview should NOT be created since user cancelled
+            expect(createWebviewPanelStub).to.not.have.been.called;
+            expect(mockConnectionManager.disconnect).to.have.been.called;
         });
     });
 
@@ -288,16 +368,42 @@ suite("ProfilerController Tests", () => {
             },
         };
 
-        test("should handle creating a new session with template selection cancelled", async () => {
-            showQuickPickStub.resolves(undefined); // User cancelled template selection
+        // Mock template selection item
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        test("should auto-start session after successful creation", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
+            const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
             createController();
             const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
             await launchCommand!(mockTreeNodeInfo);
 
-            // The webview should be created, but no session should be started
-            expect(createWebviewPanelStub).to.have.been.calledOnce;
+            // Verify that startProfiling was called (session was auto-started)
+            expect(startProfilingStub).to.have.been.called;
         });
     });
 
