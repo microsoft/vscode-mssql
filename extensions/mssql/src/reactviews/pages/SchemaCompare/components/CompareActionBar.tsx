@@ -30,12 +30,13 @@ const CompareActionBar = (props: Props) => {
     const context = useContext(schemaCompareContext);
 
     useEffect(() => {
-        if (
-            context.state.endpointsSwitched &&
-            context.state.sourceEndpointInfo &&
-            context.state.targetEndpointInfo
-        ) {
-            handleCompare();
+        if (context.state.endpointsSwitched) {
+            if (context.state.sourceEndpointInfo && context.state.targetEndpointInfo) {
+                handleCompare();
+            } else {
+                // Reset the flag when comparison doesn't run so subsequent switches trigger the effect
+                context.resetEndpointsSwitched();
+            }
         }
     }, [context.state.endpointsSwitched]);
 

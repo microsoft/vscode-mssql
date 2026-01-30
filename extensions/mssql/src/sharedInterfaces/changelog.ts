@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from "vscode-jsonrpc/browser";
+import { Icons } from "./icons";
 
 export interface ChangelogWebviewState {
-    resources: ChangelogResource[];
-    walkthroughs: ChangelogWalkthrough[];
-    changes: ChangelogChangeItem[];
+    mainContent: ContentGroup;
+    secondaryContent: ContentGroup;
+    sidebarContent: ContentEntry[];
     version: string;
 }
 
@@ -22,20 +23,15 @@ export interface ChangelogHero {
     dismissCommandId?: string;
 }
 
-export interface ChangelogResource {
-    label: string;
-    url: string;
-}
-
-export interface ChangelogWalkthrough {
-    label: string;
-    walkthroughId?: string;
-    stepId?: string;
-    url?: string;
-}
-
-export interface ChangelogChangeItem {
+export interface ContentGroup {
     title: string;
+    description?: string;
+    entries: ContentEntry[];
+}
+
+export interface ContentEntry {
+    title: string;
+    icon?: string;
     description: string;
     codeSnippets?: string[];
     actions?: ChangelogAction[];
@@ -53,6 +49,7 @@ export interface ChangelogAction {
     type: "command" | "link" | "walkthrough";
     value: string;
     args?: unknown[];
+    icon?: keyof Icons;
 }
 
 export interface ChangelogLinkRequestParams {

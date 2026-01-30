@@ -292,7 +292,7 @@ export function retryMessage(name: string, error: string) { return l10n.t("Opera
 export const addDatabaseReferenceDialogName = l10n.t("Add database reference");
 export const addDatabaseReferenceOkButtonText = l10n.t("Add reference");
 export const referenceRadioButtonsGroupTitle = l10n.t("Referenced Database Type");
-export const projectLabel = l10n.t("Project");
+export const projectLabel = l10n.t("Project (.sqlproj)");
 export const systemDatabase = l10n.t("System database");
 export const dacpacText = l10n.t("Data-tier application (.dacpac)");
 export const nupkgText = l10n.t("Published data-tier application (.nupkg)");
@@ -460,6 +460,7 @@ export const scriptFriendlyName = l10n.t("Script");
 export const tableFriendlyName = l10n.t("Table");
 export const viewFriendlyName = l10n.t("View");
 export const storedProcedureFriendlyName = l10n.t("Stored Procedure");
+export const schemaFriendlyName = l10n.t("Schema");
 export const dataSourceFriendlyName = l10n.t("Data Source");
 export const fileFormatFriendlyName = l10n.t("File Format");
 export const externalStreamFriendlyName = l10n.t("External Stream");
@@ -468,6 +469,13 @@ export const preDeployScriptFriendlyName = l10n.t("Script.PreDeployment");
 export const postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
 export const publishProfileFriendlyName = l10n.t("Publish Profile");
 export const tasksJsonFriendlyName = l10n.t("Tasks.json");
+
+//#region Default folder paths for item types
+// Maps item types to their default folder locations when created at project root
+// These follow SSDT conventions for folder structure
+export const securityFolderName = 'Security';
+
+//#endregion
 
 //#endregion
 
@@ -708,4 +716,9 @@ export const move = l10n.t("Move");
 export function errorRenamingFile(source: string, destination: string, error: string) { return l10n.t("Error when renaming file from {0} to {1}. Error: {2}", source, destination, error); }
 export const unhandledMoveNode = l10n.t("Unhandled node type for move");
 
+//#endregion
+
+//#region tasks.json
+export const updatingExistingTasksJson = l10n.t("A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.");
+export const sqlProjectBuildTaskLabel = 'sqlproj: Build';
 //#endregion

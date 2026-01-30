@@ -136,7 +136,6 @@ export const TableExplorerPage: React.FC = () => {
                                             ref={gridRef}
                                             resultSet={resultSet}
                                             themeKind={themeKind}
-                                            pageSize={10}
                                             currentRowCount={currentRowCount}
                                             failedCells={failedCells}
                                             deletedRows={deletedRows}
@@ -147,6 +146,7 @@ export const TableExplorerPage: React.FC = () => {
                                             onLoadSubset={context?.loadSubset}
                                             onCellChangeCountChanged={handleCellChangeCountChanged}
                                             onDeletionCountChanged={handleDeletionCountChanged}
+                                            onSaveResults={context?.saveResults}
                                         />
                                     )}
                                 </div>

@@ -6,7 +6,7 @@ Database source control where objects are stored as code, integrating with build
 
 SQL Database Projects for Azure Data Studio and VS Code provides a way to design, edit, and publish objects to SQL databases from a source controlled project. For a complete development workflow, build and deploy your database projects in CI/CD pipelines, such as [GitHub Actions](https://github.com/azure/sql-action) or Azure DevOps.
 
-![SQL project lifecycle](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/images/sqlproj-lifecycle.png)
+![SQL project lifecycle](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/images/sqlproj-lifecycle.png)
 
 📕 Learn more about SQL Database Projects in the documentation: https://aka.ms/sqlprojects
 
@@ -29,7 +29,7 @@ The extension will prompt to install the [.NET SDK](https://aka.ms/sqlprojects-d
 
 📕 Dive in further with this complete tutorial for [creating and deploying a SQL project](https://learn.microsoft.com/sql/tools/sql-database-projects/tutorials/create-deploy-sql-project?pivots=sq1-visual-studio-code).
 
-![AdventureWorks SQL project](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/images/readme-sqlproj.png)
+![AdventureWorks SQL project](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/images/readme-sqlproj.png)
 
 ## Features
 
@@ -82,4 +82,4 @@ Please report issues and feature requests [here.](https://github.com/microsoft/v
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 
-Licensed under the [MIT License](https://github.com/Microsoft/vscode-mssql/raw/main/sql-database-projects/LICENSE.txt).
+Licensed under the [MIT License](https://github.com/Microsoft/vscode-mssql/raw/main/extensions/sql-database-projects/LICENSE.txt).

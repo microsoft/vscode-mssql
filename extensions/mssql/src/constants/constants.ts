@@ -56,6 +56,8 @@ export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdGlobalSearch = "mssql.globalSearch";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const triggerSchemaCompareAutomatic = "automatic";
+export const triggerSchemaCompareManual = "manual";
 export const cmdDacpacDialog = "mssql.dacpacDialog.launch";
 export const cmdDeployDacpac = "mssql.dacpacDialog.deploy";
 export const cmdExtractDacpac = "mssql.dacpacDialog.extract";
@@ -70,6 +72,9 @@ export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdCreateDatabase = "mssql.createDatabase";
+export const cmdDropDatabase = "mssql.dropDatabase";
+export const cmdRenameDatabase = "mssql.renameDatabase";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -126,6 +131,7 @@ export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
@@ -162,7 +168,6 @@ export const outputContentTypeShowError = "showError";
 export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
-export const localhostIP = "127.0.0.1";
 export const defaultContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
@@ -173,6 +178,10 @@ export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const createDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
+export const dropDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
@@ -266,6 +275,7 @@ export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+export const configEnableDab = "mssql.enableDAB";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
@@ -309,6 +319,10 @@ export enum Platform {
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
+export const simple = "Simple";
+export const allFileTypes = ["*.*"];
+
+// Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
@@ -335,8 +349,19 @@ export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
 export const DacpacExtension = ".dacpac";
+export const SqlPackagePublishAction = "Publish";
+export const TargetServerName = "TargetServerName";
 export const dotnet = "dotnet";
 export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";
 export const msBuildProblemMatcher = "$msCompile";
 export const buildDirectory = "BuildDirectory";
+// Regex pattern to match and replace database names in connection strings. Matches: (Initial Catalog|Database)
+export const catalogPairPattern =
+    /(^|;)\s*(Initial\s+Catalog|Database)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^;]*?))\s*(?=;|$)/gi;
+
+// DacFx operation IDs (as reported by SQL Tools Service via taskOperation field)
+export const operationIdExportBacpac = "ExportOperation";
+export const operationIdExtractDacpac = "ExtractOperation";
+export const operationIdImportBacpac = "ImportOperation";
+export const operationIdDeployDacpac = "DeployOperation";

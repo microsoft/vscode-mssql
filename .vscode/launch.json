@@ -7,17 +7,25 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/extensions/mssql",
-        "--extensionDevelopmentPath=${workspaceFolder}/extensions/sql-database-projects"
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/sql-database-projects",
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/data-workspace"
       ],
       "outFiles": [
         "${workspaceFolder}/extensions/mssql/out/**/*.js",
-        "${workspaceFolder}/extensions/sql-database-projects/out/**/*.js"
+        "${workspaceFolder}/extensions/sql-database-projects/out/**/*.js",
+        "${workspaceFolder}/extensions/data-workspace/out/**/*.js"
       ],
       "sourceMaps": true,
       "resolveSourceMapLocations": [
         "${workspaceFolder}/extensions/mssql/dist/**",
-        "${workspaceFolder}/extensions/sql-database-projects/out/**"
+        "${workspaceFolder}/extensions/sql-database-projects/out/**",
+        "${workspaceFolder}/extensions/data-workspace/out/**"
       ],
+      "debugWebviews": true,
+      "rendererDebugOptions": {
+        "sourceMaps": true,
+        "webRoot": "${workspaceFolder}/extensions/mssql"
+      },
       "env": {
         // Uncomment this to use a specified version of STS, see
         // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable

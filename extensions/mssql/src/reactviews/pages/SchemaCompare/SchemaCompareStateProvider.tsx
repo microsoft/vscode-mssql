@@ -114,6 +114,9 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         newTargetEndpointInfo: newTargetEndpointInfo,
                     });
                 },
+                resetEndpointsSwitched: function (): void {
+                    webViewState?.extensionRpc.action("resetEndpointsSwitched", {});
+                },
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,

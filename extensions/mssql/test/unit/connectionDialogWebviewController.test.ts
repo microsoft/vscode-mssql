@@ -30,6 +30,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
     CredentialsQuickPickItemType,
+    IConnectionGroup,
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
@@ -77,12 +78,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
     let connectionUi: sinon.SinonStubbedInstance<ConnectionUI>;
     let mockObjectExplorerProvider: sinon.SinonStubbedInstance<ObjectExplorerProvider>;
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
-
-    const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -94,7 +94,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
-        groupId: TEST_ROOT_GROUP_ID,
+        groupId: ConnectionConfig.ROOT_GROUP_ID,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -117,17 +117,29 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         connectionStore = sandbox.createStubInstance(ConnectionStore);
+        connectionConfig = sandbox.createStubInstance(ConnectionConfig);
         connectionUi = sandbox.createStubInstance(ConnectionUI);
         azureAccountService = sandbox.createStubInstance(AzureAccountService);
         serviceClientMock = stubGetCapabilitiesRequest(sandbox);
 
+        sandbox.stub(connectionStore, "connectionConfig").get(() => connectionConfig);
         sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
         sandbox.stub(connectionManager, "connectionUI").get(() => connectionUi);
         sandbox.stub(connectionManager, "client").get(() => serviceClientMock);
 
+        connectionConfig.getGroupById.resolves({
+            id: ConnectionConfig.ROOT_GROUP_ID,
+            name: ConnectionConfig.ROOT_GROUP_ID,
+            configSource: vscode.ConfigurationTarget.Global,
+        } as IConnectionGroup);
+
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
-            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
+            {
+                id: ConnectionConfig.ROOT_GROUP_ID,
+                name: ConnectionConfig.ROOT_GROUP_ID,
+                configSource: vscode.ConfigurationTarget.Global,
+            },
         ]);
 
         azureAccountService.getAccounts.resolves([
@@ -178,6 +190,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 server: "",
                 password: "",
                 user: "",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -253,6 +266,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 server: "SavedServer",
                 database: "SavedDatabase",
                 authenticationType: AuthenticationType.Integrated,
+                groupId: "test-group-id",
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
@@ -283,6 +297,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.SqlLogin,
                 user: "testUser",
                 password: "testPassword",
+                groupId: ConnectionConfig.ROOT_GROUP_ID,
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
@@ -309,6 +324,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureSignIn(sandbox);
+
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
                     "Default input mode should be Parameters",
@@ -446,6 +464,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     user: "testUser",
                     password: "testPassword",
                     authenticationType: AuthenticationType.SqlLogin,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionDialogProfile;
             });
 

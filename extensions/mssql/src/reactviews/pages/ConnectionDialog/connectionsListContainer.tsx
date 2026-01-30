@@ -13,17 +13,34 @@ import {
     Tree,
     makeStyles,
     tokens,
+    Image,
 } from "@fluentui/react-components";
 import { MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import {
+    ConnectionDialogReducers,
+    ConnectionDialogWebviewState,
+    IConnectionDialogProfile,
+} from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const buttonContainer = "buttonContainer";
 
 const useStyles = makeStyles({
+    container: {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+    },
+    listScrollArea: {
+        flex: "1 1 auto",
+        overflowY: "auto",
+        paddingRight: "4px",
+    },
     paneTitle: {
         marginTop: "12px",
         marginBottom: "12px",
@@ -70,78 +87,118 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
     },
     text: { margin: "0" },
+    adsMigrationContainer: {
+        marginTop: "6px",
+        marginBottom: "12px",
+    },
+    adsMigrationButton: {
+        width: "100%",
+        justifyContent: "flex-start",
+        paddingTop: "8px",
+        paddingBottom: "8px",
+    },
+    adsMigrationIcon: {
+        width: "32px",
+        height: "32px",
+    },
 });
+
+const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
+    const { extensionRpc } = useVscodeWebview<
+        ConnectionDialogWebviewState,
+        ConnectionDialogReducers
+    >();
 
     if (context === undefined) {
         return undefined;
     }
 
     return (
-        <div>
-            <div className={styles.paneTitle}>
-                <Text weight="semibold" className={styles.paneTitle}>
-                    {locConstants.connectionDialog.savedConnections}
-                </Text>
+        <div className={styles.container}>
+            <div className={styles.adsMigrationContainer}>
                 <Button
-                    icon={<ArrowClockwise16Filled />}
-                    appearance="subtle"
-                    onClick={context.refreshConnectionsList}
-                    title={locConstants.common.refresh}
-                />
-            </div>
-            <div className={styles.main}>
-                {// state may not be initialized yet due to async loading of context
-                context.state?.savedConnections.map((connection, index) => {
-                    return (
-                        <ConnectionCard
-                            connection={connection}
-                            key={"saved" + index}
-                            actionButton={{
-                                icon: <Delete16Regular />,
-                                onClick: (e) => {
-                                    context.deleteSavedConnection(connection);
-                                    e.stopPropagation();
-                                },
-                                tooltip: locConstants.connectionDialog.deleteSavedConnection,
-                            }}
+                    className={styles.adsMigrationButton}
+                    appearance="secondary"
+                    icon={
+                        <Image
+                            className={styles.adsMigrationIcon}
+                            src={azureDataStudioIcon}
+                            alt={locConstants.connectionDialog.importFromAzureDataStudio}
                         />
-                    );
-                })}
+                    }
+                    onClick={async () => {
+                        await extensionRpc.sendRequest(ExecuteCommandRequest.type, {
+                            command: "mssql.openAzureDataStudioMigration",
+                        });
+                    }}>
+                    {locConstants.connectionDialog.importFromAzureDataStudio}
+                </Button>
             </div>
-            <div className={styles.paneTitle}>
-                <Text weight="semibold" className={styles.paneTitle}>
-                    {locConstants.connectionDialog.recentConnections}
-                </Text>
-                <Button
-                    icon={<ArrowClockwise16Filled />}
-                    appearance="subtle"
-                    onClick={context.refreshConnectionsList}
-                    title={locConstants.common.refresh}
-                />
+            <div className={styles.listScrollArea}>
+                <div className={styles.paneTitle}>
+                    <Text weight="semibold" className={styles.paneTitle}>
+                        {locConstants.connectionDialog.savedConnections}
+                    </Text>
+                    <Button
+                        icon={<ArrowClockwise16Filled />}
+                        appearance="subtle"
+                        onClick={context.refreshConnectionsList}
+                        title={locConstants.common.refresh}
+                    />
+                </div>
+                <div className={styles.main}>
+                    {context.state?.savedConnections?.map((connection, index) => {
+                        return (
+                            <ConnectionCard
+                                connection={connection}
+                                key={"saved" + index}
+                                actionButton={{
+                                    icon: <Delete16Regular />,
+                                    onClick: (e) => {
+                                        context.deleteSavedConnection(connection);
+                                        e.stopPropagation();
+                                    },
+                                    tooltip: locConstants.connectionDialog.deleteSavedConnection,
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+                <div className={styles.paneTitle}>
+                    <Text weight="semibold" className={styles.paneTitle}>
+                        {locConstants.connectionDialog.recentConnections}
+                    </Text>
+                    <Button
+                        icon={<ArrowClockwise16Filled />}
+                        appearance="subtle"
+                        onClick={context.refreshConnectionsList}
+                        title={locConstants.common.refresh}
+                    />
+                </div>
+                <Tree>
+                    {// state may not be initialized yet due to async loading of context
+                    context.state?.recentConnections.map((connection, index) => {
+                        return (
+                            <ConnectionCard
+                                connection={connection}
+                                key={"mru" + index}
+                                actionButton={{
+                                    icon: <Delete16Regular />,
+                                    onClick: (e) => {
+                                        context.removeRecentConnection(connection);
+                                        e.stopPropagation();
+                                    },
+                                    tooltip: locConstants.connectionDialog.removeRecentConnection,
+                                }}
+                            />
+                        );
+                    })}
+                </Tree>
             </div>
-            <Tree>
-                {// state may not be initialized yet due to async loading of context
-                context.state?.recentConnections.map((connection, index) => {
-                    return (
-                        <ConnectionCard
-                            connection={connection}
-                            key={"mru" + index}
-                            actionButton={{
-                                icon: <Delete16Regular />,
-                                onClick: (e) => {
-                                    context.removeRecentConnection(connection);
-                                    e.stopPropagation();
-                                },
-                                tooltip: locConstants.connectionDialog.removeRecentConnection,
-                            }}
-                        />
-                    );
-                })}
-            </Tree>
         </div>
     );
 };
@@ -222,6 +279,7 @@ export const ConnectionCard = ({
                                     if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                         actionButton.onClick(e as any);
                                     }
                                 }}

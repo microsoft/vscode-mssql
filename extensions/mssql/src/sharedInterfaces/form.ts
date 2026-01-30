@@ -84,6 +84,11 @@ export interface FormItemSpec<
      * Validation state and message for the form item
      */
     validation?: FormItemValidationState;
+
+    /**
+     * Whether the form item is an advanced option
+     */
+    isAdvancedOption?: boolean;
 }
 
 export interface FormItemValidationState {

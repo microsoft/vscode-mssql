@@ -216,9 +216,33 @@ suite('ProjectsController', function (): void {
 				}
 			});
 
-			test('Should create .vscode/tasks.json with isDefault=true when configureDefaultBuild is true', async function (): Promise<void> {
+			test('Should return default folder for item type only when folder exists', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const project = await testUtils.createTestProject(this.test, templates.newSqlProjectTemplate);
+
+				// Without folders - all should return empty string (root level)
+				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal('', 'Schema should return empty when Security folder does not exist');
+				should(projController.getDefaultFolderForItemType(ItemType.table, project)).equal('', 'Table should not have a default folder');
+				should(projController.getDefaultFolderForItemType(ItemType.view, project)).equal('', 'View should not have a default folder');
+
+				// Add Security folder to project
+				await project.addFolder(constants.securityFolderName);
+
+				// With Security folder - Schema should return Security, others unchanged
+				should(projController.getDefaultFolderForItemType(ItemType.schema, project)).equal(constants.securityFolderName, 'Schema should return Security folder when it exists');
+			});
+
+			test('Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true', async function (): Promise<void> {
 				const projController = new ProjectsController(testContext.outputChannel);
 				const projFileDir = await testUtils.generateTestFolderPath(this.test);
+
+				// Mock workspace folder to return the project folder's parent as the workspace root
+				const workspaceFolder: vscode.WorkspaceFolder = {
+					uri: vscode.Uri.file(projFileDir),
+					name: 'test-workspace',
+					index: 0
+				};
+				sinon.stub(vscode.workspace, 'getWorkspaceFolder').returns(workspaceFolder);
 
 				// Act: create a new project with configureDefaultBuild: true
 				const projFilePath = await projController.createNewProject({
@@ -231,13 +255,13 @@ suite('ProjectsController', function (): void {
 					sdkStyle: false
 				});
 
-				const project = await Project.openProject(projFilePath);
-				// Path to the expected tasks.json file
-				const tasksJsonPath = path.join(projFileDir, project.projectFileName, '.vscode', 'tasks.json');
+				await Project.openProject(projFilePath);
+				// Path to the expected tasks.json file - now at workspace level, not inside project folder
+				const tasksJsonPath = path.join(projFileDir, '.vscode', 'tasks.json');
 
-				// Assert: tasks.json exists
+				// Assert: tasks.json exists at workspace level
 				const exists = await utils.exists(tasksJsonPath);
-				should(exists).be.true('.vscode/tasks.json should be created when configureDefaultBuild is true');
+				should(exists).be.true('.vscode/tasks.json should be created at workspace level when configureDefaultBuild is true');
 
 				// If exists, check if isDefault is true in any build task
 				if (exists) {
@@ -249,6 +273,60 @@ suite('ProjectsController', function (): void {
 					should(task.group).not.be.undefined();
 					should(task.group.isDefault).equal('true', 'The build task should have isDefault: true');
 				}
+			});
+
+			test('Should merge SQL build task into existing tasks.json when it already exists at workspace level', async function (): Promise<void> {
+				const projController = new ProjectsController(testContext.outputChannel);
+				const projFileDir = await testUtils.generateTestFolderPath(this.test);
+
+				// Create existing tasks.json with a different task
+				const vscodeFolder = path.join(projFileDir, '.vscode');
+				await fs.mkdir(vscodeFolder, { recursive: true });
+				const existingTasksJson = {
+					version: '2.0.0',
+					tasks: [
+						{
+							label: 'Existing Task',
+							type: 'shell',
+							command: 'echo Hello'
+						}
+					]
+				};
+				await fs.writeFile(path.join(vscodeFolder, 'tasks.json'), JSON.stringify(existingTasksJson, null, '\t'));
+
+				// Mock workspace folder
+				const workspaceFolder: vscode.WorkspaceFolder = {
+					uri: vscode.Uri.file(projFileDir),
+					name: 'test-workspace',
+					index: 0
+				};
+				sinon.stub(vscode.workspace, 'getWorkspaceFolder').returns(workspaceFolder);
+
+				// Spy on showInformationMessage to verify notification
+				const showInfoSpy = sinon.spy(vscode.window, 'showInformationMessage');
+
+				// Act: create a new project with configureDefaultBuild: true
+				await projController.createNewProject({
+					newProjName: 'TestProjectWithTasks',
+					folderUri: vscode.Uri.file(projFileDir),
+					projectTypeId: constants.emptySqlDatabaseProjectTypeId,
+					configureDefaultBuild: true,
+					projectGuid: 'BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575',
+					targetPlatform: SqlTargetPlatform.sqlAzure,
+					sdkStyle: false
+				});
+
+				// Assert: tasks.json now has both tasks
+				const tasksJsonPath = path.join(vscodeFolder, 'tasks.json');
+				const tasksJsonContent = await fs.readFile(tasksJsonPath, 'utf-8');
+				const tasksJson = JSON.parse(tasksJsonContent);
+
+				should(tasksJson.tasks).be.Array().and.have.length(2);
+				should(tasksJson.tasks[0].label).equal('Existing Task', 'Existing task should be preserved');
+				should(tasksJson.tasks[1].label).equal('Build', 'SQL build task should be added');
+
+				// Assert: notification was shown
+				should(showInfoSpy.calledWith(constants.updatingExistingTasksJson)).be.true('Should show notification when updating existing tasks.json');
 			});
 
 			async function verifyFolderAdded(folderName: string, projController: ProjectsController, project: Project, node: BaseProjectTreeItem): Promise<void> {

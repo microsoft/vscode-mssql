@@ -11,12 +11,15 @@ import {
     PublishDialogState,
     IPublishForm,
     PublishProjectProvider,
+    GenerateSqlPackageCommandRequest,
 } from "../../../sharedInterfaces/publishDialog";
 import { FormEvent } from "../../../sharedInterfaces/form";
 import * as mssql from "vscode-mssql";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 export interface PublishProjectContextProps extends PublishProjectProvider {
     extensionRpc: WebviewRpc<PublishDialogReducers>;
+    themeKind?: ColorThemeKind;
 }
 
 // Optional payload for publishNow future expansion
@@ -29,7 +32,10 @@ export const PublishProjectContext = createContext<PublishProjectContextProps | 
 export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview2<PublishDialogState, PublishDialogReducers>();
+    const { extensionRpc, themeKind } = useVscodeWebview2<
+        PublishDialogState,
+        PublishDialogReducers
+    >();
 
     const value = useMemo<PublishProjectContextProps>(
         () => ({
@@ -41,16 +47,20 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             selectPublishProfile: () => extensionRpc.action("selectPublishProfile"),
             savePublishProfile: (publishProfileName: string) =>
                 extensionRpc.action("savePublishProfile", { publishProfileName }),
-            openConnectionDialog: () => extensionRpc.action("openConnectionDialog"),
             closeMessage: () => extensionRpc.action("closeMessage"),
             updateDeploymentOptions: (deploymentOptions: mssql.DeploymentOptions) =>
                 extensionRpc.action("updateDeploymentOptions", { deploymentOptions }),
             updateSqlCmdVariables: (variables: { [key: string]: string }) =>
                 extensionRpc.action("updateSqlCmdVariables", { variables }),
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
+            generateSqlPackageCommand: (maskMode?: mssql.MaskMode) =>
+                extensionRpc.sendRequest(GenerateSqlPackageCommandRequest.type, { maskMode }),
+            connectToServer: (connectionId: string) =>
+                extensionRpc.action("connectToServer", { connectionId }),
             extensionRpc,
+            themeKind,
         }),
-        [extensionRpc],
+        [extensionRpc, themeKind],
     );
 
     return (

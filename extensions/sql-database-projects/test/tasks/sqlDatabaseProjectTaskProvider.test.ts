@@ -105,11 +105,13 @@ suite('Sql Database Projects Task Provider', function (): void {
 
 		// Assert: build task execution should be defined and use 'dotnet' command with 'build' argument
 		should(buildTask?.execution).not.be.undefined();
-		if (buildTask?.execution instanceof vscode.ShellExecution) {
-			should(buildTask.execution.command).equal('dotnet');
+		if (buildTask?.execution instanceof vscode.ProcessExecution) {
+			should(buildTask.execution.process).equal('dotnet');
 			should(buildTask.execution.args).not.be.undefined();
 			should(buildTask.execution.args).be.Array();
-			should(buildTask.execution.args[0]).equal('build');
+			// First arg is 'build' string
+			const firstArg = buildTask.execution.args[0];
+			should(firstArg).equal('build');
 
 			const argsString = buildTask.execution.args.join(' ');
 			should(argsString).containEql('/p:NetCoreBuild=true');
@@ -180,11 +182,13 @@ suite('Sql Database Projects Task Provider', function (): void {
 
 			// Assert: build task execution should be defined and use 'dotnet' command with 'build' argument
 			should(buildTask?.execution).not.be.undefined();
-			if (buildTask?.execution instanceof vscode.ShellExecution) {
-				should(buildTask.execution.command).equal('dotnet');
+			if (buildTask?.execution instanceof vscode.ProcessExecution) {
+				should(buildTask.execution.process).equal('dotnet');
 				should(buildTask.execution.args).not.be.undefined();
 				should(buildTask.execution.args).be.Array();
-				should(buildTask.execution.args[0]).equal('build');
+				// First arg is 'build' string
+				const firstArg = buildTask.execution.args[0];
+				should(firstArg).equal('build');
 			}
 		}
 	});
@@ -211,13 +215,14 @@ suite('Sql Database Projects Task Provider', function (): void {
 
 		// Assert: build task execution should contain legacy-style arguments
 		should(buildTask?.execution).not.be.undefined();
-		if (buildTask?.execution instanceof vscode.ShellExecution) {
-			should(buildTask.execution.command).equal('dotnet');
+		if (buildTask?.execution instanceof vscode.ProcessExecution) {
+			should(buildTask.execution.process).equal('dotnet');
 			should(buildTask.execution.args).not.be.undefined();
 			should(buildTask.execution.args).be.Array();
 
 			// Verify it contains build command
-			should(buildTask.execution.args[0]).equal('build');
+			const firstArg = buildTask.execution.args[0];
+			should(firstArg).equal('build');
 
 			// Verify it contains legacy-style build arguments
 			const argsString = buildTask.execution.args.join(' ');

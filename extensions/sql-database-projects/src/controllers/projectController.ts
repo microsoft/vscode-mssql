@@ -22,7 +22,7 @@ import { SqlDatabaseProjectTreeViewProvider } from './databaseProjectTreeViewPro
 import { FolderNode, FileNode } from '../models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
 import { ImportDataModel } from '../models/api/import';
-import { NetCoreTool, DotNetError, DBProjectConfigurationKey } from '../tools/netcoreTool';
+import { NetCoreTool, DotNetError } from '../tools/netcoreTool';
 import { BuildHelper } from '../tools/buildHelper';
 import { readPublishProfile, promptForSavingProfile, savePublishProfile } from '../models/publishProfile/publishProfile';
 import { AddDatabaseReferenceDialog } from '../dialogs/addDatabaseReferenceDialog';
@@ -247,12 +247,68 @@ export class ProjectsController {
 	}
 
 	/**
-	 * Adds a tasks.json file to the project
-	 * @param project project to add the tasks.json file to
+	 * Adds or updates a tasks.json file at the workspace level (not inside the project folder).
+	 * If the workspace already has a tasks.json, the SQL project build task is merged into it.
+	 * If no workspace folder is found, falls back to creating tasks.json inside the project folder.
+	 * @param project project to add the tasks.json file for
 	 * @param configureDefaultBuild whether to configure the default build task in tasks.json
 	 */
 	private async addTasksJsonFile(project: ISqlProject, configureDefaultBuild: boolean): Promise<void> {
-		await this.addFileToProjectFromTemplate(project, templates.get(ItemType.tasks), '.vscode/tasks.json', new Map([['ConfigureDefaultBuild', configureDefaultBuild.toString()]]));
+		// Find the workspace folder that contains the project
+		const projectUri = vscode.Uri.file(project.projectFilePath);
+		const workspaceFolder = vscode.workspace.getWorkspaceFolder(projectUri);
+
+		// Determine the target folder: workspace root if available, otherwise project folder
+		const targetFolder = workspaceFolder ? workspaceFolder.uri.fsPath : project.projectFolderPath;
+		const vscodeFolder = path.join(targetFolder, '.vscode');
+		const tasksJsonPath = path.join(vscodeFolder, 'tasks.json');
+
+		// Generate the new SQL project build task from template
+		const tasksTemplate = templates.get(ItemType.tasks);
+		const newTasksContent = templates.macroExpansion(tasksTemplate.templateScript, new Map([['ConfigureDefaultBuild', configureDefaultBuild.toString()]]));
+		const newTasksJson = JSON.parse(newTasksContent);
+
+		// Check if tasks.json already exists at workspace level
+		if (await utils.exists(tasksJsonPath)) {
+			// Read and parse existing tasks.json
+			try {
+				const existingContent = await fs.readFile(tasksJsonPath, 'utf8');
+				const existingTasksJson = JSON.parse(existingContent);
+
+				// Ensure tasks array exists
+				if (!existingTasksJson.tasks) {
+					existingTasksJson.tasks = [];
+				}
+
+				// Check if the SQL project build task already exists
+				const sqlBuildTaskExists = existingTasksJson.tasks.some(
+					(task: { label?: string; type?: string }) =>
+						task.label === constants.sqlProjectBuildTaskLabel ||
+						(task.label === 'Build' && task.type === 'shell')
+				);
+
+				if (!sqlBuildTaskExists) {
+					// Merge the new task(s) into existing tasks
+					existingTasksJson.tasks.push(...newTasksJson.tasks);
+
+					// Write back the merged tasks.json
+					await fs.writeFile(tasksJsonPath, JSON.stringify(existingTasksJson, null, '\t'), 'utf8');
+
+					// Show notification to user
+					void vscode.window.showInformationMessage(constants.updatingExistingTasksJson);
+				}
+				// If task already exists, do nothing
+			} catch (error) {
+				// If parsing fails, log error and skip
+				this._outputChannel.appendLine(`Error parsing existing tasks.json: ${error}`);
+			}
+		} else {
+			// Create new tasks.json at workspace level
+			await fs.mkdir(vscodeFolder, { recursive: true });
+			await fs.writeFile(tasksJsonPath, JSON.stringify(newTasksJson, null, '\t'), 'utf8');
+		}
+
+		// Note: We don't add tasks.json to the project's None items since it's at workspace level
 	}
 
 	private async addFileToProjectFromTemplate(project: ISqlProject, itemType: templates.ProjectScriptType, relativePath: string, expansionMacros: Map<string, string>): Promise<string> {
@@ -268,7 +324,6 @@ export class ProjectsController {
 				await project.addPostDeploymentScript(relativePath);
 				break;
 			case ItemType.publishProfile:
-			case ItemType.tasks: // tasks.json is not added to the build
 				await project.addNoneItem(relativePath);
 				break;
 			default: // a normal SQL object script
@@ -424,13 +479,15 @@ export class ProjectsController {
 			problemMatcher: constants.problemMatcher
 		};
 
-		// Create a new task with the definition and shell executable
+		// Create a new task with the definition and process executable
 		vscodeTask = new vscode.Task(
 			taskDefinition,
 			vscode.TaskScope.Workspace,
 			taskDefinition.label,
 			taskDefinition.type,
-			new vscode.ShellExecution(taskDefinition.command, args, { cwd: project.projectFolderPath }),
+			new vscode.ProcessExecution(taskDefinition.command, args, {
+				cwd: project.projectFolderPath
+			}),
 			taskDefinition.problemMatcher
 		);
 
@@ -541,17 +598,25 @@ export class ProjectsController {
 
 			return publishDatabaseDialog.waitForClose();
 		} else {
-			// If preview feature is enabled, use preview flow
-			const shouldUsePreview =
-				vscode.workspace.getConfiguration(DBProjectConfigurationKey).get<boolean>(constants.enablePreviewFeaturesKey) ||
-				vscode.workspace.getConfiguration(constants.mssqlConfigSectionKey).get<boolean>(constants.mssqlEnableExperimentalFeaturesKey);
-
-			if (shouldUsePreview) {
-				return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
-			} else {
-				return this.publishDatabase(project);
-			}
+			// Use the old quickpick-based publish flow
+			return this.publishDatabase(project);
 		}
+	}
+
+	/**
+	 * Builds and publishes a project using the new Publish Dialog (Preview)
+	 * @param treeNode a treeItem in a project's hierarchy, to be used to obtain a Project
+	 */
+	public async publishProjectDialog(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+	/**
+	 * Builds and publishes a project using the new Publish Dialog (Preview)
+	 * @param project Project to be built and published
+	 */
+	public async publishProjectDialog(project: Project): Promise<void>;
+	public async publishProjectDialog(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
+		const project: Project = await this.getProjectFromContext(context);
+		// Use the new publish dialog flow
+		return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
 	}
 
 	public getPublishDialog(project: Project): PublishDatabaseDialog {
@@ -815,6 +880,25 @@ export class ProjectsController {
 		return sameName && sameLocation;
 	}
 
+	/**
+	 * Gets the default folder path for a given item type when creating at project root.
+	 * Only returns the default folder if it already exists in the project.
+	 * @param itemType The type of item being created
+	 * @param project The project to check for existing folders
+	 * @returns The default folder path if it exists, or empty string otherwise
+	 */
+	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject): string {
+		const defaultFolder = templates.itemTypeToDefaultFolderMap.get(itemType);
+		if (!defaultFolder) {
+			return '';
+		}
+
+		// Only use the default folder if it already exists in the project
+		const folderExists = project.folders.some(f => f.relativePath === defaultFolder);
+
+		return folderExists ? defaultFolder : '';
+	}
+
 	public async addItemPromptFromNode(treeNode: dataworkspace.WorkspaceTreeItem, itemTypeName?: string): Promise<void> {
 		const projectRelativeUri = vscode.Uri.file(path.basename((treeNode.element as BaseProjectTreeItem).projectFileUri.fsPath, constants.sqlprojExtension));
 		await this.addItemPrompt(await this.getProjectFromContext(treeNode), this.getRelativePath(projectRelativeUri, treeNode.element), { itemType: itemTypeName }, treeNode.treeDataProvider as SqlDatabaseProjectTreeViewProvider);
@@ -839,6 +923,12 @@ export class ProjectsController {
 		}
 
 		const itemType = templates.get(itemTypeName);
+
+		// Get default folder for this item type if creating at project root and folder exists, otherwise use the selected folder
+		if (relativePath === '') {
+			relativePath = this.getDefaultFolderForItemType(itemType.type, project);
+		}
+
 		const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
 		const isItemTypePublishProfile = itemTypeName === constants.publishProfileFriendlyName || itemTypeName === ItemType.publishProfile;
 		const fileExtension = isItemTypePublishProfile ? constants.publishProfileExtension : constants.sqlFileExtension;
