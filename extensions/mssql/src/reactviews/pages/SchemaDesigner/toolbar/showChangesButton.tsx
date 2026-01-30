@@ -48,7 +48,9 @@ export function ShowChangesButton() {
                     icon={<BranchCompare20Regular />}
                 />
                 {context.schemaChangesCount > 0 && (
-                    <Badge size="small" className={classes.badge}>{context.schemaChangesCount}</Badge>
+                    <Badge size="small" className={classes.badge}>
+                        {context.schemaChangesCount}
+                    </Badge>
                 )}
             </span>
         </Tooltip>
