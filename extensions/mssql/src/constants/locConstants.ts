@@ -2680,3 +2680,79 @@ export class Proxy {
             comment: ["{0} is the proxy URL", "{1} is the error message"],
         });
 }
+
+export class BackupDatabase {
+    public static backupDatabaseTitle = (databaseName: string) =>
+        l10n.t({
+            message: "Backup Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    public static backupName = l10n.t("Backup Name");
+    public static recoveryModel = l10n.t("Recovery Model");
+    public static full = l10n.t("Full");
+    public static bulkLogged = l10n.t("Bulk-logged");
+    public static simple = l10n.t("Simple");
+    public static backupType = l10n.t("Backup Type");
+    public static differential = l10n.t("Differential");
+    public static transactionLog = l10n.t("Transaction Log");
+    public static copyOnly = l10n.t("Copy-only Backup");
+    public static saveToUrl = l10n.t("Save backup to URL");
+    public static azureAccount = l10n.t("Azure Account");
+    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static tenant = l10n.t("Tenant");
+    public static tenantIsRequired = l10n.t("Tenant is required");
+    public static storageAccount = l10n.t("Storage Account");
+    public static storageAccountIsRequired = l10n.t("Storage Account is required");
+    public static selectAStorageAccount = l10n.t("Select a storage account");
+    public static blobContainer = l10n.t("Blob Container");
+    public static selectABlobContainer = l10n.t("Select a blob container");
+    public static blobContainerIsRequired = l10n.t("Blob Container is required");
+    public static subscription = l10n.t("Subscription");
+    public static selectASubscription = l10n.t("Select a subscription");
+    public static subscriptionIsRequired = l10n.t("Subscription is required");
+    public static backupFiles = l10n.t("Backup Files");
+    public static compression = l10n.t("Compression");
+    public static backupCompression = l10n.t("Set backup Compression");
+    public static useDefault = l10n.t("Use the default server setting");
+    public static compressBackup = l10n.t("Compress backup");
+    public static doNotCompressBackup = l10n.t("Do not compress backup");
+    public static media = l10n.t("Media");
+    public static append = l10n.t("Append to the existing backup set");
+    public static overwrite = l10n.t("Overwrite all existing backup sets");
+    public static create = l10n.t("Backup to a new media set");
+    public static unavailableForBackupsToExistingFiles = l10n.t(
+        "Unavailable for backups to existing files",
+    );
+    public static pleaseChooseValidMediaOption = l10n.t("Please choose a valid media option");
+    public static backupMediaSet = l10n.t("Set backup Media Set");
+    public static newMediaSetName = l10n.t("New media set name");
+    public static mediaSetNameIsRequired = l10n.t("Media set name is required");
+    public static newMediaSetDescription = l10n.t("New media set description");
+    public static mediaSetDescriptionIsRequired = l10n.t("Media set description is required");
+    public static reliability = l10n.t("Reliability");
+    public static performChecksum = l10n.t("Perform checksum before writing to media");
+    public static verifyBackup = l10n.t("Verify backup when finished");
+    public static continueOnError = l10n.t("Continue on error");
+    public static truncateLog = l10n.t("Truncate the transaction log");
+    public static backupTail = l10n.t("Backup the tail of the log");
+    public static expiration = l10n.t("Expiration");
+    public static retainDays = l10n.t("Set backup retain days");
+    public static encryption = l10n.t("Encryption");
+    public static enableEncryption = l10n.t("Use encryption for this backup");
+    public static encryptionAlgorithm = l10n.t("Encryption Algorithm");
+    public static encryptionType = l10n.t("Encryption Type");
+    public static backupFileTypes = l10n.t("Backup Files (*.bak, *.log, *.trn)");
+    public static allFiles = l10n.t("All Files (*.*)");
+    public static noTenantsFound = l10n.t("No tenants found");
+    public static noSubscriptionsFound = l10n.t("No subscriptions found");
+    public static noStorageAccountsFound = l10n.t("No storage accounts found");
+    public static noBlobContainersFound = l10n.t("No blob containers found");
+    public static generatingSASKeyFailedWithError = (errorMessage: string) => {
+        return l10n.t({
+            message: "Generating SAS key failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+}
