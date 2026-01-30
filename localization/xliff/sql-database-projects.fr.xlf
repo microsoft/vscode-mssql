@@ -1155,6 +1155,10 @@
         <source xml:lang="en">Select where to publish the project to</source>
         <target state="translated">Sélectionnez l’emplacement de déploiement du projet sur</target>
       </trans-unit>
+      <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
+        <source xml:lang="en">Sequence</source>
+        <target state="new">Sequence</target>
+      </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
         <target state="translated">Serveur</target>
