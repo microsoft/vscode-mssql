@@ -106,21 +106,6 @@ export class RingBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Queries the buffer with the given filter.
-     * TODO: Implement filtering logic
-     *
-     * @param _filter - The filter criteria (unused for now)
-     * @returns Query result with empty rows
-     */
-    query(_filter: Filter): QueryResult<T> {
-        return {
-            rows: [],
-            totalCount: 0,
-            hasMore: false,
-        };
-    }
-
-    /**
      * Gets all rows in chronological order.
      */
     getAllRows(): T[] {
