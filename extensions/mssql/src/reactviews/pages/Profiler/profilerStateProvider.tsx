@@ -32,6 +32,12 @@ export interface ProfilerRpcMethods {
     fetchRows: (startIndex: number, count: number) => void;
     /** Select a row to show details in the panel */
     selectRow: (rowId: string) => void;
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: (textData: string, eventName?: string) => void;
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: (text: string) => void;
+    /** Close the embedded details panel */
+    closeDetailsPanel: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -109,6 +115,24 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const openInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            extensionRpc?.action("openInEditor", { textData, eventName });
+        },
+        [extensionRpc],
+    );
+
+    const copyToClipboard = useCallback(
+        (text: string) => {
+            extensionRpc?.action("copyToClipboard", { text });
+        },
+        [extensionRpc],
+    );
+
+    const closeDetailsPanel = useCallback(() => {
+        extensionRpc?.action("closeDetailsPanel", {});
+    }, [extensionRpc]);
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -123,6 +147,9 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 toggleAutoScroll,
                 fetchRows,
                 selectRow,
+                openInEditor,
+                copyToClipboard,
+                closeDetailsPanel,
             }}>
             {children}
         </ProfilerContext.Provider>

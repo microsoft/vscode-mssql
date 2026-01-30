@@ -21,7 +21,6 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
-import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 
 /**
  * Events emitted by the profiler webview controller
@@ -51,7 +50,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
-    private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -278,25 +276,54 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
-        // Handle row selection from webview - update details panel
+        // Handle row selection from webview - update state with selected event details
         this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            this.handleRowSelection(payload.rowId);
+            const selectedEvent = this.handleRowSelection(payload.rowId);
+            return {
+                ...state,
+                selectedEvent,
+            };
+        });
+
+        // Handle Open in Editor request from embedded details panel
+        this.registerReducer(
+            "openInEditor",
+            async (state, payload: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(payload.textData);
+                return state;
+            },
+        );
+
+        // Handle Copy to Clipboard request from embedded details panel
+        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            void vscode.window.showInformationMessage("Copied to clipboard");
             return state;
+        });
+
+        // Handle close details panel request
+        this.registerReducer("closeDetailsPanel", (state) => {
+            return {
+                ...state,
+                selectedEvent: undefined,
+            };
         });
     }
 
     /**
-     * Handle row selection - get event details and update the details panel
+     * Handle row selection - get event details and return them for state update
      */
-    private handleRowSelection(rowId: string): void {
-        if (!this._currentSession || !this._detailsPanelController) {
-            return;
+    private handleRowSelection(
+        rowId: string,
+    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
+        if (!this._currentSession) {
+            return undefined;
         }
 
         // Find the event in the ring buffer by its ID
         const event = this._currentSession.events.findById(rowId);
         if (!event) {
-            return;
+            return undefined;
         }
 
         // Build the selected event details using the centralized ProfilerConfigService
@@ -306,12 +333,28 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             viewConfig,
         );
 
-        // Reveal the details panel first (creates the webview if needed)
-        // Then update the selected event after the panel is ready
-        void this._detailsPanelController.reveal().then(() => {
-            // Update the details panel after it's revealed
-            this._detailsPanelController?.updateSelectedEvent(selectedEventDetails);
-        });
+        return selectedEventDetails;
+    }
+
+    /**
+     * Open text content in a new VS Code editor
+     */
+    private async openTextInEditor(textData: string): Promise<void> {
+        try {
+            const document = await vscode.workspace.openTextDocument({
+                content: textData,
+                language: "sql",
+            });
+
+            await vscode.window.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.One,
+                preview: true,
+            });
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
     }
 
     /**
@@ -365,13 +408,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
         this._eventHandlers = handlers;
-    }
-
-    /**
-     * Set the details panel controller for row selection updates
-     */
-    public setDetailsPanelController(controller: ProfilerDetailsPanelViewController): void {
-        this._detailsPanelController = controller;
     }
 
     /**

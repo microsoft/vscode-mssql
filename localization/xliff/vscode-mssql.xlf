@@ -5310,9 +5310,6 @@
     <trans-unit id="mssql.preventAutoExecuteScript">
       <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
     </trans-unit>
-    <trans-unit id="extension.profilerDetails">
-      <source xml:lang="en">Profiler Event Details</source>
-    </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
     </trans-unit>

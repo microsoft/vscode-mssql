@@ -106,6 +106,8 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
+    /** The currently selected event details for the embedded details panel */
+    selectedEvent?: ProfilerSelectedEventDetails;
 }
 
 /**
@@ -148,6 +150,17 @@ export interface ProfilerReducers {
     selectRow: {
         rowId: string;
     };
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: {
+        textData: string;
+        eventName?: string;
+    };
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: {
+        text: string;
+    };
+    /** Close the embedded details panel */
+    closeDetailsPanel: Record<string, never>;
 }
 
 /**
