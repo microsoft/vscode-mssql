@@ -338,12 +338,14 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
             if (operation === "get_table") {
                 const tableRef = options.input.payload?.table;
-                if (!tableRef?.schema || !tableRef?.name) {
+                const hasId = Boolean(tableRef?.id);
+                const hasSchemaAndName = Boolean(tableRef?.schema && tableRef?.name);
+                if (!hasId && !hasSchemaAndName) {
                     const err: SchemaDesignerToolError = withTarget(
                         {
                             success: false,
                             reason: "invalid_request",
-                            message: "Missing payload.table (schema + name).",
+                            message: "Missing payload.table (id OR schema + name).",
                         },
                         activeDesigner,
                     );

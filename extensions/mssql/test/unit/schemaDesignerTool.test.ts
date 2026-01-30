@@ -785,7 +785,6 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.table.foreignKeys[0]).to.have.property("id", "fk1");
             expect(parsedResult.table.foreignKeys[0].mappings[0]).to.deep.equal({
                 column: "ParentId",
-                referencedColumn: undefined,
             });
             expectNoSchemaDump(parsedResult);
 
