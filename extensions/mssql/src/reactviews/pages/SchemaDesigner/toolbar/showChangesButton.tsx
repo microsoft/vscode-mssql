@@ -18,7 +18,7 @@ const useStyles = makeStyles({
     badge: {
         position: "absolute",
         right: "-5px",
-        bottom: "0px",
+        top: "0px",
         padding: "0 3px",
         borderRadius: "7px",
         border: "1px solid var(--vscode-panel-background)",
