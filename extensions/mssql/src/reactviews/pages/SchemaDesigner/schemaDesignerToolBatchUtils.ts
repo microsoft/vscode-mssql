@@ -12,7 +12,6 @@ import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDes
 
 export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 8;
 
-// TODO: Replace RAF wait with a deterministic schema-commit signal for tool-driven ops.
 export const waitForNextFrame = (): Promise<void> =>
     new Promise<void>((resolve) => {
         requestAnimationFrame(() => resolve());
