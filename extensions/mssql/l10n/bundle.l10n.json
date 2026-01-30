@@ -920,6 +920,7 @@
     "Script as Alter": "Script as Alter",
     "Script as Execute": "Script as Execute",
     "Edit Data": "Edit Data",
+    "Modify Table": "Modify Table",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
     "Not equal to": "Not equal to",
@@ -2150,6 +2151,10 @@
     },
     "Failed to open Edit Data: {0}/{0} is the error message": {
         "message": "Failed to open Edit Data: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to open Modify Table: {0}/{0} is the error message": {
+        "message": "Failed to open Modify Table: {0}",
         "comment": ["{0} is the error message"]
     },
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",

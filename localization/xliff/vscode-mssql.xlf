@@ -1758,6 +1758,10 @@
       <source xml:lang="en">Failed to open Edit Data: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
+      <source xml:lang="en">Failed to open Modify Table: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
@@ -2561,6 +2565,9 @@
     <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
+    </trans-unit>
+    <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
+      <source xml:lang="en">Modify Table</source>
     </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
