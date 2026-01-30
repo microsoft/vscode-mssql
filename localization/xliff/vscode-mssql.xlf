@@ -1860,8 +1860,8 @@
     <trans-unit id="++CODE++859c9843542764a8185f1dc3e112f6ea20c204778a2cfb11060b09e8c031027e">
       <source xml:lang="en">Existing File</source>
     </trans-unit>
-    <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
-      <source xml:lang="en">Existing SQL server</source>
+    <trans-unit id="++CODE++a0baf048fc70b962b423e80885feddf2c187a9065862349721b834f31b083029">
+      <source xml:lang="en">Existing SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
       <source xml:lang="en">Expand</source>
