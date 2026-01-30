@@ -24,11 +24,6 @@ const useStyles = makeStyles({
         letterSpacing: "0.2px",
         color: "var(--vscode-foreground)",
     },
-    headerActions: {
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-    },
 });
 
 type SchemaDesignerChangesHeaderProps = {
@@ -39,7 +34,7 @@ type SchemaDesignerChangesHeaderProps = {
 export const SchemaDesignerChangesHeader = ({
     title,
     onClose,
-}: SchemaDesignerChangesHeaderProps): JSX.Element => {
+}: SchemaDesignerChangesHeaderProps) => {
     const classes = useStyles();
 
     return (
@@ -47,16 +42,14 @@ export const SchemaDesignerChangesHeader = ({
             <Text weight="semibold" className={classes.headerTitle}>
                 {title}
             </Text>
-            <div className={classes.headerActions}>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    icon={<Dismiss12Regular />}
-                    title={locConstants.schemaDesigner.close}
-                    aria-label={locConstants.schemaDesigner.close}
-                    onClick={onClose}
-                />
-            </div>
+            <Button
+                size="small"
+                appearance="subtle"
+                icon={<Dismiss12Regular />}
+                title={locConstants.schemaDesigner.close}
+                aria-label={locConstants.schemaDesigner.close}
+                onClick={onClose}
+            />
         </div>
     );
 };

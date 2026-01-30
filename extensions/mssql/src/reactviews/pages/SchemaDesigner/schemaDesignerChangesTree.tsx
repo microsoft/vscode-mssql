@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
     FlatTree,
     makeStyles,
@@ -15,8 +15,13 @@ import {
     Toolbar,
     ToolbarButton,
 } from "@fluentui/react-components";
-import { ArrowUndo16Regular, Eye16Regular } from "@fluentui/react-icons";
-import * as FluentIcons from "@fluentui/react-icons";
+import {
+    ArrowUndo16Regular,
+    Column20Regular,
+    Eye16Regular,
+    Key20Regular,
+    Table20Regular,
+} from "@fluentui/react-icons";
 import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "./diff/diffUtils";
 import { SchemaDesignerChangeDetailsPopover } from "./schemaDesignerChangeDetailsPopover";
 
@@ -77,7 +82,7 @@ const useStyles = makeStyles({
             paddingRight: "5px",
         },
     },
-    tableIcon: {
+    iconContainer: {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -85,22 +90,14 @@ const useStyles = makeStyles({
         height: "16px",
         flexShrink: 0,
     },
-    tableIconAdded: {
+    iconAdded: {
         color: "var(--vscode-gitDecoration-addedResourceForeground)",
     },
-    tableIconDeleted: {
+    iconDeleted: {
         color: "var(--vscode-gitDecoration-deletedResourceForeground)",
     },
-    tableIconModified: {
+    iconModified: {
         color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
-    },
-    changeIcon: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "16px",
-        height: "16px",
-        flexShrink: 0,
     },
     actionBadge: {
         fontSize: "11px",
@@ -138,15 +135,6 @@ const useStyles = makeStyles({
             fontWeight: 600,
             color: "inherit",
         },
-    },
-    actionBadgeAdded: {
-        color: "var(--vscode-gitDecoration-addedResourceForeground)",
-    },
-    actionBadgeModified: {
-        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
-    },
-    actionBadgeDeleted: {
-        color: "var(--vscode-gitDecoration-deletedResourceForeground)",
     },
     changeSummary: {
         display: "flex",
@@ -229,27 +217,28 @@ export const SchemaDesignerChangesTree = ({
     onReveal,
     onRevert,
     getCanRevert,
-}: SchemaDesignerChangesTreeProps): JSX.Element => {
+}: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
-    const renderChangeIcon = (change: SchemaChange) => {
-        switch (change.category) {
+
+    const renderChangeIcon = (category: ChangeCategory) => {
+        switch (category) {
             case ChangeCategory.Table:
-                return <FluentIcons.Table20Regular />;
+                return <Table20Regular />;
             case ChangeCategory.Column:
-                return <FluentIcons.Column20Regular />;
+                return <Column20Regular />;
             case ChangeCategory.ForeignKey:
-                return <FluentIcons.Key20Regular />;
+                return <Key20Regular />;
         }
     };
 
-    const getActionBadge = (change: SchemaChange) => {
-        switch (change.action) {
+    const getActionBadge = (action: ChangeAction) => {
+        switch (action) {
             case ChangeAction.Add:
-                return { letter: "A", className: classes.actionBadgeAdded };
+                return { letter: "A", className: classes.iconAdded };
             case ChangeAction.Modify:
-                return { letter: "M", className: classes.actionBadgeModified };
+                return { letter: "M", className: classes.iconModified };
             case ChangeAction.Delete:
-                return { letter: "D", className: classes.actionBadgeDeleted };
+                return { letter: "D", className: classes.iconDeleted };
         }
     };
 
@@ -262,53 +251,38 @@ export const SchemaDesignerChangesTree = ({
         }
         return (
             <span className={classes.changeSummary}>
-                {counts.add > 0 && <span className={classes.actionBadgeAdded}>{counts.add} A</span>}
+                {counts.add > 0 && <span className={classes.iconAdded}>{counts.add} A</span>}
                 {counts.modify > 0 && (
-                    <span className={classes.actionBadgeModified}>{counts.modify} M</span>
+                    <span className={classes.iconModified}>{counts.modify} M</span>
                 )}
                 {counts.delete > 0 && (
-                    <span className={classes.actionBadgeDeleted}>{counts.delete} D</span>
+                    <span className={classes.iconDeleted}>{counts.delete} D</span>
                 )}
             </span>
         );
     };
 
-    const getTableHeaderClass = (group: TableChangeGroup) => {
+    /**
+     * Gets the appropriate styling class for a table group based on its change status.
+     * Returns both header background and icon color classes.
+     */
+    const getTableStyles = (group: TableChangeGroup) => {
         if (group.isNew) {
-            return classes.tableHeaderAdded;
+            return { header: classes.tableHeaderAdded, icon: classes.iconAdded };
         }
         if (group.isDeleted) {
-            return classes.tableHeaderDeleted;
+            return { header: classes.tableHeaderDeleted, icon: classes.iconDeleted };
         }
         if (group.changes.some((change) => change.action === ChangeAction.Modify)) {
-            return classes.tableHeaderModified;
+            return { header: classes.tableHeaderModified, icon: classes.iconModified };
         }
         if (group.changes.some((change) => change.action === ChangeAction.Add)) {
-            return classes.tableHeaderAdded;
+            return { header: classes.tableHeaderAdded, icon: classes.iconAdded };
         }
         if (group.changes.some((change) => change.action === ChangeAction.Delete)) {
-            return classes.tableHeaderDeleted;
+            return { header: classes.tableHeaderDeleted, icon: classes.iconDeleted };
         }
-        return undefined;
-    };
-
-    const getTableIconClass = (group: TableChangeGroup) => {
-        if (group.isNew) {
-            return classes.tableIconAdded;
-        }
-        if (group.isDeleted) {
-            return classes.tableIconDeleted;
-        }
-        if (group.changes.some((change) => change.action === ChangeAction.Modify)) {
-            return classes.tableIconModified;
-        }
-        if (group.changes.some((change) => change.action === ChangeAction.Add)) {
-            return classes.tableIconAdded;
-        }
-        if (group.changes.some((change) => change.action === ChangeAction.Delete)) {
-            return classes.tableIconDeleted;
-        }
-        return undefined;
+        return { header: undefined, icon: undefined };
     };
 
     return (
@@ -324,21 +298,22 @@ export const SchemaDesignerChangesTree = ({
 
                     if (item.nodeType === "table" && item.tableGroup) {
                         const group = item.tableGroup;
+                        const tableStyles = getTableStyles(group);
                         return (
                             <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                 <TreeItemLayout
                                     className={mergeClasses(
                                         classes.treeItemLayout,
                                         classes.tableHeaderBase,
-                                        getTableHeaderClass(group),
+                                        tableStyles.header,
                                     )}
                                     iconBefore={
                                         <span
                                             className={mergeClasses(
-                                                classes.tableIcon,
-                                                getTableIconClass(group),
+                                                classes.iconContainer,
+                                                tableStyles.icon,
                                             )}>
-                                            <FluentIcons.Table20Regular />
+                                            <Table20Regular />
                                         </span>
                                     }
                                     aside={renderChangeSummary(group)}>
@@ -361,7 +336,7 @@ export const SchemaDesignerChangesTree = ({
 
                     if (item.nodeType === "change" && item.change) {
                         const change = item.change;
-                        const actionBadge = getActionBadge(change);
+                        const actionBadge = getActionBadge(change.action);
                         const revertInfo = getCanRevert(change);
                         return (
                             <TreeItem key={flatTreeItem.value} {...treeItemProps}>
@@ -370,10 +345,10 @@ export const SchemaDesignerChangesTree = ({
                                     iconBefore={
                                         <span
                                             className={mergeClasses(
-                                                classes.changeIcon,
+                                                classes.iconContainer,
                                                 actionBadge.className,
                                             )}>
-                                            {renderChangeIcon(change)}
+                                            {renderChangeIcon(change.category)}
                                         </span>
                                     }
                                     aside={

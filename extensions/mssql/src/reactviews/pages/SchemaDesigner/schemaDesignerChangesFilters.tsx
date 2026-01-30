@@ -41,7 +41,7 @@ export const SchemaDesignerChangesFilters = ({
     onToggleCategory,
     hasActiveFilters,
     onClearFilters,
-}: SchemaDesignerChangesFiltersProps): JSX.Element => {
+}: SchemaDesignerChangesFiltersProps) => {
     const classes = useStyles();
 
     return (

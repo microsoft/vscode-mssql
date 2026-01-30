@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import { type ReactNode } from "react";
 import { makeStyles, Text } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
@@ -40,8 +40,6 @@ const useStyles = makeStyles({
         display: "grid",
         placeItems: "center",
         boxShadow: "0 0 0 1px var(--vscode-editorWidget-border) inset",
-    },
-    emptyIcon: {
         fontSize: "22px",
         color: "var(--vscode-descriptionForeground)",
     },
@@ -66,7 +64,7 @@ const useStyles = makeStyles({
 });
 
 type SchemaDesignerChangesEmptyStateProps = {
-    icon: React.ReactElement;
+    icon: ReactNode;
     title: string;
     subtitle?: string;
 };
@@ -75,16 +73,14 @@ export const SchemaDesignerChangesEmptyState = ({
     icon,
     title,
     subtitle,
-}: SchemaDesignerChangesEmptyStateProps): JSX.Element => {
+}: SchemaDesignerChangesEmptyStateProps) => {
     const classes = useStyles();
 
     return (
         <div className={classes.empty}>
             <div className={classes.emptyIllustration}>
                 <div className={classes.emptyOuterRing} />
-                <div className={classes.emptyInnerRing}>
-                    {React.cloneElement(icon, { className: classes.emptyIcon })}
-                </div>
+                <div className={classes.emptyInnerRing}>{icon}</div>
             </div>
             <div className={classes.emptyTextBlock}>
                 <Text className={classes.emptyTitle}>{title}</Text>

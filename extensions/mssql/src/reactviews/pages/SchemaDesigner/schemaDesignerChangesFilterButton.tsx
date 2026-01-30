@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import {
     Button,
     makeStyles,
@@ -22,6 +22,34 @@ import {
 } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { ChangeAction, ChangeCategory } from "./diff/diffUtils";
+
+// Static style objects - defined outside component to avoid recreation on each render
+const ACTION_CHECKED_STYLES = {
+    [ChangeAction.Add]: {
+        border: "1px solid var(--vscode-gitDecoration-addedResourceForeground)",
+        color: "var(--vscode-gitDecoration-addedResourceForeground)",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 20%, transparent)",
+    },
+    [ChangeAction.Delete]: {
+        border: "1px solid var(--vscode-gitDecoration-deletedResourceForeground)",
+        color: "var(--vscode-gitDecoration-deletedResourceForeground)",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 20%, transparent)",
+    },
+    [ChangeAction.Modify]: {
+        border: "1px solid var(--vscode-gitDecoration-modifiedResourceForeground)",
+        color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 20%, transparent)",
+    },
+} as const;
+
+const OBJECT_CHECKED_STYLE = {
+    border: "1px solid var(--vscode-textLink-foreground)",
+    color: "var(--vscode-textLink-foreground)",
+    backgroundColor: "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
+} as const;
 
 const useStyles = makeStyles({
     triggerButton: {
@@ -108,53 +136,13 @@ export const SchemaDesignerChangesFilterButton = ({
     onToggleCategory,
     hasActiveFilters,
     onClearFilters,
-}: SchemaDesignerChangesFilterButtonProps): JSX.Element => {
+}: SchemaDesignerChangesFilterButtonProps) => {
     const classes = useStyles();
     const loc = locConstants.schemaDesigner.changesPanel;
     const [open, setOpen] = useState(false);
 
-    const hasActionSelected = useCallback(
-        (action: ChangeAction) => selectedActions.includes(action),
-        [selectedActions],
-    );
-    const hasCategorySelected = useCallback(
-        (category: ChangeCategory) => selectedCategories.includes(category),
-        [selectedCategories],
-    );
-
-    const actionCheckedStyles = useMemo(
-        () => ({
-            [ChangeAction.Add]: {
-                border: "1px solid var(--vscode-gitDecoration-addedResourceForeground)",
-                color: "var(--vscode-gitDecoration-addedResourceForeground)",
-                backgroundColor:
-                    "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 20%, transparent)",
-            },
-            [ChangeAction.Delete]: {
-                border: "1px solid var(--vscode-gitDecoration-deletedResourceForeground)",
-                color: "var(--vscode-gitDecoration-deletedResourceForeground)",
-                backgroundColor:
-                    "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 20%, transparent)",
-            },
-            [ChangeAction.Modify]: {
-                border: "1px solid var(--vscode-gitDecoration-modifiedResourceForeground)",
-                color: "var(--vscode-gitDecoration-modifiedResourceForeground)",
-                backgroundColor:
-                    "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 20%, transparent)",
-            },
-        }),
-        [],
-    );
-
-    const objectCheckedStyle = useMemo(
-        () => ({
-            border: "1px solid var(--vscode-textLink-foreground)",
-            color: "var(--vscode-textLink-foreground)",
-            backgroundColor:
-                "color-mix(in srgb, var(--vscode-textLink-foreground) 20%, transparent)",
-        }),
-        [],
-    );
+    const isActionSelected = (action: ChangeAction) => selectedActions.includes(action);
+    const isCategorySelected = (category: ChangeCategory) => selectedCategories.includes(category);
 
     return (
         <Popover
@@ -194,10 +182,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             shape="circular"
                             size="medium"
                             className={classes.toggleButton}
-                            checked={hasActionSelected(ChangeAction.Add)}
+                            checked={isActionSelected(ChangeAction.Add)}
                             style={
-                                hasActionSelected(ChangeAction.Add)
-                                    ? actionCheckedStyles[ChangeAction.Add]
+                                isActionSelected(ChangeAction.Add)
+                                    ? ACTION_CHECKED_STYLES[ChangeAction.Add]
                                     : undefined
                             }
                             onClick={() => onToggleAction(ChangeAction.Add)}>
@@ -207,10 +195,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             shape="circular"
                             size="medium"
                             className={classes.toggleButton}
-                            checked={hasActionSelected(ChangeAction.Delete)}
+                            checked={isActionSelected(ChangeAction.Delete)}
                             style={
-                                hasActionSelected(ChangeAction.Delete)
-                                    ? actionCheckedStyles[ChangeAction.Delete]
+                                isActionSelected(ChangeAction.Delete)
+                                    ? ACTION_CHECKED_STYLES[ChangeAction.Delete]
                                     : undefined
                             }
                             onClick={() => onToggleAction(ChangeAction.Delete)}>
@@ -220,10 +208,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             shape="circular"
                             size="medium"
                             className={classes.toggleButton}
-                            checked={hasActionSelected(ChangeAction.Modify)}
+                            checked={isActionSelected(ChangeAction.Modify)}
                             style={
-                                hasActionSelected(ChangeAction.Modify)
-                                    ? actionCheckedStyles[ChangeAction.Modify]
+                                isActionSelected(ChangeAction.Modify)
+                                    ? ACTION_CHECKED_STYLES[ChangeAction.Modify]
                                     : undefined
                             }
                             onClick={() => onToggleAction(ChangeAction.Modify)}>
@@ -240,10 +228,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             size="medium"
                             className={classes.toggleButton}
                             icon={<Table20Regular />}
-                            checked={hasCategorySelected(ChangeCategory.Table)}
+                            checked={isCategorySelected(ChangeCategory.Table)}
                             style={
-                                hasCategorySelected(ChangeCategory.Table)
-                                    ? objectCheckedStyle
+                                isCategorySelected(ChangeCategory.Table)
+                                    ? OBJECT_CHECKED_STYLE
                                     : undefined
                             }
                             onClick={() => onToggleCategory(ChangeCategory.Table)}>
@@ -254,10 +242,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             size="medium"
                             className={classes.toggleButton}
                             icon={<Column20Regular />}
-                            checked={hasCategorySelected(ChangeCategory.Column)}
+                            checked={isCategorySelected(ChangeCategory.Column)}
                             style={
-                                hasCategorySelected(ChangeCategory.Column)
-                                    ? objectCheckedStyle
+                                isCategorySelected(ChangeCategory.Column)
+                                    ? OBJECT_CHECKED_STYLE
                                     : undefined
                             }
                             onClick={() => onToggleCategory(ChangeCategory.Column)}>
@@ -268,10 +256,10 @@ export const SchemaDesignerChangesFilterButton = ({
                             size="medium"
                             className={classes.toggleButton}
                             icon={<Key20Regular />}
-                            checked={hasCategorySelected(ChangeCategory.ForeignKey)}
+                            checked={isCategorySelected(ChangeCategory.ForeignKey)}
                             style={
-                                hasCategorySelected(ChangeCategory.ForeignKey)
-                                    ? objectCheckedStyle
+                                isCategorySelected(ChangeCategory.ForeignKey)
+                                    ? OBJECT_CHECKED_STYLE
                                     : undefined
                             }
                             onClick={() => onToggleCategory(ChangeCategory.ForeignKey)}>

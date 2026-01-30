@@ -171,7 +171,7 @@ export const SchemaDesignerChangeDetailsPopover = ({
     badgeLetter,
     badgeClassName,
     badgeButtonClassName,
-}: SchemaDesignerChangeDetailsPopoverProps): JSX.Element => {
+}: SchemaDesignerChangeDetailsPopoverProps) => {
     const classes = useStyles();
     const [open, setOpen] = useState(false);
     const propertyChanges = change.propertyChanges ?? [];
