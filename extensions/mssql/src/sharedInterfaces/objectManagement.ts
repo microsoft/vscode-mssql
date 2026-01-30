@@ -4,10 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import {
+    BackupDatabaseFormState,
+    BackupDatabaseParams,
+    BackupDatabaseReducers,
+    BackupDatabaseViewModel,
+} from "./backup";
+import { FormItemSpec, FormState } from "./form";
+import { FileTypeOption, FileBrowserState } from "./fileBrowser";
+import { IDialogProps } from "./connectionDialog";
 
 export enum ObjectManagementDialogType {
     CreateDatabase = "createDatabase",
     DropDatabase = "dropDatabase",
+    BackupDatabase = "backupDatabase",
 }
 
 export interface CreateDatabaseViewModel {
@@ -56,10 +66,32 @@ export type ObjectManagementViewModel =
     | {
           dialogType: ObjectManagementDialogType.DropDatabase;
           model?: DropDatabaseViewModel;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.BackupDatabase;
+          model?: BackupDatabaseViewModel;
       };
 
-export interface ObjectManagementWebviewState {
+export interface ObjectManagementWebviewState
+    extends FormState<
+        ObjectManagementFormState,
+        ObjectManagementWebviewState,
+        ObjectManagementFormItemSpec
+    > {
     viewModel: ObjectManagementViewModel;
+
+    // Form specific state
+    formState: ObjectManagementFormState;
+    formComponents: Partial<Record<keyof ObjectManagementFormState, ObjectManagementFormItemSpec>>;
+    formErrors: string[];
+
+    // File browser specific state
+    ownerUri: string;
+    fileFilterOptions: FileTypeOption[];
+    fileBrowserState: FileBrowserState | undefined;
+    defaultFileBrowserExpandPath: string;
+    dialog: IDialogProps | undefined;
+
     isLoading?: boolean;
     dialogTitle?: string;
     errorMessage?: string;
@@ -73,7 +105,14 @@ export type ObjectManagementActionParams =
     | {
           dialogType: ObjectManagementDialogType.DropDatabase;
           params: DropDatabaseParams;
+      }
+    | {
+          dialogType: ObjectManagementDialogType.BackupDatabase;
+          params: BackupDatabaseParams;
       };
+
+// If there are more object management form types in the future, add them here
+export type ObjectManagementFormState = BackupDatabaseFormState;
 
 export interface ObjectManagementActionResult {
     success: boolean;
@@ -103,3 +142,28 @@ export namespace ObjectManagementCancelNotification {
 export namespace ObjectManagementHelpNotification {
     export const type = new NotificationType<void>("objectManagementWebview/help");
 }
+
+export interface ObjectManagementFormItemSpec
+    extends FormItemSpec<
+        ObjectManagementFormState,
+        ObjectManagementWebviewState,
+        ObjectManagementFormItemSpec
+    > {
+    /**
+     * The width of the form item component
+     */
+    componentWidth?: string;
+
+    /**
+     * The name of the advanced options group this item belongs to
+     */
+    groupName?: string;
+
+    /**
+     * Misc props for the form item component
+     */
+    componentProps?: any;
+}
+
+// If there are more object management form reducers in the future, add them here
+export type ObjectManagementReducers = BackupDatabaseReducers;

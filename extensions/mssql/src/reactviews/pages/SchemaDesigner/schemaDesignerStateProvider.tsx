@@ -13,7 +13,10 @@ import { WebviewRpc } from "../../common/rpc";
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
-import { UndoRedoStack } from "../../common/undoRedoStack";
+import {
+    registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerGetSchemaStateHandler,
+} from "./schemaDesignerRpcHandlers";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
@@ -54,6 +57,14 @@ import {
     buildForeignKeyEdgeId,
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
+import {
+    normalizeColumn,
+    normalizeTable,
+    waitForNextFrame,
+    validateTable,
+} from "./schemaDesignerToolBatchUtils";
+import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
+import { stateStack } from "./schemaDesignerUndoState";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -75,11 +86,12 @@ export interface SchemaDesignerContextProps
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
-    deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    consumeSkipDeleteConfirmation: () => boolean;
     publishSession: () => Promise<{
         success: boolean;
         error?: string;
@@ -140,10 +152,6 @@ interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
 
-export const stateStack = new UndoRedoStack<
-    ReactFlowJsonObject<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>
->();
-
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
     const webviewContext = useVscodeWebview<
@@ -155,7 +163,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
-    const reactFlow = useReactFlow();
+    const reactFlow = useReactFlow<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>();
     const [isInitialized, setIsInitialized] = useState(false);
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
@@ -163,6 +171,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
+    const skipDeleteConfirmationRef = useRef(false);
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
@@ -206,6 +215,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+
+    const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
+        reactFlow,
+        resetView,
+    });
 
     useEffect(() => {
         const handleScript = () => {
@@ -271,6 +285,35 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
     }, []);
 
+    // Handle bulk edits (schema designer LM tool) from extension
+    useEffect(() => {
+        registerSchemaDesignerApplyEditsHandler({
+            isInitialized,
+            extensionRpc,
+            schemaNames,
+            datatypes,
+            waitForNextFrame,
+            extractSchema,
+            onMaybeAutoArrange: maybeAutoArrangeForToolBatch,
+            addTable,
+            updateTable,
+            deleteTable,
+            normalizeColumn,
+            normalizeTable,
+            validateTable,
+            onPushUndoState,
+            onRequestScriptRefresh: () => eventBus.emit("getScript"),
+        });
+    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+
+    // Respond with the current schema state
+    useEffect(() => {
+        registerSchemaDesignerGetSchemaStateHandler({
+            isInitialized,
+            extensionRpc,
+            extractSchema,
+        });
+    }, [isInitialized, extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -747,14 +790,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return true;
     };
 
-    const deleteTable = async (table: SchemaDesigner.Table) => {
+    const deleteTable = async (table: SchemaDesigner.Table, skipConfirmation = false) => {
         const node = reactFlow.getNode(table.id);
         if (!node) {
             return false;
         }
-        void reactFlow.deleteElements({ nodes: [node] });
+        if (skipConfirmation) {
+            skipDeleteConfirmationRef.current = true;
+        }
+        await reactFlow.deleteElements({ nodes: [node] });
         eventBus.emit("pushState");
         return true;
+    };
+
+    const consumeSkipDeleteConfirmation = () => {
+        const shouldSkip = skipDeleteConfirmationRef.current;
+        skipDeleteConfirmationRef.current = false;
+        return shouldSkip;
     };
 
     /**
@@ -1216,6 +1268,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                consumeSkipDeleteConfirmation,
                 publishSession,
                 isInitialized,
                 closeDesigner,
