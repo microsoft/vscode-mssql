@@ -104,11 +104,33 @@ const useStyles = makeStyles({
         fontWeight: 600,
         flexShrink: 0,
     },
+    actionBadgeWithBackground: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: "16px",
+        height: "16px",
+        borderRadius: "3px",
+        fontSize: "11px",
+        fontWeight: 600,
+    },
+    actionBadgeAddedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 25%, transparent)",
+    },
+    actionBadgeModifiedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 25%, transparent)",
+    },
+    actionBadgeDeletedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 25%, transparent)",
+    },
     actionBadgeButton: {
         minWidth: "auto",
         height: "auto",
         padding: 0,
-        borderRadius: 0,
+        borderRadius: "3px",
         lineHeight: 1,
         backgroundColor: "transparent",
         fontSize: "11px",
@@ -134,6 +156,38 @@ const useStyles = makeStyles({
             fontSize: "11px",
             fontWeight: 600,
             color: "inherit",
+        },
+    },
+    actionBadgeButtonWithBg: {
+        padding: "2px",
+        "&:disabled, &[disabled]": {
+            opacity: 1,
+            color: "inherit",
+            cursor: "default",
+        },
+    },
+    actionBadgeButtonAddedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 25%, transparent)",
+        "&:hover": {
+            backgroundColor:
+                "color-mix(in srgb, var(--vscode-gitDecoration-addedResourceForeground) 35%, transparent)",
+        },
+    },
+    actionBadgeButtonModifiedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 25%, transparent)",
+        "&:hover": {
+            backgroundColor:
+                "color-mix(in srgb, var(--vscode-gitDecoration-modifiedResourceForeground) 35%, transparent)",
+        },
+    },
+    actionBadgeButtonDeletedBg: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 25%, transparent)",
+        "&:hover": {
+            backgroundColor:
+                "color-mix(in srgb, var(--vscode-gitDecoration-deletedResourceForeground) 35%, transparent)",
         },
     },
     changeSummary: {
@@ -234,11 +288,23 @@ export const SchemaDesignerChangesTree = ({
     const getActionBadge = (action: ChangeAction) => {
         switch (action) {
             case ChangeAction.Add:
-                return { letter: "A", className: classes.iconAdded };
+                return {
+                    letter: "A",
+                    className: classes.iconAdded,
+                    bgClassName: classes.actionBadgeButtonAddedBg,
+                };
             case ChangeAction.Modify:
-                return { letter: "M", className: classes.iconModified };
+                return {
+                    letter: "M",
+                    className: classes.iconModified,
+                    bgClassName: classes.actionBadgeButtonModifiedBg,
+                };
             case ChangeAction.Delete:
-                return { letter: "D", className: classes.iconDeleted };
+                return {
+                    letter: "D",
+                    className: classes.iconDeleted,
+                    bgClassName: classes.actionBadgeButtonDeletedBg,
+                };
         }
     };
 
@@ -393,7 +459,11 @@ export const SchemaDesignerChangesTree = ({
                                                         classes.actionBadge,
                                                         actionBadge.className,
                                                     )}
-                                                    badgeButtonClassName={classes.actionBadgeButton}
+                                                    badgeButtonClassName={mergeClasses(
+                                                        classes.actionBadgeButton,
+                                                        classes.actionBadgeButtonWithBg,
+                                                        actionBadge.bgClassName,
+                                                    )}
                                                 />
                                             ) : (
                                                 <ToolbarButton
