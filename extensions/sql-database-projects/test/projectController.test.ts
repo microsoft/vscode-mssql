@@ -8,6 +8,11 @@
 // Existing tests using should() will be migrated in a future PR.
 
 import { expect } from 'chai';
+// TODO: Migrate all tests from 'should' to 'chai expect' syntax.
+// New tests should use: import { expect } from 'chai'; with expect().to.equal() pattern.
+// Existing tests using should() will be migrated in a future PR.
+
+import { expect } from 'chai';
 import should = require('should/as-function');
 import * as path from 'path';
 import * as vscode from 'vscode';

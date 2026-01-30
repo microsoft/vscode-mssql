@@ -26,6 +26,50 @@ export class Common {
     public static privateString = l10n.t("Private");
 }
 
+export let createDatabaseDialogTitle = l10n.t("Create Database");
+export let dropDatabaseDialogTitle = l10n.t("Drop Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
+export let databaseNameRequired = l10n.t("Database name is required");
+export let msgSelectServerNodeToCreateDatabase = l10n.t(
+    "Please select a server node in Object Explorer to create a database.",
+);
+export let msgSelectDatabaseNodeToDrop = l10n.t(
+    "Please select a database node in Object Explorer to drop.",
+);
+export let msgSelectDatabaseNodeToRename = l10n.t(
+    "Please select a database node in Object Explorer to rename.",
+);
+export function createDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to create database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function dropDatabaseError(databaseName: string, errorMessage: string) {
+    return l10n.t({
+        message: "Failed to drop database '{0}'. {1}",
+        args: [databaseName, errorMessage],
+        comment: ["{0} is the database name", "{1} is the error message"],
+    });
+}
+export function renameDatabaseError(
+    databaseName: string,
+    newDatabaseName: string,
+    errorMessage: string,
+) {
+    return l10n.t({
+        message: "Failed to rename database '{0}' to '{1}'. {2}",
+        args: [databaseName, newDatabaseName, errorMessage],
+        comment: [
+            "{0} is the current database name",
+            "{1} is the new database name",
+            "{2} is the error message",
+        ],
+    });
+}
+
 export let viewMore = l10n.t("View More");
 export let releaseNotesPromptDescription = l10n.t(
     "View mssql for Visual Studio Code release notes?",
@@ -544,6 +588,8 @@ export let msgScriptingFailed = l10n.t(
     "Failed to generate script. Please check the logs for more details.",
 );
 export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export let msgNoScriptGenerated = l10n.t("No script generated.");
+export let msgObjectManagementUnknownDialog = l10n.t("Unknown object management dialog.");
 export function msgScriptingOperationFailed(error: string): string {
     return l10n.t({
         message: "Failed to generate script: {0}",
@@ -1404,6 +1450,10 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToConnectToServer = l10n.t("Failed to connect to server");
+    public static ConnectionProfileNotFound = l10n.t(
+        "Connection profile not found. Please create a new connection using the Connection Dialog.",
+    );
     public static FailedToFetchContainerTags = (errorMessage: string) => {
         return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
     };
@@ -1417,6 +1467,10 @@ export class PublishProject {
     public static FailedToGenerateSqlPackageCommand(errorMessage: string) {
         return l10n.t("Failed to generate SqlPackage command: {0}", errorMessage);
     }
+    public static FailedToGetConnectionString(errorMessage: string) {
+        return l10n.t("Failed to get connection string: {0}", errorMessage);
+    }
+    public static NoActiveConnection = l10n.t("No active connection");
     public static DacpacPathNotFound = l10n.t(
         "DACPAC path not found. Please build the project first.",
     );
@@ -1840,6 +1894,70 @@ export class MssqlChatAgent {
     };
     public static unknownConnection = l10n.t("Unknown Connection");
     public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static schemaDesignerToolConfirmationTitle = l10n.t("Schema Designer");
+    public static schemaDesignerToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on the schema designer?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on schema designer",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static schemaDesignerNoActiveDesigner = l10n.t(
+        "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    );
+    public static schemaDesignerStaleState = l10n.t(
+        "Schema designer state changed. Fetch the latest schema and retry the operation.",
+    );
+    public static schemaDesignerMissingConnectionId = l10n.t(
+        "Missing connectionId. Please provide a connectionId to open the schema designer.",
+    );
+    public static schemaDesignerAddTableSuccess = l10n.t(
+        "Table added to schema designer successfully.",
+    );
+    public static schemaDesignerAddTableFailed = l10n.t("Failed to add table to schema designer.");
+    public static schemaDesignerUpdateTableSuccess = l10n.t(
+        "Table updated in schema designer successfully.",
+    );
+    public static schemaDesignerUpdateTableFailed = l10n.t(
+        "Failed to update table in schema designer.",
+    );
+    public static schemaDesignerDeleteTableSuccess = l10n.t(
+        "Table deleted from schema designer successfully.",
+    );
+    public static schemaDesignerDeleteTableFailed = l10n.t(
+        "Failed to delete table from schema designer.",
+    );
+    public static schemaDesignerReplaceSchemaSuccess = l10n.t(
+        "Schema designer updated successfully.",
+    );
+    public static schemaDesignerReplaceSchemaFailed = l10n.t("Failed to update schema designer.");
+    public static schemaDesignerGetSchemaSuccess = l10n.t(
+        "Schema designer state retrieved successfully.",
+    );
+    public static schemaDesignerMissingSchema = l10n.t(
+        "Missing schema payload for replace_schema operation.",
+    );
+    public static schemaDesignerMissingTable = l10n.t(
+        "Missing table payload for update_table operation.",
+    );
+    public static schemaDesignerMissingDeleteTableTarget = l10n.t(
+        "Missing table target for delete_table operation. Provide tableId or tableName+schemaName.",
+    );
+    public static schemaDesignerUnknownOperation = (operation: string) => {
+        return l10n.t({
+            message:
+                "Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
     public static getConnectionDetailsToolConfirmationMessage = (
         displayName: string,

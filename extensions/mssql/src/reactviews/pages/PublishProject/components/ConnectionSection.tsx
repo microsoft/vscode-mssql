@@ -4,18 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState, useEffect } from "react";
-import { Button, makeStyles } from "@fluentui/react-components";
-import { PlugDisconnectedRegular } from "@fluentui/react-icons";
+import { makeStyles, Spinner, Field } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import { renderInput, renderCombobox } from "./FormFieldComponents";
-import { PublishTarget } from "../../../../sharedInterfaces/publishDialog";
+import { renderCombobox, renderSearchableDropdown } from "./FormFieldComponents";
+import { locConstants } from "../../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        gap: "16px",
+        gap: "8px",
         maxWidth: "640px",
         width: "100%",
     },
@@ -26,19 +26,24 @@ export const ConnectionSection: React.FC = () => {
     const styles = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
-    const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
-    const publishTarget = usePublishDialogSelector((s) => s.formState.publishTarget);
+    const selectedProfileId = usePublishDialogSelector((s) => s.selectedProfileId);
+    const loadConnectionStatus = usePublishDialogSelector((s) => s.loadConnectionStatus);
 
-    const [localServer, setLocalServer] = useState(serverValue || "");
+    const isConnecting = loadConnectionStatus === ApiStatus.Loading;
+
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
-    useEffect(() => setLocalServer(serverValue || ""), [serverValue]);
     useEffect(() => setLocalDatabase(databaseValue || ""), [databaseValue]);
 
     if (!publishCtx) {
         return undefined;
     }
+
+    const handleServerSelect = (value: string) => {
+        // value is the profile ID - connect to the selected server
+        publishCtx.connectToServer(value);
+    };
 
     const handleDatabaseChange = (value: string) => {
         setLocalDatabase(value);
@@ -53,25 +58,24 @@ export const ConnectionSection: React.FC = () => {
 
     return (
         <div className={styles.root}>
-            {renderInput(serverComponent, localServer, publishCtx, {
-                readOnly: true,
-                contentAfter: (
-                    <Button
-                        size="small"
-                        aria-label="Connect to server"
-                        icon={<PlugDisconnectedRegular />}
-                        appearance="transparent"
-                        onClick={() => {
-                            publishCtx.openConnectionDialog();
-                        }}
-                    />
-                ),
-            })}
+            {isConnecting ? (
+                <Field
+                    label={serverComponent?.label}
+                    required={serverComponent?.required}
+                    orientation="horizontal">
+                    <Spinner size="tiny" label={locConstants.dacpacDialog.connectingToServer} />
+                </Field>
+            ) : (
+                renderSearchableDropdown(serverComponent, selectedProfileId, handleServerSelect, {
+                    searchBoxPlaceholder: locConstants.queryResult.search,
+                })
+            )}
             {renderCombobox(
                 databaseComponent,
                 localDatabase,
-                publishTarget === PublishTarget.LocalContainer,
+                true, // freeform - always allow typing database name
                 handleDatabaseChange,
+                isConnecting, // disabled while loading
             )}
         </div>
     );

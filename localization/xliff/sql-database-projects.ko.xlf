@@ -891,13 +891,13 @@
         <source xml:lang="en">Profile</source>
         <target state="translated">프로필</target>
       </trans-unit>
-      <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
-        <source xml:lang="en">Project</source>
-        <target state="translated">프로젝트</target>
-      </trans-unit>
       <trans-unit id="++CODE++1c4e927c1250569dd8129c93e41fd1c39ede59048b2df1d88d2d4071d258c4d6">
         <source xml:lang="en">Project '{0}' is already opened.</source>
         <target state="translated">프로젝트 '{0}'이(가) 이미 열려 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
+        <source xml:lang="en">Project (.sqlproj)</source>
+        <target state="new">Project (.sqlproj)</target>
       </trans-unit>
       <trans-unit id="++CODE++598020cc5bef4d8e71624bce32a6ff261c0c68f3c58e433381e2babc192b0909">
         <source xml:lang="en">Project property value '{0} is invalid</source>
