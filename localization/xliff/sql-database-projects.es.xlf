@@ -346,6 +346,10 @@
         <source xml:lang="en">Database References</source>
         <target state="translated">Referencias de base de datos</target>
       </trans-unit>
+      <trans-unit id="++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b">
+        <source xml:lang="en">Database Trigger</source>
+        <target state="new">Database Trigger</target>
+      </trans-unit>
       <trans-unit id="++CODE++3bdfa565ae34efdec777d66c17a38f2265fd8694c27c4b9f5156f787750a143b">
         <source xml:lang="en">Database location is required for adding a reference to a database</source>
         <target state="translated">La ubicación de la base de datos es necesaria para agregar una referencia a una base de datos.</target>
@@ -1294,6 +1298,10 @@
       <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
         <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
         <target state="translated">Para realizar una compilación correcta, actualice el proyecto para que tenga un script anterior a la implementación o un script posterior a la implementación.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206">
+        <source xml:lang="en">Trigger</source>
+        <target state="new">Trigger</target>
       </trans-unit>
       <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
         <source xml:lang="en">Unable to construct connection: {0}</source>
