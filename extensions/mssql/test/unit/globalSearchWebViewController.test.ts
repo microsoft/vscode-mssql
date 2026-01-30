@@ -508,6 +508,82 @@ suite("GlobalSearchWebViewController", () => {
             expect(syntheticNode.metadata.schema).to.equal("sales");
             expect(syntheticNode.nodeType).to.equal("Table");
         });
+
+        test("modifyTable reducer executes editTable command for table", async () => {
+            createController();
+            await waitForInitialization();
+
+            const modifyTableReducer = controller["_reducerHandlers"].get("modifyTable");
+            expect(modifyTableReducer, "ModifyTable reducer was not registered").to.be.a("function");
+
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const testObject: SearchResultItem = {
+                name: "Users",
+                schema: "dbo",
+                type: MetadataType.Table,
+                typeName: "Table",
+                metadataTypeName: "Table",
+                fullName: "dbo.Users",
+            };
+
+            await modifyTableReducer!(controller.state, { object: testObject });
+
+            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.editTable");
+        });
+
+        test("modifyTable reducer creates synthetic node with correct metadata and label", async () => {
+            createController();
+            await waitForInitialization();
+
+            const modifyTableReducer = controller["_reducerHandlers"].get("modifyTable");
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const testObject: SearchResultItem = {
+                name: "Products",
+                schema: "sales",
+                type: MetadataType.Table,
+                typeName: "Table",
+                metadataTypeName: "Table",
+                fullName: "sales.Products",
+            };
+
+            await modifyTableReducer!(controller.state, { object: testObject });
+
+            const syntheticNode = executeCommandStub.firstCall.args[1];
+            expect(syntheticNode.metadata.name).to.equal("Products");
+            expect(syntheticNode.metadata.schema).to.equal("sales");
+            expect(syntheticNode.nodeType).to.equal("Table");
+            expect(syntheticNode.label).to.equal("Products");
+        });
+
+        test("modifyTable reducer creates synthetic node with updateConnectionProfile method", async () => {
+            createController();
+            await waitForInitialization();
+
+            const modifyTableReducer = controller["_reducerHandlers"].get("modifyTable");
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+
+            const testObject: SearchResultItem = {
+                name: "Users",
+                schema: "dbo",
+                type: MetadataType.Table,
+                typeName: "Table",
+                metadataTypeName: "Table",
+                fullName: "dbo.Users",
+            };
+
+            await modifyTableReducer!(controller.state, { object: testObject });
+
+            const syntheticNode = executeCommandStub.firstCall.args[1];
+            expect(syntheticNode.updateConnectionProfile).to.be.a("function");
+
+            // Test that the method works correctly
+            const newProfile = { server: "new-server", database: "NewDB" };
+            syntheticNode.updateConnectionProfile(newProfile);
+            expect(syntheticNode.connectionProfile).to.deep.equal(newProfile);
+        });
     });
 
     suite("Data Refresh Reducers", () => {
@@ -565,6 +641,7 @@ suite("GlobalSearchWebViewController", () => {
             expect(controller["_reducerHandlers"].has("clearSchemaSelection")).to.be.true;
             expect(controller["_reducerHandlers"].has("scriptObject")).to.be.true;
             expect(controller["_reducerHandlers"].has("editData")).to.be.true;
+            expect(controller["_reducerHandlers"].has("modifyTable")).to.be.true;
             expect(controller["_reducerHandlers"].has("copyObjectName")).to.be.true;
             expect(controller["_reducerHandlers"].has("refreshDatabases")).to.be.true;
             expect(controller["_reducerHandlers"].has("refreshResults")).to.be.true;
