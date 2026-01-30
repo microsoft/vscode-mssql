@@ -21,6 +21,8 @@ import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
+import * as telemetry from "../../src/telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
 
@@ -29,6 +31,7 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockToken: vscode.CancellationToken;
     let showSchemaStub: sinon.SinonStub;
+    let sendActionEventStub: sinon.SinonStub;
     let schemaDesignerTool: SchemaDesignerTool;
 
     const sampleConnectionId = "connection-schema-123";
@@ -157,6 +160,7 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockToken = {} as vscode.CancellationToken;
         showSchemaStub = sandbox.stub();
+        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
 
         schemaDesignerTool = new SchemaDesignerTool(mockConnectionManager, showSchemaStub as any);
     });
@@ -181,6 +185,17 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.message).to.equal(loc.schemaDesignerMissingConnectionId);
             expect(showSchemaStub).to.not.have.been.called;
             expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[0]).to.equal(TelemetryViews.MssqlCopilot);
+            expect(sendActionEventStub.getCall(0).args[1]).to.equal(
+                TelemetryActions.SchemaDesignerTool,
+            );
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "show",
+                success: "false",
+                reason: "invalid_request",
+            });
         });
 
         test("opens designer and returns a version (no schema)", async () => {
@@ -219,6 +234,12 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.database).to.equal(sampleDatabase);
             expect(showSchemaStub).to.have.been.calledOnceWith(sampleConnectionId, sampleDatabase);
             expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "show",
+                success: "true",
+            });
         });
     });
 
@@ -294,6 +315,16 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.overview.tables).to.have.length(41);
             expect(parsedResult.overview.tables[0]).to.not.have.property("columns");
             expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "get_overview",
+                success: "true",
+            });
+            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
+                tableCount: 41,
+                columnsOmitted: 1,
+            });
         });
 
         test("omits columns over threshold (>400 columns)", async () => {
@@ -732,6 +763,17 @@ suite("SchemaDesignerTool Tests (vNext)", () => {
             expect(parsedResult.receipt.appliedEdits).to.equal(1);
             expect(parsedResult.receipt).to.have.property("changes");
             expectNoSchemaDump(parsedResult);
+
+            expect(sendActionEventStub.calledOnce).to.be.true;
+            expect(sendActionEventStub.getCall(0).args[2]).to.deep.include({
+                operation: "apply_edits",
+                success: "true",
+            });
+            expect(sendActionEventStub.getCall(0).args[3]).to.deep.include({
+                editsCount: 1,
+                appliedEdits: 1,
+                add_table_count: 1,
+            });
         });
     });
 });

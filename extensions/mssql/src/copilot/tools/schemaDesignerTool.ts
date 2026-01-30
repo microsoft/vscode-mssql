@@ -12,6 +12,8 @@ import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesigne
 import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
+import { sendActionEvent } from "../../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 
 type IncludeOverviewColumns = "none" | "names" | "namesAndTypes";
 type IncludeTableColumns = IncludeOverviewColumns | "full";
@@ -179,6 +181,29 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
     ) {
         const json = (obj: unknown) => JSON.stringify(obj);
 
+        const sendToolTelemetry = (params: {
+            operation: SchemaDesignerToolParams["operation"];
+            success: boolean;
+            reason?: ToolErrorReason;
+            measurements?: { [key: string]: number };
+        }) => {
+            const { operation, success, reason, measurements } = params;
+            try {
+                sendActionEvent(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.SchemaDesignerTool,
+                    {
+                        operation,
+                        success: String(success),
+                        ...(reason ? { reason } : {}),
+                    },
+                    measurements ?? {},
+                );
+            } catch {
+                // Telemetry must never block tool execution.
+            }
+        };
+
         const withTarget = (obj: any, designer: SchemaDesignerWebviewController | undefined) => {
             if (!designer) return obj;
             return {
@@ -191,6 +216,54 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
         const schemaDesignerManager = SchemaDesignerWebviewManager.getInstance();
         const { operation } = options.input;
 
+        const countEditOps = (edits: SchemaDesigner.SchemaDesignerEdit[]) => {
+            const counts: { [key: string]: number } = {
+                add_table_count: 0,
+                drop_table_count: 0,
+                set_table_count: 0,
+                add_column_count: 0,
+                drop_column_count: 0,
+                set_column_count: 0,
+                add_foreign_key_count: 0,
+                drop_foreign_key_count: 0,
+                set_foreign_key_count: 0,
+            };
+
+            for (const edit of edits) {
+                switch (edit.op) {
+                    case "add_table":
+                        counts.add_table_count++;
+                        break;
+                    case "drop_table":
+                        counts.drop_table_count++;
+                        break;
+                    case "set_table":
+                        counts.set_table_count++;
+                        break;
+                    case "add_column":
+                        counts.add_column_count++;
+                        break;
+                    case "drop_column":
+                        counts.drop_column_count++;
+                        break;
+                    case "set_column":
+                        counts.set_column_count++;
+                        break;
+                    case "add_foreign_key":
+                        counts.add_foreign_key_count++;
+                        break;
+                    case "drop_foreign_key":
+                        counts.drop_foreign_key_count++;
+                        break;
+                    case "set_foreign_key":
+                        counts.set_foreign_key_count++;
+                        break;
+                }
+            }
+
+            return counts;
+        };
+
         try {
             if (operation === "show") {
                 const { connectionId } = options.input;
@@ -200,6 +273,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         reason: "invalid_request",
                         message: loc.schemaDesignerMissingConnectionId,
                     };
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
@@ -211,12 +285,14 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         reason: "invalid_request",
                         message: loc.noConnectionError(connectionId),
                     };
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
                 const designer = await this._showSchema(connectionId, connCreds.database);
                 const schema = await designer.getSchemaState();
                 const version = this.computeSchemaVersion(schema);
+                sendToolTelemetry({ operation, success: true });
                 return json(
                     withTarget(
                         {
@@ -236,6 +312,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     reason: "no_active_designer",
                     message: loc.schemaDesignerNoActiveDesigner,
                 };
+                sendToolTelemetry({ operation, success: false, reason: err.reason });
                 return json(err);
             }
 
@@ -244,6 +321,18 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 const schema = await activeDesigner.getSchemaState();
                 const version = this.computeSchemaVersion(schema);
                 const overview = this.buildOverview(schema, includeColumns);
+
+                const tables = schema.tables ?? [];
+                const totalColumns = tables.reduce((sum, t) => sum + (t.columns?.length ?? 0), 0);
+                sendToolTelemetry({
+                    operation,
+                    success: true,
+                    measurements: {
+                        tableCount: tables.length,
+                        totalColumns,
+                        columnsOmitted: overview.columnsOmitted ? 1 : 0,
+                    },
+                });
                 return json(withTarget({ success: true, version, overview }, activeDesigner));
             }
 
@@ -258,6 +347,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         },
                         activeDesigner,
                     );
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
@@ -268,6 +358,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 const version = this.computeSchemaVersion(schema);
                 const resolved = this.resolveTable(schema, tableRef);
                 if (resolved.success === false) {
+                    sendToolTelemetry({ operation, success: false, reason: resolved.error.reason });
                     return json(withTarget(resolved.error, activeDesigner));
                 }
 
@@ -276,6 +367,17 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     includeColumns,
                     includeForeignKeys,
                 );
+
+                sendToolTelemetry({
+                    operation,
+                    success: true,
+                    measurements: {
+                        columnCount: resolved.table.columns?.length ?? 0,
+                        ...(includeForeignKeys
+                            ? { foreignKeyCount: resolved.table.foreignKeys?.length ?? 0 }
+                            : {}),
+                    },
+                });
                 return json(withTarget({ success: true, version, table }, activeDesigner));
             }
 
@@ -290,6 +392,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         },
                         activeDesigner,
                     );
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
@@ -303,6 +406,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         },
                         activeDesigner,
                     );
+                    sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
@@ -320,6 +424,17 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         server: activeDesigner.server,
                         database: activeDesigner.database,
                     };
+                    sendToolTelemetry({
+                        operation,
+                        success: false,
+                        reason: err.reason,
+                        measurements: {
+                            editsCount: edits.length,
+                            appliedEdits: 0,
+                            failedEditIndex: -1,
+                            ...countEditOps(edits),
+                        },
+                    });
                     return json(err);
                 }
 
@@ -340,6 +455,17 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         },
                         activeDesigner,
                     );
+                    sendToolTelemetry({
+                        operation,
+                        success: false,
+                        reason: err.reason,
+                        measurements: {
+                            editsCount: edits.length,
+                            appliedEdits: 0,
+                            failedEditIndex: -1,
+                            ...countEditOps(edits),
+                        },
+                    });
                     return json(err);
                 }
 
@@ -360,6 +486,17 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                         },
                         activeDesigner,
                     );
+                    sendToolTelemetry({
+                        operation,
+                        success: false,
+                        reason: err.reason,
+                        measurements: {
+                            editsCount: edits.length,
+                            appliedEdits: applyResult.appliedEdits ?? 0,
+                            failedEditIndex: applyResult.failedEditIndex ?? -1,
+                            ...countEditOps(edits),
+                        },
+                    });
                     return json(err);
                 }
 
@@ -370,6 +507,16 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                     warnings: [],
                 };
 
+                sendToolTelemetry({
+                    operation,
+                    success: true,
+                    measurements: {
+                        editsCount: edits.length,
+                        appliedEdits,
+                        failedEditIndex: -1,
+                        ...countEditOps(edits),
+                    },
+                });
                 return json(
                     withTarget(
                         {
@@ -390,6 +537,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 },
                 schemaDesignerManager.getActiveDesigner(),
             );
+            sendToolTelemetry({ operation, success: false, reason: err.reason });
             return json(err);
         } catch (error) {
             const payload: SchemaDesignerToolError = {
@@ -397,6 +545,7 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 reason: "internal_error",
                 message: error instanceof Error ? error.message : String(error),
             };
+            sendToolTelemetry({ operation, success: false, reason: payload.reason });
             return json(withTarget(payload, schemaDesignerManager.getActiveDesigner()));
         }
     }
