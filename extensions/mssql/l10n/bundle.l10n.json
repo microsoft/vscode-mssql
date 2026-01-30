@@ -1206,6 +1206,8 @@
     "Add Clause": "Add Clause",
     "Remove": "Remove",
     "No filter clauses defined. Add a clause to filter events.": "No filter clauses defined. Add a clause to filter events.",
+    "A new clause has been added.": "A new clause has been added.",
+    "All clauses have been cleared.": "All clauses have been cleared.",
     "=": "=",
     "<>": "<>",
     "<": "<",

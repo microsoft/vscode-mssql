@@ -15,6 +15,7 @@ import {
     Field,
     Select,
     Input,
+    Link,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
@@ -174,16 +175,15 @@ export interface ProfilerFilterDialogProps {
     columns: ProfilerColumnDef[];
     /** Current filter clauses */
     currentClauses: ReadonlyArray<FilterClause>;
-    /** Whether filter is currently active */
-    isFilterActive: boolean;
     /** Whether the dialog is open (controlled) */
     isOpen: boolean;
+
+    /** Default field to pre-select when adding a new clause (from column header click) */
+    defaultField?: string;
     /** Callback when dialog open state changes */
     onOpenChange: (open: boolean) => void;
     /** Callback when filter is applied */
     onApplyFilter: (clauses: FilterClause[]) => void;
-    /** Callback when filter is cleared */
-    onClearFilter: () => void;
 }
 
 /**
@@ -193,11 +193,10 @@ export interface ProfilerFilterDialogProps {
 export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
     columns,
     currentClauses,
-    isFilterActive,
     isOpen,
+    defaultField,
     onOpenChange,
     onApplyFilter,
-    onClearFilter,
 }) => {
     const classes = useStyles();
     const loc = locConstants.profiler;
@@ -208,6 +207,9 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
 
     // Track the previous length of currentClauses to detect external clear
     const prevClausesLengthRef = useRef(currentClauses.length);
+
+    // Get filterable columns only (moved up before handleOpenChange)
+    const filterableColumns = columns.filter((col) => col.filterable !== false);
 
     // Sync editable clauses when currentClauses is cleared externally (e.g., clear filter from toolbar)
     useEffect(() => {
@@ -225,22 +227,24 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
         (_event: unknown, data: { open: boolean }) => {
             if (data.open) {
                 // Convert current clauses to editable format
+                // Only show clauses that were applied (from currentClauses)
+                // Don't auto-add a clause here - user must click "Add Clause"
                 const editable: EditableClause[] = currentClauses.map((clause, index) => ({
                     id: index + 1,
                     field: clause.field,
                     operator: clause.operator,
                     value: clause.value?.toString() ?? "",
                 }));
-                setEditableClauses(editable.length > 0 ? editable : []);
+
+                setEditableClauses(editable);
                 setNextId(editable.length + 1);
             }
+            // When dialog closes (cancel or click outside), state resets on next open
+            // because we re-initialize from currentClauses
             onOpenChange(data.open);
         },
         [currentClauses, onOpenChange],
     );
-
-    // Get filterable columns only
-    const filterableColumns = columns.filter((col) => col.filterable !== false);
 
     // Get the column definition for a field
     const getColumnForField = useCallback(
@@ -248,22 +252,35 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
         [filterableColumns],
     );
 
-    // Add a new clause
+    // Add a new clause - use defaultField (from column header click) if provided, otherwise use first column
     const handleAddClause = useCallback(() => {
-        const defaultColumn = filterableColumns[0];
-        const defaultField = defaultColumn?.field ?? "";
-        const defaultOperator = getDefaultOperatorForColumnType(defaultColumn?.type);
+        // If defaultField is set (from clicking a column header), use that column
+        // Otherwise fall back to the first filterable column
+        const targetColumn = defaultField
+            ? filterableColumns.find((col) => col.field === defaultField)
+            : filterableColumns[0];
+        const targetFieldName = targetColumn?.field ?? filterableColumns[0]?.field ?? "";
+        const targetOperator = getDefaultOperatorForColumnType(targetColumn?.type);
         setEditableClauses((prev) => [
             ...prev,
             {
                 id: nextId,
-                field: defaultField,
-                operator: defaultOperator,
+                field: targetFieldName,
+                operator: targetOperator,
                 value: "",
             },
         ]);
         setNextId((prev) => prev + 1);
-    }, [filterableColumns, nextId]);
+
+        // Announce to screen readers
+        const announcement = document.createElement("div");
+        announcement.setAttribute("role", "status");
+        announcement.setAttribute("aria-live", "polite");
+        announcement.className = "sr-only";
+        announcement.textContent = loc.clauseAdded;
+        document.body.appendChild(announcement);
+        setTimeout(() => document.body.removeChild(announcement), 1000);
+    }, [defaultField, filterableColumns, nextId, loc.clauseAdded]);
 
     // Remove a clause
     const handleRemoveClause = useCallback((id: number) => {
@@ -327,16 +344,40 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
         onApplyFilter(clauses);
     }, [editableClauses, getColumnForField, onApplyFilter]);
 
-    // Cancel without applying
+    // Cancel without applying - reset to the last applied state
     const handleCancel = useCallback(() => {
+        // Reset editable clauses to the currently applied clauses
+        const editable: EditableClause[] = currentClauses.map((clause, index) => ({
+            id: index + 1,
+            field: clause.field,
+            operator: clause.operator,
+            value: clause.value?.toString() ?? "",
+        }));
+        setEditableClauses(editable);
+        setNextId(editable.length + 1);
         onOpenChange(false);
-    }, [onOpenChange]);
+    }, [currentClauses, onOpenChange]);
 
-    // Clear filter
-    const handleClear = useCallback(() => {
-        onClearFilter();
+    // OK button - apply filter and close dialog
+    const handleOk = useCallback(() => {
+        handleApply();
+        onOpenChange(false);
+    }, [handleApply, onOpenChange]);
+
+    // Clear all clauses (inline action)
+    const handleClearAll = useCallback(() => {
         setEditableClauses([]);
-    }, [onClearFilter]);
+        setNextId(1);
+
+        // Announce to screen readers
+        const announcement = document.createElement("div");
+        announcement.setAttribute("role", "status");
+        announcement.setAttribute("aria-live", "polite");
+        announcement.className = "sr-only";
+        announcement.textContent = loc.allClausesCleared;
+        document.body.appendChild(announcement);
+        setTimeout(() => document.body.removeChild(announcement), 1000);
+    }, [loc.allClausesCleared]);
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -414,25 +455,40 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
                                 </div>
                             ))
                         )}
-                        <Button
-                            appearance="subtle"
-                            icon={<Add20Regular />}
-                            className={classes.addButton}
-                            onClick={handleAddClause}>
-                            {loc.addClause}
-                        </Button>
+                        {/* Action links: Add a clause, Clear all */}
+                        <div className={classes.actionLinks}>
+                            <Link
+                                as="button"
+                                appearance="subtle"
+                                onClick={handleAddClause}
+                                aria-label={loc.addClause}
+                                className={classes.actionLink}
+                            >
+                                <Add20Regular className={classes.actionLinkIcon} />
+                                {loc.addClause}
+                            </Link>
+                            {editableClauses.length > 0 && (
+                                <Link
+                                    as="button"
+                                    appearance="subtle"
+                                    onClick={handleClearAll}
+                                    aria-label={loc.clearAll}
+                                    className={classes.actionLink}
+                                >
+                                    {loc.clearAll}
+                                </Link>
+                            )}
+                        </div>
                     </DialogContent>
                     <DialogActions>
-                        {isFilterActive && (
-                            <Button appearance="secondary" onClick={handleClear}>
-                                {loc.clearFilter}
-                            </Button>
-                        )}
+                        <Button appearance="secondary" onClick={handleApply}>
+                            {loc.apply}
+                        </Button>
+                        <Button appearance="primary" onClick={handleOk}>
+                            {loc.ok}
+                        </Button>
                         <Button appearance="secondary" onClick={handleCancel}>
                             {loc.cancel}
-                        </Button>
-                        <Button appearance="primary" onClick={handleApply}>
-                            {loc.apply}
                         </Button>
                     </DialogActions>
                 </DialogBody>
@@ -471,9 +527,24 @@ const useStyles = makeStyles({
     removeButton: {
         minWidth: "auto",
         padding: tokens.spacingHorizontalXS,
+        marginTop: "24px", // Align with input fields that have labels
     },
-    addButton: {
-        alignSelf: "flex-start",
+    actionLinks: {
+        display: "flex",
+        flexDirection: "row",
+        gap: tokens.spacingHorizontalL,
+        alignItems: "center",
+        marginTop: tokens.spacingVerticalS,
+    },
+    actionLink: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: tokens.spacingHorizontalXS,
+        cursor: "pointer",
+        fontSize: tokens.fontSizeBase300,
+    },
+    actionLinkIcon: {
+        fontSize: "16px",
     },
     emptyState: {
         textAlign: "center",

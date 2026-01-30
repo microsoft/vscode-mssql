@@ -1841,8 +1841,12 @@ export class LocConstants {
             addClause: l10n.t("Add Clause"),
             removeClause: l10n.t("Remove"),
             apply: l10n.t("Apply"),
+            ok: l10n.t("OK"),
             cancel: l10n.t("Cancel"),
+            clearAll: l10n.t("Clear all"),
             noFilterClauses: l10n.t("No filter clauses defined. Add a clause to filter events."),
+            clauseAdded: l10n.t("A new clause has been added."),
+            allClausesCleared: l10n.t("All clauses have been cleared."),
 
             // Filter operators
             operatorEquals: l10n.t("="),

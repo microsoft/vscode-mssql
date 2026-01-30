@@ -27,6 +27,7 @@ import {
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 /** Number of rows to fetch per request */
@@ -133,6 +134,7 @@ export const Profiler: React.FC = () => {
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);
     const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+    const [defaultFilterField, setDefaultFilterField] = useState<string | undefined>(undefined);
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
     const autoScrollRef = useRef(autoScroll);
@@ -168,10 +170,138 @@ export const Profiler: React.FC = () => {
         }
     }, [clearGeneration]);
 
+    /**
+     * Opens the filter dialog with the specified column pre-selected
+     * @param field The field name of the column to pre-select
+     */
+    const openFilterForColumn = useCallback((field: string) => {
+        setDefaultFilterField(field);
+        setIsFilterDialogOpen(true);
+    }, []);
+
+    // Store the callback in a ref so we can access it from the grid event handler
+    const openFilterForColumnRef = useRef(openFilterForColumn);
+    useEffect(() => {
+        openFilterForColumnRef.current = openFilterForColumn;
+    }, [openFilterForColumn]);
+
+    // Store filter state in ref for access in header cell renderer
+    const filterStateRef = useRef(filterState);
+    useEffect(() => {
+        filterStateRef.current = filterState;
+    }, [filterState]);
+
     // Grid ready callback
     function reactGridReady(reactGrid: SlickgridReactInstance) {
         reactGridRef.current = reactGrid;
+
+        // Subscribe to header cell rendered event to add filter buttons
+        const grid = reactGrid.slickGrid;
+        if (grid) {
+            grid.onHeaderCellRendered.subscribe((_e, args) => {
+                const column = args.column;
+                // Only add filter button to filterable columns
+                if (column.filterable === false) {
+                    return;
+                }
+
+                // Check if filter class already added (button already exists)
+                if (args.node.classList.contains("slick-header-with-filter")) {
+                    return;
+                }
+
+                // Add class to enable flexbox layout (same pattern as QueryResult)
+                args.node.classList.add("slick-header-with-filter");
+
+                // Add tooltip and aria-label to the column name element
+                const columnNameElement = args.node.querySelector(".slick-column-name");
+                if (columnNameElement) {
+                    const columnName = column.name as string;
+                    columnNameElement.setAttribute("title", columnName);
+                    columnNameElement.setAttribute("aria-label", columnName);
+                }
+
+                // Check if this column has an active filter
+                const hasActiveFilter = filterStateRef.current.clauses.some(
+                    (clause) => clause.field === column.field,
+                );
+
+                // Create filter button (same class as QueryResult for consistent styling)
+                const filterButton = document.createElement("button");
+                filterButton.id = "filter-btn";
+                filterButton.className = `slick-header-filterbutton${hasActiveFilter ? " filtered" : ""}`;
+                filterButton.setAttribute("aria-label", locConstants.profiler.filterTooltip);
+                filterButton.setAttribute("title", locConstants.profiler.filterTooltip);
+                filterButton.tabIndex = -1;
+
+                // Store the field name on the button for the click handler
+                const fieldName = column.field as string;
+                filterButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    openFilterForColumnRef.current(fieldName);
+                });
+
+                // Append filter button to the header cell (same as QueryResult pattern)
+                args.node.appendChild(filterButton);
+            });
+
+            // Clean up filter buttons when header cell is destroyed
+            grid.onBeforeHeaderCellDestroy.subscribe((_e, args) => {
+                const filterButton = args.node.querySelector(".slick-header-filterbutton");
+                if (filterButton) {
+                    filterButton.remove();
+                }
+                args.node.classList.remove("slick-header-with-filter");
+            });
+
+            // Force re-render of headers after subscribing to the event
+            // This is needed because headers may have already been rendered before we subscribed
+            const currentColumns = grid.getColumns();
+            if (currentColumns.length > 0) {
+                grid.setColumns(currentColumns);
+            }
+        }
     }
+
+    // Update filter button states when filter state changes
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return;
+        }
+
+        // Get all filter buttons and update their filtered state
+        const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
+        if (!headerContainer) {
+            return;
+        }
+
+        const gridColumns = grid.getColumns();
+        gridColumns.forEach((column) => {
+            const headerCell = headerContainer.querySelector(
+                `.slick-header-column[data-id="${column.id}"]`,
+            );
+            if (!headerCell) {
+                return;
+            }
+
+            const filterButton = headerCell.querySelector(".slick-header-filterbutton");
+            if (!filterButton) {
+                return;
+            }
+
+            const hasActiveFilter = filterState.clauses.some(
+                (clause) => clause.field === column.field,
+            );
+
+            if (hasActiveFilter) {
+                filterButton.classList.add("filtered");
+            } else {
+                filterButton.classList.remove("filtered");
+            }
+        });
+    }, [filterState]);
 
     // Register notification handlers ONCE per webview lifecycle
     useEffect(() => {
@@ -327,8 +457,8 @@ export const Profiler: React.FC = () => {
                     id: "eventClass",
                     name: "Event",
                     field: "eventClass",
-                    sortable: true,
-                    filterable: false,
+                    sortable: false,
+                    filterable: true,
                     resizable: true,
                     minWidth: 200,
                     excludeFromColumnPicker: true,
@@ -346,8 +476,8 @@ export const Profiler: React.FC = () => {
                     name: col.header,
                     field: col.field,
                     width: col.width,
-                    sortable: col.sortable ?? true,
-                    filterable: col.filterable ?? false,
+                    sortable: false, // Sorting disabled for profiler grid
+                    filterable: col.filterable ?? true, // Default to filterable
                     resizable: true,
                     minWidth: 50,
                     excludeFromColumnPicker: true,
@@ -361,6 +491,19 @@ export const Profiler: React.FC = () => {
             }),
         ];
     }, [viewConfig]);
+
+    // Re-render headers when columns change (e.g., when view changes)
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return;
+        }
+        // Force re-render of headers to add filter buttons to new columns
+        const currentColumns = grid.getColumns();
+        if (currentColumns.length > 0) {
+            grid.setColumns(currentColumns);
+        }
+    }, [columns]);
 
     // Grid options
     const gridOptions: GridOption = useMemo(
@@ -426,9 +569,10 @@ export const Profiler: React.FC = () => {
     };
 
     /**
-     * Handles opening the filter dialog from the toolbar.
+     * Handles opening the filter dialog from the toolbar (no column pre-selected).
      */
     const handleFilter = useCallback(() => {
+        setDefaultFilterField(undefined); // Clear any previously set default field
         setIsFilterDialogOpen(true);
     }, []);
 
@@ -440,6 +584,7 @@ export const Profiler: React.FC = () => {
         (clauses: FilterClause[]) => {
             applyFilter(clauses);
             setIsFilterDialogOpen(false);
+            setDefaultFilterField(undefined); // Clear default field after applying
         },
         [applyFilter],
     );
@@ -451,7 +596,19 @@ export const Profiler: React.FC = () => {
     const handleClearFilter = useCallback(() => {
         clearFilter();
         setIsFilterDialogOpen(false);
+        setDefaultFilterField(undefined); // Clear default field after clearing filter
     }, [clearFilter]);
+
+    /**
+     * Handles dialog open/close state changes.
+     * Clears the default field when dialog is closed.
+     */
+    const handleFilterDialogOpenChange = useCallback((open: boolean) => {
+        setIsFilterDialogOpen(open);
+        if (!open) {
+            setDefaultFilterField(undefined);
+        }
+    }, []);
 
     return (
         <div className={classes.profilerContainer}>
@@ -479,11 +636,10 @@ export const Profiler: React.FC = () => {
             <ProfilerFilterDialog
                 columns={viewConfig?.columns ?? []}
                 currentClauses={filterState.clauses}
-                isFilterActive={isFilterActive}
                 isOpen={isFilterDialogOpen}
-                onOpenChange={setIsFilterDialogOpen}
+                defaultField={defaultFilterField}
+                onOpenChange={handleFilterDialogOpenChange}
                 onApplyFilter={handleApplyFilter}
-                onClearFilter={handleClearFilter}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                 <SlickgridReact
@@ -606,6 +762,73 @@ const slickGridStyles = `
     min-height: 0;
     display: flex;
     flex-direction: column;
+}
+
+/* Hide any sort indicators since sorting is disabled */
+#profilerGrid .slick-sort-indicator,
+#profilerGrid .slick-sort-indicator-asc,
+#profilerGrid .slick-sort-indicator-desc {
+    display: none !important;
+}
+
+/* Header cell with filter - use flexbox layout (same pattern as QueryResult) */
+#profilerGrid .slick-header-column.slick-header-with-filter {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Column name should use flex to allow filter button space */
+#profilerGrid .slick-header-with-filter .slick-column-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+/* Filter button base styling */
+#profilerGrid .slick-header-filterbutton {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: 14px;
+    flex: 0 0 auto;
+    margin-left: 4px;
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+#profilerGrid .slick-header-filterbutton:hover {
+    opacity: 1;
+}
+
+/* Filter icon (funnel) - dark theme (default) */
+#profilerGrid .slick-header-filterbutton {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23C5C5C5' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
+}
+
+/* Filter icon (funnel) - light theme */
+.vscode-light #profilerGrid .slick-header-filterbutton {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23424242' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
+}
+
+/* Filtered state - filled funnel icon for dark theme */
+#profilerGrid .slick-header-filterbutton.filtered {
+    opacity: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%2375BEFF' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
+}
+
+/* Filtered state - filled funnel icon for light theme */
+.vscode-light #profilerGrid .slick-header-filterbutton.filtered {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23007ACC' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
 }
 
 /* Auto-hide scrollbars when not needed */

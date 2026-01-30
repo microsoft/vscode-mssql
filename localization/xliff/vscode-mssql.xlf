@@ -65,6 +65,9 @@
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b4b85b9276c1917ce3d749e584ea03acb78546dc61403270971da658d06ce4a">
+      <source xml:lang="en">A new clause has been added.</source>
+    </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
     </trans-unit>
@@ -193,6 +196,9 @@
     </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8ea705ad1d28701938279c99ce54282d1e0699b8d2af1164b67f03e4c30c1142">
+      <source xml:lang="en">All clauses have been cleared.</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
