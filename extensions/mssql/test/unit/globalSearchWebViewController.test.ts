@@ -6,7 +6,11 @@
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { GlobalSearchWebViewController } from "../../src/globalSearch/globalSearchWebViewController";
+
+chai.use(sinonChai);
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { IMetadataService } from "../../src/services/metadataService";
 import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadata";
@@ -384,9 +388,9 @@ suite("GlobalSearchWebViewController", () => {
 
             await scriptReducer!(controller.state, { object: testObject, scriptType: "SELECT" });
 
-            expect(mockScriptingService.script.calledOnce).to.be.true;
-            expect(openTextDocumentStub.calledOnce).to.be.true;
-            expect(showTextDocumentStub.calledOnce).to.be.true;
+            expect(mockScriptingService.script).to.have.been.calledOnce;
+            expect(openTextDocumentStub).to.have.been.calledOnce;
+            expect(showTextDocumentStub).to.have.been.calledOnce;
         });
 
         test("scriptObject reducer generates CREATE script for table", async () => {
@@ -410,7 +414,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await scriptReducer!(controller.state, { object: testObject, scriptType: "CREATE" });
 
-            expect(mockScriptingService.script.called).to.be.true;
+            expect(mockScriptingService.script).to.have.been.called;
         });
 
         test("scriptObject reducer generates DROP script for table", async () => {
@@ -434,7 +438,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await scriptReducer!(controller.state, { object: testObject, scriptType: "DROP" });
 
-            expect(mockScriptingService.script.called).to.be.true;
+            expect(mockScriptingService.script).to.have.been.called;
         });
 
         test("copyObjectName reducer copies full object name to clipboard", async () => {
@@ -457,8 +461,10 @@ suite("GlobalSearchWebViewController", () => {
 
             await copyReducer!(controller.state, { object: testObject });
 
-            expect(writeTextStub.calledOnceWith("dbo.Users")).to.be.true;
-            expect(showInformationMessageStub.calledOnceWith('Copied "dbo.Users" to clipboard')).to.be.true;
+            expect(writeTextStub).to.have.been.calledOnceWith("dbo.Users");
+            expect(showInformationMessageStub).to.have.been.calledOnceWith(
+                'Copied "dbo.Users" to clipboard',
+            );
         });
 
         test("editData reducer executes tableExplorer command for table", async () => {
@@ -481,7 +487,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await editDataReducer!(controller.state, { object: testObject });
 
-            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub).to.have.been.calledOnce;
             expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.tableExplorer");
         });
 
@@ -529,7 +535,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await modifyTableReducer!(controller.state, { object: testObject });
 
-            expect(executeCommandStub.calledOnce).to.be.true;
+            expect(executeCommandStub).to.have.been.calledOnce;
             expect(executeCommandStub.firstCall.args[0]).to.equal("mssql.editTable");
         });
 
@@ -599,7 +605,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await refreshReducer!(controller.state, {});
 
-            expect(mockMetadataService.getDatabases.called).to.be.true;
+            expect(mockMetadataService.getDatabases).to.have.been.called;
         });
 
         test("refreshResults reducer clears cache and reloads metadata", async () => {
@@ -614,7 +620,7 @@ suite("GlobalSearchWebViewController", () => {
 
             await refreshReducer!(controller.state, {});
 
-            expect(mockMetadataService.getMetadata.called).to.be.true;
+            expect(mockMetadataService.getMetadata).to.have.been.called;
         });
     });
 
@@ -623,7 +629,7 @@ suite("GlobalSearchWebViewController", () => {
             createController();
 
             const createPanelStub = vscode.window.createWebviewPanel as sinon.SinonStub;
-            expect(createPanelStub.calledOnce).to.be.true;
+            expect(createPanelStub).to.have.been.calledOnce;
 
             const callArgs = createPanelStub.firstCall.args;
             expect(callArgs[1]).to.include("test-server");
@@ -651,14 +657,14 @@ suite("GlobalSearchWebViewController", () => {
             createController();
             await waitForInitialization();
 
-            expect(mockMetadataService.getDatabases.called).to.be.true;
+            expect(mockMetadataService.getDatabases).to.have.been.called;
         });
 
         test("loads metadata on initialization", async () => {
             createController();
             await waitForInitialization();
 
-            expect(mockMetadataService.getMetadata.called).to.be.true;
+            expect(mockMetadataService.getMetadata).to.have.been.called;
         });
     });
 
