@@ -42,6 +42,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 > {
     private _sessionId: string = "";
     private _key: string = "";
+    private _serverName: string | undefined;
     private _dabService = new DabService();
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
     public baselineSchema: SchemaDesigner.Schema | undefined = undefined;
@@ -88,6 +89,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         );
 
         this._key = `${this.connectionString}-${this.databaseName}`;
+        this._serverName = this.resolveServerName();
 
         this.setupRequestHandlers();
         this.setupConfigurationListener();
@@ -441,5 +443,50 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             this.updateCacheItem(this.schemaDesignerDetails!.schema);
         }
         super.dispose();
+    }
+
+    /**
+     * Gets the current schema state from the webview.
+     */
+    public async getSchemaState(): Promise<SchemaDesigner.Schema> {
+        await this.whenWebviewReady();
+        const result = await this.sendRequest(SchemaDesigner.GetSchemaStateRequest.type, undefined);
+        return result.schema;
+    }
+
+    /**
+     * Applies a batch of semantic schema edits in the webview (used by the schema designer LM tool).
+     * This method must never be treated as a transcript schema source; it is only used to compute receipts.
+     */
+    public async applyEdits(
+        params: SchemaDesigner.ApplyEditsWebviewParams,
+    ): Promise<SchemaDesigner.ApplyEditsWebviewResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
+    }
+
+    public get designerKey(): string {
+        return this._key;
+    }
+
+    public get database(): string {
+        return this.databaseName;
+    }
+
+    public get server(): string | undefined {
+        return this._serverName;
+    }
+
+    private resolveServerName(): string | undefined {
+        if (this.treeNode) {
+            return this.treeNode.connectionProfile?.server;
+        }
+
+        if (this.connectionUri) {
+            return this.mainController.connectionManager.getConnectionInfo(this.connectionUri)
+                ?.credentials?.server;
+        }
+
+        return undefined;
     }
 }

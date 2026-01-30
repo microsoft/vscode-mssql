@@ -524,6 +524,20 @@
         "message": "Table '{0}' not found",
         "comment": ["{0} is the table name"]
     },
+    "Schema designer is not initialized.": "Schema designer is not initialized.",
+    "Invalid table payload. Expected table with columns array.": "Invalid table payload. Expected table with columns array.",
+    "Failed to add table.": "Failed to add table.",
+    "Failed to update table.": "Failed to update table.",
+    "Failed to delete table.": "Failed to delete table.",
+    "Table id already exists.": "Table id already exists.",
+    "Foreign key column mappings are required.": "Foreign key column mappings are required.",
+    "Foreign key column mappings must be the same length.": "Foreign key column mappings must be the same length.",
+    "Invalid foreign key.": "Invalid foreign key.",
+    "Table must include at least one column.": "Table must include at least one column.",
+    "Schema '{0}' is not available./{0} is the schema name": {
+        "message": "Schema '{0}' is not available.",
+        "comment": ["{0} is the schema name"]
+    },
     "Referenced table '{0}' not found/{0} is the table name": {
         "message": "Referenced table '{0}' not found",
         "comment": ["{0} is the table name"]
@@ -2142,6 +2156,33 @@
     },
     "Unknown Connection": "Unknown Connection",
     "Schema visualization opened.": "Schema visualization opened.",
+    "Execute '{0}' operation on the schema designer?/{0} is the operation name": {
+        "message": "Execute '{0}' operation on the schema designer?",
+        "comment": ["{0} is the operation name"]
+    },
+    "Executing '{0}' operation on schema designer/{0} is the operation name": {
+        "message": "Executing '{0}' operation on schema designer",
+        "comment": ["{0} is the operation name"]
+    },
+    "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.": "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
+    "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
+    "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
+    "Table added to schema designer successfully.": "Table added to schema designer successfully.",
+    "Failed to add table to schema designer.": "Failed to add table to schema designer.",
+    "Table updated in schema designer successfully.": "Table updated in schema designer successfully.",
+    "Failed to update table in schema designer.": "Failed to update table in schema designer.",
+    "Table deleted from schema designer successfully.": "Table deleted from schema designer successfully.",
+    "Failed to delete table from schema designer.": "Failed to delete table from schema designer.",
+    "Schema designer updated successfully.": "Schema designer updated successfully.",
+    "Failed to update schema designer.": "Failed to update schema designer.",
+    "Schema designer state retrieved successfully.": "Schema designer state retrieved successfully.",
+    "Missing schema payload for replace_schema operation.": "Missing schema payload for replace_schema operation.",
+    "Missing table payload for update_table operation.": "Missing table payload for update_table operation.",
+    "Missing table target for delete_table operation. Provide tableId or tableName+schemaName.": "Missing table target for delete_table operation. Provide tableId or tableName+schemaName.",
+    "Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema/{0} is the operation name": {
+        "message": "Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema",
+        "comment": ["{0} is the operation name"]
+    },
     "Get Connection Details": "Get Connection Details",
     "Get connection details for connection '{0}' (ID: {1})?/{0} is the connection display name{1} is the connection ID": {
         "message": "Get connection details for connection '{0}' (ID: {1})?",

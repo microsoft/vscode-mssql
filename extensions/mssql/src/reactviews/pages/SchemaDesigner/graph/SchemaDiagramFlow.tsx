@@ -594,6 +594,9 @@ export const SchemaDesignerFlow = () => {
                     if (props.nodes.length === 0 && props.edges.length === 0) {
                         return true;
                     }
+                    if (context.consumeSkipDeleteConfirmation()) {
+                        return true;
+                    }
                     return await deleteElementsConfirmation();
                 }}
                 minZoom={0.05}
