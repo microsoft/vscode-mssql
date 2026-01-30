@@ -2387,8 +2387,8 @@
         "message": "BACPAC exported successfully to '{0}'",
         "comment": ["{0} is the file path"]
     },
-    "Global Search - {0}/{0} is the server name": {
-        "message": "Global Search - {0}",
+    "Global Search - {0} (Preview)/{0} is the server name": {
+        "message": "Global Search - {0} (Preview)",
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection for scripting": "Failed to establish connection for scripting",

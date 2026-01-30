@@ -2339,8 +2339,8 @@
     <trans-unit id="++CODE++63175eb76c6f73e396f5ba39f708f72813c5419b0b19be916afb039acb1669c5">
       <source xml:lang="en">Global Search</source>
     </trans-unit>
-    <trans-unit id="++CODE++b5930753b2a87c4f052f0ad8869c5df62df2d9c38464a45a43733608c6ae84e2">
-      <source xml:lang="en">Global Search - {0}</source>
+    <trans-unit id="++CODE++622caba6ecf0d858e1b44d996268a03d2fcbe61182e58915fabaea4bb21b14ab">
+      <source xml:lang="en">Global Search - {0} (Preview)</source>
       <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
@@ -5505,7 +5505,7 @@
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
     <trans-unit id="mssql.globalSearch">
-      <source xml:lang="en">Global Search</source>
+      <source xml:lang="en">Global Search (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
