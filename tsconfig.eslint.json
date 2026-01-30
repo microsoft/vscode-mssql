@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES2022",
+        "lib": ["ES2022"],
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "noEmit": true
+    },
+    "include": [],
+    "references": [
+        { "path": "./extensions/mssql/tsconfig.extension.json" },
+        { "path": "./extensions/mssql/tsconfig.react.json" },
+        { "path": "./extensions/data-workspace/tsconfig.json" },
+        { "path": "./extensions/sql-database-projects/tsconfig.extension.json" }
+    ]
+}
