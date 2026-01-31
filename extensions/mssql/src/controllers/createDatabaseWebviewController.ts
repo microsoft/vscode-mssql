@@ -44,6 +44,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
         databaseName?: string,
         parentUrn?: string,
         dialogTitle?: string,
+        webviewTitle?: string,
     ) {
         super(
             context,
@@ -51,6 +52,7 @@ export class CreateDatabaseWebviewController extends ObjectManagementWebviewCont
             objectManagementService,
             ObjectManagementDialogType.CreateDatabase,
             dialogTitle ?? LocConstants.createDatabaseDialogTitle,
+            webviewTitle ?? LocConstants.createDatabaseWebviewTitle,
             "createDatabaseDialog",
             connectionUri,
             serverName,

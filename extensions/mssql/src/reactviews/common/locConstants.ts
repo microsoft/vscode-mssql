@@ -1473,7 +1473,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database"),
+            title: l10n.t("Create Database (Preview)"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1502,7 +1502,7 @@ export class LocConstants {
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database"),
+            title: l10n.t("Drop Database (Preview)"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
