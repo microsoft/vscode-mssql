@@ -1497,6 +1497,7 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             createButton: l10n.t("Create"),
             cancelButton: l10n.t("Cancel"),
+            creatingDatabase: l10n.t("Creating database"),
         };
     }
 
@@ -1523,6 +1524,7 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
+            droppingDatabase: l10n.t("Dropping database"),
         };
     }
 

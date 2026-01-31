@@ -50,6 +50,7 @@ export const CreateDatabaseDialogPage = ({
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [createForm, setCreateForm] = useState<CreateDatabaseFormState | undefined>(undefined);
     const createFormInitialized = useRef(false);
 
@@ -93,7 +94,7 @@ export const CreateDatabaseDialogPage = ({
     const isNameTooLong = trimmedName.length > maxDatabaseNameLength;
     const showNameRequired = formState.name.length > 0 && isNameEmpty;
     const showNameTooLong = !showNameRequired && isNameTooLong;
-    const isSubmitDisabled = isLoading || isNameEmpty || isNameTooLong;
+    const isSubmitDisabled = isLoading || isSubmitting || isNameEmpty || isNameTooLong;
 
     const nameValidationMessage = showNameRequired
         ? locConstants.createDatabase.nameRequired
@@ -116,6 +117,7 @@ export const CreateDatabaseDialogPage = ({
                 model ? locConstants.createDatabase.description(model.serverName) : undefined
             }
             errorMessage={resultApiError ?? initializationError}
+            loadingMessage={isSubmitting ? locConstants.createDatabase.creatingDatabase : undefined}
             primaryLabel={locConstants.createDatabase.createButton}
             cancelLabel={locConstants.createDatabase.cancelButton}
             helpLabel={locConstants.createDatabase.helpButton}
@@ -127,6 +129,8 @@ export const CreateDatabaseDialogPage = ({
                     ...formState,
                     name: trimmedName,
                 };
+                setIsSubmitting(true);
+                setResultApiError(undefined);
                 try {
                     const result = await context?.extensionRpc?.sendRequest(
                         ObjectManagementSubmitRequest.type,
@@ -134,9 +138,11 @@ export const CreateDatabaseDialogPage = ({
                     );
                     if (result?.errorMessage) {
                         setResultApiError(result.errorMessage);
+                        setIsSubmitting(false);
                     }
                 } catch (error) {
                     setResultApiError(getErrorMessage(error));
+                    setIsSubmitting(false);
                 }
             }}
             onScript={async () => {

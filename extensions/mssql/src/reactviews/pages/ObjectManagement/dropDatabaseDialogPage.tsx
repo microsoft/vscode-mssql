@@ -48,6 +48,7 @@ export const DropDatabaseDialogPage = ({
     const styles = useStyles();
     const context = useContext(ObjectManagementContext);
     const [resultApiError, setResultApiError] = useState<string | undefined>(undefined);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [dropForm, setDropForm] = useState<DropDatabaseFormState>({
         dropConnections: false,
         deleteBackupHistory: false,
@@ -70,16 +71,19 @@ export const DropDatabaseDialogPage = ({
                     : undefined
             }
             errorMessage={resultApiError ?? initializationError}
+            loadingMessage={isSubmitting ? locConstants.dropDatabase.droppingDatabase : undefined}
             primaryLabel={locConstants.dropDatabase.dropButton}
             cancelLabel={locConstants.dropDatabase.cancelButton}
             helpLabel={locConstants.dropDatabase.helpButton}
             scriptLabel={locConstants.dropDatabase.scriptButton}
-            primaryDisabled={false}
-            scriptDisabled={false}
+            primaryDisabled={isSubmitting}
+            scriptDisabled={isSubmitting}
             onPrimary={async () => {
                 const params: DropDatabaseParams = {
                     ...dropForm,
                 };
+                setIsSubmitting(true);
+                setResultApiError(undefined);
                 try {
                     const result = await context?.extensionRpc?.sendRequest(
                         ObjectManagementSubmitRequest.type,
@@ -87,9 +91,11 @@ export const DropDatabaseDialogPage = ({
                     );
                     if (result?.errorMessage) {
                         setResultApiError(result.errorMessage);
+                        setIsSubmitting(false);
                     }
                 } catch (error) {
                     setResultApiError(getErrorMessage(error));
+                    setIsSubmitting(false);
                 }
             }}
             onScript={async () => {
