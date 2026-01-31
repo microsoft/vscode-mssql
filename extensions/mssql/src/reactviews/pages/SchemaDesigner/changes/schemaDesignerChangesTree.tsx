@@ -327,7 +327,8 @@ export const SchemaDesignerChangesTree = ({
                     </span>
                 )}
                 {counts.modify > 0 && (
-                    <span className={mergeClasses(classes.iconModified, classes.changeSummaryBadge)}>
+                    <span
+                        className={mergeClasses(classes.iconModified, classes.changeSummaryBadge)}>
                         {counts.modify} M
                     </span>
                 )}
