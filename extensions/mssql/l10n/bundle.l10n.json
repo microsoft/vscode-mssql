@@ -2554,6 +2554,10 @@
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
     },
+    "Profiler session '{0}' started successfully./{0} is the session name": {
+        "message": "Profiler session '{0}' started successfully.",
+        "comment": ["{0} is the session name"]
+    },
     "Profiler ready. Select a session from the dropdown and click Start to begin profiling.": "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",

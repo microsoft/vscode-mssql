@@ -2657,6 +2657,12 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
     public static profilerReady = l10n.t(
         "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     );

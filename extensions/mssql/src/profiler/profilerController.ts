@@ -7,13 +7,7 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import {
-    SessionType,
-    SessionState,
-    TEMPLATE_ID_STANDARD_ONPREM,
-    TEMPLATE_ID_STANDARD_AZURE,
-    EngineType,
-} from "./profilerTypes";
+import { SessionType, SessionState, EngineType } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -38,6 +32,7 @@ export class ProfilerController {
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
     private _currentEngineType: EngineType = EngineType.Standalone;
+    private _profilerEngineTypes: Map<string, EngineType> = new Map();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -109,6 +104,9 @@ export class ProfilerController {
             }
 
             this._logger.verbose(`Successfully connected to ${profileToUse.server}`);
+
+            // Store the engine type for this profiler URI
+            this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
 
             // Use the common setup method
             await this.setupProfilerUI(profilerUri);
@@ -322,9 +320,12 @@ export class ProfilerController {
         try {
             // Step 1: Show template selection quick pick (filtered by engine type)
             const configService = getProfilerConfigService();
-            const templates = configService.getTemplatesForEngine(this._currentEngineType);
+            // Get the engine type for the current profiler URI
+            const engineType =
+                this._profilerEngineTypes.get(this._profilerUri) ?? EngineType.Standalone;
+            const templates = configService.getTemplatesForEngine(engineType);
             this._logger.verbose(
-                `Filtered templates for engine ${this._currentEngineType}: ${templates.length} available`,
+                `Filtered templates for engine ${engineType}: ${templates.length} available`,
             );
 
             if (templates.length === 0) {
@@ -356,6 +357,7 @@ export class ProfilerController {
             const sessionName = await vscode.window.showInputBox({
                 prompt: LocProfiler.enterSessionName,
                 placeHolder: LocProfiler.sessionNamePlaceholder,
+                value: selectedTemplate.template.name.replace(/\s+/g, "_"), // Default to template name with underscores
                 title: LocProfiler.newSessionEnterName,
                 ignoreFocusOut: true,
                 validateInput: (value) => {
@@ -452,11 +454,77 @@ export class ProfilerController {
 
     /**
      * Common setup for the profiler UI after a connection has been established.
-     * Creates the webview, sets up event handlers, and prepares for profiling.
+     * Prompts user to select a template and session name, creates the session,
+     * and auto-starts profiling.
      * @param profilerUri - The URI of the established profiler connection
      */
     private async setupProfilerUI(profilerUri: string): Promise<void> {
         this._profilerUri = profilerUri;
+
+        // Step 1: Show template selection quick pick (filtered by engine type)
+        const configService = getProfilerConfigService();
+        const templates = configService.getTemplatesForEngine(this._currentEngineType);
+        this._logger.verbose(
+            `Filtered templates for engine ${this._currentEngineType}: ${templates.length} available`,
+        );
+
+        if (templates.length === 0) {
+            vscode.window.showWarningMessage(LocProfiler.noTemplatesAvailable);
+            return;
+        }
+
+        const templateItems = templates.map((t) => ({
+            label: t.name,
+            description: t.description,
+            detail: LocProfiler.engineLabel(t.engineType),
+            template: t,
+        }));
+
+        const selectedTemplate = await vscode.window.showQuickPick(templateItems, {
+            placeHolder: LocProfiler.selectTemplate,
+            ignoreFocusOut: true,
+            title: LocProfiler.newSessionSelectTemplate,
+        });
+
+        if (!selectedTemplate) {
+            this._logger.verbose("User cancelled template selection");
+            // Disconnect since user cancelled
+            await this._connectionManager.disconnect(profilerUri);
+            return;
+        }
+
+        this._logger.verbose(`Selected template: ${selectedTemplate.template.name}`);
+
+        // Step 2: Show session name input (default to template name)
+        const sessionName = await vscode.window.showInputBox({
+            prompt: LocProfiler.enterSessionName,
+            placeHolder: LocProfiler.sessionNamePlaceholder,
+            value: selectedTemplate.template.name.replace(/\s+/g, "_"), // Default to template name with underscores
+            title: LocProfiler.newSessionEnterName,
+            ignoreFocusOut: true,
+            validateInput: (value) => {
+                if (!value || value.trim().length === 0) {
+                    return LocProfiler.sessionNameEmpty;
+                }
+                if (value.length > SESSION_NAME_MAX_LENGTH) {
+                    return LocProfiler.sessionNameTooLong(SESSION_NAME_MAX_LENGTH);
+                }
+                // Check for invalid characters (basic validation)
+                if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+                    return LocProfiler.sessionNameInvalidChars;
+                }
+                return undefined;
+            },
+        });
+
+        if (!sessionName) {
+            this._logger.verbose("User cancelled session name input");
+            // Disconnect since user cancelled
+            await this._connectionManager.disconnect(profilerUri);
+            return;
+        }
+
+        this._logger.verbose(`Session name: ${sessionName}`);
 
         // Fetch available XEvent sessions from the server
         this._logger.verbose("Fetching available XEvent sessions...");
@@ -469,21 +537,14 @@ export class ProfilerController {
             name: name,
         }));
 
-        // Determine the appropriate default template based on engine type
-        const defaultTemplateId =
-            this._currentEngineType === EngineType.AzureSQLDB
-                ? TEMPLATE_ID_STANDARD_AZURE
-                : TEMPLATE_ID_STANDARD_ONPREM;
-
-        // Create the webview to display events with the appropriate template
-        // Don't create a ProfilerSession yet - wait for user to select and click Start
+        // Create the webview to display events with the selected template
         const webviewController = new ProfilerWebviewController(
             this._context,
             this._vscodeWrapper,
             this._sessionManager,
             availableSessions,
-            undefined, // No initial session name
-            defaultTemplateId,
+            sessionName, // Set the initial session name
+            selectedTemplate.template.id,
         );
 
         // Track this webview controller along with its profiler URI for cleanup
@@ -495,6 +556,9 @@ export class ProfilerController {
         const originalDispose = webviewController.dispose.bind(webviewController);
         webviewController.dispose = () => {
             this._webviewControllers.delete(webviewId);
+
+            // Clean up the engine type tracking for this profiler URI
+            this._profilerEngineTypes.delete(webviewProfilerUri);
 
             // Disconnect the profiler connection to avoid lingering connections
             this._logger.verbose(`Cleaning up profiler connection: ${webviewProfilerUri}`);
@@ -567,9 +631,88 @@ export class ProfilerController {
             },
         });
 
-        this._logger.verbose(
-            "Profiler UI created. Select a session and click Start to begin profiling.",
-        );
-        vscode.window.showInformationMessage(LocProfiler.profilerReady);
+        // Step 3: Create the XEvent session on the server (if it doesn't exist) and auto-start
+        try {
+            // Check if the session already exists
+            const sessionExists = xeventSessions.includes(sessionName);
+
+            if (sessionExists) {
+                // Session already exists - just start it
+                this._logger.verbose(
+                    `Session '${sessionName}' already exists, starting without creating`,
+                );
+                webviewController.setSelectedSession(sessionName);
+                await this.startSession(sessionName, webviewController);
+
+                vscode.window.showInformationMessage(
+                    LocProfiler.sessionStartedSuccessfully(sessionName),
+                );
+            } else {
+                // Session doesn't exist - create it first
+                webviewController.setCreatingSession(true);
+
+                // Create the session template
+                const template: ProfilerSessionTemplate = {
+                    name: selectedTemplate.template.name,
+                    defaultView: selectedTemplate.template.defaultView,
+                    createStatement: selectedTemplate.template.createStatement,
+                };
+
+                this._logger.verbose(
+                    `Creating XEvent session: ${sessionName} with template: ${template.name}`,
+                );
+
+                // Register handler for session created notification
+                const sessionCreatedPromise = new Promise<void>((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        disposable.dispose();
+                        reject(new Error(LocProfiler.sessionCreationTimedOut));
+                    }, 30000); // 30 second timeout
+
+                    const disposable = this._sessionManager.onSessionCreated(
+                        profilerUri,
+                        (params) => {
+                            clearTimeout(timeout);
+                            disposable.dispose();
+                            this._logger.verbose(
+                                `Session created notification received: ${params.sessionName}`,
+                            );
+                            resolve();
+                        },
+                    );
+                });
+
+                // Send create session request
+                await this._sessionManager.createXEventSession(profilerUri, sessionName, template);
+
+                // Wait for session created notification
+                await sessionCreatedPromise;
+
+                // Refresh available sessions to include the new one
+                const updatedXeventSessions =
+                    await this._sessionManager.getXEventSessions(profilerUri);
+                const updatedAvailableSessions = updatedXeventSessions.map((name) => ({
+                    id: name,
+                    name: name,
+                }));
+
+                webviewController.updateAvailableSessions(updatedAvailableSessions);
+                webviewController.setSelectedSession(sessionName);
+                webviewController.setCreatingSession(false);
+
+                this._logger.verbose(`Session '${sessionName}' created successfully`);
+
+                // Auto-start the session
+                await this.startSession(sessionName, webviewController);
+
+                vscode.window.showInformationMessage(
+                    LocProfiler.sessionCreatedSuccessfully(sessionName),
+                );
+            }
+        } catch (e) {
+            this._logger.error(`Error creating/starting session: ${e}`);
+            webviewController.setCreatingSession(false);
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+        }
     }
 }
