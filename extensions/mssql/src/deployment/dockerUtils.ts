@@ -141,6 +141,7 @@ export const COMMANDS = {
         command: "docker",
         args: ["pull", `mcr.microsoft.com/mssql/server:${versionTag}`],
     }),
+    // Fixed command to start SQL Server container with proper sanitization
     START_SQL_SERVER: (
         name: string,
         password: string,
@@ -153,18 +154,21 @@ export const COMMANDS = {
             "-e",
             "ACCEPT_EULA=Y",
             "-e",
-            `\'SA_PASSWORD=${password}\'`,
+            `SA_PASSWORD=${password}`,
             "-p",
-            `\'${port}:${defaultPortNumber}\'`,
+            `${port}:${defaultPortNumber}`,
             "--name",
-            `\'${sanitizeContainerInput(name)}\'`,
+            sanitizeContainerInput(name),
         ];
 
         if (hostname) {
             args.push("--hostname", sanitizeContainerInput(hostname));
         }
 
-        args.push("-d", `mcr.microsoft.com/mssql/server:${versionTag}`);
+        args.push(
+            "-d",
+            `mcr.microsoft.com/mssql/server:${versionTag}`
+        );
 
         return { command: "docker", args };
     },
@@ -530,8 +534,8 @@ export async function checkEngine(): Promise<DockerCommandParams> {
                 platform() === Platform.Linux
                     ? LocalContainers.linuxDockerPermissionsError
                     : platform() === Platform.Mac
-                      ? LocalContainers.rosettaError
-                      : LocalContainers.windowsContainersError,
+                        ? LocalContainers.rosettaError
+                        : LocalContainers.windowsContainersError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -588,7 +592,7 @@ export async function getDockerPath(executable: string): Promise<string> {
             const basePath = parts.slice(0, dockerIndex + 1).join(path.sep);
             return path.join(basePath, executable);
         }
-    } catch {}
+    } catch { }
     return "";
 }
 
@@ -679,7 +683,7 @@ export async function startDocker(
             dockerStartedThroughExtension: "false",
         });
         return { success: true };
-    } catch {} // If this command fails, docker is not running, so we proceed to start it.
+    } catch { } // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node);
