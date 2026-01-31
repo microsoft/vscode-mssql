@@ -5,7 +5,7 @@
 
 import { Button, makeStyles, Text } from "@fluentui/react-components";
 import { Dismiss12Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../common/locConstants";
+import { locConstants } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     header: {

@@ -5,8 +5,8 @@
 
 import { Input, makeStyles } from "@fluentui/react-components";
 import { Search16Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../common/locConstants";
-import { ChangeAction, ChangeCategory } from "./diff/diffUtils";
+import { locConstants } from "../../../common/locConstants";
+import { ChangeAction, ChangeCategory } from "../diff/diffUtils";
 import { SchemaDesignerChangesFilterButton } from "./schemaDesignerChangesFilterButton";
 
 const useStyles = makeStyles({

@@ -22,7 +22,7 @@ import {
     Key20Regular,
     Table20Regular,
 } from "@fluentui/react-icons";
-import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "./diff/diffUtils";
+import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
 import { SchemaDesignerChangeDetailsPopover } from "./schemaDesignerChangeDetailsPopover";
 
 export interface FlatTreeItem extends HeadlessFlatTreeItemProps {

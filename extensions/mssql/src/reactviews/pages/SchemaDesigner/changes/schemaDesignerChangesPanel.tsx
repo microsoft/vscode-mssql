@@ -11,11 +11,11 @@ import {
 } from "@fluentui/react-components";
 import { Checkmark24Regular, Search16Regular } from "@fluentui/react-icons";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
-import eventBus from "./schemaDesignerEvents";
-import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
-import { locConstants } from "../../common/locConstants";
-import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "./diff/diffUtils";
-import { describeChange } from "./diff/schemaDiff";
+import eventBus from "../schemaDesignerEvents";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { locConstants } from "../../../common/locConstants";
+import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
+import { describeChange } from "../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
 import { SchemaDesignerChangesHeader } from "./schemaDesignerChangesHeader";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
