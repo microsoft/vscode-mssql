@@ -981,6 +981,7 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
+    "Creating database": "Creating database",
     "Drop Database (Preview)": "Drop Database (Preview)",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -993,6 +994,7 @@
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
+    "Dropping database": "Dropping database",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
