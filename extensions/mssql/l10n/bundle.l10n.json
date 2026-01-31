@@ -965,6 +965,7 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -980,7 +981,7 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
-    "Drop Database": "Drop Database",
+    "Drop Database (Preview)": "Drop Database (Preview)",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1234,6 +1235,7 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
+    "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",

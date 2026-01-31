@@ -1210,6 +1210,9 @@
     <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
       <source xml:lang="en">Create Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
+      <source xml:lang="en">Create Database (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
@@ -1574,6 +1577,9 @@
     </trans-unit>
     <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
       <source xml:lang="en">Drop Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
+      <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
       <source xml:lang="en">Drop Database Options</source>
@@ -5526,7 +5532,7 @@
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">Create Database</source>
+      <source xml:lang="en">Create Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
@@ -5580,7 +5586,7 @@
       <source xml:lang="en">Do not show prompts to enable UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database</source>
+      <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
@@ -5844,7 +5850,7 @@
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database</source>
+      <source xml:lang="en">Rename Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
