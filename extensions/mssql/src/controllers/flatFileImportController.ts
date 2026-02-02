@@ -41,6 +41,7 @@ export class FlatFileImportController extends FormWebviewController<
     FlatFileImportReducers
 > {
     public readonly IMPORT_FILE_TYPES = ["csv", "txt"];
+    private baseFormActionReducer = this["_reducerHandlers"].get("formAction");
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -75,27 +76,18 @@ export class FlatFileImportController extends FormWebviewController<
         // Set database names for dropdown
         this.state.serverName = this.node.connectionProfile.server;
         this.state.formState.databaseName = ObjectExplorerUtils.getDatabaseName(this.node);
-        this.state.isDatabase = this.state.formState.databaseName !== "";
 
-        this.state.formComponents = this.setFlatFileFormComponents(this.state.isDatabase);
+        this.state.formComponents = this.setFlatFileFormComponents();
         const databaseNameComponent = this.state.formComponents["databaseName"];
-        if (!this.state.isDatabase) {
-            databaseNameComponent.options = this.databases.map((db) => ({
-                displayName: db,
-                value: db,
-            }));
+        databaseNameComponent.options = this.databases.map((db) => ({
+            displayName: db,
+            value: db,
+        }));
+        if (!this.state.formState.databaseName) {
             this.state.formState.databaseName = this.databases[0];
         }
 
-        const schemas = await this.getSchemas(this.state.formState.databaseName);
-        const tableSchemaComponent = this.state.formComponents["tableSchema"];
-        tableSchemaComponent.options = schemas.map((schema) => ({
-            displayName: schema,
-            value: schema,
-        }));
-        this.state.formState.tableSchema = schemas.includes(defaultSchema)
-            ? defaultSchema
-            : schemas[0];
+        await this.handleLoadSchemas();
 
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -106,6 +98,14 @@ export class FlatFileImportController extends FormWebviewController<
      * Register reducers for handling actions from the webview
      */
     private registerRpcHandlers(): void {
+        this.registerReducer("formAction", async (state, payload) => {
+            // Reload db schemas if database name changed
+            if (payload.event.propertyName === "databaseName") {
+                state.schemaLoadStatus = ApiStatus.Loading;
+                void this.handleLoadSchemas();
+            }
+            return this.baseFormActionReducer(state, payload);
+        });
         this.registerReducer("getTablePreview", async (state, payload) => {
             const params: ProseDiscoveryParams = {
                 filePath: payload.filePath,
@@ -117,7 +117,8 @@ export class FlatFileImportController extends FormWebviewController<
                 state.tablePreview = await this.provider.sendProseDiscoveryRequest(params);
                 state.tablePreviewStatus = ApiStatus.Loaded;
             } catch (error) {
-                state.errorMessage = Loc.FlatFileImport.unableToGetTablePreview(error.message);
+                state.errorMessage = Loc.FlatFileImport.fetchTablePreviewError;
+                state.fullErrorMessage = error.message;
                 state.tablePreviewStatus = ApiStatus.Error;
             }
             return state;
@@ -222,6 +223,11 @@ export class FlatFileImportController extends FormWebviewController<
 
             return state;
         });
+        this.registerReducer("dispose", async (state, _payload) => {
+            this.panel.dispose();
+            this.dispose();
+            return state;
+        });
     }
 
     async updateItemVisibility() {}
@@ -232,9 +238,7 @@ export class FlatFileImportController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof FlatFileImportFormState)[];
     }
 
-    private setFlatFileFormComponents(
-        isDatabase: boolean,
-    ): Record<
+    private setFlatFileFormComponents(): Record<
         string,
         FormItemSpec<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec>
     > {
@@ -252,8 +256,8 @@ export class FlatFileImportController extends FormWebviewController<
                 propertyName: "databaseName",
                 label: Loc.FlatFileImport.databaseTheTableIsCreatedIn,
                 required: true,
-                type: isDatabase ? FormItemType.Input : FormItemType.Dropdown,
-                options: isDatabase ? undefined : [],
+                type: FormItemType.Dropdown,
+                options: [],
                 validate(_state, value) {
                     const isEmpty = value.toString().trim().length === 0;
                     return {
@@ -331,5 +335,27 @@ export class FlatFileImportController extends FormWebviewController<
             },
         );
         return getSchemaNamesFromResult(result);
+    }
+
+    private async handleLoadSchemas(): Promise<void> {
+        let schemas: string[] = [];
+        try {
+            schemas = await this.getSchemas(this.state.formState.databaseName);
+        } catch (error) {
+            this.state.errorMessage = Loc.FlatFileImport.fetchSchemasError;
+            this.state.fullErrorMessage = error.message;
+            this.state.schemaLoadStatus = ApiStatus.Error;
+        }
+        const tableSchemaComponent = this.state.formComponents["tableSchema"];
+        tableSchemaComponent.options = schemas.map((schema) => ({
+            displayName: schema,
+            value: schema,
+        }));
+        this.state.formState.tableSchema = schemas.includes(defaultSchema)
+            ? defaultSchema
+            : schemas[0];
+
+        this.state.schemaLoadStatus = ApiStatus.Loaded;
+        this.updateState();
     }
 }

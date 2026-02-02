@@ -166,7 +166,7 @@ export const FlatFileSummary = () => {
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => {}}
+                    onClick={() => context.dispose()}
                     appearance="primary">
                     {locConstants.common.finish}
                 </Button>

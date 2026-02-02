@@ -2419,10 +2419,8 @@
     "Import file is required": "Import file is required",
     "Table name is required": "Table name is required",
     "Schema is required": "Schema is required",
-    "Unable to get table preview: {0}/{0} is the error message": {
-        "message": "Unable to get table preview: {0}",
-        "comment": ["{0} is the error message"]
-    },
+    "Error fetching the table preview.": "Error fetching the table preview.",
+    "Error fetching schemas for the selected database.": "Error fetching schemas for the selected database.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

@@ -12,17 +12,18 @@ export class FlatFileImportState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string = "";
+    fullErrorMessage?: string = "";
     formState: FlatFileImportFormState = {
         databaseName: "",
         flatFilePath: "",
         tableName: "",
         tableSchema: "",
     };
+    schemaLoadStatus: ApiStatus = ApiStatus.Loading;
     formComponents: Partial<Record<keyof FlatFileImportFormState, FlatFileImportFormItemSpec>> = {};
     formErrors: string[] = [];
     serverName: string = "";
     fileType: string = "";
-    isDatabase: boolean = false;
     tablePreview: ProseDiscoveryResponse | undefined = undefined;
     tablePreviewStatus: ApiStatus = ApiStatus.Loading;
     importDataStatus: ApiStatus = ApiStatus.NotStarted;
@@ -69,6 +70,8 @@ export interface FlatFileImportProvider
     importData: () => void;
 
     openVSCodeFileBrowser: () => void;
+
+    dispose: () => void;
 }
 
 export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormState> {
@@ -91,4 +94,5 @@ export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormS
     };
     importData: {};
     openVSCodeFileBrowser: {};
+    dispose: {};
 }

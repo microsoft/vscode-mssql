@@ -2639,10 +2639,6 @@ export class FlatFileImport {
     public static importFileRequired = l10n.t("Import file is required");
     public static tableNameRequired = l10n.t("Table name is required");
     public static schemaRequired = l10n.t("Schema is required");
-    public static unableToGetTablePreview = (errorMessage: string) =>
-        l10n.t({
-            message: "Unable to get table preview: {0}",
-            args: [errorMessage],
-            comment: ["{0} is the error message"],
-        });
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
 }

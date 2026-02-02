@@ -1590,6 +1590,12 @@
       <note>{0} is the rule info in format &apos;name (startIp - endIp)&apos;
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2">
+      <source xml:lang="en">Error fetching schemas for the selected database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4561f39368038f0a735649f745939796bec6caf45d87dd948f211edd4045b3b4">
+      <source xml:lang="en">Error fetching the table preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
       <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
     </trans-unit>
@@ -4545,10 +4551,6 @@
     </trans-unit>
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bf145a6cceb39bdabc1f9c6bc39d83253c6e1884ab167a82a0f3c8407c804b0f">
-      <source xml:lang="en">Unable to get table preview: {0}</source>
-      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>

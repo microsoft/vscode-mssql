@@ -28,8 +28,6 @@ import { FlatFileSummary } from "./flatFileSummary";
 
 const useStyles = makeStyles({
     outerDiv: {
-        height: "100%",
-        width: "100%",
         position: "relative",
         overflowY: "auto",
         overflowX: "unset",
@@ -77,14 +75,11 @@ const useStyles = makeStyles({
     },
 
     columnText: {
+        display: "flex",
+        alignItems: "center",
         fontWeight: 600,
         overflow: "hidden",
         textOverflow: "ellipsis",
-    },
-
-    operationText: {
-        whiteSpace: "wrap",
-        margin: "20px",
     },
 });
 
@@ -189,7 +184,10 @@ export const FlatFileColumnSettings = () => {
                             {columns.map((column, index) => (
                                 <TableHeaderCell
                                     key={column.header}
-                                    className={classes.tableHeaderCell}>
+                                    className={classes.tableHeaderCell}
+                                    style={{
+                                        width: column.inputType === CHECKBOX_TYPE ? "20%" : "30%",
+                                    }}>
                                     <Text className={classes.columnText}>{column.header}</Text>
                                     {column.inputType === CHECKBOX_TYPE && (
                                         <Checkbox id={`select-all-${index}`} />
@@ -202,17 +200,30 @@ export const FlatFileColumnSettings = () => {
                         {state.tablePreview?.columnInfo.map((colInfo, index) => (
                             <TableRow key={index}>
                                 <TableCell className={classes.tableBodyCell}>
-                                    <Input
-                                        className={classes.cellText}
-                                        defaultValue={colInfo.name}
-                                        onChange={(_event, data) => {
-                                            handleColumnChange(index, "newName", data?.value || "");
-                                        }}
-                                    />
+                                    <div style={{ width: "200px" }}>
+                                        <Input
+                                            size="small"
+                                            className={classes.cellText}
+                                            defaultValue={colInfo.name}
+                                            onChange={(_event, data) => {
+                                                handleColumnChange(
+                                                    index,
+                                                    "newName",
+                                                    data?.value || "",
+                                                );
+                                            }}
+                                        />
+                                    </div>
                                 </TableCell>
                                 <TableCell className={classes.tableBodyCell}>
                                     <Dropdown
+                                        size="small"
                                         defaultValue={colInfo.sqlType}
+                                        style={{
+                                            minWidth: "40px",
+                                            width: "150px",
+                                            maxWidth: "150px",
+                                        }}
                                         onOptionSelect={(_event, data) => {
                                             handleColumnChange(
                                                 index,
@@ -228,28 +239,42 @@ export const FlatFileColumnSettings = () => {
                                     </Dropdown>
                                 </TableCell>
                                 <TableCell className={classes.tableBodyCell}>
-                                    <Checkbox
-                                        defaultChecked={false}
-                                        onChange={(_event, data) => {
-                                            handleColumnChange(
-                                                index,
-                                                "newIsPrimaryKey",
-                                                data.checked || false,
-                                            );
-                                        }}
-                                    />
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}>
+                                        <Checkbox
+                                            defaultChecked={false}
+                                            onChange={(_event, data) => {
+                                                handleColumnChange(
+                                                    index,
+                                                    "newIsPrimaryKey",
+                                                    data.checked || false,
+                                                );
+                                            }}
+                                        />
+                                    </div>
                                 </TableCell>
                                 <TableCell className={classes.tableBodyCell}>
-                                    <Checkbox
-                                        defaultChecked={colInfo.isNullable}
-                                        onChange={(_event, data) => {
-                                            handleColumnChange(
-                                                index,
-                                                "newNullable",
-                                                data.checked || false,
-                                            );
-                                        }}
-                                    />
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}>
+                                        <Checkbox
+                                            defaultChecked={colInfo.isNullable}
+                                            onChange={(_event, data) => {
+                                                handleColumnChange(
+                                                    index,
+                                                    "newNullable",
+                                                    data.checked || false,
+                                                );
+                                            }}
+                                        />
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

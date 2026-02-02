@@ -77,6 +77,9 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                 openVSCodeFileBrowser: function (): void {
                     webviewContext?.extensionRpc.action("openVSCodeFileBrowser", {});
                 },
+                dispose: function (): void {
+                    webviewContext?.extensionRpc.action("dispose", {});
+                },
             }}>
             {children}
         </FlatFileContext.Provider>
