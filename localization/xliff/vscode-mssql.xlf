@@ -4254,14 +4254,14 @@
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
     </trans-unit>
+    <trans-unit id="++CODE++f73ee8e39782fc677a1942cbe40f0b749a4aa5b307ccb403c7fa85b4392fb6e2">
+      <source xml:lang="en">Search by name of type (t:, v:, f:, or sp:)</source>
+    </trans-unit>
     <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
       <source xml:lang="en">Search changes...</source>
     </trans-unit>
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
-    </trans-unit>
-    <trans-unit id="++CODE++30777e8c58d5054af4a2324c8dfb881ce5fd4ace167c9aaa8f872477d556b8fa">
-      <source xml:lang="en">Search database objects...</source>
     </trans-unit>
     <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
       <source xml:lang="en">Search for database objects...</source>

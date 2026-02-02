@@ -1082,7 +1082,7 @@
     "Functions": "Functions",
     "Schemas": "Schemas",
     "None": "None",
-    "Search database objects...": "Search database objects...",
+    "Search by name of type (t:, v:, f:, or sp:)": "Search by name of type (t:, v:, f:, or sp:)",
     "Actions": "Actions",
     "No objects found": "No objects found",
     "Try adjusting your search or filters": "Try adjusting your search or filters",
