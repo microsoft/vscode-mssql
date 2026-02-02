@@ -47,6 +47,7 @@ const useStyles = makeStyles({
         ...shorthands.margin(0),
     },
     serverInfo: {
+        display: "block",
         color: "var(--vscode-descriptionForeground)",
         fontSize: tokens.fontSizeBase200,
     },
