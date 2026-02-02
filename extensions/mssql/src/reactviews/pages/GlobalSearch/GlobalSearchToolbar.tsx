@@ -15,15 +15,10 @@ const useStyles = makeStyles({
         alignItems: "center",
         ...shorthands.gap("8px"),
     },
-    searchContainer: {
-        display: "flex",
-        alignItems: "center",
-        flexGrow: 1,
-        maxWidth: "500px",
-        ...shorthands.gap("4px"),
-    },
     searchBox: {
         flexGrow: 1,
+        minWidth: "200px",
+        maxWidth: "400px",
     },
 });
 
@@ -66,15 +61,13 @@ export const GlobalSearchToolbar: React.FC = () => {
 
     return (
         <div className={classes.toolbar}>
-            <div className={classes.searchContainer}>
-                <SearchBox
-                    className={classes.searchBox}
-                    placeholder={loc.globalSearch.searchPlaceholder}
-                    value={localSearchValue}
-                    onChange={handleSearchChange}
-                    size="medium"
-                />
-            </div>
+            <SearchBox
+                className={classes.searchBox}
+                placeholder={loc.globalSearch.searchPlaceholder}
+                value={localSearchValue}
+                onChange={handleSearchChange}
+                size="medium"
+            />
             <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh}>
                 {loc.globalSearch.refresh}
             </Button>
