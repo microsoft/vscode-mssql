@@ -40,6 +40,10 @@ const useStyles = makeStyles({
     },
     dropdown: {
         width: "100%",
+        minWidth: "100%",
+        "& button": {
+            width: "100%",
+        },
     },
     checkboxGroup: {
         display: "flex",
