@@ -69,14 +69,6 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         ...shorthands.gap("8px"),
     },
-    typeCell: {
-        display: "flex",
-        alignItems: "center",
-        ...shorthands.gap("8px"),
-    },
-    typeIcon: {
-        fontSize: "16px",
-    },
     row: {
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
@@ -91,7 +83,7 @@ interface GlobalSearchResultsTableProps {
     results: SearchResultItem[];
 }
 
-const getTypeIcon = (type: MetadataType): React.ReactNode => {
+const getTypeIcon = (type: MetadataType): JSX.Element => {
     switch (type) {
         case MetadataType.Table:
             return <TableRegular />;
@@ -149,7 +141,10 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                     <span className={classes.headerCell}>{loc.globalSearch.name}</span>
                 ),
                 renderCell: (item) => (
-                    <TableCellLayout truncate title={item.fullName}>
+                    <TableCellLayout
+                        truncate
+                        title={item.fullName}
+                        media={getTypeIcon(item.type)}>
                         {item.name}
                     </TableCellLayout>
                 ),
@@ -173,12 +168,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                     <span className={classes.headerCell}>{loc.globalSearch.type}</span>
                 ),
                 renderCell: (item) => (
-                    <TableCellLayout>
-                        <span className={classes.typeCell}>
-                            {getTypeIcon(item.type)}
-                            {item.typeName}
-                        </span>
-                    </TableCellLayout>
+                    <TableCellLayout truncate>{item.typeName}</TableCellLayout>
                 ),
             }),
             createTableColumn<SearchResultItem>({
