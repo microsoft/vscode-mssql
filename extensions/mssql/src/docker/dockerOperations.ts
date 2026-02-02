@@ -117,6 +117,48 @@ export async function getContainerLogs(name: string, since?: number): Promise<st
 }
 
 /**
+ * Stream container logs and call the callback for each chunk.
+ * Returns a cleanup function to stop the stream.
+ * @param name Container name
+ * @param onData Callback for each log chunk
+ * @param onError Callback for errors
+ * @param since Unix timestamp (seconds) to get logs since
+ */
+export async function streamContainerLogs(
+    name: string,
+    onData: (chunk: string) => void,
+    onError?: (error: Error) => void,
+    since?: number,
+): Promise<() => void> {
+    const dockerApi = getDockerClient();
+    const container = dockerApi.getContainer(sanitizeContainerName(name));
+
+    const stream = (await container.logs({
+        stdout: true,
+        stderr: true,
+        since,
+        follow: true,
+    })) as NodeJS.ReadableStream;
+
+    // Handle data events
+    stream.on("data", (chunk: Buffer) => {
+        onData(chunk.toString());
+    });
+
+    // Handle errors
+    stream.on("error", (err: Error) => {
+        if (onError) {
+            onError(err);
+        }
+    });
+
+    // Return cleanup function
+    return () => {
+        stream.removeAllListeners();
+    };
+}
+
+/**
  * Get container name by container ID
  */
 export async function getContainerNameById(containerId: string): Promise<string | undefined> {

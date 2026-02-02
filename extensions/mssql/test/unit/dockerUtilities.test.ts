@@ -657,9 +657,13 @@ suite("Docker Utilities", () => {
         const startContainerStub = sandbox.stub(dockerOperations, "startContainer");
         startContainerStub.resolves();
 
-        // Mock getContainerLogs for checkIfContainerIsReadyForConnections
-        const getContainerLogsStub = sandbox.stub(dockerOperations, "getContainerLogs");
-        getContainerLogsStub.resolves("Recovery is complete");
+        // Mock streamContainerLogs for checkIfContainerIsReadyForConnections
+        const streamContainerLogsStub = sandbox.stub(dockerOperations, "streamContainerLogs");
+        streamContainerLogsStub.callsFake(async (_name, onData) => {
+            // Simulate immediate ready message
+            onData("Recovery is complete");
+            return () => {}; // cleanup function
+        });
 
         // Case 1: Container is already running, should return success
         isContainerRunningStub.resolves(true);
@@ -680,11 +684,15 @@ suite("Docker Utilities", () => {
     });
 
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
-        // Mock getContainerLogs from dockerOperations
-        const getContainerLogsStub = sandbox.stub(dockerOperations, "getContainerLogs");
+        // Mock streamContainerLogs from dockerOperations
+        const streamContainerLogsStub = sandbox.stub(dockerOperations, "streamContainerLogs");
 
-        // Case: container is ready - logs contain "Recovery is complete"
-        getContainerLogsStub.resolves("SQL Server 2022 started. Recovery is complete.");
+        // Case: container is ready - stream emits "Recovery is complete"
+        streamContainerLogsStub.callsFake(async (_name, onData) => {
+            // Simulate the ready message being streamed
+            onData("SQL Server 2022 started. Recovery is complete.");
+            return () => {}; // cleanup function
+        });
 
         let result = await dockerUtils.checkIfContainerIsReadyForConnections("testContainer");
         expect(result.success, "Should return success when container is ready for connections").to

@@ -41,7 +41,7 @@ import {
     startContainer,
     stopContainer as stopContainerRaw,
     removeContainer,
-    getContainerLogs,
+    streamContainerLogs,
     getContainerNameById,
     findAvailablePort,
     pullImage,
@@ -510,40 +510,63 @@ export async function startSqlServerDockerContainer(
 }
 
 /**
- * Checks if the provided container is ready for connections by checking the logs.
- * It waits for a maximum of 5 minutes, checking every second.
+ * Checks if the provided container is ready for connections by streaming the logs.
+ * Uses Docker's streaming API instead of polling for better efficiency.
+ * It waits for a maximum of 5 minutes.
  */
 export async function checkIfContainerIsReadyForConnections(
     containerName: string,
 ): Promise<DockerCommandParams> {
     const timeoutMs = 300_000; // 5 minutes
-    const intervalMs = 1000;
     const start = Date.now();
 
     dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
-    return new Promise((resolve) => {
-        const interval = setInterval(async () => {
-            try {
-                const logs = await getContainerLogs(containerName, Math.floor(start / 1000));
+    return new Promise(async (resolve) => {
+        let cleanup: (() => void) | undefined;
+        let resolved = false;
+        // Accumulate log data to handle messages split across chunks
+        let logBuffer = "";
 
-                if (logs.includes(SQL_SERVER_READY_MESSAGE)) {
-                    clearInterval(interval);
-                    dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    return resolve({ success: true });
+        // Set up timeout
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                resolved = true;
+                if (cleanup) {
+                    cleanup();
                 }
-            } catch {
-                // Ignore and retry
-            }
-
-            if (Date.now() - start > timeoutMs) {
-                clearInterval(interval);
-                return resolve({
+                resolve({
                     success: false,
                     error: LocalContainers.containerFailedToStartWithinTimeout,
                 });
             }
-        }, intervalMs);
+        }, timeoutMs);
+
+        // Stream logs and watch for ready message
+        cleanup = await streamContainerLogs(
+            containerName,
+            (chunk: string) => {
+                if (resolved) {
+                    return;
+                }
+                logBuffer += chunk;
+                if (logBuffer.includes(SQL_SERVER_READY_MESSAGE)) {
+                    resolved = true;
+                    clearTimeout(timeout);
+                    if (cleanup) {
+                        cleanup();
+                    }
+                    dockerLogger.appendLine(`${containerName} is ready for connections!`);
+                    resolve({ success: true });
+                }
+            },
+            (error: Error) => {
+                // Log error but don't fail immediately - container might still be starting
+                dockerLogger.appendLine(`Log stream error: ${error.message}`);
+            },
+            Math.floor(start / 1000),
+        );
+        cleanup();
     });
 }
 
