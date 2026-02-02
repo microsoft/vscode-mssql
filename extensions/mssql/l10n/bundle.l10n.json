@@ -1071,8 +1071,8 @@
     },
     "An error occurred while loading data.": "An error occurred while loading data.",
     "Searching...": "Searching...",
-    "{0} object(s) found/{0} is the number of objects found": {
-        "message": "{0} object(s) found",
+    "{0} objects found/{0} is the number of objects found": {
+        "message": "{0} objects found",
         "comment": ["{0} is the number of objects found"]
     },
     "Object Types": "Object Types",
