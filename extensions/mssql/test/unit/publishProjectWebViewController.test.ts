@@ -17,7 +17,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
-import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
+import { validateSqlServerPassword } from "../../src/deployment/mssqlDockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import {
     PublishTarget,
@@ -27,7 +27,7 @@ import {
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { SqlPackageService } from "../../src/services/sqlPackageService";
-import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as dockerUtils from "../../src/deployment/mssqlDockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
 import { generateUUID } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";

@@ -43,7 +43,7 @@ import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
 import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../nps/userSurvey";
-import * as dockerUtils from "../deployment/dockerUtils";
+import * as dockerUtils from "../deployment/mssqlDockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import MainController from "../controllers/mainController";
 import { getConnectionDisplayName } from "../models/connectionInfo";

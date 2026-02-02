@@ -32,7 +32,13 @@ const config = {
     sourcemap: !isProd,
     sourcesContent: false,
     metafile: !isProd,
-    external: ["vscode", "vscode-mssql"],
+    external: [
+        "vscode",
+        "vscode-mssql",
+        // Native modules from dockerode's ssh2 dependency
+        "ssh2",
+        "cpu-features",
+    ],
     minify: isProd,
 };
 

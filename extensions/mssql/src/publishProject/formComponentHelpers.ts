@@ -14,7 +14,7 @@ import {
     PublishFormFields,
 } from "../sharedInterfaces/publishDialog";
 import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
-import { validateSqlServerPassword } from "../deployment/dockerUtils";
+import { validateSqlServerPassword } from "../deployment/mssqlDockerUtils";
 
 /**
  * Generate publish target options based on project target version

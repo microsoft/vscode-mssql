@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as os from "os";
-import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as dockerUtils from "../../src/deployment/mssqlDockerUtils";
 import { LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";

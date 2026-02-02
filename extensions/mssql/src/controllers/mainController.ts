@@ -97,8 +97,8 @@ import { DeploymentWebviewController } from "../deployment/deploymentWebviewCont
 import {
     deleteContainer,
     prepareForDockerContainerCommand,
-    stopContainer,
-} from "../deployment/dockerUtils";
+    stopDockerContainer as stopContainer,
+} from "../deployment/mssqlDockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";

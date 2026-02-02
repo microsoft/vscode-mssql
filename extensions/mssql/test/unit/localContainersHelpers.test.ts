@@ -9,7 +9,7 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
-import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as dockerUtils from "../../src/deployment/mssqlDockerUtils";
 import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
