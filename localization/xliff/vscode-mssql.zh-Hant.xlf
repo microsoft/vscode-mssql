@@ -2656,7 +2656,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0600a350078b90778fc586a469220c82bcebe6a66dd1e9c99577e88bb7544a28">
         <source xml:lang="en">Failed to delete table.</source>
-        <target state="new">Failed to delete table.</target>
+        <target state="translated">無法刪除資料表。</target>
       </trans-unit>
       <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
         <source xml:lang="en">Failed to delete {0}.</source>
