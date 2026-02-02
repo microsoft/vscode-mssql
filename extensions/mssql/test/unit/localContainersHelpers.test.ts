@@ -10,6 +10,7 @@ import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/deployment/mssqlDockerUtils";
+import * as dockerOperations from "../../src/docker/dockerOperations";
 import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
@@ -111,12 +112,13 @@ suite("localContainers logic", () => {
     });
 
     test("validatePort works for valid and invalid ports", async () => {
-        sandbox
-            .stub(dockerUtils, "findAvailablePort")
-            .withArgs(1433)
-            .resolves(1433)
-            .withArgs(1)
-            .resolves(-1);
+        // Stub findAvailablePort at the source module (dockerOperations)
+        // When findAvailablePort returns a different port than requested, it means the port is taken
+        sandbox.stub(dockerOperations, "findAvailablePort").callsFake(async (port: number) => {
+            if (port === 1433) return 1433; // Port 1433 is available
+            if (port === 1) return 2; // Port 1 is taken, next available is 2
+            return port; // Default: port is available
+        });
 
         expect(await localContainersHelpers.validatePort("1433")).to.be.true;
         expect(await localContainersHelpers.validatePort("1")).to.be.false;
@@ -137,7 +139,12 @@ suite("localContainers logic", () => {
         sandbox
             .stub(dockerUtils, "invalidPortNumberValidationResult")
             .value({ isValid: false, validationMessage: "Bad port" });
-        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
+        // Stub findAvailablePort at the source module (dockerOperations)
+        sandbox.stub(dockerOperations, "findAvailablePort").callsFake(async (port: number) => {
+            if (port === 1433) return 1433; // Port 1433 is available
+            if (port === 1) return 2; // Port 1 is taken, next available is 2
+            return port;
+        });
 
         const state = {
             formComponents: localContainersHelpers.setLocalContainersFormComponents(
