@@ -32,11 +32,9 @@ import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 
-// Import from new docker module
+// Import from docker module (direct imports, no barrel file)
+import { getDockerClient, pingDocker, getDockerInfo } from "../docker/dockerClient";
 import {
-    getDockerClient,
-    pingDocker,
-    getDockerInfo,
     sanitizeContainerName,
     isContainerRunning,
     containerExists,
@@ -50,12 +48,14 @@ import {
     createAndStartContainer,
     generateUniqueContainerName,
     validateContainerName as validateContainerNameGeneric,
+} from "../docker/dockerOperations";
+import {
     OS_COMMANDS,
     execCommand,
     execCommandWithPipe,
     getDockerExecutablePath,
     getStartDockerCommand,
-} from "../docker";
+} from "../docker/osCommands";
 
 /**
  * The length of the year string in the version number

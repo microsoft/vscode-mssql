@@ -19,6 +19,13 @@ export function sanitizeContainerName(name: string): string {
 }
 
 /**
+ * Checks if a container info matches the given name (handles Docker's leading slash)
+ */
+function containerHasName(containerInfo: Docker.ContainerInfo, name: string): boolean {
+    return containerInfo.Names.some((n) => n === `/${name}` || n === name);
+}
+
+/**
  * List all containers (optionally including stopped containers)
  */
 export async function listContainers(all = true): Promise<Docker.ContainerInfo[]> {
@@ -47,8 +54,7 @@ export async function isContainerRunning(name: string): Promise<boolean> {
             },
         });
 
-        // Check for exact match (container names have leading /)
-        return containers.some((c) => c.Names.some((n) => n === `/${name}` || n === name));
+        return containers.some((c) => containerHasName(c, name));
     } catch {
         return false;
     }
@@ -60,7 +66,7 @@ export async function isContainerRunning(name: string): Promise<boolean> {
 export async function containerExists(name: string): Promise<boolean> {
     try {
         const containers = await listContainers(true);
-        return containers.some((c) => c.Names.some((n) => n === `/${name}` || n === name));
+        return containers.some((c) => containerHasName(c, name));
     } catch {
         return false;
     }
