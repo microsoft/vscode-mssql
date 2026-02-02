@@ -221,6 +221,29 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Parse search term for type prefix (t:, v:, f:, sp:) and return the type filter and remaining search text
+     */
+    private parseSearchPrefix(searchTerm: string): {
+        typeFilter: MetadataType | null;
+        searchText: string;
+    } {
+        const trimmed = searchTerm.trim().toLowerCase();
+
+        // Check for type prefixes
+        if (trimmed.startsWith("t:")) {
+            return { typeFilter: MetadataType.Table, searchText: searchTerm.slice(2).trim() };
+        } else if (trimmed.startsWith("v:")) {
+            return { typeFilter: MetadataType.View, searchText: searchTerm.slice(2).trim() };
+        } else if (trimmed.startsWith("f:")) {
+            return { typeFilter: MetadataType.Function, searchText: searchTerm.slice(2).trim() };
+        } else if (trimmed.startsWith("sp:")) {
+            return { typeFilter: MetadataType.SProc, searchText: searchTerm.slice(3).trim() };
+        }
+
+        return { typeFilter: null, searchText: searchTerm.trim() };
+    }
+
+    /**
      * Apply current filters and search term to cached SearchResultItems
      */
     private applyFiltersAndSearch(): void {
@@ -230,8 +253,19 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         let results = allItems;
 
-        // Filter by object type
-        results = results.filter((item) => this.matchesTypeFilterForItem(item));
+        // Parse search term for type prefix
+        const { typeFilter: searchTypeFilter, searchText } = this.parseSearchPrefix(
+            this.state.searchTerm,
+        );
+
+        // Filter by object type - use search prefix if present, otherwise use panel filters
+        if (searchTypeFilter !== null) {
+            // Search prefix overrides panel filters - only show the specified type
+            results = results.filter((item) => item.type === searchTypeFilter);
+        } else {
+            // No prefix - use panel type filters
+            results = results.filter((item) => this.matchesTypeFilterForItem(item));
+        }
 
         // Filter by schema
         if (this.state.selectedSchemas.length > 0) {
@@ -242,9 +276,9 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             results = [];
         }
 
-        // Filter by search term
-        if (this.state.searchTerm.trim()) {
-            const searchLower = this.state.searchTerm.toLowerCase();
+        // Filter by search text (after removing prefix)
+        if (searchText) {
+            const searchLower = searchText.toLowerCase();
             results = results.filter((item) => {
                 const name = (item.name || "").toLowerCase();
                 const schema = (item.schema || "").toLowerCase();

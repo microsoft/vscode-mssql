@@ -1658,7 +1658,7 @@ export class LocConstants {
             none: l10n.t("None"),
 
             // Toolbar
-            searchPlaceholder: l10n.t("Search database objects..."),
+            searchPlaceholder: l10n.t("Search by name of type (t:, v:, f:, or sp:)"),
             refresh: l10n.t("Refresh"),
 
             // Results table headers
