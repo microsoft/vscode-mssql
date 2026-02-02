@@ -26,6 +26,10 @@
         <source xml:lang="en">(1 row affected)</source>
         <target state="translated">(1 fila afectada)</target>
       </trans-unit>
+      <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
+        <source xml:lang="en">(empty)</source>
+        <target state="new">(empty)</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
         <source xml:lang="en">({0} rows affected)</source>
         <note>{0} is the number of rows affected</note>
@@ -108,6 +112,10 @@
       <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
         <source xml:lang="en">Action</source>
         <target state="translated">Acción</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a7870205fd96778561ad4653fea7c80cc5fffbc97a43337c1d45f0493e4ee0e">
+        <source xml:lang="en">Action Type</source>
+        <target state="new">Action Type</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -220,6 +228,10 @@
       <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
         <source xml:lang="en">Advanced Publish Options</source>
         <target state="translated">Opciones avanzadas de publicación</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
+        <source xml:lang="en">After</source>
+        <target state="new">After</target>
       </trans-unit>
       <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
         <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
@@ -634,6 +646,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <note>{0} is the batch time</note>
         <target state="translated">Tiempo de ejecución por lotes: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
+        <source xml:lang="en">Before</source>
+        <target state="new">Before</target>
+      </trans-unit>
       <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
         <source xml:lang="en">Between</source>
         <target state="translated">Entre</target>
@@ -973,6 +989,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
         <source xml:lang="en">Clear All</source>
         <target state="translated">Borrar todo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
+        <source xml:lang="en">Clear Filters</source>
+        <target state="new">Clear Filters</target>
       </trans-unit>
       <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
         <source xml:lang="en">Clear Recent Connections List</source>
@@ -2103,6 +2123,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Edit Table</source>
         <target state="translated">Editar tabla</target>
       </trans-unit>
+      <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
+        <source xml:lang="en">Edit your schema to see changes here.</source>
+        <target state="new">Edit your schema to see changes here.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
         <target state="translated">Se debe proporcionar profileId o serverName.</target>
@@ -2656,7 +2680,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0600a350078b90778fc586a469220c82bcebe6a66dd1e9c99577e88bb7544a28">
         <source xml:lang="en">Failed to delete table.</source>
-        <target state="new">Failed to delete table.</target>
+        <target state="translated">No se pudo eliminar la tabla.</target>
       </trans-unit>
       <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
         <source xml:lang="en">Failed to delete {0}.</source>
@@ -2914,6 +2938,10 @@ Error:
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
         <target state="translated">Filtrar suscripciones de Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
+        <source xml:lang="en">Filter Changes</source>
+        <target state="new">Filter Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
         <source xml:lang="en">Filter Options</source>
@@ -3236,6 +3264,10 @@ Error:
         <source xml:lang="en">Help us improve by sharing your thoughts.</source>
         <target state="translated">Ayúdenos a mejorar compartiendo sus ideas.</target>
       </trans-unit>
+      <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
+        <source xml:lang="en">Hide Changes Highlight</source>
+        <target state="new">Hide Changes Highlight</target>
+      </trans-unit>
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
         <target state="translated">Ocultar confirmar contraseña</target>
@@ -3263,6 +3295,10 @@ Error:
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
         <target state="translated">Ocultar este panel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9">
+        <source xml:lang="en">Highlight Changes</source>
+        <target state="new">Highlight Changes</target>
       </trans-unit>
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
@@ -4291,6 +4327,10 @@ Error:
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
         <target state="translated">No hay cambios pendientes. Realice modificaciones para generar un script.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
+        <source xml:lang="en">No property changes available.</source>
+        <target state="new">No property changes available.</target>
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
@@ -6933,6 +6973,11 @@ Consulta: {2}</target>
 {1} is the old value
 {2} is the new value</note>
         <target state="translated">{0} cambiado de ''{1}'' a ''{2}''</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3622690088dccaafa6adcd1ab8138466d048c4f4cf087aa51eaf4bf0af9e383b">
+        <source xml:lang="en">{0} changes</source>
+        <note>{0} is the number of property changes</note>
+        <target state="new">{0} changes</target>
       </trans-unit>
       <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
         <source xml:lang="en">{0} color swatch ({1})</source>

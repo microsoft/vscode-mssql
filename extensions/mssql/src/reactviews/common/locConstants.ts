@@ -947,6 +947,8 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            highlightChanges: l10n.t("Highlight Changes"),
+            hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
                 l10n.t({
                     message: "Changes ({0})",
@@ -954,6 +956,7 @@ export class LocConstants {
                     comment: ["{0} is the number of schema changes"],
                 }),
             noChangesYet: l10n.t("No changes yet."),
+            noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
             schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
                 l10n.t({
                     message: "{0}: {1}",
@@ -1073,9 +1076,25 @@ export class LocConstants {
                 filterModified: l10n.t("Modified"),
                 filterDeleted: l10n.t("Deleted"),
                 filterTooltip: l10n.t("Filter changes"),
+                filterPanelTitle: l10n.t("Filter Changes"),
+                actionTypeLabel: l10n.t("Action Type"),
+                objectTypeLabel: l10n.t("Object Type"),
                 actionFilterLabel: l10n.t("Action"),
                 categoryFilterLabel: l10n.t("Category"),
                 clearFilters: l10n.t("Clear all"),
+                clearFiltersButton: l10n.t("Clear Filters"),
+                applyFilters: l10n.t("Apply"),
+                changeCountLabel: (changeCount: number) =>
+                    l10n.t({
+                        message: "{0} changes",
+                        args: [changeCount],
+                        comment: ["{0} is the number of property changes"],
+                    }),
+                propertyHeader: l10n.t("Property"),
+                beforeHeader: l10n.t("Before"),
+                afterHeader: l10n.t("After"),
+                noPropertyChanges: l10n.t("No property changes available."),
+                emptyValue: l10n.t("(empty)"),
 
                 // Buttons
                 reveal: l10n.t("Reveal"),
