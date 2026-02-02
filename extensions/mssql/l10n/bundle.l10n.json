@@ -2020,12 +2020,15 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Connection profile not found. Please create a new connection using the Connection Dialog.": "Connection profile not found. Please create a new connection using the Connection Dialog.",
     "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
     "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again./{0} is the server name": {
         "message": "Profile loaded, but the connection could not be automatically established. Please create a connection to {0} then try again.",
         "comment": ["{0} is the server name"]
     },
     "Failed to generate SqlPackage command: {0}": "Failed to generate SqlPackage command: {0}",
+    "Failed to get connection string: {0}": "Failed to get connection string: {0}",
+    "No active connection": "No active connection",
     "DACPAC path not found. Please build the project first.": "DACPAC path not found. Please build the project first.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
@@ -2311,7 +2314,6 @@
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
     "No connection information found": "No connection information found",
-    "No active connection": "No active connection",
     "Opening schema designer...": "Opening schema designer...",
     "No connection credentials found": "No connection credentials found",
     "No active connection for schema view": "No active connection for schema view",
