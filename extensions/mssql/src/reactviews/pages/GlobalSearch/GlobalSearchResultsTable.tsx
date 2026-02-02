@@ -83,18 +83,20 @@ interface GlobalSearchResultsTableProps {
     results: SearchResultItem[];
 }
 
+const iconStyle = { fontSize: "16px", color: "var(--vscode-foreground)" };
+
 const getTypeIcon = (type: MetadataType): JSX.Element => {
     switch (type) {
         case MetadataType.Table:
-            return <TableRegular />;
+            return <TableRegular style={iconStyle} />;
         case MetadataType.View:
-            return <EyeRegular />;
+            return <EyeRegular style={iconStyle} />;
         case MetadataType.SProc:
-            return <CodeRegular />;
+            return <CodeRegular style={iconStyle} />;
         case MetadataType.Function:
-            return <MathFormulaRegular />;
+            return <MathFormulaRegular style={iconStyle} />;
         default:
-            return <DocumentRegular />;
+            return <DocumentRegular style={iconStyle} />;
     }
 };
 
@@ -104,6 +106,11 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
         const context = useGlobalSearchContext();
 
         const columnSizingOptions: TableColumnSizingOptions = {
+            icon: {
+                minWidth: 32,
+                defaultWidth: 32,
+                idealWidth: 32,
+            },
             name: {
                 minWidth: 200,
                 defaultWidth: 250,
@@ -135,16 +142,20 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
 
         const columns: TableColumnDefinition<SearchResultItem>[] = [
             createTableColumn<SearchResultItem>({
+                columnId: "icon",
+                renderHeaderCell: () => null,
+                renderCell: (item) => (
+                    <TableCellLayout>{getTypeIcon(item.type)}</TableCellLayout>
+                ),
+            }),
+            createTableColumn<SearchResultItem>({
                 columnId: "name",
                 compare: (a, b) => a.name.localeCompare(b.name),
                 renderHeaderCell: () => (
                     <span className={classes.headerCell}>{loc.globalSearch.name}</span>
                 ),
                 renderCell: (item) => (
-                    <TableCellLayout
-                        truncate
-                        title={item.fullName}
-                        media={getTypeIcon(item.type)}>
+                    <TableCellLayout truncate title={item.fullName}>
                         {item.name}
                     </TableCellLayout>
                 ),
