@@ -1641,7 +1641,7 @@ export class LocConstants {
             searching: l10n.t("Searching..."),
             objectsFound: (count: number) =>
                 l10n.t({
-                    message: "{0} object(s) found",
+                    message: "{0} objects found",
                     args: [count],
                     comment: ["{0} is the number of objects found"],
                 }),
