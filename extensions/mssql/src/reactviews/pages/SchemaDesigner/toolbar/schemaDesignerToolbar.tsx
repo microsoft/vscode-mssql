@@ -37,6 +37,7 @@ export function SchemaDesignerToolbar() {
                 <ToolbarDivider />
                 <AutoArrangeButton />
                 <FilterTablesButton />
+                <ToolbarDivider />
                 <ShowChangesButton />
             </Toolbar>
         </div>

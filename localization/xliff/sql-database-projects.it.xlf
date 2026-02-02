@@ -901,7 +901,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
         <source xml:lang="en">Project (.sqlproj)</source>
-        <target state="new">Project (.sqlproj)</target>
+        <target state="translated">Progetto (.sqlproj)</target>
       </trans-unit>
       <trans-unit id="++CODE++598020cc5bef4d8e71624bce32a6ff261c0c68f3c58e433381e2babc192b0909">
         <source xml:lang="en">Project property value '{0} is invalid</source>
