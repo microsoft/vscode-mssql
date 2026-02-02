@@ -9,7 +9,7 @@ import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
 import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
-import { SchemaDesignerChangesPanel } from "./schemaDesignerChangesPanel";
+import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
 import { makeStyles, Spinner } from "@fluentui/react-components";

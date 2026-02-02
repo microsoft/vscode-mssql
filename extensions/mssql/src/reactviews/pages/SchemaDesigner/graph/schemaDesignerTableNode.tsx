@@ -335,7 +335,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
     const tableHighlight = context.modifiedTableHighlights.get(table.id);
     const showQualifiedDiff =
         !isDeletedTable &&
-        context.isChangesPanelVisible &&
+        context.showChangesHighlight &&
         (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange));
 
     // Function to highlight text based on search
@@ -438,11 +438,11 @@ const TableColumn = ({
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
-    const showDeletedDiff = context.isChangesPanelVisible && isDeletedColumn;
+    const showDeletedDiff = context.showChangesHighlight && isDeletedColumn;
     const showAddedDiff =
         !isDeletedColumn &&
         !isTableDeleted &&
-        context.isChangesPanelVisible &&
+        context.showChangesHighlight &&
         context.newColumnIds.has(column.id);
     const modifiedHighlight =
         !isDeletedColumn && !isTableDeleted
@@ -450,11 +450,11 @@ const TableColumn = ({
             : undefined;
     const hasNameChange = Boolean(modifiedHighlight?.nameChange);
     const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
-    const showNameDiff = context.isChangesPanelVisible && hasNameChange;
-    const showDataTypeDiff = context.isChangesPanelVisible && hasDataTypeChange;
+    const showNameDiff = context.showChangesHighlight && hasNameChange;
+    const showDataTypeDiff = context.showChangesHighlight && hasDataTypeChange;
     const showModifiedDiff = showNameDiff || showDataTypeDiff;
     const showModifiedOther =
-        context.isChangesPanelVisible && !showModifiedDiff && modifiedHighlight?.hasOtherChanges;
+        context.showChangesHighlight && !showModifiedDiff && modifiedHighlight?.hasOtherChanges;
     const columnChangeAction = showAddedDiff
         ? ChangeAction.Add
         : showDeletedDiff
@@ -466,7 +466,7 @@ const TableColumn = ({
         !isTableDeleted &&
         !context.isExporting &&
         Boolean(columnChangeAction) &&
-        context.isChangesPanelVisible;
+        context.showChangesHighlight;
     const columnChange = columnChangeAction
         ? ({
               id: `column:${columnChangeAction}:${table.id}:${column.id}`,
@@ -670,7 +670,7 @@ const TableColumns = ({
     // Get setting from webview state, default to true if not set
     const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
 
-    const deletedColumns = context.isChangesPanelVisible
+    const deletedColumns = context.showChangesHighlight
         ? (context.deletedColumnsByTable.get(table.id) ?? [])
         : [];
     const baselineOrder = context.baselineColumnOrderByTable.get(table.id) ?? [];
@@ -744,11 +744,11 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     };
 
     const showAddedDiff =
-        !isDeletedTable && context.isChangesPanelVisible && context.newTableIds.has(table.id);
-    const showDeletedDiff = isDeletedTable && context.isChangesPanelVisible;
+        !isDeletedTable && context.showChangesHighlight && context.newTableIds.has(table.id);
+    const showDeletedDiff = isDeletedTable && context.showChangesHighlight;
     const showModifiedDiff =
         !isDeletedTable &&
-        context.isChangesPanelVisible &&
+        context.showChangesHighlight &&
         context.modifiedTableHighlights.has(table.id);
     const tableChangeAction = showDeletedDiff
         ? ChangeAction.Delete

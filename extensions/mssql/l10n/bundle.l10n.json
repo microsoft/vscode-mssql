@@ -660,11 +660,14 @@
         "message": "Show Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
     },
+    "Highlight Changes": "Highlight Changes",
+    "Hide Changes Highlight": "Hide Changes Highlight",
     "Changes ({0})/{0} is the number of schema changes": {
         "message": "Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
     },
     "No changes yet.": "No changes yet.",
+    "Edit your schema to see changes here.": "Edit your schema to see changes here.",
     "{0}: {1}/{0} is the qualified table name{1} is the change description": {
         "message": "{0}: {1}",
         "comment": ["{0} is the qualified table name", "{1} is the change description"]
@@ -731,9 +734,21 @@
     "Deleted": "Deleted",
     "All": "All",
     "Filter changes": "Filter changes",
+    "Filter Changes": "Filter Changes",
+    "Action Type": "Action Type",
+    "Object Type": "Object Type",
     "Action": "Action",
     "Category": "Category",
     "Clear all": "Clear all",
+    "Clear Filters": "Clear Filters",
+    "{0} changes/{0} is the number of property changes": {
+        "message": "{0} changes",
+        "comment": ["{0} is the number of property changes"]
+    },
+    "Before": "Before",
+    "After": "After",
+    "No property changes available.": "No property changes available.",
+    "(empty)": "(empty)",
     "Reveal": "Reveal",
     "Revert": "Revert",
     "Search changes...": "Search changes...",
@@ -792,7 +807,6 @@
     "Folder Structure": "Folder Structure",
     "File": "File",
     "Flat": "Flat",
-    "Object Type": "Object Type",
     "Schema/Object Type": "Schema/Object Type",
     "Settings": "Settings",
     "Compare": "Compare",
