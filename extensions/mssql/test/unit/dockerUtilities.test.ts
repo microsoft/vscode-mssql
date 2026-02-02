@@ -388,8 +388,7 @@ suite("Docker Utilities", () => {
 
     test("validateContainerName: handles various input scenarios", async () => {
         // Mock listContainers to return container info
-        const makeContainerInfo = (names: string[]) =>
-            names.map((n) => ({ Names: [`/${n}`] }));
+        const makeContainerInfo = (names: string[]) => names.map((n) => ({ Names: [`/${n}`] }));
 
         // 1. Empty name => generate defaultContainerName_2
         mockDockerClient.listContainers.resolves(
@@ -485,7 +484,10 @@ suite("Docker Utilities", () => {
         const port = 1433;
 
         // Mock createAndStartContainer
-        const createAndStartContainerStub = sandbox.stub(dockerOperations, "createAndStartContainer");
+        const createAndStartContainerStub = sandbox.stub(
+            dockerOperations,
+            "createAndStartContainer",
+        );
 
         // Success case: createAndStartContainer resolves
         const mockContainer = { id: "container123" };
@@ -508,7 +510,9 @@ suite("Docker Utilities", () => {
         createAndStartContainerStub.reset();
 
         // Failure case: createAndStartContainer rejects
-        createAndStartContainerStub.rejects(new Error(LocalContainers.startSqlServerContainerError));
+        createAndStartContainerStub.rejects(
+            new Error(LocalContainers.startSqlServerContainerError),
+        );
 
         const resultFailure = await dockerUtils.startSqlServerDockerContainer(
             containerName,
@@ -776,9 +780,7 @@ suite("Docker Utilities", () => {
         expect(result, "Should return 1433 when no containers are running").to.equal(1433);
 
         // 2. Port 1433 is taken: should return next available port
-        mockDockerClient.listContainers.resolves([
-            { Ports: [{ PublicPort: 1433 }] },
-        ]);
+        mockDockerClient.listContainers.resolves([{ Ports: [{ PublicPort: 1433 }] }]);
         result = await dockerUtils.findAvailablePort(1433);
         expect(result, "Should return 1434 when 1433 is taken").to.equal(1434);
     });
