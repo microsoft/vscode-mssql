@@ -72,11 +72,11 @@ export class HttpClient {
 
 			if (response.status !== 200) {
 				outputChannel?.appendLine(constants.downloadError);
-				throw new Error(`Failed to download: ${response.statusText}`);
+				throw new Error(`Failed to download (${response.status}): ${response.statusText}`);
 			}
 
-			const contentLength = response.headers['content-length'];
-			const totalBytes = parseInt(contentLength || '0');
+			const contentLengthHeader = response.headers['content-length'];
+			const totalBytes = parseInt(contentLengthHeader || '0');
 			const totalMegaBytes = totalBytes / (1024 * 1024);
 			outputChannel?.appendLine(`${constants.downloading} ${downloadUrl} (0 / ${totalMegaBytes.toFixed(2)} MB)`);
 
