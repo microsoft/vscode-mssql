@@ -211,7 +211,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6630a9b9edd3bcc11353a201a5cbfa499d925cdc660c9928deb123c36e9356db">
         <source xml:lang="en">Advanced Backup Options</source>
-        <target state="new">Advanced Backup Options</target>
+        <target state="translated">Erweiterte Backup-Optionen</target>
       </trans-unit>
       <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
         <source xml:lang="en">Advanced Connection Settings</source>
@@ -243,7 +243,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6ae05840acdd06389f12106699a3e0a576640acff674dba36b6f0c4720913361">
         <source xml:lang="en">All Files (*.*)</source>
-        <target state="new">All Files (*.*)</target>
+        <target state="translated">Alle Dateien (*.*)</target>
       </trans-unit>
       <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
         <source xml:lang="en">All Schemas</source>
@@ -355,7 +355,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
         <source xml:lang="en">Append to the existing backup set</source>
-        <target state="new">Append to the existing backup set</target>
+        <target state="translated">An vorhandenem Sicherungssatz anhängen</target>
       </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
@@ -528,7 +528,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
         <source xml:lang="en">Azure Account is required</source>
-        <target state="new">Azure Account is required</target>
+        <target state="translated">Azure Konto ist erforderlich.</target>
       </trans-unit>
       <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
         <source xml:lang="en">Azure Code Grant</source>
@@ -606,40 +606,40 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++838557924a5cdfb2f10f233635223e79be8443aef62f9d176cfe18787a2e8b03">
         <source xml:lang="en">Backup</source>
-        <target state="new">Backup</target>
+        <target state="translated">Sicherung</target>
       </trans-unit>
       <trans-unit id="++CODE++094e437cda5fd692838cc9472b78f0b56bb8696e37f931d0dceb816443bb0e87">
         <source xml:lang="en">Backup Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Backup Database - {0}</target>
+        <target state="translated">Sicherungsdatenbank - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++88c034e88df7490dfba55dcc2b7bb315853dfd7c098859b0ffc57305276067a0">
         <source xml:lang="en">Backup Files</source>
-        <target state="new">Backup Files</target>
+        <target state="translated">Backups</target>
       </trans-unit>
       <trans-unit id="++CODE++d95d004ad14bd593baeab8b9f19836c13acb2782cd809abf208de46785f072ab">
         <source xml:lang="en">Backup Files (*.bak, *.log, *.trn)</source>
-        <target state="new">Backup Files (*.bak, *.log, *.trn)</target>
+        <target state="translated">Backups (*.bak;*.trn;*.log)</target>
       </trans-unit>
       <trans-unit id="++CODE++6e6366fc532db7e72acafa9a571366c241f4f09ce49b8b29e193abb62a228cf9">
         <source xml:lang="en">Backup Location</source>
-        <target state="new">Backup Location</target>
+        <target state="translated">Backup-Speicherort</target>
       </trans-unit>
       <trans-unit id="++CODE++8915311eca19414aaa965b09dc2d3837b11600b7ddef68a3aaf3a0d304b052a8">
         <source xml:lang="en">Backup Name</source>
-        <target state="new">Backup Name</target>
+        <target state="translated">Backupname</target>
       </trans-unit>
       <trans-unit id="++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162">
         <source xml:lang="en">Backup Type</source>
-        <target state="new">Backup Type</target>
+        <target state="translated">Backup-Typ</target>
       </trans-unit>
       <trans-unit id="++CODE++c29bc3a4b89534cd7d948252743e5d9efa498244ba82fb6839a8ceaa26b12c41">
         <source xml:lang="en">Backup the tail of the log</source>
-        <target state="new">Backup the tail of the log</target>
+        <target state="translated">Sicherung des Protokollfragments</target>
       </trans-unit>
       <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
         <source xml:lang="en">Backup to a new media set</source>
-        <target state="new">Backup to a new media set</target>
+        <target state="translated">Sicherung in einem neuen Mediensatz</target>
       </trans-unit>
       <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
         <source xml:lang="en">Batch execution time: {0}</source>
@@ -660,11 +660,11 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++3bf71473ff495ab4a9690ac9038833f16a653b91035bc92de727390d919f5854">
         <source xml:lang="en">Blob Container</source>
-        <target state="new">Blob Container</target>
+        <target state="translated">Blob-Container</target>
       </trans-unit>
       <trans-unit id="++CODE++f1cdbe727c1ab3c34a61ae29fff12d3ea8db8ff4950ab8f30fd9f4a72a8eb80c">
         <source xml:lang="en">Blob Container is required</source>
-        <target state="new">Blob Container is required</target>
+        <target state="translated">Blob-Container ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
         <source xml:lang="en">Block this extension from accessing your connections</source>
@@ -696,7 +696,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43">
         <source xml:lang="en">Browse forvpath</source>
-        <target state="new">Browse forvpath</target>
+        <target state="translated">forvpath durchsuchen</target>
       </trans-unit>
       <trans-unit id="++CODE++043f707c8797404ec37a61f1a7ffa6be1279cc285b1889771b5f464e8dcaedde">
         <source xml:lang="en">Browse to Azure Data Studio settings.json</source>
@@ -720,7 +720,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
         <source xml:lang="en">Bulk-logged</source>
-        <target state="new">Bulk-logged</target>
+        <target state="translated">Massenprotokolliert</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -926,7 +926,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d7f20b4a7223bae862f00b4d5e41f37ededf7d987dba4546b315d891c5fbe08">
         <source xml:lang="en">Choose Existing</source>
-        <target state="new">Choose Existing</target>
+        <target state="translated">Vorhandene auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++61f2371ac2547488417f83422706e0e6c12b3c12f5f3595e90da91cbb167c174">
         <source xml:lang="en">Choose Query History</source>
@@ -1203,11 +1203,11 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
         <source xml:lang="en">Compress backup</source>
-        <target state="new">Compress backup</target>
+        <target state="translated">Backup komprimieren</target>
       </trans-unit>
       <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
         <source xml:lang="en">Compression</source>
-        <target state="new">Compression</target>
+        <target state="translated">Komprimierung</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -1496,7 +1496,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
         <source xml:lang="en">Continue on error</source>
-        <target state="new">Continue on error</target>
+        <target state="translated">Bei Fehler fortsetzen</target>
       </trans-unit>
       <trans-unit id="++CODE++8d525e5f158b9afe05f3122af363ac67763bdc4e1395b46597b320c289766ce3">
         <source xml:lang="en">Copied</source>
@@ -1560,7 +1560,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
         <source xml:lang="en">Copy-only Backup</source>
-        <target state="new">Copy-only Backup</target>
+        <target state="translated">Kopie-Backup</target>
       </trans-unit>
       <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
         <source xml:lang="en">Copying results...</source>
@@ -1616,7 +1616,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++e7b9e9c24d91045f8c962555a202142d52b17612a92c38abec3c987b8d6f8540">
         <source xml:lang="en">Create New</source>
-        <target state="new">Create New</target>
+        <target state="translated">Neu erstellen</target>
       </trans-unit>
       <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
         <source xml:lang="en">Create New Connection Group</source>
@@ -1971,7 +1971,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
         <source xml:lang="en">Differential</source>
-        <target state="new">Differential</target>
+        <target state="translated">Differenziell</target>
       </trans-unit>
       <trans-unit id="++CODE++33df1f7746d428f19493d14c875c60ddc71befd7377ba92d4fc578bc3529b993">
         <source xml:lang="en">Directory not found</source>
@@ -2041,7 +2041,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++1a1795b0d7f71cc3912f6117290ba9480278c1a26efb32c044c92c9071d6b559">
         <source xml:lang="en">Do not compress backup</source>
-        <target state="new">Do not compress backup</target>
+        <target state="translated">Sicherung nicht komprimieren</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -2157,15 +2157,15 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++82f4e719a19ce7e573734543f366f55117e4048116b3892adcd1831fb1775d8f">
         <source xml:lang="en">Encryption</source>
-        <target state="new">Encryption</target>
+        <target state="translated">Verschlüsselung</target>
       </trans-unit>
       <trans-unit id="++CODE++72755d6de33db86f1e980be9946b7c4a5cc5016a0379064a01e53517545ed913">
         <source xml:lang="en">Encryption Algorithm</source>
-        <target state="new">Encryption Algorithm</target>
+        <target state="translated">Verschlüsselungsalgorithmus</target>
       </trans-unit>
       <trans-unit id="++CODE++147619fd8c347750fc7e29190e49b931098d6f0fb3ac37369df8dafc3a8ae27a">
         <source xml:lang="en">Encryption Type</source>
-        <target state="new">Encryption Type</target>
+        <target state="translated">Verschlüsselungstyp</target>
       </trans-unit>
       <trans-unit id="++CODE++ac8fee089cebcddef6529d9c8b467120173dbd02a46992ecbaf62fe25c925ae0">
         <source xml:lang="en">Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or enable 'Trust server certificate' in the connection dialog.</source>
@@ -2443,12 +2443,12 @@ Fehler:
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
         <note>{0} is the operation name</note>
-        <target state="new">Execute '{0}' operation on the schema designer?</target>
+        <target state="translated">Vorgang „{0}“ im Schemadesigner ausführen?</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
         <note>{0} is the operation name</note>
-        <target state="new">Executing '{0}' operation on schema designer</target>
+        <target state="translated">Vorgang „{0}“ wird im Schemadesigner ausgeführt.</target>
       </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
@@ -2464,11 +2464,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++859c9843542764a8185f1dc3e112f6ea20c204778a2cfb11060b09e8c031027e">
         <source xml:lang="en">Existing File</source>
-        <target state="new">Existing File</target>
+        <target state="translated">Vorhandene Datei</target>
       </trans-unit>
       <trans-unit id="++CODE++a0baf048fc70b962b423e80885feddf2c187a9065862349721b834f31b083029">
         <source xml:lang="en">Existing SQL Server</source>
-        <target state="new">Existing SQL Server</target>
+        <target state="translated">Vorhandener SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
@@ -2500,7 +2500,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
-        <target state="new">Expiration</target>
+        <target state="translated">Ablauf</target>
       </trans-unit>
       <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
         <source xml:lang="en">Explore tutorials, docs, and what's coming next.</source>
@@ -2615,11 +2615,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++f57c0ea9456f728aca50615f7308856d0bc86ca13aec8eb78496308cead16807">
         <source xml:lang="en">Failed to add table to schema designer.</source>
-        <target state="new">Failed to add table to schema designer.</target>
+        <target state="translated">Beim Hinzufügen der Tabelle zum Schemadesigner ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++3927725937fc2d8467f978ee4999cb561f8e2ab71290423f122a8dc95f4f2e51">
         <source xml:lang="en">Failed to add table.</source>
-        <target state="new">Failed to add table.</target>
+        <target state="translated">Beim Hinzufügen der Tabelle ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -2676,7 +2676,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++2e31c592bfe2100cad5d507bb6dafa31670ef44185a28a9cfbf04a4894890edd">
         <source xml:lang="en">Failed to delete table from schema designer.</source>
-        <target state="new">Failed to delete table from schema designer.</target>
+        <target state="translated">Beim Löschen der Tabelle aus dem Schemadesigner ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++0600a350078b90778fc586a469220c82bcebe6a66dd1e9c99577e88bb7544a28">
         <source xml:lang="en">Failed to delete table.</source>
@@ -2867,15 +2867,15 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++2ceacde7ca940d5c674a3e4f6a065f6b1685242070287e1674384624572e5112">
         <source xml:lang="en">Failed to update schema designer.</source>
-        <target state="new">Failed to update schema designer.</target>
+        <target state="translated">Beim Aktualisieren des Schema-Designers ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++1d67edd010ff15a6a63697ef986d3e7e4a4921ce4e990716031c70c1ccbc1d0f">
         <source xml:lang="en">Failed to update table in schema designer.</source>
-        <target state="new">Failed to update table in schema designer.</target>
+        <target state="translated">Beim Aktualisieren der Tabelle im Schemadesigner ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
         <source xml:lang="en">Failed to update table.</source>
-        <target state="new">Failed to update table.</target>
+        <target state="translated">Beim Aktualisieren der Tabelle ist ein Fehler aufgetreten.</target>
       </trans-unit>
       <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
         <source xml:lang="en">Favorites</source>
@@ -2900,7 +2900,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
         <source xml:lang="en">File Name</source>
-        <target state="new">File Name</target>
+        <target state="translated">Dateiname</target>
       </trans-unit>
       <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
         <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
@@ -2908,7 +2908,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
         <source xml:lang="en">File name is required</source>
-        <target state="new">File name is required</target>
+        <target state="translated">Dateiname ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++3521021a2e875fbc52ae82e2a3fea5024d507bbc919f504ca8521292c3fe14d3">
         <source xml:lang="en">File not found</source>
@@ -3026,7 +3026,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
         <source xml:lang="en">Folder Path</source>
-        <target state="new">Folder Path</target>
+        <target state="translated">Ordnerpfad</target>
       </trans-unit>
       <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
         <source xml:lang="en">Folder Structure</source>
@@ -3034,7 +3034,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++a67cb12154b3ce6e8677f0f4a048f56b73d1513c3fa74f3ca757a419b65fcfd8">
         <source xml:lang="en">Folder path is required</source>
-        <target state="new">Folder path is required</target>
+        <target state="translated">Ordnerpfad ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
         <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
@@ -3076,11 +3076,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++d9a7c4d6b82cf221cfaff6e3440828e91c7d480d7b16f50081c78ff9179f1be2">
         <source xml:lang="en">Foreign key column mappings are required.</source>
-        <target state="new">Foreign key column mappings are required.</target>
+        <target state="translated">Zuordnungen für Fremdschlüsselspalten sind erforderlich.</target>
       </trans-unit>
       <trans-unit id="++CODE++3c0d499ad57dfbf4d649d9b69968eb325bd3389658018c1bd887fb1c7a7c9aae">
         <source xml:lang="en">Foreign key column mappings must be the same length.</source>
-        <target state="new">Foreign key column mappings must be the same length.</target>
+        <target state="translated">Die Zuordnungen der Fremdschlüsselspalten müssen die gleiche Länge haben.</target>
       </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
@@ -3107,7 +3107,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
         <source xml:lang="en">Full</source>
-        <target state="new">Full</target>
+        <target state="translated">Vollständig</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -3119,7 +3119,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++1216e37c7c9099d504cd14a5fef174865fdb3fcba42f68b82d01fac6a8706a10">
         <source xml:lang="en">Generate Config</source>
-        <target state="new">Generate Config</target>
+        <target state="translated">Konfiguration generieren</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -3144,7 +3144,7 @@ Fehler:
       <trans-unit id="++CODE++477df2f898333747408b1de0e018c9395e977dede103a99aa0babeffc68398e1">
         <source xml:lang="en">Generating SAS key failed: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Generating SAS key failed: {0}</target>
+        <target state="translated">Generierung des SAS-Schlüssels fehlgeschlagen: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
         <source xml:lang="en">Generating report, this might take a while...</source>
@@ -3496,7 +3496,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++e5c80eb59009f1fab46fd7792746146894347c65227b637e12724e17ecf613e0">
         <source xml:lang="en">Invalid foreign key.</source>
-        <target state="new">Invalid foreign key.</target>
+        <target state="translated">Ungültiger Fremdschlüssel.</target>
       </trans-unit>
       <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
         <source xml:lang="en">Invalid max length '{0}'</source>
@@ -3505,7 +3505,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++9016773670b0f5d483d2239742b7dc99fc82cff1ebbc8400a3894971977e823f">
         <source xml:lang="en">Invalid table payload. Expected table with columns array.</source>
-        <target state="new">Invalid table payload. Expected table with columns array.</target>
+        <target state="translated">Ungültige Tabellennutzlast. Erwartet wird eine Tabelle mit einem Spaltenarray.</target>
       </trans-unit>
       <trans-unit id="++CODE++d1a326f448eac64b9ec46d31b9dce63a30f305179abc83e734c8d960bcaa9631">
         <source xml:lang="en">Is Computed</source>
@@ -3764,7 +3764,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
         <source xml:lang="en">Loading backup database...</source>
-        <target state="new">Loading backup database...</target>
+        <target state="translated">Backup-Datenbank wird geladen …</target>
       </trans-unit>
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
@@ -3846,7 +3846,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
-        <target state="new">MCP</target>
+        <target state="translated">MCP</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -3916,15 +3916,15 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
         <source xml:lang="en">Media</source>
-        <target state="new">Media</target>
+        <target state="translated">Medien</target>
       </trans-unit>
       <trans-unit id="++CODE++0fc211b1b2a9e916917115a3ba1156a8c65bd2157d7a46c2d223565a38a40e0b">
         <source xml:lang="en">Media set description is required</source>
-        <target state="new">Media set description is required</target>
+        <target state="translated">Mediensatzbeschreibung ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
         <source xml:lang="en">Media set name is required</source>
-        <target state="new">Media set name is required</target>
+        <target state="translated">Mediensatzname ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
         <source xml:lang="en">Message</source>
@@ -4003,19 +4003,19 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++8fb917aef4a1254af9e6133030fd694b942178662f086614bb8abf4e94c309e4">
         <source xml:lang="en">Missing connectionId. Please provide a connectionId to open the schema designer.</source>
-        <target state="new">Missing connectionId. Please provide a connectionId to open the schema designer.</target>
+        <target state="translated">Fehlende connectionId. Bitte geben Sie eine connectionId an, um den Schemadesigner zu öffnen.</target>
       </trans-unit>
       <trans-unit id="++CODE++910bb9ebcad74af9fe7fae916e94812f8a97c60f93e76a1167b4ca1583d70f27">
         <source xml:lang="en">Missing schema payload for replace_schema operation.</source>
-        <target state="new">Missing schema payload for replace_schema operation.</target>
+        <target state="translated">Fehlende Schema-Nutzlast für die Operation replace_schema.</target>
       </trans-unit>
       <trans-unit id="++CODE++0ca7c62f0d234b663c644ed907220f1f620372cdc09e18121d5184a0c9b3ac41">
         <source xml:lang="en">Missing table payload for update_table operation.</source>
-        <target state="new">Missing table payload for update_table operation.</target>
+        <target state="translated">Fehlende Tabellennutzlast für den Vorgang update_table.</target>
       </trans-unit>
       <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
         <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
-        <target state="new">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</target>
+        <target state="translated">Fehlendes Tabellenziel für den Vorgang delete_table. Geben Sie tableId oder tableName+schemaName an.</target>
       </trans-unit>
       <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
         <source xml:lang="en">Modified</source>
@@ -4125,7 +4125,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++d23b5dc621538f6e3dac847e868d61e638c742d361594bc0e804f1f0d9d9cbc8">
         <source xml:lang="en">New File</source>
-        <target state="new">New File</target>
+        <target state="translated">Neue Datei</target>
       </trans-unit>
       <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
         <source xml:lang="en">New Foreign Key</source>
@@ -4137,7 +4137,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++46a4cd170a1f296ad0457b5f1a01d4daa1c42d2b22e4a70ef46d1e137ca197de">
         <source xml:lang="en">New Local Docker SQL Server</source>
-        <target state="new">New Local Docker SQL Server</target>
+        <target state="translated">Neuer lokaler Docker SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
@@ -4157,11 +4157,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++48f1dcb4a6002e872ccadde9ece53ebc6da7168299656a635450ec7d66fcfbee">
         <source xml:lang="en">New media set description</source>
-        <target state="new">New media set description</target>
+        <target state="translated">Beschreibung des neuen Mediensatzes</target>
       </trans-unit>
       <trans-unit id="++CODE++14b597fbf3bcf6c5c2d537614aacd0fc0ad22c1a5fee4bec6f2d9fedf0591d38">
         <source xml:lang="en">New media set name</source>
-        <target state="new">New media set name</target>
+        <target state="translated">Name des neuen Mediensatzes</target>
       </trans-unit>
       <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
         <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
@@ -4221,7 +4221,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
         <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
-        <target state="new">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</target>
+        <target state="translated">Kein aktiver Schemadesigner gefunden. Bitte öffnen Sie zuerst einen Schemadesigner mit /showSchema oder über die Benutzeroberfläche.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
@@ -4233,7 +4233,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++5a501b68d2cdd923a92baada7e109fff2c662ad392adf151f69f1f3d32e2180c">
         <source xml:lang="en">No blob containers found</source>
-        <target state="new">No blob containers found</target>
+        <target state="translated">Keine Blobcontainer gefunden.</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -4362,7 +4362,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
         <source xml:lang="en">No storage accounts found</source>
-        <target state="new">No storage accounts found</target>
+        <target state="translated">Keine Speicherkonten gefunden</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
@@ -4370,7 +4370,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
         <source xml:lang="en">No subscriptions found</source>
-        <target state="new">No subscriptions found</target>
+        <target state="translated">Keine Abonnements gefunden</target>
       </trans-unit>
       <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
         <source xml:lang="en">No tenant selected</source>
@@ -4382,7 +4382,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++51714413577c82c973b8393c564c859a63c4597383b9d1b6fee9b9cf54ba273e">
         <source xml:lang="en">No tenants found</source>
-        <target state="new">No tenants found</target>
+        <target state="translated">Keine Mandanten gefunden</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -4614,7 +4614,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
         <source xml:lang="en">Overwrite all existing backup sets</source>
-        <target state="new">Overwrite all existing backup sets</target>
+        <target state="translated">Alle vorhandenen Sicherungssätze überschreiben</target>
       </trans-unit>
       <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
         <source xml:lang="en">Owner</source>
@@ -4682,7 +4682,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
         <source xml:lang="en">Perform checksum before writing to media</source>
-        <target state="new">Perform checksum before writing to media</target>
+        <target state="translated">Vor dem Schreiben auf Medium Prüfsumme berechnen</target>
       </trans-unit>
       <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
         <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
@@ -4694,7 +4694,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++506272ba55617654c17410ddaf296ca33329523618d765e3f0adb7cd9df7a5e1">
         <source xml:lang="en">Please choose a unique backup file name</source>
-        <target state="new">Please choose a unique backup file name</target>
+        <target state="translated">Bitte wählen Sie einen eindeutigen Backupnamen aus.</target>
       </trans-unit>
       <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
         <source xml:lang="en">Please choose a unique name for the container</source>
@@ -4706,11 +4706,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++7e14d9a2aa98cae8c18c407f5dc4452e9f5085f152f6d7bd68ca7453192931b3">
         <source xml:lang="en">Please choose a valid media option</source>
-        <target state="new">Please choose a valid media option</target>
+        <target state="translated">Bitte wählen Sie eine gültige Medienoption aus.</target>
       </trans-unit>
       <trans-unit id="++CODE++5710fb22e6b1b30694e0f530d89f7a30e532b8d281db9f53b7a8437034653d6c">
         <source xml:lang="en">Please choose at least one backup file</source>
-        <target state="new">Please choose at least one backup file</target>
+        <target state="translated">Wählen Sie mindestens ein Backup aus.</target>
       </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
@@ -4901,7 +4901,7 @@ Fehler:
       <trans-unit id="++CODE++71aa5c7a75828ce61b76e517dd10ea3c23ff9149be8b5fb6006ccb9f784bd38c">
         <source xml:lang="en">Publish Project - {0}</source>
         <note>{0} is the name of the project being published</note>
-        <target state="new">Publish Project - {0}</target>
+        <target state="translated">Projekt veröffentlichen – {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
@@ -5039,7 +5039,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
         <source xml:lang="en">Reliability</source>
-        <target state="new">Reliability</target>
+        <target state="translated">Zuverlässigkeit</target>
       </trans-unit>
       <trans-unit id="++CODE++0cd1ba1d31d508fcf599096e647eb0c1a60819928248e404a3f71ea9f7aafad8">
         <source xml:lang="en">Reload Visual Studio Code</source>
@@ -5059,7 +5059,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
         <source xml:lang="en">Remove file</source>
-        <target state="new">Remove file</target>
+        <target state="translated">Datei entfernen</target>
       </trans-unit>
       <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
         <source xml:lang="en">Remove filter</source>
@@ -5425,7 +5425,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++96b1b8cd908066c11a95c7b3c5aa3e0147264f999df87e8ced6d0b240f571c9a">
         <source xml:lang="en">Save backup to URL</source>
-        <target state="new">Save backup to URL</target>
+        <target state="translated">Sicherung speichern unter URL</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -5437,11 +5437,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++a701a23564bced0d11aff79b9a763c7762b296c9c77fead713abfa0267cd8ca3">
         <source xml:lang="en">Save to Disk</source>
-        <target state="new">Save to Disk</target>
+        <target state="translated">Auf Datenträger speichern</target>
       </trans-unit>
       <trans-unit id="++CODE++27f768bff5493669f3ea47f271ac8cbc1f64712b84067a3d52598d5fed8fc55e">
         <source xml:lang="en">Save to URL</source>
-        <target state="new">Save to URL</target>
+        <target state="translated">Unter URL speichern</target>
       </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
@@ -5468,7 +5468,7 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++44841865223bfd2a59ba806b31b82474c8b63b5dbaf2cf7877aadaab758c2304">
         <source xml:lang="en">Schema '{0}' is not available.</source>
         <note>{0} is the schema name</note>
-        <target state="new">Schema '{0}' is not available.</target>
+        <target state="translated">Schema „{0}“ ist nicht verfügbar.</target>
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
@@ -5493,19 +5493,19 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bcfd627eae48fe0460c71c47de6ce52a35780136e70593d6f17da5f3ba3ec894">
         <source xml:lang="en">Schema designer is not initialized.</source>
-        <target state="new">Schema designer is not initialized.</target>
+        <target state="translated">Schemadesigner ist nicht initialisiert.</target>
       </trans-unit>
       <trans-unit id="++CODE++fcc1609bd956a758207d72b215d69f60b29e8624fe879bf9ff721384783cc455">
         <source xml:lang="en">Schema designer state changed. Fetch the latest schema and retry the operation.</source>
-        <target state="new">Schema designer state changed. Fetch the latest schema and retry the operation.</target>
+        <target state="translated">Der Status des Schemadesigners hat sich geändert. Rufen Sie das neueste Schema ab und wiederholen Sie den Vorgang.</target>
       </trans-unit>
       <trans-unit id="++CODE++60ff1fa0767a4ec721cbddea244bc9d84d18b46ad68a9e894dda437f413be240">
         <source xml:lang="en">Schema designer state retrieved successfully.</source>
-        <target state="new">Schema designer state retrieved successfully.</target>
+        <target state="translated">Status des Schemadesigners erfolgreich abgerufen.</target>
       </trans-unit>
       <trans-unit id="++CODE++22c32b443d8259ab1a9f2a388a56124f882e9356d7aeb64f41eb84ba2bdf48fd">
         <source xml:lang="en">Schema designer updated successfully.</source>
-        <target state="new">Schema designer updated successfully.</target>
+        <target state="translated">Der Schemadesigner wurde erfolgreich aktualisiert.</target>
       </trans-unit>
       <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
         <source xml:lang="en">Schema visualization opened.</source>
@@ -5549,7 +5549,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
-        <target state="new">Search options</target>
+        <target state="translated">Suchoptionen</target>
       </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
@@ -5621,7 +5621,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++9573efb4cae60bea64a44f60c5b4cec045be244f211127eb0fd6d556d27449f1">
         <source xml:lang="en">Select a blob container</source>
-        <target state="new">Select a blob container</target>
+        <target state="translated">Blobcontainer auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -5641,11 +5641,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
         <source xml:lang="en">Select a storage account</source>
-        <target state="new">Select a storage account</target>
+        <target state="translated">Speicherkonto auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++ed19c10287619e289e998f2c861e139754820af50b549c527483425879ea3bf0">
         <source xml:lang="en">Select a subscription</source>
-        <target state="new">Select a subscription</target>
+        <target state="translated">Abonnement auswählen</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -5795,15 +5795,15 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++0099e307c30bf6206a012fd8c962c7b7f6b10004d1ba789042ff0e5ff5841424">
         <source xml:lang="en">Set backup Compression</source>
-        <target state="new">Set backup Compression</target>
+        <target state="translated">Backupkomprimierung festlegen</target>
       </trans-unit>
       <trans-unit id="++CODE++bca4fc1556903cc77b0daab4e8adb79cb8d7435918696efb33f6252f5858f935">
         <source xml:lang="en">Set backup Media Set</source>
-        <target state="new">Set backup Media Set</target>
+        <target state="translated">Backup-Mediensatz festlegen</target>
       </trans-unit>
       <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
         <source xml:lang="en">Set backup retain days</source>
-        <target state="new">Set backup retain days</target>
+        <target state="translated">Aufbewahrungsdauer der Sicherung in Tagen festlegen</target>
       </trans-unit>
       <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
         <source xml:lang="en">Setting up</source>
@@ -5954,7 +5954,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
         <source xml:lang="en">Simple</source>
-        <target state="new">Simple</target>
+        <target state="translated">Einfach</target>
       </trans-unit>
       <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
         <source xml:lang="en">Simple Container Management</source>
@@ -6080,11 +6080,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
         <source xml:lang="en">Storage Account</source>
-        <target state="new">Storage Account</target>
+        <target state="translated">Speicherkonto</target>
       </trans-unit>
       <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
         <source xml:lang="en">Storage Account is required</source>
-        <target state="new">Storage Account is required</target>
+        <target state="translated">Speicherkonto ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -6100,7 +6100,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++47c88f5cd9d2cfc141f3799f4299a4630cd28556d91c7fed3f16ebb6bba69bd5">
         <source xml:lang="en">Subscription is required</source>
-        <target state="new">Subscription is required</target>
+        <target state="translated">Abonnement ist erforderlich</target>
       </trans-unit>
       <trans-unit id="++CODE++0035c67b91c2dd1e5f7a1fd9010b07ee0cdc93e578c2baf656dfc411a80f4b78">
         <source xml:lang="en">Subtree Cost</source>
@@ -6206,19 +6206,19 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
         <source xml:lang="en">Table added to schema designer successfully.</source>
-        <target state="new">Table added to schema designer successfully.</target>
+        <target state="translated">Tabelle erfolgreich zum Schemadesigner hinzugefügt.</target>
       </trans-unit>
       <trans-unit id="++CODE++7ed0604e7c45ca297246a04967b295e0c5fa232233fe154a2b1cd72a3eabe725">
         <source xml:lang="en">Table deleted from schema designer successfully.</source>
-        <target state="new">Table deleted from schema designer successfully.</target>
+        <target state="translated">Tabelle erfolgreich aus dem Schemadesigner gelöscht.</target>
       </trans-unit>
       <trans-unit id="++CODE++497def392cd97e1d93e9491e97bb1b7c843582f7f6758d62b72ed67098b1edb3">
         <source xml:lang="en">Table id already exists.</source>
-        <target state="new">Table id already exists.</target>
+        <target state="translated">Die Tabellen-ID ist bereits vorhanden.</target>
       </trans-unit>
       <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
         <source xml:lang="en">Table must include at least one column.</source>
-        <target state="new">Table must include at least one column.</target>
+        <target state="translated">Die Tabelle muss mindestens eine Spalte enthalten.</target>
       </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
@@ -6230,7 +6230,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
         <source xml:lang="en">Table updated in schema designer successfully.</source>
-        <target state="new">Table updated in schema designer successfully.</target>
+        <target state="translated">Tabelle im Schemadesigner erfolgreich aktualisiert.</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6266,7 +6266,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4b016ef3b6c88a82c40b3db4426827509ba4dd87ad83462cecd2989f050f6eb7">
         <source xml:lang="en">Tenant is required</source>
-        <target state="new">Tenant is required</target>
+        <target state="translated">Ein Mandant ist erforderlich.</target>
       </trans-unit>
       <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
         <source xml:lang="en">Terms &amp; Conditions</source>
@@ -6497,11 +6497,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
         <source xml:lang="en">Transaction Log</source>
-        <target state="new">Transaction Log</target>
+        <target state="translated">Transaktionsprotokoll</target>
       </trans-unit>
       <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
         <source xml:lang="en">Truncate the transaction log</source>
-        <target state="new">Truncate the transaction log</target>
+        <target state="translated">Transaktionsprotokoll abschneiden</target>
       </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
@@ -6529,7 +6529,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++6be6bf4fae4897b542e648716d3e0fb9d67e3f4457c7b37afd4b217ca93e2914">
         <source xml:lang="en">Unavailable for backups to existing files</source>
-        <target state="new">Unavailable for backups to existing files</target>
+        <target state="translated">Für Backups in vorhandene Dateien nicht verfügbar</target>
       </trans-unit>
       <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
         <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
@@ -6566,7 +6566,7 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++6be78b6adb46377e4065b25ea7e2029e22996a8bc9fa551165a40832ab253d2b">
         <source xml:lang="en">Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema</source>
         <note>{0} is the operation name</note>
-        <target state="new">Unknown operation: {0}. Supported operations: add_table, update_table, delete_table, replace_schema, get_schema</target>
+        <target state="translated">Unbekannter Vorgang: {0} Unterstützte Vorgänge: add_table, update_table, delete_table, replace_schema, get_schema</target>
       </trans-unit>
       <trans-unit id="++CODE++b9d28c62097f29ab65a3fda8317e0097e19e27393e9c6d6d96e88f4e20367a64">
         <source xml:lang="en">Unknown tenant ID</source>
@@ -6617,11 +6617,11 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
         <source xml:lang="en">Use encryption for this backup</source>
-        <target state="new">Use encryption for this backup</target>
+        <target state="translated">Für dieses Backup Verschlüsselung verwenden</target>
       </trans-unit>
       <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
         <source xml:lang="en">Use the default server setting</source>
-        <target state="new">Use the default server setting</target>
+        <target state="translated">Standardservereinstellung verwenden</target>
       </trans-unit>
       <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
         <source xml:lang="en">Use {0} to create a new connection.</source>
@@ -6681,7 +6681,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
         <source xml:lang="en">Verify backup when finished</source>
-        <target state="new">Verify backup when finished</target>
+        <target state="translated">Sicherung nach Abschluss überprüfen</target>
       </trans-unit>
       <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
         <source xml:lang="en">Very Dissatisfied</source>
@@ -7195,7 +7195,7 @@ Abfrage: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.backupDatabase">
         <source xml:lang="en">Backup Database (Preview)</source>
-        <target state="new">Backup Database (Preview)</target>
+        <target state="translated">Backup-Datenbank (Vorschau)</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
