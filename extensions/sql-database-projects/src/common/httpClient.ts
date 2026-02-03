@@ -87,7 +87,7 @@ export class HttpClient {
 
 			response.data.on('data', (chunk: Buffer) => {
 				receivedBytes += chunk.length;
-				if (totalMegaBytes) {
+				if (totalMegaBytes > 0) {
 					const receivedMegaBytes = receivedBytes / (1024 * 1024);
 					const percentage = receivedMegaBytes / totalMegaBytes;
 					if (percentage >= printThreshold) {
@@ -97,18 +97,25 @@ export class HttpClient {
 				}
 			});
 
-			response.data.pipe(writer);
-
 			return new Promise((resolve, reject) => {
+				const cleanup = () => {
+					response.data.destroy();
+					writer.destroy();
+				};
+
 				writer.on('finish', () => resolve());
 				writer.on('error', (err) => {
+					cleanup();
 					outputChannel?.appendLine(constants.downloadError);
 					reject(err);
 				});
 				response.data.on('error', (err: Error) => {
+					cleanup();
 					outputChannel?.appendLine(constants.downloadError);
 					reject(err);
 				});
+
+				response.data.pipe(writer);
 			});
 		} catch (error) {
 			outputChannel?.appendLine(constants.downloadError);
