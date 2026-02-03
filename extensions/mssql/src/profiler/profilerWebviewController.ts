@@ -21,9 +21,15 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, FilterOperator } from "./profilerTypes";
+import {
+    EventRow,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    FilterOperator,
+} from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -59,6 +65,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
+    private _wasSessionPreviouslyStopped: boolean = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -487,6 +495,95 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 selectedEvent: undefined,
             };
         });
+
+        // Handle apply filter request
+        this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.setFilter(payload.clauses);
+
+                // Calculate filtered count using grid row-based filtering
+                const filteredCount = this.calculateFilteredCount(payload.clauses);
+                const totalCount = this._filteredBuffer.totalCount;
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch filtered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                // After clear, notify of available filtered data
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                // Update status bar immediately to show filtered count
+                this.state = {
+                    ...state,
+                    filterState: {
+                        enabled: payload.clauses.length > 0,
+                        clauses: payload.clauses,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle clear filter request from webview
+        this.registerReducer("clearFilter", (state) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.clearFilter();
+                const totalCount = this._filteredBuffer.totalCount;
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch unfiltered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                // After clear, notify of all available data
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: totalCount,
+                        totalCount: totalCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                // Update status bar immediately to show total count
+                this.state = {
+                    ...state,
+                    filterState: { enabled: false, clauses: [] },
+                    totalRowCount: totalCount,
+                    filteredRowCount: totalCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle export to CSV request
+        this.registerReducer(
+            "exportToCsv",
+            (state, payload: { csvContent: string; suggestedFileName: string }) => {
+                if (this._eventHandlers.onExportToCsv) {
+                    this._eventHandlers.onExportToCsv(
+                        payload.csvContent,
+                        payload.suggestedFileName,
+                        "manual",
+                    );
+                }
+                return state;
+            },
+        );
     }
 
     /**
@@ -534,6 +631,24 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
+    }
+
+    /**
+     * Send filter state changed notification to the webview
+     */
+    private async sendFilterStateChanged(): Promise<void> {
+        if (!this._filteredBuffer) {
+            return;
+        }
+
+        const params: FilterStateChangedParams = {
+            isFilterActive: this._filteredBuffer.isFilterActive,
+            clauseCount: this._filteredBuffer.clauses.length,
+            totalCount: this._filteredBuffer.totalCount,
+            filteredCount: this._filteredBuffer.filteredCount,
+        };
+
+        await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
     }
 
     /**

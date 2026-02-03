@@ -2782,6 +2782,37 @@ export class Profiler {
     public static profilerNotSupportedOnFabric = l10n.t(
         "Profiler is not supported on Microsoft Fabric SQL databases.",
     );
+
+    // Export functionality
+    public static exportToCsv = l10n.t("Export to CSV");
+    public static exportSuccess = (filePath: string) =>
+        l10n.t({
+            message: "Profiler events exported to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    public static exportFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to export profiler events: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static openFile = l10n.t("Open File");
+
+    // Unexported events dialog
+    public static unexportedEventsMessage = l10n.t(
+        "You have captured profiler events that have not been exported. Do you want to export them before closing?",
+    );
+    public static exportAndClose = l10n.t("Export & Close");
+    public static closeWithoutExport = l10n.t("Close Without Export");
+
+    // Filtered events count
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0} / {1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count", "{1} is the total count"],
+        });
 }
 
 export class Proxy {

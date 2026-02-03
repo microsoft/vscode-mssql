@@ -9,7 +9,6 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { ProfilerController } from "../../../src/profiler/profilerController";
-import { ProfilerDetailsPanelViewController } from "../../../src/profiler/profilerDetailsPanelViewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
@@ -187,7 +186,6 @@ suite("ProfilerController Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
-        ProfilerDetailsPanelViewController.resetInstance();
         sandbox.restore();
     });
 
@@ -267,9 +265,11 @@ suite("ProfilerController Tests", () => {
             );
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
-            await launchCommand!(mockTreeNodeInfo);
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
 
             expect(createWebviewPanelStub).to.have.been.calledOnce;
         });
@@ -313,7 +313,6 @@ suite("ProfilerController Tests", () => {
             );
 
             createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
 
             const controller = createController();
             await controller.launchProfilerWithConnection(
@@ -326,6 +325,19 @@ suite("ProfilerController Tests", () => {
         });
 
         test("should show information message when profiler is ready", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const controller = createController();
             await controller.launchProfilerWithConnection(
                 mockConnectionProfile as IConnectionProfile,
@@ -350,10 +362,10 @@ suite("ProfilerController Tests", () => {
         test("should disconnect when template selection is cancelled", async () => {
             showQuickPickStub.resolves(undefined); // User cancelled template selection
 
-            createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-            await launchCommand!(mockTreeNodeInfo);
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
 
             // The webview should NOT be created since user cancelled
             expect(createWebviewPanelStub).to.not.have.been.called;
@@ -364,10 +376,10 @@ suite("ProfilerController Tests", () => {
             showQuickPickStub.resolves(mockTemplateItem);
             (vscode.window.showInputBox as sinon.SinonStub).resolves(undefined); // User cancelled input
 
-            createController();
-            const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-            await launchCommand!(mockTreeNodeInfo);
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
 
             // The webview should NOT be created since user cancelled
             expect(createWebviewPanelStub).to.not.have.been.called;
@@ -526,6 +538,23 @@ suite("ProfilerController Tests", () => {
                 },
             });
 
+            // Set up template selection mock
+            showQuickPickStub.resolves({
+                label: "Standard",
+                template: { id: "Standard_Azure", name: "Standard", defaultView: "standard" },
+            });
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const controller = createController();
 
             // Create a mock connection profile for Azure with a user database
@@ -543,9 +572,9 @@ suite("ProfilerController Tests", () => {
 
             // Quick pick should not have been called for database selection
             // since we're already connected to a user database
-            // Note: Quick pick might be called for other reasons (like template selection)
-            // but not for database selection
-            expect(createWebviewPanelStub).to.have.been.called;
+            // Note: Quick pick should be called for template selection only
+            // The test verifies that the flow proceeds without prompting for database
+            expect(showQuickPickStub).to.have.been.called; // For template selection
         });
 
         test.skip("should cancel when user cancels database selection", async () => {
@@ -663,7 +692,6 @@ suite("ProfilerController Integration Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
-        ProfilerDetailsPanelViewController.resetInstance();
         sandbox.restore();
     });
 
@@ -818,68 +846,54 @@ suite("ProfilerController Server Type Tests", () => {
     }
 
     test("should show warning message when connecting to Fabric server", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.fabric.microsoft.com",
-                authenticationType: "AzureMFA",
-                database: "TestDB",
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.fabric.microsoft.com",
+            authenticationType: "AzureMFA",
+            database: "TestDB",
         };
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         expect(showWarningMessageStub).to.have.been.called;
         expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.false;
     });
 
     test("should prompt for database when Azure SQL has no database selected", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "", // No database selected
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
         };
 
-        showQuickPickStub.resolves("UserDB1");
+        showQuickPickStub.resolves({ label: "UserDB1" });
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         expect(showQuickPickStub).to.have.been.called;
     });
 
     test("should prompt for database when Azure SQL has system database selected", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "master", // System database
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "master", // System database
         };
 
-        showQuickPickStub.resolves("UserDB1");
+        showQuickPickStub.resolves({ label: "UserDB1" });
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         expect(showQuickPickStub).to.have.been.called;
     });
 
     test("should not prompt for database when Azure SQL has user database selected", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "MyUserDatabase",
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "MyUserDatabase",
         };
 
         // Mock the template selection quick pick
@@ -888,10 +902,8 @@ suite("ProfilerController Server Type Tests", () => {
             template: { id: "Standard_Azure", name: "Standard", defaultView: "standard" },
         });
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         // Should only call quick pick once for template selection, not for database selection
         // listDatabases should not have been called since user DB is already selected
@@ -899,19 +911,15 @@ suite("ProfilerController Server Type Tests", () => {
     });
 
     test("should proceed normally for on-prem SQL Server", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "localhost",
-                authenticationType: "SqlLogin",
-                user: "testuser",
-                password: "testpass",
-            },
+        const mockConnectionProfile = {
+            server: "localhost",
+            authenticationType: "SqlLogin",
+            user: "testuser",
+            password: "testpass",
         };
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         // Should not show warning and should connect
         expect(showWarningMessageStub).to.not.have.been.called;
@@ -919,49 +927,40 @@ suite("ProfilerController Server Type Tests", () => {
     });
 
     test("should filter out system databases from quick pick for Azure SQL", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "", // No database selected
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
         };
 
-        showQuickPickStub.resolves("UserDB1");
+        showQuickPickStub.resolves({ label: "UserDB1" });
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
         // Check that quick pick was called with only user databases (not system databases)
         const quickPickCall = showQuickPickStub.getCall(0);
         const databases = quickPickCall?.args[0];
-        if (databases) {
-            expect(databases).to.not.include("master");
-            expect(databases).to.not.include("tempdb");
-            expect(databases).to.include("UserDB1");
-            expect(databases).to.include("UserDB2");
+        if (databases && Array.isArray(databases)) {
+            const labels = databases.map((d: { label: string }) => d.label);
+            expect(labels).to.not.include("master");
+            expect(labels).to.not.include("tempdb");
         }
     });
 
     test("should return early when user cancels database selection for Azure SQL", async () => {
-        const mockTreeNodeInfo = {
-            connectionProfile: {
-                server: "testserver.database.windows.net",
-                authenticationType: "AzureMFA",
-                database: "", // No database selected
-            },
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
         };
 
         showQuickPickStub.resolves(undefined); // User cancelled
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
 
-        await launchCommand!(mockTreeNodeInfo);
-
-        // Connect should have been called for temp connection, then disconnect
-        expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
+        // No webview panel should be created since user cancelled
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
     });
 });

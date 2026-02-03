@@ -46,6 +46,8 @@ export interface ProfilerRpcMethods {
     copyToClipboard: (text: string) => void;
     /** Close the embedded details panel */
     closeDetailsPanel: () => void;
+    /** Export events to CSV file */
+    exportToCsv: (csvContent: string, suggestedFileName: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -152,6 +154,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         extensionRpc?.action("closeDetailsPanel", {});
     }, [extensionRpc]);
 
+    const exportToCsv = useCallback(
+        (csvContent: string, suggestedFileName: string) => {
+            extensionRpc?.action("exportToCsv", { csvContent, suggestedFileName });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -171,6 +180,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 openInEditor,
                 copyToClipboard,
                 closeDetailsPanel,
+                exportToCsv,
             }}>
             {children}
         </ProfilerContext.Provider>

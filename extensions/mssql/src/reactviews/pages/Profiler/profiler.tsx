@@ -23,6 +23,7 @@ import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerDetailsPanel } from "./profilerDetailsPanel";
+import { ProfilerFilterDialog } from "./profilerFilterDialog";
 import {
     SessionState,
     ProfilerNotifications,
@@ -116,6 +117,9 @@ export const Profiler: React.FC = () => {
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
     const selectedEvent = useProfilerSelector((s) => s.selectedEvent);
+    const sessionName = useProfilerSelector((s) => s.sessionName);
+    const filterState = useProfilerSelector((s) => s.filterState ?? { enabled: false, clauses: [] });
+    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
 
     const {
         pauseResume,
@@ -133,6 +137,7 @@ export const Profiler: React.FC = () => {
         openInEditor,
         copyToClipboard,
         closeDetailsPanel,
+        exportToCsv,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
@@ -141,6 +146,7 @@ export const Profiler: React.FC = () => {
     const detailsPanelRef = useRef<ImperativePanelHandle | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);
     const [isDetailsPanelMaximized, setIsDetailsPanelMaximized] = useState(false);
+    const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
     const showDetailsPanel = selectedEvent !== undefined;
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
@@ -448,6 +454,24 @@ export const Profiler: React.FC = () => {
     const handleAutoScrollToggle = () => {
         toggleAutoScroll();
     };
+
+    // Filter handlers
+    const handleFilter = useCallback(() => {
+        setIsFilterDialogOpen(true);
+    }, []);
+
+    const handleApplyFilter = useCallback(
+        (clauses: FilterClause[]) => {
+            applyFilter(clauses);
+            setIsFilterDialogOpen(false);
+        },
+        [applyFilter],
+    );
+
+    const handleClearFilter = useCallback(() => {
+        clearFilter();
+        setIsFilterDialogOpen(false);
+    }, [clearFilter]);
 
     // Handlers for embedded details panel
     const handleOpenInEditor = useCallback(

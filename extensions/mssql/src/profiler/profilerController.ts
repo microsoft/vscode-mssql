@@ -18,6 +18,7 @@ import { Profiler as LocProfiler } from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -40,7 +41,7 @@ export class ProfilerController {
         private _sessionManager: ProfilerSessionManager,
     ) {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "Profiler");
-        this.registerCommands();
+        // Note: Command registration is handled by mainController to avoid duplicates
     }
 
     // ============================================================
@@ -204,28 +205,6 @@ export class ProfilerController {
         }
     }
 
-    private registerCommands(): void {
-        // Launch Profiler from Object Explorer (uses selected connection)
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "mssql.profiler.launchFromObjectExplorer",
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    try {
-                        const connectionProfile = treeNodeInfo.connectionProfile;
-                        await this.launchProfilerWithConnection(connectionProfile);
-                    } catch (e) {
-                        this._logger.error(`Command error: ${e}`);
-                        vscode.window.showErrorMessage(
-                            LocProfiler.failedToLaunchProfiler(String(e)),
-                        );
-                    }
-                },
-            ),
-        );
-
-        this._logger.verbose("Profiler commands registered");
-    }
-
     /**
      * Starts a profiling session for the given session name.
      * @param sessionName - The name of the XEvent session to start
@@ -321,7 +300,7 @@ export class ProfilerController {
 
         // Check if connected to an Azure SQL Database system database
         // Azure system databases (e.g., master) don't support creating Extended Events sessions
-        if (this._engineType === EngineType.AzureSQLDB) {
+        if (this._currentEngineType === EngineType.AzureSQLDB) {
             const connectionInfo = this._connectionManager.getConnectionInfo(this._profilerUri);
             const databaseName = connectionInfo?.credentials?.database?.toLowerCase();
             const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
@@ -469,134 +448,6 @@ export class ProfilerController {
             this._logger.error(`Error creating session: ${e}`);
             webviewController.setCreatingSession(false);
             vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
-        }
-    }
-
-    /**
-     * Launches the profiler UI with a provided connection profile (from Object Explorer).
-     * This skips the connection prompt and uses the provided connection directly.
-     * For Azure SQL Database connections to system databases, prompts user to select a user database.
-     * @param connectionProfile - The connection profile to use for profiling
-     */
-    public async launchProfilerWithConnection(
-        connectionProfile: IConnectionProfile,
-    ): Promise<void> {
-        this._logger.verbose(
-            `Launching profiler with connection to ${connectionProfile.server}...`,
-        );
-
-        try {
-            // Generate a unique URI for this profiler connection
-            let profilerUri = `profiler://${Utils.generateGuid()}`;
-            this._logger.verbose(
-                `Connecting to ${connectionProfile.server} with URI: ${profilerUri}`,
-            );
-
-            // Connect using the connection manager with the provided profile
-            let connected = await this._connectionManager.connect(profilerUri, connectionProfile);
-
-            if (!connected) {
-                this._logger.verbose("Connection failed");
-                vscode.window.showErrorMessage(LocProfiler.failedToConnect);
-                return;
-            }
-
-            this._logger.verbose(`Successfully connected to ${connectionProfile.server}`);
-
-            // For Azure SQL Database, check if connected to a system database and prompt for database selection
-            if (this._engineType === EngineType.AzureSQLDB) {
-                const connectionInfo = this._connectionManager.getConnectionInfo(profilerUri);
-                const currentDatabase = connectionInfo?.credentials?.database?.toLowerCase() || "";
-                const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
-
-                if (!currentDatabase || azureSystemDatabases.includes(currentDatabase)) {
-                    this._logger.verbose(
-                        `Connected to Azure system database '${currentDatabase}', prompting for database selection...`,
-                    );
-
-                    // Prompt user to select a user database
-                    const selectedDatabase = await this.promptForAzureDatabase(profilerUri);
-
-                    if (!selectedDatabase) {
-                        // User cancelled - disconnect and return
-                        this._logger.verbose("User cancelled database selection");
-                        await this._connectionManager.disconnect(profilerUri);
-                        return;
-                    }
-
-                    // Disconnect current connection and reconnect with selected database
-                    await this._connectionManager.disconnect(profilerUri);
-
-                    // Create new connection profile with selected database
-                    const updatedProfile = { ...connectionProfile, database: selectedDatabase };
-                    profilerUri = `profiler://${Utils.generateGuid()}`;
-
-                    this._logger.verbose(
-                        `Reconnecting to database '${selectedDatabase}' with URI: ${profilerUri}`,
-                    );
-
-                    connected = await this._connectionManager.connect(profilerUri, updatedProfile);
-
-                    if (!connected) {
-                        this._logger.verbose("Reconnection failed");
-                        vscode.window.showErrorMessage(LocProfiler.failedToConnect);
-                        return;
-                    }
-
-                    this._logger.verbose(
-                        `Successfully reconnected to database '${selectedDatabase}'`,
-                    );
-                }
-            }
-
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
-        } catch (e) {
-            this._logger.error(`Error launching profiler: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
-        }
-    }
-
-    /**
-     * Prompts the user to select a database for profiling on Azure SQL Database.
-     * Filters out system databases.
-     * @param profilerUri - The URI of the current profiler connection
-     * @returns The selected database name, or undefined if cancelled
-     */
-    private async promptForAzureDatabase(profilerUri: string): Promise<string | undefined> {
-        const azureSystemDatabases = ["master", "msdb", "tempdb", "model"];
-
-        try {
-            // Fetch list of databases
-            this._logger.verbose("Fetching available databases...");
-            const databases = await this._connectionManager.listDatabases(profilerUri);
-
-            // Filter out system databases
-            const userDatabases = databases.filter(
-                (db) => !azureSystemDatabases.includes(db.toLowerCase()),
-            );
-
-            if (userDatabases.length === 0) {
-                vscode.window.showWarningMessage(LocProfiler.noUserDatabasesAvailable);
-                return undefined;
-            }
-
-            // Show quick pick for database selection
-            const databaseItems = userDatabases.map((db) => ({
-                label: db,
-                description: "",
-            }));
-
-            const selected = await vscode.window.showQuickPick(databaseItems, {
-                placeHolder: LocProfiler.selectDatabaseForProfiling,
-                title: LocProfiler.selectDatabaseTitle,
-                ignoreFocusOut: true,
-            });
-
-            return selected?.label;
-        } catch (e) {
-            this._logger.error(`Error fetching databases: ${e}`);
-            throw e;
         }
     }
 

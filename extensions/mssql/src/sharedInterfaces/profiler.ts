@@ -120,6 +120,10 @@ export interface ProfilerWebviewState {
     isCreatingSession?: boolean;
     /** The currently selected event details for the embedded details panel */
     selectedEvent?: ProfilerSelectedEventDetails;
+    /** Whether there are events that have not been exported yet */
+    hasUnexportedEvents?: boolean;
+    /** Timestamp of the last successful export */
+    lastExportTimestamp?: number;
 }
 
 /**
@@ -179,6 +183,11 @@ export interface ProfilerReducers {
     };
     /** Close the embedded details panel */
     closeDetailsPanel: Record<string, never>;
+    /** Export events to CSV file */
+    exportToCsv: {
+        csvContent: string;
+        suggestedFileName: string;
+    };
 }
 
 /**

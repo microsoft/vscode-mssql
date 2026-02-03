@@ -859,6 +859,9 @@
     <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
       <source xml:lang="en">Close Script Pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f60d43fe743cd7aa4af117f641730b9e28e8aab2e3334b2c12bfd0c25e610d6">
+      <source xml:lang="en">Close Without Export</source>
+    </trans-unit>
     <trans-unit id="++CODE++c89401adf57129e294dc62c01819ce24126217a0f529f17047cda53ec2482829">
       <source xml:lang="en">Close details panel</source>
     </trans-unit>
@@ -2000,6 +2003,9 @@
     <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
       <source xml:lang="en">Export</source>
     </trans-unit>
+    <trans-unit id="++CODE++6832602b10532fa027a10d02a440c8197c4257d1ffbface9da25585ffa7bc19a">
+      <source xml:lang="en">Export &amp; Close</source>
+    </trans-unit>
     <trans-unit id="++CODE++59be81f2f62e6ced348ccc806b1a50d9370c0f19a8bb5f7fbf8a801d4c93bdca">
       <source xml:lang="en">Export BACPAC</source>
     </trans-unit>
@@ -2149,6 +2155,10 @@
     <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3d684643f87e0c69e5874b8f73f9d077a608623cbe90234d6bca8030d79b5e96">
+      <source xml:lang="en">Failed to export profiler events: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
       <source xml:lang="en">Failed to export results: {0}</source>
@@ -3622,6 +3632,9 @@
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
     </trans-unit>
+    <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
+      <source xml:lang="en">Open File</source>
+    </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
     </trans-unit>
@@ -3887,6 +3900,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
       <source xml:lang="en">Profiler Session Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++81f600d5530b40bd91b3d2920d51123c6f438bfdb10359cac32474808a4501a7">
+      <source xml:lang="en">Profiler events exported to {0}</source>
+      <note>{0} is the file path</note>
     </trans-unit>
     <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
       <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
@@ -5448,6 +5465,9 @@
       <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
       <note>{0} is the version number of the MSSQL extension</note>
     </trans-unit>
+    <trans-unit id="++CODE++9ced71628b9c4558bce0bb89f34f51df4e599aa0137b774cfa1ef257b7f57f80">
+      <source xml:lang="en">You have captured profiler events that have not been exported. Do you want to export them before closing?</source>
+    </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
     </trans-unit>
@@ -5579,6 +5599,11 @@
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a2661e41076e356c72a0d2e7ae10897377ddb10c9a0ff3a3b2a698677dd0ed8">
+      <source xml:lang="en">{0} / {1} events</source>
+      <note>{0} is the filtered count
+{1} is the total count</note>
     </trans-unit>
     <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
       <source xml:lang="en">{0} accounts</source>

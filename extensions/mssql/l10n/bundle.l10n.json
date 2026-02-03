@@ -2689,6 +2689,22 @@
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
+    "Profiler events exported to {0}/{0} is the file path": {
+        "message": "Profiler events exported to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Failed to export profiler events: {0}/{0} is the error message": {
+        "message": "Failed to export profiler events: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Open File": "Open File",
+    "You have captured profiler events that have not been exported. Do you want to export them before closing?": "You have captured profiler events that have not been exported. Do you want to export them before closing?",
+    "Export & Close": "Export & Close",
+    "Close Without Export": "Close Without Export",
+    "{0} / {1} events/{0} is the filtered count{1} is the total count": {
+        "message": "{0} / {1} events",
+        "comment": ["{0} is the filtered count", "{1} is the total count"]
+    },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
