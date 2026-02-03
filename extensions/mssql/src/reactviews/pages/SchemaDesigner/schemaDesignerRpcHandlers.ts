@@ -356,8 +356,11 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         let appliedEdits = 0;
         let needsScriptRefresh = false;
         let workingSchema = extractSchema();
-        const preSchema = workingSchema;
         const preTableCount = workingSchema.tables.length;
+        const preForeignKeyCount = workingSchema.tables.reduce(
+            (sum, table) => sum + (table.foreignKeys?.length ?? 0),
+            0,
+        );
 
         try {
             for (let i = 0; i < params.edits.length; i++) {
@@ -980,10 +983,6 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             }
 
             const postTableCount = workingSchema.tables.length;
-            const preForeignKeyCount = preSchema.tables.reduce(
-                (sum, table) => sum + (table.foreignKeys?.length ?? 0),
-                0,
-            );
             const postForeignKeyCount = workingSchema.tables.reduce(
                 (sum, table) => sum + (table.foreignKeys?.length ?? 0),
                 0,
