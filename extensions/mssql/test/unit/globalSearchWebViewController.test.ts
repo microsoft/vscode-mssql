@@ -331,6 +331,55 @@ suite("GlobalSearchWebViewController", () => {
             expect(nonTableResults.length).to.equal(0);
         });
 
+        test("setObjectTypeFilters reducer sets all filters at once", async () => {
+            createController();
+            await waitForInitialization();
+
+            const setFiltersReducer = controller["_reducerHandlers"].get("setObjectTypeFilters");
+            expect(setFiltersReducer, "SetObjectTypeFilters reducer was not registered").to.be.a(
+                "function",
+            );
+
+            const newFilters = {
+                tables: false,
+                views: true,
+                storedProcedures: false,
+                functions: true,
+            };
+
+            const result = await setFiltersReducer!(controller.state, { filters: newFilters });
+
+            expect(result.objectTypeFilters).to.deep.equal(newFilters);
+        });
+
+        test("setObjectTypeFilters reducer filters results accordingly", async () => {
+            createController();
+            await waitForInitialization();
+
+            const setFiltersReducer = controller["_reducerHandlers"].get("setObjectTypeFilters");
+
+            const newFilters = {
+                tables: false,
+                views: true,
+                storedProcedures: false,
+                functions: false,
+            };
+
+            const result = await setFiltersReducer!(controller.state, { filters: newFilters });
+
+            // Only views should be in results
+            const nonViewResults = result.searchResults.filter(
+                (r: SearchResultItem) => r.type !== MetadataType.View,
+            );
+            expect(nonViewResults.length).to.equal(0);
+
+            // Verify at least one view exists
+            const viewResults = result.searchResults.filter(
+                (r: SearchResultItem) => r.type === MetadataType.View,
+            );
+            expect(viewResults.length).to.be.greaterThan(0);
+        });
+
         test("toggleSchemaFilter reducer adds schema when not selected", async () => {
             createController();
             await waitForInitialization();
@@ -403,6 +452,57 @@ suite("GlobalSearchWebViewController", () => {
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
 
             const result = await clearReducer!(controller.state, {});
+            expect(result.searchResults.length).to.equal(0);
+        });
+
+        test("setSchemaFilters reducer sets selected schemas", async () => {
+            createController();
+            await waitForInitialization();
+
+            const setSchemaFiltersReducer = controller["_reducerHandlers"].get("setSchemaFilters");
+            expect(setSchemaFiltersReducer, "SetSchemaFilters reducer was not registered").to.be.a(
+                "function",
+            );
+
+            const schemasToSet = ["dbo", "sales"];
+            const result = await setSchemaFiltersReducer!(controller.state, {
+                schemas: schemasToSet,
+            });
+
+            expect(result.selectedSchemas).to.deep.equal(schemasToSet);
+        });
+
+        test("setSchemaFilters reducer filters results by selected schemas", async () => {
+            createController();
+            await waitForInitialization();
+
+            const setSchemaFiltersReducer = controller["_reducerHandlers"].get("setSchemaFilters");
+
+            // Set only 'dbo' schema
+            const result = await setSchemaFiltersReducer!(controller.state, { schemas: ["dbo"] });
+
+            // All results should be from dbo schema
+            const nonDboResults = result.searchResults.filter(
+                (r: SearchResultItem) => r.schema !== "dbo",
+            );
+            expect(nonDboResults.length).to.equal(0);
+
+            // Verify at least one dbo result exists
+            const dboResults = result.searchResults.filter(
+                (r: SearchResultItem) => r.schema === "dbo",
+            );
+            expect(dboResults.length).to.be.greaterThan(0);
+        });
+
+        test("setSchemaFilters reducer with empty array shows no results", async () => {
+            createController();
+            await waitForInitialization();
+
+            const setSchemaFiltersReducer = controller["_reducerHandlers"].get("setSchemaFilters");
+
+            const result = await setSchemaFiltersReducer!(controller.state, { schemas: [] });
+
+            expect(result.selectedSchemas).to.deep.equal([]);
             expect(result.searchResults.length).to.equal(0);
         });
     });
@@ -688,7 +788,9 @@ suite("GlobalSearchWebViewController", () => {
             expect(controller["_reducerHandlers"].has("clearSearch")).to.be.true;
             expect(controller["_reducerHandlers"].has("setDatabase")).to.be.true;
             expect(controller["_reducerHandlers"].has("toggleObjectTypeFilter")).to.be.true;
+            expect(controller["_reducerHandlers"].has("setObjectTypeFilters")).to.be.true;
             expect(controller["_reducerHandlers"].has("toggleSchemaFilter")).to.be.true;
+            expect(controller["_reducerHandlers"].has("setSchemaFilters")).to.be.true;
             expect(controller["_reducerHandlers"].has("selectAllSchemas")).to.be.true;
             expect(controller["_reducerHandlers"].has("clearSchemaSelection")).to.be.true;
             expect(controller["_reducerHandlers"].has("scriptObject")).to.be.true;
