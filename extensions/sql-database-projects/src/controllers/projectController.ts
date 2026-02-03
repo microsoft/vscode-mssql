@@ -312,7 +312,7 @@ export class ProjectsController {
 
 			// If created inside the project folder (no workspace), add to project's None items
 			if (!workspaceFolder) {
-				await project.addNoneItem(`${constants.vscodeFolderName}/${constants.tasksJsonFileName}`);
+				await project.addNoneItem(utils.convertSlashesForSqlProj(`${constants.vscodeFolderName}/${constants.tasksJsonFileName}`));
 			}
 		}
 	}

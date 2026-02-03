@@ -36,7 +36,6 @@ export const tasksJsonVersion = '2.0.0';
 export const vscodeFolderName = '.vscode';
 export const tasksJsonFileName = 'tasks.json';
 export const processTaskType = 'process';
-export const buildGroupKind = 'build';
 export const sqlprojBuildTaskLabelPrefix = 'sqlproj: Build';
 export function getSqlProjectBuildTaskLabel(projectName: string): string { return `${sqlprojBuildTaskLabelPrefix} ${projectName}`; }
 export function getSqlProjectBuildTaskDetail(projectName: string): string { return l10n.t("Builds the {0} SQL project", projectName); }
