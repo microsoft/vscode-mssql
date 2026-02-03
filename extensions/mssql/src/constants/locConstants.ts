@@ -2744,6 +2744,81 @@ export class Profiler {
     public static cancel = l10n.t("Cancel");
 }
 
+export class ProfilerTools {
+    // List Sessions Tool
+    public static listSessionsToolConfirmationTitle = l10n.t("List Profiler Sessions");
+    public static listSessionsToolConfirmationMessage = l10n.t(
+        "List all available profiler sessions?",
+    );
+    public static listSessionsToolInvocationMessage = l10n.t("Listing profiler sessions");
+    public static noProfilerSessionsAvailable = l10n.t(
+        "No profiler sessions are currently available. Start a profiler session from the Object Explorer context menu.",
+    );
+
+    // Get Session Summary Tool
+    public static getSessionSummaryToolConfirmationTitle = l10n.t("Get Session Summary");
+    public static getSessionSummaryToolConfirmationMessage = (sessionId: string) =>
+        l10n.t({
+            message: "Get summary for profiler session '{0}'?",
+            args: [sessionId],
+            comment: ["{0} is the session ID"],
+        });
+    public static getSessionSummaryToolInvocationMessage = (sessionId: string) =>
+        l10n.t({
+            message: "Getting summary for profiler session '{0}'",
+            args: [sessionId],
+            comment: ["{0} is the session ID"],
+        });
+    public static sessionNotFound = (sessionId: string) =>
+        l10n.t({
+            message:
+                "Profiler session '{0}' not found. Use mssql_profiler_list_sessions to see available sessions.",
+            args: [sessionId],
+            comment: ["{0} is the session ID"],
+        });
+    public static sessionHasNoEvents = l10n.t(
+        "Session is active but has not captured any events yet.",
+    );
+
+    // Query Events Tool
+    public static queryEventsToolConfirmationTitle = l10n.t("Query Profiler Events");
+    public static queryEventsToolConfirmationMessage = (sessionId: string) =>
+        l10n.t({
+            message: "Query events from profiler session '{0}'?",
+            args: [sessionId],
+            comment: ["{0} is the session ID"],
+        });
+    public static queryEventsToolInvocationMessage = (sessionId: string) =>
+        l10n.t({
+            message: "Querying events from profiler session '{0}'",
+            args: [sessionId],
+            comment: ["{0} is the session ID"],
+        });
+    public static noEventsMatchFilter = l10n.t("No events match the specified filter criteria.");
+
+    // Get Event Detail Tool
+    public static getEventDetailToolConfirmationTitle = l10n.t("Get Event Detail");
+    public static getEventDetailToolConfirmationMessage = (sessionId: string, eventId: string) =>
+        l10n.t({
+            message: "Get details for event '{1}' in session '{0}'?",
+            args: [sessionId, eventId],
+            comment: ["{0} is the session ID", "{1} is the event ID"],
+        });
+    public static getEventDetailToolInvocationMessage = (sessionId: string, eventId: string) =>
+        l10n.t({
+            message: "Getting details for event '{1}' in session '{0}'",
+            args: [sessionId, eventId],
+            comment: ["{0} is the session ID", "{1} is the event ID"],
+        });
+    public static eventNotFound = (eventId: string, sessionId: string) =>
+        l10n.t({
+            message:
+                "Event '{0}' not found in session '{1}'. Use mssql_profiler_query_events to find valid event IDs.",
+            args: [eventId, sessionId],
+            comment: ["{0} is the event ID", "{1} is the session ID"],
+        });
+}
+
 export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({

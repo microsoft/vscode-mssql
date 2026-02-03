@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 1.40.0 (Unreleased)
+
+- Release date: TBD
+- Release status: Preview
+
+### What's new in 1.40.0
+
+- **Profiler Agent Tools (Preview)**: Added Copilot Agent mode tools for querying SQL Server Profiler data
+  - `mssql_profiler_list_sessions`: Discover active profiler sessions
+  - `mssql_profiler_get_session_summary`: Get session statistics and top event distributions
+  - `mssql_profiler_query_events`: Filter and sort profiler events with natural language
+  - `mssql_profiler_get_event_detail`: Inspect full details of a specific event
+
 ## Version 1.39.0
 
 -   Release date: January 28, 2026

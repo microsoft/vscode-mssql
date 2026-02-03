@@ -1832,6 +1832,11 @@
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f34592f4ab0398b9a74e59db187cd5228a9aec215b4a2e3e4407f17b23cb703">
+      <source xml:lang="en">Event &apos;{0}&apos; not found in session &apos;{1}&apos;. Use mssql_profiler_query_events to find valid event IDs.</source>
+      <note>{0} is the event ID
+{1} is the session ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
     </trans-unit>
@@ -2381,6 +2386,12 @@
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
     </trans-unit>
+    <trans-unit id="++CODE++cde0a5fc84b84b33cc9d3ee68276361eead3a3ca2a254c96ed16295b5ca40d2e">
+      <source xml:lang="en">Get Event Detail</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9bfb7e2121c846c18bf0922cb58f5d4f9c2ac938286ec7289ef271347775b2c2">
+      <source xml:lang="en">Get Session Summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
       <source xml:lang="en">Get Started</source>
     </trans-unit>
@@ -2389,8 +2400,17 @@
       <note>{0} is the connection display name
 {1} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++331a256822e085d8688ac9dc788689214ddbbaa379dab8702ee22a46e76cc001">
+      <source xml:lang="en">Get details for event &apos;{1}&apos; in session &apos;{0}&apos;?</source>
+      <note>{0} is the session ID
+{1} is the event ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
       <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++90b2450b45d4780c92f32abf63936fa453f7258bb5021177250a251a493c66a1">
+      <source xml:lang="en">Get summary for profiler session &apos;{0}&apos;?</source>
+      <note>{0} is the session ID</note>
     </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
@@ -2421,6 +2441,15 @@
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb3cb5c3a0fb9ce37b5ec5268dbb83b1bf48d9d23c3fb9e53e97f4f0b57e83df">
+      <source xml:lang="en">Getting details for event &apos;{1}&apos; in session &apos;{0}&apos;</source>
+      <note>{0} is the session ID
+{1} is the event ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++342994fcad909ae3ff59086103fdb821f8d05ba6dd56289cc9bcfee14b59966b">
+      <source xml:lang="en">Getting summary for profiler session &apos;{0}&apos;</source>
+      <note>{0} is the session ID</note>
     </trans-unit>
     <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
       <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
@@ -2721,6 +2750,9 @@
     <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
       <source xml:lang="en">List Functions</source>
     </trans-unit>
+    <trans-unit id="++CODE++89159b3ee555261a6b5e9aa6327c2b0ac290fc323390636a6901357ff930c4ca">
+      <source xml:lang="en">List Profiler Sessions</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
       <source xml:lang="en">List Schemas</source>
     </trans-unit>
@@ -2729,6 +2761,9 @@
     </trans-unit>
     <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
       <source xml:lang="en">List Views</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d8548997b3b3de9a1764ee9d748762e187a279345c7c39517709a03d18f1b9be">
+      <source xml:lang="en">List all available profiler sessions?</source>
     </trans-unit>
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
@@ -2783,6 +2818,9 @@
       <source xml:lang="en">Listing functions for connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6da7a805c6df2e76921f525370b5fc620f444556322f3a720ffa13cc914c299c">
+      <source xml:lang="en">Listing profiler sessions</source>
     </trans-unit>
     <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
       <source xml:lang="en">Listing role assignments for workspace &apos;${workspaceId}&apos;</source>
@@ -3228,6 +3266,9 @@
     <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
       <source xml:lang="en">No event selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++b1e9ea64f70c439c6bd89bcb16e5060da228892444de9e914aac2e0fc4f7589e">
+      <source xml:lang="en">No events match the specified filter criteria.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
     </trans-unit>
@@ -3256,6 +3297,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
       <source xml:lang="en">No profiler connection available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++af0bc2779aafc736c3bb4b5e9120a18b7a6d29605bba3c2e9a36657a9ac03197">
+      <source xml:lang="en">No profiler sessions are currently available. Start a profiler session from the Object Explorer context menu.</source>
     </trans-unit>
     <trans-unit id="++CODE++9d6298c8a19610c3253afad30305a202c182b8bffab325a89302b0d3420c7873">
       <source xml:lang="en">No profiler templates available</source>
@@ -3672,6 +3716,10 @@
       <source xml:lang="en">Profiler session &apos;{0}&apos; created successfully. Starting profiling...</source>
       <note>{0} is the session name</note>
     </trans-unit>
+    <trans-unit id="++CODE++e0431030c5f25908daa86263704307241e5a3c3125d7fe20fe8786aa59778933">
+      <source xml:lang="en">Profiler session &apos;{0}&apos; not found. Use mssql_profiler_list_sessions to see available sessions.</source>
+      <note>{0} is the session ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
       <source xml:lang="en">Profiler: No session</source>
     </trans-unit>
@@ -3747,6 +3795,13 @@
       <source xml:lang="en">Query Plan ({0})</source>
       <note>{0} is the number of query plans</note>
     </trans-unit>
+    <trans-unit id="++CODE++5e57d4cd7302272d8b8c125d0945522252d8bc1393b88dc2142d827b6c552100">
+      <source xml:lang="en">Query Profiler Events</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8a11507ebc40b6659cca1cc87eaa40ea85a579e87b69bcefa8ee7c88b873cbc2">
+      <source xml:lang="en">Query events from profiler session &apos;{0}&apos;?</source>
+      <note>{0} is the session ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
@@ -3760,6 +3815,10 @@
       <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
       <note>{0} is the query number
 {1} is the query cost</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a2a7359da7a7a702d94c7aaca222edc6f464189c595faf3491637b8861b5c3d4">
+      <source xml:lang="en">Querying events from profiler session &apos;{0}&apos;</source>
+      <note>{0} is the session ID</note>
     </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>
@@ -4368,6 +4427,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
       <source xml:lang="en">Session creation timed out</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c0e648138b071097e00c612295a4fb4c5ce3f0daeb6225ab80f09cffe5825d92">
+      <source xml:lang="en">Session is active but has not captured any events yet.</source>
     </trans-unit>
     <trans-unit id="++CODE++8cd78d11cdd7e9d0eb109913becdbf01449df1797ccb72604224b8a3ba943196">
       <source xml:lang="en">Session name can only contain letters, numbers, underscores, and hyphens</source>

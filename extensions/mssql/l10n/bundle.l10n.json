@@ -2624,6 +2624,47 @@
     "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
     "Export & Close": "Export & Close",
     "Close Without Export": "Close Without Export",
+    "List Profiler Sessions": "List Profiler Sessions",
+    "List all available profiler sessions?": "List all available profiler sessions?",
+    "Listing profiler sessions": "Listing profiler sessions",
+    "No profiler sessions are currently available. Start a profiler session from the Object Explorer context menu.": "No profiler sessions are currently available. Start a profiler session from the Object Explorer context menu.",
+    "Get Session Summary": "Get Session Summary",
+    "Get summary for profiler session '{0}'?/{0} is the session ID": {
+        "message": "Get summary for profiler session '{0}'?",
+        "comment": ["{0} is the session ID"]
+    },
+    "Getting summary for profiler session '{0}'/{0} is the session ID": {
+        "message": "Getting summary for profiler session '{0}'",
+        "comment": ["{0} is the session ID"]
+    },
+    "Profiler session '{0}' not found. Use mssql_profiler_list_sessions to see available sessions./{0} is the session ID": {
+        "message": "Profiler session '{0}' not found. Use mssql_profiler_list_sessions to see available sessions.",
+        "comment": ["{0} is the session ID"]
+    },
+    "Session is active but has not captured any events yet.": "Session is active but has not captured any events yet.",
+    "Query Profiler Events": "Query Profiler Events",
+    "Query events from profiler session '{0}'?/{0} is the session ID": {
+        "message": "Query events from profiler session '{0}'?",
+        "comment": ["{0} is the session ID"]
+    },
+    "Querying events from profiler session '{0}'/{0} is the session ID": {
+        "message": "Querying events from profiler session '{0}'",
+        "comment": ["{0} is the session ID"]
+    },
+    "No events match the specified filter criteria.": "No events match the specified filter criteria.",
+    "Get Event Detail": "Get Event Detail",
+    "Get details for event '{1}' in session '{0}'?/{0} is the session ID{1} is the event ID": {
+        "message": "Get details for event '{1}' in session '{0}'?",
+        "comment": ["{0} is the session ID", "{1} is the event ID"]
+    },
+    "Getting details for event '{1}' in session '{0}'/{0} is the session ID{1} is the event ID": {
+        "message": "Getting details for event '{1}' in session '{0}'",
+        "comment": ["{0} is the session ID", "{1} is the event ID"]
+    },
+    "Event '{0}' not found in session '{1}'. Use mssql_profiler_query_events to find valid event IDs./{0} is the event ID{1} is the session ID": {
+        "message": "Event '{0}' not found in session '{1}'. Use mssql_profiler_query_events to find valid event IDs.",
+        "comment": ["{0} is the event ID", "{1} is the session ID"]
+    },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

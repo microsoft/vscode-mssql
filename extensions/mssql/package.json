@@ -2826,6 +2826,172 @@
                 "toolReferenceName": "mssql_run_query",
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
+            },
+            {
+                "name": "mssql_profiler_list_sessions",
+                "modelDescription": "List all active SQL Server XEvent (Extended Events) profiler sessions. These are live profiling/tracing sessions that capture database activity like queries, stored procedures, and performance metrics. Returns session IDs, names, states (running/paused/stopped), event counts, and connection labels. Use this tool first to discover available XEvent sessions before querying events or getting summaries. No parameters required. This is different from database connections - these are profiler trace sessions.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "profiler",
+                    "xevent",
+                    "extended-events",
+                    "sessions",
+                    "monitoring",
+                    "tracing"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "List XEvent Profiler Sessions",
+                "toolReferenceName": "mssql_profiler_list_sessions",
+                "userDescription": "List all active SQL Server XEvent (Extended Events) profiler sessions.",
+                "icon": "$(list-unordered)"
+            },
+            {
+                "name": "mssql_profiler_get_session_summary",
+                "modelDescription": "Get a summary of a SQL Server XEvent (Extended Events) profiler session including total event count, time range, top event types, top databases by activity, and top applications by activity. Use this to understand the overall activity captured by an XEvent profiler session. Requires a sessionId from mssql_profiler_list_sessions.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "profiler",
+                    "xevent",
+                    "extended-events",
+                    "summary",
+                    "monitoring",
+                    "analysis"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "description": "The XEvent profiler session ID to get summary for. Get this from mssql_profiler_list_sessions.",
+                            "title": "Session ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "sessionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get XEvent Session Summary",
+                "toolReferenceName": "mssql_profiler_get_session_summary",
+                "userDescription": "Get a summary of a SQL Server XEvent profiler session including event counts and distributions.",
+                "icon": "$(graph)"
+            },
+            {
+                "name": "mssql_profiler_query_events",
+                "modelDescription": "Query and filter events from a SQL Server XEvent (Extended Events) profiler session. Supports filtering by event type, database, duration, text content, and more. Returns events sorted by duration (descending) by default. Use filters to find slow queries (duration > threshold), specific event types, or events from particular databases. Requires a sessionId from mssql_profiler_list_sessions. Duration is in microseconds.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "profiler",
+                    "xevent",
+                    "extended-events",
+                    "events",
+                    "query",
+                    "filter",
+                    "monitoring",
+                    "slow-queries"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "description": "The XEvent profiler session ID to query events from. Get this from mssql_profiler_list_sessions.",
+                            "title": "Session ID",
+                            "type": "string"
+                        },
+                        "filters": {
+                            "description": "Optional array of filter clauses. Each filter has: field (eventClass, databaseName, textData, duration, cpu, reads, writes), operator (equals, notEquals, contains, greaterThan, lessThan, greaterThanOrEqual, lessThanOrEqual), and value.",
+                            "title": "Filters",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "field": {
+                                        "type": "string",
+                                        "description": "Field to filter on: eventClass, databaseName, textData, duration, cpu, reads, writes, spid, timestamp"
+                                    },
+                                    "operator": {
+                                        "type": "string",
+                                        "enum": ["equals", "notEquals", "contains", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"],
+                                        "description": "Comparison operator"
+                                    },
+                                    "value": {
+                                        "description": "Value to compare against (string or number depending on field)"
+                                    }
+                                },
+                                "required": ["field", "operator", "value"]
+                            }
+                        },
+                        "limit": {
+                            "description": "Maximum number of events to return. Default is 50, maximum is 200.",
+                            "title": "Limit",
+                            "type": "number",
+                            "default": 50
+                        },
+                        "sortBy": {
+                            "description": "Field to sort by: 'duration' (default) or 'timestamp'.",
+                            "title": "Sort By",
+                            "type": "string",
+                            "enum": ["duration", "timestamp"],
+                            "default": "duration"
+                        },
+                        "sortOrder": {
+                            "description": "Sort order: 'desc' (default) or 'asc'.",
+                            "title": "Sort Order",
+                            "type": "string",
+                            "enum": ["asc", "desc"],
+                            "default": "desc"
+                        }
+                    },
+                    "required": [
+                        "sessionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Query XEvent Profiler Events",
+                "toolReferenceName": "mssql_profiler_query_events",
+                "userDescription": "Query and filter events from a SQL Server XEvent profiler session.",
+                "icon": "$(search)"
+            },
+            {
+                "name": "mssql_profiler_get_event_detail",
+                "modelDescription": "Get full details of a specific event from a SQL Server XEvent (Extended Events) profiler session by its ID. Returns complete event information including full SQL text (up to 4096 chars), all timing metrics (duration in microseconds, CPU, reads, writes), and additional event-specific data. Use this after mssql_profiler_query_events to inspect a specific event in detail.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "profiler",
+                    "xevent",
+                    "extended-events",
+                    "event",
+                    "detail",
+                    "monitoring"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "sessionId": {
+                            "description": "The profiler session ID containing the event. Get this from mssql_profiler_list_sessions.",
+                            "title": "Session ID",
+                            "type": "string"
+                        },
+                        "eventId": {
+                            "description": "The event ID to get details for. Get this from mssql_profiler_query_events results.",
+                            "title": "Event ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "sessionId",
+                        "eventId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get Profiler Event Detail",
+                "toolReferenceName": "mssql_profiler_get_event_detail",
+                "userDescription": "Get full details of a specific profiler event.",
+                "icon": "$(info)"
             }
         ],
         "colors": [

@@ -47,6 +47,14 @@ export class ProfilerController {
     }
 
     /**
+     * Gets the session manager for accessing profiler sessions.
+     * Used by Copilot Agent Tools to query session data.
+     */
+    public get sessionManager(): ProfilerSessionManager {
+        return this._sessionManager;
+    }
+
+    /**
      * Register the profiler details panel view in VS Code's panel area
      */
     private registerDetailsPanelView(): void {

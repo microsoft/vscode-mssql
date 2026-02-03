@@ -222,6 +222,12 @@ export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
+// Profiler Agent Tools
+export const copilotProfilerListSessionsToolName = "mssql_profiler_list_sessions";
+export const copilotProfilerGetSessionSummaryToolName = "mssql_profiler_get_session_summary";
+export const copilotProfilerQueryEventsToolName = "mssql_profiler_query_events";
+export const copilotProfilerGetEventDetailToolName = "mssql_profiler_get_event_detail";
+
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";

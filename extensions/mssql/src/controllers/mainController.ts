@@ -91,6 +91,10 @@ import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
+import { ProfilerListSessionsTool } from "../copilot/tools/profilerListSessionsTool";
+import { ProfilerGetSessionSummaryTool } from "../copilot/tools/profilerGetSessionSummaryTool";
+import { ProfilerQueryEventsTool } from "../copilot/tools/profilerQueryEventsTool";
+import { ProfilerGetEventDetailTool } from "../copilot/tools/profilerGetEventDetailTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -812,6 +816,51 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotRunQueryToolName,
                 new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_profiler_list_sessions tool
+        console.log("[MSSQL Copilot] Registering profiler tools...");
+        console.log("[MSSQL Copilot] ProfilerController exists:", !!this.profilerController);
+        console.log(
+            "[MSSQL Copilot] SessionManager exists:",
+            !!this.profilerController?.sessionManager,
+        );
+
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotProfilerListSessionsToolName,
+                new ProfilerListSessionsTool(this.profilerController.sessionManager),
+            ),
+        );
+        console.log("[MSSQL Copilot] Registered:", Constants.copilotProfilerListSessionsToolName);
+
+        // Register mssql_profiler_get_session_summary tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotProfilerGetSessionSummaryToolName,
+                new ProfilerGetSessionSummaryTool(this.profilerController.sessionManager),
+            ),
+        );
+        console.log(
+            "[MSSQL Copilot] Registered:",
+            Constants.copilotProfilerGetSessionSummaryToolName,
+        );
+
+        // Register mssql_profiler_query_events tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotProfilerQueryEventsToolName,
+                new ProfilerQueryEventsTool(this.profilerController.sessionManager),
+            ),
+        );
+        console.log("[MSSQL Copilot] Registered:", Constants.copilotProfilerQueryEventsToolName);
+
+        // Register mssql_profiler_get_event_detail tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotProfilerGetEventDetailToolName,
+                new ProfilerGetEventDetailTool(this.profilerController.sessionManager),
             ),
         );
     }
