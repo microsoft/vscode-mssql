@@ -2594,34 +2594,18 @@
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
     },
+    "Profiler session '{0}' started successfully./{0} is the session name": {
+        "message": "Profiler session '{0}' started successfully.",
+        "comment": ["{0} is the session name"]
+    },
     "Profiler ready. Select a session from the dropdown and click Start to begin profiling.": "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
     },
-    "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
-        "message": "{0}/{1} events",
-        "comment": ["{0} is the filtered count, {1} is the total count"]
-    },
-    "Failed to open text in editor: {0}/{0} is the error message": {
-        "message": "Failed to open text in editor: {0}",
-        "comment": ["{0} is the error message"]
-    },
-    "Profiler events exported successfully to {0}/{0} is the file path": {
-        "message": "Profiler events exported successfully to {0}",
-        "comment": ["{0} is the file path"]
-    },
-    "Open File": "Open File",
-    "Failed to export profiler events: {0}/{0} is the error message": {
-        "message": "Failed to export profiler events: {0}",
-        "comment": ["{0} is the error message"]
-    },
-    "Export cancelled": "Export cancelled",
-    "profiler_events": "profiler_events",
-    "Unexported Profiler Events": "Unexported Profiler Events",
-    "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
-    "Export & Close": "Export & Close",
-    "Close Without Export": "Close Without Export",
+    "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
+    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
+    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

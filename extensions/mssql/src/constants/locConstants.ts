@@ -2670,6 +2670,12 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
     public static profilerReady = l10n.t(
         "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     );
@@ -2693,47 +2699,17 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
-    public static eventsCountFiltered = (filtered: number, total: number) =>
-        l10n.t({
-            message: "{0}/{1} events",
-            args: [filtered, total],
-            comment: ["{0} is the filtered count, {1} is the total count"],
-        });
 
-    // Details panel
-    public static failedToOpenInEditor = (error: string) =>
-        l10n.t({
-            message: "Failed to open text in editor: {0}",
-            args: [error],
-            comment: ["{0} is the error message"],
-        });
-
-    // Export messages
-    public static exportToCsv = l10n.t("Export to CSV");
-    public static exportSuccess = (filePath: string) =>
-        l10n.t({
-            message: "Profiler events exported successfully to {0}",
-            args: [filePath],
-            comment: ["{0} is the file path"],
-        });
-    public static openFile = l10n.t("Open File");
-    public static exportFailed = (error: string) =>
-        l10n.t({
-            message: "Failed to export profiler events: {0}",
-            args: [error],
-            comment: ["{0} is the error message"],
-        });
-    public static exportCancelled = l10n.t("Export cancelled");
-    public static defaultExportFileName = l10n.t("profiler_events");
-
-    // Close prompt messages
-    public static unexportedEventsTitle = l10n.t("Unexported Profiler Events");
-    public static unexportedEventsMessage = l10n.t(
-        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    // Database selection for Azure SQL
+    public static selectDatabaseForProfiler = l10n.t(
+        "Select a database for profiling (Azure SQL requires a specific database)",
     );
-    public static exportAndClose = l10n.t("Export & Close");
-    public static closeWithoutExport = l10n.t("Close Without Export");
-    public static cancel = l10n.t("Cancel");
+    public static noDatabasesFound = l10n.t(
+        "No databases found on the server. Please check your connection.",
+    );
+    public static profilerNotSupportedOnFabric = l10n.t(
+        "Profiler is not supported on Microsoft Fabric SQL databases.",
+    );
 }
 
 export class Proxy {

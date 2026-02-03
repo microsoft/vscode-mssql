@@ -408,7 +408,7 @@ export const defaultProfilerConfig: ProfilerConfig = {
     templates: [
         {
             id: TEMPLATE_ID_STANDARD_ONPREM,
-            name: "Standard (default)",
+            name: "Standard_OnPrem",
             description: "Standard profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
             defaultView: VIEW_ID_STANDARD,
@@ -459,7 +459,7 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
         },
         {
             id: TEMPLATE_ID_STANDARD_AZURE,
-            name: "Standard (default)",
+            name: "Standard_Azure",
             description: "Standard profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
             defaultView: VIEW_ID_STANDARD,
@@ -472,11 +472,36 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
                 "sqlserver.sql_batch_completed",
                 "sqlserver.sql_batch_starting",
             ],
-            createStatement: `CREATE EVENT SESSION [{sessionName}] ON DATABASE ADD EVENT sqlserver.attention(ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.username,sqlserver.query_hash,sqlserver.session_id,sqlserver.client_hostname) WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))), ADD EVENT sqlserver.existing_connection(SET collect_options_text=(1) ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.username,sqlserver.session_id,sqlserver.client_hostname)), ADD EVENT sqlserver.login(SET collect_options_text=(1) ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.username,sqlserver.session_id,sqlserver.client_hostname)), ADD EVENT sqlserver.logout(ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.username,sqlserver.session_id,sqlserver.client_hostname)), ADD EVENT sqlserver.rpc_completed(ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.username,sqlserver.query_hash,sqlserver.session_id,sqlserver.client_hostname) WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))), ADD EVENT sqlserver.sql_batch_completed(ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.username,sqlserver.query_hash,sqlserver.session_id,sqlserver.client_hostname) WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))), ADD EVENT sqlserver.sql_batch_starting(ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.username,sqlserver.query_hash,sqlserver.session_id,sqlserver.client_hostname) WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))) ADD TARGET package0.ring_buffer(SET max_events_limit=(1000)) WITH (EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=PER_CPU,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
+            createStatement: `CREATE EVENT SESSION [{sessionName}] ON DATABASE
+ADD EVENT sqlserver.attention(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.existing_connection(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)),
+ADD EVENT sqlserver.login(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.logout(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.rpc_completed(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.rpc_starting(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.sql_batch_completed(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
+ADD EVENT sqlserver.sql_batch_starting(
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
+    WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0))))
+ADD TARGET package0.ring_buffer(SET max_memory=(25600))
+WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,
         },
         {
             id: TEMPLATE_ID_TSQL_ONPREM,
-            name: "TSQL",
+            name: "TSQL_OnPrem",
             description: "TSQL profiling template for on-premises SQL Server",
             engineType: EngineType.Standalone,
             defaultView: VIEW_ID_TSQL,
@@ -507,7 +532,7 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
         },
         {
             id: TEMPLATE_ID_TSQL_AZURE,
-            name: "TSQL",
+            name: "TSQL_Azure",
             description: "TSQL profiling template for Azure SQL Database",
             engineType: EngineType.AzureSQLDB,
             defaultView: VIEW_ID_TSQL,
@@ -520,18 +545,18 @@ WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPAT
             ],
             createStatement: `CREATE EVENT SESSION [{sessionName}] ON DATABASE
 ADD EVENT sqlserver.existing_connection(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.server_principal_name,sqlserver.session_id)),
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)),
 ADD EVENT sqlserver.login(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.server_principal_name,sqlserver.session_id)
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)
     WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
 ADD EVENT sqlserver.logout(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.server_principal_name,sqlserver.session_id)
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_name,sqlserver.session_id)
     WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
 ADD EVENT sqlserver.sql_batch_completed(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.server_principal_name,sqlserver.session_id)
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
     WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0)))),
 ADD EVENT sqlserver.sql_batch_starting(
-    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.server_principal_name,sqlserver.session_id)
+    ACTION(package0.event_sequence,sqlserver.client_app_name,sqlserver.client_pid,sqlserver.database_id,sqlserver.database_name,sqlserver.query_hash,sqlserver.session_id)
     WHERE ([package0].[equal_boolean]([sqlserver].[is_system],(0))))
 ADD TARGET package0.ring_buffer(SET max_memory=(25600))
 WITH (MAX_MEMORY=4096 KB,EVENT_RETENTION_MODE=ALLOW_SINGLE_EVENT_LOSS,MAX_DISPATCH_LATENCY=5 SECONDS,MAX_EVENT_SIZE=0 KB,MEMORY_PARTITION_MODE=NONE,TRACK_CAUSALITY=ON,STARTUP_STATE=OFF)`,

@@ -3213,6 +3213,9 @@
       <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
       <note>{0} is the name of the workspace</note>
     </trans-unit>
+    <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
+      <source xml:lang="en">No databases found on the server. Please check your connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
@@ -3646,15 +3649,18 @@
     <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
       <source xml:lang="en">Profiler Session Status</source>
     </trans-unit>
-    <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
-      <source xml:lang="en">Profiler events exported successfully to {0}</source>
-      <note>{0} is the file path</note>
+    <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
+      <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
     </trans-unit>
     <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
       <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5a889e3b36e8962aaf7d969eedf93448ceff066decd1befc6fc437103897f">
       <source xml:lang="en">Profiler session &apos;{0}&apos; created successfully. Starting profiling...</source>
+      <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
+      <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
     </trans-unit>
     <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
@@ -4228,8 +4234,8 @@
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
     </trans-unit>
-    <trans-unit id="++CODE++97b4a40db20e08404798c2b6f62b1c052a459f877fbcf3bc676c3f477cf4e35b">
-      <source xml:lang="en">Select a database to allow profiling (system databases cannot be profiled)</source>
+    <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
+      <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
