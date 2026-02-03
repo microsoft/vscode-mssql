@@ -291,20 +291,32 @@ async function getContainerByName(name: string): Promise<Dockerode.Container | u
 
 function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectInfo): Set<number> {
     const usedPorts = new Set<number>();
-    const portBindings = containerInspectInfo.NetworkSettings?.Ports ?? {};
+    const networkPortBindings = containerInspectInfo.NetworkSettings?.Ports ?? {};
+    const hostConfigPortBindings = (containerInspectInfo.HostConfig?.PortBindings ?? {}) as Record<
+        string,
+        unknown
+    >;
 
-    for (const bindingEntries of Object.values(portBindings)) {
-        if (!bindingEntries) {
-            continue;
-        }
+    const addBoundHostPorts = (portBindings: Record<string, unknown>) => {
+        for (const bindingEntries of Object.values(portBindings)) {
+            if (!Array.isArray(bindingEntries)) {
+                continue;
+            }
 
-        for (const binding of bindingEntries) {
-            const hostPort = Number.parseInt(binding.HostPort, 10);
-            if (!Number.isNaN(hostPort)) {
-                usedPorts.add(hostPort);
+            for (const binding of bindingEntries) {
+                const hostPortValue = (binding as { HostPort?: string }).HostPort;
+                const hostPort = Number.parseInt(hostPortValue ?? "", 10);
+                if (!Number.isNaN(hostPort)) {
+                    usedPorts.add(hostPort);
+                }
             }
         }
-    }
+    };
+
+    // Running containers usually expose mappings via NetworkSettings.Ports.
+    addBoundHostPorts(networkPortBindings as Record<string, unknown>);
+    // Stopped containers can still reserve explicit mappings in HostConfig.PortBindings.
+    addBoundHostPorts(hostConfigPortBindings);
 
     return usedPorts;
 }

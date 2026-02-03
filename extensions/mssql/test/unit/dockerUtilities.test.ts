@@ -1058,11 +1058,16 @@ suite("Docker Utilities", () => {
         let result = await dockerUtils.findAvailablePort(1433);
         expect(result, "Should return 1433 when no containers are running").to.equal(1433);
 
-        // 2. Port 1433 is taken: should return next available port
+        // 2. Port 1433 is configured on a stopped container: should return next available port
         listContainersStub.onSecondCall().resolves([{ Id: "container-id" }]);
         inspectStub.resolves({
             NetworkSettings: {
                 Ports: {
+                    "1433/tcp": null,
+                },
+            },
+            HostConfig: {
+                PortBindings: {
                     "1433/tcp": [{ HostPort: "1433" }],
                 },
             },
