@@ -2927,6 +2927,14 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onGlobalSearch(node?: any): Promise<void> {
+        // Guard: require a node when invoked from command palette without selection
+        if (!node?.connectionProfile) {
+            void this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.GlobalSearch.noNodeSelected,
+            );
+            return;
+        }
+
         const globalSearchWebView = new GlobalSearchWebViewController(
             this._context,
             this._vscodeWrapper,

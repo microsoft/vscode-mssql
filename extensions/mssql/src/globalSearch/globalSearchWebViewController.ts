@@ -34,6 +34,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private _metadataCache: Map<string, ObjectMetadata[]> = new Map();
     // Cache for transformed SearchResultItems to avoid re-transforming on every filter change
     private _searchResultItemCache: Map<string, SearchResultItem[]> = new Map();
+    // Stable owner URI for this webview instance - used for connection management
+    private _ownerUri: string;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -45,6 +47,10 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     ) {
         const serverName = _targetNode?.connectionProfile?.server || "Server";
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
+
+        // Generate stable owner URI for this webview instance (without timestamp for connection reuse)
+        const instanceId = Date.now();
+        const ownerUri = `globalSearch://${serverName}/${instanceId}`;
 
         super(
             context,
@@ -91,6 +97,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this._ownerUri = ownerUri;
         this.registerRpcHandlers();
         void this.initialize();
     }
@@ -100,8 +107,17 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async initialize(): Promise<void> {
         try {
-            // Set up connection URI
-            const connectionUri = this.generateConnectionUri();
+            // Guard: ensure _targetNode is defined (command can be invoked without a node)
+            if (!this._targetNode?.connectionProfile) {
+                this.logger.error("Global Search requires an Object Explorer node to be selected");
+                this.state.loadStatus = ApiStatus.Error;
+                this.state.errorMessage = LocConstants.GlobalSearch.noNodeSelected;
+                this.updateState();
+                return;
+            }
+
+            // Set up connection URI (use stable ownerUri)
+            const connectionUri = this.getConnectionUri();
             this.state.connectionUri = connectionUri;
 
             // Ensure connection is established
@@ -124,11 +140,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Generate a unique connection URI for this webview instance
+     * Get the stable connection URI for this webview instance.
+     * Uses a single ownerUri per panel to avoid connection accumulation.
      */
-    private generateConnectionUri(): string {
-        const timestamp = Date.now();
-        return `globalSearch://${this.state.serverName}/${this.state.selectedDatabase}_${timestamp}`;
+    private getConnectionUri(): string {
+        return this._ownerUri;
     }
 
     /**
@@ -227,20 +243,21 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         typeFilter: MetadataType | null;
         searchText: string;
     } {
-        const trimmed = searchTerm.trim().toLowerCase();
+        const trimmed = searchTerm.trim();
+        const trimmedLower = trimmed.toLowerCase();
 
-        // Check for type prefixes
-        if (trimmed.startsWith("t:")) {
-            return { typeFilter: MetadataType.Table, searchText: searchTerm.slice(2).trim() };
-        } else if (trimmed.startsWith("v:")) {
-            return { typeFilter: MetadataType.View, searchText: searchTerm.slice(2).trim() };
-        } else if (trimmed.startsWith("f:")) {
-            return { typeFilter: MetadataType.Function, searchText: searchTerm.slice(2).trim() };
-        } else if (trimmed.startsWith("sp:")) {
-            return { typeFilter: MetadataType.SProc, searchText: searchTerm.slice(3).trim() };
+        // Check for type prefixes - use trimmed string for slicing to handle leading whitespace correctly
+        if (trimmedLower.startsWith("t:")) {
+            return { typeFilter: MetadataType.Table, searchText: trimmed.slice(2).trim() };
+        } else if (trimmedLower.startsWith("v:")) {
+            return { typeFilter: MetadataType.View, searchText: trimmed.slice(2).trim() };
+        } else if (trimmedLower.startsWith("f:")) {
+            return { typeFilter: MetadataType.Function, searchText: trimmed.slice(2).trim() };
+        } else if (trimmedLower.startsWith("sp:")) {
+            return { typeFilter: MetadataType.SProc, searchText: trimmed.slice(3).trim() };
         }
 
-        return { typeFilter: null, searchText: searchTerm.trim() };
+        return { typeFilter: null, searchText: trimmed };
     }
 
     /**
@@ -370,8 +387,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 state.availableSchemas = [];
                 state.selectedSchemas = [];
 
-                // Update connection for new database
-                const connectionUri = this.generateConnectionUri();
+                // Use stable connection URI for this webview instance
+                const connectionUri = this.getConnectionUri();
                 state.connectionUri = connectionUri;
 
                 await this.ensureConnection(connectionUri);
@@ -450,14 +467,26 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         // Data refresh
         this.registerReducer("refreshDatabases", async (state) => {
             await this.loadDatabases();
+            this.updateState();
             return state;
         });
 
         this.registerReducer("refreshResults", async (state) => {
+            // Reset filters and search to initial state
+            state.searchTerm = "";
+            state.objectTypeFilters = {
+                tables: true,
+                views: true,
+                storedProcedures: true,
+                functions: true,
+            };
+
             // Clear caches for current database to force refresh
             const cacheKey = `${state.connectionUri}:${state.selectedDatabase}`;
             this._metadataCache.delete(cacheKey);
             this._searchResultItemCache.delete(cacheKey);
+
+            // Refetch metadata (this will also reset schema filters to all selected)
             await this.loadMetadata();
             return state;
         });

@@ -2427,6 +2427,10 @@ export class GlobalSearch {
         "Failed to establish connection for scripting",
     );
 
+    public static noNodeSelected = l10n.t(
+        "Unable to open Global Search: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
+    );
+
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");

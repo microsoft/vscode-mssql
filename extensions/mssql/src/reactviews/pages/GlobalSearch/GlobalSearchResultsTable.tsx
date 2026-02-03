@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
     makeStyles,
     shorthands,
@@ -149,6 +149,19 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
 
         // Local name filter (kept local since search term has different semantics with prefix support)
         const [nameFilter, setNameFilter] = useState<string>("");
+
+        // Store nameFilter in a ref so we can access it without triggering the sync effect
+        const nameFilterRef = useRef(nameFilter);
+        nameFilterRef.current = nameFilter;
+
+        // Clear local name filter when global searchTerm is cleared (e.g., by refresh button)
+        // Only depends on searchTerm - we use a ref for nameFilter to avoid
+        // triggering this effect when the user is typing (which would clear their input)
+        useEffect(() => {
+            if (searchTerm === "" && nameFilterRef.current !== "") {
+                setNameFilter("");
+            }
+        }, [searchTerm]);
 
         // Check if search has a type prefix - if so, that overrides the panel type filters
         const searchPrefixType = useMemo(() => getTypeFromSearchPrefix(searchTerm), [searchTerm]);
