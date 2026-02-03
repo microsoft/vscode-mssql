@@ -2835,6 +2835,33 @@
                             }
                         }
                     },
+                    "oneOf": [
+                        {
+                            "properties": {
+                                "operation": { "enum": ["show"] }
+                            },
+                            "required": ["connectionId"]
+                        },
+                        {
+                            "properties": {
+                                "operation": { "enum": ["get_overview"] }
+                            }
+                        },
+                        {
+                            "properties": {
+                                "operation": { "enum": ["get_table"] },
+                                "payload": { "type": "object", "required": ["table"] }
+                            },
+                            "required": ["payload"]
+                        },
+                        {
+                            "properties": {
+                                "operation": { "enum": ["apply_edits"] },
+                                "payload": { "type": "object", "required": ["expectedVersion", "edits"] }
+                            },
+                            "required": ["payload"]
+                        }
+                    ],
                     "required": [
                         "operation"
                     ]

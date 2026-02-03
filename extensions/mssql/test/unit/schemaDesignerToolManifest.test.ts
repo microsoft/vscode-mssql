@@ -83,4 +83,29 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(setForeignKey.required).to.include.members(["table", "foreignKey", "set"]);
         expect(setForeignKey.properties.set.properties).to.have.property("mappings");
     });
+
+    test("mssql_schema_designer apply_edits requires payload.expectedVersion", () => {
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+        const tool = (packageJson.contributes?.languageModelTools ?? []).find(
+            (t: any) => t?.name === "mssql_schema_designer",
+        );
+        expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
+            .exist;
+
+        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
+        expect(rootOneOf, "missing inputSchema.oneOf").to.be.an("array");
+
+        const applyEditsVariant = rootOneOf.find(
+            (v: any) => v?.properties?.operation?.enum?.[0] === "apply_edits",
+        );
+        expect(applyEditsVariant, "missing inputSchema.oneOf variant for apply_edits").to.exist;
+
+        expect(applyEditsVariant.required, "apply_edits: required").to.include("payload");
+        expect(
+            applyEditsVariant.properties?.payload?.required,
+            "apply_edits: payload.required",
+        ).to.include.members(["expectedVersion", "edits"]);
+    });
 });
