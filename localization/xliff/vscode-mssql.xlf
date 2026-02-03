@@ -2292,6 +2292,12 @@
     <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
       <source xml:lang="en">Filter by keyword</source>
     </trans-unit>
+    <trans-unit id="++CODE++6e35e285106ad4a8ff905af2f619136cb2d19f6a588eec3ce15ea95afb506dcc">
+      <source xml:lang="en">Filter by name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
+      <source xml:lang="en">Filter by schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
       <source xml:lang="en">Filter by type</source>
     </trans-unit>
