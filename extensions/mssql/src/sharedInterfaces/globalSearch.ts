@@ -74,7 +74,9 @@ export interface GlobalSearchContextProps {
     // Filters
     setDatabase: (database: string) => void;
     toggleObjectTypeFilter: (objectType: keyof ObjectTypeFilters) => void;
+    setObjectTypeFilters: (filters: ObjectTypeFilters) => void;
     toggleSchemaFilter: (schema: string) => void;
+    setSchemaFilters: (schemas: string[]) => void;
     selectAllSchemas: () => void;
     clearSchemaSelection: () => void;
 
@@ -100,7 +102,9 @@ export interface GlobalSearchReducers {
     // Filters
     setDatabase: { database: string };
     toggleObjectTypeFilter: { objectType: keyof ObjectTypeFilters };
+    setObjectTypeFilters: { filters: ObjectTypeFilters };
     toggleSchemaFilter: { schema: string };
+    setSchemaFilters: { schemas: string[] };
     selectAllSchemas: {};
     clearSchemaSelection: {};
 

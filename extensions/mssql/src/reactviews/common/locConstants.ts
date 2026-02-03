@@ -1682,6 +1682,12 @@ export class LocConstants {
             all: l10n.t("All"),
             none: l10n.t("None"),
 
+            // Type names (singular, must match backend values)
+            typeTable: l10n.t("Table"),
+            typeView: l10n.t("View"),
+            typeStoredProcedure: l10n.t("Stored Procedure"),
+            typeFunction: l10n.t("Function"),
+
             // Toolbar
             searchPlaceholder: l10n.t("Search by name of type (t:, v:, f:, or sp:)"),
             refresh: l10n.t("Refresh"),
@@ -1695,6 +1701,13 @@ export class LocConstants {
             // Empty state
             noObjectsFound: l10n.t("No objects found"),
             tryAdjustingFilters: l10n.t("Try adjusting your search or filters"),
+
+            // Column header filters
+            filterByName: l10n.t("Filter by name"),
+            filterBySchema: l10n.t("Filter by schema"),
+            filterByType: l10n.t("Filter by type"),
+            clearFilter: l10n.t("Clear"),
+            selectAll: l10n.t("Select All"),
 
             // Action menu items
             selectTop1000: l10n.t("Select Top 1000"),

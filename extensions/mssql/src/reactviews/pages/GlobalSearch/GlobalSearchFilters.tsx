@@ -80,6 +80,29 @@ const useStyles = makeStyles({
     },
 });
 
+// Helper to detect if search has a type prefix
+const hasTypePrefix = (searchTerm: string): boolean => {
+    const trimmed = searchTerm.trim().toLowerCase();
+    return (
+        trimmed.startsWith("t:") ||
+        trimmed.startsWith("v:") ||
+        trimmed.startsWith("f:") ||
+        trimmed.startsWith("sp:")
+    );
+};
+
+// Helper to get which type is active from the search prefix
+const getActiveTypeFromPrefix = (
+    searchTerm: string,
+): keyof ObjectTypeFilters | null => {
+    const trimmed = searchTerm.trim().toLowerCase();
+    if (trimmed.startsWith("t:")) return "tables";
+    if (trimmed.startsWith("v:")) return "views";
+    if (trimmed.startsWith("f:")) return "functions";
+    if (trimmed.startsWith("sp:")) return "storedProcedures";
+    return null;
+};
+
 export const GlobalSearchFilters: React.FC = React.memo(() => {
     const classes = useStyles();
     const context = useGlobalSearchContext();
@@ -90,6 +113,14 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
     const objectTypeFilters = useGlobalSearchSelector((s) => s.objectTypeFilters);
     const availableSchemas = useGlobalSearchSelector((s) => s.availableSchemas);
     const selectedSchemas = useGlobalSearchSelector((s) => s.selectedSchemas);
+    const searchTerm = useGlobalSearchSelector((s) => s.searchTerm);
+
+    // Check if search prefix is overriding type filters
+    const searchHasTypePrefix = React.useMemo(() => hasTypePrefix(searchTerm), [searchTerm]);
+    const activeTypeFromPrefix = React.useMemo(
+        () => getActiveTypeFromPrefix(searchTerm),
+        [searchTerm],
+    );
 
     // Create a Set for O(1) lookup of selected schemas
     const selectedSchemaSet = React.useMemo(() => new Set(selectedSchemas), [selectedSchemas]);
@@ -101,11 +132,24 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
     };
 
     const handleFilterToggle = (filterKey: keyof ObjectTypeFilters) => {
+        // Don't toggle if search prefix is active (it overrides)
+        if (searchHasTypePrefix) {
+            return;
+        }
         context.toggleObjectTypeFilter(filterKey);
     };
 
     const handleSchemaToggle = (schema: string) => {
         context.toggleSchemaFilter(schema);
+    };
+
+    // Helper to determine if a type checkbox should be checked
+    // When search prefix is active, only that type shows as checked
+    const isTypeChecked = (filterKey: keyof ObjectTypeFilters): boolean => {
+        if (searchHasTypePrefix) {
+            return activeTypeFromPrefix === filterKey;
+        }
+        return objectTypeFilters[filterKey];
     };
 
     return (
@@ -134,7 +178,8 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                 <Label className={classes.sectionTitle}>{loc.globalSearch.objectTypes}</Label>
                 <div className={classes.checkboxGroup}>
                     <Checkbox
-                        checked={objectTypeFilters.tables}
+                        checked={isTypeChecked("tables")}
+                        disabled={searchHasTypePrefix}
                         onChange={() => handleFilterToggle("tables")}
                         label={
                             <span className={classes.checkboxLabel}>
@@ -144,7 +189,8 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         }
                     />
                     <Checkbox
-                        checked={objectTypeFilters.views}
+                        checked={isTypeChecked("views")}
+                        disabled={searchHasTypePrefix}
                         onChange={() => handleFilterToggle("views")}
                         label={
                             <span className={classes.checkboxLabel}>
@@ -154,7 +200,8 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         }
                     />
                     <Checkbox
-                        checked={objectTypeFilters.storedProcedures}
+                        checked={isTypeChecked("storedProcedures")}
+                        disabled={searchHasTypePrefix}
                         onChange={() => handleFilterToggle("storedProcedures")}
                         label={
                             <span className={classes.checkboxLabel}>
@@ -164,7 +211,8 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         }
                     />
                     <Checkbox
-                        checked={objectTypeFilters.functions}
+                        checked={isTypeChecked("functions")}
+                        disabled={searchHasTypePrefix}
                         onChange={() => handleFilterToggle("functions")}
                         label={
                             <span className={classes.checkboxLabel}>

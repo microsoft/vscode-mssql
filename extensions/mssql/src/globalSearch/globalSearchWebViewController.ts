@@ -387,6 +387,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("setObjectTypeFilters", async (state, payload) => {
+            state.objectTypeFilters = { ...payload.filters };
+            this.applyFiltersAndSearch();
+            return state;
+        });
+
         this.registerReducer("toggleSchemaFilter", async (state, payload) => {
             const schema = payload.schema;
             const index = state.selectedSchemas.indexOf(schema);
@@ -395,6 +401,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             } else {
                 state.selectedSchemas = state.selectedSchemas.filter((s) => s !== schema);
             }
+            this.applyFiltersAndSearch();
+            return state;
+        });
+
+        this.registerReducer("setSchemaFilters", async (state, payload) => {
+            state.selectedSchemas = [...payload.schemas];
             this.applyFiltersAndSearch();
             return state;
         });
