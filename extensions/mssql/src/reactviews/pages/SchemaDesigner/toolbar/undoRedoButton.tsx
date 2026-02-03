@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button } from "@fluentui/react-components";
+import { ToolbarButton, Tooltip } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import eventBus from "../schemaDesignerEvents";
 import { useEffect, useState } from "react";
@@ -24,28 +24,26 @@ export function UndoRedoButtons() {
     }, []);
     return (
         <>
-            <Button
-                size="small"
-                appearance="subtle"
-                icon={<FluentIcons.ArrowUndo16Regular />}
-                onClick={() => {
-                    eventBus.emit("undo");
-                }}
-                disabled={!isUndoEnabled}
-                title={locConstants.schemaDesigner.undo}>
-                {locConstants.schemaDesigner.undo}
-            </Button>
-            <Button
-                size="small"
-                appearance="subtle"
-                icon={<FluentIcons.ArrowRedo16Regular />}
-                onClick={() => {
-                    eventBus.emit("redo");
-                }}
-                disabled={!isRedoEnabled}
-                title={locConstants.schemaDesigner.redo}>
-                {locConstants.schemaDesigner.redo}
-            </Button>
+            <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                <ToolbarButton
+                    appearance="subtle"
+                    icon={<FluentIcons.ArrowUndo20Regular />}
+                    onClick={() => {
+                        eventBus.emit("undo");
+                    }}
+                    disabled={!isUndoEnabled}
+                />
+            </Tooltip>
+            <Tooltip content={locConstants.schemaDesigner.redo} relationship="label">
+                <ToolbarButton
+                    appearance="subtle"
+                    icon={<FluentIcons.ArrowRedo20Regular />}
+                    onClick={() => {
+                        eventBus.emit("redo");
+                    }}
+                    disabled={!isRedoEnabled}
+                />
+            </Tooltip>
         </>
     );
 }

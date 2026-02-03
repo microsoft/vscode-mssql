@@ -4,7 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    Dropdown,
+    Field,
+    makeStyles,
+    Spinner,
+    Text,
+    tokens,
+} from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { FlatFileContext } from "./flatFileStateProvider";
 import {
@@ -15,7 +23,8 @@ import {
 } from "../../../sharedInterfaces/flatFileImport";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileHeader } from "./flatFileHeader";
-import { FlatFilePreviewTable } from "./flatFilePreviewTable";
+import { FlatFilePreviewTablePage } from "./flatFilePreviewTable";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -36,9 +45,16 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
+    formLoadingLabel: {
+        display: "flex",
+        alignItems: "center",
+        marginTop: 0,
+        marginBottom: 0,
+    },
     button: {
         height: "32px",
-        width: "160px",
+        width: "120px",
+        margin: "5px",
     },
     bottomDiv: {
         bottom: 0,
@@ -60,6 +76,7 @@ export const FlatFileForm: React.FC = () => {
 
     const [showNext, setShowNext] = useState<boolean>(false);
     const { formComponents } = context.state;
+    const schemaFormComponent = formComponents["tableSchema"] as FlatFileImportFormItemSpec;
 
     const handleSubmit = async () => {
         context.getTablePreview(
@@ -82,7 +99,7 @@ export const FlatFileForm: React.FC = () => {
     };
 
     return showNext ? (
-        <FlatFilePreviewTable />
+        <FlatFilePreviewTablePage />
     ) : (
         <div>
             <FlatFileHeader
@@ -100,9 +117,6 @@ export const FlatFileForm: React.FC = () => {
                         context={context}
                         component={formComponents["databaseName"] as FlatFileImportFormItemSpec}
                         idx={0}
-                        componentProps={{
-                            readOnly: state.isDatabase, // set readOnly if connected to a database node
-                        }}
                     />
 
                     <FormField<
@@ -138,16 +152,41 @@ export const FlatFileForm: React.FC = () => {
                         component={formComponents["tableName"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
-                    <FormField<
-                        FlatFileImportFormState,
-                        FlatFileImportState,
-                        FlatFileImportFormItemSpec,
-                        FlatFileImportProvider
-                    >
-                        context={context}
-                        component={formComponents["tableSchema"] as FlatFileImportFormItemSpec}
-                        idx={0}
-                    />
+                    {state.schemaLoadStatus === ApiStatus.Loading ? (
+                        <div style={{ marginLeft: "6px", marginBottom: "2px" }}>
+                            <Field
+                                label={
+                                    <div className={classes.formLoadingLabel}>
+                                        <Text>{schemaFormComponent.label}</Text>
+                                        <Spinner
+                                            size="extra-tiny"
+                                            style={{ transform: "scale(0.8)" }}
+                                        />
+                                    </div>
+                                }>
+                                <Dropdown
+                                    size="small"
+                                    placeholder={schemaFormComponent.placeholder}
+                                    style={{
+                                        marginTop: 0,
+                                        width: "490px",
+                                        height: "26px",
+                                    }}
+                                />
+                            </Field>
+                        </div>
+                    ) : (
+                        <FormField<
+                            FlatFileImportFormState,
+                            FlatFileImportState,
+                            FlatFileImportFormItemSpec,
+                            FlatFileImportProvider
+                        >
+                            context={context}
+                            component={schemaFormComponent}
+                            idx={0}
+                        />
+                    )}
                 </div>
                 <div className={classes.bottomDiv}>
                     <hr style={{ background: tokens.colorNeutralBackground2 }} />
@@ -158,6 +197,13 @@ export const FlatFileForm: React.FC = () => {
                         appearance="primary"
                         disabled={shouldDisableNext()}>
                         {locConstants.common.next}
+                    </Button>
+                    <Button
+                        className={classes.button}
+                        type="submit"
+                        onClick={() => context.dispose()}
+                        appearance="secondary">
+                        {locConstants.common.cancel}
                     </Button>
                 </div>
             </div>

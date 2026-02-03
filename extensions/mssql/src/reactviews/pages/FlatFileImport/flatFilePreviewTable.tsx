@@ -3,19 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import {
     Button,
+    createTableColumn,
     makeStyles,
     Spinner,
     Table,
     TableBody,
     TableCell,
+    TableColumnDefinition,
+    TableColumnId,
+    TableColumnSizingOptions,
     TableHeader,
     TableHeaderCell,
     TableRow,
     Text,
     tokens,
+    useTableColumnSizing_unstable,
+    useTableFeatures,
 } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
@@ -23,6 +29,7 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { FlatFileColumnSettings } from "./flatFileColumnSettings";
+import { FlatFileForm } from "./flatFileForm";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -47,20 +54,25 @@ const useStyles = makeStyles({
     },
     button: {
         height: "32px",
-        width: "160px",
-        margin: "20px",
+        width: "120px",
+        margin: "5px",
     },
     bottomDiv: {
         bottom: 0,
-        paddingBottom: "50px",
+        paddingBottom: "25px",
     },
 
     tableDiv: {
         overflow: "auto",
-        maxHeight: "60vh",
-        tableLayout: "fixed",
         position: "relative",
         margin: "20px",
+        height: "75vh",
+    },
+
+    table: {
+        tableLayout: "fixed",
+        width: "100%",
+        height: "100%",
     },
 
     tableHeader: {
@@ -85,6 +97,8 @@ const useStyles = makeStyles({
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+        display: "block",
+        width: "100%",
     },
 
     columnText: {
@@ -99,15 +113,24 @@ const useStyles = makeStyles({
     },
 });
 
-export const FlatFilePreviewTable = () => {
+type Item = {
+    rowId: string;
+    cells: Cell[];
+};
+
+type Cell = {
+    columnId: TableColumnId;
+    value: string;
+};
+
+export const FlatFilePreviewTablePage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
     const state = context?.state;
 
-    if (!context || !state) return;
+    if (!context || !state) return null;
 
     const loadState = state.tablePreviewStatus;
-    const [showNext, setShowNext] = useState<boolean>(false);
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -121,63 +144,7 @@ export const FlatFilePreviewTable = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return showNext ? (
-                    <FlatFileColumnSettings />
-                ) : (
-                    <div>
-                        <FlatFileHeader
-                            headerText={locConstants.flatFileImport.importFile}
-                            stepText={locConstants.flatFileImport.stepTwo}
-                        />
-
-                        <Text className={classes.operationText}>
-                            {locConstants.flatFileImport.operationPreviewText}
-                        </Text>
-
-                        <div className={classes.tableDiv}>
-                            <Table>
-                                <TableHeader className={classes.tableHeader}>
-                                    <TableRow>
-                                        {state.tablePreview?.columnInfo.map((column) => (
-                                            <TableHeaderCell
-                                                key={column.name}
-                                                className={classes.tableHeaderCell}>
-                                                <Text className={classes.columnText}>
-                                                    {column.name}
-                                                </Text>
-                                            </TableHeaderCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {state.tablePreview?.dataPreview.map((row, rowIndex) => (
-                                        <TableRow key={rowIndex}>
-                                            {row.map((cell, cellIndex) => (
-                                                <TableCell
-                                                    key={cellIndex}
-                                                    className={classes.tableBodyCell}>
-                                                    <Text className={classes.cellText}>{cell}</Text>
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <div className={classes.bottomDiv}>
-                            <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                            <Button
-                                className={classes.button}
-                                type="submit"
-                                onClick={() => setShowNext(true)}
-                                appearance="primary">
-                                {locConstants.common.next}
-                            </Button>
-                        </div>
-                    </div>
-                );
-
+                return <FlatFilePreviewTable />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -189,4 +156,143 @@ export const FlatFilePreviewTable = () => {
     };
 
     return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+};
+
+export const FlatFilePreviewTable = () => {
+    const classes = useStyles();
+    const context = useContext(FlatFileContext);
+    const state = context?.state;
+
+    if (!context || !state) return null;
+
+    const [showNext, setShowNext] = useState<boolean>(false);
+    const [showPrevious, setShowPrevious] = useState<boolean>(false);
+
+    const columns: TableColumnDefinition<Item>[] = useMemo(() => {
+        return (
+            state.tablePreview?.columnInfo.map((column) =>
+                createTableColumn<Item>({
+                    columnId: column.name,
+                    renderHeaderCell: () => (
+                        <Text className={classes.columnText}>{column.name}</Text>
+                    ),
+                }),
+            ) || []
+        );
+    }, [state.tablePreview?.columnInfo, classes.columnText]);
+
+    const items: Item[] = useMemo(() => {
+        return (
+            state.tablePreview?.dataPreview.map((row, rowIndex) => {
+                const cells = row.map((cell, cellIndex) => ({
+                    columnId: columns[cellIndex]?.columnId ?? "",
+                    value: cell,
+                }));
+                return { rowId: `row-${rowIndex}`, cells };
+            }) || []
+        );
+    }, [state.tablePreview?.dataPreview, columns]);
+
+    const columnSizingOptions: TableColumnSizingOptions = useMemo(() => {
+        const sizes: TableColumnSizingOptions = {};
+        columns.forEach((column) => {
+            sizes[column.columnId] = { defaultWidth: 50, minWidth: 20 };
+        });
+        console.log(sizes);
+        return sizes;
+    }, [state.tablePreview?.dataPreview, columns]);
+
+    const tableFeatures = useTableFeatures<Item>(
+        {
+            columns,
+            items,
+        },
+        [
+            useTableColumnSizing_unstable({
+                columnSizingOptions,
+                autoFitColumns: false,
+                containerWidthOffset: 20,
+            }),
+        ],
+    );
+
+    return showPrevious ? (
+        <FlatFileForm />
+    ) : showNext ? (
+        <FlatFileColumnSettings />
+    ) : (
+        <div>
+            <FlatFileHeader
+                headerText={locConstants.flatFileImport.importFile}
+                stepText={locConstants.flatFileImport.stepTwo}
+            />
+
+            <Text className={classes.operationText}>
+                {locConstants.flatFileImport.operationPreviewText}
+            </Text>
+
+            <div className={classes.tableDiv}>
+                <Table
+                    className={classes.table}
+                    ref={tableFeatures.tableRef}
+                    {...tableFeatures.columnSizing_unstable.getTableProps()}>
+                    <TableHeader className={classes.tableHeader}>
+                        <TableRow>
+                            {columns.map((column) => (
+                                <TableHeaderCell
+                                    key={column.columnId}
+                                    className={classes.tableHeaderCell}
+                                    {...tableFeatures.columnSizing_unstable.getTableHeaderCellProps(
+                                        column.columnId,
+                                    )}>
+                                    {column.renderHeaderCell()}
+                                </TableHeaderCell>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {tableFeatures.getRows().map((row, rowIndex) => (
+                            <TableRow key={rowIndex}>
+                                {row.item.cells.map((cell, cellIndex) => (
+                                    <TableCell
+                                        key={cellIndex}
+                                        className={classes.tableBodyCell}
+                                        {...tableFeatures.columnSizing_unstable.getTableCellProps(
+                                            cell.columnId,
+                                        )}>
+                                        <Text className={classes.cellText}>{cell.value}</Text>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div className={classes.bottomDiv}>
+                <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => setShowPrevious(true)}
+                    appearance="secondary">
+                    {locConstants.common.previous}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => setShowNext(true)}
+                    appearance="primary">
+                    {locConstants.common.next}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => context.dispose()}
+                    appearance="secondary">
+                    {locConstants.common.cancel}
+                </Button>
+            </div>
+        </div>
+    );
 };

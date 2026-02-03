@@ -25,6 +25,7 @@ import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { ChangeColumnSettingsParams } from "../../../models/contracts/flatFile";
 import { FlatFileSummary } from "./flatFileSummary";
+import { FlatFilePreviewTable } from "./flatFilePreviewTable";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,8 +35,8 @@ const useStyles = makeStyles({
     },
     button: {
         height: "32px",
-        width: "160px",
-        margin: "20px",
+        width: "120px",
+        margin: "5px",
     },
     bottomDiv: {
         bottom: 0,
@@ -91,6 +92,7 @@ export const FlatFileColumnSettings = () => {
     if (!context || !state) return;
 
     const [showNext, setShowNext] = useState<boolean>(false);
+    const [showPrevious, setShowPrevious] = useState<boolean>(false);
     const [columnChanges, setColumnChanges] = useState<Record<number, ChangeColumnSettingsParams>>(
         {},
     );
@@ -168,7 +170,9 @@ export const FlatFileColumnSettings = () => {
         setShowNext(true);
     };
 
-    return showNext ? (
+    return showPrevious ? (
+        <FlatFilePreviewTable />
+    ) : showNext ? (
         <FlatFileSummary />
     ) : (
         <div className={classes.outerDiv}>
@@ -287,9 +291,23 @@ export const FlatFileColumnSettings = () => {
                 <Button
                     className={classes.button}
                     type="submit"
+                    onClick={() => setShowPrevious(true)}
+                    appearance="secondary">
+                    {locConstants.common.previous}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
                     onClick={() => handleSubmit()}
                     appearance="primary">
                     {locConstants.flatFileImport.importData}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => context.dispose()}
+                    appearance="secondary">
+                    {locConstants.common.cancel}
                 </Button>
             </div>
         </div>

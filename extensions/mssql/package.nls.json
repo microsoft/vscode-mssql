@@ -42,6 +42,9 @@
     "mssql.showGettingStarted": "Getting Started Guide",
     "mssql.newQuery": "New Query",
     "mssql.objectExplorerNewQuery": "New Query",
+    "mssql.createDatabase": "Create Database",
+    "mssql.dropDatabase": "Drop Database",
+    "mssql.renameDatabase": "Rename Database",
     "mssql.objectExplorerChatWithDatabase": "Open in Copilot Ask mode",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in Copilot Agent mode",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot",
@@ -268,5 +271,6 @@
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
+    "mssql.backupDatabase": "Backup Database (Preview)",
     "mssql.flatFileImport": "Import Flat File"
 }

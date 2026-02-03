@@ -77,6 +77,7 @@ const useStyles = makeStyles({
     },
     schemaDropdown: {
         minWidth: "120px",
+        maxWidth: "250px",
     },
     enabledCount: {
         fontSize: "12px",
@@ -87,7 +88,8 @@ const useStyles = makeStyles({
 export function DabToolbar() {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const { dabConfig, updateDabApiType, dabSchemaFilter, setDabSchemaFilter } = context;
+    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter, generateDabConfig } =
+        context;
 
     if (!dabConfig) {
         return null;
@@ -95,6 +97,12 @@ export function DabToolbar() {
 
     const enabledCount = dabConfig.entities.filter((e) => e.isEnabled).length;
     const totalCount = dabConfig.entities.length;
+
+    const apiTypeOptions = [
+        { type: Dab.ApiType.Rest, label: locConstants.schemaDesigner.restApi },
+        { type: Dab.ApiType.GraphQL, label: locConstants.schemaDesigner.graphql },
+        { type: Dab.ApiType.Mcp, label: locConstants.schemaDesigner.mcp },
+    ];
 
     // Get unique schemas from entities for the filter dropdown
     const availableSchemas = Array.from(
@@ -113,15 +121,16 @@ export function DabToolbar() {
                         appearance="subtle"
                         icon={<FluentIcons.DocumentCopy16Regular />}
                         size="small"
-                        title={locConstants.schemaDesigner.viewConfig}>
-                        {locConstants.schemaDesigner.viewConfig}
+                        title={locConstants.schemaDesigner.generateConfig}
+                        onClick={() => void generateDabConfig()}>
+                        {locConstants.schemaDesigner.generateConfig}
                     </Button>
                     <Button
                         appearance="primary"
                         icon={<FluentIcons.Play16Filled />}
                         size="small"
-                        title={locConstants.schemaDesigner.generateAndRun}>
-                        {locConstants.schemaDesigner.generateAndRun}
+                        title={locConstants.schemaDesigner.deploy}>
+                        {locConstants.schemaDesigner.deploy}
                     </Button>
                 </div>
             </div>
@@ -130,29 +139,26 @@ export function DabToolbar() {
             <div className={classes.apiTypeRow}>
                 <Text className={classes.apiTypeLabel}>{locConstants.schemaDesigner.apiType}</Text>
                 <Toolbar size="small" className={classes.apiTypeButtons}>
-                    <ToggleButton
-                        appearance={dabConfig.apiType === Dab.ApiType.Rest ? "primary" : "subtle"}
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.Rest}
-                        onClick={() => updateDabApiType(Dab.ApiType.Rest)}>
-                        {locConstants.schemaDesigner.restApi}
-                    </ToggleButton>
-                    <ToggleButton
-                        appearance={
-                            dabConfig.apiType === Dab.ApiType.GraphQL ? "primary" : "subtle"
-                        }
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.GraphQL}
-                        onClick={() => updateDabApiType(Dab.ApiType.GraphQL)}>
-                        {locConstants.schemaDesigner.graphql}
-                    </ToggleButton>
-                    <ToggleButton
-                        appearance={dabConfig.apiType === Dab.ApiType.Both ? "primary" : "subtle"}
-                        size="small"
-                        checked={dabConfig.apiType === Dab.ApiType.Both}
-                        onClick={() => updateDabApiType(Dab.ApiType.Both)}>
-                        {locConstants.schemaDesigner.both}
-                    </ToggleButton>
+                    {apiTypeOptions.map(({ type, label }) => {
+                        const isSelected = dabConfig.apiTypes.includes(type);
+                        const isLastSelected = isSelected && dabConfig.apiTypes.length === 1;
+                        return (
+                            <ToggleButton
+                                key={type}
+                                appearance={isSelected ? "primary" : "subtle"}
+                                size="small"
+                                checked={isSelected}
+                                disabled={isLastSelected}
+                                onClick={() => {
+                                    const updated = isSelected
+                                        ? dabConfig.apiTypes.filter((t) => t !== type)
+                                        : [...dabConfig.apiTypes, type];
+                                    updateDabApiTypes(updated);
+                                }}>
+                                {label}
+                            </ToggleButton>
+                        );
+                    })}
                 </Toolbar>
             </div>
 
@@ -165,14 +171,23 @@ export function DabToolbar() {
                     <Dropdown
                         className={classes.schemaDropdown}
                         size="small"
-                        value={dabSchemaFilter || locConstants.schemaDesigner.allSchemas}
-                        selectedOptions={[dabSchemaFilter]}
+                        multiselect
+                        button={{
+                            style: {
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                            },
+                        }}
+                        value={
+                            dabSchemaFilter.length === 0
+                                ? locConstants.schemaDesigner.allSchemas
+                                : dabSchemaFilter.join(", ")
+                        }
+                        selectedOptions={dabSchemaFilter}
                         onOptionSelect={(_, data) => {
-                            setDabSchemaFilter(
-                                data.optionValue === "" ? "" : (data.optionValue ?? ""),
-                            );
+                            setDabSchemaFilter(data.selectedOptions);
                         }}>
-                        <Option value="">{locConstants.schemaDesigner.allSchemas}</Option>
                         {availableSchemas.map((schema) => (
                             <Option key={schema} value={schema}>
                                 {schema}

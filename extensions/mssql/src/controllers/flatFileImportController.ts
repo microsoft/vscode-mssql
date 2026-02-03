@@ -41,6 +41,7 @@ export class FlatFileImportController extends FormWebviewController<
     FlatFileImportReducers
 > {
     public readonly IMPORT_FILE_TYPES = ["csv", "txt"];
+    // Default form action reducer
     private baseFormActionReducer = this["_reducerHandlers"].get("formAction");
     constructor(
         context: vscode.ExtensionContext,
@@ -101,7 +102,6 @@ export class FlatFileImportController extends FormWebviewController<
         this.registerReducer("formAction", async (state, payload) => {
             // Reload db schemas if database name changed
             if (payload.event.propertyName === "databaseName") {
-                state.schemaLoadStatus = ApiStatus.Loading;
                 void this.handleLoadSchemas();
             }
             return this.baseFormActionReducer(state, payload);
@@ -338,24 +338,30 @@ export class FlatFileImportController extends FormWebviewController<
     }
 
     private async handleLoadSchemas(): Promise<void> {
+        this.state.schemaLoadStatus = ApiStatus.Loading;
+        this.state.formState.tableSchema = "";
+        const tableSchemaComponent = this.state.formComponents["tableSchema"];
+        tableSchemaComponent.options = [];
+        tableSchemaComponent.placeholder = Loc.FlatFileImport.loadingSchemas;
+
         let schemas: string[] = [];
         try {
             schemas = await this.getSchemas(this.state.formState.databaseName);
+            tableSchemaComponent.options = schemas.map((schema) => ({
+                displayName: schema,
+                value: schema,
+            }));
+            this.state.formState.tableSchema = schemas.includes(defaultSchema)
+                ? defaultSchema
+                : schemas[0];
+
+            this.state.schemaLoadStatus = ApiStatus.Loaded;
         } catch (error) {
             this.state.errorMessage = Loc.FlatFileImport.fetchSchemasError;
             this.state.fullErrorMessage = error.message;
             this.state.schemaLoadStatus = ApiStatus.Error;
+            tableSchemaComponent.placeholder = Loc.FlatFileImport.noSchemasFound;
         }
-        const tableSchemaComponent = this.state.formComponents["tableSchema"];
-        tableSchemaComponent.options = schemas.map((schema) => ({
-            displayName: schema,
-            value: schema,
-        }));
-        this.state.formState.tableSchema = schemas.includes(defaultSchema)
-            ? defaultSchema
-            : schemas[0];
-
-        this.state.schemaLoadStatus = ApiStatus.Loaded;
         this.updateState();
     }
 }

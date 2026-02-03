@@ -12,6 +12,7 @@ import * as jsonRpc from "vscode-jsonrpc/node";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
+import { Dab } from "../../src/sharedInterfaces/dab";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
 import {
@@ -223,6 +224,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -261,7 +263,14 @@ suite("SchemaDesignerWebviewController tests", () => {
 
     suite("GetDefinitionRequest handler", () => {
         test("should get definition and update cache", async () => {
-            const updatedSchema = mockSchema;
+            const updatedSchema: SchemaDesigner.Schema = {
+                tables: [
+                    {
+                        ...mockSchema.tables[0],
+                        name: "ModifiedUsers",
+                    },
+                ],
+            };
             const scriptResponse: SchemaDesigner.GetDefinitionResponse = {
                 script: "CREATE TABLE Users (Id INT);",
             };
@@ -269,6 +278,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getDefinition.resolves(scriptResponse);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -285,7 +295,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             });
             expect(result).to.deep.equal(scriptResponse);
             expect(schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.isDirty).to.be
-                .true;
+                .false;
         });
     });
 
@@ -305,6 +315,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getReport.resolves(reportResponse);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -323,7 +334,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(result.report).to.deep.equal(reportResponse);
             expect(result.error).to.be.undefined;
             expect(schemaDesignerCache.get(`${connectionString}-${databaseName}`)?.isDirty).to.be
-                .true;
+                .false;
         });
 
         test("should handle report generation error", async () => {
@@ -333,6 +344,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.getReport.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -357,6 +369,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.publishSession.resolves();
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -380,6 +393,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             mockSchemaDesignerService.publishSession.rejects(error);
             schemaDesignerCache.set(`${connectionString}-${databaseName}`, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -530,6 +544,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const initialSchema = JSON.parse(JSON.stringify(mockSchema));
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
+                baselineSchema: initialSchema,
                 isDirty: false,
             });
 
@@ -559,6 +574,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: true,
             });
 
@@ -576,6 +592,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const initialSchema = JSON.parse(JSON.stringify(mockSchema));
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: { ...mockCreateSessionResponse, schema: initialSchema },
+                baselineSchema: initialSchema,
                 isDirty: true,
             });
 
@@ -594,6 +611,7 @@ suite("SchemaDesignerWebviewController tests", () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
                 schemaDesignerDetails: mockCreateSessionResponse,
+                baselineSchema: mockCreateSessionResponse.schema,
                 isDirty: false,
             });
 
@@ -616,6 +634,131 @@ suite("SchemaDesignerWebviewController tests", () => {
             await ctrl.dispose();
 
             expect(updateCacheItemSpy).to.not.have.been.called;
+        });
+    });
+
+    suite("DAB Request Handlers", () => {
+        const mockDabConfig: Dab.DabConfig = {
+            apiTypes: [Dab.ApiType.Rest],
+            entities: [
+                {
+                    id: "1",
+                    tableName: "Users",
+                    schemaName: "dbo",
+                    isEnabled: true,
+                    enabledActions: [
+                        Dab.EntityAction.Create,
+                        Dab.EntityAction.Read,
+                        Dab.EntityAction.Update,
+                        Dab.EntityAction.Delete,
+                    ],
+                    advancedSettings: {
+                        entityName: "Users",
+                        authorizationRole: Dab.AuthorizationRole.Anonymous,
+                    },
+                },
+            ],
+        };
+
+        suite("GenerateConfigRequest handler", () => {
+            test("should register GenerateConfigRequest handler", () => {
+                createController();
+
+                expect(requestHandlers.has(Dab.GenerateConfigRequest.type.method)).to.be.true;
+            });
+
+            test("should generate config and return success response", async () => {
+                createController();
+
+                const handler = requestHandlers.get(Dab.GenerateConfigRequest.type.method);
+                expect(handler).to.be.a("function");
+
+                const result = await handler({ config: mockDabConfig });
+
+                expect(result.success).to.be.true;
+                expect(result.configContent).to.be.a("string");
+                expect(result.configContent.length).to.be.greaterThan(0);
+
+                // Verify the generated config is valid JSON
+                const parsedConfig = JSON.parse(result.configContent);
+                expect(parsedConfig).to.have.property("$schema");
+                expect(parsedConfig).to.have.property("data-source");
+                expect(parsedConfig).to.have.property("entities");
+            });
+
+            test("should include connection string in generated config", async () => {
+                createController();
+
+                const handler = requestHandlers.get(Dab.GenerateConfigRequest.type.method);
+                const result = await handler({ config: mockDabConfig });
+
+                const parsedConfig = JSON.parse(result.configContent);
+                expect(parsedConfig["data-source"]["connection-string"]).to.equal(connectionString);
+            });
+        });
+
+        suite("OpenConfigInEditorNotification handler", () => {
+            test("should register OpenConfigInEditorNotification handler", () => {
+                createController();
+
+                expect(notificationHandlers.has(Dab.OpenConfigInEditorNotification.type.method)).to
+                    .be.true;
+            });
+
+            test("should open config content in a new editor", async () => {
+                const mockDocument = { uri: { fsPath: "test.json" } };
+                const openTextDocumentStub = sandbox
+                    .stub(vscode.workspace, "openTextDocument")
+                    .resolves(mockDocument as any);
+                const showTextDocumentStub = sandbox
+                    .stub(vscode.window, "showTextDocument")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(
+                    Dab.OpenConfigInEditorNotification.type.method,
+                );
+                expect(handler).to.be.a("function");
+
+                const configContent = '{"$schema": "test"}';
+                await handler({ configContent });
+
+                expect(openTextDocumentStub).to.have.been.calledOnceWith({
+                    content: configContent,
+                    language: "json",
+                });
+                expect(showTextDocumentStub).to.have.been.calledOnceWith(mockDocument);
+            });
+        });
+
+        suite("CopyConfigNotification handler", () => {
+            test("should register CopyConfigNotification handler", () => {
+                createController();
+
+                expect(notificationHandlers.has(Dab.CopyConfigNotification.type.method)).to.be.true;
+            });
+
+            test("should copy config content to clipboard and show notification", async () => {
+                const writeTextStub = sandbox.stub().resolves();
+                sandbox.stub(vscode.env, "clipboard").value({
+                    writeText: writeTextStub,
+                });
+                const showInfoStub = sandbox
+                    .stub(vscode.window, "showInformationMessage")
+                    .resolves();
+
+                createController();
+
+                const handler = notificationHandlers.get(Dab.CopyConfigNotification.type.method);
+                expect(handler).to.be.a("function");
+
+                const configContent = '{"$schema": "test"}';
+                await handler({ configContent });
+
+                expect(writeTextStub).to.have.been.calledOnceWith(configContent);
+                expect(showInfoStub).to.have.been.calledOnce;
+            });
         });
     });
 });

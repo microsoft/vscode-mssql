@@ -64,6 +64,8 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
+            general: l10n.t("General"),
+            previous: l10n.t("Previous"),
         };
     }
 
@@ -741,6 +743,26 @@ export class LocConstants {
                     args: [tableName],
                     comment: ["{0} is the table name"],
                 }),
+            schemaDesignerNotInitialized: l10n.t("Schema designer is not initialized."),
+            invalidTablePayload: l10n.t(
+                "Invalid table payload. Expected table with columns array.",
+            ),
+            failedToAddTable: l10n.t("Failed to add table."),
+            failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToDeleteTable: l10n.t("Failed to delete table."),
+            tableIdAlreadyExists: l10n.t("Table id already exists."),
+            foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
+            foreignKeyMappingLengthMismatch: l10n.t(
+                "Foreign key column mappings must be the same length.",
+            ),
+            invalidForeignKey: l10n.t("Invalid foreign key."),
+            tableMustHaveColumns: l10n.t("Table must include at least one column."),
+            schemaNotAvailable: (schema: string) =>
+                l10n.t({
+                    message: "Schema '{0}' is not available.",
+                    args: [schema],
+                    comment: ["{0} is the schema name"],
+                }),
             referencedTableNotFound: (tableName: string) =>
                 l10n.t({
                     message: "Referenced table '{0}' not found",
@@ -920,12 +942,180 @@ export class LocConstants {
             showTableRelationships: l10n.t("Show table relationships"),
             schemaDesignerNavLabel: l10n.t("Schema Designer"),
             dabNavLabel: l10n.t("DAB"),
+            showChangesButtonLabel: (changeCount: number) =>
+                l10n.t({
+                    message: "Show Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of schema changes"],
+                }),
+            changesPanelTitle: (changeCount: number) =>
+                l10n.t({
+                    message: "Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of schema changes"],
+                }),
+            noChangesYet: l10n.t("No changes yet."),
+            schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [qualifiedTableName, changeDescription],
+                    comment: ["{0} is the qualified table name", "{1} is the change description"],
+                }),
+
+            schemaDiff: {
+                undefinedValue: l10n.t("undefined"),
+                propertyChanged: (
+                    propertyDisplayName: string,
+                    oldValue: string,
+                    newValue: string,
+                ) =>
+                    l10n.t({
+                        message: "{0} changed from '{1}' to '{2}'",
+                        args: [propertyDisplayName, oldValue, newValue],
+                        comment: [
+                            "{0} is the display name of the property",
+                            "{1} is the old value",
+                            "{2} is the new value",
+                        ],
+                    }),
+
+                createdTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Created table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                deletedTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Deleted table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                modifiedTable: (qualifiedTableName: string) =>
+                    l10n.t({
+                        message: "Modified table {0}",
+                        args: [qualifiedTableName],
+                        comment: ["{0} is the qualified table name"],
+                    }),
+                modifiedTableWithChanges: (qualifiedTableName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified table {0}: {1}",
+                        args: [qualifiedTableName, propertyChanges],
+                        comment: [
+                            "{0} is the qualified table name",
+                            "{1} is a list of property changes",
+                        ],
+                    }),
+
+                addedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Added column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                deletedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Deleted column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                modifiedColumn: (columnName: string) =>
+                    l10n.t({
+                        message: "Modified column '{0}'",
+                        args: [columnName],
+                        comment: ["{0} is the column name"],
+                    }),
+                modifiedColumnWithChanges: (columnName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified column '{0}': {1}",
+                        args: [columnName, propertyChanges],
+                        comment: ["{0} is the column name", "{1} is a list of property changes"],
+                    }),
+
+                addedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Added foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                deletedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Deleted foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                modifiedForeignKey: (foreignKeyName: string) =>
+                    l10n.t({
+                        message: "Modified foreign key '{0}'",
+                        args: [foreignKeyName],
+                        comment: ["{0} is the foreign key name"],
+                    }),
+                modifiedForeignKeyWithChanges: (foreignKeyName: string, propertyChanges: string) =>
+                    l10n.t({
+                        message: "Modified foreign key '{0}': {1}",
+                        args: [foreignKeyName, propertyChanges],
+                        comment: [
+                            "{0} is the foreign key name",
+                            "{1} is a list of property changes",
+                        ],
+                    }),
+            },
+
+            // Changes panel
+            changesPanel: {
+                // Change type labels
+                added: l10n.t("Added"),
+                modified: l10n.t("Modified"),
+                deleted: l10n.t("Deleted"),
+
+                // Filter tags
+                filterAll: l10n.t("All"),
+                filterAdded: l10n.t("Added"),
+                filterModified: l10n.t("Modified"),
+                filterDeleted: l10n.t("Deleted"),
+                filterTooltip: l10n.t("Filter changes"),
+                actionFilterLabel: l10n.t("Action"),
+                categoryFilterLabel: l10n.t("Category"),
+                clearFilters: l10n.t("Clear all"),
+
+                // Buttons
+                reveal: l10n.t("Reveal"),
+                revert: l10n.t("Revert"),
+
+                // Search
+                searchPlaceholder: l10n.t("Search changes..."),
+                noSearchResults: l10n.t("No changes match your search."),
+
+                // Tooltips
+                revealTooltip: l10n.t("Navigate to this item in the diagram"),
+                revertTooltip: l10n.t("Revert this change to its original state"),
+                cannotRevertForeignKey: l10n.t(
+                    "Cannot revert: The referenced table or column has been deleted",
+                ),
+                cannotRevertDeletedColumn: l10n.t(
+                    "Cannot revert: The column is part of a foreign key that references a deleted table",
+                ),
+
+                // Categories
+                tableCategory: l10n.t("Table"),
+                columnCategory: l10n.t("Column"),
+                foreignKeyCategory: l10n.t("Foreign Key"),
+
+                // Item count
+                itemCount: (count: number) =>
+                    l10n.t({
+                        message: "{0} change(s)",
+                        args: [count],
+                        comment: ["{0} is the number of changes"],
+                    }),
+            },
+
             // DAB (Data API Builder) strings
             dabTitle: l10n.t("Data API Builder Configuration"),
             apiType: l10n.t("API Type"),
             restApi: l10n.t("REST API"),
             graphql: l10n.t("GraphQL"),
-            both: l10n.t("Both"),
+            mcp: l10n.t("MCP"),
             entityEndpoints: l10n.t("Entity Endpoints"),
             allSchemas: l10n.t("All Schemas"),
             nOfMEnabled: (enabled: number, total: number) =>
@@ -941,8 +1131,8 @@ export class LocConstants {
             read: l10n.t("Read"),
             update: l10n.t("Update"),
             entityNameDescription: l10n.t("Entity name used in API routes"),
-            viewConfig: l10n.t("View Config"),
-            generateAndRun: l10n.t("Generate & Run"),
+            generateConfig: l10n.t("Generate Config"),
+            deploy: l10n.t("Deploy"),
             backToSchema: l10n.t("Back to Schema"),
             // DAB Advanced Settings Dialog
             advancedEntityConfiguration: l10n.t("Advanced Entity Configuration"),
@@ -960,6 +1150,9 @@ export class LocConstants {
             customGraphQLTypeHelp: l10n.t("Optional - Override default GraphQL type name"),
             applyChanges: l10n.t("Apply Changes"),
             sourceTable: l10n.t("Source Table"),
+            loading: l10n.t("Loading..."),
+            initializingDabConfig: l10n.t("Initializing DAB configuration..."),
+            noEntitiesFound: l10n.t("No entities found"),
         };
     }
 
@@ -1098,6 +1291,12 @@ export class LocConstants {
     public get publishProject() {
         return {
             publishProject: l10n.t("Publish Project"),
+            publishProjectTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Publish Project - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the project being published"],
+                }),
             SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
@@ -1270,6 +1469,61 @@ export class LocConstants {
             changePasswordButton: l10n.t("Change Password"),
             cancelButton: l10n.t("Cancel"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
+        };
+    }
+
+    public get createDatabase() {
+        return {
+            title: l10n.t("Create Database"),
+            description: (serverName: string) =>
+                l10n.t({
+                    message: "Create a new database on '{0}'.",
+                    args: [serverName],
+                    comment: ["{0} is the name of the server"],
+                }),
+            loading: l10n.t("Loading..."),
+            generalSection: l10n.t("General"),
+            optionsSection: l10n.t("Advanced Options"),
+            nameLabel: l10n.t("Database Name"),
+            namePlaceholder: l10n.t("Enter database name"),
+            nameRequired: l10n.t("Database name is required"),
+            nameTooLong: l10n.t("Database name must be 128 characters or fewer"),
+            ownerLabel: l10n.t("Owner"),
+            collationLabel: l10n.t("Collation"),
+            recoveryModelLabel: l10n.t("Recovery Model"),
+            compatibilityLevelLabel: l10n.t("Compatibility Level"),
+            containmentTypeLabel: l10n.t("Containment Type"),
+            isLedgerDatabaseLabel: l10n.t("Is Ledger Database"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            createButton: l10n.t("Create"),
+            cancelButton: l10n.t("Cancel"),
+        };
+    }
+
+    public get dropDatabase() {
+        return {
+            title: l10n.t("Drop Database"),
+            description: (databaseName: string, serverName: string) =>
+                l10n.t({
+                    message: "Drop '{0}' from '{1}'. This action cannot be undone.",
+                    args: [databaseName, serverName],
+                    comment: ["{0} is the database name", "{1} is the server name"],
+                }),
+            loading: l10n.t("Loading..."),
+            detailsSection: l10n.t("Database Details"),
+            optionsSection: l10n.t("Drop Database Options"),
+            nameLabel: l10n.t("Database"),
+            nameColumn: l10n.t("Name"),
+            ownerColumn: l10n.t("Owner"),
+            statusColumn: l10n.t("Status"),
+            valueUnknown: l10n.t("-"),
+            dropConnections: l10n.t("Drop active connections"),
+            deleteBackupHistory: l10n.t("Delete backup and restore history"),
+            helpButton: l10n.t("Help"),
+            scriptButton: l10n.t("Script"),
+            dropButton: l10n.t("Drop"),
+            cancelButton: l10n.t("Cancel"),
         };
     }
 
@@ -1568,6 +1822,37 @@ export class LocConstants {
             fileBrowserTitle: l10n.t("Select a file"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+        };
+    }
+
+    public get backupDatabase() {
+        return {
+            loadingBackupDatabase: l10n.t("Loading backup database..."),
+            backup: l10n.t("Backup"),
+            script: l10n.t("Script"),
+            advanced: l10n.t("Advanced"),
+            advancedBackupOptions: l10n.t("Advanced Backup Options"),
+            searchOptions: l10n.t("Search options"),
+            saveToUrl: l10n.t("Save to URL"),
+            saveToDisk: l10n.t("Save to Disk"),
+            backupLocation: l10n.t("Backup Location"),
+            backupFiles: l10n.t("Backup Files"),
+            createNew: l10n.t("Create New"),
+            chooseExisting: l10n.t("Choose Existing"),
+            folderPath: l10n.t("Folder Path"),
+            fileName: l10n.t("File Name"),
+            existingFile: l10n.t("Existing File"),
+            newFile: l10n.t("New File"),
+            browseForPath: l10n.t("Browse forvpath"),
+            removeFile: l10n.t("Remove file"),
+            chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
+            chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
+            loading: l10n.t("Loading..."),
+            folderPathRequired: l10n.t("Folder path is required"),
+            fileNameRequired: l10n.t("File name is required"),
+            transactionLog: l10n.t("Transaction Log"),
+            encryption: l10n.t("Encryption"),
+            media: l10n.t("Media"),
         };
     }
 

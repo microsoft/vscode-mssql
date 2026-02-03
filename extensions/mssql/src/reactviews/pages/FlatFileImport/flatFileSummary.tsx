@@ -32,8 +32,8 @@ const useStyles = makeStyles({
     },
     button: {
         height: "32px",
-        width: "160px",
-        margin: "20px",
+        width: "120px",
+        margin: "5px",
     },
     bottomDiv: {
         bottom: 0,
