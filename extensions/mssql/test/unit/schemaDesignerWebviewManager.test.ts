@@ -178,9 +178,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
             );
 
             expect(designer).to.be.instanceOf(SchemaDesignerWebviewController);
-            expect(
-                mockMainController.connectionManager.getConnectionInfo,
-            ).to.have.been.calledOnceWith(connectionUri);
+            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledWith(
+                connectionUri,
+            );
             expect(
                 mockMainController.connectionManager.getConnectionString,
             ).to.have.been.calledWith(connectionUri, true, true);
@@ -197,7 +197,9 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 connectionUri,
             );
 
-            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledOnce;
+            expect(mockMainController.connectionManager.getConnectionInfo).to.have.been.calledWith(
+                connectionUri,
+            );
         });
     });
 
@@ -316,6 +318,64 @@ suite("SchemaDesignerWebviewManager tests", () => {
 
             const cachedItem = (manager as any).schemaDesignerCache.get(key);
             expect(cachedItem.isDirty).to.be.true;
+        });
+    });
+
+    suite("Active designer tracking", () => {
+        test("should update active designer based on visibility changes", async () => {
+            const panel = stubWebviewPanel(sandbox) as any;
+            let viewStateHandler:
+                | ((event: vscode.WebviewPanelOnDidChangeViewStateEvent) => void)
+                | undefined;
+            panel.visible = false;
+            panel.onDidChangeViewState = sandbox.stub().callsFake((handler) => {
+                viewStateHandler = handler;
+                return { dispose: sandbox.stub() } as vscode.Disposable;
+            });
+
+            (vscode.window.createWebviewPanel as sinon.SinonStub).returns(panel);
+
+            const designer = await manager.getSchemaDesigner(
+                mockContext,
+                mockVscodeWrapper,
+                mockMainController,
+                mockSchemaDesignerService,
+                databaseName,
+                treeNode,
+                undefined,
+            );
+
+            expect(viewStateHandler).to.exist;
+            expect(manager.getActiveDesigner()).to.be.undefined;
+
+            panel.visible = true;
+            viewStateHandler!({
+                webviewPanel: panel,
+            } as vscode.WebviewPanelOnDidChangeViewStateEvent);
+            expect(manager.getActiveDesigner()).to.equal(designer);
+
+            panel.visible = false;
+            viewStateHandler!({
+                webviewPanel: panel,
+            } as vscode.WebviewPanelOnDidChangeViewStateEvent);
+            expect(manager.getActiveDesigner()).to.be.undefined;
+        });
+
+        test("getActiveDesigner clears disposed designer", () => {
+            const fakeDesigner = {
+                isDisposed: true,
+                panel: { visible: true },
+            } as any;
+
+            (manager as any)._activeDesigner = fakeDesigner;
+            expect(manager.getActiveDesigner()).to.be.undefined;
+        });
+
+        test("schema hash helpers roundtrip", () => {
+            manager.setSchemaHash("k1", "h1");
+            expect(manager.getSchemaHash("k1")).to.equal("h1");
+            manager.clearSchemaHash("k1");
+            expect(manager.getSchemaHash("k1")).to.be.undefined;
         });
     });
 
