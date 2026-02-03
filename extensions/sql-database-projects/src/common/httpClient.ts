@@ -85,35 +85,43 @@ export class HttpClient {
 
 			const writer = fs.createWriteStream(targetPath);
 
-			response.data.on('data', (chunk: Buffer) => {
-				receivedBytes += chunk.length;
-				if (totalMegaBytes > 0) {
-					const receivedMegaBytes = receivedBytes / (1024 * 1024);
-					const percentage = receivedMegaBytes / totalMegaBytes;
-					if (percentage >= printThreshold) {
-						outputChannel?.appendLine(`${constants.downloadProgress} (${receivedMegaBytes.toFixed(2)} / ${totalMegaBytes.toFixed(2)} MB)`);
-						printThreshold += 0.1;
-					}
-				}
-			});
-
 			return new Promise((resolve, reject) => {
+				let settled = false;
+				
 				const cleanup = () => {
 					response.data.destroy();
 					writer.destroy();
 				};
 
-				writer.on('finish', () => resolve());
-				writer.on('error', (err) => {
-					cleanup();
-					outputChannel?.appendLine(constants.downloadError);
-					reject(err);
+				const handleError = (err: Error) => {
+					if (!settled) {
+						settled = true;
+						cleanup();
+						outputChannel?.appendLine(constants.downloadError);
+						reject(err);
+					}
+				};
+
+				response.data.on('data', (chunk: Buffer) => {
+					receivedBytes += chunk.length;
+					if (totalMegaBytes > 0) {
+						const receivedMegaBytes = receivedBytes / (1024 * 1024);
+						const percentage = receivedMegaBytes / totalMegaBytes;
+						if (percentage >= printThreshold) {
+							outputChannel?.appendLine(`${constants.downloadProgress} (${receivedMegaBytes.toFixed(2)} / ${totalMegaBytes.toFixed(2)} MB)`);
+							printThreshold += 0.1;
+						}
+					}
 				});
-				response.data.on('error', (err: Error) => {
-					cleanup();
-					outputChannel?.appendLine(constants.downloadError);
-					reject(err);
+
+				writer.on('finish', () => {
+					if (!settled) {
+						settled = true;
+						resolve();
+					}
 				});
+				writer.on('error', handleError);
+				response.data.on('error', handleError);
 
 				response.data.pipe(writer);
 			});
