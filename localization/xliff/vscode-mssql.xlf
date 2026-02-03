@@ -1577,6 +1577,18 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
+    <trans-unit id="++CODE++1e755318b106a8946de523a86dbfbfc2ccccd5dd338ca8ffcee9b2c8145148ea">
+      <source xml:lang="en">Download &apos;{0}&apos; complete.</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++11ec033ddc030f7955e714613de6fa979321ed9fc444aa6bfb922b273e966fd5">
+      <source xml:lang="en">Download size: {0} KB</source>
+      <note>{0} is the size in kilobytes</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b7088b3d27556ce20e86d1e0789a8f10338e69b4f195d9e79af490d22d9d810e">
+      <source xml:lang="en">Downloading &apos;{0}&apos;</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
       <source xml:lang="en">Drop</source>
     </trans-unit>
@@ -1593,18 +1605,6 @@
     </trans-unit>
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1e755318b106a8946de523a86dbfbfc2ccccd5dd338ca8ffcee9b2c8145148ea">
-      <source xml:lang="en">Download &apos;{0}&apos; complete.</source>
-      <note>{0} is the service name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++11ec033ddc030f7955e714613de6fa979321ed9fc444aa6bfb922b273e966fd5">
-      <source xml:lang="en">Download size: {0} KB</source>
-      <note>{0} is the size in kilobytes</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b7088b3d27556ce20e86d1e0789a8f10338e69b4f195d9e79af490d22d9d810e">
-      <source xml:lang="en">Downloading &apos;{0}&apos;</source>
-      <note>{0} is the service name</note>
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2333,11 +2333,11 @@
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
-    <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
-      <source xml:lang="en">Folder Path</source>
-    </trans-unit>
     <trans-unit id="++CODE++bd857ce3728a542506c98bc18cec2199bd570a58dab7851f85916e27c1208c21">
       <source xml:lang="en">Flat File Import</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
+      <source xml:lang="en">Folder Path</source>
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
@@ -2952,6 +2952,9 @@
     <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
       <source xml:lang="en">Loading results...</source>
     </trans-unit>
+    <trans-unit id="++CODE++11915518f7318632b91b797ca08f2be829f1364847dda216d397370f2287a83a">
+      <source xml:lang="en">Loading schemas...</source>
+    </trans-unit>
     <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
       <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
       <note>{0} is the total number of rows</note>
@@ -2992,11 +2995,11 @@
     <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
       <source xml:lang="en">Location (Workspace)</source>
     </trans-unit>
-    <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
-      <source xml:lang="en">MCP</source>
-    </trans-unit>
     <trans-unit id="++CODE++1aa90f6c7d9e7a123d71457bdbe1f733cbe0170eb978723ecf13717f64403cda">
       <source xml:lang="en">Location of the file to be imported</source>
+    </trans-unit>
+    <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
+      <source xml:lang="en">MCP</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
@@ -3383,6 +3386,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db1fdd083d2ee48c5a7d1d3998a8421b63f0810c496428e3b4168399952e2683">
+      <source xml:lang="en">No schemas found</source>
     </trans-unit>
     <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
       <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
@@ -4813,6 +4819,12 @@
       <source xml:lang="en">Table Explorer for &apos;{0}&apos; has unsaved changes. Do you want to save or discard them?</source>
       <note>{0} is the table name</note>
     </trans-unit>
+    <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
+      <source xml:lang="en">Table Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
+      <source xml:lang="en">Table Schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++489ffeb09845485513055db4da8e56fe571fe94399e73a32fd47c930a3e80fad">
       <source xml:lang="en">Table added to schema designer successfully.</source>
     </trans-unit>
@@ -4825,23 +4837,17 @@
     <trans-unit id="++CODE++00723ae9a38ee6e38cc089275f523a75ef5b5aa1b834d77397409c27af379dc1">
       <source xml:lang="en">Table must include at least one column.</source>
     </trans-unit>
-    <trans-unit id="++CODE++77f37933f34ccf53cb9126d1a6cd95ac5b1b7c5df2f940fe66d1be7e20108847">
-      <source xml:lang="en">Table Name</source>
-    </trans-unit>
-    <trans-unit id="++CODE++f95cb857da039127b754a5f2c8af4bcf9f023fb4dd3c9eb2a0181957fd0b8fdf">
-      <source xml:lang="en">Table Schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
     <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
       <source xml:lang="en">Table name cannot be empty</source>
     </trans-unit>
-    <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
-      <source xml:lang="en">Table updated in schema designer successfully.</source>
-    </trans-unit>
     <trans-unit id="++CODE++ff490dd9f89998ccb0379e44509170c44b5aad8684bf118d6bf96e5b5dd3f87c">
       <source xml:lang="en">Table name is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
+      <source xml:lang="en">Table updated in schema designer successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
       <source xml:lang="en">Take Survey</source>
