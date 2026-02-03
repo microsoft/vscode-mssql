@@ -32,6 +32,7 @@ export const DabDeploymentDialog = () => {
         updateDabDeploymentParams,
         runDabDeploymentStep,
         resetDabDeploymentState,
+        retryDabDeploymentSteps,
     } = context;
 
     const prereqSteps = getPrereqSteps(dabDeploymentState.stepStatuses);
@@ -86,13 +87,18 @@ export const DabDeploymentDialog = () => {
         setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites);
     };
 
+    const handleClose = () => {
+        closeDabDeploymentDialog();
+        resetDabDeploymentState();
+    };
+
     const renderContent = () => {
         switch (dabDeploymentState.dialogStep) {
             case Dab.DabDeploymentDialogStep.Confirmation:
                 return (
                     <DabDeploymentConfirmation
                         onConfirm={handleConfirm}
-                        onCancel={closeDabDeploymentDialog}
+                        onCancel={handleClose}
                     />
                 );
             case Dab.DabDeploymentDialogStep.Prerequisites:
@@ -103,7 +109,7 @@ export const DabDeploymentDialog = () => {
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput)
                         }
                         onRetry={handleRetry}
-                        onCancel={closeDabDeploymentDialog}
+                        onCancel={handleClose}
                     />
                 );
             case Dab.DabDeploymentDialogStep.ParameterInput:
@@ -111,9 +117,7 @@ export const DabDeploymentDialog = () => {
                     <DabDeploymentInputForm
                         initialParams={dabDeploymentState.params}
                         onSubmit={handleParamsSubmit}
-                        onBack={() =>
-                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites)
-                        }
+                        onCancel={handleClose}
                     />
                 );
             case Dab.DabDeploymentDialogStep.Deployment:
@@ -124,8 +128,12 @@ export const DabDeploymentDialog = () => {
                         onNext={() =>
                             setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Complete)
                         }
-                        onRetry={handleRetry}
-                        onCancel={closeDabDeploymentDialog}
+                        onRetry={retryDabDeploymentSteps}
+                        onBack={() => {
+                            retryDabDeploymentSteps();
+                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.ParameterInput);
+                        }}
+                        onCancel={handleClose}
                     />
                 );
             case Dab.DabDeploymentDialogStep.Complete:
@@ -133,8 +141,11 @@ export const DabDeploymentDialog = () => {
                     <DabDeploymentComplete
                         apiUrl={dabDeploymentState.apiUrl}
                         error={dabDeploymentState.error}
-                        onRetry={handleRetry}
-                        onFinish={closeDabDeploymentDialog}
+                        onRetry={() => {
+                            retryDabDeploymentSteps();
+                            setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Deployment);
+                        }}
+                        onFinish={handleClose}
                     />
                 );
             default:
@@ -145,9 +156,10 @@ export const DabDeploymentDialog = () => {
     return (
         <Dialog
             open={dabDeploymentState.isDialogOpen}
+            modalType="alert"
             onOpenChange={(_, data) => {
                 if (!data.open) {
-                    closeDabDeploymentDialog();
+                    handleClose();
                 }
             }}>
             <DialogSurface className={classes.surface}>

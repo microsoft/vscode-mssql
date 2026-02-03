@@ -4,8 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { spawn } from "child_process";
 import { arch, platform } from "os";
+import fixPath from "fix-path";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
@@ -26,13 +30,12 @@ import {
 } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
-import fixPath from "fix-path";
+import { Dab } from "../sharedInterfaces/dab";
 
 /**
  * The maximum port number that can be used for Docker containers.
@@ -232,7 +235,6 @@ export const COMMANDS = {
         command: "curl",
         args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
     }),
-
     // DAB (Data API Builder) specific commands
     PULL_DAB_IMAGE: (imageTag: string): DockerCommand => ({
         command: "docker",
@@ -263,10 +265,6 @@ export const COMMANDS = {
     CHECK_DAB_HEALTH: (port: number): DockerCommand => ({
         command: "curl",
         args: ["-s", "-o", "/dev/null", "-w", "%{http_code}", `http://localhost:${port}/`],
-    }),
-    GET_CONTAINER_LOGS: (name: string): DockerCommand => ({
-        command: "docker",
-        args: ["logs", sanitizeContainerInput(name)],
     }),
 };
 
@@ -1108,10 +1106,6 @@ export async function checkContainerExists(name: string): Promise<boolean> {
 
 //#region DAB (Data API Builder) Docker Functions
 
-import * as fs from "fs";
-import * as os from "os";
-import { Dab } from "../sharedInterfaces/dab";
-
 /**
  * Pulls the DAB container image from MCR
  */
@@ -1243,9 +1237,8 @@ export async function checkIfDabContainerIsReady(
                 clearInterval(interval);
                 // Try to get container logs for debugging
                 try {
-                    const logs = await execDockerCommand(
-                        COMMANDS.GET_CONTAINER_LOGS(containerName),
-                    );
+                    const { dockerCmd } = COMMANDS.CHECK_LOGS(containerName, "0");
+                    const logs = await execDockerCommand(dockerCmd);
                     dockerLogger.appendLine(`DAB container logs:\n${logs}`);
                 } catch {
                     // Ignore log retrieval errors

@@ -34,13 +34,13 @@ const useStyles = makeStyles({
 interface DabDeploymentInputFormProps {
     initialParams: Dab.DabDeploymentParams;
     onSubmit: (params: Dab.DabDeploymentParams) => void;
-    onBack: () => void;
+    onCancel: () => void;
 }
 
 export const DabDeploymentInputForm = ({
     initialParams,
     onSubmit,
-    onBack,
+    onCancel,
 }: DabDeploymentInputFormProps) => {
     const classes = useStyles();
 
@@ -115,8 +115,8 @@ export const DabDeploymentInputForm = ({
                 </Field>
             </DialogContent>
             <DialogActions>
-                <Button appearance="secondary" onClick={onBack}>
-                    {locConstants.common.back}
+                <Button appearance="secondary" onClick={onCancel}>
+                    {locConstants.common.cancel}
                 </Button>
                 <Button appearance="primary" onClick={handleSubmit}>
                     {locConstants.localContainers.createContainer}

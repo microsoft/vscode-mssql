@@ -41,18 +41,17 @@ export const DabDeploymentPrerequisites = ({
                 ))}
             </DialogContent>
             <DialogActions>
+                <Button appearance="secondary" onClick={onCancel}>
+                    {locConstants.common.cancel}
+                </Button>
                 {hasError && (
                     <Button appearance="primary" onClick={onRetry}>
                         {locConstants.common.retry}
                     </Button>
                 )}
-                {isComplete ? (
+                {isComplete && (
                     <Button appearance="primary" onClick={onNext}>
                         {locConstants.common.next}
-                    </Button>
-                ) : (
-                    <Button appearance="secondary" onClick={onCancel}>
-                        {locConstants.common.cancel}
                     </Button>
                 )}
             </DialogActions>

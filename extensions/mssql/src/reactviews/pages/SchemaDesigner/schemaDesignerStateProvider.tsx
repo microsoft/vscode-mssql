@@ -150,6 +150,7 @@ export interface SchemaDesignerContextProps
     updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
+    retryDabDeploymentSteps: () => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -1364,6 +1365,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setDabDeploymentState(Dab.createDefaultDeploymentState());
     }, []);
 
+    const retryDabDeploymentSteps = useCallback(() => {
+        // Reset only deployment steps (pullImage, startContainer, checkContainer)
+        // while keeping prerequisite steps as completed
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
+            stepStatuses: prev.stepStatuses.map((s) => {
+                if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
+                    return { ...s, status: "notStarted" as const, errorMessage: undefined };
+                }
+                return s;
+            }),
+            error: undefined,
+            apiUrl: undefined,
+        }));
+    }, []);
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1444,6 +1462,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 updateDabDeploymentParams,
                 runDabDeploymentStep,
                 resetDabDeploymentState,
+                retryDabDeploymentSteps,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
