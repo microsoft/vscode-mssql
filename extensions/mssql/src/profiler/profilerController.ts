@@ -629,8 +629,4 @@ export class ProfilerController {
             this._logger.error(`Failed to export profiler events: ${errorMessage}`);
         }
     }
-
-    public async dispose(): Promise<void> {
-        await this._sessionManager.dispose();
-    }
 }

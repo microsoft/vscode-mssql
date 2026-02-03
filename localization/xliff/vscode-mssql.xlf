@@ -3219,17 +3219,8 @@
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
-    <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
-      <source xml:lang="en">No event selected</source>
-    </trans-unit>
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e180bc8df0c35b5cc2ee9b7e4c128f5e0cc73343d325507cf7c49ab685c03c4d">
-      <source xml:lang="en">No filter clauses defined. Add a clause to filter events.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
-      <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
