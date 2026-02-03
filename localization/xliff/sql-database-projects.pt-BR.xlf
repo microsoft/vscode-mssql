@@ -348,7 +348,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b">
         <source xml:lang="en">Database Trigger</source>
-        <target state="new">Database Trigger</target>
+        <target state="translated">Gatilho do Banco de Dados</target>
       </trans-unit>
       <trans-unit id="++CODE++3bdfa565ae34efdec777d66c17a38f2265fd8694c27c4b9f5156f787750a143b">
         <source xml:lang="en">Database location is required for adding a reference to a database</source>
@@ -1157,7 +1157,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
         <source xml:lang="en">Sequence</source>
-        <target state="new">Sequence</target>
+        <target state="translated">Sequência</target>
       </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
@@ -1221,7 +1221,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
         <source xml:lang="en">Table-Valued Function</source>
-        <target state="new">Table-Valued Function</target>
+        <target state="translated">TVF</target>
       </trans-unit>
       <trans-unit id="++CODE++5b02abaa1e421efb6c10a960e3f128b0a641ea7cc47df22947c3f695cf1cb505">
         <source xml:lang="en">Target Database</source>
@@ -1305,7 +1305,7 @@
       </trans-unit>
       <trans-unit id="++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206">
         <source xml:lang="en">Trigger</source>
-        <target state="new">Trigger</target>
+        <target state="translated">Gatilho</target>
       </trans-unit>
       <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
         <source xml:lang="en">Unable to construct connection: {0}</source>
