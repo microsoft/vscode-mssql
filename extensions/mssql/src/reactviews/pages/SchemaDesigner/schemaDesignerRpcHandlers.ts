@@ -16,7 +16,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     datatypes: string[];
     waitForNextFrame: () => Promise<void>;
     extractSchema: () => SchemaDesigner.Schema;
-    onMaybeAutoArrange: (preTableCount: number, postTableCount: number) => Promise<void> | void;
+    onMaybeAutoArrange: (
+        preTableCount: number,
+        postTableCount: number,
+        preForeignKeyCount: number,
+        postForeignKeyCount: number,
+    ) => Promise<void> | void;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
@@ -351,6 +356,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         let appliedEdits = 0;
         let needsScriptRefresh = false;
         let workingSchema = extractSchema();
+        const preSchema = workingSchema;
         const preTableCount = workingSchema.tables.length;
 
         try {
@@ -974,8 +980,21 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             }
 
             const postTableCount = workingSchema.tables.length;
+            const preForeignKeyCount = preSchema.tables.reduce(
+                (sum, table) => sum + (table.foreignKeys?.length ?? 0),
+                0,
+            );
+            const postForeignKeyCount = workingSchema.tables.reduce(
+                (sum, table) => sum + (table.foreignKeys?.length ?? 0),
+                0,
+            );
             try {
-                await onMaybeAutoArrange(preTableCount, postTableCount);
+                await onMaybeAutoArrange(
+                    preTableCount,
+                    postTableCount,
+                    preForeignKeyCount,
+                    postForeignKeyCount,
+                );
             } catch (error) {
                 console.warn("Schema Designer tool auto-arrange failed", error);
             }

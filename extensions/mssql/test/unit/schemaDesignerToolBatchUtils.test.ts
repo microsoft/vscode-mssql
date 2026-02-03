@@ -8,44 +8,50 @@ import { locConstants } from "../../src/reactviews/common/locConstants";
 import {
     normalizeColumn,
     shouldAutoArrangeForToolBatch,
+    TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD,
     TOOL_AUTO_ARRANGE_TABLE_THRESHOLD,
     validateTable,
 } from "../../src/reactviews/pages/SchemaDesigner/schemaDesignerToolBatchUtils";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 
 suite("Schema Designer tool batch utils", () => {
-    test("shouldAutoArrangeForToolBatch triggers once when crossing threshold", () => {
-        expect(TOOL_AUTO_ARRANGE_TABLE_THRESHOLD).to.equal(8);
+    test("shouldAutoArrangeForToolBatch triggers on table or foreign key thresholds", () => {
+        expect(TOOL_AUTO_ARRANGE_TABLE_THRESHOLD).to.equal(5);
+        expect(TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD).to.equal(3);
 
         expect(
             shouldAutoArrangeForToolBatch({
                 preTableCount: 0,
-                postTableCount: 7,
-                didAutoArrange: false,
+                postTableCount: 4,
+                preForeignKeyCount: 0,
+                postForeignKeyCount: 0,
             }),
         ).to.equal(false);
 
         expect(
             shouldAutoArrangeForToolBatch({
-                preTableCount: 7,
-                postTableCount: 8,
-                didAutoArrange: false,
+                preTableCount: 0,
+                postTableCount: 5,
+                preForeignKeyCount: 0,
+                postForeignKeyCount: 0,
             }),
         ).to.equal(true);
 
         expect(
             shouldAutoArrangeForToolBatch({
-                preTableCount: 8,
-                postTableCount: 9,
-                didAutoArrange: false,
+                preTableCount: 10,
+                postTableCount: 10,
+                preForeignKeyCount: 0,
+                postForeignKeyCount: 3,
             }),
-        ).to.equal(false);
+        ).to.equal(true);
 
         expect(
             shouldAutoArrangeForToolBatch({
-                preTableCount: 0,
-                postTableCount: 100,
-                didAutoArrange: true,
+                preTableCount: 10,
+                postTableCount: 10,
+                preForeignKeyCount: 0,
+                postForeignKeyCount: 2,
             }),
         ).to.equal(false);
     });
