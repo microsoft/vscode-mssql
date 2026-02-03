@@ -144,9 +144,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
             createTableColumn<SearchResultItem>({
                 columnId: "icon",
                 renderHeaderCell: () => null,
-                renderCell: (item) => (
-                    <TableCellLayout>{getTypeIcon(item.type)}</TableCellLayout>
-                ),
+                renderCell: (item) => <TableCellLayout>{getTypeIcon(item.type)}</TableCellLayout>,
             }),
             createTableColumn<SearchResultItem>({
                 columnId: "name",
@@ -178,9 +176,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 renderHeaderCell: () => (
                     <span className={classes.headerCell}>{loc.globalSearch.type}</span>
                 ),
-                renderCell: (item) => (
-                    <TableCellLayout truncate>{item.typeName}</TableCellLayout>
-                ),
+                renderCell: (item) => <TableCellLayout truncate>{item.typeName}</TableCellLayout>,
             }),
             createTableColumn<SearchResultItem>({
                 columnId: "actions",
