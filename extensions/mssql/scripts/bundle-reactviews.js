@@ -33,7 +33,6 @@ const config = {
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
         profiler: "src/reactviews/pages/Profiler/index.tsx",
-        profilerDetails: "src/reactviews/pages/Profiler/profilerDetailsPanelIndex.tsx",
         azureDataStudioMigration: "src/reactviews/pages/AzureDataStudioMigration/index.tsx",
     },
     bundle: true,

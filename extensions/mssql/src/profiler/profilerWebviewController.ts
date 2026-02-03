@@ -24,8 +24,6 @@ import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, FilterOperator } from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
-import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
-import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
  * Events emitted by the profiler webview controller
@@ -61,11 +59,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
-    /** Filtered buffer for applying client-side filtering */
-    private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
-    private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
-    /** Tracks whether the session was stopped before closing (for telemetry) */
-    private _wasSessionPreviouslyStopped: boolean = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -462,142 +455,54 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
-        // Handle apply filter request from webview (client-side only)
-        this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.setFilter(payload.clauses);
-
-                // Calculate filtered count using grid row-based filtering
-                const filteredCount = this.calculateFilteredCount(payload.clauses);
-                const totalCount = this._filteredBuffer.totalCount;
-
-                // Send telemetry for filter applied
-                // Summarize filter clauses for telemetry
-                const filterSummary = payload.clauses.map((c) => c.field).join(",");
-                const filterOperators = payload.clauses.map((c) => c.operator).join(",");
-                ProfilerTelemetry.sendFilterApplied(filterSummary, filterOperators);
-
-                // Notify webview of filter change
-                void this.sendFilterStateChanged();
-
-                // Notify webview to clear and refetch filtered data
-                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
-
-                // After clear, notify of available filtered data
-                setTimeout(() => {
-                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
-                        newCount: filteredCount,
-                        totalCount: filteredCount,
-                    } as NewEventsAvailableParams);
-                }, 0);
-
-                // Update status bar immediately to show filtered count
-                this.state = {
-                    ...state,
-                    filterState: {
-                        enabled: payload.clauses.length > 0,
-                        clauses: payload.clauses,
-                    },
-                    totalRowCount: totalCount,
-                    filteredRowCount: filteredCount,
-                };
-                this.updateStatusBar();
-
-                return this.state;
-            }
-            return state;
-        });
-
-        // Handle clear filter request from webview
-        this.registerReducer("clearFilter", (state) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.clearFilter();
-                const totalCount = this._filteredBuffer.totalCount;
-
-                // Send telemetry for filter cleared
-                ProfilerTelemetry.sendFilterCleared();
-
-                // Notify webview of filter change
-                void this.sendFilterStateChanged();
-
-                // Notify webview to clear and refetch unfiltered data
-                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
-
-                // After clear, notify of all available data
-                setTimeout(() => {
-                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
-                        newCount: totalCount,
-                        totalCount: totalCount,
-                    } as NewEventsAvailableParams);
-                }, 0);
-
-                // Update status bar immediately to show total count
-                this.state = {
-                    ...state,
-                    filterState: { enabled: false, clauses: [] },
-                    totalRowCount: totalCount,
-                    filteredRowCount: totalCount,
-                };
-                this.updateStatusBar();
-
-                return this.state;
-            }
-            return state;
-        });
-
-        // Handle row selection from webview - update details panel
+        // Handle row selection from webview - update state with selected event details
         this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            this.handleRowSelection(payload.rowId);
-            return state;
+            const selectedEvent = this.handleRowSelection(payload.rowId);
+            return {
+                ...state,
+                selectedEvent,
+            };
         });
 
-        // Handle export to CSV request from webview (manual trigger from toolbar)
+        // Handle Open in Editor request from embedded details panel
         this.registerReducer(
-            "exportToCsv",
-            (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                // Export is handled asynchronously by the event handler
-                if (this._eventHandlers.onExportToCsv) {
-                    this._eventHandlers.onExportToCsv(
-                        payload.csvContent,
-                        payload.suggestedFileName,
-                        "manual",
-                    );
-                }
+            "openInEditor",
+            async (state, payload: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(payload.textData);
                 return state;
             },
         );
+
+        // Handle Copy to Clipboard request from embedded details panel
+        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            void vscode.window.showInformationMessage("Copied to clipboard");
+            return state;
+        });
+
+        // Handle close details panel request
+        this.registerReducer("closeDetailsPanel", (state) => {
+            return {
+                ...state,
+                selectedEvent: undefined,
+            };
+        });
     }
 
     /**
-     * Send filter state changed notification to the webview
+     * Handle row selection - get event details and return them for state update
      */
-    private async sendFilterStateChanged(): Promise<void> {
-        if (!this._filteredBuffer) {
-            return;
-        }
-
-        const params: FilterStateChangedParams = {
-            isFilterActive: this._filteredBuffer.isFilterActive,
-            clauseCount: this._filteredBuffer.clauses.length,
-            totalCount: this._filteredBuffer.totalCount,
-            filteredCount: this._filteredBuffer.filteredCount,
-        };
-
-        await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
-    }
-
-    /**
-     * Handle row selection - get event details and update the details panel
-     */
-    private handleRowSelection(rowId: string): void {
-        if (!this._currentSession || !this._detailsPanelController) {
-            return;
+    private handleRowSelection(
+        rowId: string,
+    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
+        if (!this._currentSession) {
+            return undefined;
         }
 
         // Find the event in the ring buffer by its ID
         const event = this._currentSession.events.findById(rowId);
         if (!event) {
-            return;
+            return undefined;
         }
 
         // Build the selected event details using the centralized ProfilerConfigService
@@ -607,12 +512,28 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             viewConfig,
         );
 
-        // Reveal the details panel first (creates the webview if needed)
-        // Then update the selected event after the panel is ready
-        void this._detailsPanelController.reveal().then(() => {
-            // Update the details panel after it's revealed
-            this._detailsPanelController?.updateSelectedEvent(selectedEventDetails);
-        });
+        return selectedEventDetails;
+    }
+
+    /**
+     * Open text content in a new VS Code editor
+     */
+    private async openTextInEditor(textData: string): Promise<void> {
+        try {
+            const document = await vscode.workspace.openTextDocument({
+                content: textData,
+                language: "sql",
+            });
+
+            await vscode.window.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.One,
+                preview: true,
+            });
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
     }
 
     /**
@@ -677,13 +598,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
         this._eventHandlers = handlers;
-    }
-
-    /**
-     * Set the details panel controller for row selection updates
-     */
-    public setDetailsPanelController(controller: ProfilerDetailsPanelViewController): void {
-        this._detailsPanelController = controller;
     }
 
     /**

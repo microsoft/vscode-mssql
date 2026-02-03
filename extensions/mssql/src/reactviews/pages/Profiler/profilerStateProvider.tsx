@@ -40,8 +40,12 @@ export interface ProfilerRpcMethods {
     clearFilter: () => void;
     /** Select a row to show details in the panel */
     selectRow: (rowId: string) => void;
-    /** Export events to CSV file */
-    exportToCsv: (csvContent: string, suggestedFileName: string) => void;
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: (textData: string, eventName?: string) => void;
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: (text: string) => void;
+    /** Close the embedded details panel */
+    closeDetailsPanel: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -130,12 +134,23 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
-    const exportToCsv = useCallback(
-        (csvContent: string, suggestedFileName: string) => {
-            extensionRpc?.action("exportToCsv", { csvContent, suggestedFileName });
+    const openInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            extensionRpc?.action("openInEditor", { textData, eventName });
         },
         [extensionRpc],
     );
+
+    const copyToClipboard = useCallback(
+        (text: string) => {
+            extensionRpc?.action("copyToClipboard", { text });
+        },
+        [extensionRpc],
+    );
+
+    const closeDetailsPanel = useCallback(() => {
+        extensionRpc?.action("closeDetailsPanel", {});
+    }, [extensionRpc]);
 
     return (
         <ProfilerContext.Provider
@@ -153,7 +168,9 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 applyFilter,
                 clearFilter,
                 selectRow,
-                exportToCsv,
+                openInEditor,
+                copyToClipboard,
+                closeDetailsPanel,
             }}>
             {children}
         </ProfilerContext.Provider>

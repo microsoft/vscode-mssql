@@ -12,11 +12,17 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, shorthands } from "@fluentui/react-components";
+import {
+    Panel,
+    PanelGroup,
+    PanelResizeHandle,
+    ImperativePanelHandle,
+} from "react-resizable-panels";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
-import { ProfilerFilterDialog } from "./profilerFilterDialog";
+import { ProfilerDetailsPanel } from "./profilerDetailsPanel";
 import {
     SessionState,
     ProfilerNotifications,
@@ -109,12 +115,7 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
-    const filterState = useProfilerSelector(
-        (s) => s.filterState ?? { enabled: false, clauses: [] },
-    );
-
-    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
-    const sessionName = useProfilerSelector((s) => s.sessionName);
+    const selectedEvent = useProfilerSelector((s) => s.selectedEvent);
 
     const {
         pauseResume,
@@ -129,13 +130,18 @@ export const Profiler: React.FC = () => {
         applyFilter,
         clearFilter,
         selectRow,
-        exportToCsv,
+        openInEditor,
+        copyToClipboard,
+        closeDetailsPanel,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
+    const gridPanelRef = useRef<ImperativePanelHandle | null>(null);
+    const detailsPanelRef = useRef<ImperativePanelHandle | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);
-    const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+    const [isDetailsPanelMaximized, setIsDetailsPanelMaximized] = useState(false);
+    const showDetailsPanel = selectedEvent !== undefined;
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
     const autoScrollRef = useRef(autoScroll);
@@ -155,6 +161,21 @@ export const Profiler: React.FC = () => {
     useEffect(() => {
         fetchRowsRef.current = fetchRows;
     }, [fetchRows]);
+
+    // Resize grid panel when details panel visibility changes
+    useEffect(() => {
+        if (gridPanelRef.current) {
+            if (showDetailsPanel) {
+                // Details panel is showing, resize grid to 50%
+                gridPanelRef.current.resize(50);
+            } else {
+                // Details panel is hidden, expand grid to 100%
+                gridPanelRef.current.resize(100);
+                // Reset maximized state when panel is closed
+                setIsDetailsPanelMaximized(false);
+            }
+        }
+    }, [showDetailsPanel]);
 
     // Handle clear when clearGeneration changes (ensures RingBuffer is cleared before we reset local index)
     useEffect(() => {
@@ -428,33 +449,36 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
-    /**
-     * Handles opening the filter dialog from the toolbar.
-     */
-    const handleFilter = useCallback(() => {
-        setIsFilterDialogOpen(true);
-    }, []);
-
-    /**
-     * Handles applying filter clauses from the filter dialog.
-     * @param clauses The filter clauses to apply
-     */
-    const handleApplyFilter = useCallback(
-        (clauses: FilterClause[]) => {
-            applyFilter(clauses);
-            setIsFilterDialogOpen(false);
+    // Handlers for embedded details panel
+    const handleOpenInEditor = useCallback(
+        (textData: string, eventName?: string) => {
+            openInEditor(textData, eventName);
         },
-        [applyFilter],
+        [openInEditor],
     );
 
-    /**
-     * Handles clearing the active filter from the toolbar.
-     * Removes all filter clauses and shows all events.
-     */
-    const handleClearFilter = useCallback(() => {
-        clearFilter();
-        setIsFilterDialogOpen(false);
-    }, [clearFilter]);
+    const handleCopy = useCallback(
+        (text: string) => {
+            copyToClipboard(text);
+        },
+        [copyToClipboard],
+    );
+
+    const handleToggleMaximize = useCallback(() => {
+        if (detailsPanelRef.current) {
+            if (isDetailsPanelMaximized) {
+                detailsPanelRef.current.resize(50);
+            } else {
+                detailsPanelRef.current.resize(95);
+            }
+            setIsDetailsPanelMaximized(!isDetailsPanelMaximized);
+        }
+    }, [isDetailsPanelMaximized]);
+
+    const handleCloseDetailsPanel = useCallback(() => {
+        setIsDetailsPanelMaximized(false);
+        closeDetailsPanel();
+    }, [closeDetailsPanel]);
 
     // Handle row selection (click or keyboard navigation) to show details in the panel
     const handleRowSelection = useCallback(
@@ -587,18 +611,43 @@ export const Profiler: React.FC = () => {
                 onApplyFilter={handleApplyFilter}
                 onClearFilter={handleClearFilter}
             />
-            <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                <SlickgridReact
-                    gridId="profilerGrid"
-                    columns={columns}
-                    options={gridOptions}
-                    dataset={EMPTY_DATASET}
-                    onReactGridCreated={(e) => reactGridReady(e.detail)}
-                    onScroll={handleScroll}
-                    onClick={handleRowClick}
-                    onActiveCellChanged={handleActiveCellChanged}
-                />
-            </div>
+            <PanelGroup direction="vertical" className={classes.panelGroup}>
+                <Panel ref={gridPanelRef} defaultSize={showDetailsPanel ? 50 : 100} minSize={10}>
+                    <div id="profilerGridContainer" className={classes.profilerGridContainer}>
+                        <SlickgridReact
+                            gridId="profilerGrid"
+                            columns={columns}
+                            options={gridOptions}
+                            dataset={EMPTY_DATASET}
+                            onReactGridCreated={(e) => reactGridReady(e.detail)}
+                            onScroll={handleScroll}
+                            onClick={handleRowClick}
+                            onActiveCellChanged={handleActiveCellChanged}
+                        />
+                    </div>
+                </Panel>
+                {showDetailsPanel && (
+                    <>
+                        <PanelResizeHandle className={classes.resizeHandle} />
+                        <Panel
+                            ref={detailsPanelRef}
+                            defaultSize={50}
+                            minSize={10}
+                            className={classes.detailsPanelContainer}>
+                            <ProfilerDetailsPanel
+                                selectedEvent={selectedEvent}
+                                themeKind={themeKind}
+                                isMaximized={isDetailsPanelMaximized}
+                                onOpenInEditor={handleOpenInEditor}
+                                onCopy={handleCopy}
+                                onToggleMaximize={handleToggleMaximize}
+                                onClose={handleCloseDetailsPanel}
+                                isPanelView={false}
+                            />
+                        </Panel>
+                    </>
+                )}
+            </PanelGroup>
         </div>
     );
 };
@@ -657,8 +706,15 @@ const useStyles = makeStyles({
         fontSize: "12px",
         color: "var(--vscode-descriptionForeground)",
     },
+    panelGroup: {
+        ...shorthands.flex(1),
+        width: "100%",
+        height: "100%",
+        minHeight: 0,
+        ...shorthands.overflow("hidden"),
+    },
     profilerGridContainer: {
-        flex: 1,
+        height: "100%",
         minHeight: 0,
         overflow: "hidden",
         padding: "0",
@@ -668,6 +724,20 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
+    },
+    resizeHandle: {
+        height: "4px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+        cursor: "row-resize",
+        "&:hover": {
+            backgroundColor: "var(--vscode-focusBorder)",
+        },
+    },
+    detailsPanelContainer: {
+        display: "flex",
+        flexDirection: "column",
+        ...shorthands.overflow("hidden"),
+        height: "100%",
     },
 });
 
