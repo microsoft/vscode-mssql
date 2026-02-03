@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 14;
+		const numScriptObjectTypes = 17;
 
 		expect(templates.projectScriptTypes().length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} script object types to be loaded`);
 		expect(Object.keys(templates.projectScriptTypes()).length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} keys in script object types`);
@@ -130,5 +130,38 @@ suite('Templates', function (): void {
 		expect(tvfTemplate.templateScript, 'Table-Valued Function template should contain RETURNS @returntable TABLE').to.include('RETURNS @returntable TABLE');
 		expect(tvfTemplate.templateScript, 'Table-Valued Function template should contain @@SCHEMA_NAME@@ placeholder').to.include('@@SCHEMA_NAME@@');
 		expect(tvfTemplate.templateScript, 'Table-Valued Function template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Trigger item template', async function (): Promise<void> {
+		const triggerTemplate = templates.get(ItemType.trigger);
+		expect(triggerTemplate, 'Trigger template should be defined').to.not.be.undefined;
+		expect(triggerTemplate.type, 'Trigger template type should match').to.equal(ItemType.trigger);
+		expect(triggerTemplate.friendlyName, 'Trigger template friendly name should be "Trigger"').to.equal('Trigger');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain CREATE TRIGGER').to.include('CREATE TRIGGER');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain @@SCHEMA_NAME@@ placeholder').to.include('@@SCHEMA_NAME@@');
+		expect(triggerTemplate.templateScript, 'Trigger template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Database Trigger item template', async function (): Promise<void> {
+		const dbTriggerTemplate = templates.get(ItemType.databaseTrigger);
+		expect(dbTriggerTemplate, 'Database Trigger template should be defined').to.not.be.undefined;
+		expect(dbTriggerTemplate.type, 'Database Trigger template type should match').to.equal(ItemType.databaseTrigger);
+		expect(dbTriggerTemplate.friendlyName, 'Database Trigger template friendly name should be "Database Trigger"').to.equal('Database Trigger');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain CREATE TRIGGER').to.include('CREATE TRIGGER');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain ON DATABASE').to.include('ON DATABASE');
+		expect(dbTriggerTemplate.templateScript, 'Database Trigger template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+	});
+
+	test('Should have Sequence item template', async function (): Promise<void> {
+		const sequenceTemplate = templates.get(ItemType.sequence);
+		expect(sequenceTemplate, 'Sequence template should be defined').to.not.be.undefined;
+		expect(sequenceTemplate.type, 'Sequence template type should match').to.equal(ItemType.sequence);
+		expect(sequenceTemplate.friendlyName, 'Sequence template friendly name should be "Sequence"').to.equal('Sequence');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain CREATE SEQUENCE').to.include('CREATE SEQUENCE');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain @@SCHEMA_NAME@@ placeholder').to.include('@@SCHEMA_NAME@@');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain @@OBJECT_NAME@@ placeholder').to.include('@@OBJECT_NAME@@');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain AS BIGINT').to.include('AS BIGINT');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain START WITH').to.include('START WITH');
+		expect(sequenceTemplate.templateScript, 'Sequence template should contain INCREMENT BY').to.include('INCREMENT BY');
 	});
 });

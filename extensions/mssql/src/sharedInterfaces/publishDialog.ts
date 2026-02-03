@@ -64,6 +64,8 @@ export type ProjectPropertiesResult = mssql.GetProjectPropertiesResult & {
     projectFilePath: string;
     /** Calculated absolute path to the output .dacpac file */
     dacpacOutputPath: string;
+    /** Project name extracted from the .sqlproj filename */
+    projectName: string;
 };
 
 /**
