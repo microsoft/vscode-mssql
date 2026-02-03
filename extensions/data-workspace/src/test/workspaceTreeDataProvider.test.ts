@@ -13,15 +13,20 @@ import { WorkspaceService } from "../services/workspaceService";
 import { MockTreeDataProvider } from "./projectProviderRegistry.test";
 
 suite("workspaceTreeDataProvider Tests", function (): void {
+  let sandbox: sinon.SinonSandbox;
   const workspaceService = new WorkspaceService();
   const treeProvider = new WorkspaceTreeDataProvider(workspaceService);
 
-  this.afterEach(() => {
-    sinon.restore();
+  setup(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  teardown(() => {
+    sandbox.restore();
   });
 
   test("test refresh()", async () => {
-    const treeDataChangeHandler = sinon.stub();
+    const treeDataChangeHandler = sandbox.stub();
     treeProvider.onDidChangeTreeData!((e) => {
       treeDataChangeHandler(e);
     });
@@ -30,7 +35,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
   });
 
   test("test getTreeItem()", async function (): Promise<void> {
-    const getTreeItemStub = sinon.stub();
+    const getTreeItemStub = sandbox.stub();
     await treeProvider.getTreeItem({
       treeDataProvider: {
         getTreeItem: (arg: WorkspaceTreeItem) => {
@@ -42,7 +47,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
   });
 
   test("test getChildren() for non-root element", async () => {
-    const getChildrenStub = sinon.stub().resolves([]);
+    const getChildrenStub = sandbox.stub().resolves([]);
     const element = {
       treeDataProvider: {
         getChildren: (arg: any) => {
@@ -61,7 +66,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
   });
 
   test("test getChildren() for root element", async () => {
-    const getProjectsInWorkspaceStub = sinon
+    const getProjectsInWorkspaceStub = sandbox
       .stub(workspaceService, "getProjectsInWorkspace")
       .resolves([
         vscode.Uri.file("test/proj1/proj1.sqlproj"),
@@ -133,11 +138,11 @@ suite("workspaceTreeDataProvider Tests", function (): void {
         ];
       },
     };
-    const getProjectProviderStub = sinon.stub(workspaceService, "getProjectProvider");
+    const getProjectProviderStub = sandbox.stub(workspaceService, "getProjectProvider");
     getProjectProviderStub.onFirstCall().resolves(undefined);
     getProjectProviderStub.onSecondCall().resolves(projectProvider);
-    sinon.stub(treeDataProvider, "getChildren").resolves(["treeitem1"]);
-    const showErrorMessageStub = sinon.stub(vscode.window, "showErrorMessage");
+    sandbox.stub(treeDataProvider, "getChildren").resolves(["treeitem1"]);
+    const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
     const children = await treeProvider.getChildren(undefined);
     should.strictEqual(children.length, 1, "there should be 1 tree item returned");
     should.strictEqual(children[0].element, "treeitem1");

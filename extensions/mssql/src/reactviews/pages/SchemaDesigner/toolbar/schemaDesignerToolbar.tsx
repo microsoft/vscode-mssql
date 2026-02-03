@@ -12,6 +12,7 @@ import { PublishChangesDialogButton } from "./publishChangesDialogButton";
 import { AutoArrangeButton } from "./autoArrangeButton";
 import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
+import { ShowChangesButton } from "./showChangesButton";
 
 export function SchemaDesignerToolbar() {
     return (
@@ -22,19 +23,22 @@ export function SchemaDesignerToolbar() {
                     width: "100%",
                     overflow: "hidden",
                     overflowX: "auto",
-                    gap: "3px",
                     alignItems: "center",
+                    gap: "2px",
                 }}>
                 <PublishChangesDialogButton />
                 <ViewDefinitionsButton />
                 <ExportDiagramButton />
                 <ToolbarDivider />
                 <AddTableButton />
-                <UndoRedoButtons />
-                <AutoArrangeButton />
                 <DeleteNodesButton />
                 <ToolbarDivider />
+                <UndoRedoButtons />
+                <ToolbarDivider />
+                <AutoArrangeButton />
                 <FilterTablesButton />
+                <ToolbarDivider />
+                <ShowChangesButton />
             </Toolbar>
         </div>
     );

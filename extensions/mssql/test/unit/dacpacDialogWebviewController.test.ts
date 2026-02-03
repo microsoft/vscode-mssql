@@ -43,6 +43,7 @@ import {
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
+    stubUserSurvey,
     stubVscodeWrapper,
     stubWebviewConnectionRpc,
     stubWebviewPanel,
@@ -80,6 +81,8 @@ suite("DacpacDialogWebviewController", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
+        stubUserSurvey(sandbox);
+
         const loggerStub = sandbox.createStubInstance(Logger);
         sandbox.stub(Logger, "create").returns(loggerStub);
         sandbox.stub(utils, "getNonce").returns("test-nonce");

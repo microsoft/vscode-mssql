@@ -324,6 +324,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
+                stubVscodeAzureHelperGetAccounts(sandbox);
+                stubVscodeAzureSignIn(sandbox);
+
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
                     "Default input mode should be Parameters",

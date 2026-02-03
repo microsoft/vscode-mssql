@@ -71,6 +71,9 @@ export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdCreateDatabase = "mssql.createDatabase";
+export const cmdDropDatabase = "mssql.dropDatabase";
+export const cmdRenameDatabase = "mssql.renameDatabase";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -129,6 +132,7 @@ export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
+export const cmdBackupDatabase = "mssql.backupDatabase";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -174,6 +178,12 @@ export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const createDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
+export const dropDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
+export const backupDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
@@ -185,6 +195,7 @@ export const xml = "xml";
 export const json = "json";
 export const queryPlan = "Query Plan";
 export const queryPlanXmlStart = "<ShowPlanXML";
+export const https = "https://";
 
 /**
  * Azure Firewall rule name convention is specified here:
@@ -210,8 +221,8 @@ export const copilotListViewsToolName = "mssql_list_views";
 export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
-export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
+export const copilotSchemaDesignerToolName = "mssql_schema_designer";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -313,6 +324,11 @@ export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
+
+// Deployment Constants
+export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
+export const disk = "Disk";
+export const url = "URL";
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

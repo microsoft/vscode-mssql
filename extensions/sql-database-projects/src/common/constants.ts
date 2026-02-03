@@ -305,7 +305,7 @@ export function retryMessage(name: string, error: string) { return l10n.t("Opera
 export const addDatabaseReferenceDialogName = l10n.t("Add database reference");
 export const addDatabaseReferenceOkButtonText = l10n.t("Add reference");
 export const referenceRadioButtonsGroupTitle = l10n.t("Referenced Database Type");
-export const projectLabel = l10n.t("Project");
+export const projectLabel = l10n.t("Project (.sqlproj)");
 export const systemDatabase = l10n.t("System database");
 export const dacpacText = l10n.t("Data-tier application (.dacpac)");
 export const nupkgText = l10n.t("Published data-tier application (.nupkg)");
@@ -473,14 +473,29 @@ export const scriptFriendlyName = l10n.t("Script");
 export const tableFriendlyName = l10n.t("Table");
 export const viewFriendlyName = l10n.t("View");
 export const storedProcedureFriendlyName = l10n.t("Stored Procedure");
+export const tableValuedFunctionFriendlyName = l10n.t("Table-Valued Function");
+export const triggerFriendlyName = l10n.t("Trigger");
+export const databaseTriggerFriendlyName = l10n.t("Database Trigger");
+export const schemaFriendlyName = l10n.t("Schema");
 export const dataSourceFriendlyName = l10n.t("Data Source");
 export const fileFormatFriendlyName = l10n.t("File Format");
 export const externalStreamFriendlyName = l10n.t("External Stream");
 export const externalStreamingJobFriendlyName = l10n.t("External Streaming Job");
+export const sequenceFriendlyName = l10n.t("Sequence");
 export const preDeployScriptFriendlyName = l10n.t("Script.PreDeployment");
 export const postDeployScriptFriendlyName = l10n.t("Script.PostDeployment");
 export const publishProfileFriendlyName = l10n.t("Publish Profile");
 export const tasksJsonFriendlyName = l10n.t("Tasks.json");
+
+//#region Default folder paths for item types
+// Maps item types to their default folder locations when created at project root
+// These follow SSDT conventions for folder structure
+export const securityFolderName = 'Security';
+export const functionsFolderName = 'Functions';
+export const databaseTriggersFolderName = 'DatabaseTriggers';
+export const sequencesFolderName = 'Sequences';
+export const defaultSchemaName = 'dbo';
+//#endregion
 
 //#endregion
 
