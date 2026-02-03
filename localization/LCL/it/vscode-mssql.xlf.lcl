@@ -16538,7 +16538,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Open in Copilot Agent mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Apri in modalità Agente Copilot]]></Val>
+            <Val><![CDATA[Apri in modalità agente Copilot]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
