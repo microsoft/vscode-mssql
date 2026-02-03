@@ -92,9 +92,7 @@ const hasTypePrefix = (searchTerm: string): boolean => {
 };
 
 // Helper to get which type is active from the search prefix
-const getActiveTypeFromPrefix = (
-    searchTerm: string,
-): keyof ObjectTypeFilters | null => {
+const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | null => {
     const trimmed = searchTerm.trim().toLowerCase();
     if (trimmed.startsWith("t:")) return "tables";
     if (trimmed.startsWith("v:")) return "views";
