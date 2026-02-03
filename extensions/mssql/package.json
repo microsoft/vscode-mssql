@@ -2850,14 +2850,32 @@
                         {
                             "properties": {
                                 "operation": { "enum": ["get_table"] },
-                                "payload": { "type": "object", "required": ["table"] }
+                                "payload": {
+                                    "type": "object",
+                                    "required": ["table"],
+                                    "properties": {
+                                        "table": {
+                                            "anyOf": [
+                                                { "required": ["id"] },
+                                                { "required": ["schema", "name"] }
+                                            ]
+                                        }
+                                    }
+                                }
                             },
                             "required": ["payload"]
                         },
                         {
                             "properties": {
                                 "operation": { "enum": ["apply_edits"] },
-                                "payload": { "type": "object", "required": ["expectedVersion", "edits"] }
+                                "payload": {
+                                    "type": "object",
+                                    "required": ["expectedVersion", "edits"],
+                                    "properties": {
+                                        "expectedVersion": { "type": "string", "minLength": 1 },
+                                        "edits": { "type": "array", "minItems": 1 }
+                                    }
+                                }
                             },
                             "required": ["payload"]
                         }
