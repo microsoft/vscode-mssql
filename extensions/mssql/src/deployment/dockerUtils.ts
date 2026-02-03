@@ -232,6 +232,42 @@ export const COMMANDS = {
         command: "curl",
         args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
     }),
+
+    // DAB (Data API Builder) specific commands
+    PULL_DAB_IMAGE: (imageTag: string): DockerCommand => ({
+        command: "docker",
+        args: ["pull", imageTag],
+    }),
+    START_DAB_CONTAINER: (
+        name: string,
+        port: number,
+        configFilePath: string,
+        imageTag: string,
+        internalPort: number,
+    ): DockerCommand => ({
+        command: "docker",
+        args: [
+            "run",
+            "-d",
+            "--name",
+            sanitizeContainerInput(name),
+            "-p",
+            `${port}:${internalPort}`,
+            "-v",
+            `${configFilePath}:/App/dab-config.json:ro`,
+            imageTag,
+            "--ConfigFileName",
+            "/App/dab-config.json",
+        ],
+    }),
+    CHECK_DAB_HEALTH: (port: number): DockerCommand => ({
+        command: "curl",
+        args: ["-s", "-o", "/dev/null", "-w", "%{http_code}", `http://localhost:${port}/`],
+    }),
+    GET_CONTAINER_LOGS: (name: string): DockerCommand => ({
+        command: "docker",
+        args: ["logs", sanitizeContainerInput(name)],
+    }),
 };
 
 /**
@@ -1065,6 +1101,302 @@ export async function checkContainerExists(name: string): Promise<boolean> {
     } catch (e) {
         dockerLogger.appendLine(`Error checking if container exists: ${getErrorMessage(e)}`);
         return false;
+    }
+}
+
+//#endregion
+
+//#region DAB (Data API Builder) Docker Functions
+
+import * as fs from "fs";
+import * as os from "os";
+import { Dab } from "../sharedInterfaces/dab";
+
+/**
+ * Pulls the DAB container image from MCR
+ */
+export async function pullDabContainerImage(): Promise<DockerCommandParams> {
+    try {
+        dockerLogger.appendLine(`Pulling DAB container image: ${Dab.DAB_CONTAINER_IMAGE}`);
+        await execDockerCommand(COMMANDS.PULL_DAB_IMAGE(Dab.DAB_CONTAINER_IMAGE));
+        dockerLogger.appendLine("DAB container image pulled successfully.");
+        return { success: true };
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to pull DAB container image: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: "Failed to pull DAB container image. Please check your network connection.",
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Writes the DAB config content to a temporary file
+ * @param configContent The DAB configuration JSON content
+ * @returns The path to the temporary config file
+ */
+export function writeDabConfigToTempFile(configContent: string): string {
+    const tempDir = os.tmpdir();
+    const configFileName = `dab-config-${Date.now()}.json`;
+    const configFilePath = path.join(tempDir, configFileName);
+
+    fs.writeFileSync(configFilePath, configContent, "utf8");
+    dockerLogger.appendLine(`DAB config written to: ${configFilePath}`);
+
+    return configFilePath;
+}
+
+/**
+ * Cleans up a temporary DAB config file
+ * @param configFilePath Path to the config file to delete
+ */
+export function cleanupDabConfigFile(configFilePath: string): void {
+    try {
+        if (fs.existsSync(configFilePath)) {
+            fs.unlinkSync(configFilePath);
+            dockerLogger.appendLine(`Cleaned up DAB config file: ${configFilePath}`);
+        }
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
+    }
+}
+
+/**
+ * Starts a DAB Docker container with the specified parameters
+ * @param containerName Name for the container
+ * @param port Port to expose the DAB API on
+ * @param configFilePath Path to the DAB config file
+ */
+export async function startDabDockerContainer(
+    containerName: string,
+    port: number,
+    configFilePath: string,
+): Promise<DockerCommandParams> {
+    try {
+        dockerLogger.appendLine(
+            `Starting DAB container: ${containerName} on port ${port} with config ${configFilePath}`,
+        );
+
+        await execDockerCommand(
+            COMMANDS.START_DAB_CONTAINER(
+                containerName,
+                port,
+                configFilePath,
+                Dab.DAB_CONTAINER_IMAGE,
+                Dab.DAB_DEFAULT_PORT,
+            ),
+        );
+
+        dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);
+        return {
+            success: true,
+            port,
+        };
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to start DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: "Failed to start DAB container. Please check the Docker logs for details.",
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Checks if the DAB container is ready to accept connections
+ * Polls the health endpoint until it responds or times out
+ * @param containerName Name of the container (for logging)
+ * @param port Port the DAB API is exposed on
+ */
+export async function checkIfDabContainerIsReady(
+    containerName: string,
+    port: number,
+): Promise<DockerCommandParams> {
+    const timeoutMs = 60_000; // 1 minute timeout for DAB
+    const intervalMs = 1000;
+    const start = Date.now();
+
+    dockerLogger.appendLine(
+        `Checking if DAB container ${containerName} is ready on port ${port}...`,
+    );
+
+    return new Promise((resolve) => {
+        const interval = setInterval(async () => {
+            try {
+                const response = await execDockerCommand(COMMANDS.CHECK_DAB_HEALTH(port));
+                const statusCode = parseInt(response, 10);
+
+                // DAB returns various status codes, but any response means it's running
+                if (statusCode >= 200 && statusCode < 500) {
+                    clearInterval(interval);
+                    dockerLogger.appendLine(
+                        `DAB container ${containerName} is ready! (HTTP ${statusCode})`,
+                    );
+                    return resolve({ success: true, port });
+                }
+            } catch {
+                // Ignore errors and retry - container may not be ready yet
+            }
+
+            if (Date.now() - start > timeoutMs) {
+                clearInterval(interval);
+                // Try to get container logs for debugging
+                try {
+                    const logs = await execDockerCommand(
+                        COMMANDS.GET_CONTAINER_LOGS(containerName),
+                    );
+                    dockerLogger.appendLine(`DAB container logs:\n${logs}`);
+                } catch {
+                    // Ignore log retrieval errors
+                }
+                return resolve({
+                    success: false,
+                    error: "DAB container failed to become ready within the timeout period.",
+                });
+            }
+        }, intervalMs);
+    });
+}
+
+/**
+ * Stops and removes a DAB container
+ * @param containerName Name of the container to stop and remove
+ */
+export async function stopAndRemoveDabContainer(
+    containerName: string,
+): Promise<DockerCommandParams> {
+    try {
+        dockerLogger.appendLine(`Stopping DAB container: ${containerName}`);
+        try {
+            await execDockerCommand(COMMANDS.STOP_CONTAINER(containerName));
+        } catch {
+            // Container might already be stopped
+        }
+
+        dockerLogger.appendLine(`Removing DAB container: ${containerName}`);
+        await execDockerCommand(COMMANDS.DELETE_CONTAINER(containerName).remove);
+
+        dockerLogger.appendLine(`DAB container ${containerName} stopped and removed.`);
+        return { success: true };
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: "Failed to stop and remove DAB container.",
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Validates and returns a unique container name for DAB
+ * @param containerName The requested container name (can be empty for auto-generation)
+ */
+export async function validateDabContainerName(containerName: string): Promise<string> {
+    const nameToValidate =
+        containerName.trim() === "" ? Dab.DAB_DEFAULT_CONTAINER_NAME : containerName;
+    return validateContainerName(nameToValidate);
+}
+
+/**
+ * Finds an available port for the DAB container
+ * @param preferredPort The preferred port to use if available
+ */
+export async function findAvailableDabPort(
+    preferredPort: number = Dab.DAB_DEFAULT_PORT,
+): Promise<number> {
+    return findAvailablePort(preferredPort);
+}
+
+/**
+ * Runs a specific DAB deployment step
+ * Reuses the common Docker prerequisite steps (install, start, engine check)
+ * and adds DAB-specific steps for image pull, container start, and readiness check
+ *
+ * @param step The step to run
+ * @param params Optional parameters needed for certain steps
+ * @param configContent Optional DAB config content (needed for startContainer step)
+ */
+export async function runDabDeploymentStep(
+    step: Dab.DabDeploymentStepOrder,
+    params?: Dab.DabDeploymentParams,
+    configContent?: string,
+): Promise<Dab.RunDeploymentStepResponse> {
+    switch (step) {
+        case Dab.DabDeploymentStepOrder.dockerInstallation:
+            return checkDockerInstallation();
+
+        case Dab.DabDeploymentStepOrder.startDockerDesktop:
+            return startDocker();
+
+        case Dab.DabDeploymentStepOrder.checkDockerEngine:
+            return checkEngine();
+
+        case Dab.DabDeploymentStepOrder.pullImage:
+            return pullDabContainerImage();
+
+        case Dab.DabDeploymentStepOrder.startContainer: {
+            if (!params || !configContent) {
+                return {
+                    success: false,
+                    error: "Container name, port, and config content are required to start the container.",
+                };
+            }
+
+            // Write config to temp file
+            const configFilePath = writeDabConfigToTempFile(configContent);
+
+            try {
+                const result = await startDabDockerContainer(
+                    params.containerName,
+                    params.port,
+                    configFilePath,
+                );
+
+                if (result.success) {
+                    return {
+                        success: true,
+                        apiUrl: `http://localhost:${params.port}`,
+                    };
+                }
+
+                // Clean up config file on failure
+                cleanupDabConfigFile(configFilePath);
+                return result;
+            } catch (e) {
+                cleanupDabConfigFile(configFilePath);
+                return {
+                    success: false,
+                    error: "Failed to start DAB container.",
+                    fullErrorText: getErrorMessage(e),
+                };
+            }
+        }
+
+        case Dab.DabDeploymentStepOrder.checkContainer: {
+            if (!params) {
+                return {
+                    success: false,
+                    error: "Container name and port are required to check container readiness.",
+                };
+            }
+
+            const result = await checkIfDabContainerIsReady(params.containerName, params.port);
+            if (result.success) {
+                return {
+                    success: true,
+                    apiUrl: `http://localhost:${params.port}`,
+                };
+            }
+            return result;
+        }
+
+        default:
+            return {
+                success: false,
+                error: `Unknown deployment step: ${step}`,
+            };
     }
 }
 

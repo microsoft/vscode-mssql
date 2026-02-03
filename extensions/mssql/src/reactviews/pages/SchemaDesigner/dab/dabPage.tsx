@@ -10,6 +10,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { DabToolbar } from "./dabToolbar";
 import { DabEntityTile } from "./dabEntityTile";
 import { DabDefinitionsPanel } from "./dabDefinitionsPanel";
+import { DabDeploymentDialog } from "./deployment";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
@@ -159,6 +160,7 @@ export const DabPage = ({ activeView }: DabPageProps) => {
 
     return (
         <div className={classes.root}>
+            <DabDeploymentDialog />
             <PanelGroup direction="vertical">
                 <Panel defaultSize={100}>
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>

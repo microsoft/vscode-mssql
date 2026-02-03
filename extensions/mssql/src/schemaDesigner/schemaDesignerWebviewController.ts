@@ -23,6 +23,12 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
+import {
+    runDabDeploymentStep,
+    validateDabContainerName,
+    findAvailableDabPort,
+    stopAndRemoveDabContainer,
+} from "../deployment/dockerUtils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -31,7 +37,8 @@ function isExpandCollapseButtonsEnabled(): boolean {
 }
 
 function isDABEnabled(): boolean {
-    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
+    // return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
+    return true;
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
@@ -400,6 +407,53 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.onNotification(Dab.CopyConfigNotification.type, async (payload) => {
             await vscode.env.clipboard.writeText(payload.configContent);
             await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
+        });
+
+        // DAB deployment request handlers
+        this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            // For the startContainer step, we need to generate the config content
+            let configContent: string | undefined;
+            if (payload.step === Dab.DabDeploymentStepOrder.startContainer && payload.config) {
+                const configResponse = this._dabService.generateConfig(payload.config, {
+                    connectionString: this.connectionString,
+                });
+                if (!configResponse.success) {
+                    return {
+                        success: false,
+                        error: configResponse.error,
+                    };
+                }
+                configContent = configResponse.configContent;
+            }
+
+            return runDabDeploymentStep(payload.step, payload.params, configContent);
+        });
+
+        this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
+            const containerNameValidation = await validateDabContainerName(payload.containerName);
+            const isContainerNameValid = containerNameValidation === payload.containerName;
+
+            const suggestedPort = await findAvailableDabPort(payload.port);
+            const isPortValid = suggestedPort === payload.port;
+
+            return {
+                isContainerNameValid,
+                validatedContainerName: containerNameValidation,
+                containerNameError: isContainerNameValid
+                    ? undefined
+                    : "Container name is invalid or already in use",
+                isPortValid,
+                suggestedPort,
+                portError: isPortValid ? undefined : `Port ${payload.port} is already in use`,
+            };
+        });
+
+        this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
+            const result = await stopAndRemoveDabContainer(payload.containerName);
+            return {
+                success: result.success ?? false,
+                error: result.error,
+            };
         });
     }
 
