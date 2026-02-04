@@ -25,6 +25,7 @@ import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest"
 import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
+import { generateGuid } from "../models/utils";
 
 export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     GlobalSearchWebViewState,
@@ -49,7 +50,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
-        const instanceId = Date.now();
+        const instanceId = generateGuid();
         const ownerUri = `globalSearch://${serverName}/${instanceId}`;
 
         super(
@@ -107,7 +108,10 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     public override dispose(): void {
         // Disconnect the connection to avoid accumulating orphaned connections
-        void this._connectionManager.disconnect(this._ownerUri);
+        // Only disconnect if actually connected - avoid triggering cancel prompts for in-flight connections
+        if (this._connectionManager.isConnected(this._ownerUri)) {
+            void this._connectionManager.disconnect(this._ownerUri);
+        }
 
         // Clear caches for this panel
         this._metadataCache.clear();
@@ -501,7 +505,6 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         // Data refresh
         this.registerReducer("refreshDatabases", async (state) => {
             await this.loadDatabases();
-            this.updateState();
             return state;
         });
 

@@ -91,7 +91,7 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = (props) => 
                         icon={<FilterIcon />}
                         className={classes.filterButton}
                         size="small"
-                        aria-label={`Filter ${props.label}`}
+                        aria-label={loc.globalSearch.filterColumnAriaLabel(props.label)}
                         onClick={(e) => e.stopPropagation()}
                     />
                 </MenuTrigger>

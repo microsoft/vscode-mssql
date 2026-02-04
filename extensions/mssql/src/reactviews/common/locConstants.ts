@@ -1682,7 +1682,7 @@ export class LocConstants {
             all: l10n.t("All"),
             none: l10n.t("None"),
 
-            // Type names (singular, must match backend values)
+            // Type names (singular, for display)
             typeTable: l10n.t("Table"),
             typeView: l10n.t("View"),
             typeStoredProcedure: l10n.t("Stored Procedure"),
@@ -1706,6 +1706,8 @@ export class LocConstants {
             filterByName: l10n.t("Filter by name"),
             filterBySchema: l10n.t("Filter by schema"),
             filterByType: l10n.t("Filter by type"),
+            filterColumnAriaLabel: (columnName: string) =>
+                l10n.t("Filter {0}", columnName),
             clearFilter: l10n.t("Clear"),
             selectAll: l10n.t("Select All"),
 
