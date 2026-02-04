@@ -4,11 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as chai from "chai";
 import { expect } from "chai";
+import sinonChai from "sinon-chai";
 import { DacFxService } from "../../src/services/dacFxService";
 import { SqlTasksService, TaskCompletionHandler } from "../../src/services/sqlTasksService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import * as Constants from "../../src/constants/constants";
+import { DeploymentScenario } from "../../src/enums";
+import * as dacFxContracts from "../../src/models/contracts/dacFx/dacFxContracts";
+
+chai.use(sinonChai);
 
 suite("DacFxService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -411,6 +417,50 @@ suite("DacFxService Tests", () => {
             // Assert
             expect(exportCommand).to.equal(extractCommand);
             expect(exportCommand).to.equal("revealFileInOS");
+        });
+
+        test("should send request with Deployment scenario", async () => {
+            // Arrange
+            const expectedResult = {
+                success: true,
+                errorMessage: "",
+                deploymentOptions: {},
+            };
+            sqlToolsClientStub.sendRequest.resolves(expectedResult);
+            const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
+
+            // Act
+            const result = await service.getDeploymentOptions(DeploymentScenario.Deployment);
+
+            // Assert
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnce;
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
+                dacFxContracts.GetDeploymentOptionsRequest.type,
+                { scenario: DeploymentScenario.Deployment },
+            );
+            expect(result).to.equal(expectedResult);
+        });
+
+        test("should send request with SchemaCompare scenario", async () => {
+            // Arrange
+            const expectedResult = {
+                success: true,
+                errorMessage: "",
+                deploymentOptions: {},
+            };
+            sqlToolsClientStub.sendRequest.resolves(expectedResult);
+            const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
+
+            // Act
+            const result = await service.getDeploymentOptions(DeploymentScenario.SchemaCompare);
+
+            // Assert
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnce;
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
+                dacFxContracts.GetDeploymentOptionsRequest.type,
+                { scenario: DeploymentScenario.SchemaCompare },
+            );
+            expect(result).to.equal(expectedResult);
         });
     });
 });
