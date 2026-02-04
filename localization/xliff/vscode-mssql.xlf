@@ -2126,6 +2126,9 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++75a86f33876b52fd9ce7e4c568a7ca35b392f02f2523ec303a5764f9ea5e946a">
+      <source xml:lang="en">Failed to import file.</source>
+    </trans-unit>
     <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
       <source xml:lang="en">Failed to list databases</source>
     </trans-unit>
@@ -2243,6 +2246,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
       <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c7f37e71ae70d1ba7b6862794b0c85995680c3b5e335556d12e97a805ce3953a">
+      <source xml:lang="en">File imported successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
       <source xml:lang="en">File name is required</source>
@@ -2590,6 +2596,9 @@
     <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
       <source xml:lang="en">Import Information</source>
     </trans-unit>
+    <trans-unit id="++CODE++79e6ae7e99e1a20fac22d0e96d3c6655da33fa78e816b9cb389c74e94963eddc">
+      <source xml:lang="en">Import New File</source>
+    </trans-unit>
     <trans-unit id="++CODE++1e4a87f0347e3ffdfda399805853364283c57e23e938222c1aac71399a458148">
       <source xml:lang="en">Import Status</source>
     </trans-unit>
@@ -2620,6 +2629,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6ef88827ba30503ec0beb5b6cc6801a9f9f1b0dd11d47de6f30e57fce50a7f63">
       <source xml:lang="en">Importing BACPAC...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1055660e603fb86aa34b3b67aa1e5ac0d1f7d5bf303fb151808544c699012c05">
+      <source xml:lang="en">Importing data...</source>
     </trans-unit>
     <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
       <source xml:lang="en">Importing selections</source>
@@ -5860,11 +5872,11 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
+    <trans-unit id="mssql.flatFileImport">
+      <source xml:lang="en">Import</source>
+    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
-    </trans-unit>
-    <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import Flat File</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>

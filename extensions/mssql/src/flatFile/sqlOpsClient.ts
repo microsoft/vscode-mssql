@@ -29,6 +29,8 @@ import {
     LogLevel,
 } from "./clientInterfaces";
 
+export const flatFileConfigFile = "flatFileConfig.json";
+
 export class SqlOpsClient {
     private statusView: vscode.StatusBarItem;
 
@@ -36,8 +38,13 @@ export class SqlOpsClient {
         this.statusView = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     }
 
-    public async startService(context: vscode.ExtensionContext): Promise<SqlOpsDataClient> {
-        const configPath = path.join(context.extensionPath, "flatFileConfig.json");
+    /**
+     * Starts the SQL Ops client for flat file, which includes downloading the service if not already present, and starting the language client.
+     * @param context The vscode extension context, used for storage and other extension related functionality.
+     * @returns The flat file client
+     */
+    public async startFlatFileService(context: vscode.ExtensionContext): Promise<SqlOpsDataClient> {
+        const configPath = path.join(context.extensionPath, flatFileConfigFile);
         const rawConfig = await fs.readFile(configPath);
         let clientOptions: ClientOptions = this.createClientOptions();
         try {
@@ -103,7 +110,8 @@ export class SqlOpsClient {
                 configurationSection: [extensionConfigSectionName, languageId],
             },
             features: [
-                // we only want to add new features
+                // We only want to add new features
+                // Add more SQL Opsfeatures here as needed
                 FlatFileFeature,
             ],
             outputChannel: new CustomOutputChannel(),

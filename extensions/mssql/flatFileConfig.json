@@ -8,7 +8,7 @@
 		"OSX": "osx-x64.tar.gz",
 		"Linux": "linux-x64.tar.gz"
 	},
-	"installDirectory": "flatfileimportservice/{#platform#}/{#version#}",
+	"installDirectory": "out/src/sqlOpsService/{#platform#}/{#version#}",
 	"executableFiles": [
 		"MicrosoftSqlToolsFlatFileImport",
 		"MicrosoftSqlToolsFlatFileImport.exe"

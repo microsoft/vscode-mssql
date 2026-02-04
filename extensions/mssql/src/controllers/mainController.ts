@@ -853,13 +853,16 @@ export default class MainController implements vscode.Disposable {
 
         // Initialize SQL Data ops client
         const sqlOpsClient = new SqlOpsClient(this._vscodeWrapper.outputChannel);
-        await sqlOpsClient.startService(this._context);
-        this.sqlOpsClient = sqlOpsClient;
+
+        // Register SQL Ops client services here
+        // right now, we only have flat file
+        await sqlOpsClient.startFlatFileService(this._context);
         managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
             this.flatFileProvider = provider;
             Promise.resolve(true);
         });
-        console.log("FlatFileProvider registered.", this.flatFileProvider);
+
+        this.sqlOpsClient = sqlOpsClient;
 
         /**
          * TODO: aaskhan
