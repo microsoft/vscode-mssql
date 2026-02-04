@@ -22,9 +22,11 @@ import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
+import { UriOwnershipCoordinator } from "./uriOwnership";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
+export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
@@ -74,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+    uriOwnershipCoordinator = new UriOwnershipCoordinator(controller, context);
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: async (ignoreFocusOut?: boolean) => {
@@ -191,6 +194,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                     connectionId,
                 );
             },
+            uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         } as vscodeMssql.IConnectionSharingService,
     };
 }

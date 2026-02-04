@@ -2605,6 +2605,11 @@ declare module "vscode-mssql" {
         parentTypeName?: string;
     }
 
+    export interface UriOwnershipApi {
+        ownsUri(uri: vscode.Uri): boolean;
+        onDidChangeUriOwnership: vscode.Event<void>;
+    }
+
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
@@ -2705,5 +2710,6 @@ declare module "vscode-mssql" {
          * @returns The connection string if the connection is found, or undefined if the connection is not found.
          */
         getConnectionString(extensionId: string, connectionId: string): Promise<string | undefined>;
+        uriOwnershipApi: UriOwnershipApi;
     }
 }
