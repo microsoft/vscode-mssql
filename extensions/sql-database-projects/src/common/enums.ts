@@ -17,7 +17,16 @@
  * TODO: Move all similar enums from other files to this centralized location.
  */
 
+/**
+ * Specifies the scenario for which to retrieve default deployment options.
+ */
 export const enum DeploymentScenario {
-	Deployment = 0,
-	SchemaCompare = 1,
+    /**
+     * Deployment/Publish scenario - uses DacFx native defaults
+     */
+    Deployment = 0,
+    /**
+     * Schema Compare scenario - uses modified defaults optimized for schema comparison
+     */
+    SchemaCompare = 1,
 }
