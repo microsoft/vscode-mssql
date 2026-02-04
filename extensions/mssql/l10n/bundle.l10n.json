@@ -1109,6 +1109,7 @@
     "Try adjusting your search or filters": "Try adjusting your search or filters",
     "Filter by name": "Filter by name",
     "Filter by schema": "Filter by schema",
+    "Filter {0}": "Filter {0}",
     "Select Top 1000": "Select Top 1000",
     "Script as Drop": "Script as Drop",
     "Script as Alter": "Script as Alter",
