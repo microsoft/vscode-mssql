@@ -24,6 +24,7 @@ export function SchemaDesignerToolbar() {
                     overflow: "hidden",
                     overflowX: "auto",
                     alignItems: "center",
+                    gap: "2px",
                 }}>
                 <PublishChangesDialogButton />
                 <ViewDefinitionsButton />

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button } from "@fluentui/react-components";
+import { Badge, ToolbarButton, Tooltip } from "@fluentui/react-components";
 import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -19,14 +19,17 @@ export function ShowChangesButton() {
     }
 
     return (
-        <Button
-            size="small"
-            icon={<FluentIcons.BranchCompare16Regular />}
-            appearance="subtle"
-            onClick={() => {
-                eventBus.emit("toggleChangesPanel");
-            }}>
-            {locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}
-        </Button>
+        <Tooltip
+            content={locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}
+            relationship="label">
+            <ToolbarButton
+                icon={<FluentIcons.BranchCompare20Regular />}
+                appearance="subtle"
+                onClick={() => {
+                    eventBus.emit("toggleChangesPanel");
+                }}>
+                <Badge size="small">{context.schemaChangesCount}</Badge>
+            </ToolbarButton>
+        </Tooltip>
     );
 }

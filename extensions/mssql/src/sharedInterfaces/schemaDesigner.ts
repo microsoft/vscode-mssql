@@ -479,4 +479,9 @@ export namespace SchemaDesigner {
     export namespace GetBaselineSchemaRequest {
         export const type = new RequestType<void, Schema, void>("getBaselineSchema");
     }
+
+    // Types with isDeleted flag for tracking deletions in the UI
+    export type TableWithDeletedFlag = Table & { isDeleted?: boolean };
+    export type ColumnWithDeletedFlag = Column & { isDeleted?: boolean };
+    export type ForeignKeyWithDeletedFlag = ForeignKey & { isDeleted?: boolean };
 }
