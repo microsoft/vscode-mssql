@@ -1004,9 +1004,6 @@
     <trans-unit id="++CODE++46b5a7c346e9d00be41ca0356c4761a49755124bab2845df72aa9377b4b53be0">
       <source xml:lang="en">Unable to locate &apos;{0}&apos; target: &apos;{1}&apos;. {2}</source>
     </trans-unit>
-    <trans-unit id="++CODE++d9eedbf380fb02fed5c08d8d0bffe2c85cfc63d74dc947da354d48da398e4034">
-      <source xml:lang="en">Unable to update existing tasks.json (invalid format). Please fix tasks.json and try again.</source>
-    </trans-unit>
     <trans-unit id="++CODE++c9df623e3c064d4e8d9a2233567158801a01366b17b33096e85bcfcc714ea0c6">
       <source xml:lang="en">Unexpected number of {0} files: {1}</source>
     </trans-unit>

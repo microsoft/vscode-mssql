@@ -5,7 +5,6 @@
   "    stdout: ": "    stdout: ",
   "    stderr: ": "    stderr: ",
   "Builds the {0} SQL project": "Builds the {0} SQL project",
-  "Unable to update existing tasks.json (invalid format). Please fix tasks.json and try again.": "Unable to update existing tasks.json (invalid format). Please fix tasks.json and try again.",
   "Error updating existing tasks.json: {0}": "Error updating existing tasks.json: {0}",
   "SQL Server Database": "SQL Server Database",
   "Develop and publish schemas for SQL Server databases starting from an empty project": "Develop and publish schemas for SQL Server databases starting from an empty project",
