@@ -23,8 +23,6 @@ import {
     ObjectMetadata,
     TableMetadataParams,
     TableMetadataResult,
-    ViewMetadataParams,
-    ViewMetadataResult,
 } from "../sharedInterfaces/metadata";
 import { getErrorMessage } from "../utils/utils";
 
