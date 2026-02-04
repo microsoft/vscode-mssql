@@ -2423,9 +2423,7 @@ export class GlobalSearch {
             comment: ["{0} is the server name"],
         });
 
-    public static failedToEstablishConnection = l10n.t(
-        "Failed to establish connection",
-    );
+    public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
     public static noNodeSelected = l10n.t(
         "Unable to open Global Search: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
