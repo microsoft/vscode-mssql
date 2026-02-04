@@ -3,6 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * Client interfaces and base classes for SQL Ops features.
+ * These are taken from https://github.com/microsoft/sqlops-dataprotocolclient/
+ * We can't directly import from there, because it relies on the package "azdata"
+ * which we don't want to have as a dependency in this extension. Instead, we copy the necessary
+ * code here and modify it to remove the azdata dependency.
+ */
+
 import * as vscode from "vscode";
 import {
     ClientCapabilities,
@@ -85,7 +93,7 @@ export class CustomOutputChannel implements vscode.OutputChannel {
 }
 
 /**
- *
+ * Extends the base LanguageClient to include a providerId and to handle features in a specific way for SQL Ops clients.
  */
 export class SqlOpsDataClient extends LanguageClient {
     private _providerId: string;

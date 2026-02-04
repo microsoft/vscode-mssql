@@ -14,11 +14,7 @@ import {
     FlatFileImportReducers,
     FlatFileImportState,
 } from "../sharedInterfaces/flatFileImport";
-import {
-    ProseDiscoveryParams,
-    FlatFileProvider,
-    GetColumnInfoParams,
-} from "../models/contracts/flatFile";
+import { ProseDiscoveryParams, FlatFileProvider } from "../models/contracts/flatFile";
 import { FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { defaultSchema } from "../constants/constants";
@@ -27,8 +23,10 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import { SimpleExecuteResult } from "vscode-mssql";
 import { getSchemaNamesFromResult } from "../copilot/tools/listSchemasTool";
-import path from "path";
+import * as path from "path";
 import ConnectionManager from "./connectionManager";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -92,6 +90,8 @@ export class FlatFileImportController extends FormWebviewController<
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
+
+        sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.StartFlatFile);
     }
 
     /**
@@ -119,14 +119,6 @@ export class FlatFileImportController extends FormWebviewController<
                 state.fullErrorMessage = error.message;
                 state.tablePreviewStatus = ApiStatus.Error;
             }
-            return state;
-        });
-
-        this.registerReducer("getColumnInfo", async (state, _payload) => {
-            const response = await this.provider.sendGetColumnInfoRequest(
-                {} as GetColumnInfoParams,
-            );
-            console.log(response);
             return state;
         });
 
@@ -171,10 +163,14 @@ export class FlatFileImportController extends FormWebviewController<
                     throw new Error(insertDataResult.result.errorMessage);
                 }
                 state.importDataStatus = ApiStatus.Loaded;
+
+                sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile);
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.importFailed;
                 state.fullErrorMessage = error.message;
                 state.importDataStatus = ApiStatus.Error;
+
+                sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, error, false);
             }
 
             return state;
@@ -187,7 +183,15 @@ export class FlatFileImportController extends FormWebviewController<
                     [Loc.FlatFileImport.importFileTypes]: this.IMPORT_FILE_TYPES,
                 },
             });
-            const filePath = selectedFilePath[0]?.fsPath || "";
+
+            if (!selectedFilePath) {
+                if (!state.formErrors.includes("flatFilePath")) {
+                    state.formErrors.push("flatFilePath");
+                }
+                return state;
+            }
+
+            const filePath = selectedFilePath[0].fsPath;
             state.formState.flatFilePath = filePath;
 
             const fileName = filePath.substring(
@@ -196,10 +200,8 @@ export class FlatFileImportController extends FormWebviewController<
             );
             state.formState.tableName = fileName ?? "";
 
-            const filePathValid =
-                (await this.validateForm(state.formState, "flatFilePath", true)).length === 0;
-            if (filePathValid) {
-                state.formErrors = state.formErrors.filter((err) => err !== "flatFilePath");
+            if (state.formErrors.includes("flatFilePath")) {
+                state.formErrors = state.formErrors.filter((e) => e !== "flatFilePath");
             }
 
             return state;

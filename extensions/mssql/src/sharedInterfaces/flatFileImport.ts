@@ -49,8 +49,6 @@ export interface FlatFileImportProvider
     > {
     getTablePreview: (filePath: string, tableName: string, schemaName?: string) => void;
 
-    getColumnInfo: () => void;
-
     setColumnChanges: (columnChanges: ChangeColumnSettingsParams[]) => void;
 
     importData: () => void;
@@ -66,7 +64,6 @@ export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormS
         tableName: string;
         schemaName?: string;
     };
-    getColumnInfo: {};
     setColumnChanges: {
         columnChanges: ChangeColumnSettingsParams[];
     };

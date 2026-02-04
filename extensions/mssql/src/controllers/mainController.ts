@@ -111,9 +111,9 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
-import { SqlOpsClient } from "../flatFile/sqlOpsClient";
+import { SqlOpsClient } from "../sqlOps/sqlOpsClient";
 import { FlatFileImportController } from "./flatFileImportController";
-import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { ApiType, managerInstance } from "../sqlOps/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**

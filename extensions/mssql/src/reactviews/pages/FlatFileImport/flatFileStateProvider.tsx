@@ -46,9 +46,6 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                         schemaName: schemaName,
                     });
                 },
-                getColumnInfo: function (): void {
-                    webviewContext?.extensionRpc.action("getColumnInfo", {});
-                },
                 setColumnChanges: function (columnChanges: ChangeColumnSettingsParams[]): void {
                     webviewContext?.extensionRpc.action("setColumnChanges", {
                         columnChanges: columnChanges,
