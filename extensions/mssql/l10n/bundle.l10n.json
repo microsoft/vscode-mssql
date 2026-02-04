@@ -2478,7 +2478,7 @@
         "message": "Global Search - {0} (Preview)",
         "comment": ["{0} is the server name"]
     },
-    "Failed to establish connection for scripting": "Failed to establish connection for scripting",
+    "Failed to establish connection": "Failed to establish connection",
     "Unable to open Global Search: No Object Explorer node provided. Please select a server or database node in Object Explorer.": "Unable to open Global Search: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
     "Unknown": "Unknown",
     "Copied \"{0}\" to clipboard/{0} is the object name": {

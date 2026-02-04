@@ -2073,8 +2073,8 @@
       <note>{0} is the database name
 {1} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++ec36557c2f318d8966fdfacc5138a375d61790690acf99e7a902d2c17146b17e">
-      <source xml:lang="en">Failed to establish connection for scripting</source>
+    <trans-unit id="++CODE++d84b3d155999e4fbb9375b2096b6b34a6799bc70319582c93eff74f3a69e1ebb">
+      <source xml:lang="en">Failed to establish connection</source>
     </trans-unit>
     <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
