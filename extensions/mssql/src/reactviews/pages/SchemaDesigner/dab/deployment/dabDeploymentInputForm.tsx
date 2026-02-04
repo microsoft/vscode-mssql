@@ -11,10 +11,11 @@ import {
     Field,
     Input,
     makeStyles,
+    Spinner,
     Text,
     tokens,
 } from "@fluentui/react-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
 
@@ -33,12 +34,17 @@ const useStyles = makeStyles({
 
 interface DabDeploymentInputFormProps {
     initialParams: Dab.DabDeploymentParams;
+    validateParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     onSubmit: (params: Dab.DabDeploymentParams) => void;
     onCancel: () => void;
 }
 
 export const DabDeploymentInputForm = ({
     initialParams,
+    validateParams,
     onSubmit,
     onCancel,
 }: DabDeploymentInputFormProps) => {
@@ -48,11 +54,30 @@ export const DabDeploymentInputForm = ({
     const [port, setPort] = useState(initialParams.port.toString());
     const [containerNameError, setContainerNameError] = useState<string | undefined>();
     const [portError, setPortError] = useState<string | undefined>();
+    const [isValidating, setIsValidating] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
 
-    const validateForm = (): boolean => {
+    // Auto-generate validated defaults on mount
+    useEffect(() => {
+        const initializeDefaults = async () => {
+            setIsInitializing(true);
+            try {
+                // Pass empty string to trigger auto-generation of unique container name
+                const result = await validateParams("", initialParams.port);
+                // Use validated/suggested values
+                setContainerName(result.validatedContainerName);
+                setPort(result.suggestedPort.toString());
+            } finally {
+                setIsInitializing(false);
+            }
+        };
+        void initializeDefaults();
+    }, []); // Only run on mount
+
+    const validateFormClient = (): boolean => {
         let isValid = true;
 
-        // Validate container name
+        // Validate container name (client-side)
         if (!containerName.trim()) {
             setContainerNameError(locConstants.schemaDesigner.containerNameRequired);
             isValid = false;
@@ -63,7 +88,7 @@ export const DabDeploymentInputForm = ({
             setContainerNameError(undefined);
         }
 
-        // Validate port
+        // Validate port (client-side)
         const portNum = parseInt(port, 10);
         if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
             setPortError(locConstants.schemaDesigner.portInvalid);
@@ -75,15 +100,37 @@ export const DabDeploymentInputForm = ({
         return isValid;
     };
 
-    const handleSubmit = () => {
-        if (!validateForm()) {
+    const handleSubmit = async () => {
+        // First do client-side validation
+        if (!validateFormClient()) {
             return;
         }
-        onSubmit({
-            containerName,
-            port: parseInt(port, 10),
-        });
+
+        // Then do server-side validation
+        setIsValidating(true);
+        try {
+            const portNum = parseInt(port, 10);
+            const result = await validateParams(containerName, portNum);
+
+            if (!result.isContainerNameValid) {
+                setContainerNameError(result.containerNameError);
+            }
+            if (!result.isPortValid) {
+                setPortError(result.portError);
+            }
+
+            if (result.isContainerNameValid && result.isPortValid) {
+                onSubmit({
+                    containerName,
+                    port: portNum,
+                });
+            }
+        } finally {
+            setIsValidating(false);
+        }
     };
+
+    const isLoading = isInitializing || isValidating;
 
     return (
         <>
@@ -96,6 +143,7 @@ export const DabDeploymentInputForm = ({
                     <Input
                         value={containerName}
                         onChange={(_, data) => setContainerName(data.value)}
+                        disabled={isLoading}
                     />
                     <Text className={classes.fieldHint}>
                         {locConstants.schemaDesigner.containerNameHint}
@@ -106,17 +154,26 @@ export const DabDeploymentInputForm = ({
                     label={locConstants.schemaDesigner.port}
                     validationState={portError ? "error" : undefined}
                     validationMessage={portError}>
-                    <Input type="number" value={port} onChange={(_, data) => setPort(data.value)} />
+                    <Input
+                        type="number"
+                        value={port}
+                        onChange={(_, data) => setPort(data.value)}
+                        disabled={isLoading}
+                    />
                     <Text className={classes.fieldHint}>
                         {locConstants.schemaDesigner.portHint}
                     </Text>
                 </Field>
             </DialogContent>
             <DialogActions>
-                <Button appearance="secondary" onClick={onCancel}>
+                <Button appearance="secondary" onClick={onCancel} disabled={isValidating}>
                     {locConstants.common.cancel}
                 </Button>
-                <Button appearance="primary" onClick={handleSubmit}>
+                <Button
+                    appearance="primary"
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    icon={isValidating ? <Spinner size="tiny" /> : undefined}>
                     {locConstants.localContainers.createContainer}
                 </Button>
             </DialogActions>

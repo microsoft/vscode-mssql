@@ -11,7 +11,7 @@ import fixPath from "fix-path";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
-    defaultContainerName,
+    defaultSqlServerContainerName,
     defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
@@ -572,19 +572,24 @@ export async function checkEngine(): Promise<DockerCommandParams> {
 /**
  * Checks that the provided container name is valid and unique.
  * If the name is empty, it generates a unique name based on the default container name.
+ * @param containerName The requested container name (can be empty for auto-generation)
+ * @param defaultName The default name to use when containerName is empty (defaults to SQL Server container name)
  */
-export async function validateContainerName(containerName: string): Promise<string> {
+export async function validateContainerName(
+    containerName: string,
+    defaultName: string = defaultSqlServerContainerName,
+): Promise<string> {
     try {
         const stdout = await execDockerCommand(COMMANDS.VALIDATE_CONTAINER_NAME());
         const existingContainers = stdout ? stdout.split("\n") : [];
         let newContainerName = "";
 
         if (containerName.trim() === "") {
-            newContainerName = defaultContainerName;
+            newContainerName = defaultName;
             let counter = 1;
 
             while (existingContainers.includes(newContainerName)) {
-                newContainerName = `${defaultContainerName}_${++counter}`;
+                newContainerName = `${defaultName}_${++counter}`;
             }
         } else if (
             !existingContainers.includes(containerName) &&
@@ -1254,9 +1259,7 @@ export async function stopAndRemoveDabContainer(
  * @param containerName The requested container name (can be empty for auto-generation)
  */
 export async function validateDabContainerName(containerName: string): Promise<string> {
-    const nameToValidate =
-        containerName.trim() === "" ? Dab.DAB_DEFAULT_CONTAINER_NAME : containerName;
-    return validateContainerName(nameToValidate);
+    return validateContainerName(containerName, Dab.DAB_DEFAULT_CONTAINER_NAME);
 }
 
 /**

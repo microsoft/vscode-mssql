@@ -30,6 +30,7 @@ export const DabDeploymentDialog = () => {
         closeDabDeploymentDialog,
         setDabDeploymentDialogStep,
         updateDabDeploymentParams,
+        validateDabDeploymentParams,
         runDabDeploymentStep,
         resetDabDeploymentState,
         retryDabDeploymentSteps,
@@ -113,6 +114,7 @@ export const DabDeploymentDialog = () => {
                 return (
                     <DabDeploymentInputForm
                         initialParams={dabDeploymentState.params}
+                        validateParams={validateDabDeploymentParams}
                         onSubmit={handleParamsSubmit}
                         onCancel={handleClose}
                     />

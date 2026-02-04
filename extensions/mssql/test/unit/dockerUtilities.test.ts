@@ -12,7 +12,7 @@ import * as os from "os";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import { LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
-import { defaultContainerName, Platform } from "../../src/constants/constants";
+import { defaultSqlServerContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
 import { stubTelemetry } from "./utils";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
@@ -476,10 +476,10 @@ suite("Docker Utilities", () => {
 
         // 1. Empty name => generate defaultContainerName_2
         spawnStub.returns(
-            createSuccessProcess(`${defaultContainerName}\n${defaultContainerName}_1`) as any,
+            createSuccessProcess(`${defaultSqlServerContainerName}\n${defaultSqlServerContainerName}_1`) as any,
         );
         let result = await dockerUtils.validateContainerName("");
-        expect(result).to.equal(`${defaultContainerName}_2`);
+        expect(result).to.equal(`${defaultSqlServerContainerName}_2`);
         spawnStub.resetHistory();
 
         // 2. Valid name, not taken => return as-is

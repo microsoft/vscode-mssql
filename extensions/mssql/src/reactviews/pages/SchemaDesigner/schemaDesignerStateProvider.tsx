@@ -148,6 +148,10 @@ export interface SchemaDesignerContextProps
     closeDabDeploymentDialog: () => void;
     setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
     updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
+    validateDabDeploymentParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
     runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
     resetDabDeploymentState: () => void;
     retryDabDeploymentSteps: () => void;
@@ -1283,6 +1287,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }));
     }, []);
 
+    const validateDabDeploymentParams = useCallback(
+        async (
+            containerName: string,
+            port: number,
+        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
+            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
+                containerName,
+                port,
+            });
+        },
+        [extensionRpc],
+    );
+
     const updateDeploymentStepStatus = useCallback(
         (
             step: Dab.DabDeploymentStepOrder,
@@ -1460,6 +1477,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 closeDabDeploymentDialog,
                 setDabDeploymentDialogStep,
                 updateDabDeploymentParams,
+                validateDabDeploymentParams,
                 runDabDeploymentStep,
                 resetDabDeploymentState,
                 retryDabDeploymentSteps,
