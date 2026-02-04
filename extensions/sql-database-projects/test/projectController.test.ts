@@ -395,7 +395,7 @@ suite('ProjectsController', function (): void {
 					should(tasksJson.tasks).be.Array().and.have.length(1);
 					const task = tasksJson.tasks[0];
 					should(task.group).not.be.undefined();
-					should(task.group.isDefault).equal('true', 'The build task should have isDefault: true');
+					should(task.group.isDefault).equal(true, 'The build task should have isDefault: true (boolean)');
 				}
 			});
 

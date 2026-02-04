@@ -272,8 +272,8 @@ export class ProjectsController {
 				const existingContent = await fs.readFile(tasksJsonPath, 'utf8');
 				const existingTasksJson = JSON.parse(existingContent);
 
-				// Ensure tasks array exists
-				if (!existingTasksJson.tasks) {
+				// Ensure tasks array exists and is actually an array
+				if (!Array.isArray(existingTasksJson.tasks)) {
 					existingTasksJson.tasks = [];
 				}
 
@@ -299,8 +299,18 @@ export class ProjectsController {
 				}
 				// If task already exists, do nothing
 			} catch (error) {
-				// If parsing fails, log error and skip
-				this._outputChannel.appendLine(`Error parsing existing tasks.json: ${error}`);
+				// If parsing fails, log error and notify user with option to view output
+				const errorMessage = utils.getErrorMessage(error);
+				this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
+
+				TelemetryReporter.createErrorEvent2(TelemetryViews.ProjectController, TelemetryActions.tasksJsonError, error)
+					.withAdditionalProperties({
+						hasWorkspaceFolder: (workspaceFolder !== undefined).toString(),
+						errorMessage: errorMessage
+					})
+					.send();
+
+				void utils.showErrorMessageWithOutputChannel(constants.tasksJsonUpdateError, errorMessage, this._outputChannel);
 			}
 		} else {
 			// Create new tasks.json - only create the task when needed

@@ -47,5 +47,6 @@ export enum TelemetryActions {
 	SchemaComparisonFinished = 'SchemaComparisonFinished',
 	SchemaComparisonStarted = 'SchemaComparisonStarted',
 	rename = "rename",
-	move = "move"
+	move = "move",
+	tasksJsonError = "tasksJsonError"
 }
