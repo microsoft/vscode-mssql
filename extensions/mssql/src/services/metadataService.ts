@@ -134,23 +134,7 @@ export class MetadataService implements IMetadataService {
         schema: string,
         objectName: string,
     ): Promise<ColumnMetadata[]> {
-        try {
-            const params: TableMetadataParams = {
-                ownerUri: ownerUri,
-                schema: schema,
-                objectName: objectName,
-            };
-
-            const result: TableMetadataResult = await this._client.sendRequest(
-                TableMetadataRequest.type,
-                params,
-            );
-
-            return result.columns;
-        } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
-            throw error;
-        }
+        return this.getObjectColumnInfo(ownerUri, schema, objectName, "table");
     }
 
     /**
@@ -167,17 +151,36 @@ export class MetadataService implements IMetadataService {
         schema: string,
         objectName: string,
     ): Promise<ColumnMetadata[]> {
+        return this.getObjectColumnInfo(ownerUri, schema, objectName, "view");
+    }
+
+    /**
+     * Retrieves column metadata for a specific table or view.
+     *
+     * @param ownerUri - The URI identifying the connection
+     * @param schema - The schema name (e.g., "dbo")
+     * @param objectName - The object name
+     * @param objectType - The type of object ("table" or "view")
+     * @returns A Promise that resolves to an array of ColumnMetadata
+     * @throws Logs error and re-throws if the request fails
+     */
+    private async getObjectColumnInfo(
+        ownerUri: string,
+        schema: string,
+        objectName: string,
+        objectType: "table" | "view",
+    ): Promise<ColumnMetadata[]> {
         try {
-            const params: ViewMetadataParams = {
+            const params: TableMetadataParams = {
                 ownerUri: ownerUri,
                 schema: schema,
                 objectName: objectName,
             };
 
-            const result: ViewMetadataResult = await this._client.sendRequest(
-                ViewMetadataRequest.type,
-                params,
-            );
+            const requestType =
+                objectType === "table" ? TableMetadataRequest.type : ViewMetadataRequest.type;
+
+            const result: TableMetadataResult = await this._client.sendRequest(requestType, params);
 
             return result.columns;
         } catch (error) {
