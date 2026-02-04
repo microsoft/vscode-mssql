@@ -398,9 +398,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                     await this.ensureConnection(connectionUri);
                     await this.loadMetadata();
                 } catch (error) {
-                    this.logger.error(
-                        `Error switching database: ${getErrorMessage(error)}`,
-                    );
+                    this.logger.error(`Error switching database: ${getErrorMessage(error)}`);
                 }
             }
             return state;
