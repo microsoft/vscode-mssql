@@ -39,6 +39,7 @@ const useStyles = makeStyles({
         overflowY: "auto",
         overflowX: "unset",
     },
+
     spinnerDiv: {
         height: "100%",
         width: "100%",
@@ -48,15 +49,18 @@ const useStyles = makeStyles({
         flexDirection: "column",
         padding: "20px",
     },
+
     errorIcon: {
         fontSize: "100px",
         opacity: 0.5,
     },
+
     button: {
         height: "32px",
         width: "120px",
         margin: "5px",
     },
+
     bottomDiv: {
         bottom: 0,
         paddingBottom: "25px",
@@ -65,12 +69,14 @@ const useStyles = makeStyles({
     tableDiv: {
         overflow: "auto",
         position: "relative",
-        margin: "20px",
-        height: "75vh",
+        width: "85%",
+        margin: "20px 20px 20px 0px",
     },
 
     table: {
         tableLayout: "fixed",
+        marginLeft: "20px",
+        marginRight: "20px",
         width: "100%",
         height: "100%",
     },
@@ -94,6 +100,7 @@ const useStyles = makeStyles({
 
     cellText: {
         fontWeight: 400,
+        fontSize: "12px",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -179,7 +186,7 @@ export const FlatFilePreviewTable = () => {
                 }),
             ) || []
         );
-    }, [state.tablePreview?.columnInfo, classes.columnText]);
+    }, [state.tablePreview?.columnInfo]);
 
     const items: Item[] = useMemo(() => {
         return (
@@ -198,7 +205,6 @@ export const FlatFilePreviewTable = () => {
         columns.forEach((column) => {
             sizes[column.columnId] = { defaultWidth: 50, minWidth: 20 };
         });
-        console.log(sizes);
         return sizes;
     }, [state.tablePreview?.dataPreview, columns]);
 
@@ -270,7 +276,6 @@ export const FlatFilePreviewTable = () => {
             </div>
 
             <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
                 <Button
                     className={classes.button}
                     type="submit"

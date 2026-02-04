@@ -11,8 +11,8 @@ export class FlatFileImportState
     implements FormState<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
-    errorMessage?: string = "";
-    fullErrorMessage?: string = "";
+    errorMessage: string = "";
+    fullErrorMessage: string = "";
     formState: FlatFileImportFormState = {
         databaseName: "",
         flatFilePath: "",
@@ -23,7 +23,6 @@ export class FlatFileImportState
     formComponents: Partial<Record<keyof FlatFileImportFormState, FlatFileImportFormItemSpec>> = {};
     formErrors: string[] = [];
     serverName: string = "";
-    fileType: string = "";
     tablePreview: ProseDiscoveryResponse | undefined = undefined;
     tablePreviewStatus: ApiStatus = ApiStatus.Loading;
     importDataStatus: ApiStatus = ApiStatus.NotStarted;
@@ -48,24 +47,11 @@ export interface FlatFileImportProvider
         FlatFileImportState,
         FlatFileImportFormItemSpec
     > {
-    getTablePreview: (
-        filePath: string,
-        tableName: string,
-        schemaName?: string,
-        fileType?: string,
-    ) => void;
+    getTablePreview: (filePath: string, tableName: string, schemaName?: string) => void;
 
     getColumnInfo: () => void;
 
     setColumnChanges: (columnChanges: ChangeColumnSettingsParams[]) => void;
-
-    changeColumnSettings: (
-        index: number,
-        newName?: string,
-        newDataType?: string,
-        newNullable?: boolean,
-        newIsPrimaryKey?: boolean,
-    ) => void;
 
     importData: () => void;
 
@@ -79,18 +65,10 @@ export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormS
         filePath: string;
         tableName: string;
         schemaName?: string;
-        fileType?: string;
     };
     getColumnInfo: {};
     setColumnChanges: {
         columnChanges: ChangeColumnSettingsParams[];
-    };
-    changeColumnSettings: {
-        index: number;
-        newName?: string;
-        newDataType?: string;
-        newNullable?: boolean;
-        newIsPrimaryKey?: boolean;
     };
     importData: {};
     openVSCodeFileBrowser: {};

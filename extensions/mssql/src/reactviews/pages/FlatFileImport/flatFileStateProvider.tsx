@@ -39,13 +39,11 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                     filePath: string,
                     tableName: string,
                     schemaName?: string,
-                    fileType?: string,
                 ): void {
                     webviewContext?.extensionRpc.action("getTablePreview", {
                         filePath: filePath,
                         tableName: tableName,
                         schemaName: schemaName,
-                        fileType: fileType,
                     });
                 },
                 getColumnInfo: function (): void {
@@ -54,21 +52,6 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                 setColumnChanges: function (columnChanges: ChangeColumnSettingsParams[]): void {
                     webviewContext?.extensionRpc.action("setColumnChanges", {
                         columnChanges: columnChanges,
-                    });
-                },
-                changeColumnSettings: function (
-                    index: number,
-                    newName?: string,
-                    newDataType?: string,
-                    newNullable?: boolean,
-                    newIsPrimaryKey?: boolean,
-                ): void {
-                    webviewContext?.extensionRpc.action("changeColumnSettings", {
-                        index: index,
-                        newName: newName,
-                        newDataType: newDataType,
-                        newNullable: newNullable,
-                        newIsPrimaryKey: newIsPrimaryKey,
                     });
                 },
                 importData: function (): void {

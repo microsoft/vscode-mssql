@@ -63,7 +63,7 @@ export interface ChangeColumnSettingsParams {
     newName?: string;
     newDataType?: string;
     newNullable?: boolean;
-    newIsPrimaryKey?: boolean;
+    newInPrimaryKey?: boolean;
 }
 
 export interface ChangeColumnSettingsResponse {

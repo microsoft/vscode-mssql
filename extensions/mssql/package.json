@@ -781,11 +781,19 @@
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/"                
+                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",    
+                    "group": "2_MSSQL_serverDbActions@6"
+
                 },
                 {
                     "command": "mssql.flatFileImport",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@5"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@6"
                 }
             ],
             "commandPalette": [

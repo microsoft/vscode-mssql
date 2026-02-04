@@ -15,7 +15,6 @@ import {
     FlatFileImportState,
 } from "../sharedInterfaces/flatFileImport";
 import {
-    ChangeColumnSettingsParams,
     ProseDiscoveryParams,
     FlatFileProvider,
     GetColumnInfoParams,
@@ -111,7 +110,6 @@ export class FlatFileImportController extends FormWebviewController<
                 filePath: payload.filePath,
                 tableName: payload.tableName,
                 schemaName: payload.schemaName,
-                fileType: payload.fileType,
             };
             try {
                 state.tablePreview = await this.provider.sendProseDiscoveryRequest(params);
@@ -137,51 +135,33 @@ export class FlatFileImportController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("changeColumnSettings", async (state, payload) => {
-            const params: ChangeColumnSettingsParams = {
-                index: payload.index,
-                newName: payload.newName,
-                newDataType: payload.newDataType,
-                newNullable: payload.newNullable,
-                newIsPrimaryKey: payload.newIsPrimaryKey,
-            };
-            const response = await this.provider.sendChangeColumnSettingsRequest(params);
-            console.log(response);
-            return state;
-        });
         this.registerReducer("importData", async (state, _payload) => {
             if (state.importDataStatus !== ApiStatus.NotStarted) return;
 
             state.importDataStatus = ApiStatus.Loading;
             this.updateState();
 
-            const connDetails = this.connectionManager.createConnectionDetails({
-                ...this.node.connectionProfile,
-                database: state.formState.databaseName,
-            });
-            const connectionString = await this.connectionManager.getConnectionString(
-                connDetails,
-                true,
-                true,
-            );
-            const batchSize = 1000; // default batch size
-            const azureAccessToken = this.node.connectionProfile.azureAccountToken;
+            try {
+                const connDetails = this.connectionManager.createConnectionDetails({
+                    ...this.node.connectionProfile,
+                    database: state.formState.databaseName,
+                });
+                const connectionString = await this.connectionManager.getConnectionString(
+                    connDetails,
+                    true,
+                    true,
+                );
+                const batchSize = 1000; // default batch size
+                const azureAccessToken = this.node.connectionProfile.azureAccountToken;
 
-            for (const colChange of state.columnChanges) {
-                try {
+                for (const colChange of state.columnChanges) {
                     const colChangeResult =
                         await this.provider.sendChangeColumnSettingsRequest(colChange);
                     if (colChangeResult.result.success === false) {
                         throw new Error(colChangeResult.result.errorMessage);
                     }
-                } catch (error) {
-                    state.errorMessage = error.message;
-                    state.importDataStatus = ApiStatus.Error;
-                    return state;
                 }
-            }
 
-            try {
                 const insertDataResult = await this.provider.sendInsertDataRequest({
                     connectionString: connectionString,
                     batchSize: batchSize,
@@ -192,7 +172,8 @@ export class FlatFileImportController extends FormWebviewController<
                 }
                 state.importDataStatus = ApiStatus.Loaded;
             } catch (error) {
-                state.errorMessage = error.message;
+                state.errorMessage = Loc.FlatFileImport.importFailed;
+                state.fullErrorMessage = error.message;
                 state.importDataStatus = ApiStatus.Error;
             }
 

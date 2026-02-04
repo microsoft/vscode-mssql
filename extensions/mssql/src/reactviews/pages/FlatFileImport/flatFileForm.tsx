@@ -11,7 +11,6 @@ import {
     makeStyles,
     Spinner,
     Text,
-    tokens,
 } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { FlatFileContext } from "./flatFileStateProvider";
@@ -67,14 +66,14 @@ const useStyles = makeStyles({
     },
 });
 
-export const FlatFileForm: React.FC = () => {
+export const FlatFileForm: React.FC<{ next?: boolean }> = ({ next = false }) => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
     const state = context?.state;
 
     if (!context || !state) return;
 
-    const [showNext, setShowNext] = useState<boolean>(false);
+    const [showNext, setShowNext] = useState<boolean>(next);
     const { formComponents } = context.state;
     const schemaFormComponent = formComponents["tableSchema"] as FlatFileImportFormItemSpec;
 
@@ -83,7 +82,6 @@ export const FlatFileForm: React.FC = () => {
             state.formState.flatFilePath,
             state.formState.tableName,
             state.formState.tableSchema,
-            state.fileType,
         );
         setShowNext(true);
     };
@@ -189,7 +187,6 @@ export const FlatFileForm: React.FC = () => {
                     )}
                 </div>
                 <div className={classes.bottomDiv}>
-                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
                     <Button
                         className={classes.button}
                         type="submit"

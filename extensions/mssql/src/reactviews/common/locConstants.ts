@@ -1883,6 +1883,11 @@ export class LocConstants {
             tableName: l10n.t("Table Name"),
             tableSchema: l10n.t("Table Schema"),
             fileToBeImported: l10n.t("File to be imported"),
+            importingData: l10n.t("Importing data..."),
+            importSuccessful: l10n.t("File imported successfully."),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            importNewFile: l10n.t("Import New File"),
         };
     }
 }

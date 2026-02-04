@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
     Button,
+    Link,
     makeStyles,
     Spinner,
     Table,
@@ -21,6 +22,8 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
+import { FlatFileColumnSettings } from "./flatFileColumnSettings";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -88,6 +91,25 @@ const useStyles = makeStyles({
     statusDiv: {
         margin: "20px",
     },
+
+    errorDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+    },
+
+    statusItems: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "8px",
+    },
+    linkDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        marginLeft: "28px",
+        marginTop: "8px",
+    },
 });
 
 export const FlatFileSummary = () => {
@@ -96,6 +118,9 @@ export const FlatFileSummary = () => {
     const state = context?.state;
 
     if (!context || !state) return;
+
+    const [showFullErrorMessage, setShowFullErrorMessage] = useState(false);
+    const [showPrevious, setShowPrevious] = useState(false);
 
     const columns = [locConstants.flatFileImport.objectType, locConstants.flatFileImport.name];
     const data = [
@@ -112,7 +137,9 @@ export const FlatFileSummary = () => {
         }
     }, []);
 
-    return (
+    return showPrevious ? (
+        <FlatFileColumnSettings />
+    ) : (
         <div className={classes.outerDiv}>
             <FlatFileHeader
                 headerText={locConstants.flatFileImport.importFile}
@@ -153,22 +180,71 @@ export const FlatFileSummary = () => {
             </Text>
 
             <div className={classes.statusDiv}>
-                {state.importDataStatus === ApiStatus.NotStarted && <Text>Not started</Text>}
-                {state.importDataStatus === ApiStatus.Loading && <Spinner />}
-                {state.importDataStatus === ApiStatus.Loaded && <Text>Success</Text>}
-                {state.importDataStatus === ApiStatus.Error && (
-                    <Text color={tokens.colorPaletteRedForeground1}>{state.errorMessage}</Text>
-                )}
+                {(() => {
+                    switch (state.importDataStatus) {
+                        case ApiStatus.NotStarted:
+                        case ApiStatus.Loading:
+                            return <Spinner label={locConstants.flatFileImport.importingData} />;
+
+                        case ApiStatus.Loaded:
+                            return (
+                                <div className={classes.statusItems}>
+                                    <Checkmark20Regular
+                                        style={{ color: tokens.colorStatusSuccessBackground3 }}
+                                    />
+                                    <Text>{locConstants.flatFileImport.importSuccessful}</Text>
+                                </div>
+                            );
+
+                        case ApiStatus.Error:
+                            return (
+                                <div className={classes.errorDiv}>
+                                    <div className={classes.statusItems}>
+                                        <Dismiss20Regular
+                                            style={{ color: tokens.colorStatusDangerBackground3 }}
+                                        />
+                                        <Text>{state.errorMessage}</Text>
+                                    </div>
+                                    <div className={classes.linkDiv}>
+                                        <Link
+                                            onClick={() =>
+                                                setShowFullErrorMessage(!showFullErrorMessage)
+                                            }>
+                                            {showFullErrorMessage
+                                                ? locConstants.flatFileImport.hideFullErrorMessage
+                                                : locConstants.flatFileImport.showFullErrorMessage}
+                                        </Link>
+                                        {showFullErrorMessage && (
+                                            <Text>{state.fullErrorMessage}</Text>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+
+                        default:
+                            return null;
+                    }
+                })()}
             </div>
 
             <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => setShowPrevious(true)}
+                    appearance="secondary">
+                    {locConstants.common.previous}
+                </Button>
                 <Button
                     className={classes.button}
                     type="submit"
                     onClick={() => context.dispose()}
-                    appearance="primary">
-                    {locConstants.common.finish}
+                    appearance={
+                        state.importDataStatus === ApiStatus.Loaded ? "primary" : "secondary"
+                    }>
+                    {state.importDataStatus === ApiStatus.Loaded
+                        ? locConstants.common.finish
+                        : locConstants.common.cancel}
                 </Button>
             </div>
         </div>

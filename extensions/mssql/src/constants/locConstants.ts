@@ -2837,4 +2837,5 @@ export class FlatFileImport {
     public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
     public static loadingSchemas = l10n.t("Loading schemas...");
     public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
 }
