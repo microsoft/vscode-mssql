@@ -882,22 +882,88 @@ export class ProjectsController {
 	}
 
 	/**
+	 * Parses a schema-qualified object name (e.g., "sales.MyFunction") into schema and object name parts.
+	 * If no schema is specified, returns 'dbo' as the default schema.
+	 * @param input The user-provided object name, optionally schema-qualified
+	 * @returns An object containing the schema name and object name
+	 */
+	public parseSchemaAndObjectName(input: string): { schemaName: string; objectName: string } {
+		const dotIndex = input.indexOf('.');
+		if (dotIndex > 0 && dotIndex < input.length - 1) {
+			// Format: schema.objectName
+			return {
+				schemaName: input.substring(0, dotIndex),
+				objectName: input.substring(dotIndex + 1)
+			};
+		}
+		// No schema specified, use default schema
+		return {
+			schemaName: constants.defaultSchemaName,
+			objectName: input
+		};
+	}
+
+	/**
 	 * Gets the default folder path for a given item type when creating at project root.
-	 * Only returns the default folder if it already exists in the project.
+	 * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
+	 * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
 	 * @param itemType The type of item being created
 	 * @param project The project to check for existing folders
+	 * @param schemaName Optional schema name to look for schema-named folders
 	 * @returns The default folder path if it exists, or empty string otherwise
 	 */
-	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject): string {
-		const defaultFolder = templates.itemTypeToDefaultFolderMap.get(itemType);
-		if (!defaultFolder) {
-			return '';
+	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject, schemaName?: string): string {
+		let relativePath = '';
+
+		// Get the folder config for this item type (defaults to schema-dependent if not in map)
+		const folderConfig = templates.itemTypeToFolderMap.get(itemType);
+		const isSchemaDependent = folderConfig?.schemaDependent ?? true;
+		const folderName = folderConfig?.folderName;
+
+		// Non-schema-dependent items - check root-level folder only
+		if (!isSchemaDependent && folderName) {
+			const rootFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
+			if (rootFolder) {
+				relativePath = rootFolder.relativePath;
+			}
+			return relativePath;
 		}
 
-		// Only use the default folder if it already exists in the project
-		const folderExists = project.folders.some(f => f.relativePath === defaultFolder);
+		// Case for Sequence: Check root-level Sequences folder first
+		if (itemType === ItemType.sequence && folderName) {
+			const rootObjectFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
 
-		return folderExists ? defaultFolder : '';
+			if (rootObjectFolder) {
+				return rootObjectFolder.relativePath;
+			}
+		}
+
+		// For schema-dependent items, check schema folders
+		if (schemaName) {
+			// Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
+			const schemaFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === schemaName.toLowerCase());
+
+			if (schemaFolder) {
+				relativePath = schemaFolder.relativePath;
+
+				// Case 2: Check for nested object type folder (e.g., "Sales/Functions")
+				if (folderName) {
+					const nestedPath = path.join(schemaFolder.relativePath, folderName);
+					const nestedFolder = project.folders.find(f =>
+						f.relativePath.toLowerCase() === nestedPath.toLowerCase());
+
+					if (nestedFolder) {
+						relativePath = nestedFolder.relativePath;
+					}
+				}
+			}
+		}
+
+		// Case 3: If no schema folder found, return empty string (place at root)
+		return relativePath;
 	}
 
 	public async addItemPromptFromNode(treeNode: dataworkspace.WorkspaceTreeItem, itemTypeName?: string): Promise<void> {
@@ -924,12 +990,6 @@ export class ProjectsController {
 		}
 
 		const itemType = templates.get(itemTypeName);
-
-		// Get default folder for this item type if creating at project root and folder exists, otherwise use the selected folder
-		if (relativePath === '') {
-			relativePath = this.getDefaultFolderForItemType(itemType.type, project);
-		}
-
 		const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
 		const isItemTypePublishProfile = itemTypeName === constants.publishProfileFriendlyName || itemTypeName === ItemType.publishProfile;
 		const fileExtension = isItemTypePublishProfile ? constants.publishProfileExtension : constants.sqlFileExtension;
@@ -947,7 +1007,16 @@ export class ProjectsController {
 			itemObjectName = itemObjectName?.slice(0, -fileExtension.length).trim();
 		}
 
-		const relativeFilePath = path.join(relativePath, itemObjectName + fileExtension);
+		// Parse schema and object name from input (e.g., "sales.MyFunction" -> schema="sales", objectName="MyFunction")
+		const { schemaName, objectName } = this.parseSchemaAndObjectName(itemObjectName);
+
+		// Determine the folder for this item when creating at project root
+		// Checks: Schema folder -> Schema/ObjectType folder -> root
+		if (relativePath === '') {
+			relativePath = this.getDefaultFolderForItemType(itemType.type, project, schemaName);
+		}
+
+		const relativeFilePath = path.join(relativePath, objectName + fileExtension);
 
 		const telemetryProps: Record<string, string> = { itemType: itemType.type };
 		const telemetryMeasurements: Record<string, number> = {};
@@ -959,7 +1028,7 @@ export class ProjectsController {
 		}
 
 		try {
-			const absolutePath = await this.addFileToProjectFromTemplate(project, itemType, relativeFilePath, new Map([['OBJECT_NAME', itemObjectName], ['PROJECT_NAME', project.projectFileName]]));
+			const absolutePath = await this.addFileToProjectFromTemplate(project, itemType, relativeFilePath, new Map([['OBJECT_NAME', objectName], ['SCHEMA_NAME', schemaName], ['PROJECT_NAME', project.projectFileName]]));
 
 			TelemetryReporter.createActionEvent(TelemetryViews.ProjectTree, TelemetryActions.addItemFromTree)
 				.withAdditionalProperties(telemetryProps)

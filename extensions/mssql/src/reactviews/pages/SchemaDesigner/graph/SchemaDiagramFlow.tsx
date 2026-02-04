@@ -8,6 +8,7 @@ import {
     ReactFlow,
     MiniMap,
     Controls,
+    ControlButton,
     Background,
     useNodesState,
     useEdgesState,
@@ -25,7 +26,11 @@ import {
     FinalConnectionState,
     ConnectionLineType,
 } from "@xyflow/react";
-import { ArrowUndo16Regular } from "@fluentui/react-icons";
+import {
+    ArrowUndo16Regular,
+    BranchCompare16Regular,
+    BranchCompare16Filled,
+} from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import {
@@ -113,11 +118,11 @@ export const SchemaDesignerFlow = () => {
         const nextEdges = relationshipEdges.map((edge) => {
             const foreignKeyId = edge.data?.id;
             const shouldHighlight =
-                context.isChangesPanelVisible &&
+                context.showChangesHighlight &&
                 !!foreignKeyId &&
                 context.newForeignKeyIds.has(foreignKeyId);
             const shouldShowModified =
-                context.isChangesPanelVisible &&
+                context.showChangesHighlight &&
                 !!foreignKeyId &&
                 context.modifiedForeignKeyIds.has(foreignKeyId);
 
@@ -147,33 +152,33 @@ export const SchemaDesignerFlow = () => {
 
         return didChange ? nextEdges : relationshipEdges;
     }, [
-        context.isChangesPanelVisible,
+        context.showChangesHighlight,
         context.newForeignKeyIds,
         context.modifiedForeignKeyIds,
         relationshipEdges,
     ]);
 
     const displayEdges = useMemo(() => {
-        if (!context.isChangesPanelVisible || context.deletedForeignKeyEdges.length === 0) {
+        if (!context.showChangesHighlight || context.deletedForeignKeyEdges.length === 0) {
             return highlightedEdges;
         }
 
         return [...highlightedEdges, ...context.deletedForeignKeyEdges];
-    }, [context.deletedForeignKeyEdges, context.isChangesPanelVisible, highlightedEdges]);
+    }, [context.deletedForeignKeyEdges, context.showChangesHighlight, highlightedEdges]);
 
     const displayNodes = useMemo(() => {
-        if (!context.isChangesPanelVisible) {
+        if (!context.showChangesHighlight) {
             return schemaNodes;
         }
 
         return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
-    }, [context.isChangesPanelVisible, deletedSchemaNodes, schemaNodes]);
+    }, [context.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
 
     useEffect(() => {
-        if (!context.isChangesPanelVisible) {
+        if (!context.showChangesHighlight) {
             setEdgeUndoState(null);
         }
-    }, [context.isChangesPanelVisible]);
+    }, [context.showChangesHighlight]);
 
     useEffect(() => {
         setDeletedSchemaNodes((prev) => {
@@ -506,7 +511,7 @@ export const SchemaDesignerFlow = () => {
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
                 onEdgeMouseEnter={(event, edge) => {
-                    if (!context.isChangesPanelVisible || context.isExporting) {
+                    if (!context.showChangesHighlight || context.isExporting) {
                         setEdgeUndoState(null);
                         return;
                     }
@@ -594,11 +599,35 @@ export const SchemaDesignerFlow = () => {
                     if (props.nodes.length === 0 && props.edges.length === 0) {
                         return true;
                     }
+                    if (context.consumeSkipDeleteConfirmation()) {
+                        return true;
+                    }
                     return await deleteElementsConfirmation();
                 }}
                 minZoom={0.05}
                 fitView>
-                <Controls />
+                <Controls>
+                    <ControlButton
+                        onClick={() =>
+                            context.setShowChangesHighlight(!context.showChangesHighlight)
+                        }
+                        title={
+                            context.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }
+                        aria-label={
+                            context.showChangesHighlight
+                                ? locConstants.schemaDesigner.hideChangesHighlight
+                                : locConstants.schemaDesigner.highlightChanges
+                        }>
+                        {context.showChangesHighlight ? (
+                            <BranchCompare16Filled />
+                        ) : (
+                            <BranchCompare16Regular />
+                        )}
+                    </ControlButton>
+                </Controls>
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>

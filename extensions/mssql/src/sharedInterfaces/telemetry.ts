@@ -41,6 +41,7 @@ export enum TelemetryViews {
     ChangelogPage = "ChangelogPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
+    Backup = "Backup",
 }
 
 export enum TelemetryActions {
@@ -159,6 +160,7 @@ export enum TelemetryActions {
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
+    SchemaDesignerTool = "SchemaDesignerTool",
     SaveConnectionGroup = "SaveConnectionGroup",
     DragAndDrop = "DragAndDrop",
     ExportToImage = "ExportToImage",
@@ -203,6 +205,10 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
+    StartBackup = "StartBackup",
+    Backup = "Backup",
+    ScriptBackup = "ScriptBackup",
+    FinishBackup = "FinishBackup",
 }
 
 /**
