@@ -100,7 +100,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
-                defaultDeploymentOptions: undefined,
+                defaultDeploymentOptions: undefined, //Clone after clearing excludeObjectTypes so reset uses the correct defaults
             } as PublishDialogState,
             {
                 title: Loc.Title,

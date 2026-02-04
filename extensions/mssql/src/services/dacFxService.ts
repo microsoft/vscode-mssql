@@ -257,7 +257,7 @@ export class DacFxService implements mssql.IDacFxService {
     }
 
     public getDeploymentOptions(
-        scenario?: DeploymentScenario,
+        scenario: DeploymentScenario,
     ): Thenable<mssql.GetDeploymentOptionsResult> {
         const params: mssql.GetDeploymentOptionsParams = {
             scenario: scenario,
