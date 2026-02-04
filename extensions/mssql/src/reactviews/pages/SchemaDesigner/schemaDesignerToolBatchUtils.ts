@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import type { Edge, Node, ReactFlowInstance } from "@xyflow/react";
 import { v4 as uuidv4 } from "uuid";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
 import { columnUtils, flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
 
-export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 8;
+export const TOOL_AUTO_ARRANGE_TABLE_THRESHOLD = 5;
+export const TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD = 3;
 
 export const waitForNextFrame = (): Promise<void> =>
     new Promise<void>((resolve) => {
@@ -20,16 +21,17 @@ export const waitForNextFrame = (): Promise<void> =>
 export const shouldAutoArrangeForToolBatch = (params: {
     preTableCount: number;
     postTableCount: number;
-    didAutoArrange: boolean;
+    preForeignKeyCount: number;
+    postForeignKeyCount: number;
 }): boolean => {
-    const { preTableCount, postTableCount, didAutoArrange } = params;
-    if (didAutoArrange) {
-        return false;
-    }
+    const { preTableCount, postTableCount, preForeignKeyCount, postForeignKeyCount } = params;
+
+    const tablesAdded = Math.max(0, postTableCount - preTableCount);
+    const foreignKeysAdded = Math.max(0, postForeignKeyCount - preForeignKeyCount);
 
     return (
-        preTableCount < TOOL_AUTO_ARRANGE_TABLE_THRESHOLD &&
-        postTableCount >= TOOL_AUTO_ARRANGE_TABLE_THRESHOLD
+        tablesAdded >= TOOL_AUTO_ARRANGE_TABLE_THRESHOLD ||
+        foreignKeysAdded >= TOOL_AUTO_ARRANGE_FOREIGN_KEY_THRESHOLD
     );
 };
 
@@ -151,21 +153,24 @@ export function useMaybeAutoArrangeForToolBatch(params: {
     onPushUndoState: () => void;
 }) {
     const { reactFlow, resetView, onPushUndoState } = params;
-    const didAutoArrangeRef = useRef(false);
 
     return useCallback(
-        async (preTableCount: number, postTableCount: number) => {
+        async (
+            preTableCount: number,
+            postTableCount: number,
+            preForeignKeyCount: number,
+            postForeignKeyCount: number,
+        ) => {
             if (
                 !shouldAutoArrangeForToolBatch({
                     preTableCount,
                     postTableCount,
-                    didAutoArrange: didAutoArrangeRef.current,
+                    preForeignKeyCount,
+                    postForeignKeyCount,
                 })
             ) {
                 return;
             }
-
-            didAutoArrangeRef.current = true;
 
             const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
             const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
