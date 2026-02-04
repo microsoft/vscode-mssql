@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 import { spawn } from "child_process";
 import { arch, platform } from "os";
@@ -60,7 +58,7 @@ export const dockerLogger = Logger.create(
     vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
 );
 
-const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
+export const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
 // Exported for testing purposes
 export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
@@ -1126,37 +1124,6 @@ export async function pullDabContainerImage(): Promise<DockerCommandParams> {
 }
 
 /**
- * Writes the DAB config content to a temporary file
- * @param configContent The DAB configuration JSON content
- * @returns The path to the temporary config file
- */
-export function writeDabConfigToTempFile(configContent: string): string {
-    const tempDir = os.tmpdir();
-    const configFileName = `dab-config-${Date.now()}.json`;
-    const configFilePath = path.join(tempDir, configFileName);
-
-    fs.writeFileSync(configFilePath, configContent, "utf8");
-    dockerLogger.appendLine(`DAB config written to: ${configFilePath}`);
-
-    return configFilePath;
-}
-
-/**
- * Cleans up a temporary DAB config file
- * @param configFilePath Path to the config file to delete
- */
-export function cleanupDabConfigFile(configFilePath: string): void {
-    try {
-        if (fs.existsSync(configFilePath)) {
-            fs.unlinkSync(configFilePath);
-            dockerLogger.appendLine(`Cleaned up DAB config file: ${configFilePath}`);
-        }
-    } catch (e) {
-        dockerLogger.appendLine(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
-    }
-}
-
-/**
  * Starts a DAB Docker container with the specified parameters
  * @param containerName Name for the container
  * @param port Port to expose the DAB API on
@@ -1300,97 +1267,6 @@ export async function findAvailableDabPort(
     preferredPort: number = Dab.DAB_DEFAULT_PORT,
 ): Promise<number> {
     return findAvailablePort(preferredPort);
-}
-
-/**
- * Runs a specific DAB deployment step
- * Reuses the common Docker prerequisite steps (install, start, engine check)
- * and adds DAB-specific steps for image pull, container start, and readiness check
- *
- * @param step The step to run
- * @param params Optional parameters needed for certain steps
- * @param configContent Optional DAB config content (needed for startContainer step)
- */
-export async function runDabDeploymentStep(
-    step: Dab.DabDeploymentStepOrder,
-    params?: Dab.DabDeploymentParams,
-    configContent?: string,
-): Promise<Dab.RunDeploymentStepResponse> {
-    switch (step) {
-        case Dab.DabDeploymentStepOrder.dockerInstallation:
-            return checkDockerInstallation();
-
-        case Dab.DabDeploymentStepOrder.startDockerDesktop:
-            return startDocker();
-
-        case Dab.DabDeploymentStepOrder.checkDockerEngine:
-            return checkEngine();
-
-        case Dab.DabDeploymentStepOrder.pullImage:
-            return pullDabContainerImage();
-
-        case Dab.DabDeploymentStepOrder.startContainer: {
-            if (!params || !configContent) {
-                return {
-                    success: false,
-                    error: "Container name, port, and config content are required to start the container.",
-                };
-            }
-
-            // Write config to temp file
-            const configFilePath = writeDabConfigToTempFile(configContent);
-
-            try {
-                const result = await startDabDockerContainer(
-                    params.containerName,
-                    params.port,
-                    configFilePath,
-                );
-
-                if (result.success) {
-                    return {
-                        success: true,
-                        apiUrl: `http://localhost:${params.port}`,
-                    };
-                }
-
-                // Clean up config file on failure
-                cleanupDabConfigFile(configFilePath);
-                return result;
-            } catch (e) {
-                cleanupDabConfigFile(configFilePath);
-                return {
-                    success: false,
-                    error: "Failed to start DAB container.",
-                    fullErrorText: getErrorMessage(e),
-                };
-            }
-        }
-
-        case Dab.DabDeploymentStepOrder.checkContainer: {
-            if (!params) {
-                return {
-                    success: false,
-                    error: "Container name and port are required to check container readiness.",
-                };
-            }
-
-            const result = await checkIfDabContainerIsReady(params.containerName, params.port);
-            if (result.success) {
-                return {
-                    success: true,
-                    apiUrl: `http://localhost:${params.port}`,
-                };
-            }
-            return result;
-        }
-
-        default:
-            return {
-                success: false,
-                error: `Unknown deployment step: ${step}`,
-            };
-    }
 }
 
 //#endregion

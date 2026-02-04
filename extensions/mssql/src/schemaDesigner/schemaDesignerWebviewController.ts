@@ -23,12 +23,6 @@ import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { UserSurvey } from "../nps/userSurvey";
 import { DabService } from "../services/dabService";
 import { Dab } from "../sharedInterfaces/dab";
-import {
-    runDabDeploymentStep,
-    validateDabContainerName,
-    findAvailableDabPort,
-    stopAndRemoveDabContainer,
-} from "../deployment/dockerUtils";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -411,49 +405,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         // DAB deployment request handlers
         this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
-            // For the startContainer step, we need to generate the config content
-            let configContent: string | undefined;
-            if (payload.step === Dab.DabDeploymentStepOrder.startContainer && payload.config) {
-                const configResponse = this._dabService.generateConfig(payload.config, {
-                    connectionString: this.connectionString,
-                });
-                if (!configResponse.success) {
-                    return {
-                        success: false,
-                        error: configResponse.error,
-                    };
-                }
-                configContent = configResponse.configContent;
-            }
-
-            return runDabDeploymentStep(payload.step, payload.params, configContent);
+            return this._dabService.runDeploymentStep(
+                payload.step,
+                payload.params,
+                payload.config,
+                this.connectionString,
+            );
         });
 
         this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
-            const containerNameValidation = await validateDabContainerName(payload.containerName);
-            const isContainerNameValid = containerNameValidation === payload.containerName;
-
-            const suggestedPort = await findAvailableDabPort(payload.port);
-            const isPortValid = suggestedPort === payload.port;
-
-            return {
-                isContainerNameValid,
-                validatedContainerName: containerNameValidation,
-                containerNameError: isContainerNameValid
-                    ? undefined
-                    : "Container name is invalid or already in use",
-                isPortValid,
-                suggestedPort,
-                portError: isPortValid ? undefined : `Port ${payload.port} is already in use`,
-            };
+            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
         });
 
         this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
-            const result = await stopAndRemoveDabContainer(payload.containerName);
-            return {
-                success: result.success ?? false,
-                error: result.error,
-            };
+            return this._dabService.stopDeployment(payload.containerName);
         });
     }
 

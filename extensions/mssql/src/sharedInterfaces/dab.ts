@@ -563,48 +563,6 @@ export namespace Dab {
     }
 
     // ============================================
-    // Deployment Reducers
-    // ============================================
-
-    export interface DabDeploymentReducers {
-        /**
-         * Opens the deployment dialog
-         */
-        openDeploymentDialog: {};
-        /**
-         * Closes the deployment dialog
-         */
-        closeDeploymentDialog: {};
-        /**
-         * Sets the current dialog step
-         */
-        setDeploymentDialogStep: { step: DabDeploymentDialogStep };
-        /**
-         * Updates deployment parameters
-         */
-        updateDeploymentParams: { params: Partial<DabDeploymentParams> };
-        /**
-         * Updates the status of a deployment step
-         */
-        updateDeploymentStepStatus: {
-            step: DabDeploymentStepOrder;
-            status: DabDeploymentStepStatus["status"];
-            errorMessage?: string;
-            fullErrorText?: string;
-            errorLink?: string;
-            errorLinkText?: string;
-        };
-        /**
-         * Resets deployment state (e.g., for retry)
-         */
-        resetDeploymentState: {};
-        /**
-         * Sets the deployment completion state
-         */
-        setDeploymentComplete: { apiUrl?: string; error?: string };
-    }
-
-    // ============================================
     // Service interface
     // ============================================
 
@@ -626,6 +584,36 @@ export namespace Dab {
             config: DabConfig,
             connectionInfo: DabConnectionInfo,
         ): GenerateConfigResponse;
+
+        /**
+         * Runs a specific DAB deployment step
+         * @param step The deployment step to run
+         * @param params Optional deployment parameters (container name, port)
+         * @param config Optional DAB config (needed for startContainer step)
+         * @param connectionString Optional connection string for generating config
+         */
+        runDeploymentStep(
+            step: DabDeploymentStepOrder,
+            params?: DabDeploymentParams,
+            config?: DabConfig,
+            connectionString?: string,
+        ): Promise<RunDeploymentStepResponse>;
+
+        /**
+         * Validates deployment parameters (container name and port)
+         * @param containerName The container name to validate
+         * @param port The port to validate
+         */
+        validateDeploymentParams(
+            containerName: string,
+            port: number,
+        ): Promise<ValidateDeploymentParamsResponse>;
+
+        /**
+         * Stops and removes a DAB container
+         * @param containerName Name of the container to stop
+         */
+        stopDeployment(containerName: string): Promise<StopDeploymentResponse>;
     }
 
     // ============================================
