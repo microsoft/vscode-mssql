@@ -597,7 +597,7 @@
                 },
                 {
                     "command": "mssql.globalSearch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
