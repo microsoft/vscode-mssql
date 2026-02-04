@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState, EngineType } from "./profilerTypes";
+import { SessionType, SessionState, XelFileInfo, EngineType } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -30,6 +32,7 @@ const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
 export class ProfilerController {
     private _logger: Logger;
     private _webviewControllers: Map<string, ProfilerWebviewController> = new Map();
+    private _xelWebviewControllers: Map<string, ProfilerWebviewController> = new Map();
     private _profilerUri: string | undefined;
     private _currentEngineType: EngineType = EngineType.Standalone;
     private _profilerEngineTypes: Map<string, EngineType> = new Map();
@@ -41,7 +44,7 @@ export class ProfilerController {
         private _sessionManager: ProfilerSessionManager,
     ) {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "Profiler");
-        // Note: Command registration is handled by mainController to avoid duplicates
+        this.registerCommands();
     }
 
     // ============================================================
@@ -123,6 +126,25 @@ export class ProfilerController {
     // ============================================================
     // Private Methods
     // ============================================================
+
+    private registerCommands(): void {
+        // Note: Launch Profiler from Object Explorer command is registered in mainController.ts
+        // to avoid duplicate registration issues.
+
+        // Open XEL File command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand("mssql.profiler.openXelFile", async () => {
+                try {
+                    await this.openXelFileCommand();
+                } catch (e) {
+                    this._logger.error(`Command error: ${e}`);
+                    vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+                }
+            }),
+        );
+
+        this._logger.verbose("Profiler commands registered");
+    }
 
     /**
      * Checks if a database is a system database.
@@ -662,88 +684,21 @@ export class ProfilerController {
             },
         });
 
-        // Step 3: Create the XEvent session on the server (if it doesn't exist) and auto-start
-        try {
-            // Check if the session already exists
-            const sessionExists = xeventSessions.includes(sessionName);
+        // Check if the entered session name already exists on the server
+        const sessionExists = xeventSessions.includes(sessionName);
 
-            if (sessionExists) {
-                // Session already exists - just start it
-                this._logger.verbose(
-                    `Session '${sessionName}' already exists, starting without creating`,
-                );
-                webviewController.setSelectedSession(sessionName);
-                await this.startSession(sessionName, webviewController);
-
-                vscode.window.showInformationMessage(
-                    LocProfiler.sessionStartedSuccessfully(sessionName),
-                );
-            } else {
-                // Session doesn't exist - create it first
-                webviewController.setCreatingSession(true);
-
-                // Create the session template
-                const template: ProfilerSessionTemplate = {
-                    name: selectedTemplate.template.name,
-                    defaultView: selectedTemplate.template.defaultView,
-                    createStatement: selectedTemplate.template.createStatement,
-                };
-
-                this._logger.verbose(
-                    `Creating XEvent session: ${sessionName} with template: ${template.name}`,
-                );
-
-                // Register handler for session created notification
-                const sessionCreatedPromise = new Promise<void>((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        disposable.dispose();
-                        reject(new Error(LocProfiler.sessionCreationTimedOut));
-                    }, 30000); // 30 second timeout
-
-                    const disposable = this._sessionManager.onSessionCreated(
-                        profilerUri,
-                        (params) => {
-                            clearTimeout(timeout);
-                            disposable.dispose();
-                            this._logger.verbose(
-                                `Session created notification received: ${params.sessionName}`,
-                            );
-                            resolve();
-                        },
-                    );
-                });
-
-                // Send create session request
-                await this._sessionManager.createXEventSession(profilerUri, sessionName, template);
-
-                // Wait for session created notification
-                await sessionCreatedPromise;
-
-                // Refresh available sessions to include the new one
-                const updatedXeventSessions =
-                    await this._sessionManager.getXEventSessions(profilerUri);
-                const updatedAvailableSessions = updatedXeventSessions.map((name) => ({
-                    id: name,
-                    name: name,
-                }));
-
-                webviewController.updateAvailableSessions(updatedAvailableSessions);
-                webviewController.setSelectedSession(sessionName);
-                webviewController.setCreatingSession(false);
-
-                this._logger.verbose(`Session '${sessionName}' created successfully`);
-
-                // Auto-start the session
-                await this.startSession(sessionName, webviewController);
-
-                vscode.window.showInformationMessage(
-                    LocProfiler.sessionCreatedSuccessfully(sessionName),
-                );
-            }
-        } catch (e) {
-            this._logger.error(`Error creating/starting session: ${e}`);
-            webviewController.setCreatingSession(false);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+        if (sessionExists) {
+            // Auto-start the existing session
+            this._logger.verbose(
+                `Session '${sessionName}' already exists on server, auto-starting...`,
+            );
+            await this.startSession(sessionName, webviewController);
+        } else {
+            // Session doesn't exist - user will need to create it or select an existing one
+            this._logger.verbose(
+                "Profiler UI created. Select a session and click Start to begin profiling.",
+            );
+            vscode.window.showInformationMessage(LocProfiler.profilerReady);
         }
     }
 
@@ -807,5 +762,283 @@ export class ProfilerController {
             void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
             this._logger.error(`Failed to export profiler events: ${errorMessage}`);
         }
+    }
+
+    /**
+     * Opens a file picker dialog for the user to select an XEL file.
+     * Launches the profiler UI in read-only mode for the selected file.
+     */
+    private async openXelFileCommand(): Promise<void> {
+        this._logger.verbose("Opening XEL file picker...");
+
+        const fileUri = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            filters: {
+                [LocProfiler.xelFileFilter]: ["xel"],
+            },
+            title: LocProfiler.selectXelFile,
+        });
+
+        if (!fileUri || fileUri.length === 0) {
+            this._logger.verbose("User cancelled XEL file selection");
+            return;
+        }
+
+        const filePath = fileUri[0].fsPath;
+        await this.openXelFile(filePath);
+    }
+
+    /**
+     * Opens an XEL file in the profiler UI in read-only mode.
+     * Can be called from the command or from the custom editor provider.
+     * XEL file sessions do not require a database connection - they are purely file-based.
+     * @param filePath - Full path to the XEL file
+     */
+    public async openXelFile(filePath: string): Promise<void> {
+        this._logger.verbose(`Opening XEL file: ${filePath}`);
+
+        // Validate file exists and is accessible
+        const fileInfo = await this.validateXelFile(filePath);
+        if (!fileInfo) {
+            return;
+        }
+
+        // Check if we already have a webview for this file
+        if (this._xelWebviewControllers.has(filePath)) {
+            this._logger.verbose(`Webview already exists for ${filePath}, focusing it`);
+            const existingController = this._xelWebviewControllers.get(filePath)!;
+            existingController.revealToForeground();
+            return;
+        }
+
+        // XEL file sessions do not require a database connection
+        // The file is parsed locally and displayed in read-only mode
+        this._logger.verbose("Opening XEL file in read-only disconnected mode...");
+
+        try {
+            // Create the webview controller in read-only disconnected mode
+            const webviewController = new ProfilerWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this._sessionManager,
+                [], // No available sessions for file mode (disconnected)
+                undefined, // No session name initially
+                "Standard_OnPrem", // templateId
+                true, // isReadOnly
+                fileInfo, // XEL file info
+            );
+
+            // Track this webview controller
+            this._xelWebviewControllers.set(filePath, webviewController);
+
+            // Remove from tracking when disposed
+            const originalDispose = webviewController.dispose.bind(webviewController);
+            webviewController.dispose = () => {
+                this._xelWebviewControllers.delete(filePath);
+                // No connection to clean up for file-based sessions
+                originalDispose();
+            };
+
+            // Show loading notification
+            vscode.window.showInformationMessage(LocProfiler.loadingXelFile(fileInfo.fileName));
+
+            // Set up event handlers for read-only mode (most are no-ops)
+            this.setupXelWebviewHandlers(webviewController, fileInfo);
+
+            // Load the XEL file events into the webview
+            await this.loadXelFileEvents(webviewController, fileInfo);
+
+            // Show success notification explaining read-only mode
+            vscode.window.showInformationMessage(
+                LocProfiler.xelFileReadOnlyDisconnectedNotification(fileInfo.fileName),
+            );
+
+            this._logger.verbose(
+                `XEL file ${fileInfo.fileName} opened successfully in read-only mode`,
+            );
+        } catch (e) {
+            this._logger.error(`Error opening XEL file: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+        }
+    }
+
+    /**
+     * Validates that the XEL file exists and is accessible.
+     * @param filePath - Path to the XEL file
+     * @returns XelFileInfo if valid, undefined if invalid
+     */
+    private async validateXelFile(filePath: string): Promise<XelFileInfo | undefined> {
+        try {
+            const stats = await fs.promises.stat(filePath);
+
+            if (!stats.isFile()) {
+                this._logger.error(`Path is not a file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.invalidXelFile);
+                return undefined;
+            }
+
+            const ext = path.extname(filePath).toLowerCase();
+            if (ext !== ".xel") {
+                this._logger.error(`File is not an XEL file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.invalidXelFile);
+                return undefined;
+            }
+
+            return {
+                filePath,
+                fileName: path.basename(filePath),
+                fileSize: stats.size,
+            };
+        } catch (e) {
+            if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+                this._logger.error(`XEL file not found: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.xelFileNotFound);
+            } else if ((e as NodeJS.ErrnoException).code === "EACCES") {
+                this._logger.error(`Access denied to XEL file: ${filePath}`);
+                vscode.window.showErrorMessage(LocProfiler.xelFileAccessDenied);
+            } else {
+                this._logger.error(`Error accessing XEL file: ${e}`);
+                vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+            }
+            return undefined;
+        }
+    }
+
+    /**
+     * Sets up event handlers for an XEL file webview (read-only disconnected mode).
+     * Most handlers are no-ops since we have no connection.
+     */
+    private setupXelWebviewHandlers(
+        webviewController: ProfilerWebviewController,
+        _fileInfo: XelFileInfo,
+    ): void {
+        webviewController.setEventHandlers({
+            // New Session - disabled in read-only disconnected mode
+            onCreateSession: async () => {
+                // No-op for read-only disconnected sessions
+                this._logger.verbose(
+                    "Create session ignored for read-only disconnected XEL file session",
+                );
+            },
+            // Start Session - disabled in read-only disconnected mode
+            onStartSession: async () => {
+                // No-op for read-only disconnected sessions
+                this._logger.verbose(
+                    "Start session ignored for read-only disconnected XEL file session",
+                );
+            },
+            // Pause/Resume - disabled for read-only file sessions
+            onPauseResume: async () => {
+                // No-op for read-only sessions
+                this._logger.verbose("Pause/Resume ignored for read-only XEL file session");
+            },
+            // Stop - disabled for read-only file sessions
+            onStop: async () => {
+                // No-op for read-only sessions
+                this._logger.verbose("Stop ignored for read-only XEL file session");
+            },
+            onViewChange: (viewId: string) => {
+                this._logger.verbose(`View changed to: ${viewId}`);
+            },
+            // Export is still available for XEL file sessions
+            onExportToCsv: async (
+                csvContent: string,
+                suggestedFileName: string,
+                trigger: "manual" | "closePrompt",
+            ) => {
+                await this.handleExportToCsv(
+                    webviewController,
+                    csvContent,
+                    suggestedFileName,
+                    trigger,
+                );
+            },
+        });
+    }
+
+    /**
+     * Loads XEL file events into the webview by creating a file-based profiler session.
+     * Uses the backend to parse the XEL file and stream events to the UI.
+     */
+    private async loadXelFileEvents(
+        webviewController: ProfilerWebviewController,
+        fileInfo: XelFileInfo,
+    ): Promise<void> {
+        this._logger.verbose(`Loading XEL file events for: ${fileInfo.filePath}`);
+
+        // Set the session name to the file name
+        webviewController.setSessionName(fileInfo.fileName);
+
+        // Generate a unique URI for this file-based session (not a real connection)
+        const fileSessionUri = `profiler://xelfile/${Utils.generateGuid()}`;
+        this._logger.verbose(`Created file session URI: ${fileSessionUri}`);
+
+        // Create a ProfilerSession for the file
+        const sessionId = Utils.generateGuid();
+        const session = this._sessionManager.createSession({
+            id: sessionId,
+            ownerUri: fileSessionUri,
+            sessionName: fileInfo.filePath, // Full path to XEL file for the backend
+            sessionType: SessionType.File,
+            templateName: "XEL_File",
+            readOnly: true,
+        });
+        this._logger.verbose(`Created ProfilerSession: id=${sessionId}, type=File`);
+
+        // Set up the webview controller with the session reference
+        webviewController.setCurrentSession(session);
+
+        // Set up event handlers on the session
+        session.onEventsReceived((events) => {
+            this._logger.verbose(
+                `Events received: ${events.length} events for XEL file session ${sessionId}`,
+            );
+            webviewController.notifyNewEvents(events.length);
+        });
+
+        session.onEventsRemoved((events) => {
+            const sequenceNumbers = events.map((e) => e.eventNumber).join(", ");
+            this._logger.verbose(
+                `Events removed from ring buffer: ${events.length} events (sequence #s: ${sequenceNumbers}) for XEL file session ${sessionId}`,
+            );
+            webviewController.notifyRowsRemoved(events);
+        });
+
+        session.onSessionStopped((errorMessage) => {
+            this._logger.verbose(`XEL file session ${sessionId} stopped notification received`);
+            if (errorMessage) {
+                this._logger.error(`XEL file session stopped with error: ${errorMessage}`);
+            }
+            // For file sessions, "Stopped" indicates file loading is complete
+            webviewController.setSessionState(SessionState.Stopped);
+        });
+
+        try {
+            // Start profiling - this tells the backend to read the XEL file
+            // For file sessions, this loads all events from the file
+            await this._sessionManager.startProfilingSession(sessionId);
+
+            // File-based sessions go to "Stopped" state after loading (not "Running")
+            // since there's no live data to stream
+            webviewController.setSessionState(SessionState.Stopped);
+
+            this._logger.verbose(
+                `XEL file ${fileInfo.fileName} loaded successfully in read-only mode`,
+            );
+        } catch (e) {
+            this._logger.error(`Failed to load XEL file: ${e}`);
+            webviewController.setSessionState(SessionState.Stopped);
+            throw e;
+        }
+    }
+
+    /**
+     * Gets the XEL webview controller for a given file path.
+     * Used by the custom editor provider.
+     */
+    public getXelWebviewController(filePath: string): ProfilerWebviewController | undefined {
+        return this._xelWebviewControllers.get(filePath);
     }
 }

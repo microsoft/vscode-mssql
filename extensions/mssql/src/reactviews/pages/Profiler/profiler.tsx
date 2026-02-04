@@ -116,9 +116,13 @@ export const Profiler: React.FC = () => {
     const selectedSessionId = useProfilerSelector((s) => s.selectedSessionId);
     const autoScroll = useProfilerSelector((s) => s.autoScroll ?? true);
     const isCreatingSession = useProfilerSelector((s) => s.isCreatingSession ?? false);
+    const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
+    const xelFileName = useProfilerSelector((s) => s.xelFileName);
     const selectedEvent = useProfilerSelector((s) => s.selectedEvent);
     const sessionName = useProfilerSelector((s) => s.sessionName);
-    const filterState = useProfilerSelector((s) => s.filterState ?? { enabled: false, clauses: [] });
+    const filterState = useProfilerSelector(
+        (s) => s.filterState ?? { enabled: false, clauses: [] },
+    );
     const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
 
     const {
@@ -612,6 +616,8 @@ export const Profiler: React.FC = () => {
                 selectedSessionId={selectedSessionId}
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
+                isReadOnly={isReadOnly}
+                xelFileName={xelFileName}
                 isFilterActive={isFilterActive}
                 totalEventCount={localRowCount}
                 onNewSession={handleNewSession}

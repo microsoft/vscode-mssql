@@ -89,6 +89,9 @@
     <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
       <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++52ae6aab4cdc82d0d33bc1d81946e10fb184e12e0d7e77149aa6b5d7dc60bd3b">
+      <source xml:lang="en">Access to the XEL file was denied.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
       <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
       <note>{0} is the connection id
@@ -613,6 +616,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
       <source xml:lang="en">Cannot cancel query as no query is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dfa72354bcd12e5cf7c9f4bf75d9136658d8614d8372e2191526fd10e855efd">
+      <source xml:lang="en">Cannot change session while active</source>
     </trans-unit>
     <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
       <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -2036,6 +2042,9 @@
     <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
       <source xml:lang="en">Expression</source>
     </trans-unit>
+    <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
+      <source xml:lang="en">Extended Events Log Files</source>
+    </trans-unit>
     <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
       <source xml:lang="en">Extract DACPAC</source>
     </trans-unit>
@@ -2227,6 +2236,10 @@
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
+      <source xml:lang="en">Failed to open XEL file: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
@@ -2328,6 +2341,9 @@
     <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
       <source xml:lang="en">File</source>
     </trans-unit>
+    <trans-unit id="++CODE++31931e62a8801e325b804a8294c1fe6b3fbdc62f18681f8f026f141510e20b91">
+      <source xml:lang="en">File (Read-Only)</source>
+    </trans-unit>
     <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
       <source xml:lang="en">File Name</source>
     </trans-unit>
@@ -2342,6 +2358,10 @@
     </trans-unit>
     <trans-unit id="++CODE++96a6d702cb4aed294a5d0b344e779ae3ae2c51a4c0b0938fdd414a035930f0ac">
       <source xml:lang="en">File path is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++292821207be79b58287b4b662fae199f02125b60c143fa64266353a60de54bf8">
+      <source xml:lang="en">File: {0}</source>
+      <note>{0} is the file name</note>
     </trans-unit>
     <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
       <source xml:lang="en">Files</source>
@@ -2986,6 +3006,11 @@
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
     </trans-unit>
+    <trans-unit id="++CODE++2d72b49b0333c401ee71b5160b7b9f6d645861170355bcfd1a9417b03a2fc45b">
+      <source xml:lang="en">Loaded {1} events from {0}</source>
+      <note>{0} is the file name
+{1} is the event count</note>
+    </trans-unit>
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
@@ -3006,6 +3031,10 @@
     </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1e57b1efd93fb21b1f6b28af4b5a85b873f5145021fba55cec9dccd8298b6c74">
+      <source xml:lang="en">Loading XEL file: {0}</source>
+      <note>{0} is the file name</note>
     </trans-unit>
     <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
       <source xml:lang="en">Loading backup database...</source>
@@ -3560,6 +3589,9 @@
     <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
       <source xml:lang="en">Not Starts With</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b63db09b404fbb32d9a1c00b76e17be0b11b81dac474a8aa6dc39fb0304cee6">
+      <source xml:lang="en">Not available for read-only file sessions</source>
+    </trans-unit>
     <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
       <source xml:lang="en">Not contains</source>
     </trans-unit>
@@ -3905,6 +3937,14 @@
       <source xml:lang="en">Profiler events exported to {0}</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++d44e8b3f760f3c9df158ded89c2314e818fcd46b66c34c3f4c32fd622ac131a2">
+      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos;, and cannot start or create live sessions</source>
+      <note>{0} is the file name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++67f0195e2a4f75c006f9f847e282dddacf1545f8e23c7ea4b378629437913b86">
+      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos;. Cannot start or create live sessions.</source>
+      <note>{0} is the file name</note>
+    </trans-unit>
     <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
       <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
     </trans-unit>
@@ -4027,8 +4067,15 @@
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
+      <source xml:lang="en">Read-Only</source>
+    </trans-unit>
     <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
       <source xml:lang="en">Read-only SQL text editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
+      <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
+      <note>{0} is the XEL file name</note>
     </trans-unit>
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>
@@ -4515,6 +4562,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c45112cd31fb7a7714eec60cbd1753f5b6f99943a8161954bd8bebade74f489">
+      <source xml:lang="en">Select XEL File</source>
     </trans-unit>
     <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
       <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -5088,6 +5138,9 @@
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
       <note>{0} is a url to learn more about the new features</note>
     </trans-unit>
+    <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
+      <source xml:lang="en">The XEL file was not found.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
@@ -5171,6 +5224,9 @@
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
+      <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -6150,6 +6206,9 @@
     <trans-unit id="mssql.copilot.newQueryWithConnection">
       <source xml:lang="en">Open New Query and Connect</source>
     </trans-unit>
+    <trans-unit id="mssql.profiler.openXelFile">
+      <source xml:lang="en">Open Profiler XEL File</source>
+    </trans-unit>
     <trans-unit id="mssql.openQueryHistory">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
@@ -6221,6 +6280,9 @@
     </trans-unit>
     <trans-unit id="mssql.sqlScriptsSubmenu">
       <source xml:lang="en">SQL Scripts</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.xelEditorDisplayName">
+      <source xml:lang="en">SQL Server Extended Events Log</source>
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>

@@ -24,6 +24,7 @@ import { ProfilerSession } from "./profilerSession";
 import {
     EventRow,
     SessionState,
+    XelFileInfo,
     TEMPLATE_ID_STANDARD_ONPREM,
     FilterOperator,
 } from "./profilerTypes";
@@ -65,6 +66,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
+    private _isReadOnly: boolean;
+    private _xelFileInfo: XelFileInfo | undefined;
     private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
     private _wasSessionPreviouslyStopped: boolean = false;
 
@@ -75,6 +78,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
         templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
+        isReadOnly: boolean = false,
+        xelFileInfo?: XelFileInfo,
     ) {
         const configService = getProfilerConfigService();
         const template = configService.getTemplate(templateId);
@@ -97,6 +102,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             defaultView: t.defaultView,
         }));
 
+        // Determine title based on mode
+        const title = xelFileInfo
+            ? `Profiler: ${xelFileInfo.fileName}`
+            : sessionName
+              ? `Profiler: ${sessionName}`
+              : "Profiler";
+
         super(
             context,
             vscodeWrapper,
@@ -107,18 +119,21 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 filteredRowCount: 0,
                 clearGeneration: 0,
                 sessionState: SessionState.NotStarted,
-                autoScroll: true,
+                autoScroll: !isReadOnly, // Disable auto-scroll for read-only file sessions
                 filterState: { enabled: false, clauses: [] },
-                sessionName: sessionName,
+                sessionName: xelFileInfo?.fileName ?? sessionName,
                 templateId: templateId,
                 viewId: defaultViewId,
                 viewConfig: viewConfig,
                 availableViews: availableViews,
                 availableTemplates: availableTemplates,
                 availableSessions: availableSessions,
+                isReadOnly: isReadOnly,
+                xelFilePath: xelFileInfo?.filePath,
+                xelFileName: xelFileInfo?.fileName,
             },
             {
-                title: sessionName ? `Profiler: ${sessionName}` : "Profiler",
+                title: title,
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -138,6 +153,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         this._sessionManager = sessionManager;
         this._currentViewId = defaultViewId;
+        this._isReadOnly = isReadOnly;
+        this._xelFileInfo = xelFileInfo;
 
         // Create status bar item for session info (unique ID per instance)
         this._statusBarItem = vscode.window.createStatusBarItem(
@@ -663,6 +680,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const state = this.state;
         const sessionName = state.sessionName;
         const sessionState = state.sessionState;
+        const isReadOnly = state.isReadOnly ?? this._isReadOnly;
         // Get count directly from current session's ring buffer if available (source of truth)
         // Otherwise fall back to state (which might be stale)
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
@@ -677,21 +695,30 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         let statusText = "";
 
         if (sessionName) {
-            statusText = sessionName;
+            // For read-only file sessions, show file indicator
+            if (isReadOnly && state.xelFileName) {
+                statusText = LocProfiler.fileSessionLabel(state.xelFileName);
+            } else {
+                statusText = sessionName;
+            }
 
             // Add status indicator
-            switch (sessionState) {
-                case SessionState.Running:
-                    statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
-                    break;
-                case SessionState.Paused:
-                    statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
-                    break;
-                case SessionState.Stopped:
-                    statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
-                    break;
-                default:
-                    statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+            if (isReadOnly) {
+                statusText += ` $(lock) ${LocProfiler.stateReadOnly}`;
+            } else {
+                switch (sessionState) {
+                    case SessionState.Running:
+                        statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
+                        break;
+                    case SessionState.Paused:
+                        statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
+                        break;
+                    case SessionState.Stopped:
+                        statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
+                        break;
+                    default:
+                        statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+                }
             }
 
             // Add event count (show filtered/total when filter is active)
@@ -706,6 +733,27 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         this._statusBarItem.text = statusText;
         this._statusBarItem.tooltip = LocProfiler.statusBarTooltip;
+    }
+
+    /**
+     * Reveals the webview panel to the foreground
+     */
+    public revealToForeground(): void {
+        this.panel.reveal(vscode.ViewColumn.Beside);
+    }
+
+    /**
+     * Gets whether this is a read-only session
+     */
+    public get isReadOnly(): boolean {
+        return this._isReadOnly;
+    }
+
+    /**
+     * Gets the XEL file info if this is a file-based session
+     */
+    public get xelFileInfo(): XelFileInfo | undefined {
+        return this._xelFileInfo;
     }
 
     /**

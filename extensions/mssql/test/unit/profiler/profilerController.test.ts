@@ -419,19 +419,10 @@ suite("ProfilerController Tests", () => {
             },
         };
 
-        test("should auto-start session after successful creation", async () => {
+        test("should not auto-start session when session name does not exist on server", async () => {
             showQuickPickStub.resolves(mockTemplateItem);
-            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
-
-            // Set up session created handler to resolve immediately
-            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
-                (_ownerUri: string, handler: (params: unknown) => void) => {
-                    setTimeout(() => {
-                        handler({ sessionName: "TestSession", templateName: "Standard" });
-                    }, 10);
-                    return { dispose: sandbox.stub() };
-                },
-            );
+            // Use a session name that doesn't exist in the mock (Session1, Session2)
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("NewSession");
 
             const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
@@ -440,7 +431,32 @@ suite("ProfilerController Tests", () => {
                 mockConnectionProfile as IConnectionProfile,
             );
 
-            // Verify that startProfiling was called (session was auto-started)
+            // Verify that the webview panel was created
+            expect(createWebviewPanelStub).to.have.been.called;
+
+            // Verify that startProfiling was NOT called (session doesn't exist)
+            expect(startProfilingStub).to.not.have.been.called;
+
+            // Verify the "profiler ready" message was shown
+            expect(showInformationMessageStub).to.have.been.called;
+        });
+
+        test("should auto-start session when session name already exists on server", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            // Use a session name that exists in the mock (Session1, Session2)
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("Session1");
+
+            const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
+
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
+
+            // Verify that the webview panel was created
+            expect(createWebviewPanelStub).to.have.been.called;
+
+            // Verify that startProfiling WAS called (session exists, auto-start)
             expect(startProfilingStub).to.have.been.called;
         });
     });

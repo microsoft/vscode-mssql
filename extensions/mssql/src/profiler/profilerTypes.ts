@@ -201,6 +201,18 @@ export interface ViewRow {
 }
 
 /**
+ * Information about a file-based profiler session
+ */
+export interface XelFileInfo {
+    /** Full file path */
+    filePath: string;
+    /** File name without path */
+    fileName: string;
+    /** File size in bytes */
+    fileSize?: number;
+}
+
+/**
  * Filter operators for client-side filtering.
  * These operators provide ADS-style parity for filtering.
  */

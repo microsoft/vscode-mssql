@@ -47,6 +47,10 @@ export interface ProfilerToolbarProps {
     autoScroll: boolean;
     /** Whether a session is being created */
     isCreatingSession?: boolean;
+    /** Whether this is a read-only file-based session */
+    isReadOnly?: boolean;
+    /** XEL file name if this is a file-based session */
+    xelFileName?: string;
     /** Whether a filter is currently active */
     isFilterActive: boolean;
     /** Total event count (for export button state) */
@@ -84,6 +88,8 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     selectedSessionId,
     autoScroll,
     isCreatingSession,
+    isReadOnly,
+    xelFileName,
     isFilterActive,
     totalEventCount,
     onNewSession,
@@ -109,114 +115,158 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;
     const loc = locConstants.profiler;
 
+    // Build read-only disconnected tooltip
+    const readOnlyDisconnectedTooltip = isReadOnly && xelFileName
+        ? loc.xelFileReadOnlyDisconnectedTooltip(xelFileName)
+        : loc.readOnlyDisabledTooltip;
+
     return (
         <div className="profiler-toolbar">
             <Toolbar aria-label="Profiler toolbar" size="small">
-                {/* New Session button - first item */}
+                {/* Read-only file indicator */}
+                {isReadOnly && xelFileName && (
+                    <>
+                        <span
+                            className="profiler-toolbar-label"
+                            style={{ fontStyle: "italic", opacity: 0.8 }}>
+                            {loc.readOnlyFileLabel}: {xelFileName}
+                        </span>
+                        <ToolbarDivider />
+                    </>
+                )}
+
+                {/* New Session button - disabled in read-only disconnected mode */}
                 <Tooltip
                     content={
-                        isCreatingSession
-                            ? loc.creatingSessionTooltip
-                            : hasTemplates
-                              ? loc.createNewSessionTooltip
-                              : loc.noTemplatesAvailableTooltip
+                        isReadOnly
+                            ? readOnlyDisconnectedTooltip
+                            : isCreatingSession
+                              ? loc.creatingSessionTooltip
+                              : hasTemplates
+                                ? loc.createNewSessionTooltip
+                                : loc.noTemplatesAvailableTooltip
                     }
                     relationship="label">
                     <ToolbarButton
                         aria-label={loc.newSession}
                         icon={<Add24Regular />}
                         onClick={onNewSession}
-                        disabled={isActive || isCreatingSession || !hasTemplates}>
+                        disabled={isReadOnly || isActive || isCreatingSession || !hasTemplates}>
                         {isCreatingSession ? loc.creatingSession : loc.newSession}
                     </ToolbarButton>
                 </Tooltip>
 
                 <ToolbarDivider />
 
-                {/* Session selection - always visible */}
-                <div className="profiler-toolbar-view-selector">
-                    <span className="profiler-toolbar-label">{loc.selectSessionLabel}</span>
-                    <select
-                        aria-label={loc.selectSessionLabel}
-                        value={selectedSessionId ?? ""}
-                        onChange={(e) => onSelectSession(e.target.value)}
-                        disabled={isActive}
-                        style={{
-                            minWidth: "200px",
-                            padding: "4px 8px",
-                            backgroundColor: "var(--vscode-input-background)",
-                            color: "var(--vscode-input-foreground)",
-                            border: "1px solid var(--vscode-input-border)",
-                            borderRadius: "2px",
-                            opacity: isActive ? 0.6 : 1,
-                            cursor: isActive ? "not-allowed" : "pointer",
-                        }}>
-                        <option value="">{loc.selectASession}</option>
-                        {availableSessions?.map((session) => (
-                            <option key={session.id} value={session.id}>
-                                {session.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* Start button - always visible */}
+                {/* Session selection - disabled in read-only disconnected mode */}
                 <Tooltip
                     content={
-                        !selectedSessionId && isStopped
-                            ? loc.selectSessionFirstTooltip
-                            : loc.startSessionTooltip
+                        isReadOnly
+                            ? readOnlyDisconnectedTooltip
+                            : isActive
+                              ? loc.sessionActiveCannotChangeTooltip
+                              : loc.selectSessionLabel
+                    }
+                    relationship="label">
+                    <div className="profiler-toolbar-view-selector">
+                        <span className="profiler-toolbar-label">{loc.selectSessionLabel}</span>
+                        <select
+                            aria-label={loc.selectSessionLabel}
+                            value={selectedSessionId ?? ""}
+                            onChange={(e) => onSelectSession(e.target.value)}
+                            disabled={isReadOnly || isActive}
+                            style={{
+                                minWidth: "200px",
+                                padding: "4px 8px",
+                                backgroundColor: "var(--vscode-input-background)",
+                                color: "var(--vscode-input-foreground)",
+                                border: "1px solid var(--vscode-input-border)",
+                                borderRadius: "2px",
+                                opacity: isReadOnly || isActive ? 0.6 : 1,
+                                cursor: isReadOnly || isActive ? "not-allowed" : "pointer",
+                            }}>
+                            <option value="">{loc.selectASession}</option>
+                            {availableSessions?.map((session) => (
+                                <option key={session.id} value={session.id}>
+                                    {session.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </Tooltip>
+
+                {/* Start button - disabled in read-only disconnected mode */}
+                <Tooltip
+                    content={
+                        isReadOnly
+                            ? readOnlyDisconnectedTooltip
+                            : !selectedSessionId && isStopped
+                              ? loc.selectSessionFirstTooltip
+                              : loc.startSessionTooltip
                     }
                     relationship="label">
                     <ToolbarButton
                         aria-label={loc.start}
                         icon={<Play24Regular />}
                         onClick={onStart}
-                        disabled={isActive || !selectedSessionId}>
+                        disabled={isReadOnly || isActive || !selectedSessionId}>
                         {loc.start}
                     </ToolbarButton>
                 </Tooltip>
 
-                {/* Stop button - right after Start */}
+                {/* Stop button - disabled for read-only file sessions */}
                 <Tooltip
-                    content={isActive ? loc.stopSessionTooltip : loc.sessionNotRunningTooltip}
+                    content={
+                        isReadOnly
+                            ? loc.readOnlyDisabledTooltip
+                            : isActive
+                              ? loc.stopSessionTooltip
+                              : loc.sessionNotRunningTooltip
+                    }
                     relationship="label">
                     <ToolbarButton
                         aria-label={loc.stop}
                         icon={<Stop24Regular />}
                         onClick={onStop}
-                        disabled={isStopped}>
+                        disabled={isReadOnly || isStopped}>
                         {loc.stop}
                     </ToolbarButton>
                 </Tooltip>
 
-                {/* Pause/Resume button */}
+                {/* Pause/Resume button - disabled for read-only file sessions */}
                 <Tooltip
                     content={
-                        isRunning
-                            ? loc.pauseEventCollectionTooltip
-                            : isPaused
-                              ? loc.pausedClickToResumeTooltip
-                              : loc.notRunningTooltip
+                        isReadOnly
+                            ? loc.readOnlyDisabledTooltip
+                            : isRunning
+                              ? loc.pauseEventCollectionTooltip
+                              : isPaused
+                                ? loc.pausedClickToResumeTooltip
+                                : loc.notRunningTooltip
                     }
                     relationship="label">
                     <ToolbarButton
                         aria-label={isRunning ? loc.pause : loc.resume}
                         icon={pauseResumeIcon}
                         onClick={onPauseResume}
-                        disabled={isStopped}>
+                        disabled={isReadOnly || isStopped}>
                         {isRunning ? loc.pause : loc.resume}
                     </ToolbarButton>
                 </Tooltip>
 
                 <ToolbarDivider />
 
-                {/* Data controls */}
-                <Tooltip content={loc.clearEventsTooltip} relationship="label">
+                {/* Data controls - Clear disabled for read-only */}
+                <Tooltip
+                    content={
+                        isReadOnly ? loc.readOnlyDisabledTooltip : loc.clearEventsTooltip
+                    }
+                    relationship="label">
                     <ToolbarButton
                         aria-label={loc.clear}
                         icon={<EraserRegular />}
-                        onClick={onClear}>
+                        onClick={onClear}
+                        disabled={isReadOnly}>
                         {loc.clear}
                     </ToolbarButton>
                 </Tooltip>
@@ -294,10 +344,14 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
                 <ToolbarDivider />
 
-                {/* Auto-scroll toggle */}
+                {/* Auto-scroll toggle - disabled for read-only file sessions */}
                 <Tooltip
                     content={
-                        autoScroll ? loc.autoScrollEnabledTooltip : loc.autoScrollDisabledTooltip
+                        isReadOnly
+                            ? loc.readOnlyDisabledTooltip
+                            : autoScroll
+                              ? loc.autoScrollEnabledTooltip
+                              : loc.autoScrollDisabledTooltip
                     }
                     relationship="label">
                     <ToggleButton
@@ -305,6 +359,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         icon={<ArrowDown24Regular />}
                         checked={autoScroll}
                         onClick={onAutoScrollToggle}
+                        disabled={isReadOnly}
                         size="small">
                         {loc.autoScroll}
                     </ToggleButton>
