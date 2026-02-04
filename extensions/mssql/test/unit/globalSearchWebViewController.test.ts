@@ -130,6 +130,10 @@ suite("GlobalSearchWebViewController", () => {
             isConnected: sandbox.stub().returns(true),
             isConnecting: sandbox.stub().returns(false),
             connect: sandbox.stub().resolves(true),
+            disconnect: sandbox.stub().resolves(),
+            getConnectionInfo: sandbox.stub().resolves({
+                credentials: { database: "TestDB" },
+            }),
             getServerInfo: sandbox.stub().returns({ serverVersion: "15.0" }),
         } as any;
 
