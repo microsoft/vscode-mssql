@@ -116,9 +116,10 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     const loc = locConstants.profiler;
 
     // Build read-only disconnected tooltip
-    const readOnlyDisconnectedTooltip = isReadOnly && xelFileName
-        ? loc.xelFileReadOnlyDisconnectedTooltip(xelFileName)
-        : loc.readOnlyDisabledTooltip;
+    const readOnlyDisconnectedTooltip =
+        isReadOnly && xelFileName
+            ? loc.xelFileReadOnlyDisconnectedTooltip(xelFileName)
+            : loc.readOnlyDisabledTooltip;
 
     return (
         <div className="profiler-toolbar">
@@ -258,9 +259,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
                 {/* Data controls - Clear disabled for read-only */}
                 <Tooltip
-                    content={
-                        isReadOnly ? loc.readOnlyDisabledTooltip : loc.clearEventsTooltip
-                    }
+                    content={isReadOnly ? loc.readOnlyDisabledTooltip : loc.clearEventsTooltip}
                     relationship="label">
                     <ToolbarButton
                         aria-label={loc.clear}
