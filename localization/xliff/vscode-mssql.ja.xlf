@@ -28,7 +28,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
         <source xml:lang="en">(empty)</source>
-        <target state="new">(empty)</target>
+        <target state="translated">(空)</target>
       </trans-unit>
       <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
         <source xml:lang="en">({0} rows affected)</source>
@@ -115,7 +115,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4a7870205fd96778561ad4653fea7c80cc5fffbc97a43337c1d45f0493e4ee0e">
         <source xml:lang="en">Action Type</source>
-        <target state="new">Action Type</target>
+        <target state="translated">アクションの種類</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -231,7 +231,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
-        <target state="new">After</target>
+        <target state="translated">後</target>
       </trans-unit>
       <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
         <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
@@ -648,7 +648,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
         <source xml:lang="en">Before</source>
-        <target state="new">Before</target>
+        <target state="translated">前</target>
       </trans-unit>
       <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
         <source xml:lang="en">Between</source>
@@ -992,7 +992,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
         <source xml:lang="en">Clear Filters</source>
-        <target state="new">Clear Filters</target>
+        <target state="translated">フィルターのクリア</target>
       </trans-unit>
       <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
         <source xml:lang="en">Clear Recent Connections List</source>
@@ -2125,7 +2125,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
         <source xml:lang="en">Edit your schema to see changes here.</source>
-        <target state="new">Edit your schema to see changes here.</target>
+        <target state="translated">スキーマを編集すると、ここに変更が表示されます。</target>
       </trans-unit>
       <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
         <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -2941,7 +2941,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
         <source xml:lang="en">Filter Changes</source>
-        <target state="new">Filter Changes</target>
+        <target state="translated">変更のフィルター処理</target>
       </trans-unit>
       <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
         <source xml:lang="en">Filter Options</source>
@@ -3266,7 +3266,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
         <source xml:lang="en">Hide Changes Highlight</source>
-        <target state="new">Hide Changes Highlight</target>
+        <target state="translated">変更箇所の強調表示を非表示にします</target>
       </trans-unit>
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
@@ -3298,7 +3298,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9">
         <source xml:lang="en">Highlight Changes</source>
-        <target state="new">Highlight Changes</target>
+        <target state="translated">変更箇所の強調表示</target>
       </trans-unit>
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
@@ -4330,7 +4330,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
         <source xml:lang="en">No property changes available.</source>
-        <target state="new">No property changes available.</target>
+        <target state="translated">プロパティの変更はありません。</target>
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
@@ -6977,7 +6977,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++3622690088dccaafa6adcd1ab8138466d048c4f4cf087aa51eaf4bf0af9e383b">
         <source xml:lang="en">{0} changes</source>
         <note>{0} is the number of property changes</note>
-        <target state="new">{0} changes</target>
+        <target state="translated">{0} 件の変更</target>
       </trans-unit>
       <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
         <source xml:lang="en">{0} color swatch ({1})</source>
