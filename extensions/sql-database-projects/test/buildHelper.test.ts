@@ -64,6 +64,49 @@ suite('BuildHelper: Build Helper tests', function (): void {
 		const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
 		should(buildHelper.extensionBuildDirPath).equal(path.join(extensionPath, 'BuildDirectory'));
 	});
+
+	test('Should have all required DLLs in build directory', async function (): Promise<void> {
+		this.timeout(60000); // Increase timeout for downloading and extracting nuget packages
+		const testContext: TestContext = createContext();
+		const buildHelper = new BuildHelper();
+		const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
+
+		// Verify that the build directory was created successfully
+		should(success).equal(true, 'Build directory creation should succeed');
+
+		const buildDirPath = buildHelper.extensionBuildDirPath;
+
+		// List of required DLLs from Microsoft.Build.Sql package
+		const requiredDacFxFiles: string[] = [
+			'Microsoft.Build.Sql.dll',
+			'Microsoft.Data.SqlClient.dll',
+			'Microsoft.Data.Tools.Schema.Sql.dll',
+			'Microsoft.Data.Tools.Schema.Tasks.Sql.dll',
+			'Microsoft.Data.Tools.Utilities.dll',
+			'Microsoft.SqlServer.Dac.dll',
+			'Microsoft.SqlServer.Dac.Extensions.dll',
+			'Microsoft.SqlServer.Types.dll',
+			'System.ComponentModel.Composition.dll',
+			'System.IO.Packaging.dll',
+			'Microsoft.Data.Tools.Schema.SqlTasks.targets',
+			'Microsoft.SqlServer.Server.dll'
+		];
+
+		// List of required DLLs from ScriptDom package
+		const requiredScriptDomFiles: string[] = [
+			'Microsoft.SqlServer.TransactSql.ScriptDom.dll'
+		];
+
+		// Combine all required files
+		const allRequiredFiles = [...requiredDacFxFiles, ...requiredScriptDomFiles];
+
+		// Verify each required file exists in the build directory
+		for (const fileName of allRequiredFiles) {
+			const filePath = path.join(buildDirPath, fileName);
+			const exists = await utils.exists(filePath);
+			should(exists).equal(true, `Required file '${fileName}' should exist in build directory at ${filePath}`);
+		}
+	});
 });
 
 
