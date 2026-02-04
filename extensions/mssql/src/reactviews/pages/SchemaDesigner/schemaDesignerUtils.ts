@@ -9,9 +9,6 @@ import { Connection, ConnectionLineType, Edge, MarkerType, Node } from "@xyflow/
 import dagre from "@dagrejs/dagre";
 import { v4 as uuidv4 } from "uuid";
 
-type TableWithDeletedFlag = SchemaDesigner.Table & { isDeleted?: boolean };
-type ForeignKeyWithDeletedFlag = SchemaDesigner.ForeignKey & { isDeleted?: boolean };
-
 const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean =>
     value?.isDeleted === true;
 
@@ -584,7 +581,7 @@ export const foreignKeyUtils = {
     },
 
     extractForeignKeysFromEdges: (
-        edges: Edge<ForeignKeyWithDeletedFlag>[],
+        edges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[],
         sourceTableId: string,
         schema: SchemaDesigner.Schema,
     ): SchemaDesigner.ForeignKey[] => {
@@ -957,8 +954,8 @@ export const flowUtils = {
     },
 
     extractSchemaModel: (
-        nodes: Node<TableWithDeletedFlag>[],
-        edges: Edge<ForeignKeyWithDeletedFlag>[],
+        nodes: Node<SchemaDesigner.TableWithDeletedFlag>[],
+        edges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[],
     ): SchemaDesigner.Schema => {
         const filteredNodes = nodes.filter((node) => !isDeleted(node.data));
 

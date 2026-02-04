@@ -122,7 +122,27 @@ export interface TaskCompletionHandler {
      * @returns The command arguments
      */
     getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => ActionCommandArgs;
+
+    sendNotification?(NotificationType: NotificationType<any, void>, params: any): void;
 }
+
+/**
+ * Event that is fired when a task is created
+ * This allows other components to listen for new tasks and react accordingly
+ */
+export const taskCreatedEmitter = new vscode.EventEmitter<TaskInfo>();
+export const onTaskCreated = taskCreatedEmitter.event;
+
+/**
+ * Event that is fired when a task is completed
+ * This allows other components to listen for task completions and react accordingly
+ */
+export interface TaskCompletedEvent {
+    task: TaskInfo;
+    progress: TaskProgressInfo;
+}
+export const taskCompletedEmitter = new vscode.EventEmitter<TaskCompletedEvent>();
+export const onTaskCompleted = taskCompletedEmitter.event;
 
 /**
  * A simple service that hooks into the SQL Task Service feature provided by SQL Tools Service. This handles detecting when
@@ -206,6 +226,9 @@ export class SqlTasksService {
             },
         );
         this._activeTasks.set(taskInfo.taskId, newTaskInfo);
+
+        // Fire the task created event for any listeners
+        taskCreatedEmitter.fire(taskInfo);
     }
 
     /**
@@ -234,9 +257,13 @@ export class SqlTasksService {
                 ? this._completionHandlers.get(taskInfo.taskInfo.operationName)
                 : undefined;
 
+            // Fire the task completed event for any listeners
+            taskCompletedEmitter.fire({ task: taskInfo.taskInfo, progress: taskProgressInfo });
+
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
             this._activeTasks.delete(taskProgressInfo.taskId);
+
             if (taskProgressInfo.status === TaskStatus.Canceled) {
                 taskInfo.completionPromise.reject(new Error("Task cancelled"));
             } else {

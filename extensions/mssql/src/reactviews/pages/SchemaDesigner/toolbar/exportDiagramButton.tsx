@@ -4,19 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    ToolbarButton,
+    Tooltip,
 } from "@fluentui/react-components";
-import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import * as htmlToImage from "html-to-image";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import * as FluentIcons from "@fluentui/react-icons";
 
 export function ExportDiagramButton() {
     const { getNodes } = useReactFlow();
@@ -119,13 +120,12 @@ export function ExportDiagramButton() {
     return (
         <Menu>
             <MenuTrigger disableButtonEnhancement>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    icon={<FluentIcons.ArrowExportUp16Regular />}
-                    title={locConstants.schemaDesigner.export}>
-                    {locConstants.schemaDesigner.export}
-                </Button>
+                <Tooltip content={locConstants.schemaDesigner.export} relationship="label">
+                    <ToolbarButton
+                        appearance="subtle"
+                        icon={<FluentIcons.ArrowExport20Regular />}
+                    />
+                </Tooltip>
             </MenuTrigger>
 
             <MenuPopover>

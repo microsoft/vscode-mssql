@@ -346,6 +346,10 @@
         <source xml:lang="en">Database References</source>
         <target state="translated">データベース参照</target>
       </trans-unit>
+      <trans-unit id="++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b">
+        <source xml:lang="en">Database Trigger</source>
+        <target state="translated">データベース トリガー</target>
+      </trans-unit>
       <trans-unit id="++CODE++3bdfa565ae34efdec777d66c17a38f2265fd8694c27c4b9f5156f787750a143b">
         <source xml:lang="en">Database location is required for adding a reference to a database</source>
         <target state="translated">データベースへの参照を追加するには、データベースの場所が必要です</target>
@@ -891,13 +895,13 @@
         <source xml:lang="en">Profile</source>
         <target state="translated">プロファイル</target>
       </trans-unit>
-      <trans-unit id="++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b">
-        <source xml:lang="en">Project</source>
-        <target state="translated">プロジェクト</target>
-      </trans-unit>
       <trans-unit id="++CODE++1c4e927c1250569dd8129c93e41fd1c39ede59048b2df1d88d2d4071d258c4d6">
         <source xml:lang="en">Project '{0}' is already opened.</source>
         <target state="translated">プロジェクト '{0}' は既に開かれています。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856">
+        <source xml:lang="en">Project (.sqlproj)</source>
+        <target state="translated">プロジェクト (.sqlproj)</target>
       </trans-unit>
       <trans-unit id="++CODE++598020cc5bef4d8e71624bce32a6ff261c0c68f3c58e433381e2babc192b0909">
         <source xml:lang="en">Project property value '{0} is invalid</source>
@@ -1151,6 +1155,10 @@
         <source xml:lang="en">Select where to publish the project to</source>
         <target state="translated">プロジェクトの公開先を選択します</target>
       </trans-unit>
+      <trans-unit id="++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7">
+        <source xml:lang="en">Sequence</source>
+        <target state="translated">シーケンス</target>
+      </trans-unit>
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
         <target state="translated">サーバー</target>
@@ -1210,6 +1218,10 @@
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
         <target state="translated">テーブル</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891">
+        <source xml:lang="en">Table-Valued Function</source>
+        <target state="translated">テーブル値関数</target>
       </trans-unit>
       <trans-unit id="++CODE++5b02abaa1e421efb6c10a960e3f128b0a641ea7cc47df22947c3f695cf1cb505">
         <source xml:lang="en">Target Database</source>
@@ -1290,6 +1302,10 @@
       <trans-unit id="++CODE++b6ecb97fd3934d27e281539de8b6f9ab3cd3a6b3ea47ff5664fdc8e9787030f6">
         <source xml:lang="en">To successfully build, update the project to have one pre-deployment script and/or one post-deployment script</source>
         <target state="translated">ビルドを成功させるには、1 つの配置前スクリプトと 1 つの配置後スクリプトを含むように、プロジェクトを更新します</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206">
+        <source xml:lang="en">Trigger</source>
+        <target state="translated">トリガー</target>
       </trans-unit>
       <trans-unit id="++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410">
         <source xml:lang="en">Unable to construct connection: {0}</source>

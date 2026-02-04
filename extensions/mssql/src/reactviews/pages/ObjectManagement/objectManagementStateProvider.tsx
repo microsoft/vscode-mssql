@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode } from "react";
-import { ObjectManagementWebviewState } from "../../../sharedInterfaces/objectManagement";
+import {
+    ObjectManagementReducers,
+    ObjectManagementWebviewState,
+} from "../../../sharedInterfaces/objectManagement";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 
 export interface ObjectManagementReactProvider {
-    extensionRpc: WebviewRpc<void>;
+    extensionRpc: WebviewRpc<ObjectManagementReducers>;
 }
 
 export const ObjectManagementContext = createContext<ObjectManagementReactProvider | undefined>(
@@ -21,7 +24,10 @@ interface ObjectManagementProviderProps {
 }
 
 const ObjectManagementStateProvider: React.FC<ObjectManagementProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ObjectManagementWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview2<
+        ObjectManagementWebviewState,
+        ObjectManagementReducers
+    >();
     return (
         <ObjectManagementContext.Provider value={{ extensionRpc }}>
             {children}
