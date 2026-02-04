@@ -66,7 +66,6 @@ suite('BuildHelper: Build Helper tests', function (): void {
 	});
 
 	test('Should have all required DLLs in build directory', async function (): Promise<void> {
-		this.timeout(60000); // Increase timeout for downloading and extracting nuget packages
 		const testContext: TestContext = createContext();
 		const buildHelper = new BuildHelper();
 		const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
