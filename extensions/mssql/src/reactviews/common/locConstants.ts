@@ -1706,8 +1706,7 @@ export class LocConstants {
             filterByName: l10n.t("Filter by name"),
             filterBySchema: l10n.t("Filter by schema"),
             filterByType: l10n.t("Filter by type"),
-            filterColumnAriaLabel: (columnName: string) =>
-                l10n.t("Filter {0}", columnName),
+            filterColumnAriaLabel: (columnName: string) => l10n.t("Filter {0}", columnName),
             clearFilter: l10n.t("Clear"),
             selectAll: l10n.t("Select All"),
 
