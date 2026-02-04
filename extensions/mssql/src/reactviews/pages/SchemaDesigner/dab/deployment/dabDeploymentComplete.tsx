@@ -76,7 +76,11 @@ export const DabDeploymentComplete = ({
 
     return (
         <>
-            <DialogTitle>{isSuccess ? "Deployment Complete" : "Deployment Failed"}</DialogTitle>
+            <DialogTitle>
+                {isSuccess
+                    ? locConstants.schemaDesigner.deploymentComplete
+                    : locConstants.schemaDesigner.deploymentFailed}
+            </DialogTitle>
             <DialogContent className={classes.content}>
                 <div className={classes.completionContainer}>
                     {isSuccess ? (
@@ -87,9 +91,9 @@ export const DabDeploymentComplete = ({
                                 />
                             </div>
                             <Text weight="semibold" size={400}>
-                                DAB container is running!
+                                {locConstants.schemaDesigner.dabContainerRunning}
                             </Text>
-                            <Text>Your API is available at:</Text>
+                            <Text>{locConstants.schemaDesigner.apiAvailableAt}</Text>
                             <div className={classes.apiUrlContainer}>
                                 <Text weight="semibold">{apiUrl}</Text>
                             </div>
@@ -102,7 +106,7 @@ export const DabDeploymentComplete = ({
                                 />
                             </div>
                             <Text weight="semibold" size={400} className={classes.errorText}>
-                                Deployment failed
+                                {locConstants.schemaDesigner.deploymentFailed}
                             </Text>
                             <Text>{error}</Text>
                         </>

@@ -49,19 +49,20 @@ export const DabDeploymentConfirmation = ({
 
     return (
         <>
-            <DialogTitle>Deploy DAB Container</DialogTitle>
+            <DialogTitle>{locConstants.schemaDesigner.deployDabContainer}</DialogTitle>
             <DialogContent className={classes.content}>
                 <div className={classes.confirmationInfo}>
                     <Info20Regular className={classes.infoIcon} />
                     <div>
-                        <Text weight="semibold">Local Container Deployment</Text>
-                        <Text block style={{ marginTop: "8px" }}>
-                            This will deploy a Data API Builder container locally using Docker. The
-                            container will expose REST and GraphQL APIs based on your configuration.
+                        <Text weight="semibold">
+                            {locConstants.schemaDesigner.localContainerDeployment}
                         </Text>
                         <Text block style={{ marginTop: "8px" }}>
-                            <strong>Requirements:</strong> Docker Desktop must be installed and
-                            running on your machine.
+                            {locConstants.schemaDesigner.deployDabContainerDescription}
+                        </Text>
+                        <Text block style={{ marginTop: "8px" }}>
+                            <strong>{locConstants.schemaDesigner.requirements}</strong>{" "}
+                            {locConstants.schemaDesigner.dockerDesktopRequirement}
                         </Text>
                     </div>
                 </div>

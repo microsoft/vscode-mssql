@@ -1151,6 +1151,45 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+
+            // DAB Deployment Dialog
+            deployDabContainer: l10n.t("Deploy DAB Container"),
+            localContainerDeployment: l10n.t("Local Container Deployment"),
+            deployDabContainerDescription: l10n.t(
+                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+            ),
+            requirements: l10n.t("Requirements:"),
+            dockerDesktopRequirement: l10n.t(
+                "Docker Desktop must be installed and running on your machine.",
+            ),
+            containerSettings: l10n.t("Container Settings"),
+            containerName: l10n.t("Container Name"),
+            containerNameRequired: l10n.t("Container name is required"),
+            containerNameInvalid: l10n.t(
+                "Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen",
+            ),
+            containerNameHint: l10n.t("Name for the Docker container running DAB"),
+            port: l10n.t("Port"),
+            portInvalid: l10n.t("Port must be between 1 and 65535"),
+            portHint: l10n.t("Port to expose the API on (default: 5000)"),
+            deploymentComplete: l10n.t("Deployment Complete"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            dabContainerRunning: l10n.t("DAB container is running!"),
+            apiAvailableAt: l10n.t("Your API is available at:"),
+
+            // DAB Deployment Steps
+            checkingDockerInstallation: l10n.t("Checking Docker installation"),
+            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
+            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
+            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
+            checkingDockerEngine: l10n.t("Checking Docker engine"),
+            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
+            pullingDabImage: l10n.t("Pulling DAB container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            startingDabContainer: l10n.t("Starting DAB container"),
+            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
+            checkingContainerReadiness: l10n.t("Checking container readiness"),
+            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
         };
     }
 

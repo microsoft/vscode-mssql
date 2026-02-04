@@ -14,7 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
-import { dabStepLabels } from "./dabDeploymentUtils";
+import { getDabStepLabels } from "./dabDeploymentUtils";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -60,7 +60,7 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const [expanded, setExpanded] = useState(true);
     const [showFullErrorText, setShowFullErrorText] = useState(false);
 
-    const labels = dabStepLabels[stepStatus.step];
+    const labels = getDabStepLabels()[stepStatus.step];
     const isError = stepStatus.status === "error";
     const isCompleted = stepStatus.status === "completed";
 

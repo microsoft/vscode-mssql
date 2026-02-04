@@ -54,12 +54,10 @@ export const DabDeploymentInputForm = ({
 
         // Validate container name
         if (!containerName.trim()) {
-            setContainerNameError("Container name is required");
+            setContainerNameError(locConstants.schemaDesigner.containerNameRequired);
             isValid = false;
         } else if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(containerName)) {
-            setContainerNameError(
-                "Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen",
-            );
+            setContainerNameError(locConstants.schemaDesigner.containerNameInvalid);
             isValid = false;
         } else {
             setContainerNameError(undefined);
@@ -68,7 +66,7 @@ export const DabDeploymentInputForm = ({
         // Validate port
         const portNum = parseInt(port, 10);
         if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-            setPortError("Port must be between 1 and 65535");
+            setPortError(locConstants.schemaDesigner.portInvalid);
             isValid = false;
         } else {
             setPortError(undefined);
@@ -89,10 +87,10 @@ export const DabDeploymentInputForm = ({
 
     return (
         <>
-            <DialogTitle>Container Settings</DialogTitle>
+            <DialogTitle>{locConstants.schemaDesigner.containerSettings}</DialogTitle>
             <DialogContent className={classes.content}>
                 <Field
-                    label="Container Name"
+                    label={locConstants.schemaDesigner.containerName}
                     validationState={containerNameError ? "error" : undefined}
                     validationMessage={containerNameError}>
                     <Input
@@ -100,17 +98,17 @@ export const DabDeploymentInputForm = ({
                         onChange={(_, data) => setContainerName(data.value)}
                     />
                     <Text className={classes.fieldHint}>
-                        Name for the Docker container running DAB
+                        {locConstants.schemaDesigner.containerNameHint}
                     </Text>
                 </Field>
 
                 <Field
-                    label="Port"
+                    label={locConstants.schemaDesigner.port}
                     validationState={portError ? "error" : undefined}
                     validationMessage={portError}>
                     <Input type="number" value={port} onChange={(_, data) => setPort(data.value)} />
                     <Text className={classes.fieldHint}>
-                        Port to expose the API on (default: 5000)
+                        {locConstants.schemaDesigner.portHint}
                     </Text>
                 </Field>
             </DialogContent>

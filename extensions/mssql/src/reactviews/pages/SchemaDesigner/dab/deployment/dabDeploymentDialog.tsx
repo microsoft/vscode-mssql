@@ -96,10 +96,7 @@ export const DabDeploymentDialog = () => {
         switch (dabDeploymentState.dialogStep) {
             case Dab.DabDeploymentDialogStep.Confirmation:
                 return (
-                    <DabDeploymentConfirmation
-                        onConfirm={handleConfirm}
-                        onCancel={handleClose}
-                    />
+                    <DabDeploymentConfirmation onConfirm={handleConfirm} onCancel={handleClose} />
                 );
             case Dab.DabDeploymentDialogStep.Prerequisites:
                 return (

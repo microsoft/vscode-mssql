@@ -4,36 +4,42 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { locConstants } from "../../../../common/locConstants";
 
 /**
- * Step labels for DAB deployment display
+ * Gets step labels for DAB deployment display
  */
-export const dabStepLabels: Record<Dab.DabDeploymentStepOrder, { header: string; body: string }> = {
-    [Dab.DabDeploymentStepOrder.dockerInstallation]: {
-        header: "Checking Docker installation",
-        body: "Verifying Docker is installed on your system",
-    },
-    [Dab.DabDeploymentStepOrder.startDockerDesktop]: {
-        header: "Starting Docker Desktop",
-        body: "Ensuring Docker Desktop is running",
-    },
-    [Dab.DabDeploymentStepOrder.checkDockerEngine]: {
-        header: "Checking Docker engine",
-        body: "Verifying Docker engine is ready",
-    },
-    [Dab.DabDeploymentStepOrder.pullImage]: {
-        header: "Pulling DAB container image",
-        body: "Downloading the Data API Builder container image",
-    },
-    [Dab.DabDeploymentStepOrder.startContainer]: {
-        header: "Starting DAB container",
-        body: "Creating and starting the container",
-    },
-    [Dab.DabDeploymentStepOrder.checkContainer]: {
-        header: "Checking container readiness",
-        body: "Verifying the API is ready to accept requests",
-    },
-};
+export function getDabStepLabels(): Record<
+    Dab.DabDeploymentStepOrder,
+    { header: string; body: string }
+> {
+    return {
+        [Dab.DabDeploymentStepOrder.dockerInstallation]: {
+            header: locConstants.schemaDesigner.checkingDockerInstallation,
+            body: locConstants.schemaDesigner.verifyingDockerInstalled,
+        },
+        [Dab.DabDeploymentStepOrder.startDockerDesktop]: {
+            header: locConstants.schemaDesigner.startingDockerDesktop,
+            body: locConstants.schemaDesigner.ensuringDockerDesktopRunning,
+        },
+        [Dab.DabDeploymentStepOrder.checkDockerEngine]: {
+            header: locConstants.schemaDesigner.checkingDockerEngine,
+            body: locConstants.schemaDesigner.verifyingDockerEngineReady,
+        },
+        [Dab.DabDeploymentStepOrder.pullImage]: {
+            header: locConstants.schemaDesigner.pullingDabImage,
+            body: locConstants.schemaDesigner.downloadingDabImage,
+        },
+        [Dab.DabDeploymentStepOrder.startContainer]: {
+            header: locConstants.schemaDesigner.startingDabContainer,
+            body: locConstants.schemaDesigner.creatingAndStartingContainer,
+        },
+        [Dab.DabDeploymentStepOrder.checkContainer]: {
+            header: locConstants.schemaDesigner.checkingContainerReadiness,
+            body: locConstants.schemaDesigner.verifyingApiReady,
+        },
+    };
+}
 
 /**
  * Gets prerequisite step statuses from deployment state
