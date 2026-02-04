@@ -79,18 +79,18 @@ suite("ProfilerController XEL File Tests", () => {
     suite("XelFileInfo", () => {
         test("should create XelFileInfo with all properties", () => {
             const fileInfo: XelFileInfo = {
-                filePath: "C:\\test\\events\\trace.xel",
+                filePath: path.join("test", "events", "trace.xel"),
                 fileName: "trace.xel",
                 fileSize: 2048,
             };
 
-            expect(fileInfo.filePath).to.equal("C:\\test\\events\\trace.xel");
+            expect(fileInfo.filePath).to.equal(path.join("test", "events", "trace.xel"));
             expect(fileInfo.fileName).to.equal("trace.xel");
             expect(fileInfo.fileSize).to.equal(2048);
         });
 
         test("should extract fileName from filePath correctly", () => {
-            const filePath = "C:\\test\\events\\trace.xel";
+            const filePath = path.join("test", "events", "trace.xel");
             const fileName = path.basename(filePath);
 
             expect(fileName).to.equal("trace.xel");

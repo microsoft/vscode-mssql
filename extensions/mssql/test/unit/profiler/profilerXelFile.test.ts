@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
+import * as path from "path";
 import * as vscode from "vscode";
 import { ProfilerSession, ProfilerSessionOptions } from "../../../src/profiler/profilerSession";
 import { SessionType, SessionState, XelFileInfo } from "../../../src/profiler/profilerTypes";
@@ -144,23 +145,23 @@ suite("ProfilerSession XEL File Tests", () => {
 suite("XelFileInfo Tests", () => {
     test("should contain required properties", () => {
         const xelFileInfo: XelFileInfo = {
-            filePath: "C:\\test\\trace.xel",
+            filePath: path.join("test", "trace.xel"),
             fileName: "trace.xel",
             fileSize: 1024,
         };
 
-        expect(xelFileInfo.filePath).to.equal("C:\\test\\trace.xel");
+        expect(xelFileInfo.filePath).to.equal(path.join("test", "trace.xel"));
         expect(xelFileInfo.fileName).to.equal("trace.xel");
         expect(xelFileInfo.fileSize).to.equal(1024);
     });
 
     test("should allow optional fileSize", () => {
         const xelFileInfo: XelFileInfo = {
-            filePath: "C:\\test\\trace.xel",
+            filePath: path.join("test", "trace.xel"),
             fileName: "trace.xel",
         };
 
-        expect(xelFileInfo.filePath).to.equal("C:\\test\\trace.xel");
+        expect(xelFileInfo.filePath).to.equal(path.join("test", "trace.xel"));
         expect(xelFileInfo.fileName).to.equal("trace.xel");
         expect(xelFileInfo.fileSize).to.be.undefined;
     });
