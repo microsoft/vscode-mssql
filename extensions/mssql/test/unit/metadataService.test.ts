@@ -15,7 +15,7 @@ import {
     MetadataListRequest,
     TableMetadataRequest,
     ViewMetadataRequest,
-} from "../../src/models/contracts/metadata";
+} from "../../src/models/contracts/metadataContracts";
 import {
     ColumnMetadata,
     DatabaseInfo,

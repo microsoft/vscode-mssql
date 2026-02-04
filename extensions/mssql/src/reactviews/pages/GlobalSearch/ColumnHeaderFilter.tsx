@@ -77,7 +77,7 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = (props) => 
     const isActive =
         props.type === "text"
             ? props.value.length > 0
-            : props.selectedValues.length > 0 && props.selectedValues.length < props.options.length;
+            : props.selectedValues.length !== props.options.length;
 
     const FilterIcon = isActive ? Filter16Filled : Filter16Regular;
 

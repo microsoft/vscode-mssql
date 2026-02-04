@@ -10,7 +10,7 @@ import {
     MetadataListRequest,
     TableMetadataRequest,
     ViewMetadataRequest,
-} from "../models/contracts/metadata";
+} from "../models/contracts/metadataContracts";
 import {
     ColumnMetadata,
     DatabaseInfo,

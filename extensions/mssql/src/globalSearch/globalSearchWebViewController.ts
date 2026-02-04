@@ -228,8 +228,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
             this.applyFiltersAndSearch();
         } catch (error) {
-            this.logger.error(`Error loading metadata: ${getErrorMessage(error)}`);
-            this.state.errorMessage = getErrorMessage(error);
+            const errorMessage = getErrorMessage(error);
+            this.logger.error(`Error loading metadata: ${errorMessage}`);
+            this.state.errorMessage = errorMessage;
+            this.state.loadStatus = ApiStatus.Error;
+            throw error;
         } finally {
             this.state.isSearching = false;
             this.updateState();
@@ -391,8 +394,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 const connectionUri = this.getConnectionUri();
                 state.connectionUri = connectionUri;
 
-                await this.ensureConnection(connectionUri);
-                await this.loadMetadata();
+                try {
+                    await this.ensureConnection(connectionUri);
+                    await this.loadMetadata();
+                } catch (error) {
+                    this.logger.error(
+                        `Error switching database: ${getErrorMessage(error)}`,
+                    );
+                }
             }
             return state;
         });
@@ -487,7 +496,11 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this._searchResultItemCache.delete(cacheKey);
 
             // Refetch metadata (this will also reset schema filters to all selected)
-            await this.loadMetadata();
+            try {
+                await this.loadMetadata();
+            } catch (error) {
+                this.logger.error(`Error refreshing results: ${getErrorMessage(error)}`);
+            }
             return state;
         });
     }
