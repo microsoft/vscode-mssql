@@ -48,7 +48,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         const serverName = _targetNode?.connectionProfile?.server || "Server";
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode) || "master";
 
-        // Generate stable owner URI for this webview instance (without timestamp for connection reuse)
+        // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
         const instanceId = Date.now();
         const ownerUri = `globalSearch://${serverName}/${instanceId}`;
 
@@ -103,6 +103,20 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Clean up resources when the panel is closed
+     */
+    public override dispose(): void {
+        // Disconnect the connection to avoid accumulating orphaned connections
+        void this._connectionManager.disconnect(this._ownerUri);
+
+        // Clear caches for this panel
+        this._metadataCache.clear();
+        this._searchResultItemCache.clear();
+
+        super.dispose();
+    }
+
+    /**
      * Initialize the webview by loading databases and setting up connection
      */
     private async initialize(): Promise<void> {
@@ -151,12 +165,24 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Ensure a connection is established for the given URI
      */
     private async ensureConnection(connectionUri: string): Promise<void> {
+        const targetDatabase = this.state.selectedDatabase;
+
+        // If already connected, verify that the connection is using the currently selected database.
         if (this._connectionManager.isConnected(connectionUri)) {
-            return;
+            const connectionInfo = await this._connectionManager.getConnectionInfo(connectionUri);
+            const currentDatabase = connectionInfo?.credentials?.database;
+
+            if (currentDatabase === targetDatabase) {
+                // Existing connection is already targeting the desired database.
+                return;
+            }
+
+            // Connected, but to a different database. Disconnect so we can reconnect to the correct one.
+            await this._connectionManager.disconnect(connectionUri);
         }
 
         const connectionCreds = { ...this._targetNode.connectionProfile };
-        connectionCreds.database = this.state.selectedDatabase;
+        connectionCreds.database = targetDatabase;
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
             await this._connectionManager.connect(connectionUri, connectionCreds);
@@ -200,6 +226,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.state.availableSchemas = uniqueSchemas;
             this.state.selectedSchemas = [...uniqueSchemas];
             this.applyFiltersAndSearch();
+            this.updateState();
             return;
         }
 
@@ -308,8 +335,6 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         this.state.searchResults = results;
         this.state.totalResultCount = results.length;
-
-        this.updateState();
     }
 
     /**
@@ -395,6 +420,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 state.connectionUri = connectionUri;
 
                 try {
+                    // Disconnect to reconnect with new database context
+                    await this._connectionManager.disconnect(connectionUri);
                     await this.ensureConnection(connectionUri);
                     await this.loadMetadata();
                 } catch (error) {

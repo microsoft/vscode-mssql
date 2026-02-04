@@ -2424,7 +2424,7 @@ export class GlobalSearch {
         });
 
     public static failedToEstablishConnection = l10n.t(
-        "Failed to establish connection for scripting",
+        "Failed to establish connection",
     );
 
     public static noNodeSelected = l10n.t(

@@ -111,7 +111,7 @@ export class MetadataService implements IMetadataService {
                 params,
             );
 
-            return result.metadata;
+            return result?.metadata ?? [];
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
@@ -180,7 +180,7 @@ export class MetadataService implements IMetadataService {
 
             const result: TableMetadataResult = await this._client.sendRequest(requestType, params);
 
-            return result.columns;
+            return result?.columns ?? [];
         } catch (error) {
             this._client.logger.error(getErrorMessage(error));
             throw error;
