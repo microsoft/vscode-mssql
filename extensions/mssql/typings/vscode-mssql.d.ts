@@ -540,7 +540,7 @@ declare module "vscode-mssql" {
             sqlCommandVariableValues?: Map<string, string>,
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
-        getDeploymentOptions(scenario?: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
+        getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
     }
 
     /**

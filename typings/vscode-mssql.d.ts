@@ -440,7 +440,7 @@ declare module 'vscode-mssql' {
 		getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
 		validateStreamingJob(packageFilePath: string, createStreamingJobTsql: string): Thenable<ValidateStreamingJobResult>;
 		savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: DeploymentOptions): Thenable<ResultStatus>;
-		getDeploymentOptions(scenario?: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
+		getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
 	}
 
 	/**
