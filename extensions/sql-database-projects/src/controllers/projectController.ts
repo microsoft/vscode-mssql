@@ -49,6 +49,7 @@ import { ConnectionService } from '../models/connections/connectionService';
 import { getPublishToDockerSettings } from '../dialogs/publishToDockerQuickpick';
 import { SqlCmdVariableTreeItem } from '../models/tree/sqlcmdVariableTreeItem';
 import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
+import { DeploymentScenario } from '../common/enums';
 
 const maxTableLength = 10;
 
@@ -904,7 +905,8 @@ export class ProjectsController {
 
 	/**
 	 * Gets the default folder path for a given item type when creating at project root.
-	 * Checks for nested folder structure: Schema/ObjectType/ (e.g., Sales/Functions/)
+	 * For schema-dependent items: Checks Schema/ObjectType/ (e.g., Sales/Functions/)
+	 * For non-schema items (like Database Trigger): Checks root-level ObjectType folder (e.g., DatabaseTriggers/)
 	 * @param itemType The type of item being created
 	 * @param project The project to check for existing folders
 	 * @param schemaName Optional schema name to look for schema-named folders
@@ -913,6 +915,32 @@ export class ProjectsController {
 	public getDefaultFolderForItemType(itemType: ItemType, project: ISqlProject, schemaName?: string): string {
 		let relativePath = '';
 
+		// Get the folder config for this item type (defaults to schema-dependent if not in map)
+		const folderConfig = templates.itemTypeToFolderMap.get(itemType);
+		const isSchemaDependent = folderConfig?.schemaDependent ?? true;
+		const folderName = folderConfig?.folderName;
+
+		// Non-schema-dependent items - check root-level folder only
+		if (!isSchemaDependent && folderName) {
+			const rootFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
+			if (rootFolder) {
+				relativePath = rootFolder.relativePath;
+			}
+			return relativePath;
+		}
+
+		// Case for Sequence: Check root-level Sequences folder first
+		if (itemType === ItemType.sequence && folderName) {
+			const rootObjectFolder = project.folders.find(f =>
+				f.relativePath.toLowerCase() === folderName.toLowerCase());
+
+			if (rootObjectFolder) {
+				return rootObjectFolder.relativePath;
+			}
+		}
+
+		// For schema-dependent items, check schema folders
 		if (schemaName) {
 			// Case 1: Check for schema folder (e.g., "Sales", "dbo") - case-insensitive
 			const schemaFolder = project.folders.find(f =>
@@ -922,9 +950,8 @@ export class ProjectsController {
 				relativePath = schemaFolder.relativePath;
 
 				// Case 2: Check for nested object type folder (e.g., "Sales/Functions")
-				const objectTypeFolder = templates.itemTypeToDefaultFolderMap.get(itemType);
-				if (objectTypeFolder) {
-					const nestedPath = path.join(schemaFolder.relativePath, objectTypeFolder);
+				if (folderName) {
+					const nestedPath = path.join(schemaFolder.relativePath, folderName);
 					const nestedFolder = project.folders.find(f =>
 						f.relativePath.toLowerCase() === nestedPath.toLowerCase());
 
@@ -2060,6 +2087,7 @@ export class ProjectsController {
 	private async schemaCompareAndUpdateProject(source: mssql.SchemaCompareEndpointInfo | mssqlVscode.SchemaCompareEndpointInfo, target: mssql.SchemaCompareEndpointInfo | mssqlVscode.SchemaCompareEndpointInfo): Promise<void> {
 		// Run schema comparison - use the schema compare service
 		const service = await utils.getSchemaCompareService();
+		const dacFxService = await utils.getDacFxService();
 		const operationId = UUID.generateUuid();
 
 		target.targetScripts = await this.getProjectScriptFiles(target.projectFilePath);
@@ -2067,7 +2095,7 @@ export class ProjectsController {
 
 		TelemetryReporter.sendActionEvent(TelemetryViews.ProjectController, TelemetryActions.SchemaComparisonStarted);
 
-		const deploymentOptions = await service.schemaCompareGetDefaultOptions();
+		const deploymentOptions = await (dacFxService as mssqlVscode.IDacFxService).getDeploymentOptions(DeploymentScenario.SchemaCompare as unknown as mssqlVscode.DeploymentScenario);
 
 		// Perform schema comparison based on environment
 		let comparisonResult: mssql.SchemaCompareResult | mssqlVscode.SchemaCompareResult;
