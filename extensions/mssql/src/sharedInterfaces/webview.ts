@@ -8,6 +8,11 @@ import * as vscode from "vscode";
 import { TelemetryActions, TelemetryViews } from "./telemetry";
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 
+/**
+ * Enum to represent the status of an asynchronous call or operation.
+ * Use directly (plus an errorMessage property on the state) if the error message
+ * will be shown in a generic area (like a banner at the top).  Otherwise, use `Status`.
+ */
 export enum ApiStatus {
     NotStarted = "notStarted",
     Loading = "loading",
@@ -15,6 +20,10 @@ export enum ApiStatus {
     Error = "error",
 }
 
+/**
+ * Expanded interface to represent the status of an asynchronous call or operation, including a message.
+ * Use this interface when you need to display the message in a specific location, like next to the component doing the loading.
+ */
 export interface Status {
     status: ApiStatus;
     message?: string;
