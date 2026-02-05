@@ -74,3 +74,12 @@ export namespace SavePublishProfileRequest {
         void
     >("dacfx/savePublishProfile");
 }
+
+export namespace GetDeploymentOptionsRequest {
+    export const type = new RequestType<
+        mssql.GetDeploymentOptionsParams,
+        mssql.GetDeploymentOptionsResult,
+        void,
+        void
+    >("dacfx/getDeploymentOptions");
+}

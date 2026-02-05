@@ -16,7 +16,12 @@ export const useSchemaDesignerToolBatchHandlers = ({
     resetView: () => void;
 }): {
     onPushUndoState: () => void;
-    maybeAutoArrangeForToolBatch: (preTableCount: number, postTableCount: number) => Promise<void>;
+    maybeAutoArrangeForToolBatch: (
+        preTableCount: number,
+        postTableCount: number,
+        preForeignKeyCount: number,
+        postForeignKeyCount: number,
+    ) => Promise<void>;
 } => {
     const onPushUndoState = useOnPushUndoState(reactFlow);
     const maybeAutoArrangeForToolBatch = useMaybeAutoArrangeForToolBatch({

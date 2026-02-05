@@ -7,7 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -100,6 +101,9 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { ProfilerController } from "../profiler/profilerController";
+import { ProfilerService } from "../services/profilerService";
+import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
@@ -150,6 +154,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public profilerController: ProfilerController;
 
     /**
      * The main controller constructor
@@ -625,6 +630,18 @@ export default class MainController implements vscode.Disposable {
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
+
+            // Initialize profiler service and session manager
+            const profilerService = new ProfilerService(this._connectionMgr.client);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+
+            // Initialize profiler controller
+            this.profilerController = new ProfilerController(
+                this._context,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                profilerSessionManager,
+            );
 
             this.connectionSharingService = new ConnectionSharingService(
                 this._context,
@@ -2888,7 +2905,9 @@ export default class MainController implements vscode.Disposable {
         targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.SchemaCompare,
+        );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2897,7 +2916,7 @@ export default class MainController implements vscode.Disposable {
             runComparison,
             this.schemaCompareService,
             this._connectionMgr,
-            result,
+            schemaCompareOptionsResult,
             SchemaCompare.Title,
         );
 
@@ -2923,7 +2942,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.Deployment,
+        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2933,7 +2954,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptions.defaultDeploymentOptions,
+            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();
