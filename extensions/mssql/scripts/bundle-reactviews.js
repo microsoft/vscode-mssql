@@ -34,6 +34,7 @@ const config = {
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         globalSearch: "src/reactviews/pages/GlobalSearch/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
+        profiler: "src/reactviews/pages/Profiler/index.tsx",
         azureDataStudioMigration: "src/reactviews/pages/AzureDataStudioMigration/index.tsx",
     },
     bundle: true,
