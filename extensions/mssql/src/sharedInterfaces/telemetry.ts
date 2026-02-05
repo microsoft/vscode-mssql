@@ -42,6 +42,7 @@ export enum TelemetryViews {
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
     Backup = "Backup",
+    GlobalSearch = "GlobalSearch",
 }
 
 export enum TelemetryActions {
@@ -209,6 +210,12 @@ export enum TelemetryActions {
     Backup = "Backup",
     ScriptBackup = "ScriptBackup",
     FinishBackup = "FinishBackup",
+    LoadMetadata = "LoadMetadata",
+    SetDatabase = "SetDatabase",
+    EditData = "EditData",
+    ModifyTable = "ModifyTable",
+    CopyObjectName = "CopyObjectName",
+    RefreshResults = "RefreshResults",
 }
 
 /**

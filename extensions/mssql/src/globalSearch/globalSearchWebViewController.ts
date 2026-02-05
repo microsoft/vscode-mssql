@@ -26,6 +26,8 @@ import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { generateGuid } from "../models/utils";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     GlobalSearchWebViewState,
@@ -37,6 +39,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private _searchResultItemCache: Map<string, SearchResultItem[]> = new Map();
     // Stable owner URI for this webview instance - used for connection management
     private _ownerUri: string;
+    // Unique identifier for this webview instance - used for telemetry correlation
+    private _operationId: string;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -99,8 +103,9 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         );
 
         this._ownerUri = ownerUri;
+        this._operationId = generateGuid();
         this.logger.info(
-            `GlobalSearchWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
+            `GlobalSearchWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}' - OperationId: ${this._operationId}`,
         );
         this.registerRpcHandlers();
         void this.initialize();
@@ -131,6 +136,15 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async initialize(): Promise<void> {
         this.logger.info("Initializing Search Database webview");
+        const endActivity = startActivity(
+            TelemetryViews.GlobalSearch,
+            TelemetryActions.Initialize,
+            this._operationId,
+            {
+                operationId: this._operationId,
+            },
+        );
+
         try {
             // Guard: ensure _targetNode is defined (command can be invoked without a node)
             if (!this._targetNode?.connectionProfile) {
@@ -138,6 +152,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 this.state.loadStatus = ApiStatus.Error;
                 this.state.errorMessage = LocConstants.GlobalSearch.noNodeSelected;
                 this.updateState();
+
+                endActivity.endFailed(
+                    new Error("No Object Explorer node selected"),
+                    true,
+                    undefined,
+                    undefined,
+                    { operationId: this._operationId },
+                );
                 return;
             }
 
@@ -157,11 +179,23 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.state.loadStatus = ApiStatus.Loaded;
             this.logger.info("Search Database initialization completed successfully");
             this.updateState();
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this._operationId,
+            });
         } catch (error) {
             this.logger.error(`Error initializing Search Database: ${getErrorMessage(error)}`);
             this.state.loadStatus = ApiStatus.Error;
             this.state.errorMessage = getErrorMessage(error);
             this.updateState();
+
+            endActivity.endFailed(
+                new Error("Failed to initialize Search Database"),
+                true,
+                undefined,
+                undefined,
+                { operationId: this._operationId },
+            );
         }
     }
 
@@ -242,6 +276,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         // Check cache first
         if (this._metadataCache.has(cacheKey)) {
             this.logger.info(`Using cached metadata for ${this.state.selectedDatabase}`);
+
+            sendActionEvent(TelemetryViews.GlobalSearch, TelemetryActions.LoadMetadata, {
+                operationId: this._operationId,
+                source: "cache",
+            });
+
             // Restore schema state from cached metadata
             const cachedMetadata = this._metadataCache.get(cacheKey)!;
             const uniqueSchemas = [
@@ -254,6 +294,16 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.updateState();
             return;
         }
+
+        const endActivity = startActivity(
+            TelemetryViews.GlobalSearch,
+            TelemetryActions.LoadMetadata,
+            generateGuid(),
+            {
+                operationId: this._operationId,
+                source: "server",
+            },
+        );
 
         try {
             this.state.isSearching = true;
@@ -279,11 +329,26 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             );
 
             this.applyFiltersAndSearch();
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this._operationId,
+                objectCount: metadata.length.toString(),
+                schemaCount: uniqueSchemas.length.toString(),
+            });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
             this.logger.error(`Error loading metadata: ${errorMessage}`);
             this.state.errorMessage = errorMessage;
             this.state.loadStatus = ApiStatus.Error;
+
+            endActivity.endFailed(
+                new Error("Failed to load metadata"),
+                true,
+                undefined,
+                undefined,
+                { operationId: this._operationId },
+            );
+
             throw error;
         } finally {
             this.state.isSearching = false;
@@ -444,6 +509,13 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 `Database change requested: '${state.selectedDatabase}' -> '${payload.database}'`,
             );
             if (state.selectedDatabase !== payload.database) {
+                const endActivity = startActivity(
+                    TelemetryViews.GlobalSearch,
+                    TelemetryActions.SetDatabase,
+                    generateGuid(),
+                    { operationId: this._operationId },
+                );
+
                 state.selectedDatabase = payload.database;
                 state.searchResults = [];
                 state.totalResultCount = 0;
@@ -459,8 +531,20 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                     await this._connectionManager.disconnect(connectionUri);
                     await this.ensureConnection(connectionUri);
                     await this.loadMetadata();
+
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        operationId: this._operationId,
+                    });
                 } catch (error) {
                     this.logger.error(`Error switching database: ${getErrorMessage(error)}`);
+
+                    endActivity.endFailed(
+                        new Error("Failed to switch database"),
+                        true,
+                        undefined,
+                        undefined,
+                        { operationId: this._operationId },
+                    );
                 }
             }
             return state;
@@ -551,6 +635,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             void vscode.window.showInformationMessage(
                 LocConstants.GlobalSearch.copiedToClipboard(payload.object.fullName),
             );
+
+            sendActionEvent(TelemetryViews.GlobalSearch, TelemetryActions.CopyObjectName, {
+                operationId: this._operationId,
+                objectType: payload.object.metadataTypeName,
+            });
+
             return state;
         });
 
@@ -565,6 +655,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `Refreshing results for database '${state.selectedDatabase}'`,
             );
+
+            const endActivity = startActivity(
+                TelemetryViews.GlobalSearch,
+                TelemetryActions.RefreshResults,
+                generateGuid(),
+                { operationId: this._operationId },
+            );
+
             // Reset filters and search to initial state
             state.searchTerm = "";
             state.objectTypeFilters = {
@@ -582,8 +680,20 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             // Refetch metadata (this will also reset schema filters to all selected)
             try {
                 await this.loadMetadata();
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this._operationId,
+                });
             } catch (error) {
                 this.logger.error(`Error refreshing results: ${getErrorMessage(error)}`);
+
+                endActivity.endFailed(
+                    new Error("Failed to refresh results"),
+                    true,
+                    undefined,
+                    undefined,
+                    { operationId: this._operationId },
+                );
             }
             return state;
         });
@@ -652,6 +762,17 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Generate and open a script for the specified object
      */
     private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
+        const endActivity = startActivity(
+            TelemetryViews.GlobalSearch,
+            TelemetryActions.Script,
+            generateGuid(),
+            {
+                operationId: this._operationId,
+                scriptType: scriptType,
+                objectType: object.metadataTypeName,
+            },
+        );
+
         try {
             this.logger.info(
                 `Scripting object '${object.fullName}' (type: ${object.metadataTypeName}) with script type '${scriptType}'`,
@@ -709,10 +830,28 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             } else {
                 this.logger.warn(`Scripting returned empty result for '${object.fullName}'`);
             }
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this._operationId,
+                scriptType: scriptType,
+                objectType: object.metadataTypeName,
+            });
         } catch (error) {
             this.logger.error(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToScriptObject(getErrorMessage(error)),
+            );
+
+            endActivity.endFailed(
+                new Error("Failed to script object"),
+                true,
+                undefined,
+                undefined,
+                {
+                    operationId: this._operationId,
+                    scriptType: scriptType,
+                    objectType: object.metadataTypeName,
+                },
             );
         }
     }
@@ -721,6 +860,16 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Open the Edit Data (Table Explorer) view for the specified table object
      */
     private async editData(object: SearchResultItem): Promise<void> {
+        const endActivity = startActivity(
+            TelemetryViews.GlobalSearch,
+            TelemetryActions.EditData,
+            generateGuid(),
+            {
+                operationId: this._operationId,
+                objectType: object.metadataTypeName,
+            },
+        );
+
         try {
             this.logger.info(
                 `Opening Edit Data for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
@@ -746,10 +895,22 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
             // Execute the tableExplorer command with the synthetic node
             await vscode.commands.executeCommand(Constants.cmdTableExplorer, syntheticNode);
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this._operationId,
+            });
         } catch (error) {
             this.logger.error(`Error opening Edit Data: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToOpenEditData(getErrorMessage(error)),
+            );
+
+            endActivity.endFailed(
+                new Error("Failed to open Edit Data"),
+                true,
+                undefined,
+                undefined,
+                { operationId: this._operationId },
             );
         }
     }
@@ -758,6 +919,16 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Open the Table Designer (Modify Table) view for the specified table object
      */
     private async modifyTable(object: SearchResultItem): Promise<void> {
+        const endActivity = startActivity(
+            TelemetryViews.GlobalSearch,
+            TelemetryActions.ModifyTable,
+            generateGuid(),
+            {
+                operationId: this._operationId,
+                objectType: object.metadataTypeName,
+            },
+        );
+
         try {
             this.logger.info(
                 `Opening Modify Table for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
@@ -789,10 +960,22 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
             // Execute the editTable command with the synthetic node
             await vscode.commands.executeCommand(Constants.cmdEditTable, syntheticNode);
+
+            endActivity.end(ActivityStatus.Succeeded, {
+                operationId: this._operationId,
+            });
         } catch (error) {
             this.logger.error(`Error opening Modify Table: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToOpenModifyTable(getErrorMessage(error)),
+            );
+
+            endActivity.endFailed(
+                new Error("Failed to open Modify Table"),
+                true,
+                undefined,
+                undefined,
+                { operationId: this._operationId },
             );
         }
     }
