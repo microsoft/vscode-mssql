@@ -111,6 +111,15 @@ suite("Schema Designer LM tool manifest schema", () => {
             applyEditsVariant.properties?.payload?.properties?.edits?.minItems,
             "apply_edits: payload.edits.minItems",
         ).to.equal(1);
+        expect(
+            applyEditsVariant.properties?.payload?.properties?.edits?.items,
+            "apply_edits: payload.edits.items",
+        ).to.exist;
+        expect(
+            applyEditsVariant.properties?.payload?.properties?.edits?.items?.$ref ??
+                applyEditsVariant.properties?.payload?.properties?.edits?.items?.oneOf,
+            "apply_edits: payload.edits.items should be a $ref or oneOf",
+        ).to.exist;
     });
 
     test("mssql_schema_designer get_table requires payload.table id OR (schema + name)", () => {
