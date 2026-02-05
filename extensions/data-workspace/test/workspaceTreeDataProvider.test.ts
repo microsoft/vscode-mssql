@@ -35,7 +35,8 @@ suite("workspaceTreeDataProvider Tests", function (): void {
       treeDataChangeHandler(e);
     });
     await treeProvider.refresh();
-    expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have.been.calledOnce;
+    expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have.been
+      .calledOnce;
   });
 
   test("test getTreeItem()", async function (): Promise<void> {
@@ -62,7 +63,10 @@ suite("workspaceTreeDataProvider Tests", function (): void {
     };
     const children = await treeProvider.getChildren(element);
     expect(children.length, "children count should be 0").to.equal(0);
-    expect(getChildrenStub, "getChildren should have been called with obj1").to.have.been.calledWithExactly("obj1");
+    expect(
+      getChildrenStub,
+      "getChildren should have been called with obj1",
+    ).to.have.been.calledWithExactly("obj1");
   });
 
   test("test getChildren() for root element", async () => {
@@ -146,8 +150,11 @@ suite("workspaceTreeDataProvider Tests", function (): void {
     const children = await treeProvider.getChildren(undefined);
     expect(children.length, "there should be 1 tree item returned").to.equal(1);
     expect(children[0].element, "first child element should be treeitem1").to.equal("treeitem1");
-    expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to.have.been.calledOnce;
-    expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have.been.calledTwice;
-    expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been.calledOnce;
+    expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to
+      .have.been.calledOnce;
+    expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have.been
+      .calledTwice;
+    expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been
+      .calledOnce;
   });
 });

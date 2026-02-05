@@ -93,10 +93,9 @@ suite("Check for invalid filename tests", function (): void {
 suite("Check for invalid filename error tests", function (): void {
   test("Should determine invalid filenames", async () => {
     // valid filename
-    expect(
-      isValidBasenameErrorMessage("ValidName"),
-      "ValidName should return no error",
-    ).to.equal(undefined);
+    expect(isValidBasenameErrorMessage("ValidName"), "ValidName should return no error").to.equal(
+      undefined,
+    );
 
     // invalid for both Windows and non-Windows
     expect(
