@@ -9,11 +9,12 @@ import {
     FlatFileImportState,
     FlatFileImportProvider,
     FlatFileImportFormState,
+    FlatFileStepType,
+    ColumnChanges,
 } from "../../../sharedInterfaces/flatFileImport";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { FormEvent } from "../../../sharedInterfaces/form";
-import { ChangeColumnSettingsParams } from "../../../models/contracts/flatFile";
 
 export const FlatFileContext = createContext<FlatFileImportProvider | undefined>(undefined);
 
@@ -46,7 +47,7 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                         schemaName: schemaName,
                     });
                 },
-                setColumnChanges: function (columnChanges: ChangeColumnSettingsParams[]): void {
+                setColumnChanges: function (columnChanges: ColumnChanges[]): void {
                     webviewContext?.extensionRpc.action("setColumnChanges", {
                         columnChanges: columnChanges,
                     });
@@ -56,6 +57,16 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                 },
                 openVSCodeFileBrowser: function (): void {
                     webviewContext?.extensionRpc.action("openVSCodeFileBrowser", {});
+                },
+                resetState: function (resetType: FlatFileStepType): void {
+                    webviewContext?.extensionRpc.action("resetState", {
+                        resetType: resetType,
+                    });
+                },
+                setStep: function (step: FlatFileStepType): void {
+                    webviewContext?.extensionRpc.action("setStep", {
+                        step: step,
+                    });
                 },
                 dispose: function (): void {
                     webviewContext?.extensionRpc.action("dispose", {});

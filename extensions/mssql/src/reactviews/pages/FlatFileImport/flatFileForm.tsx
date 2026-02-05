@@ -3,15 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import {
-    Button,
-    Dropdown,
-    Field,
-    makeStyles,
-    Spinner,
-    Text,
-} from "@fluentui/react-components";
+import { useContext } from "react";
+import { Button, Dropdown, Field, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { FlatFileContext } from "./flatFileStateProvider";
 import {
@@ -19,10 +12,10 @@ import {
     FlatFileImportFormState,
     FlatFileImportProvider,
     FlatFileImportState,
+    FlatFileStepType,
 } from "../../../sharedInterfaces/flatFileImport";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileHeader } from "./flatFileHeader";
-import { FlatFilePreviewTablePage } from "./flatFilePreviewTable";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
@@ -40,7 +33,6 @@ const useStyles = makeStyles({
     },
     formDiv: {
         width: "500px",
-        flexGrow: 1,
         display: "flex",
         flexDirection: "column",
     },
@@ -51,29 +43,29 @@ const useStyles = makeStyles({
         marginBottom: 0,
     },
     button: {
-        height: "32px",
-        width: "120px",
+        height: "30px",
+        width: "100px",
         margin: "5px",
     },
     bottomDiv: {
-        bottom: 0,
+        paddingTop: "20px",
         paddingBottom: "50px",
     },
     buttonContent: {
+        paddingTop: "8px",
         display: "flex",
-        flexDirection: "row",
-        gap: "0.5rem",
+        flexWrap: "wrap",
+        gap: "6px",
     },
 });
 
-export const FlatFileForm: React.FC<{ next?: boolean }> = ({ next = false }) => {
+export const FlatFileForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
     const state = context?.state;
 
     if (!context || !state) return;
 
-    const [showNext, setShowNext] = useState<boolean>(next);
     const { formComponents } = context.state;
     const schemaFormComponent = formComponents["tableSchema"] as FlatFileImportFormItemSpec;
 
@@ -83,7 +75,7 @@ export const FlatFileForm: React.FC<{ next?: boolean }> = ({ next = false }) => 
             state.formState.tableName,
             state.formState.tableSchema,
         );
-        setShowNext(true);
+        context.setStep(FlatFileStepType.TablePreview);
     };
 
     const shouldDisableNext = (): boolean => {
@@ -96,9 +88,7 @@ export const FlatFileForm: React.FC<{ next?: boolean }> = ({ next = false }) => 
         );
     };
 
-    return showNext ? (
-        <FlatFilePreviewTablePage />
-    ) : (
+    return (
         <div>
             <FlatFileHeader
                 headerText={locConstants.flatFileImport.importFile}

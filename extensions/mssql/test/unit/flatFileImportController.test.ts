@@ -21,6 +21,7 @@ import { defaultSchema } from "../../src/constants/constants";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as path from "path";
+import { FlatFileStepType } from "../../src/sharedInterfaces/flatFileImport";
 
 chai.use(sinonChai);
 
@@ -260,7 +261,7 @@ suite("FlatFileImportController", () => {
             .stub(vscode.window, "showOpenDialog")
             .resolves([{ fsPath: mockFilePath } as vscode.Uri]);
         sandbox.stub(path, "sep").value("/");
-        
+
         const state = {
             ...controller.state,
             formErrors: ["flatFilePath"],
@@ -308,5 +309,86 @@ suite("FlatFileImportController", () => {
 
         expect(disposeStub).to.have.been.calledTwice; // once from controller and once from panel
         expect(newState).to.equal(state);
+    });
+
+    test("resetState reducer handles all reset types correctly", async () => {
+        const reducer = controller["_reducerHandlers"].get("resetState");
+
+        // start with a fully-populated state
+        let state = {
+            ...controller.state,
+            importDataStatus: ApiStatus.Loaded,
+            columnChanges: [{ id: 1 } as any],
+            tablePreviewStatus: ApiStatus.Loaded,
+            tablePreview: { dataPreview: [] } as any,
+            formErrors: ["flatFilePath"],
+            formState: {
+                databaseName: "db1",
+                flatFilePath: "/path/file.csv",
+                tableName: "file",
+                tableSchema: "custom",
+            },
+            currentStep: FlatFileStepType.ImportData,
+        };
+
+        // ---- ImportData branch ----
+        state = await reducer(state, { resetType: FlatFileStepType.ImportData });
+
+        expect(state.importDataStatus).to.equal(ApiStatus.NotStarted);
+        expect(state.currentStep).to.equal(FlatFileStepType.ColumnChanges);
+
+        // ---- ColumnChanges branch ----
+        state.columnChanges = [{ id: 2 } as any]; // repopulate
+        state = await reducer(state, { resetType: FlatFileStepType.ColumnChanges });
+
+        expect(state.columnChanges).to.deep.equal([]);
+        expect(state.currentStep).to.equal(FlatFileStepType.TablePreview);
+
+        // ---- TablePreview branch ----
+        state.tablePreviewStatus = ApiStatus.Loaded;
+        state.tablePreview = { dataPreview: [] } as any;
+
+        state = await reducer(state, { resetType: FlatFileStepType.TablePreview });
+
+        expect(state.tablePreviewStatus).to.equal(ApiStatus.Loading);
+        expect(state.tablePreview).to.be.undefined;
+        expect(state.currentStep).to.equal(FlatFileStepType.Form);
+
+        // ---- default / full reset branch ----
+        state.importDataStatus = ApiStatus.Loaded;
+        state.columnChanges = [{ id: 3 } as any];
+        state.tablePreviewStatus = ApiStatus.Loaded;
+        state.tablePreview = { dataPreview: [] } as any;
+        state.formErrors = ["flatFilePath"];
+        state.formState = {
+            databaseName: "db1",
+            flatFilePath: "/path/file.csv",
+            tableName: "file",
+            tableSchema: "custom",
+        };
+
+        state = await reducer(state, { resetType: "Unknown" as any });
+
+        expect(state.importDataStatus).to.equal(ApiStatus.NotStarted);
+        expect(state.columnChanges).to.deep.equal([]);
+        expect(state.tablePreviewStatus).to.equal(ApiStatus.Loading);
+        expect(state.tablePreview).to.be.undefined;
+        expect(state.formErrors).to.deep.equal([]);
+        expect(state.formState).to.deep.equal({
+            databaseName: "db1", // preserved
+            flatFilePath: "",
+            tableName: "",
+            tableSchema: defaultSchema,
+        });
+        expect(state.currentStep).to.equal(FlatFileStepType.Form);
+    });
+
+    test("setStep reducer updates state", async () => {
+        const step = FlatFileStepType.ColumnChanges;
+        const state = await (controller["_reducerHandlers"] as any).get("setStep")(
+            controller.state,
+            { step: step },
+        );
+        expect(state.currentStep).to.equal(step);
     });
 });

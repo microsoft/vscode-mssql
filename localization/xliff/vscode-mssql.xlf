@@ -2339,9 +2339,6 @@
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
-    <trans-unit id="++CODE++bd857ce3728a542506c98bc18cec2199bd570a58dab7851f85916e27c1208c21">
-      <source xml:lang="en">Flat File Import</source>
-    </trans-unit>
     <trans-unit id="++CODE++0e078f2314e8311dab2039a43e5ad17cc2111eecfc9792a226bdba5f5bd6fd50">
       <source xml:lang="en">Folder Path</source>
     </trans-unit>
@@ -2592,6 +2589,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac684565c2b14138e810a13adaad5c47b8fcfe81d7a11738202d806cac32acb3">
       <source xml:lang="en">Import File</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9afac530f969aee3a096a2d27abc3c44acfa31d1533b1e73eecb9faac48bc09b">
+      <source xml:lang="en">Import Flat File (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++d059247bec8b508bc7b25a4d371433db929d754ac010d5347a67a0b5701dddc8">
       <source xml:lang="en">Import Information</source>
@@ -5873,7 +5873,7 @@
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
     <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import</source>
+      <source xml:lang="en">Import (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>

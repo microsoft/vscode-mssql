@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import {
     Button,
     createTableColumn,
@@ -28,16 +28,18 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
-import { FlatFileColumnSettings } from "./flatFileColumnSettings";
-import { FlatFileForm } from "./flatFileForm";
+import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
 
 const useStyles = makeStyles({
     outerDiv: {
+        display: "flex",
+        flexDirection: "column",
         height: "100%",
         width: "100%",
         position: "relative",
         overflowY: "auto",
-        overflowX: "unset",
+        padding: "12px", // smaller + responsive
+        boxSizing: "border-box",
     },
 
     spinnerDiv: {
@@ -47,7 +49,7 @@ const useStyles = makeStyles({
         justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
-        padding: "20px",
+        padding: "16px",
     },
 
     errorIcon: {
@@ -56,56 +58,62 @@ const useStyles = makeStyles({
     },
 
     button: {
-        height: "32px",
-        width: "120px",
-        margin: "5px",
+        height: "30px",
+        minWidth: "100px",
+        marginRight: "8px",
     },
 
     bottomDiv: {
-        bottom: 0,
-        paddingBottom: "25px",
+        paddingTop: "12px",
+        marginLeft: "10px",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "8px",
     },
 
     tableDiv: {
+        maxWidth: "90vw",
+        maxHeight: "60vh",
         overflow: "auto",
-        position: "relative",
-        width: "85%",
-        margin: "20px 20px 20px 0px",
+        minWidth: "150px",
+        boxSizing: "border-box",
+        scrollbarGutter: "stable",
+        marginTop: "10px",
+        marginBottom: "10px",
+        marginLeft: "5px",
+        width: "100%",
     },
 
     table: {
-        tableLayout: "fixed",
-        marginLeft: "20px",
-        marginRight: "20px",
+        borderCollapse: "collapse",
         width: "100%",
-        height: "100%",
     },
 
     tableHeader: {
         position: "sticky",
         top: 0,
         zIndex: 1,
-        opacity: 1,
     },
 
     tableHeaderCell: {
-        overflow: "hidden",
         backgroundColor: tokens.colorNeutralBackground6,
-        opacity: 1,
+        fontSize: "12px",
+        fontWeight: 600,
     },
 
     tableBodyCell: {
-        overflow: "hidden",
+        maxHeight: "20px",
+        verticalAlign: "middle",
     },
 
     cellText: {
-        fontWeight: 400,
         fontSize: "12px",
+        lineHeight: 1.4,
         overflow: "hidden",
         textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
         display: "block",
         width: "100%",
+        whiteSpace: "nowrap",
     },
 
     columnText: {
@@ -115,17 +123,19 @@ const useStyles = makeStyles({
     },
 
     operationText: {
-        whiteSpace: "wrap",
-        margin: "20px",
+        padding: "8px 0",
+        marginLeft: "10px",
+        fontSize: "13px",
+        maxWidth: "800px",
     },
 });
 
-type Item = {
+type FlatFileTableItem = {
     rowId: string;
-    cells: Cell[];
+    cells: FlatFileTableCell[];
 };
 
-type Cell = {
+type FlatFileTableCell = {
     columnId: TableColumnId;
     value: string;
 };
@@ -172,13 +182,10 @@ export const FlatFilePreviewTable = () => {
 
     if (!context || !state) return null;
 
-    const [showNext, setShowNext] = useState<boolean>(false);
-    const [showPrevious, setShowPrevious] = useState<boolean>(false);
-
-    const columns: TableColumnDefinition<Item>[] = useMemo(() => {
+    const columns: TableColumnDefinition<FlatFileTableItem>[] = useMemo(() => {
         return (
             state.tablePreview?.columnInfo.map((column) =>
-                createTableColumn<Item>({
+                createTableColumn<FlatFileTableItem>({
                     columnId: column.name,
                     renderHeaderCell: () => (
                         <Text className={classes.columnText}>{column.name}</Text>
@@ -188,7 +195,7 @@ export const FlatFilePreviewTable = () => {
         );
     }, [state.tablePreview?.columnInfo]);
 
-    const items: Item[] = useMemo(() => {
+    const items: FlatFileTableItem[] = useMemo(() => {
         return (
             state.tablePreview?.dataPreview.map((row, rowIndex) => {
                 const cells = row.map((cell, cellIndex) => ({
@@ -203,12 +210,15 @@ export const FlatFilePreviewTable = () => {
     const columnSizingOptions: TableColumnSizingOptions = useMemo(() => {
         const sizes: TableColumnSizingOptions = {};
         columns.forEach((column) => {
-            sizes[column.columnId] = { defaultWidth: 50, minWidth: 20 };
+            sizes[column.columnId] = {
+                defaultWidth: 60,
+                minWidth: 25,
+            };
         });
         return sizes;
     }, [state.tablePreview?.dataPreview, columns]);
 
-    const tableFeatures = useTableFeatures<Item>(
+    const tableFeatures = useTableFeatures<FlatFileTableItem>(
         {
             columns,
             items,
@@ -217,16 +227,11 @@ export const FlatFilePreviewTable = () => {
             useTableColumnSizing_unstable({
                 columnSizingOptions,
                 autoFitColumns: false,
-                containerWidthOffset: 20,
             }),
         ],
     );
 
-    return showPrevious ? (
-        <FlatFileForm />
-    ) : showNext ? (
-        <FlatFileColumnSettings />
-    ) : (
+    return (
         <div>
             <FlatFileHeader
                 headerText={locConstants.flatFileImport.importFile}
@@ -279,14 +284,16 @@ export const FlatFilePreviewTable = () => {
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => setShowPrevious(true)}
+                    onClick={() => {
+                        context.resetState(FlatFileStepType.TablePreview);
+                    }}
                     appearance="secondary">
                     {locConstants.common.previous}
                 </Button>
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => setShowNext(true)}
+                    onClick={() => context.setStep(FlatFileStepType.ColumnChanges)}
                     appearance="primary">
                     {locConstants.common.next}
                 </Button>

@@ -2674,7 +2674,7 @@
         "message": "Extracted '{0}' ('{1}'/'{2}').",
         "comment": ["{0} is the entry name", "{1} is the entry folder", "{2} is the entry file"]
     },
-    "Flat File Import": "Flat File Import",
+    "Import Flat File (Preview)": "Import Flat File (Preview)",
     "Database the table is created in": "Database the table is created in",
     "Location of the file to be imported": "Location of the file to be imported",
     "New Table Name": "New Table Name",

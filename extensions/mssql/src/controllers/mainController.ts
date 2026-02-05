@@ -859,7 +859,7 @@ export default class MainController implements vscode.Disposable {
         await sqlOpsClient.startFlatFileService(this._context);
         managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
             this.flatFileProvider = provider;
-            Promise.resolve(true);
+            void Promise.resolve(true);
         });
 
         this.sqlOpsClient = sqlOpsClient;
@@ -1678,6 +1678,8 @@ export default class MainController implements vscode.Disposable {
                     );
 
                     const databases = await this.connectionManager.listDatabases(connectionUri);
+
+                    // If no databases found, show error message and return early
                     if (databases.length === 0) {
                         void vscode.window.showErrorMessage(
                             LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,

@@ -23,7 +23,7 @@ import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { FlatFileColumnSettings } from "./flatFileColumnSettings";
+import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -120,7 +120,6 @@ export const FlatFileSummary = () => {
     if (!context || !state) return;
 
     const [showFullErrorMessage, setShowFullErrorMessage] = useState(false);
-    const [showPrevious, setShowPrevious] = useState(false);
 
     const columns = [locConstants.flatFileImport.objectType, locConstants.flatFileImport.name];
     const data = [
@@ -137,9 +136,7 @@ export const FlatFileSummary = () => {
         }
     }, []);
 
-    return showPrevious ? (
-        <FlatFileColumnSettings />
-    ) : (
+    return (
         <div className={classes.outerDiv}>
             <FlatFileHeader
                 headerText={locConstants.flatFileImport.importFile}
@@ -231,7 +228,19 @@ export const FlatFileSummary = () => {
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => setShowPrevious(true)}
+                    onClick={() => {
+                        context.resetState(FlatFileStepType.Form);
+                    }}
+                    style={{ width: "140px" }}
+                    appearance="secondary">
+                    {locConstants.flatFileImport.importNewFile}
+                </Button>
+                <Button
+                    className={classes.button}
+                    type="submit"
+                    onClick={() => {
+                        context.resetState(FlatFileStepType.ImportData);
+                    }}
                     appearance="secondary">
                     {locConstants.common.previous}
                 </Button>

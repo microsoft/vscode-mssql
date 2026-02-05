@@ -13,6 +13,7 @@ import {
     FlatFileImportFormState,
     FlatFileImportReducers,
     FlatFileImportState,
+    FlatFileStepType,
 } from "../sharedInterfaces/flatFileImport";
 import { ProseDiscoveryParams, FlatFileProvider } from "../models/contracts/flatFile";
 import { FormItemSpec, FormItemType } from "../sharedInterfaces/form";
@@ -38,7 +39,7 @@ export class FlatFileImportController extends FormWebviewController<
     FlatFileImportReducers
 > {
     public readonly IMPORT_FILE_TYPES = ["csv", "txt"];
-    // Default form action reducer
+    // Default form action ; this is used as part of the form reducer to handle default logic
     private baseFormActionReducer = this["_reducerHandlers"].get("formAction");
     constructor(
         context: vscode.ExtensionContext,
@@ -76,15 +77,19 @@ export class FlatFileImportController extends FormWebviewController<
         this.state.formState.databaseName = ObjectExplorerUtils.getDatabaseName(this.node);
 
         this.state.formComponents = this.setFlatFileFormComponents();
-        const databaseNameComponent = this.state.formComponents["databaseName"];
-        databaseNameComponent.options = this.databases.map((db) => ({
+
+        // Set options for database dropdown
+        this.state.formComponents["databaseName"].options = this.databases.map((db) => ({
             displayName: db,
             value: db,
         }));
+
+        // If database name is not set, set it to the first database in the list
         if (!this.state.formState.databaseName) {
             this.state.formState.databaseName = this.databases[0];
         }
 
+        // Load schemas for the default/initially selected database
         await this.handleLoadSchemas();
 
         this.registerRpcHandlers();
@@ -103,6 +108,7 @@ export class FlatFileImportController extends FormWebviewController<
             if (payload.event.propertyName === "databaseName") {
                 void this.handleLoadSchemas();
             }
+            // Call the default form action reducer to handle form state updates and validation
             return this.baseFormActionReducer(state, payload);
         });
         this.registerReducer("getTablePreview", async (state, payload) => {
@@ -134,6 +140,7 @@ export class FlatFileImportController extends FormWebviewController<
             this.updateState();
 
             try {
+                // Get connection string with password to perform the data import
                 const connDetails = this.connectionManager.createConnectionDetails({
                     ...this.node.connectionProfile,
                     database: state.formState.databaseName,
@@ -143,9 +150,12 @@ export class FlatFileImportController extends FormWebviewController<
                     true,
                     true,
                 );
+
+                // Set other default params for the import request
                 const batchSize = 1000; // default batch size
                 const azureAccessToken = this.node.connectionProfile.azureAccountToken;
 
+                // Send column changes (if any) before sending the import request
                 for (const colChange of state.columnChanges) {
                     const colChangeResult =
                         await this.provider.sendChangeColumnSettingsRequest(colChange);
@@ -154,11 +164,13 @@ export class FlatFileImportController extends FormWebviewController<
                     }
                 }
 
+                // Send import request
                 const insertDataResult = await this.provider.sendInsertDataRequest({
                     connectionString: connectionString,
                     batchSize: batchSize,
                     azureAccessToken: azureAccessToken,
                 });
+                // Check result for errors
                 if (!insertDataResult.result.success) {
                     throw new Error(insertDataResult.result.errorMessage);
                 }
@@ -176,6 +188,8 @@ export class FlatFileImportController extends FormWebviewController<
             return state;
         });
         this.registerReducer("openVSCodeFileBrowser", async (state, _payload) => {
+            const filePathComponent = state.formComponents["flatFilePath"];
+            // Open file browser to select flat file for import
             const selectedFilePath = await vscode.window.showOpenDialog({
                 canSelectMany: false,
                 openLabel: Loc.FlatFileImport.selectFileToImport,
@@ -184,13 +198,16 @@ export class FlatFileImportController extends FormWebviewController<
                 },
             });
 
+            // If no file selected, set form error.
             if (!selectedFilePath) {
                 if (!state.formErrors.includes("flatFilePath")) {
                     state.formErrors.push("flatFilePath");
                 }
+                filePathComponent.validation = filePathComponent.validate(state, "");
                 return state;
             }
 
+            // Otherwise, update form state with file path and name (without extension)
             const filePath = selectedFilePath[0].fsPath;
             state.formState.flatFilePath = filePath;
 
@@ -200,10 +217,43 @@ export class FlatFileImportController extends FormWebviewController<
             );
             state.formState.tableName = fileName ?? "";
 
+            // Clear form error if it exists
             if (state.formErrors.includes("flatFilePath")) {
                 state.formErrors = state.formErrors.filter((e) => e !== "flatFilePath");
             }
+            filePathComponent.validation = filePathComponent.validate(state, filePath);
 
+            return state;
+        });
+        this.registerReducer("resetState", async (state, payload) => {
+            if (payload.resetType === FlatFileStepType.ImportData) {
+                state.importDataStatus = ApiStatus.NotStarted;
+                state.currentStep = FlatFileStepType.ColumnChanges;
+            } else if (payload.resetType === FlatFileStepType.ColumnChanges) {
+                state.columnChanges = [];
+                state.currentStep = FlatFileStepType.TablePreview;
+            } else if (payload.resetType === FlatFileStepType.TablePreview) {
+                state.tablePreviewStatus = ApiStatus.Loading;
+                state.tablePreview = undefined;
+                state.currentStep = FlatFileStepType.Form;
+            } else {
+                state.importDataStatus = ApiStatus.NotStarted;
+                state.columnChanges = [];
+                state.tablePreviewStatus = ApiStatus.Loading;
+                state.tablePreview = undefined;
+                state.formState = {
+                    databaseName: state.formState.databaseName,
+                    flatFilePath: "",
+                    tableName: "",
+                    tableSchema: defaultSchema,
+                };
+                state.formErrors = [];
+                state.currentStep = FlatFileStepType.Form;
+            }
+            return state;
+        });
+        this.registerReducer("setStep", async (state, payload) => {
+            state.currentStep = payload.step;
             return state;
         });
         this.registerReducer("dispose", async (state, _payload) => {
@@ -298,6 +348,11 @@ export class FlatFileImportController extends FormWebviewController<
         };
     }
 
+    /**
+     * Gets the list of schemas for a given database to populate the schema dropdown in the form
+     * @param databaseName The name of the database for which to retrieve schemas
+     * @returns A promise that resolves to an array of schema names
+     */
     private async getSchemas(databaseName: string): Promise<string[]> {
         const getSchemaQuery = `USE ${databaseName};
             SELECT name
@@ -320,12 +375,18 @@ export class FlatFileImportController extends FormWebviewController<
         return getSchemaNamesFromResult(result);
     }
 
+    /**
+     * Handles loading schemas when the database selection changes.
+     * This includes setting the appropriate loading and error states,
+     * and updating the form component options with the retrieved schemas.
+     */
     private async handleLoadSchemas(): Promise<void> {
         this.state.schemaLoadStatus = ApiStatus.Loading;
         this.state.formState.tableSchema = "";
         const tableSchemaComponent = this.state.formComponents["tableSchema"];
         tableSchemaComponent.options = [];
         tableSchemaComponent.placeholder = Loc.FlatFileImport.loadingSchemas;
+        this.updateState();
 
         let schemas: string[] = [];
         try {

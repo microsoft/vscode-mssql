@@ -29,67 +29,80 @@ import {
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
-import { ChangeColumnSettingsParams } from "../../../models/contracts/flatFile";
-import { FlatFileSummary } from "./flatFileSummary";
-import { FlatFilePreviewTable } from "./flatFilePreviewTable";
+import { FlatFileStepType, ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
 
 const useStyles = makeStyles({
     outerDiv: {
+        display: "flex",
+        flexDirection: "column",
         height: "100%",
         width: "100%",
         position: "relative",
         overflowY: "auto",
-        overflowX: "unset",
+        padding: "12px",
+        boxSizing: "border-box",
     },
+
     button: {
-        height: "32px",
-        width: "120px",
-        margin: "5px",
+        height: "30px",
+        minWidth: "120px",
+        marginRight: "8px",
     },
 
     bottomDiv: {
-        bottom: 0,
-        paddingBottom: "25px",
+        paddingTop: "12px",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "8px",
+        boxSizing: "border-box",
     },
 
     tableDiv: {
+        maxWidth: "675px",
+        maxHeight: "650px",
+        minWidth: "250px",
         overflow: "auto",
-        position: "relative",
-        width: "85%",
-        margin: "20px",
+        boxSizing: "border-box",
+        scrollbarGutter: "stable",
+        marginTop: "10px",
+        marginBottom: "10px",
+        width: "100%",
     },
 
     table: {
-        tableLayout: "fixed",
         width: "100%",
-        height: "100%",
+        borderCollapse: "collapse",
         maxWidth: "100%",
-        overflow: "auto",
     },
 
     tableHeader: {
         position: "sticky",
         top: 0,
         zIndex: 1,
-        opacity: 1,
+        boxSizing: "border-box",
+        width: "100%",
     },
 
     tableHeaderCell: {
-        overflow: "hidden",
         backgroundColor: tokens.colorNeutralBackground6,
-        opacity: 1,
-        maxWidth: "400px",
+        fontSize: "12px",
+        fontWeight: 600,
+        boxSizing: "border-box",
+        width: "100%",
     },
 
     tableBodyCell: {
-        overflow: "hidden",
+        maxHeight: "20px",
+        verticalAlign: "middle",
+        boxSizing: "border-box",
+        width: "100%",
     },
 
     cellText: {
-        fontWeight: 400,
+        fontSize: "12px",
+        lineHeight: 1.4,
         overflow: "hidden",
         textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
         display: "block",
         width: "100%",
     },
@@ -98,50 +111,75 @@ const useStyles = makeStyles({
         fontWeight: 600,
         overflow: "hidden",
         textOverflow: "ellipsis",
-        textAlign: "center",
-        display: "block",
+        width: "100%",
+        whiteSpace: "nowrap",
     },
 
     cellCenter: {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100%",
+        minHeight: "22px",
         width: "100%",
         minWidth: 0,
     },
 
     headerCenter: {
         display: "flex",
-        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: 0,
         width: "100%",
+        minWidth: 0,
     },
 
     headerItems: {
         display: "flex",
-        flexDirection: "row",
         alignItems: "center",
-        gap: "4px",
-        padding: "4px",
+        gap: "2px",
+        padding: 0,
+        minWidth: "30px",
+        width: "100%",
     },
 
     dropdown: {
         width: "100%",
-        textAlign: "left",
-        boxSizing: "border-box",
         minWidth: "60px",
+
+        "& button": {
+            minHeight: "24px",
+            height: "24px",
+            padding: "0 6px",
+            fontSize: "11px",
+        },
+    },
+
+    input: {
+        width: "100%",
+        minWidth: "60px",
+
+        "& input": {
+            height: "24px",
+            padding: "0 6px",
+            fontSize: "11px",
+        },
+    },
+
+    checkbox: {
+        padding: 0,
+
+        "& svg": {
+            width: "14px",
+            height: "14px",
+        },
     },
 });
 
-type Item = {
+type FlatFileTableItem = {
     rowId: string;
-    cells: Cell[];
+    cells: FlatFileTableCell[];
 };
 
-type Cell = {
+type FlatFileTableCell = {
     columnId: TableColumnId;
     value: string | boolean;
     type: string;
@@ -154,11 +192,7 @@ export const FlatFileColumnSettings = () => {
 
     if (!context || !state) return;
 
-    const [showNext, setShowNext] = useState<boolean>(false);
-    const [showPrevious, setShowPrevious] = useState<boolean>(false);
-    const [columnChanges, setColumnChanges] = useState<Record<number, ChangeColumnSettingsParams>>(
-        {},
-    );
+    const [columnChanges, setColumnChanges] = useState<Record<number, ColumnChanges>>({});
 
     const INPUT_TYPE = "input";
     const CHECKBOX_TYPE = "checkbox";
@@ -216,10 +250,10 @@ export const FlatFileColumnSettings = () => {
         [NEW_NULLABLE_COL_INDEX]: state.tablePreview?.columnInfo.map(() => false) || [],
     });
 
-    const columns: TableColumnDefinition<Item>[] = useMemo(
+    const columns: TableColumnDefinition<FlatFileTableItem>[] = useMemo(
         () =>
             columnInfo.map((column, index) =>
-                createTableColumn<Item>({
+                createTableColumn<FlatFileTableItem>({
                     columnId: column.header,
                     renderHeaderCell: () => (
                         <div className={classes.headerCenter}>
@@ -259,7 +293,7 @@ export const FlatFileColumnSettings = () => {
         [checkedStates],
     );
 
-    const items: Item[] = useMemo(() => {
+    const items: FlatFileTableItem[] = useMemo(() => {
         return (
             state.tablePreview?.columnInfo.map((row, rowIndex) => {
                 const cells = [
@@ -279,7 +313,7 @@ export const FlatFileColumnSettings = () => {
                         value: row.isNullable,
                         type: CHECKBOX_TYPE,
                     },
-                ] as Cell[];
+                ] as FlatFileTableCell[];
                 return { rowId: `row-${rowIndex}`, cells };
             }) || []
         );
@@ -290,27 +324,23 @@ export const FlatFileColumnSettings = () => {
             [columns[0].columnId]: {
                 defaultWidth: 100,
                 minWidth: 50,
-                idealWidth: 100,
             },
             [columns[1].columnId]: {
                 defaultWidth: 100,
                 minWidth: 60,
-                idealWidth: 100,
             },
             [columns[2].columnId]: {
-                defaultWidth: 60,
-                minWidth: 20,
-                idealWidth: 60,
+                defaultWidth: 65,
+                minWidth: 30,
             },
             [columns[3].columnId]: {
                 defaultWidth: 60,
-                minWidth: 20,
-                idealWidth: 60,
+                minWidth: 30,
             },
         };
     }, [columns]);
 
-    const tableFeatures = useTableFeatures<Item>(
+    const tableFeatures = useTableFeatures<FlatFileTableItem>(
         {
             columns,
             items,
@@ -319,20 +349,20 @@ export const FlatFileColumnSettings = () => {
             useTableColumnSizing_unstable({
                 columnSizingOptions,
                 autoFitColumns: false,
-                containerWidthOffset: 20,
             }),
         ],
     );
 
-    const renderCell = (cell: Cell, colIndex: number, rowIndex: number) => {
+    const renderCell = (cell: FlatFileTableCell, colIndex: number, rowIndex: number) => {
         switch (cell.type) {
             case INPUT_TYPE:
                 return (
                     <Input
                         size="small"
+                        className={classes.input}
                         defaultValue={cell.value.toString()}
                         onChange={(_event, data) =>
-                            handleColumnChange(colIndex, "newName", data?.value || "")
+                            handleColumnChange(rowIndex, "newName", data?.value || "")
                         }
                     />
                 );
@@ -344,7 +374,7 @@ export const FlatFileColumnSettings = () => {
                         defaultValue={cell.value.toString()}
                         className={classes.dropdown}
                         onOptionSelect={(_event, data) =>
-                            handleColumnChange(colIndex, "newDataType", data.optionValue as string)
+                            handleColumnChange(rowIndex, "newDataType", data.optionValue as string)
                         }>
                         {dataTypeCategoryValues.map((option) => (
                             <Option key={option.name} text={option.displayName}>
@@ -357,13 +387,19 @@ export const FlatFileColumnSettings = () => {
             case CHECKBOX_TYPE:
                 return (
                     <Checkbox
+                        className={classes.checkbox}
                         checked={checkedStates[colIndex][rowIndex]}
                         onChange={(_event, data) => {
                             const changedField =
                                 colIndex === NEW_PRIMARY_KEY_COL_INDEX
                                     ? "newInPrimaryKey"
                                     : "newNullable";
-                            handleColumnChange(colIndex, changedField, data.checked || false);
+                            handleColumnChange(
+                                rowIndex,
+                                changedField,
+                                data.checked || false,
+                                colIndex,
+                            );
                         }}
                         disabled={
                             colIndex === NEW_NULLABLE_COL_INDEX &&
@@ -381,6 +417,7 @@ export const FlatFileColumnSettings = () => {
         updatedItemIndex: number,
         updatedField: string,
         newValue: string | boolean,
+        colCheckboxIndex?: number,
     ) => {
         if (!columnChanges[updatedItemIndex]) {
             const originalColumn = state.tablePreview?.columnInfo[updatedItemIndex];
@@ -396,14 +433,10 @@ export const FlatFileColumnSettings = () => {
         const updatedColumns = { ...columnChanges, [updatedItemIndex]: updatedColumn };
         setColumnChanges(updatedColumns);
 
-        if (updatedField === "newInPrimaryKey" || updatedField === "newNullable") {
-            const colIndex =
-                updatedField === "newInPrimaryKey"
-                    ? NEW_PRIMARY_KEY_COL_INDEX
-                    : NEW_NULLABLE_COL_INDEX;
+        if (colCheckboxIndex !== undefined) {
             const isChecked = Boolean(newValue);
             const updatedCheckedStates = { ...checkedStates };
-            updatedCheckedStates[colIndex][updatedItemIndex] = isChecked;
+            updatedCheckedStates[colCheckboxIndex][updatedItemIndex] = isChecked;
             setCheckedStates(updatedCheckedStates);
         }
     };
@@ -441,14 +474,10 @@ export const FlatFileColumnSettings = () => {
 
     const handleSubmit = () => {
         context.setColumnChanges(Object.values(columnChanges));
-        setShowNext(true);
+        context.setStep(FlatFileStepType.ImportData);
     };
 
-    return showPrevious ? (
-        <FlatFilePreviewTable />
-    ) : showNext ? (
-        <FlatFileSummary />
-    ) : (
+    return (
         <div className={classes.outerDiv}>
             <FlatFileHeader
                 headerText={locConstants.flatFileImport.importFile}
@@ -499,7 +528,9 @@ export const FlatFileColumnSettings = () => {
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => setShowPrevious(true)}
+                    onClick={() => {
+                        context.resetState(FlatFileStepType.ColumnChanges);
+                    }}
                     appearance="secondary">
                     {locConstants.common.previous}
                 </Button>

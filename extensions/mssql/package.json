@@ -781,14 +781,13 @@
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",    
+                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
                     "group": "2_MSSQL_serverDbActions@6"
-
                 },
                 {
                     "command": "mssql.flatFileImport",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@5"
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.flatFileImport",
@@ -2432,18 +2431,24 @@
                             "title": "Connection ID",
                             "type": "string"
                         },
-	                        "payload": {
-	                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. See field descriptions for column type parameters (maxLength/precision/scale) and foreign key mappings/actions.",
-	                            "title": "Payload",
-	                            "type": "object",
-	                            "properties": {
+                        "payload": {
+                            "description": "Operation-specific payload. get_table: { table: { schema, name, id? } }. apply_edits: { expectedVersion, targetHint?, edits }. See field descriptions for column type parameters (maxLength/precision/scale) and foreign key mappings/actions.",
+                            "title": "Payload",
+                            "type": "object",
+                            "properties": {
                                 "table": {
                                     "description": "Table reference for get_table (and within edits).",
                                     "type": "object",
                                     "properties": {
-                                        "schema": { "type": "string" },
-                                        "name": { "type": "string" },
-                                        "id": { "type": "string" }
+                                        "schema": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        }
                                     }
                                 },
                                 "expectedVersion": {
@@ -2454,10 +2459,17 @@
                                     "description": "Optional server+database hint for apply_edits. If provided and does not match the active designer, the tool fails with reason 'target_mismatch' and applies no edits.",
                                     "type": "object",
                                     "properties": {
-                                        "server": { "type": "string" },
-                                        "database": { "type": "string" }
+                                        "server": {
+                                            "type": "string"
+                                        },
+                                        "database": {
+                                            "type": "string"
+                                        }
                                     },
-                                    "required": ["server", "database"]
+                                    "required": [
+                                        "server",
+                                        "database"
+                                    ]
                                 },
                                 "edits": {
                                     "description": "Sequential list of schema edits for apply_edits (fail-fast, non-atomic). Each successful edit becomes a separate undo step in the UI.",
@@ -2467,15 +2479,29 @@
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["add_table"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "add_table"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "initialColumns": {
@@ -2484,228 +2510,552 @@
                                                             "type": "object",
                                                             "description": "Column payload for add_table/add_column. Provide base dataType plus maxLength/precision/scale parameters (do not embed parameters in dataType).",
                                                             "properties": {
-                                                                "name": { "type": "string" },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                },
                                                                 "dataType": {
                                                                     "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here.",
                                                                     "type": "string"
                                                                 },
                                                                 "maxLength": {
                                                                     "description": "Optional. For types that take a length, use a numeric string (e.g., \"200\") or \"MAX\".",
-                                                                    "type": ["string", "null"]
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
                                                                 },
-                                                                "precision": { "type": ["number", "null"] },
-                                                                "scale": { "type": ["number", "null"] },
-                                                                "isPrimaryKey": { "type": ["boolean", "null"] },
-                                                                "isIdentity": { "type": ["boolean", "null"] },
-                                                                "identitySeed": { "type": ["number", "null"] },
-                                                                "identityIncrement": { "type": ["number", "null"] },
-                                                                "isNullable": { "type": ["boolean", "null"] },
-                                                                "defaultValue": { "type": ["string", "null"] },
-                                                                "isComputed": { "type": ["boolean", "null"] },
-                                                                "computedFormula": { "type": ["string", "null"] },
-                                                                "computedPersisted": { "type": ["boolean", "null"] }
+                                                                "precision": {
+                                                                    "type": [
+                                                                        "number",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "scale": {
+                                                                    "type": [
+                                                                        "number",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "isPrimaryKey": {
+                                                                    "type": [
+                                                                        "boolean",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "isIdentity": {
+                                                                    "type": [
+                                                                        "boolean",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "identitySeed": {
+                                                                    "type": [
+                                                                        "number",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "identityIncrement": {
+                                                                    "type": [
+                                                                        "number",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "isNullable": {
+                                                                    "type": [
+                                                                        "boolean",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "defaultValue": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "isComputed": {
+                                                                    "type": [
+                                                                        "boolean",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "computedFormula": {
+                                                                    "type": [
+                                                                        "string",
+                                                                        "null"
+                                                                    ]
+                                                                },
+                                                                "computedPersisted": {
+                                                                    "type": [
+                                                                        "boolean",
+                                                                        "null"
+                                                                    ]
+                                                                }
                                                             },
-                                                            "required": ["name", "dataType"],
+                                                            "required": [
+                                                                "name",
+                                                                "dataType"
+                                                            ],
                                                             "additionalProperties": false
                                                         }
                                                     }
                                                 },
-                                                "required": ["op", "table"],
+                                                "required": [
+                                                    "op",
+                                                    "table"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["drop_table"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "drop_table"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table"],
+                                                "required": [
+                                                    "op",
+                                                    "table"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["set_table"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_table"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "set": {
                                                         "description": "For set_table, include name and/or schema (at least one field).",
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "schema": { "type": "string" }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "schema": {
+                                                                "type": "string"
+                                                            }
                                                         },
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "set"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "set"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["add_column"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "add_column"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "column": {
                                                         "type": "object",
                                                         "description": "Column payload for add_table/add_column. Provide base dataType plus maxLength/precision/scale parameters (do not embed parameters in dataType).",
                                                         "properties": {
-                                                            "name": { "type": "string" },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
                                                             "dataType": {
                                                                 "description": "Base SQL type name only (case-insensitive). Examples: \"int\", \"nvarchar\", \"decimal\", \"datetime2\". Do NOT include parameters like \"nvarchar(200)\" or \"decimal(18,2)\" here.",
                                                                 "type": "string"
                                                             },
                                                             "maxLength": {
                                                                 "description": "Optional. For types that take a length, use a numeric string (e.g., \"200\") or \"MAX\".",
-                                                                "type": ["string", "null"]
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
                                                             },
-                                                            "precision": { "type": ["number", "null"] },
-                                                            "scale": { "type": ["number", "null"] },
-                                                            "isPrimaryKey": { "type": ["boolean", "null"] },
-                                                            "isIdentity": { "type": ["boolean", "null"] },
-                                                            "identitySeed": { "type": ["number", "null"] },
-                                                            "identityIncrement": { "type": ["number", "null"] },
-                                                            "isNullable": { "type": ["boolean", "null"] },
-                                                            "defaultValue": { "type": ["string", "null"] },
-                                                            "isComputed": { "type": ["boolean", "null"] },
-                                                            "computedFormula": { "type": ["string", "null"] },
-                                                            "computedPersisted": { "type": ["boolean", "null"] }
+                                                            "precision": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "scale": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isPrimaryKey": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isIdentity": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "identitySeed": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "identityIncrement": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isNullable": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "defaultValue": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isComputed": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "computedFormula": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "computedPersisted": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            }
                                                         },
-                                                        "required": ["name", "dataType"],
+                                                        "required": [
+                                                            "name",
+                                                            "dataType"
+                                                        ],
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "column"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "column"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["drop_column"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "drop_column"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "column": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["name"],
+                                                        "required": [
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "column"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "column"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["set_column"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_column"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "column": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["name"],
+                                                        "required": [
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "set": {
                                                         "description": "For set_column, include any subset of column fields (at least one field). Do not embed parameters in dataType.",
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "dataType": { "type": "string" },
-                                                            "maxLength": { "type": ["string", "null"] },
-                                                            "precision": { "type": ["number", "null"] },
-                                                            "scale": { "type": ["number", "null"] },
-                                                            "isPrimaryKey": { "type": ["boolean", "null"] },
-                                                            "isIdentity": { "type": ["boolean", "null"] },
-                                                            "identitySeed": { "type": ["number", "null"] },
-                                                            "identityIncrement": { "type": ["number", "null"] },
-                                                            "isNullable": { "type": ["boolean", "null"] },
-                                                            "defaultValue": { "type": ["string", "null"] },
-                                                            "isComputed": { "type": ["boolean", "null"] },
-                                                            "computedFormula": { "type": ["string", "null"] },
-                                                            "computedPersisted": { "type": ["boolean", "null"] }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "dataType": {
+                                                                "type": "string"
+                                                            },
+                                                            "maxLength": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "precision": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "scale": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isPrimaryKey": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isIdentity": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "identitySeed": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "identityIncrement": {
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isNullable": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "defaultValue": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "isComputed": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "computedFormula": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "computedPersisted": {
+                                                                "type": [
+                                                                    "boolean",
+                                                                    "null"
+                                                                ]
+                                                            }
                                                         },
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "column", "set"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "column",
+                                                    "set"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["add_foreign_key"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "add_foreign_key"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "foreignKey": {
                                                         "description": "Foreign key payload. Use foreignKey.mappings (NOT foreignKey.columns).",
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
                                                             "referencedTable": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "schema": { "type": "string" },
-                                                                    "name": { "type": "string" },
-                                                                    "id": { "type": "string" }
+                                                                    "schema": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "string"
+                                                                    }
                                                                 },
-                                                                "required": ["schema", "name"],
+                                                                "required": [
+                                                                    "schema",
+                                                                    "name"
+                                                                ],
                                                                 "additionalProperties": false
                                                             },
                                                             "mappings": {
@@ -2714,94 +3064,176 @@
                                                                 "items": {
                                                                     "type": "object",
                                                                     "properties": {
-                                                                        "column": { "type": "string" },
-                                                                        "referencedColumn": { "type": "string" }
+                                                                        "column": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "referencedColumn": {
+                                                                            "type": "string"
+                                                                        }
                                                                     },
-                                                                    "required": ["column", "referencedColumn"],
+                                                                    "required": [
+                                                                        "column",
+                                                                        "referencedColumn"
+                                                                    ],
                                                                     "additionalProperties": false
                                                                 }
                                                             },
                                                             "onDeleteAction": {
                                                                 "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
                                                                 "type": "number",
-                                                                "enum": [0, 1, 2, 3]
+                                                                "enum": [
+                                                                    0,
+                                                                    1,
+                                                                    2,
+                                                                    3
+                                                                ]
                                                             },
                                                             "onUpdateAction": {
                                                                 "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
                                                                 "type": "number",
-                                                                "enum": [0, 1, 2, 3]
+                                                                "enum": [
+                                                                    0,
+                                                                    1,
+                                                                    2,
+                                                                    3
+                                                                ]
                                                             }
                                                         },
-                                                        "required": ["name", "referencedTable", "mappings", "onDeleteAction", "onUpdateAction"],
+                                                        "required": [
+                                                            "name",
+                                                            "referencedTable",
+                                                            "mappings",
+                                                            "onDeleteAction",
+                                                            "onUpdateAction"
+                                                        ],
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "foreignKey"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "foreignKey"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["drop_foreign_key"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "drop_foreign_key"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "foreignKey": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["name"],
+                                                        "required": [
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "foreignKey"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "foreignKey"
+                                                ],
                                                 "additionalProperties": false
                                             },
                                             {
                                                 "type": "object",
                                                 "properties": {
-                                                    "op": { "type": "string", "enum": ["set_foreign_key"] },
+                                                    "op": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "set_foreign_key"
+                                                        ]
+                                                    },
                                                     "table": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "schema": { "type": "string" },
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "schema": {
+                                                                "type": "string"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["schema", "name"],
+                                                        "required": [
+                                                            "schema",
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "foreignKey": {
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
-                                                            "id": { "type": "string" }
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "id": {
+                                                                "type": "string"
+                                                            }
                                                         },
-                                                        "required": ["name"],
+                                                        "required": [
+                                                            "name"
+                                                        ],
                                                         "additionalProperties": false
                                                     },
                                                     "set": {
                                                         "description": "For set_foreign_key, include any subset of foreign key fields (at least one field). Use mappings (NOT columns/referencedColumns).",
                                                         "type": "object",
                                                         "properties": {
-                                                            "name": { "type": "string" },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
                                                             "referencedTable": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "schema": { "type": "string" },
-                                                                    "name": { "type": "string" },
-                                                                    "id": { "type": "string" }
+                                                                    "schema": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "id": {
+                                                                        "type": "string"
+                                                                    }
                                                                 },
-                                                                "required": ["schema", "name"],
+                                                                "required": [
+                                                                    "schema",
+                                                                    "name"
+                                                                ],
                                                                 "additionalProperties": false
                                                             },
                                                             "mappings": {
@@ -2809,28 +3241,58 @@
                                                                 "items": {
                                                                     "type": "object",
                                                                     "properties": {
-                                                                        "column": { "type": "string" },
-                                                                        "referencedColumn": { "type": "string" }
+                                                                        "column": {
+                                                                            "type": "string"
+                                                                        },
+                                                                        "referencedColumn": {
+                                                                            "type": "string"
+                                                                        }
                                                                     },
-                                                                    "required": ["column", "referencedColumn"],
+                                                                    "required": [
+                                                                        "column",
+                                                                        "referencedColumn"
+                                                                    ],
                                                                     "additionalProperties": false
                                                                 }
                                                             },
                                                             "onDeleteAction": {
                                                                 "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                                "type": ["number", "null"],
-                                                                "enum": [0, 1, 2, 3, null]
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ],
+                                                                "enum": [
+                                                                    0,
+                                                                    1,
+                                                                    2,
+                                                                    3,
+                                                                    null
+                                                                ]
                                                             },
                                                             "onUpdateAction": {
                                                                 "description": "0=CASCADE, 1=NO_ACTION, 2=SET_NULL, 3=SET_DEFAULT",
-                                                                "type": ["number", "null"],
-                                                                "enum": [0, 1, 2, 3, null]
+                                                                "type": [
+                                                                    "number",
+                                                                    "null"
+                                                                ],
+                                                                "enum": [
+                                                                    0,
+                                                                    1,
+                                                                    2,
+                                                                    3,
+                                                                    null
+                                                                ]
                                                             }
                                                         },
                                                         "additionalProperties": false
                                                     }
                                                 },
-                                                "required": ["op", "table", "foreignKey", "set"],
+                                                "required": [
+                                                    "op",
+                                                    "table",
+                                                    "foreignKey",
+                                                    "set"
+                                                ],
                                                 "additionalProperties": false
                                             }
                                         ]
@@ -2845,7 +3307,12 @@
                             "properties": {
                                 "includeColumns": {
                                     "type": "string",
-                                    "enum": ["none", "names", "namesAndTypes", "full"]
+                                    "enum": [
+                                        "none",
+                                        "names",
+                                        "namesAndTypes",
+                                        "full"
+                                    ]
                                 },
                                 "includeForeignKeys": {
                                     "type": "boolean"

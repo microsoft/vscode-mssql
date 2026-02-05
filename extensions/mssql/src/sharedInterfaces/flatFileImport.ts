@@ -27,6 +27,7 @@ export class FlatFileImportState
     tablePreviewStatus: ApiStatus = ApiStatus.Loading;
     importDataStatus: ApiStatus = ApiStatus.NotStarted;
     columnChanges: ChangeColumnSettingsParams[] = [];
+    currentStep: FlatFileStepType = FlatFileStepType.Form;
 }
 
 export interface FlatFileImportFormState {
@@ -55,6 +56,10 @@ export interface FlatFileImportProvider
 
     openVSCodeFileBrowser: () => void;
 
+    resetState: (resetType: FlatFileStepType) => void;
+
+    setStep: (step: FlatFileStepType) => void;
+
     dispose: () => void;
 }
 
@@ -69,5 +74,18 @@ export interface FlatFileImportReducers extends FormReducers<FlatFileImportFormS
     };
     importData: {};
     openVSCodeFileBrowser: {};
+    resetState: {
+        resetType: FlatFileStepType;
+    };
+    setStep: { step: FlatFileStepType };
     dispose: {};
+}
+
+export type ColumnChanges = ChangeColumnSettingsParams;
+
+export enum FlatFileStepType {
+    ImportData = "importData",
+    ColumnChanges = "columnChanges",
+    TablePreview = "tablePreview",
+    Form = "form",
 }

@@ -10,6 +10,10 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileForm } from "./flatFileForm";
+import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
+import { FlatFileColumnSettings } from "./flatFileColumnSettings";
+import { FlatFilePreviewTablePage } from "./flatFilePreviewTable";
+import { FlatFileSummary } from "./flatFileSummary";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -38,11 +42,10 @@ export const FlatFileImportPage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
     const state = context?.state;
-    
+
     if (!context || !state) return;
 
     const loadState = state?.loadState ?? ApiStatus.Loading;
-
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -56,7 +59,17 @@ export const FlatFileImportPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <FlatFileForm />;
+                switch (state.currentStep) {
+                    case FlatFileStepType.TablePreview:
+                        return <FlatFilePreviewTablePage />;
+                    case FlatFileStepType.ColumnChanges:
+                        return <FlatFileColumnSettings />;
+                    case FlatFileStepType.ImportData:
+                        return <FlatFileSummary />;
+                    case FlatFileStepType.Form:
+                    default:
+                        return <FlatFileForm />;
+                }
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

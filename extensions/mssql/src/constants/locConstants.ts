@@ -2821,7 +2821,7 @@ export class SqlOps {
 }
 
 export class FlatFileImport {
-    public static flatFileImportTitle = l10n.t("Flat File Import");
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
     public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
     public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
     public static newTableName = l10n.t("New Table Name");
