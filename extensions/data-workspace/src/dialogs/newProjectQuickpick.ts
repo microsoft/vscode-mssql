@@ -13,10 +13,11 @@ import { isValidBasenameErrorMessage } from "../common/pathUtilsHelper";
 
 /**
  * Create flow for a New Project using only VS Code-native APIs such as QuickPick
+ * @returns The URI of the created project, or undefined if the user cancelled
  */
 export async function createNewProjectWithQuickpick(
   workspaceService: WorkspaceService,
-): Promise<void> {
+): Promise<vscode.Uri | undefined> {
   // Refresh list of project types
   const projectTypes = (await workspaceService.getAllProjectTypes()).map((projType) => {
     return {
@@ -44,7 +45,7 @@ export async function createNewProjectWithQuickpick(
     ignoreFocusOut: true,
   });
   if (!projectType) {
-    return;
+    return undefined;
   }
 
   // 2. Prompt for project name
@@ -56,7 +57,7 @@ export async function createNewProjectWithQuickpick(
     ignoreFocusOut: true,
   });
   if (!projectName) {
-    return;
+    return undefined;
   }
 
   const defaultProjectSaveLoc = defaultProjectSaveLocation();
@@ -144,7 +145,7 @@ export async function createNewProjectWithQuickpick(
     });
     if (!selectedTargetPlatform) {
       // User cancelled
-      return;
+      return undefined;
     }
 
     targetPlatform = selectedTargetPlatform.label;
@@ -198,7 +199,7 @@ export async function createNewProjectWithQuickpick(
 
     if (sdkStyle === undefined) {
       // User cancelled
-      return;
+      return undefined;
     }
   }
 
@@ -210,9 +211,9 @@ export async function createNewProjectWithQuickpick(
 
   if (!configureDefaultBuild) {
     // User cancelled
-    return;
+    return undefined;
   }
-  await workspaceService.createProject(
+  const projectUri = await workspaceService.createProject(
     projectName,
     vscode.Uri.file(projectLocation),
     projectType.id,
@@ -229,4 +230,6 @@ export async function createNewProjectWithQuickpick(
       projectType.learnMoreUrl,
     );
   }
+
+  return projectUri;
 }

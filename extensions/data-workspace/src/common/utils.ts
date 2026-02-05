@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from "fs";
-import type * as azdataType from "azdata";
 import * as vscode from "vscode";
 import * as constants from "./constants";
 
@@ -39,43 +38,21 @@ export interface IPackageInfo {
 
 export function getPackageInfo(packageJson: any): IPackageInfo | undefined {
   const vscodePackageJson = require("../../../package.vscode.json");
-  const azdataApi = getAzdataApi();
 
-  if (!packageJson || (!azdataApi && !vscodePackageJson)) {
+  if (!packageJson || !vscodePackageJson) {
     return undefined;
   }
 
   // When the extension is compiled and packaged, the content of package.json get copied here in the extension.js. This happens before the
   // package.vscode.json values replace the corresponding values in the package.json for the data-workspace-vscode extension
   // so we need to read these values directly from the package.vscode.json to get the correct extension and publisher names
-  const extensionName = azdataApi ? packageJson.name : vscodePackageJson.name;
+  const extensionName = vscodePackageJson.name;
 
   return {
     name: extensionName,
     version: packageJson.version,
     aiKey: packageJson.aiKey,
   };
-}
-
-// Try to load the azdata API - but gracefully handle the failure in case we're running
-// in a context where the API doesn't exist (such as VS Code)
-let azdataApi: typeof azdataType | undefined = undefined;
-try {
-  azdataApi = require("azdata");
-  if (!azdataApi?.version) {
-    // webpacking makes the require return an empty object instead of throwing an error so make sure we clear the var
-    azdataApi = undefined;
-  }
-} catch {
-  // no-op
-}
-
-/**
- * Gets the azdata API if it's available in the context this extension is running in.
- * @returns The azdata API if it's available
- */
-export function getAzdataApi(): typeof azdataType | undefined {
-  return azdataApi;
 }
 
 /**

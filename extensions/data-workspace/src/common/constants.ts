@@ -32,10 +32,6 @@ export const ProviderNotFoundForProjectTypeError = (projectType: string): string
     projectType,
   );
 };
-export const RestartConfirmation = localize(
-  "dataworkspace.restartConfirmation",
-  "Azure Data Studio needs to be restarted for the project to be added to the workspace. Restart now?",
-);
 export const projectFailedToLoad = (project: string, error: string) => {
   return localize(
     "projectFailedToLoad",

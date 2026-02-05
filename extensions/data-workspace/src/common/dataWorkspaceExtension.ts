@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { IExtension, IProjectType } from "dataworkspace";
 import { WorkspaceService } from "../services/workspaceService";
 import { defaultProjectSaveLocation } from "./projectLocationHelper";
-import { openSpecificProjectNewProjectDialog } from "../dialogs/newProjectDialog";
+import { createNewProjectWithQuickpick } from "../dialogs/newProjectQuickpick";
 import {
   isValidBasename,
   isValidBasenameErrorMessage,
@@ -48,7 +48,9 @@ export class DataWorkspaceExtension implements IExtension {
       void vscode.window.showErrorMessage(noProjectProvidingExtensionsInstalled);
     }
 
-    return openSpecificProjectNewProjectDialog(projectType, this.workspaceService);
+    // Use VS Code quickpick flow - specific project type filtering is not supported in quickpick
+    // The user can select the appropriate project type from the list
+    return createNewProjectWithQuickpick(this.workspaceService);
   }
 
   isValidFilenameCharacter(c: string): boolean {
