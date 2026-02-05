@@ -2760,6 +2760,8 @@ export class Profiler {
             args: [error],
             comment: ["{0} is the error message"],
         });
+
+    public static copiedToClipboard = l10n.t("Copied to clipboard");
 }
 
 export class Proxy {

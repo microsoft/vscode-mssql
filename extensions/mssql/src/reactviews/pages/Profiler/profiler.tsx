@@ -539,7 +539,7 @@ export const Profiler: React.FC = () => {
                 onAutoScrollToggle={handleAutoScrollToggle}
             />
             <PanelGroup direction="vertical" className={classes.panelGroup}>
-                <Panel ref={gridPanelRef} defaultSize={showDetailsPanel ? 50 : 100} minSize={10}>
+                <Panel ref={gridPanelRef} defaultSize={100} minSize={10}>
                     <div id="profilerGridContainer" className={classes.profilerGridContainer}>
                         <SlickgridReact
                             gridId="profilerGrid"

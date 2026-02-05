@@ -297,7 +297,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         // Handle Copy to Clipboard request from embedded details panel
         this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
             await vscode.env.clipboard.writeText(payload.text);
-            void vscode.window.showInformationMessage("Copied to clipboard");
+            void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
             return state;
         });
 
@@ -352,7 +352,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             });
         } catch (error) {
             void vscode.window.showErrorMessage(
-                `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
+                LocProfiler.failedToOpenInEditor(
+                    error instanceof Error ? error.message : String(error),
+                ),
             );
         }
     }
