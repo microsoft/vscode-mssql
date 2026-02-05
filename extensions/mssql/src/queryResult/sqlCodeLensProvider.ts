@@ -39,7 +39,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         // Hide CodeLens if the URI is owned by a coordinating extension (e.g., PostgreSQL)
-        if (uriOwnershipCoordinator.isOwnedByCoordinatingExtension(document.uri)) {
+        if (uriOwnershipCoordinator?.isOwnedByCoordinatingExtension(document.uri)) {
             return [];
         }
 

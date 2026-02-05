@@ -8,11 +8,12 @@ import * as vscodeMssql from "vscode-mssql";
 import MainController from "./controllers/mainController";
 import ConnectionManager from "./controllers/connectionManager";
 import * as locConstants from "./constants/locConstants";
+import { getErrorMessage } from "./utils/utils";
 
 /**
  * Friendly display names for coordinating extensions.
  */
-const cordinatingExtensions: Record<string, string> = {
+const coordinatingExtensions: Record<string, string> = {
     "ms-ossdata.vscode-pgsql": "PostgreSQL",
 };
 
@@ -30,7 +31,7 @@ export const SET_CONTEXT_COMMAND = "setContext";
 export class UriOwnershipCoordinator {
     public uriOwnershipApi: vscodeMssql.UriOwnershipApi;
     private _connectionManager: ConnectionManager;
-    private _cordinatingExtensionApis: Map<string, vscodeMssql.UriOwnershipApi> = new Map();
+    private _coordinatingExtensionApis: Map<string, vscodeMssql.UriOwnershipApi> = new Map();
     private _coordinatingOwnershipChangedEmitter = new vscode.EventEmitter<void>();
     private _uriOwnershipChangedEmitter = new vscode.EventEmitter<void>();
     private _initialized = false;
@@ -83,25 +84,33 @@ export class UriOwnershipCoordinator {
     }
 
     private loadCoordinatingExtensionsApi() {
-        for (const extensionId of Object.keys(cordinatingExtensions)) {
+        for (const extensionId of Object.keys(coordinatingExtensions)) {
             const extension = vscode.extensions.getExtension(extensionId);
             if (!extension) {
                 continue;
             }
             if (!extension.isActive) {
-                extension.activate().then((api) => {
-                    this.registerCordinatingExtensionApi(extensionId, api);
-                });
+                extension.activate().then(
+                    (api) => {
+                        this.registerCoordinatingExtensionApi(extensionId, api);
+                    },
+                    (err) => {
+                        // Log error but continue
+                        console.error(
+                            `Error activating coordinating extension ${extensionId}: ${getErrorMessage(err)}`,
+                        );
+                    },
+                );
             } else {
-                this.registerCordinatingExtensionApi(extensionId, extension.exports);
+                this.registerCoordinatingExtensionApi(extensionId, extension.exports);
             }
         }
     }
 
-    private registerCordinatingExtensionApi(extensionId: string, exports: any) {
+    private registerCoordinatingExtensionApi(extensionId: string, exports: any) {
         const api = exports?.uriOwnershipApi as vscodeMssql.UriOwnershipApi;
         if (api) {
-            this._cordinatingExtensionApis.set(extensionId, api);
+            this._coordinatingExtensionApis.set(extensionId, api);
 
             // Listen for URI ownership changes from the coordinating extension
             if (api.onDidChangeUriOwnership) {
@@ -136,7 +145,7 @@ export class UriOwnershipCoordinator {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor) {
             void vscode.commands.executeCommand(
-                "setContext",
+                SET_CONTEXT_COMMAND,
                 HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
                 false,
             );
@@ -146,7 +155,7 @@ export class UriOwnershipCoordinator {
         const uri = activeEditor.document.uri;
         const isOwnedByOther = this.isOwnedByCoordinatingExtension(uri);
         void vscode.commands.executeCommand(
-            "setContext",
+            SET_CONTEXT_COMMAND,
             HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
             isOwnedByOther,
         );
@@ -159,11 +168,8 @@ export class UriOwnershipCoordinator {
      * @returns The extension ID if owned by a coordinating extension, undefined otherwise
      */
     public getOwningCoordinatingExtension(uri: vscode.Uri): string | undefined {
-        for (const [extensionId, api] of this._cordinatingExtensionApis.entries()) {
+        for (const [extensionId, api] of this._coordinatingExtensionApis.entries()) {
             if (api.ownsUri(uri)) {
-                console.log(
-                    `MSSQL: URI ${uri.toString()} is owned by coordinating extension ${extensionId}.`,
-                );
                 return extensionId;
             }
         }
@@ -189,7 +195,8 @@ export class UriOwnershipCoordinator {
         if (activeUri) {
             const owningExtensionId = this.getOwningCoordinatingExtension(activeUri);
             if (owningExtensionId) {
-                const extensionName = cordinatingExtensions[owningExtensionId] || owningExtensionId;
+                const extensionName =
+                    coordinatingExtensions[owningExtensionId] || owningExtensionId;
                 void vscode.window.showInformationMessage(
                     locConstants.Common.fileOwnedByOtherExtension(extensionName),
                 );
