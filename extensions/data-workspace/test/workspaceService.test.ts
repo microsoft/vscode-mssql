@@ -7,9 +7,9 @@ import "mocha";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import { expect } from "chai";
-import * as constants from "../common/constants";
-import { WorkspaceService } from "../services/workspaceService";
-import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
+import * as constants from "../src/common/constants";
+import { WorkspaceService } from "../src/services/workspaceService";
+import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
 import { createProjectProvider } from "./projectProviderRegistry.test";
 
 /**

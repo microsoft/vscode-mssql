@@ -9,9 +9,9 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as path from "path";
-import * as constants from "../../common/constants";
-import { createNewProjectWithQuickpick } from "../../dialogs/newProjectQuickpick";
-import { WorkspaceService } from "../../services/workspaceService";
+import * as constants from "../../src/common/constants";
+import { createNewProjectWithQuickpick } from "../../src/dialogs/newProjectQuickpick";
+import { WorkspaceService } from "../../src/services/workspaceService";
 import { IProjectType } from "dataworkspace";
 
 chai.use(sinonChai);

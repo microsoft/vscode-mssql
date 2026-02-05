@@ -8,8 +8,8 @@ import "mocha";
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { WorkspaceTreeDataProvider } from "../common/workspaceTreeDataProvider";
-import { WorkspaceService } from "../services/workspaceService";
+import { WorkspaceTreeDataProvider } from "../src/common/workspaceTreeDataProvider";
+import { WorkspaceService } from "../src/services/workspaceService";
 import { MockTreeDataProvider } from "./projectProviderRegistry.test";
 
 suite("workspaceTreeDataProvider Tests", function (): void {

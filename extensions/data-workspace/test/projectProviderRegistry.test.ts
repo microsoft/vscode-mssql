@@ -7,7 +7,7 @@ import { IDashboardTable, IProjectAction, IProjectProvider, IProjectType } from 
 import "mocha";
 import { expect } from "chai";
 import * as vscode from "vscode";
-import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
+import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
 import { prettyPrintProviders } from "./testUtils";
 
 export class MockTreeDataProvider implements vscode.TreeDataProvider<any> {

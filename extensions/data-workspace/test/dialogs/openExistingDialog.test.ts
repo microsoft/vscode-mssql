@@ -8,10 +8,10 @@ import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as os from "os";
-import * as constants from "../../common/constants";
-import * as utils from "../../common/utils";
-import { WorkspaceService } from "../../services/workspaceService";
-import { OpenExistingDialog } from "../../dialogs/openExistingDialog";
+import * as constants from "../../src/common/constants";
+import * as utils from "../../src/common/utils";
+import { WorkspaceService } from "../../src/services/workspaceService";
+import { OpenExistingDialog } from "../../src/dialogs/openExistingDialog";
 import { createProjectFile, generateUniqueProjectFilePath, testProjectType } from "../testUtils";
 
 // TODO: Convert to VS Code native UI tests (replace azdata.window.createModelViewDialog with VS Code API) or remove if scenario not applicable to VS Code

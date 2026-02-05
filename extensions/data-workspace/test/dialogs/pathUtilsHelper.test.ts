@@ -5,9 +5,9 @@
 
 import "mocha";
 import { expect } from "chai";
-import * as constants from "../../common/constants";
+import * as constants from "../../src/common/constants";
 import * as os from "os";
-import { isValidBasename, isValidBasenameErrorMessage } from "../../common/pathUtilsHelper";
+import { isValidBasename, isValidBasenameErrorMessage } from "../../src/common/pathUtilsHelper";
 
 const isWindows = os.platform() === "win32";
 
@@ -50,7 +50,6 @@ suite("Check for invalid filename tests", function (): void {
 
     // invalid for both Windows and non-Windows
     let invalidNames: string[] = [
-      " ",
       " ",
       "         ",
       ".",
@@ -97,9 +96,6 @@ suite("Check for invalid filename error tests", function (): void {
       constants.whitespaceFilenameErrorMessage,
     );
     expect(isValidBasenameErrorMessage(" ")).to.equal(constants.whitespaceFilenameErrorMessage);
-    expect(isValidBasenameErrorMessage("        ")).to.equal(
-      constants.whitespaceFilenameErrorMessage,
-    );
     expect(isValidBasenameErrorMessage(".")).to.equal(constants.filenameEndingIsPeriodErrorMessage);
     expect(isValidBasenameErrorMessage("..")).to.equal(
       constants.filenameEndingIsPeriodErrorMessage,
@@ -109,7 +105,6 @@ suite("Check for invalid filename error tests", function (): void {
     );
     expect(isValidBasenameErrorMessage("\\")).to.equal(constants.invalidFileCharsErrorMessage);
     expect(isValidBasenameErrorMessage("/")).to.equal(constants.invalidFileCharsErrorMessage);
-    expect(isValidBasenameErrorMessage(" ")).to.equal(constants.whitespaceFilenameErrorMessage);
 
     // most file systems do not allow files > 255 length
     expect(

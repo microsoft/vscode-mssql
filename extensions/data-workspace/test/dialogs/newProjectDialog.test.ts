@@ -9,9 +9,9 @@ import * as os from "os";
 import * as path from "path";
 import * as sinon from "sinon";
 import { promises as fs } from "fs";
-import * as utils from "../../common/utils";
-import { NewProjectDialog } from "../../dialogs/newProjectDialog";
-import { WorkspaceService } from "../../services/workspaceService";
+import * as utils from "../../src/common/utils";
+import { NewProjectDialog } from "../../src/dialogs/newProjectDialog";
+import { WorkspaceService } from "../../src/services/workspaceService";
 import { testProjectType } from "../testUtils";
 import { IProjectType } from "dataworkspace";
 
