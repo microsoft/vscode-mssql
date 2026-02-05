@@ -112,6 +112,10 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
+import { SqlOpsClient } from "../sqlOps/sqlOpsClient";
+import { FlatFileImportController } from "./flatFileImportController";
+import { ApiType, managerInstance } from "../sqlOps/serviceApiManager";
+import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
  * The main controller class that initializes the extension
@@ -151,6 +155,8 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public sqlOpsClient: SqlOpsClient;
+    public flatFileProvider: FlatFileProvider;
 
     /**
      * The main controller constructor
@@ -845,6 +851,19 @@ export default class MainController implements vscode.Disposable {
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
+
+        // Initialize SQL Data ops client
+        const sqlOpsClient = new SqlOpsClient(this._vscodeWrapper.outputChannel);
+
+        // Register SQL Ops client services here
+        // right now, we only have flat file
+        await sqlOpsClient.startFlatFileService(this._context);
+        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
+            this.flatFileProvider = provider;
+            void Promise.resolve(true);
+        });
+
+        this.sqlOpsClient = sqlOpsClient;
 
         /**
          * TODO: aaskhan
@@ -1647,6 +1666,38 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdFlatFileImport,
+                async (node: ConnectionNode) => {
+                    const connectionUri = this.connectionManager.getUriForConnection(
+                        node.connectionProfile,
+                    );
+
+                    const databases = await this.connectionManager.listDatabases(connectionUri);
+
+                    // If no databases found, show error message and return early
+                    if (databases.length === 0) {
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+                        );
+                        return;
+                    }
+
+                    const flatFileImportDialog = new FlatFileImportController(
+                        this._context,
+                        this._vscodeWrapper,
+                        SqlToolsServerClient.instance,
+                        this.connectionManager,
+                        this.flatFileProvider,
+                        node,
+                        databases,
+                    );
+                    flatFileImportDialog.revealToForeground();
                 },
             ),
         );

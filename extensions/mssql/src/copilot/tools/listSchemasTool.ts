@@ -62,7 +62,7 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                     queryString: listSchemasQuery,
                 },
             );
-            const schemas = this.getSchemaNamesFromResult(result);
+            const schemas = getSchemaNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
@@ -74,27 +74,6 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                 message: getErrorMessage(err),
             });
         }
-    }
-
-    private getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
-        if (!result || !result.rows || result.rows.length === 0) {
-            return [];
-        }
-
-        const schemaNames: string[] = [];
-
-        // Extract schema names from each row
-        // Assuming the query returns schema names in the first column
-        for (const row of result.rows) {
-            if (row && row.length > 0 && row[0] && !row[0].isNull) {
-                const schemaName = row[0].displayValue.trim();
-                if (schemaName) {
-                    schemaNames.push(schemaName);
-                }
-            }
-        }
-
-        return schemaNames;
     }
 
     async prepareInvocation(
@@ -113,4 +92,25 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
         const invocationMessage = loc.ListSchemasToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
+}
+
+export function getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
+    if (!result || !result.rows || result.rows.length === 0) {
+        return [];
+    }
+
+    const schemaNames: string[] = [];
+
+    // Extract schema names from each row
+    // Assuming the query returns schema names in the first column
+    for (const row of result.rows) {
+        if (row && row.length > 0 && row[0] && !row[0].isNull) {
+            const schemaName = row[0].displayValue.trim();
+            if (schemaName) {
+                schemaNames.push(schemaName);
+            }
+        }
+    }
+
+    return schemaNames;
 }
