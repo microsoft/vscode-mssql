@@ -218,9 +218,7 @@ export const SearchDatabaseFilters: React.FC = React.memo(() => {
 
                     {/* Schema Filters */}
                     <div className={classes.schemaSection}>
-                        <Label className={classes.sectionTitle}>
-                            {loc.searchDatabase.schemas}
-                        </Label>
+                        <Label className={classes.sectionTitle}>{loc.searchDatabase.schemas}</Label>
                         <div className={classes.schemaList}>
                             <Checkbox
                                 checked={

@@ -39,10 +39,7 @@ import {
     DeleteRegular,
     TableEditRegular,
 } from "@fluentui/react-icons";
-import {
-    SearchResultItem,
-    ScriptType,
-} from "../../../sharedInterfaces/searchDatabase";
+import { SearchResultItem, ScriptType } from "../../../sharedInterfaces/searchDatabase";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
 import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
 import { locConstants as loc } from "../../common/locConstants";

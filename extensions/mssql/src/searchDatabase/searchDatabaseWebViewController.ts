@@ -577,9 +577,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("setObjectTypeFilters", async (state, payload) => {
-            this.logInfo(
-                `Setting object type filters: ${JSON.stringify(payload.filters)}`,
-            );
+            this.logInfo(`Setting object type filters: ${JSON.stringify(payload.filters)}`);
             state.objectTypeFilters = { ...payload.filters };
             this.applyFiltersAndSearch();
             return state;
@@ -600,18 +598,14 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("setSchemaFilters", async (state, payload) => {
-            this.logInfo(
-                `Setting schema filters: ${payload.schemas.length} schemas selected`,
-            );
+            this.logInfo(`Setting schema filters: ${payload.schemas.length} schemas selected`);
             state.selectedSchemas = [...payload.schemas];
             this.applyFiltersAndSearch();
             return state;
         });
 
         this.registerReducer("selectAllSchemas", async (state) => {
-            this.logInfo(
-                `Selecting all schemas (${state.availableSchemas.length} schemas)`,
-            );
+            this.logInfo(`Selecting all schemas (${state.availableSchemas.length} schemas)`);
             state.selectedSchemas = [...state.availableSchemas];
             this.applyFiltersAndSearch();
             return state;
@@ -668,9 +662,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("refreshResults", async (state) => {
-            this.logInfo(
-                `Refreshing results for database '${state.selectedDatabase}'`,
-            );
+            this.logInfo(`Refreshing results for database '${state.selectedDatabase}'`);
 
             const endActivity = startActivity(
                 TelemetryViews.SearchDatabase,
