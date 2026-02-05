@@ -257,9 +257,11 @@ export namespace Dab {
     // ============================================
 
     /**
-     * DAB container image from Microsoft Container Registry
+     * DAB container image from Microsoft Container Registry.
+     * Uses :latest tag intentionally so users always get the newest Data API Builder
+     * features and bug fixes without manual version management.
      */
-    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder";
+    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
 
     /**
      * Default port for DAB container

@@ -72,7 +72,7 @@ export const DabDeploymentInputForm = ({
             }
         };
         void initializeDefaults();
-    }, []); // Only run on mount
+    }, []); // Component remounts each time dialog opens, so empty deps is correct
 
     const validateFormClient = (): boolean => {
         let isValid = true;

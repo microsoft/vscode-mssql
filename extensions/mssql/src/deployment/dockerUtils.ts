@@ -1142,6 +1142,30 @@ export async function checkContainerExists(name: string): Promise<boolean> {
 //#region DAB (Data API Builder) Docker Functions
 
 /**
+ * Converts a Windows path to Docker-compatible format.
+ * On Windows, Docker expects paths like /c/Users/... instead of C:\Users\...
+ * On other platforms, returns the path unchanged.
+ * @param filePath The file path to convert
+ */
+function toDockerPath(filePath: string): string {
+    if (platform() !== Platform.Windows) {
+        return filePath;
+    }
+
+    // Convert Windows path (C:\Users\...) to Docker format (/c/Users/...)
+    const resolvedPath = path.resolve(filePath);
+    const match = resolvedPath.match(/^([A-Za-z]):\\(.*)$/);
+    if (match) {
+        const driveLetter = match[1].toLowerCase();
+        const remainingPath = match[2].replace(/\\/g, "/");
+        return `/${driveLetter}/${remainingPath}`;
+    }
+
+    // If path doesn't match Windows format, return as-is with forward slashes
+    return filePath.replace(/\\/g, "/");
+}
+
+/**
  * Pulls the DAB container image from MCR
  */
 export async function pullDabContainerImage(): Promise<DockerCommandParams> {
@@ -1198,7 +1222,7 @@ export async function startDabDockerContainer(
                 PortBindings: {
                     [dabContainerPort]: [{ HostPort: hostPort }],
                 },
-                Binds: [`${configFilePath}:/App/dab-config.json:ro`],
+                Binds: [`${toDockerPath(configFilePath)}:/App/dab-config.json:ro`],
             },
         };
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -198,17 +199,17 @@ export class DabService implements Dab.IDabService {
                             apiUrl: `http://localhost:${params.port}`,
                         };
                     } else {
-                        // Clean up config file on failure
-                        this.cleanupDabConfigFile(configFilePath);
                         result = containerResult;
                     }
                 } catch (e) {
-                    this.cleanupDabConfigFile(configFilePath);
                     result = {
                         success: false,
                         error: LocalContainers.dabFailedToStartContainer,
                         fullErrorText: getErrorMessage(e),
                     };
+                } finally {
+                    // Clean up temp config file - the container has already loaded/mounted the config
+                    this.cleanupDabConfigFile(configFilePath);
                 }
                 break;
             }
@@ -263,9 +264,12 @@ export class DabService implements Dab.IDabService {
      */
     private writeDabConfigToTempFile(configContent: string): string {
         const tempDir = os.tmpdir();
-        const configFileName = `dab-config-${Date.now()}.json`;
+        const configFileName = `dab-config-${crypto.randomUUID()}.json`;
         const configFilePath = path.join(tempDir, configFileName);
 
+        // Note: We use default permissions (typically 0644) rather than restrictive permissions (0600)
+        // because this file is mounted into the Docker container. The container process runs as a
+        // different user and needs read access to the config file.
         fs.writeFileSync(configFilePath, configContent, "utf8");
         dockerLogger.appendLine(`DAB config written to: ${configFilePath}`);
 

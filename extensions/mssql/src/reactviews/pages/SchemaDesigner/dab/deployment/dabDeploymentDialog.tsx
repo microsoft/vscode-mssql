@@ -36,14 +36,13 @@ export const DabDeploymentDialog = () => {
         retryDabDeploymentSteps,
     } = context;
 
-    const prereqSteps = getPrereqSteps(dabDeploymentState.stepStatuses);
-    const deploySteps = getDeploySteps(dabDeploymentState.stepStatuses);
+    const { dialogStep, currentDeploymentStep, stepStatuses } = dabDeploymentState;
+    const prereqSteps = getPrereqSteps(stepStatuses);
+    const deploySteps = getDeploySteps(stepStatuses);
 
     // Determine which step to run based on current state
-    // This effect runs on every state change and runs one step at a time
+    // This effect runs when relevant state changes and runs one step at a time
     useEffect(() => {
-        const { dialogStep, currentDeploymentStep, stepStatuses } = dabDeploymentState;
-
         // Only run steps during Prerequisites or Deployment dialog steps
         if (
             dialogStep !== Dab.DabDeploymentDialogStep.Prerequisites &&
@@ -72,7 +71,7 @@ export const DabDeploymentDialog = () => {
         } else if (dialogStep === Dab.DabDeploymentDialogStep.Deployment && isDeployStep) {
             void runDabDeploymentStep(currentDeploymentStep);
         }
-    }, [dabDeploymentState, runDabDeploymentStep]);
+    }, [dialogStep, currentDeploymentStep, stepStatuses, runDabDeploymentStep]);
 
     const handleConfirm = () => {
         setDabDeploymentDialogStep(Dab.DabDeploymentDialogStep.Prerequisites);
