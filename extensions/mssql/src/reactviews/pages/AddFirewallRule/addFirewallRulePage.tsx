@@ -7,6 +7,7 @@ import { makeStyles } from "@fluentui/react-components";
 import { useContext } from "react";
 import { AddFirewallRuleContext } from "./addFirewallRuleStateProvider";
 import { AddFirewallRuleDialog } from "./addFirewallRule.component";
+import { useAddFirewallRuleSelector } from "./addFirewallRuleSelector";
 
 // Define styles for the component
 const useStyles = makeStyles({
@@ -28,16 +29,17 @@ const useStyles = makeStyles({
 export const AddFirewallRulePage = () => {
     const classes = useStyles();
     const context = useContext(AddFirewallRuleContext);
+    const state = useAddFirewallRuleSelector((s) => s);
 
     // If context isn't available yet, don't render
-    if (!context?.state) {
+    if (!context || !state) {
         return undefined;
     }
 
     return (
         <div className={classes.root}>
             <AddFirewallRuleDialog
-                state={context.state}
+                state={state}
                 addFirewallRule={context.addFirewallRule}
                 closeDialog={context.closeDialog}
                 signIntoAzure={context.signIntoAzure}
