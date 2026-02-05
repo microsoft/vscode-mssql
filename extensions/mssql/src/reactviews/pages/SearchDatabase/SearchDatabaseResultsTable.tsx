@@ -42,9 +42,9 @@ import {
 import {
     SearchResultItem,
     ScriptType,
-} from "../../../sharedInterfaces/globalSearch";
+} from "../../../sharedInterfaces/searchDatabase";
 import { MetadataType } from "../../../sharedInterfaces/metadata";
-import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
+import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
 import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -82,7 +82,7 @@ const useStyles = makeStyles({
     },
 });
 
-interface GlobalSearchResultsTableProps {
+interface SearchDatabaseResultsTableProps {
     results: SearchResultItem[];
 }
 
@@ -103,10 +103,10 @@ const getTypeIcon = (type: MetadataType): JSX.Element => {
     }
 };
 
-export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> = React.memo(
+export const SearchDatabaseResultsTable: React.FC<SearchDatabaseResultsTableProps> = React.memo(
     ({ results }) => {
         const classes = useStyles();
-        const context = useGlobalSearchContext();
+        const context = useSearchDatabaseContext();
 
         const columnSizingOptions: TableColumnSizingOptions = {
             icon: {
@@ -142,7 +142,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 columnId: "name",
                 compare: (a, b) => a.name.localeCompare(b.name),
                 renderHeaderCell: () => (
-                    <span className={classes.headerCell}>{loc.globalSearch.name}</span>
+                    <span className={classes.headerCell}>{loc.searchDatabase.name}</span>
                 ),
                 renderCell: (item) => (
                     <TableCellLayout truncate title={item.fullName}>
@@ -154,7 +154,7 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 columnId: "schema",
                 compare: (a, b) => a.schema.localeCompare(b.schema),
                 renderHeaderCell: () => (
-                    <span className={classes.headerCell}>{loc.globalSearch.schema}</span>
+                    <span className={classes.headerCell}>{loc.searchDatabase.schema}</span>
                 ),
                 renderCell: (item) => (
                     <TableCellLayout truncate title={item.schema}>
@@ -166,14 +166,14 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 columnId: "type",
                 compare: (a, b) => a.typeName.localeCompare(b.typeName),
                 renderHeaderCell: () => (
-                    <span className={classes.headerCell}>{loc.globalSearch.type}</span>
+                    <span className={classes.headerCell}>{loc.searchDatabase.type}</span>
                 ),
                 renderCell: (item) => <TableCellLayout truncate>{item.typeName}</TableCellLayout>,
             }),
             createTableColumn<SearchResultItem>({
                 columnId: "actions",
                 renderHeaderCell: () => (
-                    <span className={classes.headerCell}>{loc.globalSearch.actions}</span>
+                    <span className={classes.headerCell}>{loc.searchDatabase.actions}</span>
                 ),
                 renderCell: (item) => <ActionsMenu item={item} context={context} />,
             }),
@@ -211,8 +211,8 @@ export const GlobalSearchResultsTable: React.FC<GlobalSearchResultsTableProps> =
                 {results.length === 0 && (
                     <div className={classes.emptyState}>
                         <DocumentRegular style={{ fontSize: "48px" }} />
-                        <Body1>{loc.globalSearch.noObjectsFound}</Body1>
-                        <Body1>{loc.globalSearch.tryAdjustingFilters}</Body1>
+                        <Body1>{loc.searchDatabase.noObjectsFound}</Body1>
+                        <Body1>{loc.searchDatabase.tryAdjustingFilters}</Body1>
                     </div>
                 )}
             </div>
@@ -253,7 +253,7 @@ const getAvailableActions = (item: SearchResultItem): ScriptType[] => {
 
 interface ActionsMenuProps {
     item: SearchResultItem;
-    context: ReturnType<typeof useGlobalSearchContext>;
+    context: ReturnType<typeof useSearchDatabaseContext>;
 }
 
 const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
@@ -266,7 +266,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                     appearance="subtle"
                     icon={<MoreHorizontalRegular />}
                     size="small"
-                    aria-label={loc.globalSearch.actions}
+                    aria-label={loc.searchDatabase.actions}
                 />
             </MenuTrigger>
             <MenuPopover>
@@ -275,51 +275,51 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({ item, context }) => {
                         <MenuItem
                             icon={<PlayRegular />}
                             onClick={() => context.scriptObject(item, "SELECT")}>
-                            {loc.globalSearch.selectTop1000}
+                            {loc.searchDatabase.selectTop1000}
                         </MenuItem>
                     )}
                     {availableActions.includes("CREATE") && (
                         <MenuItem
                             icon={<DocumentRegular />}
                             onClick={() => context.scriptObject(item, "CREATE")}>
-                            {loc.globalSearch.scriptAsCreate}
+                            {loc.searchDatabase.scriptAsCreate}
                         </MenuItem>
                     )}
                     {availableActions.includes("DROP") && (
                         <MenuItem
                             icon={<DeleteRegular />}
                             onClick={() => context.scriptObject(item, "DROP")}>
-                            {loc.globalSearch.scriptAsDrop}
+                            {loc.searchDatabase.scriptAsDrop}
                         </MenuItem>
                     )}
                     {availableActions.includes("ALTER") && (
                         <MenuItem
                             icon={<EditRegular />}
                             onClick={() => context.scriptObject(item, "ALTER")}>
-                            {loc.globalSearch.scriptAsAlter}
+                            {loc.searchDatabase.scriptAsAlter}
                         </MenuItem>
                     )}
                     {availableActions.includes("EXECUTE") && (
                         <MenuItem
                             icon={<PlayRegular />}
                             onClick={() => context.scriptObject(item, "EXECUTE")}>
-                            {loc.globalSearch.scriptAsExecute}
+                            {loc.searchDatabase.scriptAsExecute}
                         </MenuItem>
                     )}
                     {item.type === MetadataType.Table && (
                         <MenuItem
                             icon={<TableEditRegular />}
                             onClick={() => context.editData(item)}>
-                            {loc.globalSearch.editData}
+                            {loc.searchDatabase.editData}
                         </MenuItem>
                     )}
                     {item.type === MetadataType.Table && (
                         <MenuItem icon={<TableRegular />} onClick={() => context.modifyTable(item)}>
-                            {loc.globalSearch.modifyTable}
+                            {loc.searchDatabase.modifyTable}
                         </MenuItem>
                     )}
                     <MenuItem icon={<CopyRegular />} onClick={() => context.copyObjectName(item)}>
-                        {loc.globalSearch.copyObjectName}
+                        {loc.searchDatabase.copyObjectName}
                     </MenuItem>
                 </MenuList>
             </MenuPopover>

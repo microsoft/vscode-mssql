@@ -91,7 +91,7 @@ export const ColumnHeaderFilter: React.FC<ColumnHeaderFilterProps> = (props) => 
                         icon={<FilterIcon />}
                         className={classes.filterButton}
                         size="small"
-                        aria-label={loc.globalSearch.filterColumnAriaLabel(props.label)}
+                        aria-label={loc.searchDatabase.filterColumnAriaLabel(props.label)}
                         onClick={(e) => e.stopPropagation()}
                     />
                 </MenuTrigger>
@@ -114,7 +114,7 @@ const TextFilterContent: React.FC<TextFilterProps> = ({ value, onChange, placeho
         <SearchBox
             value={value}
             onChange={(_, data) => onChange(data.value)}
-            placeholder={placeholder || loc.globalSearch.filterByName}
+            placeholder={placeholder || loc.searchDatabase.filterByName}
             size="small"
         />
     );
@@ -149,8 +149,8 @@ const MultiSelectFilterContent: React.FC<MultiSelectFilterContentProps> = ({
     return (
         <>
             <div className={classes.actionLinks}>
-                <Link onClick={handleSelectAll}>{loc.globalSearch.selectAll}</Link>
-                <Link onClick={handleClear}>{loc.globalSearch.clearFilter}</Link>
+                <Link onClick={handleSelectAll}>{loc.searchDatabase.selectAll}</Link>
+                <Link onClick={handleClear}>{loc.searchDatabase.clearFilter}</Link>
             </div>
             <div className={classes.checkboxList}>
                 {options.map((option) => (

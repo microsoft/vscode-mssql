@@ -6,8 +6,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { makeStyles, shorthands, SearchBox, Button } from "@fluentui/react-components";
 import { ArrowSyncRegular } from "@fluentui/react-icons";
-import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
-import { useGlobalSearchSelector } from "./globalSearchSelector";
+import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
+import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
 import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -23,12 +23,12 @@ const useStyles = makeStyles({
     },
 });
 
-export const GlobalSearchToolbar: React.FC = () => {
+export const SearchDatabaseToolbar: React.FC = () => {
     const classes = useStyles();
-    const context = useGlobalSearchContext();
+    const context = useSearchDatabaseContext();
 
     // Watch global searchTerm to sync when it's cleared (e.g., by refresh)
-    const globalSearchTerm = useGlobalSearchSelector((s) => s.searchTerm);
+    const globalSearchTerm = useSearchDatabaseSelector((s) => s.searchTerm);
 
     // Keep search input state local to this component to avoid parent re-renders
     const [localSearchValue, setLocalSearchValue] = useState("");
@@ -80,13 +80,13 @@ export const GlobalSearchToolbar: React.FC = () => {
         <div className={classes.toolbar}>
             <SearchBox
                 className={classes.searchBox}
-                placeholder={loc.globalSearch.searchPlaceholder}
+                placeholder={loc.searchDatabase.searchPlaceholder}
                 value={localSearchValue}
                 onChange={handleSearchChange}
                 size="medium"
             />
             <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh}>
-                {loc.globalSearch.refresh}
+                {loc.searchDatabase.refresh}
             </Button>
         </div>
     );

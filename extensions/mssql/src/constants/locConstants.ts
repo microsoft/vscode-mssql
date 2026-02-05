@@ -2415,7 +2415,7 @@ export class DacpacDialog {
     }
 }
 
-export class GlobalSearch {
+export class SearchDatabase {
     public static title = (serverName: string) =>
         l10n.t({
             message: "Search Database Objects - {0}",

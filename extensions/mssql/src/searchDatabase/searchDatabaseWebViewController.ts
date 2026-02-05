@@ -6,12 +6,12 @@
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
-    GlobalSearchWebViewState,
-    GlobalSearchReducers,
+    SearchDatabaseWebViewState,
+    SearchDatabaseReducers,
     SearchResultItem,
     ObjectTypeFilters,
     ScriptType,
-} from "../sharedInterfaces/globalSearch";
+} from "../sharedInterfaces/searchDatabase";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -29,9 +29,9 @@ import { generateGuid } from "../models/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-export class GlobalSearchWebViewController extends ReactWebviewPanelController<
-    GlobalSearchWebViewState,
-    GlobalSearchReducers
+export class SearchDatabaseWebViewController extends ReactWebviewPanelController<
+    SearchDatabaseWebViewState,
+    SearchDatabaseReducers
 > {
     // Cache for metadata to avoid repeated API calls
     private _metadataCache: Map<string, ObjectMetadata[]> = new Map();
@@ -55,13 +55,13 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         // Generate a unique, stable owner URI for this webview instance (per-panel URI, stable for panel lifetime)
         const instanceId = generateGuid();
-        const ownerUri = `globalSearch://${serverName}/${instanceId}`;
+        const ownerUri = `searchDatabase://${serverName}/${instanceId}`;
 
         super(
             context,
             vscodeWrapper,
-            "globalSearch",
-            "globalSearch",
+            "searchDatabase",
+            "searchDatabase",
             {
                 serverName: serverName,
                 connectionUri: "",
@@ -83,7 +83,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 errorMessage: undefined,
             },
             {
-                title: LocConstants.GlobalSearch.title(serverName),
+                title: LocConstants.SearchDatabase.title(serverName),
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -105,7 +105,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         this._ownerUri = ownerUri;
         this._operationId = generateGuid();
         this.logInfo(
-            `GlobalSearchWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
+            `SearchDatabaseWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
         this.registerRpcHandlers();
         void this.initialize();
@@ -115,7 +115,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Clean up resources when the panel is closed
      */
     public override dispose(): void {
-        this.logInfo(`Disposing GlobalSearchWebViewController for ownerUri '${this._ownerUri}'`);
+        this.logInfo(`Disposing SearchDatabaseWebViewController for ownerUri '${this._ownerUri}'`);
 
         // Disconnect the connection to avoid accumulating orphaned connections
         // Only disconnect if actually connected - avoid triggering cancel prompts for in-flight connections
@@ -133,7 +133,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
     /**
      * Log helpers that automatically prefix every message with the correlation ID
-     * so log lines from different Global Search sessions can be distinguished.
+     * so log lines from different Search Database sessions can be distinguished.
      */
     private logInfo(message: string): void {
         this.logger.info(`[${this._operationId}] ${message}`);
@@ -153,7 +153,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private async initialize(): Promise<void> {
         this.logInfo("Initializing Search Database webview");
         const endActivity = startActivity(
-            TelemetryViews.GlobalSearch,
+            TelemetryViews.SearchDatabase,
             TelemetryActions.Initialize,
             this._operationId,
             {
@@ -166,7 +166,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             if (!this._targetNode?.connectionProfile) {
                 this.logError("Search Database requires an Object Explorer node to be selected");
                 this.state.loadStatus = ApiStatus.Error;
-                this.state.errorMessage = LocConstants.GlobalSearch.noNodeSelected;
+                this.state.errorMessage = LocConstants.SearchDatabase.noNodeSelected;
                 this.updateState();
 
                 endActivity.endFailed(
@@ -261,7 +261,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         }
 
         if (!this._connectionManager.isConnected(connectionUri)) {
-            throw new Error(LocConstants.GlobalSearch.failedToEstablishConnection);
+            throw new Error(LocConstants.SearchDatabase.failedToEstablishConnection);
         }
 
         this.logInfo(`Successfully connected to database '${targetDatabase}'`);
@@ -293,7 +293,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         if (this._metadataCache.has(cacheKey)) {
             this.logInfo(`Using cached metadata for ${this.state.selectedDatabase}`);
 
-            sendActionEvent(TelemetryViews.GlobalSearch, TelemetryActions.LoadMetadata, {
+            sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.LoadMetadata, {
                 operationId: this._operationId,
                 source: "cache",
             });
@@ -312,7 +312,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         }
 
         const endActivity = startActivity(
-            TelemetryViews.GlobalSearch,
+            TelemetryViews.SearchDatabase,
             TelemetryActions.LoadMetadata,
             generateGuid(),
             {
@@ -488,15 +488,15 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private getFriendlyTypeName(type: MetadataType): string {
         switch (type) {
             case MetadataType.Table:
-                return LocConstants.GlobalSearch.typeTable;
+                return LocConstants.SearchDatabase.typeTable;
             case MetadataType.View:
-                return LocConstants.GlobalSearch.typeView;
+                return LocConstants.SearchDatabase.typeView;
             case MetadataType.SProc:
-                return LocConstants.GlobalSearch.typeStoredProcedure;
+                return LocConstants.SearchDatabase.typeStoredProcedure;
             case MetadataType.Function:
-                return LocConstants.GlobalSearch.typeFunction;
+                return LocConstants.SearchDatabase.typeFunction;
             default:
-                return LocConstants.GlobalSearch.typeUnknown;
+                return LocConstants.SearchDatabase.typeUnknown;
         }
     }
 
@@ -526,7 +526,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             );
             if (state.selectedDatabase !== payload.database) {
                 const endActivity = startActivity(
-                    TelemetryViews.GlobalSearch,
+                    TelemetryViews.SearchDatabase,
                     TelemetryActions.SetDatabase,
                     generateGuid(),
                     { operationId: this._operationId },
@@ -649,10 +649,10 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.logInfo(`Copying object name: '${payload.object.fullName}'`);
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
-                LocConstants.GlobalSearch.copiedToClipboard(payload.object.fullName),
+                LocConstants.SearchDatabase.copiedToClipboard(payload.object.fullName),
             );
 
-            sendActionEvent(TelemetryViews.GlobalSearch, TelemetryActions.CopyObjectName, {
+            sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.CopyObjectName, {
                 operationId: this._operationId,
                 objectType: payload.object.metadataTypeName,
             });
@@ -673,7 +673,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             );
 
             const endActivity = startActivity(
-                TelemetryViews.GlobalSearch,
+                TelemetryViews.SearchDatabase,
                 TelemetryActions.RefreshResults,
                 generateGuid(),
                 { operationId: this._operationId },
@@ -779,7 +779,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async scriptObject(object: SearchResultItem, scriptType: ScriptType): Promise<void> {
         const endActivity = startActivity(
-            TelemetryViews.GlobalSearch,
+            TelemetryViews.SearchDatabase,
             TelemetryActions.Script,
             generateGuid(),
             {
@@ -855,7 +855,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         } catch (error) {
             this.logError(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
-                LocConstants.GlobalSearch.failedToScriptObject(getErrorMessage(error)),
+                LocConstants.SearchDatabase.failedToScriptObject(getErrorMessage(error)),
             );
 
             endActivity.endFailed(
@@ -877,7 +877,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async editData(object: SearchResultItem): Promise<void> {
         const endActivity = startActivity(
-            TelemetryViews.GlobalSearch,
+            TelemetryViews.SearchDatabase,
             TelemetryActions.EditData,
             generateGuid(),
             {
@@ -918,7 +918,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         } catch (error) {
             this.logError(`Error opening Edit Data: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
-                LocConstants.GlobalSearch.failedToOpenEditData(getErrorMessage(error)),
+                LocConstants.SearchDatabase.failedToOpenEditData(getErrorMessage(error)),
             );
 
             endActivity.endFailed(
@@ -936,7 +936,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async modifyTable(object: SearchResultItem): Promise<void> {
         const endActivity = startActivity(
-            TelemetryViews.GlobalSearch,
+            TelemetryViews.SearchDatabase,
             TelemetryActions.ModifyTable,
             generateGuid(),
             {
@@ -983,7 +983,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         } catch (error) {
             this.logError(`Error opening Modify Table: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
-                LocConstants.GlobalSearch.failedToOpenModifyTable(getErrorMessage(error)),
+                LocConstants.SearchDatabase.failedToOpenModifyTable(getErrorMessage(error)),
             );
 
             endActivity.endFailed(

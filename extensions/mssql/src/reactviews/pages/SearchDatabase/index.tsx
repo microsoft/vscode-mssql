@@ -6,13 +6,13 @@
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
-import { GlobalSearchPage } from "./GlobalSearchPage";
-import { GlobalSearchStateProvider } from "./GlobalSearchStateProvider";
+import { SearchDatabasePage } from "./SearchDatabasePage";
+import { SearchDatabaseStateProvider } from "./SearchDatabaseStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider2>
-        <GlobalSearchStateProvider>
-            <GlobalSearchPage />
-        </GlobalSearchStateProvider>
+        <SearchDatabaseStateProvider>
+            <SearchDatabasePage />
+        </SearchDatabaseStateProvider>
     </VscodeWebviewProvider2>,
 );

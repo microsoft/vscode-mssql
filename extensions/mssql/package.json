@@ -603,7 +603,7 @@
                     "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
-                    "command": "mssql.globalSearch",
+                    "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
@@ -1023,8 +1023,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.globalSearch",
-                "title": "%mssql.globalSearch%",
+                "command": "mssql.searchDatabase",
+                "title": "%mssql.searchDatabase%",
                 "category": "MS SQL"
             },
             {

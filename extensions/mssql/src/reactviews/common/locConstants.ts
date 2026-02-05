@@ -1651,7 +1651,7 @@ export class LocConstants {
         };
     }
 
-    public get globalSearch() {
+    public get searchDatabase() {
         return {
             // Page titles and headers
             title: l10n.t("Search Database Objects"),

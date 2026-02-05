@@ -15,9 +15,9 @@ import {
     Divider,
 } from "@fluentui/react-components";
 import { TableRegular, EyeRegular, CodeRegular, MathFormulaRegular } from "@fluentui/react-icons";
-import { useGlobalSearchSelector } from "./globalSearchSelector";
-import { useGlobalSearchContext } from "./GlobalSearchStateProvider";
-import { ObjectTypeFilters } from "../../../sharedInterfaces/globalSearch";
+import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
+import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
+import { ObjectTypeFilters } from "../../../sharedInterfaces/searchDatabase";
 import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -91,17 +91,17 @@ const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | 
     return null;
 };
 
-export const GlobalSearchFilters: React.FC = React.memo(() => {
+export const SearchDatabaseFilters: React.FC = React.memo(() => {
     const classes = useStyles();
-    const context = useGlobalSearchContext();
+    const context = useSearchDatabaseContext();
 
     // State selectors
-    const selectedDatabase = useGlobalSearchSelector((s) => s.selectedDatabase);
-    const availableDatabases = useGlobalSearchSelector((s) => s.availableDatabases);
-    const objectTypeFilters = useGlobalSearchSelector((s) => s.objectTypeFilters);
-    const availableSchemas = useGlobalSearchSelector((s) => s.availableSchemas);
-    const selectedSchemas = useGlobalSearchSelector((s) => s.selectedSchemas);
-    const searchTerm = useGlobalSearchSelector((s) => s.searchTerm);
+    const selectedDatabase = useSearchDatabaseSelector((s) => s.selectedDatabase);
+    const availableDatabases = useSearchDatabaseSelector((s) => s.availableDatabases);
+    const objectTypeFilters = useSearchDatabaseSelector((s) => s.objectTypeFilters);
+    const availableSchemas = useSearchDatabaseSelector((s) => s.availableSchemas);
+    const selectedSchemas = useSearchDatabaseSelector((s) => s.selectedSchemas);
+    const searchTerm = useSearchDatabaseSelector((s) => s.searchTerm);
 
     // Check if search prefix is overriding type filters
     const searchHasTypePrefix = React.useMemo(() => hasTypePrefix(searchTerm), [searchTerm]);
@@ -144,7 +144,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
         <div className={classes.container}>
             {/* Database Selector */}
             <div className={classes.section}>
-                <Label className={classes.sectionTitle}>{loc.globalSearch.database}</Label>
+                <Label className={classes.sectionTitle}>{loc.searchDatabase.database}</Label>
                 <Dropdown
                     className={classes.dropdown}
                     value={selectedDatabase}
@@ -163,7 +163,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
 
             {/* Object Type Filters */}
             <div className={classes.section}>
-                <Label className={classes.sectionTitle}>{loc.globalSearch.objectTypes}</Label>
+                <Label className={classes.sectionTitle}>{loc.searchDatabase.objectTypes}</Label>
                 <div className={classes.checkboxGroup}>
                     <Checkbox
                         checked={isTypeChecked("tables")}
@@ -172,7 +172,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <TableRegular className={classes.typeIcon} />
-                                {loc.globalSearch.tables}
+                                {loc.searchDatabase.tables}
                             </span>
                         }
                     />
@@ -183,7 +183,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <EyeRegular className={classes.typeIcon} />
-                                {loc.globalSearch.views}
+                                {loc.searchDatabase.views}
                             </span>
                         }
                     />
@@ -194,7 +194,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <CodeRegular className={classes.typeIcon} />
-                                {loc.globalSearch.storedProcedures}
+                                {loc.searchDatabase.storedProcedures}
                             </span>
                         }
                     />
@@ -205,7 +205,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         label={
                             <span className={classes.checkboxLabel}>
                                 <MathFormulaRegular className={classes.typeIcon} />
-                                {loc.globalSearch.functions}
+                                {loc.searchDatabase.functions}
                             </span>
                         }
                     />
@@ -219,7 +219,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                     {/* Schema Filters */}
                     <div className={classes.schemaSection}>
                         <Label className={classes.sectionTitle}>
-                            {loc.globalSearch.schemas}
+                            {loc.searchDatabase.schemas}
                         </Label>
                         <div className={classes.schemaList}>
                             <Checkbox
@@ -237,7 +237,7 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                                         context.selectAllSchemas();
                                     }
                                 }}
-                                label={loc.globalSearch.selectAll}
+                                label={loc.searchDatabase.selectAll}
                             />
                             {availableSchemas.map((schema) => (
                                 <Checkbox

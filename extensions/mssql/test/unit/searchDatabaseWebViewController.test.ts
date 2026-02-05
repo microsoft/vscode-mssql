@@ -8,19 +8,19 @@ import * as sinon from "sinon";
 import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { GlobalSearchWebViewController } from "../../src/globalSearch/globalSearchWebViewController";
+import { SearchDatabaseWebViewController } from "../../src/searchDatabase/searchDatabaseWebViewController";
 
 chai.use(sinonChai);
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { IMetadataService } from "../../src/services/metadataService";
 import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadata";
-import { SearchResultItem } from "../../src/sharedInterfaces/globalSearch";
+import { SearchResultItem } from "../../src/sharedInterfaces/searchDatabase";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ScriptingService } from "../../src/scripting/scriptingService";
 
-suite("GlobalSearchWebViewController", () => {
+suite("SearchDatabaseWebViewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockVscodeWrapper: VscodeWrapper;
@@ -28,7 +28,7 @@ suite("GlobalSearchWebViewController", () => {
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockTargetNode: TreeNodeInfo;
     let mockScriptingService: sinon.SinonStubbedInstance<ScriptingService>;
-    let controller: GlobalSearchWebViewController;
+    let controller: SearchDatabaseWebViewController;
     let mockWebview: vscode.Webview;
     let mockPanel: vscode.WebviewPanel;
     let showInformationMessageStub: sinon.SinonStub;
@@ -155,8 +155,8 @@ suite("GlobalSearchWebViewController", () => {
         sandbox.restore();
     });
 
-    function createController(): GlobalSearchWebViewController {
-        controller = new GlobalSearchWebViewController(
+    function createController(): SearchDatabaseWebViewController {
+        controller = new SearchDatabaseWebViewController(
             mockContext,
             mockVscodeWrapper,
             mockMetadataService,

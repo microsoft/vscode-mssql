@@ -109,7 +109,7 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
-import { GlobalSearchWebViewController } from "../globalSearch/globalSearchWebViewController";
+import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
@@ -1773,8 +1773,8 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(Constants.cmdGlobalSearch, async (node: any) =>
-                    this.onGlobalSearch(node),
+                vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
+                    this.onSearchDatabase(node),
                 ),
             );
 
@@ -2945,16 +2945,16 @@ export default class MainController implements vscode.Disposable {
         tableExplorerWebView.revealToForeground();
     }
 
-    public async onGlobalSearch(node?: any): Promise<void> {
+    public async onSearchDatabase(node?: any): Promise<void> {
         // Guard: require a node when invoked from command palette without selection
         if (!node?.connectionProfile) {
             void this._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.GlobalSearch.noNodeSelected,
+                LocalizedConstants.SearchDatabase.noNodeSelected,
             );
             return;
         }
 
-        const globalSearchWebView = new GlobalSearchWebViewController(
+        const searchDatabaseWebView = new SearchDatabaseWebViewController(
             this._context,
             this._vscodeWrapper,
             this.metadataService,
@@ -2963,7 +2963,7 @@ export default class MainController implements vscode.Disposable {
             this._scriptingService,
         );
 
-        globalSearchWebView.revealToForeground();
+        searchDatabaseWebView.revealToForeground();
     }
 
     /**

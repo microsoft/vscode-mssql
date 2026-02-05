@@ -14,10 +14,10 @@ import {
     MessageBar,
     MessageBarBody,
 } from "@fluentui/react-components";
-import { useGlobalSearchSelector } from "./globalSearchSelector";
-import { GlobalSearchToolbar } from "./GlobalSearchToolbar";
-import { GlobalSearchFilters } from "./GlobalSearchFilters";
-import { GlobalSearchResultsTable } from "./GlobalSearchResultsTable";
+import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
+import { SearchDatabaseToolbar } from "./SearchDatabaseToolbar";
+import { SearchDatabaseFilters } from "./SearchDatabaseFilters";
+import { SearchDatabaseResultsTable } from "./SearchDatabaseResultsTable";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 
@@ -98,25 +98,25 @@ const useStyles = makeStyles({
     },
 });
 
-export const GlobalSearchPage: React.FC = () => {
+export const SearchDatabasePage: React.FC = () => {
     const classes = useStyles();
 
     // State selectors
-    const serverName = useGlobalSearchSelector((s) => s.serverName);
-    const selectedDatabase = useGlobalSearchSelector((s) => s.selectedDatabase);
-    const loadStatus = useGlobalSearchSelector((s) => s.loadStatus);
-    const errorMessage = useGlobalSearchSelector((s) => s.errorMessage);
-    const searchResults = useGlobalSearchSelector((s) => s.searchResults);
-    const totalResultCount = useGlobalSearchSelector((s) => s.totalResultCount);
-    const isSearching = useGlobalSearchSelector((s) => s.isSearching);
+    const serverName = useSearchDatabaseSelector((s) => s.serverName);
+    const selectedDatabase = useSearchDatabaseSelector((s) => s.selectedDatabase);
+    const loadStatus = useSearchDatabaseSelector((s) => s.loadStatus);
+    const errorMessage = useSearchDatabaseSelector((s) => s.errorMessage);
+    const searchResults = useSearchDatabaseSelector((s) => s.searchResults);
+    const totalResultCount = useSearchDatabaseSelector((s) => s.totalResultCount);
+    const isSearching = useSearchDatabaseSelector((s) => s.isSearching);
 
     // Loading state
     if (loadStatus === ApiStatus.Loading) {
         return (
             <div className={classes.root}>
                 <div className={classes.loadingContainer}>
-                    <Spinner size="large" label={loc.globalSearch.loading} />
-                    <Body1>{loc.globalSearch.connectingTo(serverName)}</Body1>
+                    <Spinner size="large" label={loc.searchDatabase.loading} />
+                    <Body1>{loc.searchDatabase.connectingTo(serverName)}</Body1>
                 </div>
             </div>
         );
@@ -128,13 +128,13 @@ export const GlobalSearchPage: React.FC = () => {
             <div className={classes.root}>
                 <div className={classes.header}>
                     <div className={classes.titleRow}>
-                        <Title3 className={classes.title}>{loc.globalSearch.title}</Title3>
+                        <Title3 className={classes.title}>{loc.searchDatabase.title}</Title3>
                     </div>
                 </div>
                 <div className={classes.errorContainer}>
                     <MessageBar intent="error">
                         <MessageBarBody>
-                            {errorMessage || loc.globalSearch.defaultError}
+                            {errorMessage || loc.searchDatabase.defaultError}
                         </MessageBarBody>
                     </MessageBar>
                 </div>
@@ -148,20 +148,20 @@ export const GlobalSearchPage: React.FC = () => {
             <div className={classes.header}>
                 <div className={classes.titleRow}>
                     <div>
-                        <Title3 className={classes.title}>{loc.globalSearch.title}</Title3>
+                        <Title3 className={classes.title}>{loc.searchDatabase.title}</Title3>
                         <span className={classes.serverInfo}>
                             {serverName} / {selectedDatabase}
                         </span>
                     </div>
                 </div>
-                <GlobalSearchToolbar />
+                <SearchDatabaseToolbar />
             </div>
 
             {/* Main content area */}
             <div className={classes.content}>
                 {/* Filter panel */}
                 <div className={classes.filterPanel}>
-                    <GlobalSearchFilters />
+                    <SearchDatabaseFilters />
                 </div>
 
                 {/* Results panel */}
@@ -169,12 +169,12 @@ export const GlobalSearchPage: React.FC = () => {
                     <div className={classes.resultsHeader}>
                         <span className={classes.resultsCount}>
                             {isSearching
-                                ? loc.globalSearch.searching
-                                : loc.globalSearch.objectsFound(totalResultCount)}
+                                ? loc.searchDatabase.searching
+                                : loc.searchDatabase.objectsFound(totalResultCount)}
                         </span>
                     </div>
                     <div className={classes.resultsTable}>
-                        <GlobalSearchResultsTable results={searchResults} />
+                        <SearchDatabaseResultsTable results={searchResults} />
                     </div>
                 </div>
             </div>

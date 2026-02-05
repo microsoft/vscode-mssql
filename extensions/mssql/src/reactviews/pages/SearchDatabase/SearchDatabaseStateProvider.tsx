@@ -5,24 +5,24 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import {
-    GlobalSearchWebViewState,
-    GlobalSearchReducers,
-    GlobalSearchContextProps,
+    SearchDatabaseWebViewState,
+    SearchDatabaseReducers,
+    SearchDatabaseContextProps,
     SearchResultItem,
     ObjectTypeFilters,
     ScriptType,
-} from "../../../sharedInterfaces/globalSearch";
+} from "../../../sharedInterfaces/searchDatabase";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { getCoreRPCs2 } from "../../common/utils";
 
-const GlobalSearchContext = createContext<GlobalSearchContextProps>({} as GlobalSearchContextProps);
+const SearchDatabaseContext = createContext<SearchDatabaseContextProps>({} as SearchDatabaseContextProps);
 
-export const GlobalSearchStateProvider: React.FC<{
+export const SearchDatabaseStateProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<GlobalSearchWebViewState, GlobalSearchReducers>();
+    const { extensionRpc } = useVscodeWebview2<SearchDatabaseWebViewState, SearchDatabaseReducers>();
 
-    const commands = useMemo<GlobalSearchContextProps>(
+    const commands = useMemo<SearchDatabaseContextProps>(
         () => ({
             ...getCoreRPCs2(extensionRpc),
 
@@ -93,10 +93,10 @@ export const GlobalSearchStateProvider: React.FC<{
         [extensionRpc],
     );
 
-    return <GlobalSearchContext.Provider value={commands}>{children}</GlobalSearchContext.Provider>;
+    return <SearchDatabaseContext.Provider value={commands}>{children}</SearchDatabaseContext.Provider>;
 };
 
-export const useGlobalSearchContext = (): GlobalSearchContextProps => {
-    const context = useContext(GlobalSearchContext);
+export const useSearchDatabaseContext = (): SearchDatabaseContextProps => {
+    const context = useContext(SearchDatabaseContext);
     return context;
 };

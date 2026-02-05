@@ -6205,7 +6205,7 @@
     <trans-unit id="mssql.scriptExecute">
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
-    <trans-unit id="mssql.globalSearch">
+    <trans-unit id="mssql.searchDatabase">
       <source xml:lang="en">Search Database Objects</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">

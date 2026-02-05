@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    GlobalSearchReducers,
-    GlobalSearchWebViewState,
-} from "../../../sharedInterfaces/globalSearch";
+    SearchDatabaseReducers,
+    SearchDatabaseWebViewState,
+} from "../../../sharedInterfaces/searchDatabase";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
-export function useGlobalSearchSelector<T>(
-    selector: (state: GlobalSearchWebViewState) => T,
+export function useSearchDatabaseSelector<T>(
+    selector: (state: SearchDatabaseWebViewState) => T,
     equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    return useVscodeSelector<GlobalSearchWebViewState, GlobalSearchReducers, T>(selector, equals);
+    return useVscodeSelector<SearchDatabaseWebViewState, SearchDatabaseReducers, T>(selector, equals);
 }

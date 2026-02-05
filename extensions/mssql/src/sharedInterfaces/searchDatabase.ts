@@ -7,7 +7,7 @@ import { ApiStatus } from "./webview";
 import { MetadataType } from "./metadata";
 
 /**
- * Script types available for GlobalSearch actions
+ * Script types available for SearchDatabase actions
  */
 export type ScriptType = "SELECT" | "CREATE" | "DROP" | "ALTER" | "EXECUTE";
 
@@ -36,7 +36,7 @@ export interface ObjectTypeFilters {
 /**
  * State for the Search Database webview
  */
-export interface GlobalSearchWebViewState {
+export interface SearchDatabaseWebViewState {
     // Connection info
     serverName: string;
     connectionUri: string;
@@ -66,7 +66,7 @@ export interface GlobalSearchWebViewState {
 /**
  * Context methods available to React components
  */
-export interface GlobalSearchContextProps {
+export interface SearchDatabaseContextProps {
     // Search
     search: (searchTerm: string) => void;
     clearSearch: () => void;
@@ -94,7 +94,7 @@ export interface GlobalSearchContextProps {
 /**
  * Reducer action payloads
  */
-export interface GlobalSearchReducers {
+export interface SearchDatabaseReducers {
     // Search
     search: { searchTerm: string };
     clearSearch: {};
