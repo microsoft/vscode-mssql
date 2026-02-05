@@ -128,57 +128,6 @@ export const COMMANDS = {
         command: "curl",
         args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
     }),
-    // DAB (Data API Builder) specific commands
-    PULL_DAB_IMAGE: (imageTag: string): DockerCommand => ({
-        command: "docker",
-        args: ["pull", imageTag],
-    }),
-    START_DAB_CONTAINER: (
-        name: string,
-        port: number,
-        configFilePath: string,
-        imageTag: string,
-        internalPort: number,
-    ): DockerCommand => ({
-        command: "docker",
-        args: [
-            "run",
-            "-d",
-            "--name",
-            sanitizeContainerInput(name),
-            "-p",
-            `${port}:${internalPort}`,
-            "-v",
-            `${configFilePath}:/App/dab-config.json:ro`,
-            imageTag,
-            "--ConfigFileName",
-            "/App/dab-config.json",
-        ],
-    }),
-    VALIDATE_CONTAINER_NAME: (): DockerCommand => ({
-        command: "docker",
-        args: ["ps", "-a", "--format", "{{.Names}}"],
-    }),
-    START_CONTAINER: (name: string): DockerCommand => ({
-        command: "docker",
-        args: ["start", sanitizeContainerInput(name)],
-    }),
-    CHECK_LOGS: (
-        name: string,
-        timestamp: string,
-    ): {
-        dockerCmd: DockerCommand;
-        grepCmd: DockerCommand;
-    } => ({
-        dockerCmd: {
-            command: "docker",
-            args: ["logs", "--since", timestamp, sanitizeContainerInput(name)],
-        },
-        grepCmd: {
-            command: platform() === "win32" ? "findstr" : "grep",
-            args: ["Recovery is complete"],
-        },
-    }),
 };
 
 /**
@@ -1198,7 +1147,13 @@ export async function checkContainerExists(name: string): Promise<boolean> {
 export async function pullDabContainerImage(): Promise<DockerCommandParams> {
     try {
         dockerLogger.appendLine(`Pulling DAB container image: ${Dab.DAB_CONTAINER_IMAGE}`);
-        await execDockerCommand(COMMANDS.PULL_DAB_IMAGE(Dab.DAB_CONTAINER_IMAGE));
+        const dockerClient = getDockerodeClient();
+        const pullStream = await dockerClient.pull(Dab.DAB_CONTAINER_IMAGE);
+        await new Promise<void>((resolve, reject) => {
+            dockerClient.modem.followProgress(pullStream, (error) =>
+                error ? reject(error) : resolve(),
+            );
+        });
         dockerLogger.appendLine("DAB container image pulled successfully.");
         return { success: true };
     } catch (e) {
@@ -1227,15 +1182,28 @@ export async function startDabDockerContainer(
             `Starting DAB container: ${containerName} on port ${port} with config ${configFilePath}`,
         );
 
-        await execDockerCommand(
-            COMMANDS.START_DAB_CONTAINER(
-                containerName,
-                port,
-                configFilePath,
-                Dab.DAB_CONTAINER_IMAGE,
-                Dab.DAB_DEFAULT_PORT,
-            ),
-        );
+        const dockerClient = getDockerodeClient();
+        const safeContainerName = sanitizeContainerInput(containerName);
+        const dabContainerPort = `${Dab.DAB_DEFAULT_PORT}/tcp`;
+        const hostPort = `${port}`;
+
+        const createContainerOptions: Dockerode.ContainerCreateOptions = {
+            Image: Dab.DAB_CONTAINER_IMAGE,
+            name: safeContainerName,
+            Cmd: ["--ConfigFileName", "/App/dab-config.json"],
+            ExposedPorts: {
+                [dabContainerPort]: {},
+            },
+            HostConfig: {
+                PortBindings: {
+                    [dabContainerPort]: [{ HostPort: hostPort }],
+                },
+                Binds: [`${configFilePath}:/App/dab-config.json:ro`],
+            },
+        };
+
+        const container = await dockerClient.createContainer(createContainerOptions);
+        await container.start();
 
         dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);
         return {
@@ -1273,14 +1241,17 @@ export async function checkIfDabContainerIsReady(
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const response = await execDockerCommand(COMMANDS.CHECK_DAB_HEALTH(port));
-                const statusCode = parseInt(response, 10);
+                // Use native fetch to check health endpoint
+                const response = await fetch(`http://localhost:${port}/`, {
+                    method: "GET",
+                    signal: AbortSignal.timeout(5000),
+                });
 
                 // DAB returns various status codes, but any response means it's running
-                if (statusCode >= 200 && statusCode < 500) {
+                if (response.status >= 200 && response.status < 500) {
                     clearInterval(interval);
                     dockerLogger.appendLine(
-                        `DAB container ${containerName} is ready! (HTTP ${statusCode})`,
+                        `DAB container ${containerName} is ready! (HTTP ${response.status})`,
                     );
                     return resolve({ success: true, port });
                 }
@@ -1292,9 +1263,15 @@ export async function checkIfDabContainerIsReady(
                 clearInterval(interval);
                 // Try to get container logs for debugging
                 try {
-                    const { dockerCmd } = COMMANDS.CHECK_LOGS(containerName, "0");
-                    const logs = await execDockerCommand(dockerCmd);
-                    dockerLogger.appendLine(`DAB container logs:\n${logs}`);
+                    const container = await getContainerByName(containerName);
+                    if (container) {
+                        const logs = await container.logs({
+                            stdout: true,
+                            stderr: true,
+                            tail: 50,
+                        });
+                        dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
+                    }
                 } catch {
                     // Ignore log retrieval errors
                 }
@@ -1315,15 +1292,21 @@ export async function stopAndRemoveDabContainer(
     containerName: string,
 ): Promise<DockerCommandParams> {
     try {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            dockerLogger.appendLine(`DAB container ${containerName} does not exist.`);
+            return { success: true }; // Container doesn't exist, consider it removed
+        }
+
         dockerLogger.appendLine(`Stopping DAB container: ${containerName}`);
         try {
-            await execDockerCommand(COMMANDS.STOP_CONTAINER(containerName));
+            await container.stop();
         } catch {
             // Container might already be stopped
         }
 
         dockerLogger.appendLine(`Removing DAB container: ${containerName}`);
-        await execDockerCommand(COMMANDS.DELETE_CONTAINER(containerName).remove);
+        await container.remove();
 
         dockerLogger.appendLine(`DAB container ${containerName} stopped and removed.`);
         return { success: true };
