@@ -4398,11 +4398,11 @@
     <trans-unit id="++CODE++0fa2fcc906f37ba513ba034858611a8ca8efb5bada90e29e0c66b5679dea5b92">
       <source xml:lang="en">Script copied to clipboard.</source>
     </trans-unit>
-    <trans-unit id="++CODE++c5d523fa3d7107bec739b50f8f094eae3fe5f266b66670f010e1d1544560d9d1">
-      <source xml:lang="en">Search Database</source>
+    <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
+      <source xml:lang="en">Search Database Objects</source>
     </trans-unit>
-    <trans-unit id="++CODE++dfc4f701f6cdfce5c4458859101a795dda10c558383832e0db1936b53bd419bb">
-      <source xml:lang="en">Search Database - {0} (Preview)</source>
+    <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
+      <source xml:lang="en">Search Database Objects - {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
@@ -5218,8 +5218,8 @@
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
     </trans-unit>
-    <trans-unit id="++CODE++3553fce7e19b2aafbaba7a29afb96a5bdbfad5aaa793ae06a135e6ea44f2acd9">
-      <source xml:lang="en">Unable to open Search Database: No Object Explorer node provided. Please select a server or database node in Object Explorer.</source>
+    <trans-unit id="++CODE++7c412bad2f38ca126fbc2727f310946f41df9ad79cd6cfea31561e4cc87ceaf8">
+      <source xml:lang="en">Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.</source>
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -6206,7 +6206,7 @@
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
     <trans-unit id="mssql.globalSearch">
-      <source xml:lang="en">Search Database (Preview)</source>
+      <source xml:lang="en">Search Database Objects</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
