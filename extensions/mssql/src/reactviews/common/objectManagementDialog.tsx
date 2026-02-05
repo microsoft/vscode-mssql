@@ -64,7 +64,7 @@ const useStyles = makeStyles({
 });
 
 export interface ObjectManagementDialogProps {
-    title: string;
+    title?: string;
     description?: string;
     errorMessage?: string;
     primaryLabel: string;
@@ -101,10 +101,12 @@ export const ObjectManagementDialog = ({
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.content}>
-                <div className={styles.header}>
-                    <div className={styles.title}>{title}</div>
-                    {description && <div className={styles.description}>{description}</div>}
-                </div>
+                {title || description ? (
+                    <div className={styles.header}>
+                        {title && <div className={styles.title}>{title}</div>}
+                        {description && <div className={styles.description}>{description}</div>}
+                    </div>
+                ) : null}
                 {errorMessage && (
                     <MessageBar intent={"error"}>
                         <MessageBarBody>{errorMessage}</MessageBarBody>

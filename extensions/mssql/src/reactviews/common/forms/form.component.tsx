@@ -13,6 +13,7 @@ import {
     Input,
     LabelProps,
     Option,
+    Text,
     Textarea,
     makeStyles,
     tokens,
@@ -25,7 +26,7 @@ import {
     FormState,
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
-import { SearchableDropdown } from "../searchableDropdown.component";
+import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
 
 export const FormInput = <
@@ -295,8 +296,28 @@ export function generateFormComponent<
                             <Option
                                 key={(component.propertyName as string) + idx}
                                 value={option.value}
-                                color={option.color}>
-                                {option.displayName}
+                                text={option.displayName}>
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        ...(option.color
+                                            ? { color: tokens[option.color as keyof typeof tokens] }
+                                            : {}),
+                                    }}>
+                                    {option.displayName}
+                                    <span
+                                        style={{
+                                            display: "flex",
+                                            gap: "4px",
+                                            marginRight: "12px",
+                                        }}>
+                                        {option.description && <Text>{option.description}</Text>}
+                                        {option.icon && FluentOptionIcons[option.icon]}
+                                    </span>
+                                </div>
                             </Option>
                         );
                     })}

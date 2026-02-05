@@ -728,11 +728,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("getDefaultOptions reducer - when called - completes successfully", async () => {
-        const getDefaultOptionsStub = sandbox
-            .stub(scUtils, "getDefaultOptions")
-            .resolves(deploymentOptionsResultMock);
-
+    test("resetOptions reducer - when called - resets options to defaults from cached state", async () => {
         const payload = {};
 
         const actualResult = await controller["_reducerHandlers"].get("resetOptions")(
@@ -740,20 +736,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        expect(getDefaultOptionsStub, "getDefaultOptions should be called once").to.have.been
-            .calledOnce;
-
         expect(
-            getDefaultOptionsStub.firstCall.args,
-            "getDefaultOptions should be called with correct arguments",
-        ).to.deep.equal([schemaCompareService]);
-
-        expect(
-            actualResult.defaultDeploymentOptionsResult,
-            "getDefaultOptions should return expected result",
-        ).to.deep.equal(deploymentOptionsResultMock);
-
-        getDefaultOptionsStub.restore();
+            actualResult.intermediaryOptionsResult,
+            "intermediaryOptionsResult should be a clone of defaultDeploymentOptionsResult",
+        ).to.deep.equal(mockInitialState.defaultDeploymentOptionsResult);
     });
 
     test("includeExcludeNode reducer - when called - completes successfully", async () => {
