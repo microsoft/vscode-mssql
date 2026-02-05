@@ -223,10 +223,12 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
                         </Label>
                         <div className={classes.schemaList}>
                             <Checkbox
-                                checked={selectedSchemas.length === availableSchemas.length}
-                                indeterminate={
-                                    selectedSchemas.length > 0 &&
-                                    selectedSchemas.length < availableSchemas.length
+                                checked={
+                                    selectedSchemas.length === availableSchemas.length
+                                        ? true
+                                        : selectedSchemas.length > 0
+                                          ? "mixed"
+                                          : false
                                 }
                                 onChange={() => {
                                     if (selectedSchemas.length === availableSchemas.length) {
