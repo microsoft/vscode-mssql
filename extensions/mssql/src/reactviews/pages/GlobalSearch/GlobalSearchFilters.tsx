@@ -13,7 +13,6 @@ import {
     Checkbox,
     Label,
     Divider,
-    Link,
 } from "@fluentui/react-components";
 import { TableRegular, EyeRegular, CodeRegular, MathFormulaRegular } from "@fluentui/react-icons";
 import { useGlobalSearchSelector } from "./globalSearchSelector";
@@ -63,15 +62,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         ...shorthands.gap("8px"),
-    },
-    schemaSectionHeader: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    schemaActions: {
-        display: "flex",
-        ...shorthands.gap("4px"),
     },
     schemaList: {
         display: "flex",
@@ -228,20 +218,25 @@ export const GlobalSearchFilters: React.FC = React.memo(() => {
 
                     {/* Schema Filters */}
                     <div className={classes.schemaSection}>
-                        <div className={classes.schemaSectionHeader}>
-                            <Label className={classes.sectionTitle}>
-                                {loc.globalSearch.schemas}
-                            </Label>
-                            <div className={classes.schemaActions}>
-                                <Link onClick={() => context.selectAllSchemas()}>
-                                    {loc.globalSearch.all}
-                                </Link>
-                                <Link onClick={() => context.clearSchemaSelection()}>
-                                    {loc.globalSearch.none}
-                                </Link>
-                            </div>
-                        </div>
+                        <Label className={classes.sectionTitle}>
+                            {loc.globalSearch.schemas}
+                        </Label>
                         <div className={classes.schemaList}>
+                            <Checkbox
+                                checked={selectedSchemas.length === availableSchemas.length}
+                                indeterminate={
+                                    selectedSchemas.length > 0 &&
+                                    selectedSchemas.length < availableSchemas.length
+                                }
+                                onChange={() => {
+                                    if (selectedSchemas.length === availableSchemas.length) {
+                                        context.clearSchemaSelection();
+                                    } else {
+                                        context.selectAllSchemas();
+                                    }
+                                }}
+                                label={loc.globalSearch.selectAll}
+                            />
                             {availableSchemas.map((schema) => (
                                 <Checkbox
                                     key={schema}
