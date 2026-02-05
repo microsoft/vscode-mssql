@@ -19,11 +19,13 @@ import {
 } from "./schemaDesignerRpcHandlers";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
-    calculateSchemaDiff,
+    calculateSchemaDiffFull,
     ChangeAction,
     ChangeCategory,
     SchemaChange,
     SchemaChangesSummary,
+    DiffMap,
+    hasAttributeChange,
 } from "./diff/diffUtils";
 import {
     getDeletedColumnIdsByTable,
@@ -126,9 +128,17 @@ export interface SchemaDesignerContextProps
     schemaChangesCount: number;
     schemaChanges: string[];
     schemaChangesSummary: SchemaChangesSummary | undefined;
+    /** Per-attribute diff map for O(1) lookups */
+    diffMap: DiffMap;
     structuredSchemaChanges: SchemaChange[];
     revertChange: (change: SchemaChange) => void;
     canRevertChange: (change: SchemaChange) => CanRevertResult;
+    /** Check if a specific attribute changed (O(1) lookup) */
+    hasAttributeChange: (
+        category: ChangeCategory,
+        objectId: string,
+        attribute: string,
+    ) => boolean;
 
     // DAB (Data API Builder) state
     dabConfig: Dab.DabConfig | null;
@@ -191,6 +201,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
         SchemaChangesSummary | undefined
     >(undefined);
+    const [diffMap, setDiffMap] = useState<DiffMap>(new Map());
     const [structuredSchemaChanges, setStructuredSchemaChanges] = useState<SchemaChange[]>([]);
     const [newTableIds, setNewTableIds] = useState<Set<string>>(new Set());
     const [newColumnIds, setNewColumnIds] = useState<Set<string>>(new Set());
@@ -348,12 +359,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
                 const currentSchema = flowUtils.extractSchemaModel(nodes, edges);
 
-                const summary = calculateSchemaDiff(baselineSchemaRef.current, currentSchema);
+                const diffResult = calculateSchemaDiffFull(
+                    baselineSchemaRef.current,
+                    currentSchema,
+                );
+                const summary = diffResult.summary;
 
                 // Flatten all changes for the structured list
                 const allChanges = summary.groups.flatMap((group) => group.changes);
                 setStructuredSchemaChanges(allChanges);
                 setSchemaChangesSummary(summary);
+                // Store the diffMap for O(1) attribute lookups (available via context)
+                setDiffMap(diffResult.diffMap);
                 if (baselineSchemaRef.current) {
                     const orderMap = new Map<string, string[]>();
                     for (const table of baselineSchemaRef.current.tables) {
@@ -1090,6 +1107,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setSchemaChangesCount(0);
         setSchemaChanges([]);
         setSchemaChangesSummary(undefined);
+        setDiffMap(new Map());
         setStructuredSchemaChanges([]);
         setNewTableIds(new Set());
         setNewColumnIds(new Set());
@@ -1298,9 +1316,12 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,
+                diffMap,
                 structuredSchemaChanges,
                 revertChange,
                 canRevertChange,
+                hasAttributeChange: (category, objectId, attribute) =>
+                    hasAttributeChange(diffMap, category, objectId, attribute),
                 // DAB state
                 dabConfig,
                 initializeDabConfig,
