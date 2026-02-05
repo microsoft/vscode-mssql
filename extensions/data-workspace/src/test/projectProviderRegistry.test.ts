@@ -5,7 +5,7 @@
 
 import { IDashboardTable, IProjectAction, IProjectProvider, IProjectType } from "dataworkspace";
 import "mocha";
-import * as should from "should";
+import { expect } from "chai";
 import * as vscode from "vscode";
 import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
 import { prettyPrintProviders } from "./testUtils";
@@ -153,93 +153,83 @@ suite("ProjectProviderRegistry Tests", function (): void {
         },
       ],
     );
-    should.strictEqual(
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      0,
       `there should be no project provider at the beginning of the test, but found ${prettyPrintProviders()}`,
-    );
+    ).to.equal(0);
+
     const disposable1 = ProjectProviderRegistry.registerProvider(provider1, "test.testProvider");
     let providerResult = ProjectProviderRegistry.getProviderByProjectExtension("testproj");
-    should.equal(
-      providerResult,
+    expect(providerResult, "provider1 should be returned for testproj project type").to.equal(
       provider1,
-      "provider1 should be returned for testproj project type",
     );
+
     // make sure the project type is case-insensitive for getProviderByProjectType method
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("TeStProJ");
-    should.equal(
-      providerResult,
+    expect(providerResult, "provider1 should be returned for testproj project type").to.equal(
       provider1,
-      "provider1 should be returned for testproj project type",
     );
+
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("testproj1");
-    should.equal(
-      providerResult,
+    expect(providerResult, "provider1 should be returned for testproj1 project type").to.equal(
       provider1,
-      "provider1 should be returned for testproj1 project type",
     );
-    should.strictEqual(
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      1,
       "there should be only one project provider at this time",
-    );
+    ).to.equal(1);
+
     const disposable2 = ProjectProviderRegistry.registerProvider(provider2, "test.testProvider2");
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("sqlproj");
-    should.equal(
-      providerResult,
+    expect(providerResult, "provider2 should be returned for sqlproj project type").to.equal(
       provider2,
-      "provider2 should be returned for sqlproj project type",
     );
-    should.strictEqual(
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      2,
       "there should be 2 project providers at this time",
-    );
+    ).to.equal(2);
 
     // unregister provider1
     disposable1.dispose();
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("testproj");
-    should.equal(
-      providerResult,
-      undefined,
-      "undefined should be returned for testproj project type",
-    );
+    expect(providerResult, "undefined should be returned for testproj project type").to.be
+      .undefined;
+
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("testproj1");
-    should.equal(
-      providerResult,
-      undefined,
-      "undefined should be returned for testproj1 project type",
-    );
+    expect(providerResult, "undefined should be returned for testproj1 project type").to.be
+      .undefined;
+
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("sqlproj");
-    should.equal(
+    expect(
       providerResult,
-      provider2,
       "provider2 should be returned for sqlproj project type after provider1 is disposed",
-    );
-    should.strictEqual(
+    ).to.equal(provider2);
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      1,
       "there should be only one project provider after unregistering a provider",
-    );
-    should.strictEqual(
+    ).to.equal(1);
+
+    expect(
       ProjectProviderRegistry.providers[0].supportedProjectTypes[0].projectFileExtension,
-      "sqlproj",
       "the remaining project provider should be sqlproj",
-    );
+    ).to.equal("sqlproj");
 
     // unregister provider2
     disposable2.dispose();
     providerResult = ProjectProviderRegistry.getProviderByProjectExtension("sqlproj");
-    should.equal(
+    expect(
       providerResult,
-      undefined,
       "undefined should be returned for sqlproj project type after provider2 is disposed",
-    );
-    should.strictEqual(
+    ).to.be.undefined;
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      0,
       `there should be no project provider after unregistering the providers, but found ${prettyPrintProviders()}`,
-    );
+    ).to.equal(0);
   });
 
   test("Clear the project provider registry", async () => {
@@ -269,22 +259,22 @@ suite("ProjectProviderRegistry Tests", function (): void {
         },
       ],
     );
-    should.strictEqual(
+
+    expect(
       ProjectProviderRegistry.providers.length,
-      0,
       `there should be no project provider at the beginning of the test, but found ${prettyPrintProviders()}`,
-    );
+    ).to.equal(0);
+
     ProjectProviderRegistry.registerProvider(provider, "test.testProvider");
-    should.strictEqual(
+    expect(
       ProjectProviderRegistry.providers.length,
-      1,
       `there should be only one project provider at this time, but found ${prettyPrintProviders()}`,
-    );
+    ).to.equal(1);
+
     ProjectProviderRegistry.clear();
-    should.strictEqual(
+    expect(
       ProjectProviderRegistry.providers.length,
-      0,
       `there should be no project provider after clearing the registry, but found ${prettyPrintProviders()}`,
-    );
+    ).to.equal(0);
   });
 });
