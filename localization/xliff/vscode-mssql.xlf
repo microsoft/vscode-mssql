@@ -2953,6 +2953,7 @@
     <trans-unit id="++CODE++1e57b1efd93fb21b1f6b28af4b5a85b873f5145021fba55cec9dccd8298b6c74">
       <source xml:lang="en">Loading XEL file: {0}</source>
       <note>{0} is the file name</note>
+    </trans-unit>
     <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
       <source xml:lang="en">Loading backup database...</source>
     </trans-unit>
@@ -3254,9 +3255,6 @@
     </trans-unit>
     <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
       <source xml:lang="en">New Profiler Session - Select Template</source>
-    </trans-unit>
-    <trans-unit id="++CODE++652b81589c6b1b34e452b1d3a3f326e1b3796877eca3c750be3e84412a6d9777">
-      <source xml:lang="en">New SQL Server Local development container</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
