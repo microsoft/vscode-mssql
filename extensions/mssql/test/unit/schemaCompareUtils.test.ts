@@ -22,7 +22,6 @@ suite("Schema Compare Utils Tests", () => {
             generateScript: sandbox.stub(),
             publishDatabaseChanges: sandbox.stub(),
             publishProjectChanges: sandbox.stub(),
-            schemaCompareGetDefaultOptions: sandbox.stub(),
             includeExcludeNode: sandbox.stub(),
             includeExcludeAllNodes: sandbox.stub(),
             openScmp: sandbox.stub(),
