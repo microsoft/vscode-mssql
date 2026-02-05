@@ -6,11 +6,15 @@
 import "mocha";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import * as chai from "chai";
 import { expect } from "chai";
+import sinonChai from "sinon-chai";
 import * as constants from "../src/common/constants";
 import { WorkspaceService } from "../src/services/workspaceService";
 import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
 import { createProjectProvider } from "./projectProviderRegistry.test";
+
+chai.use(sinonChai);
 
 /**
  * Create a stub for vscode.extensions.all
@@ -83,9 +87,9 @@ suite("WorkspaceService", function (): void {
     const project3 = vscode.Uri.file("/test/folder/folder2/abc2.sqlproj");
 
     // Verify if the projects are sorted correctly by their paths
-    expect(projects[0].path).to.equal(project1.path);
-    expect(projects[1].path).to.equal(project2.path);
-    expect(projects[2].path).to.equal(project3.path);
+    expect(projects[0].path, "first project should be abc.sqlproj").to.equal(project1.path);
+    expect(projects[1].path, "second project should be abc1.sqlproj").to.equal(project2.path);
+    expect(projects[2].path, "third project should be abc2.sqlproj").to.equal(project3.path);
   });
 
   test("getAllProjectTypes", async () => {
@@ -220,24 +224,17 @@ suite("WorkspaceService", function (): void {
     sinon.stub(ProjectProviderRegistry, "providers").value([provider1, provider2]);
     sinon.stub(console, "error");
     const projectTypes = await service.getAllProjectTypes();
-    expect(projectTypes.length).to.equal(3);
-    expect(projectTypes[0].projectFileExtension).to.equal("testproj");
-    expect(projectTypes[1].projectFileExtension).to.equal("testproj1");
-    expect(projectTypes[2].projectFileExtension).to.equal("sqlproj");
-    expect(extension1.activationStub.notCalled, "extension1.activate() should not have been called")
-      .to.be.true;
-    expect(extension2.activationStub.notCalled, "extension2.activate() should not have been called")
-      .to.be.true;
-    expect(extension3.activationStub.notCalled, "extension3.activate() should not have been called")
-      .to.be.true;
-    expect(extension4.activationStub.calledOnce, "extension4.activate() should have been called").to
-      .be.true;
-    expect(extension5.activationStub.called, "extension5.activate() should have been called").to.be
-      .true;
-    expect(extension6.activationStub.notCalled, "extension6.activate() should not have been called")
-      .to.be.true;
-    expect(extension7.activationStub.notCalled, "extension7.activate() should not have been called")
-      .to.be.true;
+    expect(projectTypes.length, "there should be 3 project types").to.equal(3);
+    expect(projectTypes[0].projectFileExtension, "first project type should be testproj").to.equal("testproj");
+    expect(projectTypes[1].projectFileExtension, "second project type should be testproj1").to.equal("testproj1");
+    expect(projectTypes[2].projectFileExtension, "third project type should be sqlproj").to.equal("sqlproj");
+    expect(extension1.activationStub, "extension1.activate() should not have been called").to.not.have.been.called;
+    expect(extension2.activationStub, "extension2.activate() should not have been called").to.not.have.been.called;
+    expect(extension3.activationStub, "extension3.activate() should not have been called").to.not.have.been.called;
+    expect(extension4.activationStub, "extension4.activate() should have been called").to.have.been.calledOnce;
+    expect(extension5.activationStub, "extension5.activate() should have been called").to.have.been.called;
+    expect(extension6.activationStub, "extension6.activate() should not have been called").to.not.have.been.called;
+    expect(extension7.activationStub, "extension7.activate() should not have been called").to.not.have.been.called;
   });
 
   test("getProjectProvider", async () => {
@@ -320,19 +317,10 @@ suite("WorkspaceService", function (): void {
     );
     let provider = await service.getProjectProvider(vscode.Uri.file("abc.sqlproj"));
     expect(provider, "Provider should be returned for sqlproj").to.not.be.undefined;
-    expect(provider!.supportedProjectTypes[0].projectFileExtension).to.equal("sqlproj");
-    expect(
-      extension1.activationStub.notCalled,
-      "the ext1.activate() should not have been called for sqlproj",
-    ).to.be.true;
-    expect(
-      extension2.activationStub.calledOnce,
-      "the ext2.activate() should have been called once after requesting sqlproj provider",
-    ).to.be.true;
-    expect(
-      extension3.activationStub.notCalled,
-      "the ext3.activate() should not have been called for sqlproj",
-    ).to.be.true;
+    expect(provider!.supportedProjectTypes[0].projectFileExtension, "provider should support sqlproj").to.equal("sqlproj");
+    expect(extension1.activationStub, "extension1.activate() should not have been called").to.not.have.been.called;
+    expect(extension2.activationStub, "extension2.activate() should have been called once").to.have.been.calledOnce;
+    expect(extension3.activationStub, "extension3.activate() should not have been called").to.not.have.been.called;
 
     getProviderByProjectTypeStub.reset();
     getProviderByProjectTypeStub.returns(
@@ -365,19 +353,10 @@ suite("WorkspaceService", function (): void {
     );
     provider = await service.getProjectProvider(vscode.Uri.file("abc.csproj"));
     expect(provider, "Provider should be returned for csproj").to.not.be.undefined;
-    expect(provider!.supportedProjectTypes[0].projectFileExtension).to.equal("csproj");
-    expect(
-      extension1.activationStub.notCalled,
-      "the ext1.activate() should not have been called for csproj",
-    ).to.be.true;
-    expect(
-      extension2.activationStub.calledOnce,
-      "the ext2.activate() should still have been called once",
-    ).to.be.true;
-    expect(
-      extension3.activationStub.notCalled,
-      "the ext3.activate() should not have been called for csproj",
-    ).to.be.true;
+    expect(provider!.supportedProjectTypes[0].projectFileExtension, "provider should support csproj").to.equal("csproj");
+    expect(extension1.activationStub, "extension1.activate() should not have been called for csproj").to.not.have.been.called;
+    expect(extension2.activationStub, "extension2.activate() should still only be called once").to.have.been.calledOnce;
+    expect(extension3.activationStub, "extension3.activate() should not have been called for csproj").to.not.have.been.called;
   });
 
   test("addProjectsToWorkspace", async () => {
@@ -399,31 +378,20 @@ suite("WorkspaceService", function (): void {
       vscode.Uri.file("folder/folder1/proj2.sqlproj"), //already exists
       vscode.Uri.file("other/proj3.sqlproj"), // new workspace folder
     ]);
-    expect(
-      updateWorkspaceFoldersStub.calledOnce,
-      "updateWorkspaceFolders should have been called once",
-    ).to.be.true;
-    expect(showInformationMessageStub.calledOnce, "showInformationMessage should be called once").to
-      .be.true;
+    expect(updateWorkspaceFoldersStub, "updateWorkspaceFolders should have been called once").to.have.been.calledOnce;
+    expect(showInformationMessageStub, "showInformationMessage should be called once").to.have.been.calledOnce;
     const expectedProjPath = vscode.Uri.file("folder/folder1/proj2.sqlproj").fsPath;
-    expect(
-      showInformationMessageStub.calledWith(constants.ProjectAlreadyOpened(expectedProjPath)),
-      `showInformationMessage not called with expected message '${constants.ProjectAlreadyOpened(expectedProjPath)}' Actual '${showInformationMessageStub.getCall(0).args[0]}'`,
-    ).to.be.true;
-    expect(
-      updateWorkspaceFoldersStub.calledWith(
-        1,
-        undefined,
-        sinon.match((arg) => {
-          return arg.uri.path === vscode.Uri.file("other").path;
-        }),
-      ),
-      "updateWorkspaceFolder parameters does not match expectation",
-    ).to.be.true;
-    expect(
-      onWorkspaceProjectsChangedStub.calledOnce,
-      "the onDidWorkspaceProjectsChange event should have been fired",
-    ).to.be.true;
+    expect(showInformationMessageStub, "showInformationMessage should be called with ProjectAlreadyOpened").to.have.been.calledWith(
+      constants.ProjectAlreadyOpened(expectedProjPath),
+    );
+    expect(updateWorkspaceFoldersStub, "updateWorkspaceFolders should be called with correct args").to.have.been.calledWith(
+      1,
+      undefined,
+      sinon.match((arg) => {
+        return arg.uri.path === vscode.Uri.file("other").path;
+      }),
+    );
+    expect(onWorkspaceProjectsChangedStub, "onDidWorkspaceProjectsChange event should have been fired").to.have.been.calledOnce;
     onWorkspaceProjectsChangedDisposable.dispose();
   });
 
@@ -438,12 +406,8 @@ suite("WorkspaceService", function (): void {
 
     await service.addProjectsToWorkspace([vscode.Uri.file("/test/folder/proj1.sqlproj")]);
 
-    expect(
-      onWorkspaceProjectsChangedStub.calledOnce,
-      "the onDidWorkspaceProjectsChange event should have been fired",
-    ).to.be.true;
-    expect(updateWorkspaceFoldersStub.calledOnce, "updateWorkspaceFolders should have been called")
-      .to.be.true;
+    expect(onWorkspaceProjectsChangedStub, "onDidWorkspaceProjectsChange event should have been fired").to.have.been.calledOnce;
+    expect(updateWorkspaceFoldersStub, "updateWorkspaceFolders should have been called").to.have.been.calledOnce;
     onWorkspaceProjectsChangedDisposable.dispose();
   });
 
@@ -461,12 +425,8 @@ suite("WorkspaceService", function (): void {
       .returns(true);
     await service.addProjectsToWorkspace([vscode.Uri.file("/test/folder/proj1.sqlproj")]);
 
-    expect(
-      onWorkspaceProjectsChangedStub.calledOnce,
-      "the onDidWorkspaceProjectsChange event should have been fired",
-    ).to.be.true;
-    expect(updateWorkspaceFoldersStub.calledOnce, "updateWorkspaceFolders should have been called")
-      .to.be.true;
+    expect(onWorkspaceProjectsChangedStub, "onDidWorkspaceProjectsChange event should have been fired").to.have.been.calledOnce;
+    expect(updateWorkspaceFoldersStub, "updateWorkspaceFolders should have been called").to.have.been.calledOnce;
     onWorkspaceProjectsChangedDisposable.dispose();
   });
 
@@ -510,20 +470,20 @@ suite("WorkspaceService", function (): void {
     );
 
     // Assert: createProject should have been called once
-    expect(createProjectStub.calledOnce, "createProject should have been called once").to.be.true;
+    expect(createProjectStub, "createProject should have been called once").to.have.been.calledOnce;
     // Assert: The returned URI path should match the expected path
     expect(projectUri.path, "project URI should match the expected path").to.equal(
       "/tmp/TestProject",
     );
     // Assert: The arguments passed to createProject should match the simulated QuickPick selections
     const callArgs = createProjectStub.getCall(0).args;
-    expect(callArgs[0], "name should match").to.equal(quickPickItems[1].value);
-    expect(callArgs[1].path, "location should match").to.equal(quickPickItems[2].value);
+    expect(callArgs[0], "name should match quickpick value").to.equal(quickPickItems[1].value);
+    expect(callArgs[1].path, "location should match quickpick value").to.equal(quickPickItems[2].value);
     expect(callArgs[2], "projectTypeId should match QuickPick label").to.equal(
       quickPickItems[0].value,
     );
-    expect(callArgs[3], "projectTargetVersion should match").to.equal(quickPickItems[3].value);
-    expect(callArgs[4], "sdkStyleProject should match").to.be.true;
+    expect(callArgs[3], "projectTargetVersion should match quickpick value").to.equal(quickPickItems[3].value);
+    expect(callArgs[4], "sdkStyleProject should be true").to.be.true;
     expect(callArgs[5], "configureDefaultBuild should be true").to.be.true;
 
     // Cleanup: Restore the stubbed showQuickPick method

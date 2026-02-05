@@ -9,9 +9,9 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as path from "path";
-import * as constants from "../../src/common/constants";
-import { createNewProjectWithQuickpick } from "../../src/dialogs/newProjectQuickpick";
-import { WorkspaceService } from "../../src/services/workspaceService";
+import * as constants from "../src/common/constants";
+import { createNewProjectWithQuickpick } from "../src/dialogs/newProjectQuickpick";
+import { WorkspaceService } from "../src/services/workspaceService";
 import { IProjectType } from "dataworkspace";
 
 chai.use(sinonChai);
@@ -113,27 +113,40 @@ suite("New Project QuickPick", function (): void {
         quickPickCallCount++;
         if (quickPickCallCount === 1) {
           // Step 1: Select project type
-          expect(options.title).to.equal(constants.SelectProjectType);
-          expect((items as vscode.QuickPickItem[])[0].label).to.equal("SQL Server Database");
+          expect(options.title, "Step 1 title should be SelectProjectType").to.equal(
+            constants.SelectProjectType,
+          );
+          expect(
+            (items as vscode.QuickPickItem[])[0].label,
+            "First project type should be SQL Server Database",
+          ).to.equal("SQL Server Database");
           return (items as vscode.QuickPickItem[])[0]; // Select SQL Server project
         } else if (quickPickCallCount === 2) {
           // Step 2: Select location
           return constants.BrowseEllipsisWithIcon;
         } else if (quickPickCallCount === 3) {
           // Step 3: Select target platform
-          expect(options.title).to.equal(constants.SelectTargetPlatform);
-          expect(items.length).to.be.greaterThan(0);
-          expect((items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2025"))
-            .to.be.true;
+          expect(options.title, "Step 3 title should be SelectTargetPlatform").to.equal(
+            constants.SelectTargetPlatform,
+          );
+          expect(items.length, "Target platforms list should not be empty").to.be.greaterThan(0);
+          expect(
+            (items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2025"),
+            "SQL Server 2025 should be in target platforms",
+          ).to.be.true;
           expect(
             (items as vscode.QuickPickItem[]).some((item) => item.label === "Azure SQL Database"),
+            "Azure SQL Database should be in target platforms",
           ).to.be.true;
           return (items as vscode.QuickPickItem[]).find((item) => item.label === "SQL Server 2025");
         } else if (quickPickCallCount === 4) {
           // Step 4: Configure build (SDK style handled by createQuickPick, not showQuickPick)
-          expect(options.title).to.equal(constants.confirmCreateProjectWithBuildTaskDialogName);
-          expect(items).to.include(constants.Yes);
-          expect(items).to.include(constants.No);
+          expect(
+            options.title,
+            "Step 4 title should be confirmCreateProjectWithBuildTaskDialogName",
+          ).to.equal(constants.confirmCreateProjectWithBuildTaskDialogName);
+          expect(items, "Build task options should include Yes").to.include(constants.Yes);
+          expect(items, "Build task options should include No").to.include(constants.No);
           return constants.Yes;
         }
         return undefined;
@@ -150,13 +163,21 @@ suite("New Project QuickPick", function (): void {
     expect(quickPickCallCount).to.equal(4, "All 4 showQuickPick steps should be called");
 
     // Verify createProject was called with correct parameters
-    expect(workspaceServiceStub.createProject).to.have.been.calledOnce;
+    expect(workspaceServiceStub.createProject, "createProject should have been called once").to.have
+      .been.calledOnce;
     const createProjectArgs = workspaceServiceStub.createProject.getCall(0).args;
-    expect(createProjectArgs[0]).to.equal("TestSqlServerProject"); // name
-    expect(createProjectArgs[2]).to.equal("emptySqlDatabaseProjectTypeId"); // projectTypeId
-    expect(createProjectArgs[3]).to.equal("SQL Server 2025"); // targetPlatform
-    expect(createProjectArgs[4]).to.be.true; // sdkStyle
-    expect(createProjectArgs[5]).to.be.true; // configureDefaultBuild
+    expect(createProjectArgs[0], "Project name should be TestSqlServerProject").to.equal(
+      "TestSqlServerProject",
+    );
+    expect(
+      createProjectArgs[2],
+      "Project type ID should be emptySqlDatabaseProjectTypeId",
+    ).to.equal("emptySqlDatabaseProjectTypeId");
+    expect(createProjectArgs[3], "Target platform should be SQL Server 2025").to.equal(
+      "SQL Server 2025",
+    );
+    expect(createProjectArgs[4], "SDK style should be true").to.be.true;
+    expect(createProjectArgs[5], "Configure default build should be true").to.be.true;
   });
 
   test("Should complete full QuickPick flow for Azure SQL Database project type", async function (): Promise<void> {
@@ -172,32 +193,53 @@ suite("New Project QuickPick", function (): void {
         quickPickCallCount++;
         if (quickPickCallCount === 1) {
           // Step 1: Select project type
-          expect(options.title).to.equal(constants.SelectProjectType);
-          expect((items as vscode.QuickPickItem[])[0].label).to.equal("Azure SQL Database");
+          expect(options.title, "Step 1 title should be SelectProjectType").to.equal(
+            constants.SelectProjectType,
+          );
+          expect(
+            (items as vscode.QuickPickItem[])[0].label,
+            "First project type should be Azure SQL Database",
+          ).to.equal("Azure SQL Database");
           return (items as vscode.QuickPickItem[])[0]; // Select Azure SQL Database project
         } else if (quickPickCallCount === 2) {
           // Step 2: Select location
           return constants.BrowseEllipsisWithIcon;
         } else if (quickPickCallCount === 3) {
           // Step 3: Select target platform - THIS IS KEY FOR AZURE SQL DATABASE
-          expect(options.title).to.equal(constants.SelectTargetPlatform);
-          expect(items.length).to.be.greaterThan(0);
+          expect(options.title, "Step 3 title should be SelectTargetPlatform").to.equal(
+            constants.SelectTargetPlatform,
+          );
+          expect(items.length, "Target platforms list should not be empty").to.be.greaterThan(0);
           expect(
             (items as vscode.QuickPickItem[]).some((item) => item.label === "Azure SQL Database"),
+            "Azure SQL Database should be in target platforms",
           ).to.be.true;
-          expect((items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2025"))
-            .to.be.true;
-          expect((items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2022"))
-            .to.be.true;
+          expect(
+            (items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2025"),
+            "SQL Server 2025 should be in target platforms",
+          ).to.be.true;
+          expect(
+            (items as vscode.QuickPickItem[]).some((item) => item.label === "SQL Server 2022"),
+            "SQL Server 2022 should be in target platforms",
+          ).to.be.true;
           // Verify default is first in list
-          expect((items as vscode.QuickPickItem[])[0].label).to.equal("Azure SQL Database");
-          expect((items as vscode.QuickPickItem[])[0].description).to.equal(constants.Default);
+          expect(
+            (items as vscode.QuickPickItem[])[0].label,
+            "Default target platform should be Azure SQL Database",
+          ).to.equal("Azure SQL Database");
+          expect(
+            (items as vscode.QuickPickItem[])[0].description,
+            "Default target platform should have Default description",
+          ).to.equal(constants.Default);
           return (items as vscode.QuickPickItem[])[0]; // Select Azure SQL Database
         } else if (quickPickCallCount === 4) {
           // Step 4: Configure build (SDK style handled by createQuickPick, not showQuickPick)
-          expect(options.title).to.equal(constants.confirmCreateProjectWithBuildTaskDialogName);
-          expect(items).to.include(constants.Yes);
-          expect(items).to.include(constants.No);
+          expect(
+            options.title,
+            "Step 4 title should be confirmCreateProjectWithBuildTaskDialogName",
+          ).to.equal(constants.confirmCreateProjectWithBuildTaskDialogName);
+          expect(items, "Build task options should include Yes").to.include(constants.Yes);
+          expect(items, "Build task options should include No").to.include(constants.No);
           return constants.No;
         }
         return undefined;
@@ -211,15 +253,23 @@ suite("New Project QuickPick", function (): void {
     await createNewProjectWithQuickpick(workspaceServiceStub);
 
     // Verify all QuickPicks were shown (4 showQuickPick calls + SDK style via createQuickPick)
-    expect(quickPickCallCount).to.equal(4, "All 4 showQuickPick steps should be called");
+    expect(quickPickCallCount, "All 4 showQuickPick steps should be called").to.equal(4);
 
     // Verify createProject was called with correct parameters
-    expect(workspaceServiceStub.createProject).to.have.been.calledOnce;
+    expect(workspaceServiceStub.createProject, "createProject should have been called once").to.have
+      .been.calledOnce;
     const createProjectArgs = workspaceServiceStub.createProject.getCall(0).args;
-    expect(createProjectArgs[0]).to.equal("TestAzureProject"); // name
-    expect(createProjectArgs[2]).to.equal("emptyAzureDbSqlDatabaseProjectTypeId"); // projectTypeId
-    expect(createProjectArgs[3]).to.equal("Azure SQL Database"); // targetPlatform
-    expect(createProjectArgs[4]).to.be.false; // sdkStyle
-    expect(createProjectArgs[5]).to.be.false; // configureDefaultBuild
+    expect(createProjectArgs[0], "Project name should be TestAzureProject").to.equal(
+      "TestAzureProject",
+    );
+    expect(
+      createProjectArgs[2],
+      "Project type ID should be emptyAzureDbSqlDatabaseProjectTypeId",
+    ).to.equal("emptyAzureDbSqlDatabaseProjectTypeId");
+    expect(createProjectArgs[3], "Target platform should be Azure SQL Database").to.equal(
+      "Azure SQL Database",
+    );
+    expect(createProjectArgs[4], "SDK style should be false").to.be.false;
+    expect(createProjectArgs[5], "Configure default build should be false").to.be.false;
   });
 });

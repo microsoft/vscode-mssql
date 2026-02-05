@@ -5,12 +5,16 @@
 
 import { IDashboardTable, IProjectProvider, WorkspaceTreeItem } from "dataworkspace";
 import "mocha";
+import * as chai from "chai";
 import { expect } from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { WorkspaceTreeDataProvider } from "../src/common/workspaceTreeDataProvider";
 import { WorkspaceService } from "../src/services/workspaceService";
 import { MockTreeDataProvider } from "./projectProviderRegistry.test";
+
+chai.use(sinonChai);
 
 suite("workspaceTreeDataProvider Tests", function (): void {
   let sandbox: sinon.SinonSandbox;
@@ -31,7 +35,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
       treeDataChangeHandler(e);
     });
     await treeProvider.refresh();
-    expect(treeDataChangeHandler.calledOnce).to.be.true;
+    expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have.been.calledOnce;
   });
 
   test("test getTreeItem()", async function (): Promise<void> {
@@ -43,7 +47,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
         },
       } as vscode.TreeDataProvider<any>,
     } as WorkspaceTreeItem);
-    expect(getTreeItemStub.calledOnce).to.be.true;
+    expect(getTreeItemStub, "getTreeItem should have been called once").to.have.been.calledOnce;
   });
 
   test("test getChildren() for non-root element", async () => {
@@ -58,8 +62,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
     };
     const children = await treeProvider.getChildren(element);
     expect(children.length, "children count should be 0").to.equal(0);
-    expect(getChildrenStub.calledWithExactly("obj1"), "getChildren parameter should be obj1").to.be
-      .true;
+    expect(getChildrenStub, "getChildren should have been called with obj1").to.have.been.calledWithExactly("obj1");
   });
 
   test("test getChildren() for root element", async () => {
@@ -142,11 +145,9 @@ suite("workspaceTreeDataProvider Tests", function (): void {
     const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
     const children = await treeProvider.getChildren(undefined);
     expect(children.length, "there should be 1 tree item returned").to.equal(1);
-    expect(children[0].element).to.equal("treeitem1");
-    expect(getProjectsInWorkspaceStub.calledOnce, "getProjectsInWorkspaceStub should be called").to
-      .be.true;
-    expect(getProjectProviderStub.calledTwice, "getProjectProvider should be called twice").to.be
-      .true;
-    expect(showErrorMessageStub.calledOnce, "showErrorMessage should be called once").to.be.true;
+    expect(children[0].element, "first child element should be treeitem1").to.equal("treeitem1");
+    expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to.have.been.calledOnce;
+    expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have.been.calledTwice;
+    expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been.calledOnce;
   });
 });
