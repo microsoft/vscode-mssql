@@ -7,7 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -78,7 +79,6 @@ import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
-import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -91,6 +91,7 @@ import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
+import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -112,6 +113,8 @@ import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigr
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
+import { AzureBlobService } from "../services/azureBlobService";
 
 /**
  * The main controller class that initializes the extension
@@ -142,6 +145,7 @@ export default class MainController implements vscode.Disposable {
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
+    public azureBlobService: AzureBlobService;
     public tableDesignerService: TableDesignerService;
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
@@ -621,6 +625,7 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
+            this.azureBlobService = new AzureBlobService(SqlToolsServerClient.instance);
 
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
@@ -747,29 +752,6 @@ export default class MainController implements vscode.Disposable {
                 new ChangeDatabaseTool(this.connectionManager),
             ),
         );
-        // Register mssql_show_schema tool
-        this._context.subscriptions.push(
-            vscode.lm.registerTool(
-                Constants.copilotShowSchemaToolName,
-                new ShowSchemaTool(
-                    this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        const designer =
-                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
-                                this._context,
-                                this._vscodeWrapper,
-                                this,
-                                this.schemaDesignerService,
-                                database,
-                                undefined,
-                                connectionUri,
-                            );
-                        designer.revealToForeground();
-                    },
-                ),
-            ),
-        );
-
         // Register mssql_list_tables tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
@@ -807,6 +789,30 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotRunQueryToolName,
                 new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_schema_designer tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotSchemaDesignerToolName,
+                new SchemaDesignerTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        const designer =
+                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this.schemaDesignerService,
+                                database,
+                                undefined,
+                                connectionUri,
+                            );
+                        designer.revealToForeground();
+                        return designer;
+                    },
+                ),
             ),
         );
     }
@@ -1902,6 +1908,49 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdBackupDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        let ownerUri = node.sessionId;
+                        if (node.nodeType === Constants.databaseString) {
+                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
+
+                            // Create a new temp connection for the database if we are not already connected
+                            // This lets sts know the context of the database we are backing up; otherwise,
+                            // sts will assume the master database context
+                            await this.connectionManager.connect(databaseConnectionUri, {
+                                ...node.connectionProfile,
+                                database: databaseName,
+                            });
+
+                            ownerUri = databaseConnectionUri;
+                        }
+
+                        const reactPanel = new BackupDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.objectManagementService,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            ownerUri,
+                            node.connectionProfile.server || "",
+                            databaseName,
+                        );
+                        reactPanel.revealToForeground();
+
+                        // Disconnect the temp database connection when the backup panel is closed
+                        reactPanel.onDisposed(() => {
+                            if (ownerUri !== node.sessionId) {
+                                void this.connectionManager.disconnect(ownerUri);
+                            }
+                        });
+                    },
+                ),
+            );
         }
 
         // Initiate the scripting service
@@ -2865,7 +2914,9 @@ export default class MainController implements vscode.Disposable {
         targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.SchemaCompare,
+        );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2874,7 +2925,7 @@ export default class MainController implements vscode.Disposable {
             runComparison,
             this.schemaCompareService,
             this._connectionMgr,
-            result,
+            schemaCompareOptionsResult,
             SchemaCompare.Title,
         );
 
@@ -2900,7 +2951,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.Deployment,
+        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2910,7 +2963,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptions.defaultDeploymentOptions,
+            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();

@@ -14,7 +14,17 @@ import {
     SaveObjectRequest,
     ScriptObjectRequest,
     DisposeViewRequest,
+    BackupConfigInfoRequest,
+    BackupRequest,
 } from "../models/contracts/objectManagement";
+import {
+    BackupConfigInfoResponse,
+    DefaultDatabaseInfoParams,
+    BackupInfo,
+    BackupParams,
+    BackupResponse,
+} from "../sharedInterfaces/backup";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class ObjectManagementService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -80,5 +90,34 @@ export class ObjectManagementService {
             deleteBackupHistory,
             generateScript,
         });
+    }
+
+    async getBackupConfigInfo(connectionUri: string): Promise<BackupConfigInfoResponse> {
+        try {
+            let params: DefaultDatabaseInfoParams = {
+                ownerUri: connectionUri,
+            };
+            return await this._client.sendRequest(BackupConfigInfoRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+    async backupDatabase(
+        connectionUri: string,
+        backupInfo: BackupInfo,
+        taskMode: TaskExecutionMode,
+    ): Promise<BackupResponse> {
+        try {
+            let params: BackupParams = {
+                ownerUri: connectionUri,
+                BackupInfo: backupInfo,
+                taskExecutionMode: taskMode,
+            };
+            return await this._client.sendRequest(BackupRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
     }
 }

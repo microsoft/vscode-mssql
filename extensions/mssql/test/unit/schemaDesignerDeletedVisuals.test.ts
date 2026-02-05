@@ -174,7 +174,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
 
         const merged = mergeDeletedTableNodes(currentNodes, deletedNodes);
         expect(merged.map((node) => node.id)).to.deep.equal(["table-1", "table-2"]);
-        expect((merged[1].data as { isDeleted?: boolean }).isDeleted).to.equal(true);
+        expect(merged[1].data).to.have.property("isDeleted", true);
     });
 
     test("mergeColumnsWithDeleted preserves baseline ordering", () => {
@@ -186,8 +186,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
 
         const ids = merged.map((c) => c.id);
         expect(ids).to.deep.equal([colA.id, colB.id, colC.id]);
-        const deleted = merged[1] as { isDeleted?: boolean };
-        expect(deleted.isDeleted).to.equal(true);
+        expect(merged[1]).to.have.property("isDeleted", true);
     });
 
     test("buildDeletedForeignKeyEdges uses baseline column ids when current column is missing", () => {
@@ -234,7 +233,7 @@ suite("SchemaDesigner deleted visuals utils", () => {
         expect(edges[0].sourceHandle).to.equal("right-col-1");
         expect(edges[0].targetHandle).to.equal("left-col-3");
         expect(edges[0].markerEnd).to.deep.equal({ type: MarkerType.ArrowClosed });
-        expect((edges[0].data as { isDeleted?: boolean }).isDeleted).to.equal(true);
+        expect(edges[0].data).to.have.property("isDeleted", true);
     });
 
     test("buildDeletedForeignKeyEdges targets deleted table nodes when provided", () => {
