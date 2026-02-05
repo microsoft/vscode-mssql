@@ -5875,9 +5875,6 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
-    <trans-unit id="mssql.globalSearch">
-      <source xml:lang="en">Global Search (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
@@ -6039,6 +6036,9 @@
     </trans-unit>
     <trans-unit id="mssql.scriptExecute">
       <source xml:lang="en">Script as Execute</source>
+    </trans-unit>
+    <trans-unit id="mssql.globalSearch">
+      <source xml:lang="en">Search Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
