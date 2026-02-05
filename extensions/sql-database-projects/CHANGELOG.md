@@ -10,7 +10,7 @@ All notable changes to the SQL Database Projects extension will be documented in
 
 - Added five new SQL object templates: Schema, Table-Valued Function, Trigger, Database Trigger, and Sequence.
 - Fixed an issue where the SQL project build task was being created at the project level instead of the workspace level.
-
+- Fixed an issue where system dacpac files were missing from the BuildDirectory, causing build failures for projects with system database references.
 
 ## [1.5.6] - 2026-01-28
 
