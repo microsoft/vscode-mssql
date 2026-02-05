@@ -55,7 +55,7 @@ export class SqlOpsClient {
             let serverOptions = this.generateServerOptions(serviceBinaries, context);
             client = new SqlOpsDataClient(sqlOpsServiceName, serverOptions, clientOptions);
             const processStart = Date.now();
-            client.onReady().then(() => {
+            void client.onReady().then(() => {
                 const processEnd = Date.now();
                 this.statusView.text = Loc.SqlOps.serviceStarted(sqlOpsServiceName);
                 setTimeout(() => {
