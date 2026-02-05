@@ -12722,7 +12722,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Développement SQL assisté par IA avec génération de requêtes conscientes du schéma, prise en charge ORM et conversation en langage naturel avec @mssql en mode Demander ou Agent.]]></Val>
+            <Val><![CDATA[Développement SQL assisté par IA avec génération de requêtes conscientes du schéma, prise en charge ORM et conversation en langage naturel avec @mssql en mode Demander ou Assistant.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

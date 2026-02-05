@@ -7331,7 +7331,7 @@
         <Str Cat="Text">
           <Val><![CDATA[👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[👋 저는 MSSQL용 GitHub Copilot 확장으로, Visual Studio Code에서 사용할 수 있는 지능형 SQL 개발 도우미입니다. VS Code에서 직접 SQL 데이터베이스를 연결, 탐색, 설계하고 발전시키는 데 도움을 드립니다.]]></Val>
+            <Val><![CDATA[👋 저는 MSSQL용 GitHub Copilot 확장으로, Visual Studio Code에서 사용할 수 있는 지능형 SQL 개발 도우미입니다. VS Code에서 직접 SQL 데이터베이스를 연결하고, 탐색하며, 설계 및 발전시키는 데 도움을 드립니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
