@@ -64,6 +64,7 @@ export class LocConstants {
             warning: l10n.t("Warning"),
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
+            general: l10n.t("General"),
         };
     }
 
@@ -946,6 +947,8 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            highlightChanges: l10n.t("Highlight Changes"),
+            hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
                 l10n.t({
                     message: "Changes ({0})",
@@ -953,6 +956,7 @@ export class LocConstants {
                     comment: ["{0} is the number of schema changes"],
                 }),
             noChangesYet: l10n.t("No changes yet."),
+            noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
             schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
                 l10n.t({
                     message: "{0}: {1}",
@@ -1072,9 +1076,25 @@ export class LocConstants {
                 filterModified: l10n.t("Modified"),
                 filterDeleted: l10n.t("Deleted"),
                 filterTooltip: l10n.t("Filter changes"),
+                filterPanelTitle: l10n.t("Filter Changes"),
+                actionTypeLabel: l10n.t("Action Type"),
+                objectTypeLabel: l10n.t("Object Type"),
                 actionFilterLabel: l10n.t("Action"),
                 categoryFilterLabel: l10n.t("Category"),
                 clearFilters: l10n.t("Clear all"),
+                clearFiltersButton: l10n.t("Clear Filters"),
+                applyFilters: l10n.t("Apply"),
+                changeCountLabel: (changeCount: number) =>
+                    l10n.t({
+                        message: "{0} changes",
+                        args: [changeCount],
+                        comment: ["{0} is the number of property changes"],
+                    }),
+                propertyHeader: l10n.t("Property"),
+                beforeHeader: l10n.t("Before"),
+                afterHeader: l10n.t("After"),
+                noPropertyChanges: l10n.t("No property changes available."),
+                emptyValue: l10n.t("(empty)"),
 
                 // Buttons
                 reveal: l10n.t("Reveal"),
@@ -1328,6 +1348,12 @@ export class LocConstants {
     public get publishProject() {
         return {
             publishProject: l10n.t("Publish Project"),
+            publishProjectTitle: (projectName: string) =>
+                l10n.t({
+                    message: "Publish Project - {0}",
+                    args: [projectName],
+                    comment: ["{0} is the name of the project being published"],
+                }),
             SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
@@ -1853,6 +1879,37 @@ export class LocConstants {
             fileBrowserTitle: l10n.t("Select a file"),
             selectedPath: l10n.t("Selected Path"),
             filesOfType: l10n.t("Files of Type"),
+        };
+    }
+
+    public get backupDatabase() {
+        return {
+            loadingBackupDatabase: l10n.t("Loading backup database..."),
+            backup: l10n.t("Backup"),
+            script: l10n.t("Script"),
+            advanced: l10n.t("Advanced"),
+            advancedBackupOptions: l10n.t("Advanced Backup Options"),
+            searchOptions: l10n.t("Search options"),
+            saveToUrl: l10n.t("Save to URL"),
+            saveToDisk: l10n.t("Save to Disk"),
+            backupLocation: l10n.t("Backup Location"),
+            backupFiles: l10n.t("Backup Files"),
+            createNew: l10n.t("Create New"),
+            chooseExisting: l10n.t("Choose Existing"),
+            folderPath: l10n.t("Folder Path"),
+            fileName: l10n.t("File Name"),
+            existingFile: l10n.t("Existing File"),
+            newFile: l10n.t("New File"),
+            browseForPath: l10n.t("Browse forvpath"),
+            removeFile: l10n.t("Remove file"),
+            chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
+            chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
+            loading: l10n.t("Loading..."),
+            folderPathRequired: l10n.t("Folder path is required"),
+            fileNameRequired: l10n.t("File name is required"),
+            transactionLog: l10n.t("Transaction Log"),
+            encryption: l10n.t("Encryption"),
+            media: l10n.t("Media"),
         };
     }
 }

@@ -83,4 +83,70 @@ suite("Schema Designer LM tool manifest schema", () => {
         expect(setForeignKey.required).to.include.members(["table", "foreignKey", "set"]);
         expect(setForeignKey.properties.set.properties).to.have.property("mappings");
     });
+
+    test("mssql_schema_designer apply_edits requires payload.expectedVersion", () => {
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+        const tool = (packageJson.contributes?.languageModelTools ?? []).find(
+            (t: any) => t?.name === "mssql_schema_designer",
+        );
+        expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
+            .exist;
+
+        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
+        expect(rootOneOf, "missing inputSchema.oneOf").to.be.an("array");
+
+        const applyEditsVariant = rootOneOf.find(
+            (v: any) => v?.properties?.operation?.enum?.[0] === "apply_edits",
+        );
+        expect(applyEditsVariant, "missing inputSchema.oneOf variant for apply_edits").to.exist;
+
+        expect(applyEditsVariant.required, "apply_edits: required").to.include("payload");
+        expect(
+            applyEditsVariant.properties?.payload?.required,
+            "apply_edits: payload.required",
+        ).to.include.members(["expectedVersion", "edits"]);
+        expect(
+            applyEditsVariant.properties?.payload?.properties?.edits?.minItems,
+            "apply_edits: payload.edits.minItems",
+        ).to.equal(1);
+        expect(
+            applyEditsVariant.properties?.payload?.properties?.edits?.items,
+            "apply_edits: payload.edits.items",
+        ).to.exist;
+        expect(
+            applyEditsVariant.properties?.payload?.properties?.edits?.items?.$ref ??
+                applyEditsVariant.properties?.payload?.properties?.edits?.items?.oneOf,
+            "apply_edits: payload.edits.items should be a $ref or oneOf",
+        ).to.exist;
+    });
+
+    test("mssql_schema_designer get_table requires payload.table id OR (schema + name)", () => {
+        const packageJsonPath = path.join(__dirname, "..", "..", "..", "package.json");
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+
+        const tool = (packageJson.contributes?.languageModelTools ?? []).find(
+            (t: any) => t?.name === "mssql_schema_designer",
+        );
+        expect(tool, "missing mssql_schema_designer tool in contributes.languageModelTools").to
+            .exist;
+
+        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
+        expect(rootOneOf, "missing inputSchema.oneOf").to.be.an("array");
+
+        const getTableVariant = rootOneOf.find(
+            (v: any) => v?.properties?.operation?.enum?.[0] === "get_table",
+        );
+        expect(getTableVariant, "missing inputSchema.oneOf variant for get_table").to.exist;
+
+        const tableSchema = getTableVariant.properties?.payload?.properties?.table ?? undefined;
+        expect(tableSchema, "get_table: missing payload.properties.table").to.exist;
+        expect(tableSchema.anyOf, "get_table: payload.table.anyOf").to.be.an("array");
+
+        const tableAnyOfRequiredLists = (tableSchema.anyOf ?? []).map((s: any) =>
+            (s?.required ?? []).slice().sort(),
+        );
+        expect(tableAnyOfRequiredLists).to.deep.include.members([["id"], ["name", "schema"]]);
+    });
 });
