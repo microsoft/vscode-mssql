@@ -2924,11 +2924,6 @@
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
     </trans-unit>
-    <trans-unit id="++CODE++2d72b49b0333c401ee71b5160b7b9f6d645861170355bcfd1a9417b03a2fc45b">
-      <source xml:lang="en">Loaded {1} events from {0}</source>
-      <note>{0} is the file name
-{1} is the event count</note>
-    </trans-unit>
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
@@ -3821,12 +3816,12 @@
     <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
       <source xml:lang="en">Profiler Session Status</source>
     </trans-unit>
-    <trans-unit id="++CODE++d44e8b3f760f3c9df158ded89c2314e818fcd46b66c34c3f4c32fd622ac131a2">
-      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos;, and cannot start or create live sessions</source>
+    <trans-unit id="++CODE++7a9b119953ead192b4e7b7566d7d84fd0ce1077b116269a1b10c5116270196ba">
+      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos; and cannot start or create live sessions without a database connection</source>
       <note>{0} is the file name</note>
     </trans-unit>
-    <trans-unit id="++CODE++67f0195e2a4f75c006f9f847e282dddacf1545f8e23c7ea4b378629437913b86">
-      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos;. Cannot start or create live sessions.</source>
+    <trans-unit id="++CODE++60742f4dd435c44f26e028ce8aa7d1566518d55d1df0daf788d744ccf87c3394">
+      <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos; and cannot start or create live sessions without a database connection.</source>
       <note>{0} is the file name</note>
     </trans-unit>
     <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">

@@ -2663,16 +2663,12 @@
         "message": "Loading XEL file: {0}",
         "comment": ["{0} is the file name"]
     },
-    "Loaded {1} events from {0}/{0} is the file name{1} is the event count": {
-        "message": "Loaded {1} events from {0}",
-        "comment": ["{0} is the file name", "{1} is the event count"]
-    },
-    "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions./{0} is the file name": {
-        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions.",
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection./{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
         "comment": ["{0} is the file name"]
     },
-    "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions/{0} is the file name": {
-        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions",
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection/{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
         "comment": ["{0} is the file name"]
     },
     "File: {0}/{0} is the file name": {

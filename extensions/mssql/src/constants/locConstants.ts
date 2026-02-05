@@ -2757,23 +2757,17 @@ export class Profiler {
             args: [fileName],
             comment: ["{0} is the file name"],
         });
-    public static xelFileLoaded = (fileName: string, eventCount: number) =>
-        l10n.t({
-            message: "Loaded {1} events from {0}",
-            args: [fileName, eventCount],
-            comment: ["{0} is the file name", "{1} is the event count"],
-        });
     public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
         l10n.t({
             message:
-                "Profiler is in read-only and disconnected mode for XEL file '{0}'. Cannot start or create live sessions.",
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
             args: [fileName],
             comment: ["{0} is the file name"],
         });
     public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
         l10n.t({
             message:
-                "Profiler is in read-only and disconnected mode for XEL file '{0}', and cannot start or create live sessions",
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
             args: [fileName],
             comment: ["{0} is the file name"],
         });

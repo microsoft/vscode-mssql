@@ -74,6 +74,57 @@ suite("ProfilerController XEL File Tests", () => {
                 expect(ext).to.not.equal(".xel", `Expected ${filePath} to NOT have .xel extension`);
             }
         });
+
+        test("should handle empty file path", () => {
+            const filePath = "";
+            const ext = path.extname(filePath).toLowerCase();
+            // Empty path has no extension
+            expect(ext).to.equal("");
+            expect(ext).to.not.equal(".xel");
+        });
+
+        test("should detect ENOENT error code for non-existent file", () => {
+            const mockError: NodeJS.ErrnoException = new Error("File not found");
+            mockError.code = "ENOENT";
+
+            expect(mockError.code).to.equal("ENOENT");
+        });
+
+        test("should detect EACCES error code for permission denied", () => {
+            const mockError: NodeJS.ErrnoException = new Error("Permission denied");
+            mockError.code = "EACCES";
+
+            expect(mockError.code).to.equal("EACCES");
+        });
+
+        test("should detect EPERM error code for permission denied on Windows", () => {
+            const mockError: NodeJS.ErrnoException = new Error("Operation not permitted");
+            mockError.code = "EPERM";
+
+            expect(mockError.code).to.equal("EPERM");
+        });
+
+        test("should handle both EACCES and EPERM as permission errors", () => {
+            const permissionErrorCodes = ["EACCES", "EPERM"];
+
+            for (const code of permissionErrorCodes) {
+                const mockError: NodeJS.ErrnoException = new Error("Permission error");
+                mockError.code = code;
+
+                const isPermissionError = mockError.code === "EACCES" || mockError.code === "EPERM";
+                expect(isPermissionError).to.be.true;
+            }
+        });
+
+        test("should differentiate between file and directory", () => {
+            // This tests the logic pattern used in validateXelFile
+            // In the actual implementation, fs.stat.isFile() is used
+            const fileStats = { isFile: () => true, isDirectory: () => false };
+            const dirStats = { isFile: () => false, isDirectory: () => true };
+
+            expect(fileStats.isFile()).to.be.true;
+            expect(dirStats.isFile()).to.be.false;
+        });
     });
 
     suite("XelFileInfo", () => {

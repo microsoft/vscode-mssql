@@ -89,6 +89,12 @@ export class ProfilerController {
     }
 
     public async dispose(): Promise<void> {
+        // Dispose all regular webview controllers
+        for (const controller of this._webviewControllers.values()) {
+            controller.dispose();
+        }
+        this._webviewControllers.clear();
+
         // Dispose all XEL webview controllers
         for (const controller of this._xelWebviewControllers.values()) {
             controller.dispose();
@@ -566,6 +572,13 @@ export class ProfilerController {
                 `XEL file ${fileInfo.fileName} opened successfully in read-only mode`,
             );
         } catch (e) {
+            // Clean up any partially initialized webview controller for this file
+            const existingController = this._xelWebviewControllers.get(filePath);
+            if (existingController) {
+                existingController.dispose();
+            }
+            this._xelWebviewControllers.delete(filePath);
+
             this._logger.error(`Error opening XEL file: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
         }
@@ -602,7 +615,10 @@ export class ProfilerController {
             if ((e as NodeJS.ErrnoException).code === "ENOENT") {
                 this._logger.error(`XEL file not found: ${filePath}`);
                 vscode.window.showErrorMessage(LocProfiler.xelFileNotFound);
-            } else if ((e as NodeJS.ErrnoException).code === "EACCES") {
+            } else if (
+                (e as NodeJS.ErrnoException).code === "EACCES" ||
+                (e as NodeJS.ErrnoException).code === "EPERM"
+            ) {
                 this._logger.error(`Access denied to XEL file: ${filePath}`);
                 vscode.window.showErrorMessage(LocProfiler.xelFileAccessDenied);
             } else {
@@ -662,9 +678,6 @@ export class ProfilerController {
     ): Promise<void> {
         this._logger.verbose(`Loading XEL file events for: ${fileInfo.filePath}`);
 
-        // Set the session name to the file name
-        webviewController.setSessionName(fileInfo.fileName);
-
         // Generate a unique URI for this file-based session (not a real connection)
         const fileSessionUri = `profiler://xelfile/${Utils.generateGuid()}`;
         this._logger.verbose(`Created file session URI: ${fileSessionUri}`);
@@ -683,6 +696,10 @@ export class ProfilerController {
 
         // Set up the webview controller with the session reference
         webviewController.setCurrentSession(session);
+
+        // Set the session name to the file name AFTER setCurrentSession
+        // (setCurrentSession overwrites sessionName with session.sessionName)
+        webviewController.setSessionName(fileInfo.fileName);
 
         // Set up event handlers on the session
         session.onEventsReceived((events) => {
@@ -723,7 +740,11 @@ export class ProfilerController {
             );
         } catch (e) {
             this._logger.error(`Failed to load XEL file: ${e}`);
-            webviewController.setSessionState(SessionState.Stopped);
+            webviewController.setSessionState(SessionState.Failed);
+
+            // Clean up the session that failed to load
+            await this._sessionManager.removeSession(sessionId);
+
             throw e;
         }
     }
