@@ -34,7 +34,7 @@ export interface ObjectTypeFilters {
 }
 
 /**
- * State for the Global Search webview
+ * State for the Search Database webview
  */
 export interface GlobalSearchWebViewState {
     // Connection info

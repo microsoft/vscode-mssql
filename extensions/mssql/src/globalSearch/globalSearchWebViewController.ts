@@ -127,7 +127,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         try {
             // Guard: ensure _targetNode is defined (command can be invoked without a node)
             if (!this._targetNode?.connectionProfile) {
-                this.logger.error("Global Search requires an Object Explorer node to be selected");
+                this.logger.error("Search Database requires an Object Explorer node to be selected");
                 this.state.loadStatus = ApiStatus.Error;
                 this.state.errorMessage = LocConstants.GlobalSearch.noNodeSelected;
                 this.updateState();
@@ -150,7 +150,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             this.state.loadStatus = ApiStatus.Loaded;
             this.updateState();
         } catch (error) {
-            this.logger.error(`Error initializing Global Search: ${getErrorMessage(error)}`);
+            this.logger.error(`Error initializing Search Database: ${getErrorMessage(error)}`);
             this.state.loadStatus = ApiStatus.Error;
             this.state.errorMessage = getErrorMessage(error);
             this.updateState();

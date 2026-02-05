@@ -1654,7 +1654,7 @@ export class LocConstants {
     public get globalSearch() {
         return {
             // Page titles and headers
-            title: l10n.t("Global Search"),
+            title: l10n.t("Search Database"),
             loading: l10n.t("Loading..."),
             connectingTo: (serverName: string) =>
                 l10n.t({
