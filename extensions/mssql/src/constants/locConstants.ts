@@ -2418,7 +2418,7 @@ export class DacpacDialog {
 export class GlobalSearch {
     public static title = (serverName: string) =>
         l10n.t({
-            message: "Search Database - {0} (Preview)",
+            message: "Search Database Objects - {0}",
             args: [serverName],
             comment: ["{0} is the server name"],
         });
@@ -2426,7 +2426,7 @@ export class GlobalSearch {
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
     public static noNodeSelected = l10n.t(
-        "Unable to open Search Database: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
+        "Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
     );
 
     public static typeTable = l10n.t("Table");

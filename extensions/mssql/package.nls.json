@@ -55,7 +55,7 @@
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
     "mssql.schemaCompare": "Schema Compare",
     "mssql.tableExplorer": "Edit Data (Preview)",
-    "mssql.globalSearch": "Search Database (Preview)",
+    "mssql.globalSearch": "Search Database Objects",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.copyConnectionString": "Copy as Connection String",
