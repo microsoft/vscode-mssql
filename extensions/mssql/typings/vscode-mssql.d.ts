@@ -134,6 +134,9 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections
          */
         connectionSharing: IConnectionSharingService;
+        /**
+         * APIs for coordinating URI ownership with other database extensions
+         */
         uriOwnershipApi: UriOwnershipApi;
     }
 

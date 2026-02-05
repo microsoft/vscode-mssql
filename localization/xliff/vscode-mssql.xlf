@@ -4890,6 +4890,10 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2634dd7c22d8297f79cc7c3173c7ecd1e7d8af3b77dbe35b67da473439a26820">
+      <source xml:lang="en">This file is currently connected to {0}. Please disconnect from {0} before proceeding.</source>
+      <note>{0} is the name of the other database extension</note>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
@@ -5488,13 +5492,13 @@
       <source xml:lang="en">Backup Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
-      <source xml:lang="en">Cancel Query</source>
+      <source xml:lang="en">Cancel Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeConnection">
-      <source xml:lang="en">Change Connection</source>
+      <source xml:lang="en">Change Connection (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.changeDatabase">
-      <source xml:lang="en">Change Database</source>
+      <source xml:lang="en">Change Database (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
@@ -5524,7 +5528,7 @@
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
-      <source xml:lang="en">Connect</source>
+      <source xml:lang="en">Connect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.title">
       <source xml:lang="en">Connect to a SQL Database</source>
@@ -5599,7 +5603,7 @@
       <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
-      <source xml:lang="en">Disconnect</source>
+      <source xml:lang="en">Disconnect (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
       <source xml:lang="en">Display results in a formatted text format.</source>
@@ -5731,10 +5735,10 @@
       <source xml:lang="en">Estimated Plan</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
-      <source xml:lang="en">Execute Current Statement</source>
+      <source xml:lang="en">Execute Current Statement (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.runQuery">
-      <source xml:lang="en">Execute Query</source>
+      <source xml:lang="en">Execute Query (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.explainQuery">
       <source xml:lang="en">Explain Query</source>
@@ -5884,7 +5888,7 @@
       <source xml:lang="en">Replication</source>
     </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
-      <source xml:lang="en">Reveal Query Result</source>
+      <source xml:lang="en">Reveal Query Result (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query</source>

@@ -1248,6 +1248,10 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
+    "This file is currently connected to {0}. Please disconnect from {0} before proceeding./{0} is the name of the other database extension": {
+        "message": "This file is currently connected to {0}. Please disconnect from {0} before proceeding.",
+        "comment": ["{0} is the name of the other database extension"]
+    },
     "Rename Database": "Rename Database",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
