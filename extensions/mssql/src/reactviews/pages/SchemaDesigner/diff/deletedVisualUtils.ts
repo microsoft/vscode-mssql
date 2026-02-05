@@ -6,30 +6,25 @@
 import { Edge, MarkerType, Node } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
-export type DeletedColumn = SchemaDesigner.Column & { isDeleted: true };
-export type ColumnWithDeleted = SchemaDesigner.Column | DeletedColumn;
-export type TableWithDeletedFlag = SchemaDesigner.Table & { isDeleted?: boolean };
-export type ForeignKeyWithDeletedFlag = SchemaDesigner.ForeignKey & { isDeleted?: boolean };
-
 const isDeleted = (value: { isDeleted?: boolean } | undefined): value is { isDeleted: true } =>
     value?.isDeleted === true;
 
 export function filterDeletedNodes(
-    nodes: Node<TableWithDeletedFlag>[],
-): Node<TableWithDeletedFlag>[] {
+    nodes: Node<SchemaDesigner.TableWithDeletedFlag>[],
+): Node<SchemaDesigner.TableWithDeletedFlag>[] {
     return nodes.filter((node) => !isDeleted(node.data));
 }
 
 export function filterDeletedEdges(
-    edges: Edge<ForeignKeyWithDeletedFlag>[],
-): Edge<ForeignKeyWithDeletedFlag>[] {
+    edges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[],
+): Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[] {
     return edges.filter((edge) => !isDeleted(edge.data));
 }
 
 export function mergeDeletedTableNodes(
-    nodes: Node<TableWithDeletedFlag>[],
-    deletedNodes: Node<TableWithDeletedFlag>[],
-): Node<TableWithDeletedFlag>[] {
+    nodes: Node<SchemaDesigner.TableWithDeletedFlag>[],
+    deletedNodes: Node<SchemaDesigner.TableWithDeletedFlag>[],
+): Node<SchemaDesigner.TableWithDeletedFlag>[] {
     if (deletedNodes.length === 0) {
         return nodes;
     }
@@ -44,7 +39,9 @@ export function mergeDeletedTableNodes(
     return [...nodes, ...filteredDeleted];
 }
 
-export function toSchemaTables(nodes: Node<TableWithDeletedFlag>[]): SchemaDesigner.Table[] {
+export function toSchemaTables(
+    nodes: Node<SchemaDesigner.TableWithDeletedFlag>[],
+): SchemaDesigner.Table[] {
     return filterDeletedNodes(nodes).map((node) => node.data);
 }
 
@@ -52,12 +49,12 @@ export function mergeColumnsWithDeleted(
     columns: SchemaDesigner.Column[],
     deletedColumns: SchemaDesigner.Column[],
     baselineOrder: string[],
-): ColumnWithDeleted[] {
+): SchemaDesigner.ColumnWithDeletedFlag[] {
     if (deletedColumns.length === 0) {
         return [...columns];
     }
 
-    const merged: ColumnWithDeleted[] = [...columns];
+    const merged: SchemaDesigner.ColumnWithDeletedFlag[] = [...columns];
     const baselineIndex = new Map(baselineOrder.map((columnId, index) => [columnId, index]));
     const deletedSorted = [...deletedColumns].sort((a, b) => {
         const aIndex = baselineIndex.get(a.id) ?? Number.POSITIVE_INFINITY;
@@ -85,9 +82,9 @@ export function mergeColumnsWithDeleted(
 
 export interface DeletedForeignKeyEdgeParams {
     baselineSchema: SchemaDesigner.Schema;
-    currentNodes: Node<TableWithDeletedFlag>[];
+    currentNodes: Node<SchemaDesigner.TableWithDeletedFlag>[];
     deletedForeignKeyIds: Set<string>;
-    deletedTableNodes?: Node<TableWithDeletedFlag>[];
+    deletedTableNodes?: Node<SchemaDesigner.TableWithDeletedFlag>[];
 }
 
 export function buildDeletedForeignKeyEdges({
@@ -95,13 +92,13 @@ export function buildDeletedForeignKeyEdges({
     currentNodes,
     deletedForeignKeyIds,
     deletedTableNodes = [],
-}: DeletedForeignKeyEdgeParams): Edge<ForeignKeyWithDeletedFlag>[] {
+}: DeletedForeignKeyEdgeParams): Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[] {
     if (!baselineSchema || deletedForeignKeyIds.size === 0) {
         return [];
     }
 
     const currentTablesById = new Map(currentNodes.map((node) => [node.id, node.data]));
-    const currentNodesByName = new Map<string, Node<TableWithDeletedFlag>>();
+    const currentNodesByName = new Map<string, Node<SchemaDesigner.TableWithDeletedFlag>>();
     const targetNodes =
         deletedTableNodes.length > 0 ? [...currentNodes, ...deletedTableNodes] : currentNodes;
     for (const node of targetNodes) {
@@ -122,7 +119,7 @@ export function buildDeletedForeignKeyEdges({
         baselineSchema.tables.map((table) => [`${table.schema}.${table.name}`, table]),
     );
 
-    const deletedEdges: Edge<ForeignKeyWithDeletedFlag>[] = [];
+    const deletedEdges: Edge<SchemaDesigner.ForeignKeyWithDeletedFlag>[] = [];
 
     for (const baselineTable of baselineSchema.tables) {
         const currentSourceTable = currentTablesById.get(baselineTable.id);

@@ -13,6 +13,8 @@ import * as sinon from "sinon";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
@@ -22,6 +24,7 @@ import {
     PublishDialogState,
     MaskMode,
 } from "../../src/sharedInterfaces/publishDialog";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import { SqlPackageService } from "../../src/services/sqlPackageService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
@@ -40,6 +43,7 @@ suite("PublishProjectWebViewController Tests", () => {
     let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
     let mockSqlPackageService: sinon.SinonStubbedInstance<SqlPackageService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
 
     setup(() => {
@@ -56,19 +60,28 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Create properly typed stubbed instances
         mockSqlProjectsService = sandbox.createStubInstance(SqlProjectsService);
+        mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+        mockConnectionStore.readAllConnections.resolves([]);
 
-        // Create ConnectionManager mock manually (createStubInstance doesn't handle event emitters well)
+        // Create ConnectionManager mock manually (createStubInstance doesn't handle getters/event emitters well)
         mockConnectionManager = {
             listDatabases: sandbox.stub().resolves([]),
             getConnectionString: sandbox.stub().resolves(""),
             parseConnectionString: sandbox.stub().resolves({} as ConnectionDetails),
             connect: sandbox.stub().resolves(true),
-            findMatchingProfile: sandbox.stub().resolves({}),
+            findMatchingProfile: sandbox.stub().resolves(undefined),
             ensureAccountIdForAzureMfa: sandbox.stub().resolves(true),
+            getUriForConnection: sandbox.stub().returns(""),
+            isConnected: sandbox.stub().returns(false),
             onSuccessfulConnection: sandbox.stub().returns({
                 dispose: sandbox.stub(),
             } as vscode.Disposable),
-        } as sinon.SinonStubbedInstance<ConnectionManager>;
+            onConnectionsChanged: sandbox.stub().returns({
+                dispose: sandbox.stub(),
+            } as vscode.Disposable),
+            connectionStore: mockConnectionStore,
+            activeConnections: {},
+        } as unknown as sinon.SinonStubbedInstance<ConnectionManager>;
 
         // Create mock for interface (IDacFxService) - only stub methods we actually use in tests
         mockDacFxService = {
@@ -77,9 +90,7 @@ suite("PublishProjectWebViewController Tests", () => {
         } as sinon.SinonStubbedInstance<mssql.IDacFxService>;
 
         // Create mock for SqlPackageService
-        mockSqlPackageService = {
-            generateSqlPackageCommand: sandbox.stub(),
-        } as sinon.SinonStubbedInstance<SqlPackageService>;
+        mockSqlPackageService = sandbox.createStubInstance(SqlPackageService);
 
         // Create MainController mock - only stub methods we actually use in container creation
         mockMainController = {
@@ -111,6 +122,16 @@ suite("PublishProjectWebViewController Tests", () => {
         );
     }
 
+    /**
+     * Helper to get reducer handlers from controller, avoiding repeated casts.
+     */
+    function getReducerHandlers(
+        controller: PublishProjectWebViewController,
+    ): Map<string, Function> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (controller as any)._reducerHandlers;
+    }
+
     test("constructor initializes state and derives database name", async () => {
         const controller = createTestController("c:/work/MySampleProject.sqlproj");
 
@@ -133,7 +154,7 @@ suite("PublishProjectWebViewController Tests", () => {
         await controller.initialized.promise;
 
         // Access internal reducer handlers map
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
 
         // Verify all expected reducers are registered
         expect(reducerHandlers.has("publishNow"), "publishNow reducer should be registered").to.be
@@ -213,7 +234,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         await controller.initialized.promise;
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const formAction = reducerHandlers.get("formAction");
         expect(formAction, "formAction reducer should be registered").to.exist;
 
@@ -268,8 +289,8 @@ suite("PublishProjectWebViewController Tests", () => {
             (opt) => opt.value === PublishTarget.LocalContainer,
         );
 
-        expect(existingServerOption?.displayName).to.equal("Existing SQL server");
-        expect(containerOption?.displayName).to.equal("New SQL Server Local development container");
+        expect(existingServerOption?.displayName).to.equal("Existing SQL Server");
+        expect(containerOption?.displayName).to.equal("New Local Docker SQL Server");
     });
 
     test("field validators enforce container and server requirements", () => {
@@ -384,7 +405,7 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         });
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
         expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
 
@@ -429,6 +450,12 @@ suite("PublishProjectWebViewController Tests", () => {
 
         await controller.initialized.promise;
 
+        // Set up connection URI so getConnectionStringOnDemand works
+        controller["_connectionUri"] = "mssql://test-connection";
+        mockConnectionManager.getConnectionString.resolves(
+            "Server=myserver.database.windows.net;Database=ProductionDB",
+        );
+
         // Set up server and database state
         controller.state.formState.serverName = "myserver.database.windows.net";
         controller.state.formState.databaseName = "ProductionDB";
@@ -468,7 +495,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock DacFx service
         mockDacFxService.savePublishProfile.resolves({ success: true, errorMessage: "" });
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const savePublishProfile = reducerHandlers.get("savePublishProfile");
         expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
 
@@ -521,47 +548,43 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         };
 
-        (mockConnectionManager.parseConnectionString as sinon.SinonStub).resolves(
+        mockConnectionManager.parseConnectionString.resolves(
             mockConnectionDetails as ConnectionDetails,
         );
 
         // Configure the ensureAccountIdForAzureMfa stub to populate accountId
-        const ensureAccountIdStub =
-            mockConnectionManager.ensureAccountIdForAzureMfa as sinon.SinonStub;
-        ensureAccountIdStub.callsFake(async (connInfo) => {
+        mockConnectionManager.ensureAccountIdForAzureMfa.callsFake(async (connInfo) => {
             // Simulate what the real method does - populate accountId from saved profile
             connInfo.accountId = "test-account-id-67890";
             return true;
         });
 
         // Configure connect stub to succeed
-        (mockConnectionManager.connect as sinon.SinonStub).resolves(true);
+        mockConnectionManager.connect.resolves(true);
 
         // Configure listDatabases stub to return sample databases
-        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves([
-            "testdb",
-            "master",
-            "model",
-        ]);
+        mockConnectionManager.listDatabases.resolves(["testdb", "master", "model"]);
 
-        // Call the private method
-        const result = await controller["connectAndPopulateDatabases"](azureMfaConnectionString);
+        // Call the private method with state as first argument
+        const result = await controller["connectAndPopulateDatabases"](
+            controller.state,
+            azureMfaConnectionString,
+        );
 
         // Verify the helper was called to populate missing accountId
-        expect(ensureAccountIdStub).to.have.been.calledOnce;
+        expect(mockConnectionManager.ensureAccountIdForAzureMfa).to.have.been.calledOnce;
 
         // Verify accountId was populated by checking the argument passed to connect
-        const connectStub = mockConnectionManager.connect as sinon.SinonStub;
-        const connectCallArgs = connectStub.firstCall.args;
+        const connectCallArgs = mockConnectionManager.connect.firstCall.args;
         const connectionInfoPassedToConnect = connectCallArgs[1];
         expect(connectionInfoPassedToConnect.accountId).to.equal("test-account-id-67890");
 
         // Verify connect was called (which means accountId was populated successfully)
-        expect(connectStub).to.have.been.calledOnce;
+        expect(mockConnectionManager.connect).to.have.been.calledOnce;
 
-        // Verify connection succeeded
-        expect(result.connectionUri).to.exist;
-        expect(result.errorMessage).to.be.undefined;
+        // Verify connection succeeded (returns connection URI string, not undefined)
+        expect(result).to.exist;
+        expect(result).to.be.a("string");
 
         // Verify databases were populated in the component
         const databaseComponent = controller.state.formComponents.databaseName;
@@ -596,7 +619,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         await controller.initialized.promise;
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const formAction = reducerHandlers.get("formAction");
         expect(formAction, "formAction reducer should be registered").to.exist;
 
@@ -623,6 +646,96 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Verify database name is updated
         expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
+    });
+
+    test("connectToServer reducer loads saved connections and populates database list on connect", async () => {
+        // Setup mock saved connections
+        const mockSavedConnections: Partial<IConnectionProfileWithSource>[] = [
+            {
+                id: "profile-1",
+                server: "testserver.database.windows.net",
+                database: "master",
+                user: "testuser",
+                profileName: "Test Server",
+                authenticationType: "SqlLogin",
+            },
+        ];
+
+        const mockDatabases = ["master", "tempdb", "MyDatabase"];
+
+        mockConnectionStore.readAllConnections.resolves(
+            mockSavedConnections as IConnectionProfileWithSource[],
+        );
+        mockConnectionManager.connect.resolves(true);
+        mockConnectionManager.getUriForConnection.returns("mssql://testserver");
+        mockConnectionManager.isConnected.returns(false);
+        mockConnectionManager.listDatabases.resolves(mockDatabases);
+        mockConnectionManager.getConnectionString.resolves("Server=testserver;Database=master");
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Verify server dropdown is populated from saved connections
+        const serverComponent = controller.state.formComponents.serverName;
+        expect(serverComponent.options).to.have.length(1);
+        expect(serverComponent.options[0].displayName).to.equal("Test Server");
+
+        // Get and call the connectToServer reducer
+        const reducerHandlers = getReducerHandlers(controller);
+        const connectToServer = reducerHandlers.get("connectToServer");
+        expect(connectToServer, "connectToServer reducer should be registered").to.exist;
+
+        await connectToServer(controller.state, { connectionId: "profile-1" });
+
+        // Verify database dropdown is populated after connection
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.length(3);
+        expect(databaseComponent.options.map((o: { value: string }) => o.value)).to.include(
+            "MyDatabase",
+        );
+
+        // Verify state is updated correctly
+        expect(controller.state.selectedProfileId).to.equal("profile-1");
+        expect(controller.state.loadConnectionStatus).to.equal(ApiStatus.Loaded);
+    });
+
+    test("connectToServer reducer handles connection failure and displays error", async () => {
+        const mockSavedConnections: Partial<IConnectionProfileWithSource>[] = [
+            {
+                id: "profile-1",
+                server: "badserver.database.windows.net",
+                database: "master",
+                user: "testuser",
+                profileName: "Bad Server",
+                authenticationType: "SqlLogin",
+            },
+        ];
+
+        mockConnectionStore.readAllConnections.resolves(
+            mockSavedConnections as IConnectionProfileWithSource[],
+        );
+        mockConnectionManager.connect.resolves(false);
+        mockConnectionManager.getUriForConnection.returns("");
+        mockConnectionManager.isConnected.returns(false);
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const reducerHandlers = getReducerHandlers(controller);
+        const connectToServer = reducerHandlers.get("connectToServer");
+
+        await connectToServer(controller.state, { connectionId: "profile-1" });
+
+        // Verify error message is displayed
+        expect(controller.state.formMessage).to.exist;
+        expect(controller.state.formMessage?.intent).to.equal("error");
+
+        // Verify database dropdown is cleared on error
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent.options).to.have.length(0);
+
+        // Verify loading status is properly set to error
+        expect(controller.state.loadConnectionStatus).to.equal(ApiStatus.Error);
     });
     //#endregion
 
@@ -662,7 +775,7 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         };
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
 
         // Update deployment options
@@ -728,7 +841,7 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         };
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
 
         // Set initial state
@@ -761,7 +874,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
 
         // Set up default deployment options
@@ -829,7 +942,7 @@ suite("PublishProjectWebViewController Tests", () => {
             "executePublishAndGenerateScript",
         );
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const generatePublishScript = reducerHandlers.get("generatePublishScript");
         expect(generatePublishScript, "generatePublishScript reducer should be registered").to
             .exist;
@@ -876,7 +989,7 @@ suite("PublishProjectWebViewController Tests", () => {
             "executePublishAndGenerateScript",
         );
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
         expect(publishNow, "publishNow reducer should be registered").to.exist;
 
@@ -942,7 +1055,7 @@ suite("PublishProjectWebViewController Tests", () => {
             DatabaseName: "ProductionDB",
         };
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const revertSqlCmdVariables = reducerHandlers.get("revertSqlCmdVariables");
         expect(revertSqlCmdVariables, "revertSqlCmdVariables reducer should be registered").to
             .exist;
@@ -991,7 +1104,7 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         });
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
         expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
 
@@ -1081,7 +1194,7 @@ suite("PublishProjectWebViewController Tests", () => {
             configurable: true,
         });
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
 
         // Execute publish
@@ -1168,7 +1281,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
 
         // Execute publish
@@ -1207,7 +1320,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
 
         // Execute publish
@@ -1251,7 +1364,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
 
         // Execute publish
@@ -1275,7 +1388,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const reducerHandlers = getReducerHandlers(controller);
         const publishNow = reducerHandlers.get("publishNow");
 
         // Execute publish
