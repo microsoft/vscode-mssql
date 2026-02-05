@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useMemo, useCallback } from "react";
+import React from "react";
 import {
     makeStyles,
     shorthands,
