@@ -11,12 +11,17 @@ import {
     HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
     SET_CONTEXT_COMMAND,
 } from "../../src/uriOwnership";
+import MainController from "../../src/controllers/mainController";
 
 suite("UriOwnershipCoordinator Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let fakeContext: any;
-    let fakeConnectionManager: any;
-    let fakeMainController: any;
+    let fakeContext: vscode.ExtensionContext;
+    let fakeConnectionManager: {
+        isConnected: sinon.SinonStub;
+        isConnecting: sinon.SinonStub;
+        onConnectionsChanged: sinon.SinonStub;
+    };
+    let fakeMainController: MainController;
     let executeCommandStub: sinon.SinonStub;
     let getExtensionStub: sinon.SinonStub;
     let onDidChangeActiveTextEditorStub: sinon.SinonStub;
@@ -27,7 +32,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         sandbox = sinon.createSandbox();
         fakeContext = {
             subscriptions: [],
-        };
+        } as unknown as vscode.ExtensionContext;
 
         // Mock connection manager (MSSQL uses onConnectionsChanged instead of separate events)
         fakeConnectionManager = {
@@ -41,7 +46,7 @@ suite("UriOwnershipCoordinator Tests", () => {
 
         fakeMainController = {
             connectionManager: fakeConnectionManager,
-        };
+        } as unknown as MainController;
 
         // Mock vscode.commands.executeCommand
         executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
@@ -52,7 +57,7 @@ suite("UriOwnershipCoordinator Tests", () => {
         // Mock vscode.window.onDidChangeActiveTextEditor
         onDidChangeActiveTextEditorStub = sandbox
             .stub(vscode.window, "onDidChangeActiveTextEditor")
-            .callsFake((cb: any) => {
+            .callsFake((cb: (e: vscode.TextEditor | undefined) => void) => {
                 activeTextEditorChangeCallback = cb;
                 return { dispose: () => {} };
             });
@@ -315,15 +320,17 @@ suite("UriOwnershipCoordinator Tests", () => {
             const testUri = vscode.Uri.parse("file:///test.sql");
             sandbox.stub(vscode.commands, "executeCommand").resolves();
             sandbox.stub(vscode.extensions, "getExtension").returns(undefined);
-            sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").callsFake((cb: any) => {
-                activeTextEditorChangeCallback = cb;
-                return { dispose: () => {} };
-            });
+            sandbox
+                .stub(vscode.window, "onDidChangeActiveTextEditor")
+                .callsFake((cb: (e: vscode.TextEditor | undefined) => void) => {
+                    activeTextEditorChangeCallback = cb;
+                    return { dispose: () => {} };
+                });
             sandbox.stub(vscode.window, "activeTextEditor").value({
                 document: { uri: testUri },
             });
 
-            fakeContext = { subscriptions: [] };
+            fakeContext = { subscriptions: [] } as unknown as vscode.ExtensionContext;
             const coordinator = new UriOwnershipCoordinator(fakeContext);
 
             let eventFired = false;
@@ -378,16 +385,18 @@ suite("UriOwnershipCoordinator Tests", () => {
             sandbox
                 .stub(vscode.extensions, "getExtension")
                 .withArgs("ms-ossdata.vscode-pgsql")
-                .returns(mockExtension);
-            sandbox.stub(vscode.window, "onDidChangeActiveTextEditor").callsFake((cb: any) => {
-                activeTextEditorChangeCallback = cb;
-                return { dispose: () => {} };
-            });
+                .returns(mockExtension as unknown as vscode.Extension<unknown>);
+            sandbox
+                .stub(vscode.window, "onDidChangeActiveTextEditor")
+                .callsFake((cb: (e: vscode.TextEditor | undefined) => void) => {
+                    activeTextEditorChangeCallback = cb;
+                    return { dispose: () => {} };
+                });
             sandbox.stub(vscode.window, "activeTextEditor").value({
                 document: { uri: testUri },
             });
 
-            new UriOwnershipCoordinator(fakeContext);
+            new UriOwnershipCoordinator(fakeContext as vscode.ExtensionContext);
 
             sinon.assert.calledWith(
                 executeCommandStub,
