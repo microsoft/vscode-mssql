@@ -1162,8 +1162,17 @@
     <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
       <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
+      <source xml:lang="en">Container name and port are required to check container readiness.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c988a04c68ad84375f618514201df662f5e213301f897d4f937005ded7b3b6ac">
+      <source xml:lang="en">Container name is invalid or already in use</source>
+    </trans-unit>
     <trans-unit id="++CODE++ee060d909ac8f92d5b43012fb61218d44b303601dca7b271908151aa6ae86b17">
       <source xml:lang="en">Container name is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
+      <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
     </trans-unit>
     <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
       <source xml:lang="en">Containment Type</source>
@@ -1350,6 +1359,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bbcc8ec46f073cbd388af310bcbc345a5355bdab1d6598778c52e8b98cab5128">
       <source xml:lang="en">DAB</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
+      <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
       <source xml:lang="en">DAB container is running!</source>
@@ -2213,6 +2225,9 @@
       <source xml:lang="en">Failed to open script: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
+      <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
     </trans-unit>
@@ -2253,6 +2268,12 @@
       <source xml:lang="en">Failed to save scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the save scmp operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++69844cf3a734ae7ea156a613f4d02d35df0d04fcda909d938898102ee51f61af">
+      <source xml:lang="en">Failed to start DAB container.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b3b2ad10c0a631a51cd924996fff46c30bbf9c35362f3aaa9f61b6006c660f1">
+      <source xml:lang="en">Failed to start DAB container. Please check the Docker logs for details.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
       <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
     </trans-unit>
@@ -2266,6 +2287,9 @@
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
       <note>Failed to start {0}.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b">
+      <source xml:lang="en">Failed to stop and remove DAB container.</source>
     </trans-unit>
     <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
       <source xml:lang="en">Failed to stop {0}.</source>
@@ -3768,6 +3792,10 @@
     <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
       <source xml:lang="en">Port to expose the API on (default: 5000)</source>
     </trans-unit>
+    <trans-unit id="++CODE++3a58feb1e22248ce4bb3611c187647b0c0f63250987596ac368c0191403c6367">
+      <source xml:lang="en">Port {0} is already in use</source>
+      <note>{0} is the port number</note>
+    </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
     </trans-unit>
@@ -5211,6 +5239,10 @@
     </trans-unit>
     <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
       <source xml:lang="en">Unknown account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd50aadb6084f5609d08480385c3e9bc12846606183a1654310b4cdbeb953855">
+      <source xml:lang="en">Unknown deployment step: {0}</source>
+      <note>{0} is the deployment step number</note>
     </trans-unit>
     <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
       <source xml:lang="en">Unknown error</source>

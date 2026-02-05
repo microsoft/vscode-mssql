@@ -1160,7 +1160,7 @@ export async function pullDabContainerImage(): Promise<DockerCommandParams> {
         dockerLogger.appendLine(`Failed to pull DAB container image: ${getErrorMessage(e)}`);
         return {
             success: false,
-            error: "Failed to pull DAB container image. Please check your network connection.",
+            error: LocalContainers.dabPullImageError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -1214,7 +1214,7 @@ export async function startDabDockerContainer(
         dockerLogger.appendLine(`Failed to start DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
-            error: "Failed to start DAB container. Please check the Docker logs for details.",
+            error: LocalContainers.dabStartContainerError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -1277,7 +1277,7 @@ export async function checkIfDabContainerIsReady(
                 }
                 return resolve({
                     success: false,
-                    error: "DAB container failed to become ready within the timeout period.",
+                    error: LocalContainers.dabContainerReadyTimeout,
                 });
             }
         }, intervalMs);
@@ -1314,7 +1314,7 @@ export async function stopAndRemoveDabContainer(
         dockerLogger.appendLine(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
         return {
             success: false,
-            error: "Failed to stop and remove DAB container.",
+            error: LocalContainers.dabStopContainerError,
             fullErrorText: getErrorMessage(e),
         };
     }

@@ -101,10 +101,10 @@ export class DabService implements Dab.IDabService {
             validatedContainerName: containerNameValidation,
             containerNameError: isContainerNameValid
                 ? undefined
-                : "Container name is invalid or already in use",
+                : LocalContainers.dabContainerNameInvalidOrInUse,
             isPortValid,
             suggestedPort,
-            portError: isPortValid ? undefined : `Port ${port} is already in use`,
+            portError: isPortValid ? undefined : LocalContainers.dabPortAlreadyInUse(port),
         };
     }
 
@@ -177,7 +177,7 @@ export class DabService implements Dab.IDabService {
                 if (!params || !configContent) {
                     result = {
                         success: false,
-                        error: "Container name, port, and config content are required to start the container.",
+                        error: LocalContainers.dabStartContainerMissingParams,
                     };
                     break;
                 }
@@ -206,7 +206,7 @@ export class DabService implements Dab.IDabService {
                     this.cleanupDabConfigFile(configFilePath);
                     result = {
                         success: false,
-                        error: "Failed to start DAB container.",
+                        error: LocalContainers.dabFailedToStartContainer,
                         fullErrorText: getErrorMessage(e),
                     };
                 }
@@ -217,7 +217,7 @@ export class DabService implements Dab.IDabService {
                 if (!params) {
                     result = {
                         success: false,
-                        error: "Container name and port are required to check container readiness.",
+                        error: LocalContainers.dabCheckContainerMissingParams,
                     };
                     break;
                 }
@@ -240,7 +240,7 @@ export class DabService implements Dab.IDabService {
             default:
                 result = {
                     success: false,
-                    error: `Unknown deployment step: ${step}`,
+                    error: LocalContainers.dabUnknownDeploymentStep(step),
                 };
         }
 

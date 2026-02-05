@@ -2014,6 +2014,22 @@
     "Enter hostname": "Enter hostname",
     "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.": "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
     "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.": "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    "Container name is invalid or already in use": "Container name is invalid or already in use",
+    "Port {0} is already in use/{0} is the port number": {
+        "message": "Port {0} is already in use",
+        "comment": ["{0} is the port number"]
+    },
+    "Container name, port, and config content are required to start the container.": "Container name, port, and config content are required to start the container.",
+    "Failed to start DAB container.": "Failed to start DAB container.",
+    "Container name and port are required to check container readiness.": "Container name and port are required to check container readiness.",
+    "Unknown deployment step: {0}/{0} is the deployment step number": {
+        "message": "Unknown deployment step: {0}",
+        "comment": ["{0} is the deployment step number"]
+    },
+    "Failed to pull DAB container image. Please check your network connection.": "Failed to pull DAB container image. Please check your network connection.",
+    "Failed to start DAB container. Please check the Docker logs for details.": "Failed to start DAB container. Please check the Docker logs for details.",
+    "DAB container failed to become ready within the timeout period.": "DAB container failed to become ready within the timeout period.",
+    "Failed to stop and remove DAB container.": "Failed to stop and remove DAB container.",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
     "What can we do to improve?": "What can we do to improve?",
     "Take Survey": "Take Survey",

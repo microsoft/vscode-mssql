@@ -31,8 +31,7 @@ function isExpandCollapseButtonsEnabled(): boolean {
 }
 
 function isDABEnabled(): boolean {
-    // return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
-    return true;
+    return vscode.workspace.getConfiguration().get<boolean>(configEnableDab) as boolean;
 }
 
 const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
