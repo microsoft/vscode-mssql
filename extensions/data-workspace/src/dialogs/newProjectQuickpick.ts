@@ -13,6 +13,7 @@ import { isValidBasenameErrorMessage } from "../common/pathUtilsHelper";
 
 /**
  * Create flow for a New Project using only VS Code-native APIs such as QuickPick
+ * @param workspaceService The workspace service
  * @returns The URI of the created project, or undefined if the user cancelled
  */
 export async function createNewProjectWithQuickpick(

@@ -73,6 +73,7 @@ export async function showInfoMessageWithLearnMoreLink(
 /**
  * Consolidates on the error message string
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getErrorMessage(error: any): string {
   return error instanceof Error
     ? typeof error.message === "string"

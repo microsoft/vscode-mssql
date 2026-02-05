@@ -43,13 +43,12 @@ export class DataWorkspaceExtension implements IExtension {
     return this.workspaceService.validateWorkspace();
   }
 
-  openSpecificProjectNewProjectDialog(projectType: IProjectType): Promise<vscode.Uri | undefined> {
+  openSpecificProjectNewProjectDialog(_projectType: IProjectType): Promise<vscode.Uri | undefined> {
     if (!this.workspaceService.isProjectProviderAvailable) {
       void vscode.window.showErrorMessage(noProjectProvidingExtensionsInstalled);
+      return Promise.resolve(undefined);
     }
 
-    // Use VS Code quickpick flow - specific project type filtering is not supported in quickpick
-    // The user can select the appropriate project type from the list
     return createNewProjectWithQuickpick(this.workspaceService);
   }
 

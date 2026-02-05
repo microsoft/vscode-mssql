@@ -5,14 +5,15 @@
 
 import { EOL } from "os";
 import * as nls from "vscode-nls";
+import { getErrorMessage } from "./utils";
 const localize = nls.loadMessageBundle();
 
-export const ExtensionActivationError = (extensionId: string, err: any): string => {
+export const ExtensionActivationError = (extensionId: string, err: unknown): string => {
   return localize(
     "activateExtensionFailed",
     "Failed to load the project provider extension '{0}'. Error message: {1}",
     extensionId,
-    err.message ?? err,
+    getErrorMessage(err),
   );
 };
 export const UnknownProjectsError = (projectFiles: string[]): string => {
