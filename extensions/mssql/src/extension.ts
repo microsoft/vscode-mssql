@@ -29,6 +29,8 @@ export let controller: MainController = undefined;
 export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    uriOwnershipCoordinator = new UriOwnershipCoordinator(context);
+
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
@@ -46,6 +48,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
+
+    uriOwnershipCoordinator.initialize(controller);
+
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
@@ -76,7 +81,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
-    uriOwnershipCoordinator = new UriOwnershipCoordinator(controller, context);
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: async (ignoreFocusOut?: boolean) => {
@@ -194,8 +198,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                     connectionId,
                 );
             },
-            uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         } as vscodeMssql.IConnectionSharingService,
+        uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
     };
 }
 

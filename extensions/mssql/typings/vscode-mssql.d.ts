@@ -134,6 +134,7 @@ declare module "vscode-mssql" {
          * APIs for working with mssql connections
          */
         connectionSharing: IConnectionSharingService;
+        uriOwnershipApi: UriOwnershipApi;
     }
 
     /**
@@ -2729,6 +2730,5 @@ declare module "vscode-mssql" {
          * @returns The connection string if the connection is found, or undefined if the connection is not found.
          */
         getConnectionString(extensionId: string, connectionId: string): Promise<string | undefined>;
-        uriOwnershipApi: UriOwnershipApi;
     }
 }
