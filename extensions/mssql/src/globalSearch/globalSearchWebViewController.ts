@@ -104,8 +104,8 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         this._ownerUri = ownerUri;
         this._operationId = generateGuid();
-        this.logger.info(
-            `GlobalSearchWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}' - OperationId: ${this._operationId}`,
+        this.logInfo(
+            `GlobalSearchWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
         this.registerRpcHandlers();
         void this.initialize();
@@ -115,12 +115,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Clean up resources when the panel is closed
      */
     public override dispose(): void {
-        this.logger.info(`Disposing GlobalSearchWebViewController for ownerUri '${this._ownerUri}'`);
+        this.logInfo(`Disposing GlobalSearchWebViewController for ownerUri '${this._ownerUri}'`);
 
         // Disconnect the connection to avoid accumulating orphaned connections
         // Only disconnect if actually connected - avoid triggering cancel prompts for in-flight connections
         if (this._connectionManager.isConnected(this._ownerUri)) {
-            this.logger.info(`Disconnecting active connection for ownerUri '${this._ownerUri}'`);
+            this.logInfo(`Disconnecting active connection for ownerUri '${this._ownerUri}'`);
             void this._connectionManager.disconnect(this._ownerUri);
         }
 
@@ -132,10 +132,26 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Log helpers that automatically prefix every message with the correlation ID
+     * so log lines from different Global Search sessions can be distinguished.
+     */
+    private logInfo(message: string): void {
+        this.logger.info(`[${this._operationId}] ${message}`);
+    }
+
+    private logError(message: string): void {
+        this.logger.error(`[${this._operationId}] ${message}`);
+    }
+
+    private logWarn(message: string): void {
+        this.logger.warn(`[${this._operationId}] ${message}`);
+    }
+
+    /**
      * Initialize the webview by loading databases and setting up connection
      */
     private async initialize(): Promise<void> {
-        this.logger.info("Initializing Search Database webview");
+        this.logInfo("Initializing Search Database webview");
         const endActivity = startActivity(
             TelemetryViews.GlobalSearch,
             TelemetryActions.Initialize,
@@ -148,7 +164,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         try {
             // Guard: ensure _targetNode is defined (command can be invoked without a node)
             if (!this._targetNode?.connectionProfile) {
-                this.logger.error("Search Database requires an Object Explorer node to be selected");
+                this.logError("Search Database requires an Object Explorer node to be selected");
                 this.state.loadStatus = ApiStatus.Error;
                 this.state.errorMessage = LocConstants.GlobalSearch.noNodeSelected;
                 this.updateState();
@@ -177,14 +193,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             await this.loadMetadata();
 
             this.state.loadStatus = ApiStatus.Loaded;
-            this.logger.info("Search Database initialization completed successfully");
+            this.logInfo("Search Database initialization completed successfully");
             this.updateState();
 
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this._operationId,
             });
         } catch (error) {
-            this.logger.error(`Error initializing Search Database: ${getErrorMessage(error)}`);
+            this.logError(`Error initializing Search Database: ${getErrorMessage(error)}`);
             this.state.loadStatus = ApiStatus.Error;
             this.state.errorMessage = getErrorMessage(error);
             this.updateState();
@@ -212,7 +228,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      */
     private async ensureConnection(connectionUri: string): Promise<void> {
         const targetDatabase = this.state.selectedDatabase;
-        this.logger.info(
+        this.logInfo(
             `Ensuring connection for URI '${connectionUri}', target database '${targetDatabase}'`,
         );
 
@@ -223,14 +239,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
             if (currentDatabase === targetDatabase) {
                 // Existing connection is already targeting the desired database.
-                this.logger.info(
+                this.logInfo(
                     `Already connected to target database '${targetDatabase}', reusing connection`,
                 );
                 return;
             }
 
             // Connected, but to a different database. Disconnect so we can reconnect to the correct one.
-            this.logger.info(
+            this.logInfo(
                 `Connected to '${currentDatabase}' but need '${targetDatabase}', reconnecting`,
             );
             await this._connectionManager.disconnect(connectionUri);
@@ -240,7 +256,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         connectionCreds.database = targetDatabase;
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
-            this.logger.info(`Connecting to database '${targetDatabase}'`);
+            this.logInfo(`Connecting to database '${targetDatabase}'`);
             await this._connectionManager.connect(connectionUri, connectionCreds);
         }
 
@@ -248,7 +264,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             throw new Error(LocConstants.GlobalSearch.failedToEstablishConnection);
         }
 
-        this.logger.info(`Successfully connected to database '${targetDatabase}'`);
+        this.logInfo(`Successfully connected to database '${targetDatabase}'`);
     }
 
     /**
@@ -258,9 +274,9 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         try {
             const databases = await this._metadataService.getDatabases(this.state.connectionUri);
             this.state.availableDatabases = databases as string[];
-            this.logger.info(`Loaded ${this.state.availableDatabases.length} databases`);
+            this.logInfo(`Loaded ${this.state.availableDatabases.length} databases`);
         } catch (error) {
-            this.logger.error(`Error loading databases: ${getErrorMessage(error)}`);
+            this.logError(`Error loading databases: ${getErrorMessage(error)}`);
             // Don't fail initialization if database list fails
             this.state.availableDatabases = [this.state.selectedDatabase];
         }
@@ -270,12 +286,12 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
      * Load metadata for the currently selected database
      */
     private async loadMetadata(): Promise<void> {
-        this.logger.info(`Loading metadata for database '${this.state.selectedDatabase}'`);
+        this.logInfo(`Loading metadata for database '${this.state.selectedDatabase}'`);
         const cacheKey = `${this.state.connectionUri}:${this.state.selectedDatabase}`;
 
         // Check cache first
         if (this._metadataCache.has(cacheKey)) {
-            this.logger.info(`Using cached metadata for ${this.state.selectedDatabase}`);
+            this.logInfo(`Using cached metadata for ${this.state.selectedDatabase}`);
 
             sendActionEvent(TelemetryViews.GlobalSearch, TelemetryActions.LoadMetadata, {
                 operationId: this._operationId,
@@ -324,7 +340,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             // Select all schemas by default
             this.state.selectedSchemas = [...uniqueSchemas];
 
-            this.logger.info(
+            this.logInfo(
                 `Loaded ${metadata.length} objects for database ${this.state.selectedDatabase}`,
             );
 
@@ -337,7 +353,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             });
         } catch (error) {
             const errorMessage = getErrorMessage(error);
-            this.logger.error(`Error loading metadata: ${errorMessage}`);
+            this.logError(`Error loading metadata: ${errorMessage}`);
             this.state.errorMessage = errorMessage;
             this.state.loadStatus = ApiStatus.Error;
 
@@ -388,7 +404,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         // Use cached SearchResultItems instead of re-transforming from ObjectMetadata
         const allItems = this._searchResultItemCache.get(cacheKey) || [];
 
-        this.logger.info(
+        this.logInfo(
             `Applying filters and search: searchTerm='${this.state.searchTerm}', totalItems=${allItems.length}, selectedSchemas=${this.state.selectedSchemas.length}, filters=${JSON.stringify(this.state.objectTypeFilters)}`,
         );
 
@@ -429,7 +445,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         this.state.searchResults = results;
         this.state.totalResultCount = results.length;
-        this.logger.info(`Search complete: ${results.length} results match current filters`);
+        this.logInfo(`Search complete: ${results.length} results match current filters`);
     }
 
     /**
@@ -490,14 +506,14 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
     private registerRpcHandlers(): void {
         // Search
         this.registerReducer("search", async (state, payload) => {
-            this.logger.info(`Search requested with term: '${payload.searchTerm}'`);
+            this.logInfo(`Search requested with term: '${payload.searchTerm}'`);
             state.searchTerm = payload.searchTerm;
             this.applyFiltersAndSearch();
             return state;
         });
 
         this.registerReducer("clearSearch", async (state) => {
-            this.logger.info("Search cleared");
+            this.logInfo("Search cleared");
             state.searchTerm = "";
             this.applyFiltersAndSearch();
             return state;
@@ -505,7 +521,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         // Filters
         this.registerReducer("setDatabase", async (state, payload) => {
-            this.logger.info(
+            this.logInfo(
                 `Database change requested: '${state.selectedDatabase}' -> '${payload.database}'`,
             );
             if (state.selectedDatabase !== payload.database) {
@@ -536,7 +552,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                         operationId: this._operationId,
                     });
                 } catch (error) {
-                    this.logger.error(`Error switching database: ${getErrorMessage(error)}`);
+                    this.logError(`Error switching database: ${getErrorMessage(error)}`);
 
                     endActivity.endFailed(
                         new Error("Failed to switch database"),
@@ -552,7 +568,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("toggleObjectTypeFilter", async (state, payload) => {
             const filterKey = payload.objectType as keyof ObjectTypeFilters;
-            this.logger.info(
+            this.logInfo(
                 `Toggling object type filter '${filterKey}': ${state.objectTypeFilters[filterKey]} -> ${!state.objectTypeFilters[filterKey]}`,
             );
             state.objectTypeFilters[filterKey] = !state.objectTypeFilters[filterKey];
@@ -561,7 +577,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("setObjectTypeFilters", async (state, payload) => {
-            this.logger.info(
+            this.logInfo(
                 `Setting object type filters: ${JSON.stringify(payload.filters)}`,
             );
             state.objectTypeFilters = { ...payload.filters };
@@ -573,7 +589,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             const schema = payload.schema;
             const index = state.selectedSchemas.indexOf(schema);
             const action = index === -1 ? "adding" : "removing";
-            this.logger.info(`Toggling schema filter: ${action} '${schema}'`);
+            this.logInfo(`Toggling schema filter: ${action} '${schema}'`);
             if (index === -1) {
                 state.selectedSchemas = [...state.selectedSchemas, schema];
             } else {
@@ -584,7 +600,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("setSchemaFilters", async (state, payload) => {
-            this.logger.info(
+            this.logInfo(
                 `Setting schema filters: ${payload.schemas.length} schemas selected`,
             );
             state.selectedSchemas = [...payload.schemas];
@@ -593,7 +609,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("selectAllSchemas", async (state) => {
-            this.logger.info(
+            this.logInfo(
                 `Selecting all schemas (${state.availableSchemas.length} schemas)`,
             );
             state.selectedSchemas = [...state.availableSchemas];
@@ -602,7 +618,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("clearSchemaSelection", async (state) => {
-            this.logger.info("Clearing all schema selections");
+            this.logInfo("Clearing all schema selections");
             state.selectedSchemas = [];
             this.applyFiltersAndSearch();
             return state;
@@ -610,7 +626,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         // Object Actions
         this.registerReducer("scriptObject", async (state, payload) => {
-            this.logger.info(
+            this.logInfo(
                 `Script object requested: '${payload.object.fullName}' as ${payload.scriptType}`,
             );
             await this.scriptObject(payload.object, payload.scriptType);
@@ -618,19 +634,19 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("editData", async (state, payload) => {
-            this.logger.info(`Edit data requested for: '${payload.object.fullName}'`);
+            this.logInfo(`Edit data requested for: '${payload.object.fullName}'`);
             await this.editData(payload.object);
             return state;
         });
 
         this.registerReducer("modifyTable", async (state, payload) => {
-            this.logger.info(`Modify table requested for: '${payload.object.fullName}'`);
+            this.logInfo(`Modify table requested for: '${payload.object.fullName}'`);
             await this.modifyTable(payload.object);
             return state;
         });
 
         this.registerReducer("copyObjectName", async (state, payload) => {
-            this.logger.info(`Copying object name: '${payload.object.fullName}'`);
+            this.logInfo(`Copying object name: '${payload.object.fullName}'`);
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
                 LocConstants.GlobalSearch.copiedToClipboard(payload.object.fullName),
@@ -646,13 +662,13 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
 
         // Data refresh
         this.registerReducer("refreshDatabases", async (state) => {
-            this.logger.info("Refreshing databases list");
+            this.logInfo("Refreshing databases list");
             await this.loadDatabases();
             return state;
         });
 
         this.registerReducer("refreshResults", async (state) => {
-            this.logger.info(
+            this.logInfo(
                 `Refreshing results for database '${state.selectedDatabase}'`,
             );
 
@@ -685,7 +701,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                     operationId: this._operationId,
                 });
             } catch (error) {
-                this.logger.error(`Error refreshing results: ${getErrorMessage(error)}`);
+                this.logError(`Error refreshing results: ${getErrorMessage(error)}`);
 
                 endActivity.endFailed(
                     new Error("Failed to refresh results"),
@@ -774,7 +790,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         );
 
         try {
-            this.logger.info(
+            this.logInfo(
                 `Scripting object '${object.fullName}' (type: ${object.metadataTypeName}) with script type '${scriptType}'`,
             );
 
@@ -787,7 +803,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 object.metadataTypeName,
                 object.type,
             );
-            this.logger.info(
+            this.logInfo(
                 `Resolved scripting type name: '${scriptingTypeName}' (from metadataTypeName: '${object.metadataTypeName}')`,
             );
 
@@ -818,7 +834,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
             const script = await this._scriptingService.script(scriptingParams);
 
             if (script) {
-                this.logger.info(
+                this.logInfo(
                     `Script generated successfully for '${object.fullName}', opening in editor`,
                 );
                 // Open script in a new editor
@@ -828,7 +844,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 });
                 await vscode.window.showTextDocument(doc);
             } else {
-                this.logger.warn(`Scripting returned empty result for '${object.fullName}'`);
+                this.logWarn(`Scripting returned empty result for '${object.fullName}'`);
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -837,7 +853,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 objectType: object.metadataTypeName,
             });
         } catch (error) {
-            this.logger.error(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
+            this.logError(`Error scripting object '${object.fullName}': ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToScriptObject(getErrorMessage(error)),
             );
@@ -871,7 +887,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         );
 
         try {
-            this.logger.info(
+            this.logInfo(
                 `Opening Edit Data for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
             );
             // Create a synthetic node structure that matches what TableExplorerWebViewController expects
@@ -900,7 +916,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 operationId: this._operationId,
             });
         } catch (error) {
-            this.logger.error(`Error opening Edit Data: ${getErrorMessage(error)}`);
+            this.logError(`Error opening Edit Data: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToOpenEditData(getErrorMessage(error)),
             );
@@ -930,7 +946,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
         );
 
         try {
-            this.logger.info(
+            this.logInfo(
                 `Opening Modify Table for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
             );
             // Create a synthetic node structure that matches what TableDesignerWebviewController expects
@@ -965,7 +981,7 @@ export class GlobalSearchWebViewController extends ReactWebviewPanelController<
                 operationId: this._operationId,
             });
         } catch (error) {
-            this.logger.error(`Error opening Modify Table: ${getErrorMessage(error)}`);
+            this.logError(`Error opening Modify Table: ${getErrorMessage(error)}`);
             void vscode.window.showErrorMessage(
                 LocConstants.GlobalSearch.failedToOpenModifyTable(getErrorMessage(error)),
             );
