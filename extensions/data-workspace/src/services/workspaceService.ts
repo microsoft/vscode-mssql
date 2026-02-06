@@ -15,7 +15,6 @@ import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
 import Logger from "../common/logger";
 import { TelemetryReporter, TelemetryViews, TelemetryActions } from "../common/telemetry";
 import { Deferred } from "../common/promise";
-import { getAzdataApi } from "../common/utils";
 
 const WorkspaceConfigurationName = "dataworkspace";
 const ExcludedProjectsConfigurationName = "excludedProjects";
@@ -57,28 +56,13 @@ export class WorkspaceService implements IWorkspaceService {
   }
 
   /**
-   * Verify that a workspace is open or that if one isn't and we're running in ADS, it's ok to create a workspace and restart ADS
+   * Verify that a workspace is open. VS Code doesn't require reloading the window when creating a workspace or
+   * adding the first item to an open workspace.
    */
   async validateWorkspace(): Promise<boolean> {
-    if (
-      getAzdataApi() &&
-      (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0)
-    ) {
-      const result = await vscode.window.showWarningMessage(
-        constants.RestartConfirmation,
-        { modal: true },
-        constants.OkButtonText,
-      );
-      if (result === constants.OkButtonText) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      // workspace is open or we're running in VS Code. VS Code doesn't require reloading the window when creating a workspace or
-      // adding the first item to an open workspace and so this check is unnecessary there.
-      return true;
-    }
+    // VS Code doesn't require reloading the window when creating a workspace or
+    // adding the first item to an open workspace, so this always returns true.
+    return true;
   }
 
   public async addProjectsToWorkspace(projectFiles: vscode.Uri[]): Promise<void> {

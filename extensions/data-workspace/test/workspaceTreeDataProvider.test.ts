@@ -5,12 +5,16 @@
 
 import { IDashboardTable, IProjectProvider, WorkspaceTreeItem } from "dataworkspace";
 import "mocha";
-import * as should from "should";
+import * as chai from "chai";
+import { expect } from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { WorkspaceTreeDataProvider } from "../common/workspaceTreeDataProvider";
-import { WorkspaceService } from "../services/workspaceService";
+import { WorkspaceTreeDataProvider } from "../src/common/workspaceTreeDataProvider";
+import { WorkspaceService } from "../src/services/workspaceService";
 import { MockTreeDataProvider } from "./projectProviderRegistry.test";
+
+chai.use(sinonChai);
 
 suite("workspaceTreeDataProvider Tests", function (): void {
   let sandbox: sinon.SinonSandbox;
@@ -31,7 +35,8 @@ suite("workspaceTreeDataProvider Tests", function (): void {
       treeDataChangeHandler(e);
     });
     await treeProvider.refresh();
-    should.strictEqual(treeDataChangeHandler.calledOnce, true);
+    expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have.been
+      .calledOnce;
   });
 
   test("test getTreeItem()", async function (): Promise<void> {
@@ -43,7 +48,7 @@ suite("workspaceTreeDataProvider Tests", function (): void {
         },
       } as vscode.TreeDataProvider<any>,
     } as WorkspaceTreeItem);
-    should.strictEqual(getTreeItemStub.calledOnce, true);
+    expect(getTreeItemStub, "getTreeItem should have been called once").to.have.been.calledOnce;
   });
 
   test("test getChildren() for non-root element", async () => {
@@ -57,12 +62,11 @@ suite("workspaceTreeDataProvider Tests", function (): void {
       element: "obj1",
     };
     const children = await treeProvider.getChildren(element);
-    should.strictEqual(children.length, 0, "children count should be 0");
-    should.strictEqual(
-      getChildrenStub.calledWithExactly("obj1"),
-      true,
-      "getChildren parameter should be obj1",
-    );
+    expect(children.length, "children count should be 0").to.equal(0);
+    expect(
+      getChildrenStub,
+      "getChildren should have been called with obj1",
+    ).to.have.been.calledWithExactly("obj1");
   });
 
   test("test getChildren() for root element", async () => {
@@ -144,22 +148,13 @@ suite("workspaceTreeDataProvider Tests", function (): void {
     sandbox.stub(treeDataProvider, "getChildren").resolves(["treeitem1"]);
     const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
     const children = await treeProvider.getChildren(undefined);
-    should.strictEqual(children.length, 1, "there should be 1 tree item returned");
-    should.strictEqual(children[0].element, "treeitem1");
-    should.strictEqual(
-      getProjectsInWorkspaceStub.calledOnce,
-      true,
-      "getProjectsInWorkspaceStub should be called",
-    );
-    should.strictEqual(
-      getProjectProviderStub.calledTwice,
-      true,
-      "getProjectProvider should be called twice",
-    );
-    should.strictEqual(
-      showErrorMessageStub.calledOnce,
-      true,
-      "showErrorMessage should be called once",
-    );
+    expect(children.length, "there should be 1 tree item returned").to.equal(1);
+    expect(children[0].element, "first child element should be treeitem1").to.equal("treeitem1");
+    expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to
+      .have.been.calledOnce;
+    expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have.been
+      .calledTwice;
+    expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been
+      .calledOnce;
   });
 });
