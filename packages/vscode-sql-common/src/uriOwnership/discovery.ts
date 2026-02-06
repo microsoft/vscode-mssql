@@ -15,7 +15,7 @@ import { PACKAGE_JSON_COMMON_FEATURES_KEY } from "./constants";
  * {
  *   "displayName": "SQL Server (mssql)",
  *   "contributes": {
- *     "sql-extension-common-features": {
+ *     "vscode-sql-common-features": {
  *       "uriOwnershipApi": true
  *     }
  *   }

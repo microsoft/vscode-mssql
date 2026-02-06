@@ -110,14 +110,14 @@ export interface UriOwnershipDeferredConfig {
 }
 
 /**
- * The value of the sql-extension-common-features contribution in package.json.
+ * The value of the vscode-sql-common-features contribution in package.json.
  *
  * Example in package.json:
  * ```json
  * {
  *   "displayName": "SQL Server (mssql)",
  *   "contributes": {
- *     "sql-extension-common-features": {
+ *     "vscode-sql-common-features": {
  *       "uriOwnershipApi": true
  *     }
  *   }

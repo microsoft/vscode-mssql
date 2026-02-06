@@ -204,7 +204,7 @@
         }
     },
     "contributes": {
-        "sql-extension-common-features": {
+        "vscode-sql-common-features": {
             "uriOwnershipApi": true
         },
         "viewsContainers": {

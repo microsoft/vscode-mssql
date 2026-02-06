@@ -12,14 +12,14 @@
  * {
  *   "displayName": "SQL Server (mssql)",
  *   "contributes": {
- *     "sql-extension-common-features": {
+ *     "vscode-sql-common-features": {
  *       "uriOwnershipApi": true
  *     }
  *   }
  * }
  * ```
  */
-export const PACKAGE_JSON_COMMON_FEATURES_KEY = "sql-extension-common-features";
+export const PACKAGE_JSON_COMMON_FEATURES_KEY = "vscode-sql-common-features";
 
 /**
  * VS Code command to set context keys.

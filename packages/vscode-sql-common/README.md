@@ -44,7 +44,7 @@ Add this to your extension's `package.json`:
 {
   "displayName": "SQL Server (mssql)",
   "contributes": {
-    "sql-extension-common-features": {
+    "vscode-sql-common-features": {
       "uriOwnershipApi": true
     }
   }
@@ -150,7 +150,7 @@ interface UriOwnershipConfig {
 
 ## How It Works
 
-1. **Discovery**: On activation, the coordinator scans all installed extensions for the `sql-extension-common-features` contribution in their `package.json`.
+1. **Discovery**: On activation, the coordinator scans all installed extensions for the `vscode-sql-common-features` contribution in their `package.json`.
 
 2. **API Exchange**: The coordinator activates discovered extensions and retrieves their `uriOwnershipApi` from their exports.
 
