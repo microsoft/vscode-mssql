@@ -108,8 +108,8 @@ export class ProfilerController {
             // Store the engine type for this profiler URI
             this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
 
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
+            // Use the common setup method - pass engine type to avoid race condition
+            await this.setupProfilerUI(profilerUri, this._currentEngineType);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
@@ -457,19 +457,22 @@ export class ProfilerController {
      * Prompts user to select a template and session name, creates the session,
      * and auto-starts profiling.
      * @param profilerUri - The URI of the established profiler connection
+     * @param engineType - The engine type for filtering templates
      */
-    private async setupProfilerUI(profilerUri: string): Promise<void> {
+    private async setupProfilerUI(profilerUri: string, engineType: EngineType): Promise<void> {
         this._profilerUri = profilerUri;
 
         // Step 1: Show template selection quick pick (filtered by engine type)
         const configService = getProfilerConfigService();
-        const templates = configService.getTemplatesForEngine(this._currentEngineType);
+        const templates = configService.getTemplatesForEngine(engineType);
         this._logger.verbose(
-            `Filtered templates for engine ${this._currentEngineType}: ${templates.length} available`,
+            `Filtered templates for engine ${engineType}: ${templates.length} available`,
         );
 
         if (templates.length === 0) {
             vscode.window.showWarningMessage(LocProfiler.noTemplatesAvailable);
+            // Disconnect since no templates are available and we can't proceed
+            await this._connectionManager.disconnect(profilerUri);
             return;
         }
 
@@ -706,13 +709,13 @@ export class ProfilerController {
                 await this.startSession(sessionName, webviewController);
 
                 vscode.window.showInformationMessage(
-                    LocProfiler.sessionCreatedSuccessfully(sessionName),
+                    LocProfiler.sessionStartedSuccessfully(sessionName),
                 );
             }
         } catch (e) {
             this._logger.error(`Error creating/starting session: ${e}`);
-            webviewController.setCreatingSession(false);
             vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            webviewController.dispose();
         }
     }
 }
