@@ -88,9 +88,13 @@ export function stubWebviewPanel(sandbox: sinon.SinonSandbox): vscode.WebviewPan
 
     return {
         webview: webviewStub,
+        visible: true,
         reveal: sandbox.stub(),
         dispose: sandbox.stub(),
         onDidDispose: sandbox.stub().callsFake(() => {
+            return { dispose: sandbox.stub() } as vscode.Disposable;
+        }),
+        onDidChangeViewState: sandbox.stub().callsFake(() => {
             return { dispose: sandbox.stub() } as vscode.Disposable;
         }),
     } as unknown as vscode.WebviewPanel;

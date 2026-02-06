@@ -21,7 +21,12 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, FilterOperator } from "./profilerTypes";
+import {
+    EventRow,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    FilterOperator,
+} from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 

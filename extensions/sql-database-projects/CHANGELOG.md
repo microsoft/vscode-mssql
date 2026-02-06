@@ -6,6 +6,10 @@ All notable changes to the SQL Database Projects extension will be documented in
 
 ## [Unreleased]
 
+## [1.5.7] - 2026-02-27
+
+- Fixed an issue where system dacpac files were missing from the BuildDirectory, causing build failures for projects with system database references.
+
 ## [1.5.6] - 2026-01-28
 
 - Added a new 'Target platform' selector when creating an Azure SQL database project.
