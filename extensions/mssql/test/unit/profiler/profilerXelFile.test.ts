@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as path from "path";
 import { ProfilerSession, ProfilerSessionOptions } from "../../../src/profiler/profilerSession";
 import { SessionType, SessionState, XelFileInfo } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
@@ -32,7 +33,7 @@ function createMockProfilerService(): ProfilerService {
 }
 
 suite("ProfilerSession XEL File Tests", () => {
-    const xelFilePath = "C:\\test\\events\\trace.xel";
+    const xelFilePath = path.join("test", "events", "trace.xel");
 
     const fileSessionOptions: ProfilerSessionOptions = {
         id: "file-session-1",
@@ -143,24 +144,26 @@ suite("ProfilerSession XEL File Tests", () => {
 
 suite("XelFileInfo Tests", () => {
     test("should contain required properties", () => {
+        const testFilePath = path.join("test", "trace.xel");
         const xelFileInfo: XelFileInfo = {
-            filePath: "C:\\test\\trace.xel",
+            filePath: testFilePath,
             fileName: "trace.xel",
             fileSize: 1024,
         };
 
-        expect(xelFileInfo.filePath).to.equal("C:\\test\\trace.xel");
+        expect(xelFileInfo.filePath).to.equal(testFilePath);
         expect(xelFileInfo.fileName).to.equal("trace.xel");
         expect(xelFileInfo.fileSize).to.equal(1024);
     });
 
     test("should allow optional fileSize", () => {
+        const testFilePath = path.join("test", "trace.xel");
         const xelFileInfo: XelFileInfo = {
-            filePath: "C:\\test\\trace.xel",
+            filePath: testFilePath,
             fileName: "trace.xel",
         };
 
-        expect(xelFileInfo.filePath).to.equal("C:\\test\\trace.xel");
+        expect(xelFileInfo.filePath).to.equal(testFilePath);
         expect(xelFileInfo.fileName).to.equal("trace.xel");
         expect(xelFileInfo.fileSize).to.be.undefined;
     });
@@ -176,14 +179,15 @@ suite("ProfilerWebviewState Read-Only Tests", () => {
             xelFileName?: string;
         }
 
+        const testFilePath = path.join("test", "trace.xel");
         const readOnlyState: TestState = {
             isReadOnly: true,
-            xelFilePath: "C:\\test\\trace.xel",
+            xelFilePath: testFilePath,
             xelFileName: "trace.xel",
         };
 
         expect(readOnlyState.isReadOnly).to.be.true;
-        expect(readOnlyState.xelFilePath).to.equal("C:\\test\\trace.xel");
+        expect(readOnlyState.xelFilePath).to.equal(testFilePath);
         expect(readOnlyState.xelFileName).to.equal("trace.xel");
     });
 

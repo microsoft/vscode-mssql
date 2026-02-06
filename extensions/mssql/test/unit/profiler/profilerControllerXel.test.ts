@@ -49,8 +49,8 @@ suite("ProfilerController XEL File Tests", () => {
     suite("XEL File Validation", () => {
         test("should validate .xel file extension correctly", () => {
             const validPaths = [
-                "C:\\test\\trace.xel",
-                "/home/user/trace.xel",
+                path.join("test", "trace.xel"),
+                path.join("home", "user", "trace.xel"),
                 "trace.xel",
                 "Trace.XEL", // case insensitive
             ];
@@ -63,8 +63,8 @@ suite("ProfilerController XEL File Tests", () => {
 
         test("should reject non-.xel file extensions", () => {
             const invalidPaths = [
-                "C:\\test\\trace.xml",
-                "/home/user/trace.log",
+                path.join("test", "trace.xml"),
+                path.join("home", "user", "trace.log"),
                 "trace.txt",
                 "trace.xel.bak",
             ];
@@ -129,19 +129,20 @@ suite("ProfilerController XEL File Tests", () => {
 
     suite("XelFileInfo", () => {
         test("should create XelFileInfo with all properties", () => {
+            const testFilePath = path.join("test", "events", "trace.xel");
             const fileInfo: XelFileInfo = {
-                filePath: "C:\\test\\events\\trace.xel",
+                filePath: testFilePath,
                 fileName: "trace.xel",
                 fileSize: 2048,
             };
 
-            expect(fileInfo.filePath).to.equal("C:\\test\\events\\trace.xel");
+            expect(fileInfo.filePath).to.equal(testFilePath);
             expect(fileInfo.fileName).to.equal("trace.xel");
             expect(fileInfo.fileSize).to.equal(2048);
         });
 
         test("should extract fileName from filePath correctly", () => {
-            const filePath = "C:\\test\\events\\trace.xel";
+            const filePath = path.join("test", "events", "trace.xel");
             const fileName = path.basename(filePath);
 
             expect(fileName).to.equal("trace.xel");
@@ -153,7 +154,7 @@ suite("ProfilerController XEL File Tests", () => {
             const session = sessionManager.createSession({
                 id: "test-session",
                 ownerUri: "profiler://test",
-                sessionName: "C:\\test\\trace.xel",
+                sessionName: path.join("test", "trace.xel"),
                 sessionType: SessionType.File,
                 templateName: "Standard",
                 readOnly: true,
@@ -182,7 +183,7 @@ suite("ProfilerController XEL File Tests", () => {
             const session = sessionManager.createSession({
                 id: "xel-session",
                 ownerUri: "profiler://test",
-                sessionName: "C:\\test\\trace.xel",
+                sessionName: path.join("test", "trace.xel"),
                 sessionType: SessionType.File,
                 templateName: "Standard",
                 readOnly: true,
@@ -196,7 +197,7 @@ suite("ProfilerController XEL File Tests", () => {
             const session = sessionManager.createSession({
                 id: "xel-session",
                 ownerUri: "profiler://test",
-                sessionName: "C:\\test\\trace.xel",
+                sessionName: path.join("test", "trace.xel"),
                 sessionType: SessionType.File,
                 templateName: "Standard",
                 readOnly: true,
@@ -214,7 +215,7 @@ suite("ProfilerController XEL File Tests", () => {
             const session = sessionManager.createSession({
                 id: "xel-session-1",
                 ownerUri: "profiler://test",
-                sessionName: "C:\\test\\trace.xel",
+                sessionName: path.join("test", "trace.xel"),
                 sessionType: SessionType.File,
                 templateName: "Standard",
                 readOnly: true,
@@ -230,7 +231,7 @@ suite("ProfilerController XEL File Tests", () => {
             sessionManager.createSession({
                 id: "xel-session-to-dispose",
                 ownerUri: "profiler://test",
-                sessionName: "C:\\test\\trace.xel",
+                sessionName: path.join("test", "trace.xel"),
                 sessionType: SessionType.File,
                 templateName: "Standard",
                 readOnly: true,
@@ -247,6 +248,7 @@ suite("ProfilerController XEL File Tests", () => {
 suite("ProfilerWebviewController Read-Only State Tests", () => {
     test("should pass isReadOnly state for XEL file sessions", () => {
         // This is a structural test to verify the state shape
+        const testFilePath = path.join("test", "trace.xel");
         const readOnlyState = {
             totalRowCount: 0,
             clearGeneration: 0,
@@ -254,13 +256,13 @@ suite("ProfilerWebviewController Read-Only State Tests", () => {
             autoScroll: false, // Should be disabled for read-only
             sessionName: "trace.xel",
             isReadOnly: true,
-            xelFilePath: "C:\\test\\trace.xel",
+            xelFilePath: testFilePath,
             xelFileName: "trace.xel",
         };
 
         expect(readOnlyState.isReadOnly).to.be.true;
         expect(readOnlyState.autoScroll).to.be.false;
-        expect(readOnlyState.xelFilePath).to.equal("C:\\test\\trace.xel");
+        expect(readOnlyState.xelFilePath).to.equal(testFilePath);
         expect(readOnlyState.xelFileName).to.equal("trace.xel");
     });
 
