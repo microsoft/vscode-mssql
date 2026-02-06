@@ -1,7 +1,6 @@
 # Build outputs
 out
 dist
-packages
 BuildDirectory
 
 # Dependencies

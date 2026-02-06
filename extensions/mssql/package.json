@@ -155,6 +155,7 @@
         "@types/lodash": "^4.17.21"
     },
     "dependencies": {
+        "@microsoft/sql-extension-common": "file:../../packages/sql-extension-common",
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^10.0.0",
         "@azure/arm-storage": "^19.0.0",
@@ -203,6 +204,9 @@
         }
     },
     "contributes": {
+        "sql-extension-common-features": {
+            "uriOwnershipApi": true
+        },
         "viewsContainers": {
             "activitybar": [
                 {

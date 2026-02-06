@@ -22,14 +22,23 @@ import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
-import { UriOwnershipCoordinator } from "./uriOwnership";
+import { UriOwnershipCoordinator } from "@microsoft/sql-extension-common";
+
+/**
+ * VS Code context key used to indicate when the active editor's URI is owned by another extension.
+ * When true, MSSQL UI elements should be hidden for this editor.
+ */
+const HIDE_UI_ELEMENTS_CONTEXT_VARIABLE = "mssql.hideUIElements";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
 export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
-    uriOwnershipCoordinator = new UriOwnershipCoordinator(context);
+    // Create coordinator early so uriOwnershipApi is available for export
+    uriOwnershipCoordinator = new UriOwnershipCoordinator(context, {
+        hideUiContextKey: HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
+    });
 
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
@@ -49,7 +58,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
 
-    uriOwnershipCoordinator.initialize(controller);
+    // Initialize coordinator now that connectionManager is available
+    const connectionManager = controller.connectionManager;
+    uriOwnershipCoordinator.initialize({
+        ownsUri: (uri: string) =>
+            connectionManager.isConnected(uri) || connectionManager.isConnecting(uri),
+        onDidChangeOwnership: connectionManager.onConnectionsChanged,
+        releaseUri: (uri: string) => {
+            void connectionManager.disconnect(uri);
+        },
+    });
 
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",

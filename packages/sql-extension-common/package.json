@@ -1,0 +1,43 @@
+{
+  "name": "@microsoft/sql-extension-common",
+  "version": "1.0.0",
+  "description": "Shared utilities for SQL VS Code extensions coordination",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "clean": "rimraf dist",
+    "test": "TS_NODE_PROJECT=tsconfig.test.json mocha --require ts-node/register --require test/setup.ts test/**/*.test.ts"
+  },
+  "keywords": [
+    "vscode",
+    "sql",
+    "extension",
+    "coordination"
+  ],
+  "author": "Microsoft",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^18.0.0",
+    "@types/mocha": "^10.0.0",
+    "@types/sinon": "^17.0.0",
+    "@types/chai": "^4.3.0",
+    "typescript": "^5.0.0",
+    "rimraf": "^5.0.0",
+    "mocha": "^10.0.0",
+    "sinon": "^17.0.0",
+    "chai": "^4.3.0",
+    "ts-node": "^10.9.0"
+  },
+  "peerDependencies": {
+    "vscode": "*"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
