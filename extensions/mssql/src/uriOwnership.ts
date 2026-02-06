@@ -154,6 +154,32 @@ export class UriOwnershipCoordinator {
 
         const uri = activeEditor.document.uri;
         const isOwnedByOther = this.isOwnedByCoordinatingExtension(uri);
+
+        /**
+         * BUG FIX: Race condition when both extensions connect to the same URI
+         *
+         * Scenario: User is connected to MSSQL, then runs "PGSQL: New Query"
+         *
+         * 1. PostgreSQL creates a new SQL document
+         * 2. MSSQL's onDidOpenTextDocument fires and auto-connects (using last active connection)
+         * 3. PostgreSQL shows its connection picker, user selects a PostgreSQL connection
+         * 4. PostgreSQL connects to the document
+         * 5. Now BOTH extensions are connected to the same URI!
+         *
+         * Without this fix:
+         * - MSSQL sees PostgreSQL owns the URI → sets mssql.hideUIElements = true → hides MSSQL UI
+         * - PostgreSQL sees MSSQL owns the URI → sets pgsql.hideUIElements = true → hides PostgreSQL UI
+         * - Result: BOTH extensions hide their UI, user sees nothing!
+         *
+         * With this fix:
+         * - When we detect the other extension owns a URI that we're also connected to,
+         *   we disconnect ourselves to yield ownership to the other extension.
+         * - This ensures only one extension is connected at a time, and only that extension shows its UI.
+         */
+        if (isOwnedByOther && this.isUriOwnedBySelf(uri) && this._connectionManager) {
+            void this._connectionManager.disconnect(uri.toString(true));
+        }
+
         void vscode.commands.executeCommand(
             SET_CONTEXT_COMMAND,
             HIDE_UI_ELEMENTS_CONTEXT_VARIABLE,
