@@ -273,8 +273,13 @@ export class ProjectsController {
 				const existingContent = await fs.readFile(tasksJsonPath, 'utf8');
 				const existingTasksJson = JSON.parse(existingContent);
 
-				// Ensure tasks array exists and is actually an array
-				if (!Array.isArray(existingTasksJson.tasks)) {
+				if (existingTasksJson.tasks !== undefined && !Array.isArray(existingTasksJson.tasks)) {
+					// This error is caught below — project creation still succeeds, only the tasks.json update is skipped
+					throw new Error(constants.tasksJsonInvalidTasksArrayError);
+				}
+
+				// Initialize tasks array if it doesn't exist yet
+				if (!existingTasksJson.tasks) {
 					existingTasksJson.tasks = [];
 				}
 
@@ -337,8 +342,7 @@ export class ProjectsController {
 
 		// Build args array for process execution (avoids shell escaping issues)
 		const buildArgs: string[] = [constants.build, projectFilePathNormalized];
-		const isSdkStyle = project.sqlProjStyleName === 'SdkStyle';
-		if (!isSdkStyle) {
+		if (project.sqlProjStyleName !== constants.sdkStyleProjectStyleName) {
 			// Legacy projects need additional build arguments
 			// No quotes needed - process execution handles paths with spaces correctly
 			const buildDirPath = utils.getPlatformSafeFileEntryPath(this.buildHelper.extensionBuildDirPath);
