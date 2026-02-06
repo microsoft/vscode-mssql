@@ -24,13 +24,6 @@ export class Common {
     public static error = l10n.t("Error");
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
-    public static fileOwnedByOtherExtension = (extensionName: string) =>
-        l10n.t({
-            message:
-                "This file is currently connected to {0}. Please disconnect from {0} before proceeding.",
-            args: [extensionName],
-            comment: ["{0} is the name of the other database extension"],
-        });
 }
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
