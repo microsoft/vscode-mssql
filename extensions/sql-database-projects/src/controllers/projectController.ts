@@ -303,7 +303,6 @@ export class ProjectsController {
 					// Show notification to user
 					void vscode.window.showInformationMessage(constants.updatingExistingTasksJson);
 				}
-				// If task already exists, do nothing
 			} catch (error) {
 				// If parsing fails, log error and notify user with option to view output
 				const errorMessage = utils.getErrorMessage(error);
