@@ -212,6 +212,97 @@ export namespace Dab {
         );
     }
 
+    /**
+     * Entity reference for DAB tool operations.
+     * Exactly one form is supported: id OR schemaName+tableName.
+     */
+    export type DABEntityRef = { id: string } | { schemaName: string; tableName: string };
+
+    export type DABEntitySettingsPatch = Partial<
+        Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
+    > & {
+        customRestPath?: string | null;
+        customGraphQLType?: string | null;
+    };
+
+    export type DABToolChange =
+        | { type: "set_api_types"; apiTypes: ApiType[] }
+        | { type: "set_entity_enabled"; entity: DABEntityRef; isEnabled: boolean }
+        | { type: "set_entity_actions"; entity: DABEntityRef; actions: EntityAction[] }
+        | { type: "patch_entity_settings"; entity: DABEntityRef; set: DABEntitySettingsPatch }
+        | { type: "set_only_enabled_entities"; entities: DABEntityRef[] }
+        | { type: "set_all_entities_enabled"; isEnabled: boolean };
+
+    export interface DabToolSummary {
+        entityCount: number;
+        enabledEntityCount: number;
+        apiTypes: ApiType[];
+    }
+
+    export interface GetDabToolStateResponse {
+        returnState: "full" | "summary";
+        stateOmittedReason?: "entity_count_over_threshold";
+        version: string;
+        summary: DabToolSummary;
+        config?: DabConfig;
+    }
+
+    export namespace GetDabToolStateRequest {
+        export const type = new RequestType<void, GetDabToolStateResponse, void>(
+            "dab/tool/getState",
+        );
+    }
+
+    export interface ApplyDabToolChangesParams {
+        expectedVersion: string;
+        changes: DABToolChange[];
+        options?: {
+            returnState?: "full" | "summary" | "none";
+        };
+    }
+
+    export type ApplyDabToolChangesResponse =
+        | {
+              success: true;
+              appliedChanges: number;
+              returnState: "full" | "summary" | "none";
+              stateOmittedReason?:
+                  | "entity_count_over_threshold"
+                  | "caller_requested_summary"
+                  | "caller_requested_none";
+              version: string;
+              summary: DabToolSummary;
+              config?: DabConfig;
+          }
+        | {
+              success: false;
+              reason:
+                  | "stale_state"
+                  | "not_found"
+                  | "invalid_request"
+                  | "validation_error"
+                  | "internal_error";
+              message: string;
+              failedChangeIndex?: number;
+              appliedChanges?: number;
+              version?: string;
+              summary?: DabToolSummary;
+              returnState?: "full" | "summary" | "none";
+              stateOmittedReason?:
+                  | "entity_count_over_threshold"
+                  | "caller_requested_summary"
+                  | "caller_requested_none";
+              config?: DabConfig;
+          };
+
+    export namespace ApplyDabToolChangesRequest {
+        export const type = new RequestType<
+            ApplyDabToolChangesParams,
+            ApplyDabToolChangesResponse,
+            void
+        >("dab/tool/applyChanges");
+    }
+
     // ============================================
     // Notifications (Webview -> Extension)
     // ============================================

@@ -1909,6 +1909,21 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on Data API Builder?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on Data API Builder",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     );
