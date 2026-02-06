@@ -25,6 +25,7 @@ const config = {
         ".ts": "ts",
         ".js": "js",
         ".json": "json",
+        ".node": "file",
     },
     tsconfig: "./tsconfig.extension.json",
     plugins: [esbuildProblemMatcherPlugin("extension")],
@@ -32,7 +33,10 @@ const config = {
     sourcemap: !isProd,
     sourcesContent: false,
     metafile: !isProd,
-    external: ["vscode", "vscode-mssql"],
+    external: [
+        "vscode", 
+        "vscode-mssql",
+    ],
     minify: isProd,
 };
 

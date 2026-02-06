@@ -156,6 +156,7 @@ export async function readProjectProperties(
             targetVersion: version,
             projectFilePath: projectFilePath,
             dacpacOutputPath: dacpacOutputPath,
+            projectName: projectName,
         };
     } catch {
         return undefined;
