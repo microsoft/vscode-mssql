@@ -1663,7 +1663,7 @@ export class LocConstants {
                     comment: ["{0} is the server name"],
                 }),
             defaultError: l10n.t("An error occurred while loading data."),
-            errorLoadingSearchDatabase: l10n.t("Error Loading Search Database"),
+            errorLoadingDatabaseObjects: l10n.t("Error loading database objects"),
             retry: l10n.t("Retry"),
             searching: l10n.t("Searching..."),
             objectsFound: (count: number) =>
