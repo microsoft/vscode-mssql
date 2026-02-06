@@ -20,11 +20,13 @@ import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
     const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState as LocalContainersState;
+    const state = useDeploymentSelector((s) => s);
+    const localContainersState = state?.deploymentTypeState as LocalContainersState;
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
@@ -37,10 +39,10 @@ export const LocalContainersPrereqPage: React.FC = () => {
     }
 
     useEffect(() => {
-        void runDockerStep(context, lastStep);
-        setStepsLoaded(isLastStepLoaded(context, lastStep));
-        setStepsErrored(checkStepErrored(context));
-    }, [context.state]);
+        void runDockerStep(context, state, lastStep);
+        setStepsLoaded(isLastStepLoaded(state, lastStep));
+        setStepsErrored(checkStepErrored(state));
+    }, [state]);
 
     const handleRetry = async () => {
         // reset step states

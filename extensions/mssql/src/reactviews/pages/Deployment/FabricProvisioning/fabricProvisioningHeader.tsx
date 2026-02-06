@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { makeStyles, Text } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -41,10 +40,11 @@ interface HeaderProps {
 
 export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft }) => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
+    const fabricProvisioningState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as FabricProvisioningState;
 
-    if (!context || !fabricProvisioningState) return undefined;
+    if (!fabricProvisioningState) return undefined;
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>

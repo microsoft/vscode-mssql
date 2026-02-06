@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -35,8 +34,9 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningStartPage = () => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
+    const fabricProvisioningState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as FabricProvisioningState;
 
     const renderMainContent = () => {
         switch (fabricProvisioningState?.loadState) {
