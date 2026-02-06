@@ -17,6 +17,7 @@ import {
 } from "../../../../sharedInterfaces/objectManagement";
 import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { url } from "../../../common/constants";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -42,7 +43,7 @@ const useStyles = makeStyles({
 export const BackupDatabaseDialogPage = () => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
+    const state = useBackupDatabaseSelector((s) => s);
 
     if (!context || !state) {
         return null;

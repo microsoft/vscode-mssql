@@ -21,7 +21,7 @@ import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
-import { FormField, useFormStyles } from "../../../common/forms/form.component";
+import { FormFieldNoState, useFormStyles } from "../../../common/forms/form.component";
 import { AzureIcon20 } from "../../../common/icons/fluentIcons";
 import { Save20Regular } from "@fluentui/react-icons";
 import { url } from "../../../common/constants";
@@ -33,6 +33,8 @@ import {
     ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
+import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -119,7 +121,8 @@ export interface BackupFormProps {
 export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setFileErrors }) => {
     const classes = useStyles();
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
+    const state = useBackupDatabaseSelector((s) => s);
+    const { themeKind } = useVscodeWebview2();
 
     if (!context || !state) {
         return null;
@@ -143,19 +146,20 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             ? {
                                   width: component.componentWidth,
                                   maxWidth: component.componentWidth,
-                                  whiteSpace: "normal", // allows wrapping
-                                  overflowWrap: "break-word", // breaks long words if needed
+                                  whiteSpace: "normal",
+                                  overflowWrap: "break-word",
                                   wordBreak: "break-word",
                               }
                             : {}
                     }>
-                    <FormField<
+                    <FormFieldNoState<
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,
                         BackupDatabaseContextProps
                     >
                         context={context}
+                        formState={state.formState}
                         component={component}
                         idx={index}
                     />
@@ -167,7 +171,6 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
             .filter((component) => component.groupName === url)
             .map((component, index) => {
                 const loadStatus = backupViewModel.azureComponentStatuses[component.propertyName];
-                // Trigger loading only if not started or loaded
                 if (loadStatus === ApiStatus.NotStarted) {
                     handleLoadAzureComponents();
                 }
@@ -181,19 +184,20 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 ? {
                                       width: component.componentWidth,
                                       maxWidth: component.componentWidth,
-                                      whiteSpace: "normal", // allows wrapping
-                                      overflowWrap: "break-word", // breaks long words if needed
+                                      whiteSpace: "normal",
+                                      overflowWrap: "break-word",
                                       wordBreak: "break-word",
                                   }
                                 : {}
                         }>
-                        <FormField<
+                        <FormFieldNoState<
                             ObjectManagementFormState,
                             ObjectManagementWebviewState,
                             ObjectManagementFormItemSpec,
                             BackupDatabaseContextProps
                         >
                             context={context}
+                            formState={state.formState}
                             component={component}
                             idx={index}
                         />
@@ -242,13 +246,14 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                               }
                             : {}
                     }>
-                    <FormField<
+                    <FormFieldNoState<
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,
                         BackupDatabaseContextProps
                     >
                         context={context}
+                        formState={state.formState}
                         component={component}
                         idx={index}
                     />
@@ -282,7 +287,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             padding: "10px",
                         }}
                         src={
-                            context.themeKind === ColorThemeKind.Dark
+                            themeKind === ColorThemeKind.Dark
                                 ? backupDarkIcon
                                 : backupLightIcon
                         }
