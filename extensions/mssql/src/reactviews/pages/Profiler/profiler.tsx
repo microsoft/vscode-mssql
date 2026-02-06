@@ -24,10 +24,7 @@ import {
     RowsRemovedParams,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import {
-    formatCsvCell,
-    generateExportTimestamp,
-} from "../../../sharedInterfaces/csvUtils";
+import { formatCsvCell, generateExportTimestamp } from "../../../sharedInterfaces/csvUtils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
