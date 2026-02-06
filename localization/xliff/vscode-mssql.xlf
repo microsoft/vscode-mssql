@@ -4414,8 +4414,8 @@
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>
     </trans-unit>
-    <trans-unit id="++CODE++f73ee8e39782fc677a1942cbe40f0b749a4aa5b307ccb403c7fa85b4392fb6e2">
-      <source xml:lang="en">Search by name of type (t:, v:, f:, or sp:)</source>
+    <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
+      <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>
     </trans-unit>
     <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
       <source xml:lang="en">Search changes...</source>
