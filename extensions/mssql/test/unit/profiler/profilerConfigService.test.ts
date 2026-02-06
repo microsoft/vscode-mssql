@@ -462,4 +462,189 @@ suite("ProfilerConfigService Tests", () => {
             );
         });
     });
+
+    suite("buildEventDetails", () => {
+        const createViewTemplate = (): ViewTemplate => ({
+            id: "TestView",
+            name: "Test View",
+            columns: [
+                {
+                    field: "eventClass",
+                    header: "Event Class",
+                    visible: true,
+                    eventsMapped: ["name"],
+                },
+                {
+                    field: "timestamp",
+                    header: "Timestamp",
+                    visible: true,
+                    eventsMapped: ["timestamp"],
+                },
+                {
+                    field: "textData",
+                    header: "Text Data",
+                    visible: true,
+                    eventsMapped: ["sql_text", "statement"],
+                },
+            ],
+        });
+
+        const createEventRow = (overrides: Partial<EventRow> = {}): EventRow => ({
+            id: "test-event-id",
+            eventNumber: 1,
+            timestamp: new Date("2024-01-01T12:00:00Z"),
+            eventClass: "sql_statement_completed",
+            textData: "SELECT * FROM Users",
+            databaseName: "TestDB",
+            spid: 55,
+            duration: 1000,
+            cpu: 100,
+            reads: 50,
+            writes: 10,
+            additionalData: {},
+            ...overrides,
+        });
+
+        test("should build properties from view columns", () => {
+            const view = createViewTemplate();
+            const event = createEventRow();
+
+            const result = configService.buildEventDetails(event, view);
+
+            expect(result.rowId).to.equal("test-event-id");
+            expect(result.eventName).to.equal("sql_statement_completed");
+            expect(result.textData).to.equal("SELECT * FROM Users");
+
+            // Should have properties for each view column
+            expect(result.properties).to.have.length(3);
+            expect(result.properties[0].label).to.equal("Event Class");
+            expect(result.properties[0].value).to.equal("sql_statement_completed");
+            expect(result.properties[1].label).to.equal("Timestamp");
+            expect(result.properties[2].label).to.equal("Text Data");
+            expect(result.properties[2].value).to.equal("SELECT * FROM Users");
+        });
+
+        test("should include additional data not in view columns", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                additionalData: {
+                    custom_field: "custom_value",
+                    another_field: "another_value",
+                },
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            // Should include the additional data fields
+            const customFieldProp = result.properties.find((p) => p.label === "custom_field");
+            expect(customFieldProp).to.exist;
+            expect(customFieldProp?.value).to.equal("custom_value");
+
+            const anotherFieldProp = result.properties.find((p) => p.label === "another_field");
+            expect(anotherFieldProp).to.exist;
+            expect(anotherFieldProp?.value).to.equal("another_value");
+        });
+
+        test("should not duplicate fields already covered by view columns", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                additionalData: {
+                    // These are mapped by view columns, should not be duplicated
+                    name: "duplicate_name",
+                    sql_text: "duplicate_sql",
+                    // This is not mapped, should be included
+                    unmapped_field: "unmapped_value",
+                },
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            // Count occurrences of each label
+            const labels = result.properties.map((p) => p.label);
+
+            // View columns should appear once
+            expect(labels.filter((l) => l === "Event Class")).to.have.length(1);
+            expect(labels.filter((l) => l === "Text Data")).to.have.length(1);
+
+            // Unmapped field should appear
+            expect(labels).to.include("unmapped_field");
+
+            // Mapped fields from additionalData should not appear as separate properties
+            expect(labels).to.not.include("name");
+            expect(labels).to.not.include("sql_text");
+        });
+
+        test("should handle missing or null values", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                textData: undefined,
+                additionalData: {
+                    empty_field: "",
+                },
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            // textData should be empty string when undefined
+            expect(result.textData).to.equal("");
+
+            // Properties with empty values should have empty string values
+            const textDataProp = result.properties.find((p) => p.label === "Text Data");
+            expect(textDataProp?.value).to.equal("");
+        });
+
+        test("should use 'Unknown Event' as fallback for eventName", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                eventClass: undefined,
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            expect(result.eventName).to.equal("Unknown Event");
+        });
+
+        test("should handle empty textData", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                textData: "",
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            expect(result.textData).to.equal("");
+        });
+
+        test("should handle event with no additional data", () => {
+            const view = createViewTemplate();
+            const event = createEventRow({
+                additionalData: undefined,
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            // Should only have view column properties
+            expect(result.properties).to.have.length(3);
+        });
+
+        test("should handle empty view columns", () => {
+            const view: ViewTemplate = {
+                id: "EmptyView",
+                name: "Empty View",
+                columns: [],
+            };
+            const event = createEventRow({
+                additionalData: {
+                    some_field: "some_value",
+                },
+            });
+
+            const result = configService.buildEventDetails(event, view);
+
+            // Should include additional data even with no view columns
+            expect(result.properties).to.have.length(1);
+            expect(result.properties[0].label).to.equal("some_field");
+            expect(result.properties[0].value).to.equal("some_value");
+        });
+    });
 });

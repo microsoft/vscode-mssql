@@ -275,6 +275,88 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 return state;
             },
         );
+
+        // Handle row selection from webview - update state with selected event details
+        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
+            const selectedEvent = this.handleRowSelection(payload.rowId);
+            return {
+                ...state,
+                selectedEvent,
+            };
+        });
+
+        // Handle Open in Editor request from embedded details panel
+        this.registerReducer(
+            "openInEditor",
+            async (state, payload: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(payload.textData);
+                return state;
+            },
+        );
+
+        // Handle Copy to Clipboard request from embedded details panel
+        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
+            return state;
+        });
+
+        // Handle close details panel request
+        this.registerReducer("closeDetailsPanel", (state) => {
+            return {
+                ...state,
+                selectedEvent: undefined,
+            };
+        });
+    }
+
+    /**
+     * Handle row selection - get event details and return them for state update
+     */
+    private handleRowSelection(
+        rowId: string,
+    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
+        if (!this._currentSession) {
+            return undefined;
+        }
+
+        // Find the event in the ring buffer by its ID
+        const event = this._currentSession.events.findById(rowId);
+        if (!event) {
+            return undefined;
+        }
+
+        // Build the selected event details using the centralized ProfilerConfigService
+        const viewConfig = this._currentSession.viewConfig;
+        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
+            event,
+            viewConfig,
+        );
+
+        return selectedEventDetails;
+    }
+
+    /**
+     * Open text content in a new VS Code editor
+     */
+    private async openTextInEditor(textData: string): Promise<void> {
+        try {
+            const document = await vscode.workspace.openTextDocument({
+                content: textData,
+                language: "sql",
+            });
+
+            await vscode.window.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.One,
+                preview: true,
+            });
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                LocProfiler.failedToOpenInEditor(
+                    error instanceof Error ? error.message : String(error),
+                ),
+            );
+        }
     }
 
     /**
