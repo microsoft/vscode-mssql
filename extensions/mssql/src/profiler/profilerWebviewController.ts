@@ -21,6 +21,7 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
+import { generateCsvContent, generateExportTimestamp } from "../sharedInterfaces/csvUtils";
 
 /**
  * Events emitted by the profiler webview controller
@@ -198,8 +199,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // Just close without export
             return undefined; // Allow close
         } else {
-            // Cancel button clicked (result is undefined) - restore the panel
-            return super.showRestorePrompt();
+            // Cancel button clicked (result is undefined) - keep panel open without further prompts
+            return {
+                title: "",
+                run: async () => {
+                    // No-op: do nothing and keep the panel open
+                },
+            };
         }
     }
 
@@ -230,66 +236,49 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Generate suggested file name
         const sessionName = this._currentSession.sessionName || "profiler_events";
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const timestamp = generateExportTimestamp();
         const suggestedFileName = `${sessionName}_${timestamp}`;
 
         // Perform export using event handler
         if (this._eventHandlers.onExportToCsv) {
-            await new Promise<void>((resolve) => {
-                // Create a temporary handler to know when export is complete
-                const originalHandler = this._eventHandlers.onExportToCsv;
-                this._eventHandlers.onExportToCsv = async (content, fileName) => {
-                    if (originalHandler) {
-                        await originalHandler(content, fileName);
-                    }
-                    resolve();
-                };
-                this._eventHandlers.onExportToCsv(csvContent, suggestedFileName);
-            });
+            await this._eventHandlers.onExportToCsv(csvContent, suggestedFileName);
         }
     }
 
     /**
      * Generates CSV content from events using the current view configuration.
+     * Uses shared csvUtils for consistent CSV formatting across the extension.
      */
     private generateCsvFromEvents(events: EventRow[], viewConfig: ProfilerViewConfig): string {
-        // Get column headers from view config
-        const columns = viewConfig.columns;
-        const headers = columns.map((col) => `"${col.header.replace(/"/g, '""')}"`);
+        const columns = viewConfig.columns.map((col) => ({
+            field: col.field,
+            header: col.header,
+        }));
 
-        // Generate CSV rows
-        const rows = events.map((event) => {
-            return columns
-                .map((col) => {
-                    const value = this.getEventFieldValue(event, col.field);
-                    // Escape quotes and wrap in quotes
-                    const stringValue = String(value).replace(/"/g, '""');
-                    return `"${stringValue}"`;
-                })
-                .join(",");
-        });
-
-        // Combine headers and rows
-        return [headers.join(","), ...rows].join("\n");
+        return generateCsvContent(columns, events, (event, field) =>
+            this.getEventFieldValue(event, field),
+        );
     }
 
     /**
      * Gets the value of a field from an EventRow.
      * Handles both direct properties and additionalData.
+     * Returns undefined for missing values so CSV formatter can handle them properly.
      */
-    private getEventFieldValue(event: EventRow, field: string): string | number | undefined {
+    private getEventFieldValue(event: EventRow, field: string): string | number | Date | undefined {
         // Map common field names to EventRow properties
         switch (field) {
             case "eventNumber":
                 return event.eventNumber;
             case "timestamp":
-                return event.timestamp?.toISOString() ?? "";
+                // Return Date object for timestamp - formatCsvCell will handle conversion
+                return event.timestamp;
             case "eventClass":
-                return event.eventClass ?? "";
+                return event.eventClass;
             case "textData":
-                return event.textData ?? "";
+                return event.textData;
             case "databaseName":
-                return event.databaseName ?? "";
+                return event.databaseName;
             case "spid":
                 return event.spid;
             case "duration":
@@ -302,7 +291,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 return event.writes;
             default:
                 // Check additionalData for other fields
-                return event.additionalData?.[field] ?? "";
+                return event.additionalData?.[field];
         }
     }
 
@@ -417,11 +406,24 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         );
 
         // Handle export to CSV request from webview
+        // Generate CSV from the RingBuffer (source of truth) rather than from grid data
+        // This ensures ALL events in the session buffer are exported
         this.registerReducer(
             "exportToCsv",
             (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                // Export is handled asynchronously by the event handler
-                if (this._eventHandlers.onExportToCsv) {
+                // Generate CSV from buffer if we have a session, otherwise use provided content
+                if (
+                    this._currentSession &&
+                    this._currentSession.events.size > 0 &&
+                    this.state.viewConfig
+                ) {
+                    const allEvents = this._currentSession.events.getAllRows();
+                    const csvContent = this.generateCsvFromEvents(allEvents, this.state.viewConfig);
+                    if (this._eventHandlers.onExportToCsv) {
+                        this._eventHandlers.onExportToCsv(csvContent, payload.suggestedFileName);
+                    }
+                } else if (this._eventHandlers.onExportToCsv) {
+                    // Fallback to provided content if no session/buffer
                     this._eventHandlers.onExportToCsv(
                         payload.csvContent,
                         payload.suggestedFileName,
@@ -716,13 +718,17 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
      */
     public setExportComplete(): void {
+        // Determine whether there are any remaining events in the current session
+        const hasRemainingEvents =
+            typeof this.state.totalRowCount === "number" && this.state.totalRowCount > 0;
+
         this.state = {
             ...this.state,
             hasUnexportedEvents: false,
             lastExportTimestamp: Date.now(),
         };
-        // Disable close prompt since data has been exported
-        this.showRestorePromptAfterClose = false;
+        // Only show the close prompt if there are remaining events
+        this.showRestorePromptAfterClose = hasRemainingEvents;
     }
 
     /**
