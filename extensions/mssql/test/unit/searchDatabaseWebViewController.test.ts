@@ -15,6 +15,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { IMetadataService } from "../../src/services/metadataService";
 import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadata";
 import { SearchResultItem } from "../../src/sharedInterfaces/searchDatabase";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -168,7 +169,11 @@ suite("SearchDatabaseWebViewController", () => {
     }
 
     async function waitForInitialization(): Promise<void> {
-        // Wait for async initialization to complete
+        // Resolve the webview ready promise to trigger initialization.
+        // In production, this is resolved when the webview sends a LoadStatsNotification,
+        // but in tests the webview is mocked so we resolve it manually.
+        controller["_webviewReady"].resolve();
+        // Allow the async initialization chain (ensureConnection, loadDatabases, loadMetadata) to complete
         await new Promise((resolve) => setTimeout(resolve, 50));
     }
 
@@ -771,6 +776,93 @@ suite("SearchDatabaseWebViewController", () => {
             await refreshReducer!(controller.state, {});
 
             expect(mockMetadataService.getMetadata).to.have.been.called;
+        });
+    });
+
+    suite("Retry Reducer", () => {
+        test("retry reducer resets loadStatus and re-initializes successfully", async () => {
+            createController();
+            await waitForInitialization();
+
+            const retryReducer = controller["_reducerHandlers"].get("retry");
+            expect(retryReducer, "Retry reducer was not registered").to.be.a("function");
+
+            // Simulate an error state with no cached data (as would happen after a real failure)
+            controller.state.loadStatus = ApiStatus.Error;
+            controller.state.errorMessage = "Some error";
+            controller["_metadataCache"].clear();
+            controller["_searchResultItemCache"].clear();
+
+            // Reset stubs to track new calls
+            (mockMetadataService.getDatabases as sinon.SinonStub).resetHistory();
+            (mockMetadataService.getMetadata as sinon.SinonStub).resetHistory();
+
+            const result = await retryReducer!(controller.state, {});
+
+            expect(result.loadStatus).to.equal(ApiStatus.Loaded);
+            expect(result.errorMessage).to.be.undefined;
+            expect(mockMetadataService.getDatabases).to.have.been.called;
+            expect(mockMetadataService.getMetadata).to.have.been.called;
+        });
+
+        test("retry reducer sets error state when no target node is available", async () => {
+            // Create controller with a target node that has no connectionProfile
+            const nodeWithoutProfile = {} as unknown as TreeNodeInfo;
+            controller = new SearchDatabaseWebViewController(
+                mockContext,
+                mockVscodeWrapper,
+                mockMetadataService,
+                mockConnectionManager,
+                nodeWithoutProfile,
+                mockScriptingService,
+            );
+            await waitForInitialization();
+
+            const retryReducer = controller["_reducerHandlers"].get("retry");
+
+            const result = await retryReducer!(controller.state, {});
+
+            expect(result.loadStatus).to.equal(ApiStatus.Error);
+            expect(result.errorMessage).to.be.a("string").and.not.be.empty;
+        });
+
+        test("retry reducer sets error state when connection fails", async () => {
+            createController();
+            await waitForInitialization();
+
+            const retryReducer = controller["_reducerHandlers"].get("retry");
+
+            // Make connection fail on retry
+            (mockConnectionManager.isConnected as sinon.SinonStub).returns(false);
+            (mockConnectionManager.connect as sinon.SinonStub).rejects(
+                new Error("Connection refused"),
+            );
+
+            const result = await retryReducer!(controller.state, {});
+
+            expect(result.loadStatus).to.equal(ApiStatus.Error);
+            expect(result.errorMessage).to.be.a("string").and.not.be.empty;
+        });
+
+        test("retry reducer sets error state when metadata loading fails", async () => {
+            createController();
+            await waitForInitialization();
+
+            const retryReducer = controller["_reducerHandlers"].get("retry");
+
+            // Clear caches so retry actually calls the service
+            controller["_metadataCache"].clear();
+            controller["_searchResultItemCache"].clear();
+
+            // Make metadata loading fail on retry
+            (mockMetadataService.getMetadata as sinon.SinonStub).rejects(
+                new Error("Metadata unavailable"),
+            );
+
+            const result = await retryReducer!(controller.state, {});
+
+            expect(result.loadStatus).to.equal(ApiStatus.Error);
+            expect(result.errorMessage).to.equal("Metadata unavailable");
         });
     });
 
