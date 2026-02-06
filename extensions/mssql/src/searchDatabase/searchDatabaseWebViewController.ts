@@ -260,6 +260,20 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         if (!this._connectionManager.isConnecting(connectionUri)) {
             this.logInfo(`Connecting to database '${targetDatabase}'`);
             await this._connectionManager.connect(connectionUri, connectionCreds);
+        } else {
+            // A connection attempt is already in flight. Poll until it completes.
+            const maxWaitMs = 30000;
+            const pollIntervalMs = 500;
+            let elapsedMs = 0;
+
+            while (
+                !this._connectionManager.isConnected(connectionUri) &&
+                this._connectionManager.isConnecting(connectionUri) &&
+                elapsedMs < maxWaitMs
+            ) {
+                await new Promise<void>((resolve) => setTimeout(resolve, pollIntervalMs));
+                elapsedMs += pollIntervalMs;
+            }
         }
 
         if (!this._connectionManager.isConnected(connectionUri)) {
@@ -546,6 +560,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                     { operationId: this._operationId },
                 );
 
+                const previousDatabase = state.selectedDatabase;
                 state.selectedDatabase = payload.database;
                 state.searchResults = [];
                 state.totalResultCount = 0;
@@ -567,6 +582,10 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                     });
                 } catch (error) {
                     this.logError(`Error switching database: ${getErrorMessage(error)}`);
+
+                    state.selectedDatabase = previousDatabase;
+                    state.loadStatus = ApiStatus.Error;
+                    state.errorMessage = getErrorMessage(error);
 
                     endActivity.endFailed(
                         new Error("Failed to switch database"),
