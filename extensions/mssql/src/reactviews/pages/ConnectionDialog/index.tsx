@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { ConnectionPage } from "./connectionPage";
 import { ConnectionDialogStateProvider } from "./connectionDialogStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <ConnectionDialogStateProvider>
             <ConnectionPage />
         </ConnectionDialogStateProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );

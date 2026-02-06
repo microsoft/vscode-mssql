@@ -3,14 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo, useState } from "react";
-import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
+import { useMemo, useState } from "react";
+import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 import FabricExplorerHeader from "./fabricExplorerHeader.component";
 import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
 import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
 import { Status } from "../../../../../sharedInterfaces/webview";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
+import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
+import {
+    ConnectionDialogReducers,
+    ConnectionDialogWebviewState,
+} from "../../../../../sharedInterfaces/connectionDialog";
 
 export const FabricExplorer = ({
     fabricWorkspaces,
@@ -21,11 +26,11 @@ export const FabricExplorer = ({
     onSelectWorkspace,
     onSelectDatabase,
 }: FabricExplorerProps) => {
-    const context = useContext(ConnectionDialogContext);
-
-    if (context === undefined) {
-        return undefined;
-    }
+    const state = useConnectionDialogSelector((s) => s);
+    const { themeKind } = useVscodeWebview2<
+        ConnectionDialogWebviewState,
+        ConnectionDialogReducers
+    >();
 
     const fabricStyles = useFabricExplorerStyles();
 
@@ -69,11 +74,11 @@ export const FabricExplorer = ({
         <>
             <FabricExplorerHeader
                 searchValue={searchFilter}
-                azureAccounts={context.state.azureAccounts}
-                azureTenants={context.state.azureTenants}
-                selectedAccountId={context.state.selectedAccountId}
-                selectedTenantId={context.state.selectedTenantId}
-                azureTenantsLoadStatus={context.state.loadingAzureTenantsStatus}
+                azureAccounts={state.azureAccounts}
+                azureTenants={state.azureTenants}
+                selectedAccountId={state.selectedAccountId}
+                selectedTenantId={state.selectedTenantId}
+                azureTenantsLoadStatus={state.loadingAzureTenantsStatus}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
@@ -87,11 +92,11 @@ export const FabricExplorer = ({
                     onSelectWorkspace={handleWorkspaceSelected}
                 />
                 <FabricWorkspaceContentsList
-                    fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                    fabricWorkspacesLoadStatus={state.fabricWorkspacesLoadStatus}
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
-                    theme={context.themeKind}
+                    theme={themeKind}
                 />
             </div>
         </>
