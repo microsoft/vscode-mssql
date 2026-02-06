@@ -1,4 +1,4 @@
-# @microsoft/sql-extension-common
+# @microsoft/vscode-sql-common
 
 Shared utilities for SQL VS Code extensions coordination.
 
@@ -19,7 +19,7 @@ Reference directly from GitHub:
 ```json
 {
   "dependencies": {
-    "@microsoft/sql-extension-common": "github:microsoft/vscode-mssql#main&path=packages/sql-extension-common"
+    "@microsoft/vscode-sql-common": "github:microsoft/vscode-mssql#main&path=packages/sql-extension-common"
   }
 }
 ```
@@ -29,7 +29,7 @@ Reference directly from GitHub:
 ```json
 {
   "dependencies": {
-    "@microsoft/sql-extension-common": "file:../vscode-mssql/packages/sql-extension-common"
+    "@microsoft/vscode-sql-common": "file:../vscode-mssql/packages/sql-extension-common"
   }
 }
 ```
@@ -58,7 +58,7 @@ The extension's `displayName` from package.json will be used for user-facing mes
 ```typescript
 import {
   UriOwnershipCoordinator,
-} from "@microsoft/sql-extension-common";
+} from "@microsoft/vscode-sql-common";
 
 // In your activate() function
 export function activate(context: vscode.ExtensionContext) {

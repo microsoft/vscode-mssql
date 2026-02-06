@@ -2054,9 +2054,6 @@
   dependencies:
     "@vscode/extension-telemetry" "0.6.1"
 
-"@microsoft/sql-extension-common@file:../../packages/sql-extension-common":
-  version "1.0.0"
-
 "@microsoft/vscode-azext-azureauth@^4.1.1":
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/@microsoft/vscode-azext-azureauth/-/vscode-azext-azureauth-4.1.1.tgz#7c61cc6d4012ea3a0f8758c6a005eadc16a42660"
@@ -2066,6 +2063,9 @@
     "@azure/core-client" "^1.9.2"
     "@azure/core-rest-pipeline" "^1.16.0"
     "@azure/ms-rest-azure-env" "^2.0.0"
+
+"@microsoft/vscode-sql-common@file:../../packages/sql-extension-common":
+  version "1.0.0"
 
 "@monaco-editor/loader@^1.4.0":
   version "1.4.0"

@@ -1,5 +1,5 @@
 {
-  "name": "@microsoft/sql-extension-common",
+  "name": "@microsoft/vscode-sql-common",
   "version": "1.0.0",
   "description": "Shared utilities for SQL VS Code extensions coordination",
   "main": "dist/index.js",

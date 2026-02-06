@@ -22,7 +22,7 @@ import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
-import { UriOwnershipCoordinator } from "@microsoft/sql-extension-common";
+import { UriOwnershipCoordinator } from "@microsoft/vscode-sql-common";
 
 /**
  * VS Code context key used to indicate when the active editor's URI is owned by another extension.
