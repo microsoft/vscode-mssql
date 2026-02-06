@@ -89,6 +89,9 @@ export interface SearchDatabaseContextProps {
     // Data refresh
     refreshDatabases: () => void;
     refreshResults: () => void;
+
+    // Initialization
+    retry: () => void;
 }
 
 /**
@@ -117,4 +120,7 @@ export interface SearchDatabaseReducers {
     // Data refresh
     refreshDatabases: {};
     refreshResults: {};
+
+    // Initialization
+    retry: {};
 }

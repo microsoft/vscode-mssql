@@ -10,14 +10,13 @@ import {
     Spinner,
     tokens,
     Title3,
-    Body1,
-    MessageBar,
-    MessageBarBody,
 } from "@fluentui/react-components";
 import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
+import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
 import { SearchDatabaseToolbar } from "./SearchDatabaseToolbar";
 import { SearchDatabaseFilters } from "./SearchDatabaseFilters";
 import { SearchDatabaseResultsTable } from "./SearchDatabaseResultsTable";
+import { ErrorDialog } from "../../common/errorDialog";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 
@@ -87,19 +86,17 @@ const useStyles = makeStyles({
     },
     loadingContainer: {
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
+        alignItems: "center",
         height: "100%",
-        ...shorthands.gap("16px"),
-    },
-    errorContainer: {
-        ...shorthands.padding("16px"),
+        width: "100%",
+        flexDirection: "column",
     },
 });
 
 export const SearchDatabasePage: React.FC = () => {
     const classes = useStyles();
+    const context = useSearchDatabaseContext();
 
     // State selectors
     const serverName = useSearchDatabaseSelector((s) => s.serverName);
@@ -110,74 +107,67 @@ export const SearchDatabasePage: React.FC = () => {
     const totalResultCount = useSearchDatabaseSelector((s) => s.totalResultCount);
     const isSearching = useSearchDatabaseSelector((s) => s.isSearching);
 
-    // Loading state
-    if (loadStatus === ApiStatus.Loading) {
-        return (
-            <div className={classes.root}>
-                <div className={classes.loadingContainer}>
-                    <Spinner size="large" label={loc.searchDatabase.loading} />
-                    <Body1>{loc.searchDatabase.connectingTo(serverName)}</Body1>
-                </div>
-            </div>
-        );
-    }
-
-    // Error state
-    if (loadStatus === ApiStatus.Error) {
-        return (
-            <div className={classes.root}>
-                <div className={classes.header}>
-                    <div className={classes.titleRow}>
-                        <Title3 className={classes.title}>{loc.searchDatabase.title}</Title3>
-                    </div>
-                </div>
-                <div className={classes.errorContainer}>
-                    <MessageBar intent="error">
-                        <MessageBarBody>
-                            {errorMessage || loc.searchDatabase.defaultError}
-                        </MessageBarBody>
-                    </MessageBar>
-                </div>
-            </div>
-        );
-    }
+    const isErrorState = loadStatus === ApiStatus.Error;
 
     return (
         <div className={classes.root}>
-            {/* Header with title and search */}
-            <div className={classes.header}>
-                <div className={classes.titleRow}>
-                    <div>
-                        <Title3 className={classes.title}>{loc.searchDatabase.title}</Title3>
-                        <span className={classes.serverInfo}>
-                            {serverName} / {selectedDatabase}
-                        </span>
-                    </div>
+            {loadStatus === ApiStatus.Loading && (
+                <div className={classes.loadingContainer}>
+                    <Spinner
+                        label={loc.searchDatabase.loading}
+                        labelPosition="below"
+                    />
                 </div>
-                <SearchDatabaseToolbar />
-            </div>
+            )}
+            {isErrorState && (
+                <ErrorDialog
+                    open={isErrorState}
+                    title={loc.searchDatabase.errorLoadingSearchDatabase}
+                    message={errorMessage || loc.searchDatabase.defaultError}
+                    retryLabel={loc.searchDatabase.retry}
+                    onRetry={() => context.retry()}
+                />
+            )}
+            {loadStatus === ApiStatus.Loaded && (
+                <>
+                    {/* Header with title and search */}
+                    <div className={classes.header}>
+                        <div className={classes.titleRow}>
+                            <div>
+                                <Title3 className={classes.title}>
+                                    {loc.searchDatabase.title}
+                                </Title3>
+                                <span className={classes.serverInfo}>
+                                    {serverName} / {selectedDatabase}
+                                </span>
+                            </div>
+                        </div>
+                        <SearchDatabaseToolbar />
+                    </div>
 
-            {/* Main content area */}
-            <div className={classes.content}>
-                {/* Filter panel */}
-                <div className={classes.filterPanel}>
-                    <SearchDatabaseFilters />
-                </div>
+                    {/* Main content area */}
+                    <div className={classes.content}>
+                        {/* Filter panel */}
+                        <div className={classes.filterPanel}>
+                            <SearchDatabaseFilters />
+                        </div>
 
-                {/* Results panel */}
-                <div className={classes.resultsPanel}>
-                    <div className={classes.resultsHeader}>
-                        <span className={classes.resultsCount}>
-                            {isSearching
-                                ? loc.searchDatabase.searching
-                                : loc.searchDatabase.objectsFound(totalResultCount)}
-                        </span>
+                        {/* Results panel */}
+                        <div className={classes.resultsPanel}>
+                            <div className={classes.resultsHeader}>
+                                <span className={classes.resultsCount}>
+                                    {isSearching
+                                        ? loc.searchDatabase.searching
+                                        : loc.searchDatabase.objectsFound(totalResultCount)}
+                                </span>
+                            </div>
+                            <div className={classes.resultsTable}>
+                                <SearchDatabaseResultsTable results={searchResults} />
+                            </div>
+                        </div>
                     </div>
-                    <div className={classes.resultsTable}>
-                        <SearchDatabaseResultsTable results={searchResults} />
-                    </div>
-                </div>
-            </div>
+                </>
+            )}
         </div>
     );
 };

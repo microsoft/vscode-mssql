@@ -89,6 +89,11 @@ export const SearchDatabaseStateProvider: React.FC<{
             refreshResults: (): void => {
                 extensionRpc.action("refreshResults", {});
             },
+
+            // Initialization
+            retry: (): void => {
+                extensionRpc.action("retry", {});
+            },
         }),
         [extensionRpc],
     );

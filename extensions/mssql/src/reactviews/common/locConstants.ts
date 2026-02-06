@@ -1655,7 +1655,7 @@ export class LocConstants {
         return {
             // Page titles and headers
             title: l10n.t("Search Database Objects"),
-            loading: l10n.t("Loading..."),
+            loading: l10n.t("Loading database objects"),
             connectingTo: (serverName: string) =>
                 l10n.t({
                     message: "Connecting to {0}...",
@@ -1663,6 +1663,8 @@ export class LocConstants {
                     comment: ["{0} is the server name"],
                 }),
             defaultError: l10n.t("An error occurred while loading data."),
+            errorLoadingSearchDatabase: l10n.t("Error Loading Search Database"),
+            retry: l10n.t("Retry"),
             searching: l10n.t("Searching..."),
             objectsFound: (count: number) =>
                 l10n.t({

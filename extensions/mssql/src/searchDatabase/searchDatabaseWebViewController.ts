@@ -108,7 +108,9 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             `SearchDatabaseWebViewController created for server '${serverName}', database '${databaseName}', ownerUri '${ownerUri}'`,
         );
         this.registerRpcHandlers();
-        void this.initialize();
+        // Wait for the webview to finish bootstrapping before initializing
+        // so the loading spinner is visible while connecting and loading metadata
+        void this.whenWebviewReady().then(() => this.initialize());
     }
 
     /**
@@ -658,6 +660,40 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         this.registerReducer("refreshDatabases", async (state) => {
             this.logInfo("Refreshing databases list");
             await this.loadDatabases();
+            return state;
+        });
+
+        // Initialization
+        this.registerReducer("retry", async (state) => {
+            this.logInfo("Retry initialization requested");
+            state.loadStatus = ApiStatus.Loading;
+            state.errorMessage = undefined;
+
+            try {
+                if (!this._targetNode?.connectionProfile) {
+                    this.logError(
+                        "Search Database requires an Object Explorer node to be selected",
+                    );
+                    state.loadStatus = ApiStatus.Error;
+                    state.errorMessage = LocConstants.SearchDatabase.noNodeSelected;
+                    return state;
+                }
+
+                const connectionUri = this.getConnectionUri();
+                state.connectionUri = connectionUri;
+
+                await this.ensureConnection(connectionUri);
+                await this.loadDatabases();
+                await this.loadMetadata();
+
+                state.loadStatus = ApiStatus.Loaded;
+                this.logInfo("Retry initialization completed successfully");
+            } catch (error) {
+                this.logError(`Error during retry initialization: ${getErrorMessage(error)}`);
+                state.loadStatus = ApiStatus.Error;
+                state.errorMessage = getErrorMessage(error);
+            }
+
             return state;
         });
 
