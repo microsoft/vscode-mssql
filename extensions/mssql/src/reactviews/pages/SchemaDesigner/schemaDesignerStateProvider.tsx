@@ -13,7 +13,10 @@ import { WebviewRpc } from "../../common/rpc";
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
-import { UndoRedoStack } from "../../common/undoRedoStack";
+import {
+    registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerGetSchemaStateHandler,
+} from "./schemaDesignerRpcHandlers";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
@@ -54,6 +57,14 @@ import {
     buildForeignKeyEdgeId,
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
+import {
+    normalizeColumn,
+    normalizeTable,
+    waitForNextFrame,
+    validateTable,
+} from "./schemaDesignerToolBatchUtils";
+import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
+import { stateStack } from "./schemaDesignerUndoState";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -75,11 +86,12 @@ export interface SchemaDesignerContextProps
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
-    deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    consumeSkipDeleteConfirmation: () => boolean;
     publishSession: () => Promise<{
         success: boolean;
         error?: string;
@@ -97,6 +109,8 @@ export interface SchemaDesignerContextProps
     setIsExporting: (value: boolean) => void;
     isChangesPanelVisible: boolean;
     setIsChangesPanelVisible: (value: boolean) => void;
+    showChangesHighlight: boolean;
+    setShowChangesHighlight: (value: boolean) => void;
     newTableIds: Set<string>;
     newColumnIds: Set<string>;
     newForeignKeyIds: Set<string>;
@@ -120,12 +134,16 @@ export interface SchemaDesignerContextProps
     dabConfig: Dab.DabConfig | null;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
-    updateDabApiType: (apiType: Dab.ApiType) => void;
+    updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
     toggleDabEntity: (entityId: string, isEnabled: boolean) => void;
     toggleDabEntityAction: (entityId: string, action: Dab.EntityAction, isEnabled: boolean) => void;
     updateDabEntitySettings: (entityId: string, settings: Dab.EntityAdvancedSettings) => void;
     dabSchemaFilter: string[];
     setDabSchemaFilter: (schemas: string[]) => void;
+    dabConfigContent: string;
+    dabConfigRequestId: number;
+    generateDabConfig: () => Promise<void>;
+    openDabConfigInEditor: (configContent: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -135,10 +153,6 @@ const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
 interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
-
-export const stateStack = new UndoRedoStack<
-    ReactFlowJsonObject<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>
->();
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
@@ -151,7 +165,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
-    const reactFlow = useReactFlow();
+    const reactFlow = useReactFlow<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>();
     const [isInitialized, setIsInitialized] = useState(false);
     const isInitializedRef = useRef(false); // Ref to track initialization status for closures
     const [initializationError, setInitializationError] = useState<string | undefined>(undefined);
@@ -159,7 +173,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
     const [isExporting, setIsExporting] = useState<boolean>(false);
+    const skipDeleteConfirmationRef = useRef(false);
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
+    const [showChangesHighlight, setShowChangesHighlight] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
     const baselineSchemaRef = useRef<SchemaDesigner.Schema | undefined>(undefined);
@@ -200,6 +216,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
+    const [dabConfigContent, setDabConfigContent] = useState<string>("");
+    const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+
+    const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
+        reactFlow,
+        resetView,
+    });
 
     useEffect(() => {
         const handleScript = () => {
@@ -265,6 +288,35 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         };
     }, []);
 
+    // Handle bulk edits (schema designer LM tool) from extension
+    useEffect(() => {
+        registerSchemaDesignerApplyEditsHandler({
+            isInitialized,
+            extensionRpc,
+            schemaNames,
+            datatypes,
+            waitForNextFrame,
+            extractSchema,
+            onMaybeAutoArrange: maybeAutoArrangeForToolBatch,
+            addTable,
+            updateTable,
+            deleteTable,
+            normalizeColumn,
+            normalizeTable,
+            validateTable,
+            onPushUndoState,
+            onRequestScriptRefresh: () => eventBus.emit("getScript"),
+        });
+    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+
+    // Respond with the current schema state
+    useEffect(() => {
+        registerSchemaDesignerGetSchemaStateHandler({
+            isInitialized,
+            extensionRpc,
+            extractSchema,
+        });
+    }, [isInitialized, extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -741,14 +793,23 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return true;
     };
 
-    const deleteTable = async (table: SchemaDesigner.Table) => {
+    const deleteTable = async (table: SchemaDesigner.Table, skipConfirmation = false) => {
         const node = reactFlow.getNode(table.id);
         if (!node) {
             return false;
         }
-        void reactFlow.deleteElements({ nodes: [node] });
+        if (skipConfirmation) {
+            skipDeleteConfirmationRef.current = true;
+        }
+        await reactFlow.deleteElements({ nodes: [node] });
         eventBus.emit("pushState");
         return true;
+    };
+
+    const consumeSkipDeleteConfirmation = () => {
+        const shouldSkip = skipDeleteConfirmationRef.current;
+        skipDeleteConfirmationRef.current = false;
+        return shouldSkip;
     };
 
     /**
@@ -1094,14 +1155,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     }, [dabConfig, reactFlow]);
 
-    const updateDabApiType = useCallback((apiType: Dab.ApiType) => {
+    const updateDabApiTypes = useCallback((apiTypes: Dab.ApiType[]) => {
         setDabConfig((prev) => {
             if (!prev) {
                 return prev;
             }
             return {
                 ...prev,
-                apiType,
+                apiTypes,
             };
         });
     }, []);
@@ -1158,6 +1219,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [],
     );
 
+    const generateDabConfig = useCallback(async () => {
+        if (!dabConfig) {
+            return;
+        }
+        const response = await extensionRpc.sendRequest(Dab.GenerateConfigRequest.type, {
+            config: dabConfig,
+        });
+        if (response.success) {
+            setDabConfigContent(response.configContent);
+            setDabConfigRequestId((id) => id + 1);
+        }
+    }, [dabConfig, extensionRpc]);
+
+    const openDabConfigInEditor = useCallback(
+        (configContent: string) => {
+            void extensionRpc.sendNotification(Dab.OpenConfigInEditorNotification.type, {
+                configContent,
+            });
+        },
+        [extensionRpc],
+    );
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1188,6 +1271,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                consumeSkipDeleteConfirmation,
                 publishSession,
                 isInitialized,
                 closeDesigner,
@@ -1199,6 +1283,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setIsExporting,
                 isChangesPanelVisible,
                 setIsChangesPanelVisible,
+                showChangesHighlight,
+                setShowChangesHighlight,
                 newTableIds,
                 newColumnIds,
                 newForeignKeyIds,
@@ -1219,12 +1305,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfig,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
-                updateDabApiType,
+                updateDabApiTypes,
                 toggleDabEntity,
                 toggleDabEntityAction,
                 updateDabEntitySettings,
                 dabSchemaFilter,
                 setDabSchemaFilter,
+                dabConfigContent,
+                dabConfigRequestId,
+                generateDabConfig,
+                openDabConfigInEditor,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

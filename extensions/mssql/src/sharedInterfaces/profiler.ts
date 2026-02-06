@@ -118,9 +118,17 @@ export interface ProfilerWebviewState {
     currentSessionId?: string;
     /** Whether a session is being created (show spinner) */
     isCreatingSession?: boolean;
-    /** Whether there are unexported events since last export */
+    /** Whether this is a read-only file-based session */
+    isReadOnly?: boolean;
+    /** File path if this is a file-based session */
+    xelFilePath?: string;
+    /** File name for display if this is a file-based session */
+    xelFileName?: string;
+    /** The currently selected event details for the embedded details panel */
+    selectedEvent?: ProfilerSelectedEventDetails;
+    /** Whether there are events that have not been exported yet */
     hasUnexportedEvents?: boolean;
-    /** Timestamp of last export (for dirty tracking) */
+    /** Timestamp of the last successful export */
     lastExportTimestamp?: number;
 }
 
@@ -170,6 +178,17 @@ export interface ProfilerReducers {
     selectRow: {
         rowId: string;
     };
+    /** Open TextData content in a new VS Code editor (embedded details panel) */
+    openInEditor: {
+        textData: string;
+        eventName?: string;
+    };
+    /** Copy text to clipboard (embedded details panel) */
+    copyToClipboard: {
+        text: string;
+    };
+    /** Close the embedded details panel */
+    closeDetailsPanel: Record<string, never>;
     /** Export events to CSV file */
     exportToCsv: {
         csvContent: string;

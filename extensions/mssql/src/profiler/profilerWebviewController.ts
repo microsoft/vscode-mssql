@@ -21,10 +21,15 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, FilterOperator } from "./profilerTypes";
+import {
+    EventRow,
+    SessionState,
+    XelFileInfo,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    FilterOperator,
+} from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
-import { ProfilerDetailsPanelViewController } from "./profilerDetailsPanelViewController";
 import { ProfilerTelemetry } from "./profilerTelemetry";
 
 /**
@@ -61,10 +66,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _currentSession: ProfilerSession | undefined;
     private _sessionManager: ProfilerSessionManager;
     private _statusBarItem: vscode.StatusBarItem;
-    /** Filtered buffer for applying client-side filtering */
+    private _isReadOnly: boolean;
+    private _xelFileInfo: XelFileInfo | undefined;
     private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
-    private _detailsPanelController: ProfilerDetailsPanelViewController | undefined;
-    /** Tracks whether the session was stopped before closing (for telemetry) */
     private _wasSessionPreviouslyStopped: boolean = false;
 
     constructor(
@@ -74,6 +78,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
         templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
+        isReadOnly: boolean = false,
+        xelFileInfo?: XelFileInfo,
     ) {
         const configService = getProfilerConfigService();
         const template = configService.getTemplate(templateId);
@@ -96,6 +102,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             defaultView: t.defaultView,
         }));
 
+        // Determine title based on mode
+        const title = xelFileInfo
+            ? `Profiler: ${xelFileInfo.fileName}`
+            : sessionName
+              ? `Profiler: ${sessionName}`
+              : "Profiler";
+
         super(
             context,
             vscodeWrapper,
@@ -106,18 +119,21 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 filteredRowCount: 0,
                 clearGeneration: 0,
                 sessionState: SessionState.NotStarted,
-                autoScroll: true,
+                autoScroll: !isReadOnly, // Disable auto-scroll for read-only file sessions
                 filterState: { enabled: false, clauses: [] },
-                sessionName: sessionName,
+                sessionName: xelFileInfo?.fileName ?? sessionName,
                 templateId: templateId,
                 viewId: defaultViewId,
                 viewConfig: viewConfig,
                 availableViews: availableViews,
                 availableTemplates: availableTemplates,
                 availableSessions: availableSessions,
+                isReadOnly: isReadOnly,
+                xelFilePath: xelFileInfo?.filePath,
+                xelFileName: xelFileInfo?.fileName,
             },
             {
-                title: sessionName ? `Profiler: ${sessionName}` : "Profiler",
+                title: title,
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -137,6 +153,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         this._sessionManager = sessionManager;
         this._currentViewId = defaultViewId;
+        this._isReadOnly = isReadOnly;
+        this._xelFileInfo = xelFileInfo;
 
         // Create status bar item for session info (unique ID per instance)
         this._statusBarItem = vscode.window.createStatusBarItem(
@@ -462,7 +480,40 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
-        // Handle apply filter request from webview (client-side only)
+        // Handle row selection from webview - update state with selected event details
+        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
+            const selectedEvent = this.handleRowSelection(payload.rowId);
+            return {
+                ...state,
+                selectedEvent,
+            };
+        });
+
+        // Handle Open in Editor request from embedded details panel
+        this.registerReducer(
+            "openInEditor",
+            async (state, payload: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(payload.textData);
+                return state;
+            },
+        );
+
+        // Handle Copy to Clipboard request from embedded details panel
+        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
+            await vscode.env.clipboard.writeText(payload.text);
+            void vscode.window.showInformationMessage("Copied to clipboard");
+            return state;
+        });
+
+        // Handle close details panel request
+        this.registerReducer("closeDetailsPanel", (state) => {
+            return {
+                ...state,
+                selectedEvent: undefined,
+            };
+        });
+
+        // Handle apply filter request
         this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
             if (this._filteredBuffer) {
                 this._filteredBuffer.setFilter(payload.clauses);
@@ -470,12 +521,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 // Calculate filtered count using grid row-based filtering
                 const filteredCount = this.calculateFilteredCount(payload.clauses);
                 const totalCount = this._filteredBuffer.totalCount;
-
-                // Send telemetry for filter applied
-                // Summarize filter clauses for telemetry
-                const filterSummary = payload.clauses.map((c) => c.field).join(",");
-                const filterOperators = payload.clauses.map((c) => c.operator).join(",");
-                ProfilerTelemetry.sendFilterApplied(filterSummary, filterOperators);
 
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
@@ -514,9 +559,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 this._filteredBuffer.clearFilter();
                 const totalCount = this._filteredBuffer.totalCount;
 
-                // Send telemetry for filter cleared
-                ProfilerTelemetry.sendFilterCleared();
-
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
 
@@ -545,17 +587,10 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
-        // Handle row selection from webview - update details panel
-        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            this.handleRowSelection(payload.rowId);
-            return state;
-        });
-
-        // Handle export to CSV request from webview (manual trigger from toolbar)
+        // Handle export to CSV request
         this.registerReducer(
             "exportToCsv",
             (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                // Export is handled asynchronously by the event handler
                 if (this._eventHandlers.onExportToCsv) {
                     this._eventHandlers.onExportToCsv(
                         payload.csvContent,
@@ -566,6 +601,53 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 return state;
             },
         );
+    }
+
+    /**
+     * Handle row selection - get event details and return them for state update
+     */
+    private handleRowSelection(
+        rowId: string,
+    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
+        if (!this._currentSession) {
+            return undefined;
+        }
+
+        // Find the event in the ring buffer by its ID
+        const event = this._currentSession.events.findById(rowId);
+        if (!event) {
+            return undefined;
+        }
+
+        // Build the selected event details using the centralized ProfilerConfigService
+        const viewConfig = this._currentSession.viewConfig;
+        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
+            event,
+            viewConfig,
+        );
+
+        return selectedEventDetails;
+    }
+
+    /**
+     * Open text content in a new VS Code editor
+     */
+    private async openTextInEditor(textData: string): Promise<void> {
+        try {
+            const document = await vscode.workspace.openTextDocument({
+                content: textData,
+                language: "sql",
+            });
+
+            await vscode.window.showTextDocument(document, {
+                viewColumn: vscode.ViewColumn.One,
+                preview: true,
+            });
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
     }
 
     /**
@@ -587,35 +669,6 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Handle row selection - get event details and update the details panel
-     */
-    private handleRowSelection(rowId: string): void {
-        if (!this._currentSession || !this._detailsPanelController) {
-            return;
-        }
-
-        // Find the event in the ring buffer by its ID
-        const event = this._currentSession.events.findById(rowId);
-        if (!event) {
-            return;
-        }
-
-        // Build the selected event details using the centralized ProfilerConfigService
-        const viewConfig = this._currentSession.viewConfig;
-        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
-            event,
-            viewConfig,
-        );
-
-        // Reveal the details panel first (creates the webview if needed)
-        // Then update the selected event after the panel is ready
-        void this._detailsPanelController.reveal().then(() => {
-            // Update the details panel after it's revealed
-            this._detailsPanelController?.updateSelectedEvent(selectedEventDetails);
-        });
-    }
-
-    /**
      * Update the status bar with current session info
      */
     private updateStatusBar(): void {
@@ -627,6 +680,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const state = this.state;
         const sessionName = state.sessionName;
         const sessionState = state.sessionState;
+        const isReadOnly = state.isReadOnly ?? this._isReadOnly;
         // Get count directly from current session's ring buffer if available (source of truth)
         // Otherwise fall back to state (which might be stale)
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
@@ -641,21 +695,30 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         let statusText = "";
 
         if (sessionName) {
-            statusText = sessionName;
+            // For read-only file sessions, show file indicator
+            if (isReadOnly && state.xelFileName) {
+                statusText = LocProfiler.fileSessionLabel(state.xelFileName);
+            } else {
+                statusText = sessionName;
+            }
 
             // Add status indicator
-            switch (sessionState) {
-                case SessionState.Running:
-                    statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
-                    break;
-                case SessionState.Paused:
-                    statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
-                    break;
-                case SessionState.Stopped:
-                    statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
-                    break;
-                default:
-                    statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+            if (isReadOnly) {
+                statusText += ` $(lock) ${LocProfiler.stateReadOnly}`;
+            } else {
+                switch (sessionState) {
+                    case SessionState.Running:
+                        statusText += ` $(circle-filled) ${LocProfiler.stateRunning}`;
+                        break;
+                    case SessionState.Paused:
+                        statusText += ` $(debug-pause) ${LocProfiler.statePaused}`;
+                        break;
+                    case SessionState.Stopped:
+                        statusText += ` $(stop-circle) ${LocProfiler.stateStopped}`;
+                        break;
+                    default:
+                        statusText += ` $(circle-outline) ${LocProfiler.stateNotStarted}`;
+                }
             }
 
             // Add event count (show filtered/total when filter is active)
@@ -673,17 +736,31 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Reveals the webview panel to the foreground
+     */
+    public revealToForeground(): void {
+        this.panel.reveal(vscode.ViewColumn.Beside);
+    }
+
+    /**
+     * Gets whether this is a read-only session
+     */
+    public get isReadOnly(): boolean {
+        return this._isReadOnly;
+    }
+
+    /**
+     * Gets the XEL file info if this is a file-based session
+     */
+    public get xelFileInfo(): XelFileInfo | undefined {
+        return this._xelFileInfo;
+    }
+
+    /**
      * Set event handlers for webview actions
      */
     public setEventHandlers(handlers: ProfilerWebviewEvents): void {
         this._eventHandlers = handlers;
-    }
-
-    /**
-     * Set the details panel controller for row selection updates
-     */
-    public setDetailsPanelController(controller: ProfilerDetailsPanelViewController): void {
-        this._detailsPanelController = controller;
     }
 
     /**

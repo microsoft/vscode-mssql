@@ -183,6 +183,7 @@ export function renderSearchableDropdown(
         disabled?: boolean;
         clearable?: boolean;
         searchBoxPlaceholder?: string;
+        showPlaceholder?: boolean;
     },
 ) {
     if (!component || component.hidden) return undefined;
@@ -216,6 +217,7 @@ export function renderSearchableDropdown(
                 searchBoxPlaceholder={options?.searchBoxPlaceholder}
                 disabled={options?.disabled}
                 clearable={options?.clearable}
+                showPlaceholder={options?.showPlaceholder}
                 onSelect={(option) => onSelect(option.value)}
                 style={{ width: "100%" }}
             />

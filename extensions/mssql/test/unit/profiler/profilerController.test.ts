@@ -9,7 +9,6 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { ProfilerController } from "../../../src/profiler/profilerController";
-import { ProfilerDetailsPanelViewController } from "../../../src/profiler/profilerDetailsPanelViewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
@@ -187,7 +186,6 @@ suite("ProfilerController Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
-        ProfilerDetailsPanelViewController.resetInstance();
         sandbox.restore();
     });
 
@@ -226,6 +224,19 @@ suite("ProfilerController Tests", () => {
             password: "testpass",
         };
 
+        // Mock template selection item
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
         test("should handle connection failure", async () => {
             (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
 
@@ -238,7 +249,23 @@ suite("ProfilerController Tests", () => {
             expect(createWebviewPanelStub).to.not.have.been.called;
         });
 
-        test("should create webview panel on successful connection", async () => {
+        test("should create webview panel after template and session name selection", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    // Simulate session created notification after a short delay
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
+            createController();
+
             const controller = createController();
             await controller.launchProfilerWithConnection(
                 mockConnectionProfile as IConnectionProfile,
@@ -247,7 +274,20 @@ suite("ProfilerController Tests", () => {
             expect(createWebviewPanelStub).to.have.been.calledOnce;
         });
 
-        test("should fetch available XEvent sessions after connection", async () => {
+        test("should fetch available XEvent sessions after template selection", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
 
             const controller = createController();
@@ -258,9 +298,21 @@ suite("ProfilerController Tests", () => {
             expect(getXEventSessionsStub).to.have.been.called;
         });
 
-        test("should still create webview panel even if getXEventSessions fails (e.g., Azure system databases)", async () => {
-            const getXEventSessionsStub = mockProfilerService.getXEventSessions as sinon.SinonStub;
-            getXEventSessionsStub.rejects(new Error("Cannot profile Azure system databases"));
+        test("should show information message when session is created successfully", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
+            createController();
 
             const controller = createController();
             await controller.launchProfilerWithConnection(
@@ -273,6 +325,19 @@ suite("ProfilerController Tests", () => {
         });
 
         test("should show information message when profiler is ready", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler to resolve immediately
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const controller = createController();
             await controller.launchProfilerWithConnection(
                 mockConnectionProfile as IConnectionProfile,
@@ -292,6 +357,33 @@ suite("ProfilerController Tests", () => {
             );
 
             expect(showErrorMessageStub).to.have.been.called;
+        });
+
+        test("should disconnect when template selection is cancelled", async () => {
+            showQuickPickStub.resolves(undefined); // User cancelled template selection
+
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
+
+            // The webview should NOT be created since user cancelled
+            expect(createWebviewPanelStub).to.not.have.been.called;
+            expect(mockConnectionManager.disconnect).to.have.been.called;
+        });
+
+        test("should disconnect when session name input is cancelled", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            (vscode.window.showInputBox as sinon.SinonStub).resolves(undefined); // User cancelled input
+
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
+
+            // The webview should NOT be created since user cancelled
+            expect(createWebviewPanelStub).to.not.have.been.called;
+            expect(mockConnectionManager.disconnect).to.have.been.called;
         });
     });
 
@@ -314,16 +406,58 @@ suite("ProfilerController Tests", () => {
             password: "testpass",
         };
 
-        test("should handle creating a new session with template selection cancelled", async () => {
-            showQuickPickStub.resolves(undefined); // User cancelled template selection
+        // Mock template selection item
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        test("should not auto-start session when session name does not exist on server", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            // Use a session name that doesn't exist in the mock (Session1, Session2)
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("NewSession");
+
+            const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
             const controller = createController();
             await controller.launchProfilerWithConnection(
                 mockConnectionProfile as IConnectionProfile,
             );
 
-            // The webview should be created, but no session should be started
-            expect(createWebviewPanelStub).to.have.been.calledOnce;
+            // Verify that the webview panel was created
+            expect(createWebviewPanelStub).to.have.been.called;
+
+            // Verify that startProfiling was NOT called (session doesn't exist)
+            expect(startProfilingStub).to.not.have.been.called;
+
+            // Verify the "profiler ready" message was shown
+            expect(showInformationMessageStub).to.have.been.called;
+        });
+
+        test("should auto-start session when session name already exists on server", async () => {
+            showQuickPickStub.resolves(mockTemplateItem);
+            // Use a session name that exists in the mock (Session1, Session2)
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("Session1");
+
+            const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
+
+            const controller = createController();
+            await controller.launchProfilerWithConnection(
+                mockConnectionProfile as IConnectionProfile,
+            );
+
+            // Verify that the webview panel was created
+            expect(createWebviewPanelStub).to.have.been.called;
+
+            // Verify that startProfiling WAS called (session exists, auto-start)
+            expect(startProfilingStub).to.have.been.called;
         });
     });
 
@@ -420,6 +554,23 @@ suite("ProfilerController Tests", () => {
                 },
             });
 
+            // Set up template selection mock
+            showQuickPickStub.resolves({
+                label: "Standard",
+                template: { id: "Standard_Azure", name: "Standard", defaultView: "standard" },
+            });
+            (vscode.window.showInputBox as sinon.SinonStub).resolves("TestSession");
+
+            // Set up session created handler
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "TestSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
+
             const controller = createController();
 
             // Create a mock connection profile for Azure with a user database
@@ -437,9 +588,9 @@ suite("ProfilerController Tests", () => {
 
             // Quick pick should not have been called for database selection
             // since we're already connected to a user database
-            // Note: Quick pick might be called for other reasons (like template selection)
-            // but not for database selection
-            expect(createWebviewPanelStub).to.have.been.called;
+            // Note: Quick pick should be called for template selection only
+            // The test verifies that the flow proceeds without prompting for database
+            expect(showQuickPickStub).to.have.been.called; // For template selection
         });
 
         test.skip("should cancel when user cancels database selection", async () => {
@@ -557,7 +708,6 @@ suite("ProfilerController Integration Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
-        ProfilerDetailsPanelViewController.resetInstance();
         sandbox.restore();
     });
 
@@ -586,5 +736,247 @@ suite("ProfilerController Integration Tests", () => {
         // Stop the session
         session.stop();
         expect(session.state).to.equal(SessionState.Stopped);
+    });
+});
+
+suite("ProfilerController Server Type Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let mockContext: vscode.ExtensionContext;
+    let mockConnectionManager: ConnectionManager;
+    let mockVscodeWrapper: VscodeWrapper;
+    let mockSessionManager: ProfilerSessionManager;
+    let mockProfilerService: ProfilerService;
+    let registeredCommands: Map<string, (...args: unknown[]) => unknown>;
+    let showWarningMessageStub: sinon.SinonStub;
+    let showQuickPickStub: sinon.SinonStub;
+    let mockWebview: vscode.Webview;
+    let mockPanel: vscode.WebviewPanel;
+    let mockStatusBarItem: vscode.StatusBarItem;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        registeredCommands = new Map();
+
+        mockWebview = {
+            postMessage: sandbox.stub().resolves(true),
+            asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("https://example.com/")),
+            onDidReceiveMessage: sandbox.stub().returns({ dispose: sandbox.stub() }),
+            html: "",
+        } as unknown as vscode.Webview;
+
+        mockStatusBarItem = {
+            text: "",
+            tooltip: "",
+            show: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+        } as unknown as vscode.StatusBarItem;
+
+        mockPanel = {
+            webview: mockWebview,
+            title: "Profiler",
+            viewColumn: vscode.ViewColumn.One,
+            options: {},
+            reveal: sandbox.stub(),
+            dispose: sandbox.stub(),
+            onDidDispose: sandbox.stub().returns({ dispose: sandbox.stub() }),
+            onDidChangeViewState: sandbox.stub().returns({ dispose: sandbox.stub() }),
+            iconPath: undefined,
+            active: true,
+            visible: true,
+        } as unknown as vscode.WebviewPanel;
+
+        sandbox.stub(vscode.window, "createWebviewPanel").returns(mockPanel);
+        sandbox.stub(vscode.window, "createStatusBarItem").returns(mockStatusBarItem);
+        showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
+        sandbox.stub(vscode.window, "showInputBox");
+        sandbox.stub(vscode.window, "showInformationMessage");
+        showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
+        sandbox.stub(vscode.window, "showErrorMessage");
+
+        sandbox
+            .stub(vscode.commands, "registerCommand")
+            .callsFake(
+                (command: string, callback: (...args: unknown[]) => unknown): vscode.Disposable => {
+                    registeredCommands.set(command, callback);
+                    return { dispose: sandbox.stub() } as unknown as vscode.Disposable;
+                },
+            );
+
+        mockContext = {
+            extensionUri: vscode.Uri.parse("https://localhost"),
+            extensionPath: "/test/path",
+            subscriptions: [],
+        } as unknown as vscode.ExtensionContext;
+
+        const connectionStore = {
+            getPickListItems: sandbox.stub().resolves([]),
+        };
+
+        const connectionUI = {
+            promptForConnection: sandbox.stub().resolves(null),
+        };
+
+        mockConnectionManager = {
+            connectionStore,
+            connectionUI,
+            connect: sandbox.stub().resolves(true),
+            disconnect: sandbox.stub().resolves(),
+            getConnectionCredentials: sandbox.stub().returns({}),
+            listDatabases: sandbox.stub().resolves(["UserDB1", "UserDB2", "master", "tempdb"]),
+        } as unknown as ConnectionManager;
+
+        mockVscodeWrapper = {
+            outputChannel: {
+                appendLine: sandbox.stub(),
+                append: sandbox.stub(),
+                show: sandbox.stub(),
+                clear: sandbox.stub(),
+            },
+            getConfiguration: sandbox.stub().returns({
+                get: sandbox.stub().returns(10000),
+            }),
+            showInformationMessage: sandbox.stub(),
+            showErrorMessage: sandbox.stub(),
+            showWarningMessage: sandbox.stub(),
+            showQuickPick: sandbox.stub(),
+            showInputBox: sandbox.stub(),
+        } as unknown as VscodeWrapper;
+
+        mockProfilerService = createMockProfilerService();
+        mockSessionManager = new ProfilerSessionManager(mockProfilerService);
+    });
+
+    teardown(async () => {
+        await mockSessionManager.dispose();
+        sandbox.restore();
+    });
+
+    function createController(): ProfilerController {
+        return new ProfilerController(
+            mockContext,
+            mockConnectionManager,
+            mockVscodeWrapper,
+            mockSessionManager,
+        );
+    }
+
+    test("should show warning message when connecting to Fabric server", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.fabric.microsoft.com",
+            authenticationType: "AzureMFA",
+            database: "TestDB",
+        };
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        expect(showWarningMessageStub).to.have.been.called;
+        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.false;
+    });
+
+    test("should prompt for database when Azure SQL has no database selected", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
+        };
+
+        showQuickPickStub.resolves({ label: "UserDB1" });
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        expect(showQuickPickStub).to.have.been.called;
+    });
+
+    test("should prompt for database when Azure SQL has system database selected", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "master", // System database
+        };
+
+        showQuickPickStub.resolves({ label: "UserDB1" });
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        expect(showQuickPickStub).to.have.been.called;
+    });
+
+    test("should not prompt for database when Azure SQL has user database selected", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "MyUserDatabase",
+        };
+
+        // Mock the template selection quick pick
+        showQuickPickStub.resolves({
+            label: "Standard",
+            template: { id: "Standard_Azure", name: "Standard", defaultView: "standard" },
+        });
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        // Should only call quick pick once for template selection, not for database selection
+        // listDatabases should not have been called since user DB is already selected
+        expect((mockConnectionManager.listDatabases as sinon.SinonStub).called).to.be.false;
+    });
+
+    test("should proceed normally for on-prem SQL Server", async () => {
+        const mockConnectionProfile = {
+            server: "localhost",
+            authenticationType: "SqlLogin",
+            user: "testuser",
+            password: "testpass",
+        };
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        // Should not show warning and should connect
+        expect(showWarningMessageStub).to.not.have.been.called;
+        expect((mockConnectionManager.connect as sinon.SinonStub).called).to.be.true;
+    });
+
+    test("should filter out system databases from quick pick for Azure SQL", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
+        };
+
+        showQuickPickStub.resolves({ label: "UserDB1" });
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        // Check that quick pick was called with only user databases (not system databases)
+        const quickPickCall = showQuickPickStub.getCall(0);
+        const databases = quickPickCall?.args[0];
+        if (databases && Array.isArray(databases)) {
+            const labels = databases.map((d: { label: string }) => d.label);
+            expect(labels).to.not.include("master");
+            expect(labels).to.not.include("tempdb");
+        }
+    });
+
+    test("should return early when user cancels database selection for Azure SQL", async () => {
+        const mockConnectionProfile = {
+            server: "testserver.database.windows.net",
+            authenticationType: "AzureMFA",
+            database: "", // No database selected
+        };
+
+        showQuickPickStub.resolves(undefined); // User cancelled
+
+        const controller = createController();
+        await controller.launchProfilerWithConnection(mockConnectionProfile as IConnectionProfile);
+
+        // No webview panel should be created since user cancelled
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
     });
 });
