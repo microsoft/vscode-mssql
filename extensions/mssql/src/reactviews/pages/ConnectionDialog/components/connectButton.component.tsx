@@ -20,7 +20,8 @@ export const ConnectButton = ({
     className?: string;
 }) => {
     const context = useContext(ConnectionDialogContext);
-    const state = useConnectionDialogSelector((s) => s);
+    const connectionStatus = useConnectionDialogSelector((s) => s.connectionStatus);
+    const readyToConnect = useConnectionDialogSelector((s) => s.readyToConnect);
 
     if (!context) {
         return undefined;
@@ -32,14 +33,14 @@ export const ConnectButton = ({
             type="submit"
             appearance="primary"
             disabled={
-                state.connectionStatus === ApiStatus.Loading ||
-                !state.readyToConnect
+                connectionStatus === ApiStatus.Loading ||
+                !readyToConnect
             }
             className={className}
             style={style}
             iconPosition="after"
             icon={
-                state.connectionStatus === ApiStatus.Loading ? (
+                connectionStatus === ApiStatus.Loading ? (
                     <Spinner size="tiny" />
                 ) : undefined
             }>

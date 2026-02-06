@@ -109,7 +109,8 @@ const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
-    const state = useConnectionDialogSelector((s) => s);
+    const savedConnections = useConnectionDialogSelector((s) => s.savedConnections);
+    const recentConnections = useConnectionDialogSelector((s) => s.recentConnections);
     const { extensionRpc } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
@@ -153,7 +154,7 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {state?.savedConnections?.map((connection, index) => {
+                    {savedConnections?.map((connection, index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
@@ -183,7 +184,7 @@ export const ConnectionsListContainer = () => {
                 </div>
                 <Tree>
                     {// state may not be initialized yet due to async loading of context
-                    state?.recentConnections.map((connection, index) => {
+                    recentConnections?.map((connection, index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}

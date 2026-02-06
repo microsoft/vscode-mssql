@@ -28,11 +28,11 @@ export const TrustServerCertificateDialog = ({
     dialogProps: TrustServerCertDialogProps;
 }) => {
     const context = useContext(ConnectionDialogContext)!;
-    const state = useConnectionDialogSelector((s) => s);
+    const dialog = useConnectionDialogSelector((s) => s.dialog);
     // eslint-disable-next-line no-restricted-syntax -- Ref needs to be null, not undefined
     const trustCertButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    if (state.dialog?.type !== "trustServerCert") {
+    if (dialog?.type !== "trustServerCert") {
         return undefined;
     }
 

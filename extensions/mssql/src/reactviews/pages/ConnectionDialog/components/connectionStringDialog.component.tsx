@@ -17,10 +17,10 @@ export const ConnectionStringDialog = ({
     dialogProps: ConnectionStringDialogProps;
 }) => {
     const context = useContext(ConnectionDialogContext)!;
-    const state = useConnectionDialogSelector((s) => s);
+    const dialog = useConnectionDialogSelector((s) => s.dialog);
     const [connectionString, setConnectionString] = useState(dialogProps.connectionString || "");
 
-    if (state.dialog?.type !== "loadFromConnectionString") {
+    if (dialog?.type !== "loadFromConnectionString") {
         return undefined;
     }
 

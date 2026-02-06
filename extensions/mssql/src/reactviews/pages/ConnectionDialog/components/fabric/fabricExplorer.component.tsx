@@ -26,7 +26,12 @@ export const FabricExplorer = ({
     onSelectWorkspace,
     onSelectDatabase,
 }: FabricExplorerProps) => {
-    const state = useConnectionDialogSelector((s) => s);
+    const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const azureTenants = useConnectionDialogSelector((s) => s.azureTenants);
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
+    const loadingAzureTenantsStatus = useConnectionDialogSelector((s) => s.loadingAzureTenantsStatus);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
     const { themeKind } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
@@ -74,11 +79,11 @@ export const FabricExplorer = ({
         <>
             <FabricExplorerHeader
                 searchValue={searchFilter}
-                azureAccounts={state.azureAccounts}
-                azureTenants={state.azureTenants}
-                selectedAccountId={state.selectedAccountId}
-                selectedTenantId={state.selectedTenantId}
-                azureTenantsLoadStatus={state.loadingAzureTenantsStatus}
+                azureAccounts={azureAccounts}
+                azureTenants={azureTenants}
+                selectedAccountId={selectedAccountId}
+                selectedTenantId={selectedTenantId}
+                azureTenantsLoadStatus={loadingAzureTenantsStatus}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
@@ -92,7 +97,7 @@ export const FabricExplorer = ({
                     onSelectWorkspace={handleWorkspaceSelected}
                 />
                 <FabricWorkspaceContentsList
-                    fabricWorkspacesLoadStatus={state.fabricWorkspacesLoadStatus}
+                    fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}

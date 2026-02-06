@@ -20,7 +20,9 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 
 export const ConnectionFormPage = () => {
     const context = useContext(ConnectionDialogContext);
-    const state = useConnectionDialogSelector((s) => s);
+    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const formState = useConnectionDialogSelector((s) => s.formState);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const formStyles = useFormStyles();
 
@@ -30,9 +32,9 @@ export const ConnectionFormPage = () => {
 
     return (
         <div>
-            {state.connectionComponents.mainOptions.map((inputName, idx) => {
+            {mainOptions.map((inputName, idx) => {
                 const component =
-                    state.formComponents[inputName as keyof IConnectionDialogProfile];
+                    formComponents[inputName as keyof IConnectionDialogProfile];
                 if (component?.hidden !== false) {
                     return undefined;
                 }
@@ -46,7 +48,7 @@ export const ConnectionFormPage = () => {
                     >
                         key={idx}
                         context={context}
-                        formState={state.formState}
+                        formState={formState}
                         component={component}
                         idx={idx}
                         props={{ orientation: "horizontal" }}

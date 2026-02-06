@@ -31,7 +31,17 @@ export const azureLogoColor = () => {
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
-    const state = useConnectionDialogSelector((s) => s);
+    const formState = useConnectionDialogSelector((s) => s.formState);
+    const azureServers = useConnectionDialogSelector((s) => s.azureServers);
+    const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const loadingAzureAccountsStatus = useConnectionDialogSelector((s) => s.loadingAzureAccountsStatus);
+    const azureSubscriptions = useConnectionDialogSelector((s) => s.azureSubscriptions);
+    const azureTenantSignInCounts = useConnectionDialogSelector((s) => s.azureTenantSignInCounts);
+    const azureTenantStatus = useConnectionDialogSelector((s) => s.azureTenantStatus);
+    const loadingAzureSubscriptionsStatus = useConnectionDialogSelector((s) => s.loadingAzureSubscriptionsStatus);
+    const loadingAzureServersStatus = useConnectionDialogSelector((s) => s.loadingAzureServersStatus);
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     if (context === undefined) {
         return undefined;
     }
@@ -63,7 +73,7 @@ export const AzureBrowsePage = () => {
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     function setSelectedServerWithFormState(server: string | undefined) {
-        if (server === undefined && state.formState.server === "") {
+        if (server === undefined && formState.server === "") {
             return; // avoid unnecessary updates
         }
 
@@ -72,7 +82,7 @@ export const AzureBrowsePage = () => {
         let serverUri = "";
 
         if (server) {
-            const srv = state.azureServers.find((s) => s.server === server);
+            const srv = azureServers.find((s) => s.server === server);
             serverUri = srv?.uri || "";
         }
 
@@ -80,13 +90,13 @@ export const AzureBrowsePage = () => {
     }
 
     function getAzureAccountsText(): string {
-        switch (state.azureAccounts.length) {
+        switch (azureAccounts.length) {
             case 0:
                 return Loc.azure.notSignedIn;
             case 1:
-                return state.azureAccounts[0].name;
+                return azureAccounts[0].name;
             default:
-                return Loc!.azure.nAccounts(state.azureAccounts.length);
+                return Loc!.azure.nAccounts(azureAccounts.length);
         }
     }
 
@@ -95,7 +105,7 @@ export const AzureBrowsePage = () => {
     // subscriptions
     useEffect(() => {
         const subs = removeDuplicates(
-            state.azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`),
+            azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`),
         );
         setSubscriptions(subs.sort());
 
@@ -106,11 +116,11 @@ export const AzureBrowsePage = () => {
             subs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [state.azureSubscriptions]);
+    }, [azureSubscriptions]);
 
     // resource groups
     useEffect(() => {
-        let activeServers = state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -128,11 +138,11 @@ export const AzureBrowsePage = () => {
             rgs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [subscriptions, selectedSubscription, state.azureServers]);
+    }, [subscriptions, selectedSubscription, azureServers]);
 
     // locations
     useEffect(() => {
-        let activeServers = state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -157,15 +167,15 @@ export const AzureBrowsePage = () => {
             locs,
             DefaultSelectionMode.AlwaysSelectNone,
         );
-    }, [resourceGroups, selectedResourceGroup, state.azureServers]);
+    }, [resourceGroups, selectedResourceGroup, azureServers]);
 
     // servers
     useEffect(() => {
-        if (state.loadingAzureAccountsStatus !== ApiStatus.Loaded) {
+        if (loadingAzureAccountsStatus !== ApiStatus.Loaded) {
             return; // should not be visible if not signed in
         }
 
-        let activeServers = state.azureServers;
+        let activeServers = azureServers;
 
         if (selectedSubscription) {
             activeServers = activeServers.filter(
@@ -198,7 +208,7 @@ export const AzureBrowsePage = () => {
                 DefaultSelectionMode.SelectFirstIfAny,
             );
         }
-    }, [locations, selectedLocation, state.azureServers]);
+    }, [locations, selectedLocation, azureServers]);
 
     // databases
     useEffect(() => {
@@ -206,7 +216,7 @@ export const AzureBrowsePage = () => {
             return; // should not be visible if no server is selected
         }
 
-        const server = state.azureServers.find(
+        const server = azureServers.find(
             (server) => server.server === selectedServer,
         );
 
@@ -226,9 +236,9 @@ export const AzureBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    const hasAccounts = (state.azureAccounts?.length ?? 0) > 0;
-    const tenantCounts = state.azureTenantSignInCounts;
-    const tenantStatus = state.azureTenantStatus ?? [];
+    const hasAccounts = (azureAccounts?.length ?? 0) > 0;
+    const tenantCounts = azureTenantSignInCounts;
+    const tenantStatus = azureTenantStatus ?? [];
     const shouldShowTenantPrompt =
         tenantCounts !== undefined &&
         tenantCounts.totalTenants > 0 &&
@@ -254,7 +264,7 @@ export const AzureBrowsePage = () => {
     return (
         <div>
             <EntraSignInEmpty
-                loadAccountStatus={state.loadingAzureAccountsStatus}
+                loadAccountStatus={loadingAzureAccountsStatus}
                 hasAccounts={hasAccounts}
                 brandImageSource={azureLogoColor()}
                 signInText={Loc.connectionDialog.signIntoAzureToBrowse}
@@ -264,7 +274,7 @@ export const AzureBrowsePage = () => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
                 }
             />
-            {state.loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
+            {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div
                         className={formStyles.formComponentDiv}
@@ -274,17 +284,17 @@ export const AzureBrowsePage = () => {
                                 <Tooltip
                                     content={
                                         <>
-                                            {state.azureAccounts.length === 0 && (
+                                            {azureAccounts.length === 0 && (
                                                 <span>
                                                     {Loc.azure.clickToSignIntoAnAzureAccount}
                                                 </span>
                                             )}
-                                            {state.azureAccounts.length > 0 && (
+                                            {azureAccounts.length > 0 && (
                                                 <>
                                                     {Loc.azure.currentlySignedInAs}
                                                     <br />
                                                     <ul>
-                                                        {state.azureAccounts.map(
+                                                        {azureAccounts.map(
                                                             (account) => (
                                                                 <li key={account.id}>
                                                                     {account.name}
@@ -306,7 +316,7 @@ export const AzureBrowsePage = () => {
                                         inline>
                                         {getAzureAccountsText()}
                                         {" • "}
-                                        {state.azureAccounts.length === 0
+                                        {azureAccounts.length === 0
                                             ? Loc.azure.signIntoAzure
                                             : Loc.azure.addAccount}
                                     </Link>
@@ -349,7 +359,7 @@ export const AzureBrowsePage = () => {
                                     }}
                                     size="small"
                                 />
-                                {state.loadingAzureSubscriptionsStatus ===
+                                {loadingAzureSubscriptionsStatus ===
                                 ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined}
@@ -434,7 +444,7 @@ export const AzureBrowsePage = () => {
                         label={Loc.connectionDialog.serverLabel}
                         required
                         decoration={
-                            state.loadingAzureServersStatus === ApiStatus.Loading ? (
+                            loadingAzureServersStatus === ApiStatus.Loading ? (
                                 <Spinner size="tiny" />
                             ) : undefined
                         }
@@ -459,8 +469,8 @@ export const AzureBrowsePage = () => {
                                 ConnectionDialogContextProps
                             >
                                 context={context}
-                                formState={state.formState}
-                                component={state.formComponents["trustServerCertificate"]!}
+                                formState={formState}
+                                component={formComponents["trustServerCertificate"]!}
                                 idx={0}
                                 props={{ orientation: "horizontal" }}
                             />
@@ -483,7 +493,7 @@ export const AzureBrowsePage = () => {
                                         ),
                                 }}
                             />
-                            {state.connectionComponents.mainOptions
+                            {mainOptions
                                 .filter(
                                     // filter out inputs that are manually placed above
                                     (opt) =>
@@ -493,7 +503,7 @@ export const AzureBrowsePage = () => {
                                 )
                                 .map((inputName, idx) => {
                                     const component =
-                                        state.formComponents[
+                                        formComponents[
                                             inputName as keyof IConnectionDialogProfile
                                         ];
                                     if (component?.hidden !== false) {
@@ -509,7 +519,7 @@ export const AzureBrowsePage = () => {
                                         >
                                             key={idx}
                                             context={context}
-                                            formState={state.formState}
+                                            formState={formState}
                                             component={component}
                                             idx={idx}
                                             props={{ orientation: "horizontal" }}

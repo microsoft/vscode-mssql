@@ -31,7 +31,14 @@ import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsL
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
-    const state = useConnectionDialogSelector((s) => s);
+    const loadingAzureAccountsStatus = useConnectionDialogSelector((s) => s.loadingAzureAccountsStatus);
+    const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const formState = useConnectionDialogSelector((s) => s.formState);
+    const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
+    const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     if (context === undefined) {
         return undefined;
     }
@@ -43,16 +50,16 @@ export const FabricBrowsePage = () => {
 
     useEffect(() => {
         if (
-            state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            state.azureAccounts &&
-            !state.selectedAccountId
+            loadingAzureAccountsStatus === ApiStatus.Loaded &&
+            azureAccounts &&
+            !selectedAccountId
         ) {
-            const firstAccount = state.azureAccounts[0];
+            const firstAccount = azureAccounts[0];
             if (firstAccount) {
                 context.selectAzureAccount(firstAccount.id);
             }
         }
-    }, [state.loadingAzureAccountsStatus, state.azureAccounts]);
+    }, [loadingAzureAccountsStatus, azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -96,12 +103,12 @@ export const FabricBrowsePage = () => {
         }
     }
 
-    const hasAccounts = (state.azureAccounts?.length ?? 0) > 0;
+    const hasAccounts = (azureAccounts?.length ?? 0) > 0;
 
     return (
         <div>
             <EntraSignInEmpty
-                loadAccountStatus={state.loadingAzureAccountsStatus}
+                loadAccountStatus={loadingAzureAccountsStatus}
                 hasAccounts={hasAccounts}
                 brandImageSource={fabricLogoColor()}
                 signInText={Loc.connectionDialog.signIntoFabricToBrowse}
@@ -111,15 +118,15 @@ export const FabricBrowsePage = () => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
                 }}
             />
-            {state.loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
+            {loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div className={styles.componentGroupHeader}>
                         <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     </div>
                     <div className={styles.componentGroupContainer}>
                         <FabricExplorer
-                            fabricWorkspaces={state.fabricWorkspaces}
-                            fabricWorkspacesLoadStatus={state.fabricWorkspacesLoadStatus}
+                            fabricWorkspaces={fabricWorkspaces}
+                            fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
                             onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                             onSelectAccountId={handleSelectAccountId}
                             onSelectTenantId={handleSelectTenantId}
@@ -128,7 +135,7 @@ export const FabricBrowsePage = () => {
                         />
                     </div>
 
-                    {state.formState.server && (
+                    {formState.server && (
                         <>
                             <div
                                 className={styles.componentGroupHeader}
@@ -136,13 +143,13 @@ export const FabricBrowsePage = () => {
                                 <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
                             </div>
                             <div className={styles.componentGroupContainer}>
-                                {state.connectionComponents.mainOptions
+                                {mainOptions
                                     .filter(
                                         (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
                                     )
                                     .map((inputName, idx) => {
                                         const component =
-                                            state.formComponents[
+                                            formComponents[
                                                 inputName as keyof IConnectionDialogProfile
                                             ];
                                         if (component?.hidden !== false) {
@@ -158,7 +165,7 @@ export const FabricBrowsePage = () => {
                                             >
                                                 key={idx}
                                                 context={context}
-                                                formState={state.formState}
+                                                formState={formState}
                                                 component={component}
                                                 idx={idx}
                                                 props={{ orientation: "horizontal" }}
