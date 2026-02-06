@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as tar from "tar";
 import { spawn } from "child_process";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
@@ -1142,30 +1143,6 @@ export async function checkContainerExists(name: string): Promise<boolean> {
 //#region DAB (Data API Builder) Docker Functions
 
 /**
- * Converts a Windows path to Docker-compatible format.
- * On Windows, Docker expects paths like /c/Users/... instead of C:\Users\...
- * On other platforms, returns the path unchanged.
- * @param filePath The file path to convert
- */
-function toDockerPath(filePath: string): string {
-    if (platform() !== Platform.Windows) {
-        return filePath;
-    }
-
-    // Convert Windows path (C:\Users\...) to Docker format (/c/Users/...)
-    const resolvedPath = path.resolve(filePath);
-    const match = resolvedPath.match(/^([A-Za-z]):\\(.*)$/);
-    if (match) {
-        const driveLetter = match[1].toLowerCase();
-        const remainingPath = match[2].replace(/\\/g, "/");
-        return `/${driveLetter}/${remainingPath}`;
-    }
-
-    // If path doesn't match Windows format, return as-is with forward slashes
-    return filePath.replace(/\\/g, "/");
-}
-
-/**
  * Pulls the DAB container image from MCR
  */
 export async function pullDabContainerImage(): Promise<DockerCommandParams> {
@@ -1191,7 +1168,9 @@ export async function pullDabContainerImage(): Promise<DockerCommandParams> {
 }
 
 /**
- * Starts a DAB Docker container with the specified parameters
+ * Starts a DAB Docker container with the specified parameters.
+ * The config file is copied into the container (not bind-mounted) so the
+ * temp file on the host can be deleted immediately after container creation.
  * @param containerName Name for the container
  * @param port Port to expose the DAB API on
  * @param configFilePath Path to the DAB config file
@@ -1222,11 +1201,28 @@ export async function startDabDockerContainer(
                 PortBindings: {
                     [dabContainerPort]: [{ HostPort: hostPort }],
                 },
-                Binds: [`${toDockerPath(configFilePath)}:/App/dab-config.json:ro`],
             },
         };
 
         const container = await dockerClient.createContainer(createContainerOptions);
+
+        // Copy config file into the container instead of bind-mounting
+        // This allows the temp file to be deleted after container creation
+        // The file must be named 'dab-config.json' for proper extraction
+        const configDir = path.dirname(configFilePath);
+        const tarStream = tar.create(
+            {
+                gzip: false,
+                cwd: configDir,
+                portable: true,
+            },
+            ["dab-config.json"],
+        ) as unknown as NodeJS.ReadableStream;
+
+        await container.putArchive(tarStream, {
+            path: "/App",
+        });
+
         await container.start();
 
         dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);

@@ -208,7 +208,7 @@ export class DabService implements Dab.IDabService {
                         fullErrorText: getErrorMessage(e),
                     };
                 } finally {
-                    // Clean up temp config file - the container has already loaded/mounted the config
+                    // Config file is copied into container (not bind-mounted), so safe to delete
                     this.cleanupDabConfigFile(configFilePath);
                 }
                 break;
@@ -258,34 +258,48 @@ export class DabService implements Dab.IDabService {
     }
 
     /**
-     * Writes the DAB config content to a temporary file
+     * Writes the DAB config content to a temporary file.
+     * Creates a unique temp directory with the file named 'dab-config.json' inside,
+     * so it can be copied into the container with the correct name.
      * @param configContent The DAB configuration JSON content
      * @returns The path to the temporary config file
      */
     private writeDabConfigToTempFile(configContent: string): string {
-        const tempDir = os.tmpdir();
-        const configFileName = `dab-config-${crypto.randomUUID()}.json`;
-        const configFilePath = path.join(tempDir, configFileName);
+        // Create a unique temp directory to hold the config file
+        const uniqueTempDir = path.join(os.tmpdir(), `dab-${crypto.randomUUID()}`);
+        fs.mkdirSync(uniqueTempDir, { recursive: true });
 
-        // Note: We use default permissions (typically 0644) rather than restrictive permissions (0600)
-        // because this file is mounted into the Docker container. The container process runs as a
-        // different user and needs read access to the config file.
-        fs.writeFileSync(configFilePath, configContent, "utf8");
+        // Name the file dab-config.json so it can be copied into the container as-is
+        const configFilePath = path.join(uniqueTempDir, "dab-config.json");
+
+        // Use restrictive permissions (owner read/write only) since the file contains
+        // sensitive connection string data. This is safe because we copy the file into
+        // the container rather than bind-mounting it.
+        fs.writeFileSync(configFilePath, configContent, { encoding: "utf8", mode: 0o600 });
         dockerLogger.appendLine(`DAB config written to: ${configFilePath}`);
 
         return configFilePath;
     }
 
     /**
-     * Cleans up a temporary DAB config file
+     * Cleans up a temporary DAB config file and its parent directory
      * @param configFilePath Path to the config file to delete
      */
     private cleanupDabConfigFile(configFilePath: string): void {
         try {
+            const configDir = path.dirname(configFilePath);
+
+            // Remove the config file
             if (fs.existsSync(configFilePath)) {
                 fs.unlinkSync(configFilePath);
-                dockerLogger.appendLine(`Cleaned up DAB config file: ${configFilePath}`);
             }
+
+            // Remove the temp directory if it's in the temp folder and starts with 'dab-'
+            if (configDir.startsWith(os.tmpdir()) && path.basename(configDir).startsWith("dab-")) {
+                fs.rmdirSync(configDir);
+            }
+
+            dockerLogger.appendLine(`Cleaned up DAB config: ${configFilePath}`);
         } catch (e) {
             dockerLogger.appendLine(`Failed to cleanup DAB config file: ${getErrorMessage(e)}`);
         }
