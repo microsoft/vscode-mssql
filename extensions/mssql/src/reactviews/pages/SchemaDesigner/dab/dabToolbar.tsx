@@ -88,8 +88,14 @@ const useStyles = makeStyles({
 export function DabToolbar() {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const { dabConfig, updateDabApiTypes, dabSchemaFilter, setDabSchemaFilter, generateDabConfig } =
-        context;
+    const {
+        dabConfig,
+        updateDabApiTypes,
+        dabSchemaFilter,
+        setDabSchemaFilter,
+        generateDabConfig,
+        openDabDeploymentDialog,
+    } = context;
 
     if (!dabConfig) {
         return null;
@@ -129,7 +135,8 @@ export function DabToolbar() {
                         appearance="primary"
                         icon={<FluentIcons.Play16Filled />}
                         size="small"
-                        title={locConstants.schemaDesigner.deploy}>
+                        title={locConstants.schemaDesigner.deploy}
+                        onClick={openDabDeploymentDialog}>
                         {locConstants.schemaDesigner.deploy}
                     </Button>
                 </div>

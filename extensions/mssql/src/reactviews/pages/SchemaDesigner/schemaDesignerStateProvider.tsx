@@ -144,6 +144,19 @@ export interface SchemaDesignerContextProps
     dabConfigRequestId: number;
     generateDabConfig: () => Promise<void>;
     openDabConfigInEditor: (configContent: string) => void;
+    // DAB Deployment state
+    dabDeploymentState: Dab.DabDeploymentState;
+    openDabDeploymentDialog: () => void;
+    closeDabDeploymentDialog: () => void;
+    setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
+    updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
+    validateDabDeploymentParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
+    runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
+    resetDabDeploymentState: () => void;
+    retryDabDeploymentSteps: () => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -218,6 +231,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
+        Dab.createDefaultDeploymentState(),
+    );
 
     const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
@@ -1241,6 +1257,151 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
+    // DAB Deployment functions
+    const openDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: true,
+            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+        }));
+    }, []);
+
+    const closeDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: false,
+        }));
+    }, []);
+
+    const setDabDeploymentDialogStep = useCallback((step: Dab.DabDeploymentDialogStep) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            dialogStep: step,
+        }));
+    }, []);
+
+    const updateDabDeploymentParams = useCallback((params: Partial<Dab.DabDeploymentParams>) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            params: {
+                ...prev.params,
+                ...params,
+            },
+        }));
+    }, []);
+
+    const validateDabDeploymentParams = useCallback(
+        async (
+            containerName: string,
+            port: number,
+        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
+            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
+                containerName,
+                port,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const updateDeploymentStepStatus = useCallback(
+        (
+            step: Dab.DabDeploymentStepOrder,
+            status: Dab.DabDeploymentStepStatus["status"],
+            errorMessage?: string,
+            fullErrorText?: string,
+            errorLink?: string,
+            errorLinkText?: string,
+        ) => {
+            setDabDeploymentState((prev) => ({
+                ...prev,
+                stepStatuses: prev.stepStatuses.map((s) =>
+                    s.step === step
+                        ? { ...s, status, errorMessage, fullErrorText, errorLink, errorLinkText }
+                        : s,
+                ),
+            }));
+        },
+        [],
+    );
+
+    const runDabDeploymentStep = useCallback(
+        async (step: Dab.DabDeploymentStepOrder) => {
+            // Mark step as running
+            updateDeploymentStepStatus(step, "running");
+
+            // For container start step, verify DAB config is available
+            if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
+                updateDeploymentStepStatus(step, "error", "DAB configuration is not available.");
+                return;
+            }
+
+            // Run the step via extension (extension will generate config content as needed)
+            const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
+                step,
+                params: dabDeploymentState.params,
+                config: dabConfig ?? undefined,
+            });
+
+            if (response.success) {
+                // Update step status to completed and advance to next step
+                setDabDeploymentState((prev) => {
+                    const updatedStatuses = prev.stepStatuses.map((s) =>
+                        s.step === step ? { ...s, status: "completed" as const } : s,
+                    );
+
+                    // If this was the last step, set completion state
+                    if (step === Dab.DabDeploymentStepOrder.checkContainer) {
+                        return {
+                            ...prev,
+                            stepStatuses: updatedStatuses,
+                            currentDeploymentStep: step + 1,
+                            isDeploying: false,
+                            apiUrl: response.apiUrl,
+                            dialogStep: Dab.DabDeploymentDialogStep.Complete,
+                        };
+                    }
+
+                    return {
+                        ...prev,
+                        stepStatuses: updatedStatuses,
+                        currentDeploymentStep: step + 1,
+                    };
+                });
+            } else {
+                updateDeploymentStepStatus(
+                    step,
+                    "error",
+                    response.error,
+                    response.fullErrorText,
+                    response.errorLink,
+                    response.errorLinkText,
+                );
+            }
+        },
+        [dabConfig, dabDeploymentState.params, extensionRpc, updateDeploymentStepStatus],
+    );
+
+    const resetDabDeploymentState = useCallback(() => {
+        setDabDeploymentState(Dab.createDefaultDeploymentState());
+    }, []);
+
+    const retryDabDeploymentSteps = useCallback(() => {
+        // Reset only deployment steps (pullImage, startContainer, checkContainer)
+        // while keeping prerequisite steps as completed
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
+            stepStatuses: prev.stepStatuses.map((s) => {
+                if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
+                    return { ...s, status: "notStarted" as const, errorMessage: undefined };
+                }
+                return s;
+            }),
+            error: undefined,
+            apiUrl: undefined,
+        }));
+    }, []);
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1315,6 +1476,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfigRequestId,
                 generateDabConfig,
                 openDabConfigInEditor,
+                // DAB Deployment state
+                dabDeploymentState,
+                openDabDeploymentDialog,
+                closeDabDeploymentDialog,
+                setDabDeploymentDialogStep,
+                updateDabDeploymentParams,
+                validateDabDeploymentParams,
+                runDabDeploymentStep,
+                resetDabDeploymentState,
+                retryDabDeploymentSteps,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
