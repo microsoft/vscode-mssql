@@ -5045,10 +5045,6 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
-    <trans-unit id="++CODE++2634dd7c22d8297f79cc7c3173c7ecd1e7d8af3b77dbe35b67da473439a26820">
-      <source xml:lang="en">This file is currently connected to {0}. Please disconnect from {0} before proceeding.</source>
-      <note>{0} is the name of the other database extension</note>
-    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
