@@ -3,22 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
-import { useContext } from "react";
 import { DialogHeader } from "../../../common/dialogHeader.component";
+import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import {
+    ConnectionDialogReducers,
+    ConnectionDialogWebviewState,
+} from "../../../../sharedInterfaces/connectionDialog";
 
 const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");
 
 export const ConnectionHeader = () => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+    // Only needs themeKind — no state subscription needed
+    const { themeKind } = useVscodeWebview2<
+        ConnectionDialogWebviewState,
+        ConnectionDialogReducers
+    >();
     return (
         <DialogHeader
             iconLight={databaseIconLight}
             iconDark={databaseIconDark}
             title={locConstants.connectionDialog.connectToDatabase}
-            themeKind={connectionDialogContext?.themeKind}
+            themeKind={themeKind}
         />
     );
 };

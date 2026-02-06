@@ -14,14 +14,15 @@ import {
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs } from "../../common/utils";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs2 } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
 import {
     ChangePasswordResult,
     ChangePasswordWebviewRequest,
 } from "../../../sharedInterfaces/changePassword";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -30,123 +31,125 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc, themeKind, keyBindings } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();
-    const state = webviewContext?.state;
+    const state = useConnectionDialogSelector((s) => s);
+    console.time("[ConnectionDialog-proper] state provider render");
+    console.timeEnd("[ConnectionDialog-proper] state provider render");
     return (
         <ConnectionDialogContext.Provider
             value={{
                 state: state,
-                themeKind: webviewContext?.themeKind,
-                keyBindings: webviewContext?.keyBindings,
-                ...getCoreRPCs(webviewContext),
+                themeKind: themeKind,
+                keyBindings: keyBindings,
+                ...getCoreRPCs2(extensionRpc),
                 loadConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewContext?.extensionRpc.action("loadConnection", {
+                    extensionRpc.action("loadConnection", {
                         connection: connection,
                     });
                 },
                 formAction: function (event): void {
-                    webviewContext?.extensionRpc.action("formAction", {
+                    extensionRpc.action("formAction", {
                         event: event,
                     });
                 },
                 setConnectionInputType: function (inputMode: ConnectionInputMode): void {
-                    webviewContext?.extensionRpc.action("setConnectionInputType", {
+                    extensionRpc.action("setConnectionInputType", {
                         inputMode: inputMode,
                     });
                 },
                 connect: function (): void {
-                    webviewContext?.extensionRpc.action("connect");
+                    extensionRpc.action("connect");
                 },
                 loadAzureServers: function (subscriptionId: string): void {
-                    webviewContext?.extensionRpc.action("loadAzureServers", {
+                    extensionRpc.action("loadAzureServers", {
                         subscriptionId: subscriptionId,
                     });
                 },
                 addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
-                    webviewContext?.extensionRpc.action("addFirewallRule", {
+                    extensionRpc.action("addFirewallRule", {
                         firewallRuleSpec,
                     });
                 },
                 createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
-                    webviewContext.extensionRpc.action("createConnectionGroup", {
+                    extensionRpc.action("createConnectionGroup", {
                         connectionGroupSpec,
                     });
                 },
                 openCreateConnectionGroupDialog: function (): void {
-                    webviewContext.extensionRpc.action("openCreateConnectionGroupDialog");
+                    extensionRpc.action("openCreateConnectionGroupDialog");
                 },
                 closeDialog: function (): void {
-                    webviewContext?.extensionRpc.action("closeDialog");
+                    extensionRpc.action("closeDialog");
                 },
                 closeMessage: function (): void {
-                    webviewContext.extensionRpc.action("closeMessage");
+                    extensionRpc.action("closeMessage");
                 },
                 filterAzureSubscriptions: function (): void {
-                    webviewContext.extensionRpc.action("filterAzureSubscriptions");
+                    extensionRpc.action("filterAzureSubscriptions");
                 },
                 refreshConnectionsList: function (): void {
-                    webviewContext.extensionRpc.action("refreshConnectionsList");
+                    extensionRpc.action("refreshConnectionsList");
                 },
                 deleteSavedConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewContext.extensionRpc.action("deleteSavedConnection", {
+                    extensionRpc.action("deleteSavedConnection", {
                         connection: connection,
                     });
                 },
                 removeRecentConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewContext.extensionRpc.action("removeRecentConnection", {
+                    extensionRpc.action("removeRecentConnection", {
                         connection: connection,
                     });
                 },
                 loadFromConnectionString: function (connectionString: string): void {
-                    webviewContext.extensionRpc.action("loadFromConnectionString", {
+                    extensionRpc.action("loadFromConnectionString", {
                         connectionString: connectionString,
                     });
                 },
                 openConnectionStringDialog: function (): void {
-                    webviewContext.extensionRpc.action("openConnectionStringDialog");
+                    extensionRpc.action("openConnectionStringDialog");
                 },
                 signIntoAzureForFirewallRule: function (): void {
-                    webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
+                    extensionRpc.action("signIntoAzureForFirewallRule");
                 },
                 signIntoAzureForBrowse: function (
                     browseTarget:
                         | ConnectionInputMode.AzureBrowse
                         | ConnectionInputMode.FabricBrowse,
                 ): void {
-                    webviewContext.extensionRpc.action("signIntoAzureForBrowse", {
+                    extensionRpc.action("signIntoAzureForBrowse", {
                         browseTarget,
                     });
                 },
                 signIntoAzureTenantForBrowse: function (): void {
-                    webviewContext.extensionRpc.action("signIntoAzureTenantForBrowse");
+                    extensionRpc.action("signIntoAzureTenantForBrowse");
                 },
                 selectAzureAccount: (accountId: string) => {
-                    webviewContext.extensionRpc.action("selectAzureAccount", {
+                    extensionRpc.action("selectAzureAccount", {
                         accountId,
                     });
                 },
                 selectAzureTenant: (tenantId: string) => {
-                    webviewContext.extensionRpc.action("selectAzureTenant", {
+                    extensionRpc.action("selectAzureTenant", {
                         tenantId,
                     });
                 },
                 selectFabricWorkspace: (workspaceId: string) => {
-                    webviewContext.extensionRpc.action("selectFabricWorkspace", {
+                    extensionRpc.action("selectFabricWorkspace", {
                         workspaceId,
                     });
                 },
                 messageButtonClicked: (buttonId: string) => {
-                    webviewContext.extensionRpc.action("messageButtonClicked", {
+                    extensionRpc.action("messageButtonClicked", {
                         buttonId,
                     });
                 },
                 getConnectionDisplayName: async function (
                     connectionProfile: IConnectionDialogProfile,
                 ): Promise<string> {
-                    return await webviewContext.extensionRpc.sendRequest(
+                    return await extensionRpc.sendRequest(
                         GetConnectionDisplayNameRequest.type,
                         connectionProfile,
                     );
@@ -154,7 +157,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 getSqlAnalyticsEndpointUriFromFabric: async function (
                     sqlDb: FabricSqlDbInfo,
                 ): Promise<string> {
-                    return await webviewContext.extensionRpc.sendRequest(
+                    return await extensionRpc.sendRequest(
                         GetSqlAnalyticsEndpointUriFromFabricRequest.type,
                         sqlDb,
                     );
@@ -162,7 +165,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 changePassword: async function (
                     newPassword: string,
                 ): Promise<ChangePasswordResult> {
-                    return await webviewContext.extensionRpc.sendRequest(
+                    return await extensionRpc.sendRequest(
                         ChangePasswordWebviewRequest.type,
                         newPassword,
                     );

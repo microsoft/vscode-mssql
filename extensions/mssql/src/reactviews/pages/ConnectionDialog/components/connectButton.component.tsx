@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, Spinner } from "@fluentui/react-components";
-import { CSSProperties, useContext } from "react";
-import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
+import { CSSProperties } from "react";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
+import { useConnectionDialogSelector } from "../connectionDialogSelector";
 
 export const ConnectButtonId = "connectButton";
 
@@ -18,11 +18,9 @@ export const ConnectButton = ({
     style?: CSSProperties;
     className?: string;
 }) => {
-    const context = useContext(ConnectionDialogContext);
-
-    if (!context) {
-        return undefined;
-    }
+    // Narrow selectors: only re-render when these 2 fields change
+    const connectionStatus = useConnectionDialogSelector((s) => s.connectionStatus);
+    const readyToConnect = useConnectionDialogSelector((s) => s.readyToConnect);
 
     return (
         <Button
@@ -30,14 +28,14 @@ export const ConnectButton = ({
             type="submit"
             appearance="primary"
             disabled={
-                context.state.connectionStatus === ApiStatus.Loading ||
-                !context.state.readyToConnect
+                connectionStatus === ApiStatus.Loading ||
+                !readyToConnect
             }
             className={className}
             style={style}
             iconPosition="after"
             icon={
-                context.state.connectionStatus === ApiStatus.Loading ? (
+                connectionStatus === ApiStatus.Loading ? (
                     <Spinner size="tiny" />
                 ) : undefined
             }>

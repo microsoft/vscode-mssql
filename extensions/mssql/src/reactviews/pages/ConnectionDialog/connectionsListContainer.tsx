@@ -25,7 +25,7 @@ import {
 } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const buttonContainer = "buttonContainer";
@@ -108,7 +108,7 @@ const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
-    const { extensionRpc } = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();

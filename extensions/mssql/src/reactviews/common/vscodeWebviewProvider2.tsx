@@ -119,13 +119,17 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
         });
 
         extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
+            console.time("[v2Provider] StateChangeNotification -> emit");
             stateRef.current = params;
             emit();
+            console.timeEnd("[v2Provider] StateChangeNotification -> emit");
         });
 
         async function bootstrap() {
             try {
+                console.time("[v2Provider] bootstrap total");
                 // Coordinate all initialization operations
+                console.time("[v2Provider] bootstrap Promise.all");
                 const [theme, keyboardShortcuts, initialState, eol, fileContents] =
                     await Promise.all([
                         extensionRpc.sendRequest(GetThemeRequest.type),
@@ -134,6 +138,7 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
                         extensionRpc.sendRequest(GetEOLRequest.type),
                         extensionRpc.sendRequest(GetLocalizationRequest.type),
                     ]);
+                console.timeEnd("[v2Provider] bootstrap Promise.all");
 
                 // Set state atomically
                 setTheme(theme);
@@ -160,6 +165,7 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
                 // Mark as initialized and emit state change
                 setIsInitialized(true);
                 emit();
+                console.timeEnd("[v2Provider] bootstrap total");
             } catch (error) {
                 console.error("Bootstrap failed:", error);
                 // Still mark as initialized to prevent infinite loading
