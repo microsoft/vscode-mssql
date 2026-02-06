@@ -1964,9 +1964,6 @@
     <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
       <source xml:lang="en">Export all captured events to a CSV file</source>
     </trans-unit>
-    <trans-unit id="++CODE++dbef83d53bfe1aa62e8b0900821e1d938e12c8801866f51b4545b27a0ac7cb20">
-      <source xml:lang="en">Export cancelled</source>
-    </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
     </trans-unit>
@@ -5160,9 +5157,6 @@
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
     </trans-unit>
-    <trans-unit id="++CODE++dd115de0d5c55217a8188b391f1f3ee8d20ceef6289663db9fad56e4c9c5def9">
-      <source xml:lang="en">Unexported Profiler Events</source>
-    </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>
     </trans-unit>
@@ -5448,9 +5442,6 @@
     </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
-    </trans-unit>
-    <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
-      <source xml:lang="en">profiler_events</source>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>

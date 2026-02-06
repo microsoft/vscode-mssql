@@ -2653,9 +2653,6 @@
         "message": "Failed to export profiler events: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Export cancelled": "Export cancelled",
-    "profiler_events": "profiler_events",
-    "Unexported Profiler Events": "Unexported Profiler Events",
     "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
     "Export & Close": "Export & Close",
     "Close Without Export": "Close Without Export",

@@ -730,17 +730,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * This resets the hasUnexportedEvents flag and updates the lastExportTimestamp.
      */
     public setExportComplete(): void {
-        // Determine whether there are any remaining events in the current session
-        const hasRemainingEvents =
-            typeof this.state.totalRowCount === "number" && this.state.totalRowCount > 0;
-
         this.state = {
             ...this.state,
             hasUnexportedEvents: false,
             lastExportTimestamp: Date.now(),
         };
-        // Only show the close prompt if there are remaining events
-        this.showRestorePromptAfterClose = hasRemainingEvents;
+        // After a successful export there are no unexported events,
+        // so do not show the close prompt until new events arrive.
+        this.showRestorePromptAfterClose = false;
     }
 
     /**

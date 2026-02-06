@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
@@ -459,8 +460,7 @@ export class ProfilerController {
         try {
             // Get a default folder - use user's home directory or workspace folder
             const defaultFolder =
-                vscode.workspace.workspaceFolders?.[0]?.uri ??
-                vscode.Uri.file(require("os").homedir());
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(os.homedir());
 
             // Show save dialog
             const saveUri = await vscode.window.showSaveDialog({
