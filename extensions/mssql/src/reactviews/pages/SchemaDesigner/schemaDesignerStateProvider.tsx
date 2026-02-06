@@ -6,8 +6,8 @@
 import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs, getErrorMessage } from "../../common/utils";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs2, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
@@ -17,7 +17,7 @@ import {
     registerSchemaDesignerApplyEditsHandler,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -66,8 +66,7 @@ import {
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
 
-export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
@@ -156,11 +155,10 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview2<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { state, extensionRpc, themeKind, keyBindings } = webviewContext;
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -1244,11 +1242,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewContext),
+                ...getCoreRPCs2(extensionRpc),
                 extensionRpc,
-                state,
-                themeKind,
-                keyBindings,
                 schemaNames,
                 datatypes,
                 findTableText,

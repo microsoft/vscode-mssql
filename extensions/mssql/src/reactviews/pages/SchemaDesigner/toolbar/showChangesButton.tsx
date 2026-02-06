@@ -8,6 +8,7 @@ import { BranchCompare20Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -29,8 +30,9 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
+    const state = useSchemaDesignerSelector((s) => s);
     const classes = useStyles();
-    const isDabEnabled = context?.state?.enableDAB ?? false;
+    const isDabEnabled = state?.enableDAB ?? false;
 
     if (!isDabEnabled) {
         return <></>;

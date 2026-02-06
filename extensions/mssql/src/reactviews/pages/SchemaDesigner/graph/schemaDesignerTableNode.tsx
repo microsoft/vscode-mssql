@@ -28,6 +28,7 @@ import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { useContext, useRef, useEffect, useState, cloneElement } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
@@ -666,9 +667,10 @@ const TableColumns = ({
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const state = useSchemaDesignerSelector((s) => s);
 
     // Get setting from webview state, default to true if not set
-    const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+    const expandCollapseEnabled = state?.enableExpandCollapseButtons ?? true;
 
     const deletedColumns = context.showChangesHighlight
         ? (context.deletedColumnsByTable.get(table.id) ?? [])
