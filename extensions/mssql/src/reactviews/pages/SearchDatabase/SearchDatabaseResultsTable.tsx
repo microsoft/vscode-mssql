@@ -186,7 +186,7 @@ export const SearchDatabaseResultsTable: React.FC<SearchDatabaseResultsTableProp
                     resizableColumns
                     columnSizingOptions={columnSizingOptions}
                     size="small"
-                    getRowId={(item) => item.fullName}>
+                    getRowId={(item) => `${item.fullName}:${item.type}`}>
                     <DataGridHeader className={classes.header}>
                         <DataGridRow>
                             {({ renderHeaderCell }) => (

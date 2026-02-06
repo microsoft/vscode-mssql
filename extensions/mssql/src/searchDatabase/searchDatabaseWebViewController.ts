@@ -466,6 +466,9 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             case MetadataType.Function:
                 return filters.functions;
             default:
+                this.logWarn(
+                    `Unexpected metadata type in matchesTypeFilterForItem: type=${item.type}, friendlyTypeName='${this.getFriendlyTypeName(item.type as MetadataType)}'`,
+                );
                 return false;
         }
     }
@@ -511,6 +514,15 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             this.logInfo(`Search requested with term: '${payload.searchTerm}'`);
             state.searchTerm = payload.searchTerm;
             this.applyFiltersAndSearch();
+
+            sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.Search, {
+                operationId: this._operationId,
+                resultCount: state.totalResultCount.toString(),
+                hasSearchPrefix: (
+                    this.parseSearchPrefix(payload.searchTerm).typeFilter !== null
+                ).toString(),
+            });
+
             return state;
         });
 

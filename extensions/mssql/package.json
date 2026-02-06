@@ -605,7 +605,7 @@
                 {
                     "command": "mssql.searchDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@3"
+                    "group": "2_MSSQL_serverDbActions@5"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",

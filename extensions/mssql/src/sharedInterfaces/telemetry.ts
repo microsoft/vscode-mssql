@@ -216,6 +216,7 @@ export enum TelemetryActions {
     ModifyTable = "ModifyTable",
     CopyObjectName = "CopyObjectName",
     RefreshResults = "RefreshResults",
+    Search = "Search",
 }
 
 /**
