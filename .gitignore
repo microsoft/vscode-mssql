@@ -2,6 +2,7 @@
 out
 dist
 BuildDirectory
+extensions/sql-database-projects/BuildDirectory/*
 
 # Dependencies
 node_modules

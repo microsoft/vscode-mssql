@@ -102,6 +102,9 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { ProfilerController } from "../profiler/profilerController";
+import { ProfilerService } from "../services/profilerService";
+import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
@@ -152,6 +155,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public profilerController: ProfilerController;
 
     /**
      * The main controller constructor
@@ -633,6 +637,18 @@ export default class MainController implements vscode.Disposable {
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
+
+            // Initialize profiler service and session manager
+            const profilerService = new ProfilerService(this._connectionMgr.client);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+
+            // Initialize profiler controller
+            this.profilerController = new ProfilerController(
+                this._context,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                profilerSessionManager,
+            );
 
             this.connectionSharingService = new ConnectionSharingService(
                 this._context,
