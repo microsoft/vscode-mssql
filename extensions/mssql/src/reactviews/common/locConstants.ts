@@ -1691,7 +1691,9 @@ export class LocConstants {
             typeFunction: l10n.t("Function"),
 
             // Toolbar
-            searchPlaceholder: l10n.t("Search by object name or type (e.g. t:<name>, v:, f:, or sp:)"),
+            searchPlaceholder: l10n.t(
+                "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+            ),
             refresh: l10n.t("Refresh"),
 
             // Results table headers

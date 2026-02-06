@@ -4,13 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React from "react";
-import {
-    makeStyles,
-    shorthands,
-    Spinner,
-    tokens,
-    Title3,
-} from "@fluentui/react-components";
+import { makeStyles, shorthands, Spinner, tokens, Title3 } from "@fluentui/react-components";
 import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
 import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
 import { SearchDatabaseToolbar } from "./SearchDatabaseToolbar";
@@ -113,10 +107,7 @@ export const SearchDatabasePage: React.FC = () => {
         <div className={classes.root}>
             {loadStatus === ApiStatus.Loading && (
                 <div className={classes.loadingContainer}>
-                    <Spinner
-                        label={loc.searchDatabase.loading}
-                        labelPosition="below"
-                    />
+                    <Spinner label={loc.searchDatabase.loading} labelPosition="below" />
                 </div>
             )}
             {isErrorState && (
