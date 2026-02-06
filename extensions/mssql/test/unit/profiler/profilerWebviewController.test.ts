@@ -7,6 +7,7 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
+import { PassThrough } from "stream";
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { ProfilerWebviewController } from "../../../src/profiler/profilerWebviewController";
@@ -610,8 +611,9 @@ suite("ProfilerWebviewController Tests", () => {
             // Should not throw when setting handlers
             expect(() => {
                 controller.setEventHandlers({
-                    onExportToCsv: async (_csvContent, _suggestedFileName) => {
-                        // Handler implementation
+                    onExportToCsv: async (_suggestedFileName) => {
+                        // Handler implementation - returns a stream for writing
+                        return new PassThrough();
                     },
                 });
             }).to.not.throw();

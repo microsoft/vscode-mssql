@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as os from "os";
+import * as fs from "fs";
+import { Writable } from "stream";
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
@@ -438,8 +440,8 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
-            onExportToCsv: async (csvContent: string, suggestedFileName: string) => {
-                await this.handleExportToCsv(webviewController, csvContent, suggestedFileName);
+            onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
+                return await this.handleExportToCsv(webviewController, suggestedFileName);
             },
         });
 
@@ -450,13 +452,14 @@ export class ProfilerController {
     }
 
     /**
-     * Handles exporting profiler events to a CSV file
+     * Handles exporting profiler events to a CSV file.
+     * Shows save dialog and returns a write stream for CSV content.
+     * @returns A writable stream to write CSV content to, or undefined if user cancelled
      */
     private async handleExportToCsv(
         webviewController: ProfilerWebviewController,
-        csvContent: string,
         suggestedFileName: string,
-    ): Promise<void> {
+    ): Promise<Writable | undefined> {
         try {
             // Get a default folder - use user's home directory or workspace folder
             const defaultFolder =
@@ -474,32 +477,48 @@ export class ProfilerController {
             if (!saveUri) {
                 // User cancelled
                 this._logger.verbose("Export to CSV cancelled by user");
-                return;
+                return undefined;
             }
 
-            // Write the CSV content to the file
-            await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(csvContent));
+            // Create a write stream to the file
+            const filePath = saveUri.fsPath;
+            const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
 
-            // Mark export as successful in state
-            webviewController.setExportComplete();
+            // Handle stream completion
+            writeStream.on("finish", () => {
+                // Mark export as successful in state
+                webviewController.setExportComplete();
 
-            // Show success message with Open File button
-            const openFile = await vscode.window.showInformationMessage(
-                LocProfiler.exportSuccess(saveUri.fsPath),
-                LocProfiler.openFile,
-            );
+                // Show success message with Open File button
+                void vscode.window
+                    .showInformationMessage(
+                        LocProfiler.exportSuccess(filePath),
+                        LocProfiler.openFile,
+                    )
+                    .then(async (openFile) => {
+                        if (openFile === LocProfiler.openFile) {
+                            // Open the exported file in VS Code
+                            const doc = await vscode.workspace.openTextDocument(saveUri);
+                            await vscode.window.showTextDocument(doc);
+                        }
+                    });
 
-            if (openFile === LocProfiler.openFile) {
-                // Open the exported file in VS Code
-                const doc = await vscode.workspace.openTextDocument(saveUri);
-                await vscode.window.showTextDocument(doc);
-            }
+                this._logger.verbose(`Profiler events exported to ${filePath}`);
+            });
 
-            this._logger.verbose(`Profiler events exported to ${saveUri.fsPath}`);
+            // Handle stream errors
+            writeStream.on("error", (error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            });
+
+            return writeStream;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
             this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            return undefined;
         }
     }
 }

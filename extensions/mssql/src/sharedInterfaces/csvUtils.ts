@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Writable } from "stream";
+
 /**
  * Shared CSV utilities for profiler export functionality.
  * Used by both the React webview (profiler.tsx) and extension (profilerWebviewController.ts).
@@ -79,37 +81,51 @@ export interface CsvColumn {
 }
 
 /**
- * Generates CSV content from an array of data rows.
+ * Generates CSV content from an array of data rows and writes it to a stream.
  *
+ * @param stream - Writable stream to write CSV content to
  * @param columns - Array of column definitions with field and header
  * @param rows - Array of data objects to export
  * @param getFieldValue - Optional function to extract field value from a row (defaults to direct property access)
- * @returns CSV content as a string
+ * @returns Promise that resolves when all data has been written to the stream
  */
-export function generateCsvContent<T>(
+export async function generateCsvContent<T>(
+    stream: Writable,
     columns: CsvColumn[],
     rows: T[],
     getFieldValue?: (row: T, field: string) => unknown,
-): string {
+): Promise<void> {
     // Default field accessor - direct property access
     const getValue =
         getFieldValue ?? ((row: T, field: string) => (row as Record<string, unknown>)[field]);
 
-    // Build CSV content using array for memory efficiency
-    const csvRows: string[] = [];
+    /**
+     * Writes data to the stream, handling backpressure.
+     * Returns a promise that resolves when it's safe to write more data.
+     */
+    const writeToStream = (data: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const canContinue = stream.write(data);
+            if (canContinue) {
+                resolve();
+            } else {
+                // Wait for drain event before continuing
+                stream.once("drain", resolve);
+                stream.once("error", reject);
+            }
+        });
+    };
 
-    // Add header row
+    // Write header row
     const headers = columns.map((col) => formatCsvCell(col.header));
-    csvRows.push(headers.join(","));
+    await writeToStream(headers.join(",") + "\n");
 
-    // Add data rows
+    // Write data rows
     for (const row of rows) {
         const rowCells = columns.map((col) => {
             const value = getValue(row, col.field);
             return formatCsvCell(value);
         });
-        csvRows.push(rowCells.join(","));
+        await writeToStream(rowCells.join(",") + "\n");
     }
-
-    return csvRows.join("\n");
 }

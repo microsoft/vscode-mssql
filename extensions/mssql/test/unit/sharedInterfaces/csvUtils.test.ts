@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import { PassThrough } from "stream";
 import {
     sanitizeCsvValue,
     formatCsvCell,
@@ -14,6 +15,24 @@ import {
 // Helper to create null value without direct literal
 function getNullValue(): unknown {
     return JSON.parse("null");
+}
+
+// Helper to collect stream output for testing
+async function collectStreamOutput(
+    streamWriter: (stream: PassThrough) => Promise<void>,
+): Promise<string> {
+    const chunks: Buffer[] = [];
+    const stream = new PassThrough();
+
+    stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+
+    await streamWriter(stream);
+    stream.end();
+
+    return new Promise((resolve, reject) => {
+        stream.on("finish", () => resolve(Buffer.concat(chunks).toString("utf8")));
+        stream.on("error", reject);
+    });
 }
 
 suite("CSV Utils Tests", () => {
@@ -107,7 +126,7 @@ suite("CSV Utils Tests", () => {
     });
 
     suite("generateCsvContent", () => {
-        test("should generate CSV with headers and data rows", () => {
+        test("should generate CSV with headers and data rows", async () => {
             const columns = [
                 { field: "name", header: "Name" },
                 { field: "age", header: "Age" },
@@ -117,8 +136,10 @@ suite("CSV Utils Tests", () => {
                 { name: "Bob", age: 25 },
             ];
 
-            const csv = generateCsvContent(columns, rows);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines).to.have.length(3);
             expect(lines[0]).to.equal('"Name","Age"');
@@ -126,18 +147,20 @@ suite("CSV Utils Tests", () => {
             expect(lines[2]).to.equal('"Bob","25"');
         });
 
-        test("should handle empty rows array", () => {
+        test("should handle empty rows array", async () => {
             const columns = [{ field: "name", header: "Name" }];
             const rows: Array<{ name: string }> = [];
 
-            const csv = generateCsvContent(columns, rows);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines).to.have.length(1);
             expect(lines[0]).to.equal('"Name"');
         });
 
-        test("should use custom field accessor when provided", () => {
+        test("should use custom field accessor when provided", async () => {
             interface CustomRow {
                 data: Record<string, unknown>;
             }
@@ -151,15 +174,17 @@ suite("CSV Utils Tests", () => {
                 { data: { firstName: "Jane", lastName: "Smith" } },
             ];
 
-            const csv = generateCsvContent(columns, rows, (row, field) => row.data[field]);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows, (row, field) => row.data[field]),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines).to.have.length(3);
             expect(lines[1]).to.equal('"John","Doe"');
             expect(lines[2]).to.equal('"Jane","Smith"');
         });
 
-        test("should handle null/undefined field values", () => {
+        test("should handle null/undefined field values", async () => {
             const columns = [
                 { field: "name", header: "Name" },
                 { field: "email", header: "Email" },
@@ -169,29 +194,35 @@ suite("CSV Utils Tests", () => {
                 { name: getNullValue(), email: "bob@test.com" },
             ];
 
-            const csv = generateCsvContent(columns, rows);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines[1]).to.equal('"Alice",""');
             expect(lines[2]).to.equal('"","bob@test.com"');
         });
 
-        test("should escape special characters in values", () => {
+        test("should escape special characters in values", async () => {
             const columns = [{ field: "query", header: "SQL Query" }];
             const rows = [{ query: "SELECT * FROM \"users\" WHERE name = 'test'" }];
 
-            const csv = generateCsvContent(columns, rows);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines[1]).to.equal('"SELECT * FROM ""users"" WHERE name = \'test\'"');
         });
 
-        test("should escape special characters in headers", () => {
+        test("should escape special characters in headers", async () => {
             const columns = [{ field: "value", header: 'Column "A"' }];
             const rows = [{ value: "test" }];
 
-            const csv = generateCsvContent(columns, rows);
-            const lines = csv.split("\n");
+            const csv = await collectStreamOutput((stream) =>
+                generateCsvContent(stream, columns, rows),
+            );
+            const lines = csv.trim().split("\n");
 
             expect(lines[0]).to.equal('"Column ""A"""');
         });

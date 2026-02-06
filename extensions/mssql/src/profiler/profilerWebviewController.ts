@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { Writable } from "stream";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
     ProfilerWebviewState,
@@ -37,8 +38,8 @@ export interface ProfilerWebviewEvents {
     onStartSession?: (sessionId: string) => void;
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
-    /** Emitted when export to CSV is requested from the UI */
-    onExportToCsv?: (csvContent: string, suggestedFileName: string) => void;
+    /** Emitted when export to CSV is requested from the UI. Returns a stream to write CSV content to. */
+    onExportToCsv?: (suggestedFileName: string) => Promise<Writable | undefined>;
 }
 
 /**
@@ -231,31 +232,37 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             return;
         }
 
-        // Generate CSV content
-        const csvContent = this.generateCsvFromEvents(allEvents, viewConfig);
-
         // Generate suggested file name
         const sessionName = this._currentSession.sessionName || "profiler_events";
         const timestamp = generateExportTimestamp();
         const suggestedFileName = `${sessionName}_${timestamp}`;
 
-        // Perform export using event handler
+        // Request a stream from the event handler and write CSV content to it
         if (this._eventHandlers.onExportToCsv) {
-            await this._eventHandlers.onExportToCsv(csvContent, suggestedFileName);
+            const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
+            if (stream) {
+                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                stream.end(); // Close the stream to trigger 'finish' event
+            }
         }
     }
 
     /**
      * Generates CSV content from events using the current view configuration.
      * Uses shared csvUtils for consistent CSV formatting across the extension.
+     * Writes directly to the provided stream for memory efficiency.
      */
-    private generateCsvFromEvents(events: EventRow[], viewConfig: ProfilerViewConfig): string {
+    private async generateCsvFromEvents(
+        stream: Writable,
+        events: EventRow[],
+        viewConfig: ProfilerViewConfig,
+    ): Promise<void> {
         const columns = viewConfig.columns.map((col) => ({
             field: col.field,
             header: col.header,
         }));
 
-        return generateCsvContent(columns, events, (event, field) =>
+        await generateCsvContent(stream, columns, events, (event, field) =>
             this.getEventFieldValue(event, field),
         );
     }
@@ -423,23 +430,25 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.registerReducer(
             "exportToCsv",
             (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                // Generate CSV from buffer if we have a session, otherwise use provided content
+                // Generate CSV from buffer if we have a session
                 if (
                     this._currentSession &&
                     this._currentSession.events.size > 0 &&
                     this.state.viewConfig
                 ) {
                     const allEvents = this._currentSession.events.getAllRows();
-                    const csvContent = this.generateCsvFromEvents(allEvents, this.state.viewConfig);
+                    const viewConfig = this.state.viewConfig;
                     if (this._eventHandlers.onExportToCsv) {
-                        this._eventHandlers.onExportToCsv(csvContent, payload.suggestedFileName);
+                        // Request stream and write CSV (async, but reducer returns synchronously)
+                        void this._eventHandlers
+                            .onExportToCsv(payload.suggestedFileName)
+                            .then(async (stream) => {
+                                if (stream) {
+                                    await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                                    stream.end(); // Close the stream to trigger 'finish' event
+                                }
+                            });
                     }
-                } else if (this._eventHandlers.onExportToCsv) {
-                    // Fallback to provided content if no session/buffer
-                    this._eventHandlers.onExportToCsv(
-                        payload.csvContent,
-                        payload.suggestedFileName,
-                    );
                 }
                 return state;
             },
