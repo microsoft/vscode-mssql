@@ -1083,11 +1083,13 @@
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
     "Search Database Objects": "Search Database Objects",
+    "Loading database objects": "Loading database objects",
     "Connecting to {0}.../{0} is the server name": {
         "message": "Connecting to {0}...",
         "comment": ["{0} is the server name"]
     },
     "An error occurred while loading data.": "An error occurred while loading data.",
+    "Error Loading Search Database": "Error Loading Search Database",
     "Searching...": "Searching...",
     "{0} objects found/{0} is the number of objects found": {
         "message": "{0} objects found",

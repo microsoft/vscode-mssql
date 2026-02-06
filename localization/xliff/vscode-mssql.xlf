@@ -1798,6 +1798,9 @@
     <trans-unit id="++CODE++54a0e8c17ebb21a11f8a25b8042786ef7efe52441e6cc87e92c67e0c4c0c6e78">
       <source xml:lang="en">Error</source>
     </trans-unit>
+    <trans-unit id="++CODE++a22e82b74e760671b9485cbdb0a219dbbbf083435fb806e388edb3f417547784">
+      <source xml:lang="en">Error Loading Search Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++f251a7b2d632de7a4122dafe6fd4a9e984d632ffe0c1e71591e5e253ea9fda11">
       <source xml:lang="en">Error Message: </source>
     </trans-unit>
@@ -2977,6 +2980,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
       <source xml:lang="en">Loading backup database...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
+      <source xml:lang="en">Loading database objects</source>
     </trans-unit>
     <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
       <source xml:lang="en">Loading databases in &apos;{0}&apos;...</source>
