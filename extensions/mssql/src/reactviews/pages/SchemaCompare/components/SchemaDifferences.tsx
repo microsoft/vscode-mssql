@@ -26,6 +26,7 @@ import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { useResizable } from "../../../hooks/useResizable";
 
 const useStyles = makeStyles({
@@ -93,7 +94,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     ({ onDiffSelected, selectedDiffId, siblingRef }, ref) => {
         const classes = useStyles();
         const context = React.useContext(schemaCompareContext);
-        const compareResult = context.state.schemaCompareResult;
+        const state = useSchemaCompareSelector((s) => s);
+        const compareResult = state.schemaCompareResult;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"
         >("allIncluded");
@@ -138,7 +140,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             } else {
                 setDiffInclusionLevel("allExcluded");
             }
-        }, [context.state.schemaCompareResult]);
+        }, [state.schemaCompareResult]);
 
         const formatName = (nameParts: string[]): string => {
             if (!nameParts || nameParts.length === 0) {
@@ -209,7 +211,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             createTableColumn<DiffEntry>({
                 columnId: "include",
                 renderHeaderCell: () => {
-                    if (context.state.isIncludeExcludeAllOperationInProgress) {
+                    if (state.isIncludeExcludeAllOperationInProgress) {
                         return (
                             <div>
                                 <Spinner
@@ -243,7 +245,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
-                                disabled={context.state.isIncludeExcludeAllOperationInProgress}
+                                disabled={state.isIncludeExcludeAllOperationInProgress}
                             />
                         </DataGridCell>
                     );

@@ -18,7 +18,7 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormField } from "../../../common/forms/form.component";
+import { FormFieldNoState } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
 import { BackupDatabaseViewModel, BackupType, MediaSet } from "../../../../sharedInterfaces/backup";
@@ -27,6 +27,7 @@ import {
     ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -36,7 +37,7 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
+    const state = useBackupDatabaseSelector((s) => s);
 
     if (!context || !state) {
         return;
@@ -136,17 +137,12 @@ export const AdvancedOptionsDrawer = ({
                     collapsible
                     onToggle={(_e, data) => {
                         if (searchSettingsText) {
-                            // We don't support expanding/collapsing sections when searching
                             return;
                         } else {
                             setUserOpenedSections(data.openItems as string[]);
                         }
                     }}
                     openItems={
-                        /**
-                         * If the user is searching, we keep all sections open
-                         * If the user is not searching, we only open the sections that the user has opened
-                         */
                         searchSettingsText
                             ? Object.keys(advancedOptionsByGroup)
                             : userOpenedSections
@@ -171,7 +167,7 @@ export const AdvancedOptionsDrawer = ({
                                                         shouldShowComponent(
                                                             option.propertyName,
                                                         ) && (
-                                                            <FormField<
+                                                            <FormFieldNoState<
                                                                 ObjectManagementFormState,
                                                                 ObjectManagementWebviewState,
                                                                 ObjectManagementFormItemSpec,
@@ -179,6 +175,7 @@ export const AdvancedOptionsDrawer = ({
                                                             >
                                                                 key={idx}
                                                                 context={context}
+                                                                formState={state.formState}
                                                                 component={option}
                                                                 props={option.componentProps ?? {}}
                                                                 idx={idx}

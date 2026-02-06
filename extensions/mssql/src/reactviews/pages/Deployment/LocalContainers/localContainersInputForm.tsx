@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FormField } from "../../../common/forms/form.component";
+import { FormFieldNoState } from "../../../common/forms/form.component";
 import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
     LocalContainersContextProps,
@@ -27,6 +27,7 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 import { ArmSql2025ErrorDialog } from "./armSql2025ErrorDialog";
 
 const useStyles = makeStyles({
@@ -66,12 +67,12 @@ const useStyles = makeStyles({
 export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
+    const state = useDeploymentSelector((s) => s);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const deploymentState = context?.state;
-    const localContainersState = deploymentState?.deploymentTypeState as LocalContainersState;
+    const localContainersState = state?.deploymentTypeState as LocalContainersState;
 
-    if (!context || !deploymentState || !localContainersState) return undefined;
+    if (!context || !state || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
@@ -100,13 +101,14 @@ export const LocalContainersInputForm: React.FC = () => {
                               }
                             : {}
                     }>
-                    <FormField<
+                    <FormFieldNoState<
                         DockerConnectionProfile,
                         LocalContainersState,
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
                         context={context}
+                        formState={localContainersState.formState}
                         component={component}
                         idx={index}
                     />
@@ -131,26 +133,27 @@ export const LocalContainersInputForm: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
-                    {deploymentState.dialog?.type === "createConnectionGroup" && (
+                    {state.dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
                             state={
-                                (deploymentState.dialog as CreateConnectionGroupDialogProps).props
+                                (state.dialog as CreateConnectionGroupDialogProps).props
                             }
                             saveConnectionGroup={context.createConnectionGroup}
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
-                    {deploymentState.dialog?.type === "armSql2025Error" && (
+                    {state.dialog?.type === "armSql2025Error" && (
                         <ArmSql2025ErrorDialog closeDialog={context.closeArmSql2025ErrorDialog} />
                     )}
                     {renderFormFields(false)}
-                    <FormField<
+                    <FormFieldNoState<
                         DockerConnectionProfile,
                         LocalContainersState,
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
                         context={context}
+                        formState={localContainersState.formState}
                         component={
                             localContainersState.formComponents[
                                 "groupId"
@@ -202,7 +205,7 @@ export const LocalContainersInputForm: React.FC = () => {
                             }),
                             marginTop: "10px",
                         }}>
-                        <FormField<
+                        <FormFieldNoState<
                             DockerConnectionProfile,
                             LocalContainersState,
                             LocalContainersFormItemSpec,
@@ -210,6 +213,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         >
                             key={eulaComponent.propertyName}
                             context={context}
+                            formState={localContainersState.formState}
                             component={eulaComponent}
                             idx={0}
                         />

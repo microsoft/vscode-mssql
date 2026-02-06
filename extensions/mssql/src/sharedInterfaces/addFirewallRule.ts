@@ -5,7 +5,7 @@
 
 import { IMssqlAzureAccount, IMssqlAzureTenant } from "./azureAccountManagement";
 import { FirewallRuleSpec } from "./firewallRule";
-import { ApiStatus, WebviewContextProps } from "./webview";
+import { ApiStatus, CoreRPCs } from "./webview";
 
 /**
  * State for the Add Firewall Rule webview
@@ -35,7 +35,7 @@ export interface AddFirewallRuleReducers {
 /**
  * Context props for the Add Firewall Rule webview
  */
-export interface AddFirewallRuleContextProps extends WebviewContextProps<AddFirewallRuleState> {
+export interface AddFirewallRuleContextProps extends CoreRPCs {
     closeDialog: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     signIntoAzure: () => void;

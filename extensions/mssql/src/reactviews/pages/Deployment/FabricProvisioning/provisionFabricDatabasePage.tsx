@@ -15,6 +15,7 @@ import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 
@@ -131,7 +132,9 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
     const context = useContext(DeploymentContext);
     const [showPrevious, setShowPrevious] = useState(false);
 
-    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
+    const fabricProvisioningState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as FabricProvisioningState;
 
     if (!context || !fabricProvisioningState || showPrevious === undefined) return undefined;
 

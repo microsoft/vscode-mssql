@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextProps, FormEvent, FormItemOptions, FormItemSpec, FormState } from "./form";
+import {
+    FormContextPropsNoState,
+    FormEvent,
+    FormItemOptions,
+    FormItemSpec,
+    FormState,
+} from "./form";
 import {
     LocalContainersContextProps,
     DockerConnectionProfile as LocalContainersFormState,
@@ -66,8 +72,7 @@ export interface DeploymentCommonReducers {
     dispose: {};
 }
 
-export interface DeploymentCommonContextProps
-    extends FormContextProps<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
+export interface DeploymentCommonContextProps extends FormContextPropsNoState<DeploymentFormState> {
     /**
      * Initializes the deployment context with specific deployment type details.
      * @param deploymentType The type of deployment to initialize.

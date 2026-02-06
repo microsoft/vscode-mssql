@@ -359,6 +359,7 @@ export class UserSurveyWebviewController extends ReactWebviewPanelController<
             vscode.env.openExternal(vscode.Uri.parse(constants.microsoftPrivacyStatementUrl));
             return state;
         });
+
         this.panel.onDidDispose(() => {
             this._onCancel.fire();
         });

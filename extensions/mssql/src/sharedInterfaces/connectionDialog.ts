@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
+import { FormItemSpec, FormContextPropsNoState, FormState, FormReducers } from "./form";
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
@@ -218,11 +218,7 @@ export enum AuthenticationType {
 }
 
 export interface ConnectionDialogContextProps
-    extends FormContextProps<
-        IConnectionDialogProfile,
-        ConnectionDialogWebviewState,
-        ConnectionDialogFormItemSpec
-    > {
+    extends FormContextPropsNoState<IConnectionDialogProfile> {
     // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;

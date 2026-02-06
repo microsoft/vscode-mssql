@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import { WebviewContextProps } from "./webview";
+import { CoreRPCs } from "./webview";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
@@ -19,8 +19,7 @@ export interface ObjectExplorerReducers {
     cancel: {};
 }
 
-export interface ObjectExplorerFilterContextProps
-    extends WebviewContextProps<ObjectExplorerFilterState | undefined> {
+export interface ObjectExplorerFilterContextProps extends CoreRPCs {
     submit: (filters: vscodeMssql.NodeFilter[]) => void;
     clearAllFilters: () => void;
     cancel: () => void;

@@ -7,6 +7,7 @@ import { Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext, useEffect, useRef } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
@@ -106,15 +107,15 @@ const useStyles = makeStyles({
 export const TableDesigner = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const tableDesignerState = context?.state;
+    const state = useTableDesignerSelector((s) => s);
     const editorRef = useRef<HTMLDivElement>(null);
     const propertiesPanelRef = useRef<ImperativePanelHandle>(null);
-    if (!tableDesignerState) {
+    if (!state || !context) {
         return null;
     }
 
     useEffect(() => {
-        if (!context || !context.state.propertiesPaneData) {
+        if (!state.propertiesPaneData) {
             return;
         }
         // Adjust properties panel size when maximize/restore toggles
@@ -131,13 +132,13 @@ export const TableDesigner = () => {
                 propertiesPanelRef.current?.resize(30);
             }
         }
-    }, [context?.state.propertiesPaneData, context?.propertiesPaneResizeInfo.isMaximized]);
+    }, [state.propertiesPaneData, context.propertiesPaneResizeInfo.isMaximized]);
 
-    const isErrorState = tableDesignerState.apiState?.initializeState === designer.LoadState.Error;
+    const isErrorState = state.apiState?.initializeState === designer.LoadState.Error;
 
     return (
         <div className={classes.root}>
-            {tableDesignerState.apiState?.initializeState === designer.LoadState.Loading && (
+            {state.apiState?.initializeState === designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
                     <Spinner
                         label={locConstants.tableDesigner.loadingTableDesigner}
@@ -149,12 +150,12 @@ export const TableDesigner = () => {
                 <ErrorDialog
                     open={isErrorState}
                     title={locConstants.tableDesigner.errorLoadingDesigner}
-                    message={tableDesignerState?.initializationError ?? ""}
+                    message={state?.initializationError ?? ""}
                     retryLabel={locConstants.tableDesigner.retry}
                     onRetry={() => context.initializeTableDesigner()}
                 />
             )}
-            {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
+            {state.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
                     <PanelGroup direction="vertical">
                         <Panel defaultSize={75}>
@@ -168,7 +169,7 @@ export const TableDesigner = () => {
                                         <PanelResizeHandle
                                             className={classes.verticalResizeHandle}
                                         />
-                                        {context.state.propertiesPaneData && (
+                                        {state.propertiesPaneData && (
                                             <Panel
                                                 defaultSize={0}
                                                 minSize={10}

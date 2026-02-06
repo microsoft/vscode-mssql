@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,8 +33,7 @@ const useStyles = makeStyles({
 
 export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState;
+    const localContainersState = useDeploymentSelector((s) => s.deploymentTypeState);
 
     const renderMainContent = () => {
         switch (localContainersState?.loadState) {

@@ -7,10 +7,14 @@ import {
     DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
+    TableDesignerReducers,
+    TableDesignerWebviewState,
     TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useContext, useEffect, useState } from "react";
 import {
     DesignerDefinitionPane,
@@ -19,9 +23,10 @@ import {
 
 export const DesignerResultPane = () => {
     const context = useContext(TableDesignerContext);
-    const state = context?.state;
+    const state = useTableDesignerSelector((s) => s);
+    const { themeKind } = useVscodeWebview2<TableDesignerWebviewState, TableDesignerReducers>();
 
-    if (!state) {
+    if (!state || !context) {
         return undefined;
     }
 
@@ -131,7 +136,7 @@ export const DesignerResultPane = () => {
         <DesignerDefinitionPane
             ref={context?.definitionPaneRef}
             copyToClipboard={context?.copyScriptAsCreateToClipboard}
-            themeKind={context?.themeKind}
+            themeKind={themeKind}
             openInEditor={context?.scriptAsCreate}
             script={(state?.model!["script"] as InputBoxProperties).value ?? ""}
             issues={state?.issues}

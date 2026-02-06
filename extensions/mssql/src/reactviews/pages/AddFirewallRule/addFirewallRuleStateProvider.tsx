@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import React, { createContext, useMemo } from "react";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import {
     AddFirewallRuleContextProps,
     AddFirewallRuleReducers,
     AddFirewallRuleState,
 } from "../../../../src/sharedInterfaces/addFirewallRule";
-import { getCoreRPCs } from "../../common/utils";
+import { getCoreRPCs2 } from "../../common/utils";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
 const AddFirewallRuleContext = createContext<AddFirewallRuleContextProps | undefined>(undefined);
@@ -20,27 +20,28 @@ interface AddFirewallRuleProviderProps {
 }
 
 const AddFirewallRuleStateProvider: React.FC<AddFirewallRuleProviderProps> = ({ children }) => {
-    const webviewContext = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
+    const { extensionRpc } = useVscodeWebview2<AddFirewallRuleState, AddFirewallRuleReducers>();
+
+    const commands = useMemo<AddFirewallRuleContextProps>(
+        () => ({
+            ...getCoreRPCs2(extensionRpc),
+            addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
+                extensionRpc.action("addFirewallRule", {
+                    firewallRuleSpec,
+                });
+            },
+            closeDialog: function (): void {
+                extensionRpc.action("closeDialog");
+            },
+            signIntoAzure: function (): void {
+                extensionRpc.action("signIntoAzure");
+            },
+        }),
+        [extensionRpc],
+    );
 
     return (
-        <AddFirewallRuleContext.Provider
-            value={{
-                state: webviewContext.state,
-                themeKind: webviewContext.themeKind,
-                keyBindings: webviewContext.keyBindings,
-                ...getCoreRPCs(webviewContext),
-                addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
-                    webviewContext?.extensionRpc.action("addFirewallRule", {
-                        firewallRuleSpec,
-                    });
-                },
-                closeDialog: function (): void {
-                    webviewContext?.extensionRpc.action("closeDialog");
-                },
-                signIntoAzure: function (): void {
-                    webviewContext?.extensionRpc.action("signIntoAzure");
-                },
-            }}>
+        <AddFirewallRuleContext.Provider value={commands}>
             {children}
         </AddFirewallRuleContext.Provider>
     );

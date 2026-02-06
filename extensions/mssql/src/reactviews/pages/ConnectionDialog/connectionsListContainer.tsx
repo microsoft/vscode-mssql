@@ -18,6 +18,7 @@ import {
 import { MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -25,7 +26,7 @@ import {
 } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const buttonContainer = "buttonContainer";
@@ -108,7 +109,8 @@ const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 export const ConnectionsListContainer = () => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
-    const { extensionRpc } = useVscodeWebview<
+    const state = useConnectionDialogSelector((s) => s);
+    const { extensionRpc } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();
@@ -151,7 +153,7 @@ export const ConnectionsListContainer = () => {
                     />
                 </div>
                 <div className={styles.main}>
-                    {context.state?.savedConnections?.map((connection, index) => {
+                    {state?.savedConnections?.map((connection, index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}
@@ -181,7 +183,7 @@ export const ConnectionsListContainer = () => {
                 </div>
                 <Tree>
                     {// state may not be initialized yet due to async loading of context
-                    context.state?.recentConnections.map((connection, index) => {
+                    state?.recentConnections.map((connection, index) => {
                         return (
                             <ConnectionCard
                                 connection={connection}

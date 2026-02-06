@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ReactDOM from "react-dom/client";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { AddFirewallRuleStateProvider } from "./addFirewallRuleStateProvider";
 import { AddFirewallRulePage } from "./addFirewallRulePage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <AddFirewallRuleStateProvider>
             <AddFirewallRulePage />
         </AddFirewallRuleStateProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );

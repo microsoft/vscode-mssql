@@ -11,6 +11,7 @@ import SchemaSelectorDrawer from "./components/SchemaSelectorDrawer";
 import CompareActionBar from "./components/CompareActionBar";
 import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
 import { schemaCompareContext } from "./SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "./schemaCompareSelector";
 import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 
@@ -40,6 +41,7 @@ const useStyles = makeStyles({
 export const SchemaComparePage = () => {
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
+    const state = useSchemaCompareSelector((s) => s);
     const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
@@ -76,9 +78,9 @@ export const SchemaComparePage = () => {
 
     const showMessage = () => {
         if (
-            !context.state.schemaCompareResult ||
-            context.state.schemaCompareResult.areEqual ||
-            context.state.isComparisonInProgress
+            !state.schemaCompareResult ||
+            state.schemaCompareResult.areEqual ||
+            state.isComparisonInProgress
         ) {
             return true;
         }

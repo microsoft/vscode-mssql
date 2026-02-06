@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
-import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { locConstants as loc } from "../../../common/locConstants";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 
@@ -19,8 +18,7 @@ const useStyles = makeStyles({
 });
 
 const Message = () => {
-    const context = useContext(schemaCompareContext);
-    const state = context.state;
+    const state = useSchemaCompareSelector((s) => s);
     const classes = useStyles();
 
     let message = "";

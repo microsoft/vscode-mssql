@@ -6,7 +6,8 @@
 import { useContext, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
+import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
@@ -19,6 +20,7 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 
 export const ConnectionFormPage = () => {
     const context = useContext(ConnectionDialogContext);
+    const state = useConnectionDialogSelector((s) => s);
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
     const formStyles = useFormStyles();
 
@@ -28,15 +30,15 @@ export const ConnectionFormPage = () => {
 
     return (
         <div>
-            {context.state.connectionComponents.mainOptions.map((inputName, idx) => {
+            {state.connectionComponents.mainOptions.map((inputName, idx) => {
                 const component =
-                    context.state.formComponents[inputName as keyof IConnectionDialogProfile];
+                    state.formComponents[inputName as keyof IConnectionDialogProfile];
                 if (component?.hidden !== false) {
                     return undefined;
                 }
 
                 return (
-                    <FormField<
+                    <FormFieldNoState<
                         IConnectionDialogProfile,
                         ConnectionDialogWebviewState,
                         ConnectionDialogFormItemSpec,
@@ -44,6 +46,7 @@ export const ConnectionFormPage = () => {
                     >
                         key={idx}
                         context={context}
+                        formState={state.formState}
                         component={component}
                         idx={idx}
                         props={{ orientation: "horizontal" }}

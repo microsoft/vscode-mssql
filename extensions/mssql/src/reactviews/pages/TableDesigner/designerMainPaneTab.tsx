@@ -5,9 +5,12 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { useContext } from "react";
 import {
     CheckBoxProperties,
+    DesignerDataPropertyInfo,
+    DesignerTab,
     DesignerTableProperties,
     DropDownProperties,
     InputBoxProperties,
@@ -34,20 +37,20 @@ const useStyles = makeStyles({
 export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = context?.state;
-    if (!state) {
+    const state = useTableDesignerSelector((s) => s);
+    if (!state || !context) {
         return null;
     }
-    const components = state.view?.tabs.find((tab) => tab.id === tabId)?.components;
+    const components = state.view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
     return (
         <div className={classes.root}>
             {components
                 ?.filter(
-                    (component) =>
+                    (component: DesignerDataPropertyInfo) =>
                         component.componentProperties.enabled === undefined ||
                         component.componentProperties.enabled,
                 )
-                .map((component) => {
+                .map((component: DesignerDataPropertyInfo) => {
                     switch (component.componentType) {
                         case "input": {
                             const modelInputProps = state.model![

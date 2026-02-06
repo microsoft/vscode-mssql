@@ -7,6 +7,7 @@ import { makeStyles } from "@fluentui/react-components";
 import { useContext } from "react";
 import { ConnectionGroupContext } from "./connectionGroupStateProvider";
 import { ConnectionGroupDialog } from "./connectionGroup.component";
+import { useConnectionGroupSelector } from "./connectionGroupSelector";
 
 const useStyles = makeStyles({
     root: {
@@ -27,16 +28,17 @@ const useStyles = makeStyles({
 export const ConnectionGroupPage = () => {
     const classes = useStyles();
     const context = useContext(ConnectionGroupContext);
+    const state = useConnectionGroupSelector((s) => s);
 
     // If context isn't available yet, don't render
-    if (!context?.state) {
+    if (!context || !state) {
         return undefined;
     }
 
     return (
         <div className={classes.root}>
             <ConnectionGroupDialog
-                state={context.state}
+                state={state}
                 saveConnectionGroup={context.saveConnectionGroup}
                 closeDialog={context.closeDialog}
             />
