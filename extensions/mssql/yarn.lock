@@ -2064,7 +2064,7 @@
     "@azure/core-rest-pipeline" "^1.16.0"
     "@azure/ms-rest-azure-env" "^2.0.0"
 
-"@microsoft/vscode-sql-common@file:../../packages/sql-extension-common":
+"@microsoft/vscode-sql-common@file:../../packages/vscode-sql-common":
   version "1.0.0"
 
 "@monaco-editor/loader@^1.4.0":

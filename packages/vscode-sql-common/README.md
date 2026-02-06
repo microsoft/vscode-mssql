@@ -19,7 +19,7 @@ Reference directly from GitHub:
 ```json
 {
   "dependencies": {
-    "@microsoft/vscode-sql-common": "github:microsoft/vscode-mssql#main&path=packages/sql-extension-common"
+    "@microsoft/vscode-sql-common": "github:microsoft/vscode-mssql#main&path=packages/vscode-sql-common"
   }
 }
 ```
@@ -29,7 +29,7 @@ Reference directly from GitHub:
 ```json
 {
   "dependencies": {
-    "@microsoft/vscode-sql-common": "file:../vscode-mssql/packages/sql-extension-common"
+    "@microsoft/vscode-sql-common": "file:../vscode-mssql/packages/vscode-sql-common"
   }
 }
 ```
