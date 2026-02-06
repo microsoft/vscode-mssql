@@ -6,10 +6,12 @@
 import { Tab, TabList } from "@fluentui/react-tabs";
 import { CounterBadge, Field, Input, Text, makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { useContext, useEffect, useState } from "react";
 import {
     DesignerEditType,
     DesignerMainPaneTabs,
+    DesignerTab,
     DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
@@ -51,8 +53,8 @@ const useStyles = makeStyles({
 export const DesignerMainPane = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = context?.state;
-    if (!state) {
+    const state = useTableDesignerSelector((s) => s);
+    if (!state || !context) {
         return null;
     }
     const [tableName, setTableName] = useState((state.model!["name"] as InputBoxProperties).value);
@@ -64,7 +66,7 @@ export const DesignerMainPane = () => {
     }, [state.model]);
 
     const getCurrentTabIssuesCount = (tabId: string) => {
-        const tabComponents = state.view?.tabs.find((tab) => tab.id === tabId)?.components;
+        const tabComponents = state.view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
         if (!tabComponents) {
             return 0;
         }
@@ -75,7 +77,7 @@ export const DesignerMainPane = () => {
         for (let i = 0; i < state?.issues!.length; i++) {
             const issue = state.issues![i];
             if (issue.propertyPath && issue.propertyPath.length > 0) {
-                if (tabComponents.find((c) => c.propertyName === issue.propertyPath![0])) {
+                if (tabComponents.find((c: { propertyName: string }) => c.propertyName === issue.propertyPath![0])) {
                     count++;
                 }
             }

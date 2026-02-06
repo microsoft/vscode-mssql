@@ -15,6 +15,7 @@ import {
 } from "@fluentui/react-components";
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerInputBox } from "./designerInputBox";
 import { DesignerDropdown } from "./designerDropdown";
@@ -77,16 +78,17 @@ export const DesignerPropertiesPane = () => {
     const classes = useStyles();
     const accordionStyles = useAccordionStyles();
     const context = useContext(TableDesignerContext);
-    if (!context) {
+    const state = useTableDesignerSelector((s) => s);
+    if (!context || !state) {
         return null;
     }
-    const propertiesPaneData = context.state.propertiesPaneData!;
+    const propertiesPaneData = state.propertiesPaneData!;
     const componentPath = propertiesPaneData.componentPath!;
     const tablePropertyName = componentPath[0] as string;
     const index = componentPath[componentPath.length - 1] as number;
-    const parentTableProperties = context.state.propertiesPaneData?.component
+    const parentTableProperties = state.propertiesPaneData?.component
         .componentProperties as DesignerTableProperties;
-    const parentTablePropertiesModel = context.state.model![
+    const parentTablePropertiesModel = state.model![
         tablePropertyName
     ] as DesignerTableProperties;
     const data = parentTablePropertiesModel.data![index];

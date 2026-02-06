@@ -32,6 +32,7 @@ import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import Markdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { locConstants } from "../../common/locConstants";
 import { useMarkdownStyles } from "../../common/styles";
 
@@ -52,15 +53,14 @@ const useStyles = makeStyles({
 
 export const DesignerChangesPreviewButton = () => {
     const designerContext = useContext(TableDesignerContext);
+    const state = useTableDesignerSelector((s) => s);
     const markdownClasses = useMarkdownStyles();
     const classes = useStyles();
-    if (!designerContext) {
+    if (!designerContext || !state) {
         return null;
     }
 
     const [isConfirmationChecked, setIsConfirmationChecked] = useState(false);
-
-    const state = designerContext.state;
 
     const generateScriptIcon = () => {
         switch (state?.apiState?.generateScriptState) {
@@ -180,7 +180,7 @@ export const DesignerChangesPreviewButton = () => {
             <DialogContent>
                 <ErrorCircleRegular className={classes.errorIcon} />
                 <div>
-                    {designerContext.state.generatePreviewReportResult?.schemaValidationError ??
+                    {state.generatePreviewReportResult?.schemaValidationError ??
                         locConstants.tableDesigner.errorLoadingPreview}
                 </div>
             </DialogContent>
