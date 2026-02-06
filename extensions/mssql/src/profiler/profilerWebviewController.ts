@@ -615,6 +615,19 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
 
+        // Capture the buffer size at the start for consistency
+        // Any new events arriving during this fetch will trigger another notification
+        const bufferSize = this._currentSession.events.size;
+
+        // If startIndex is beyond current buffer, return empty
+        if (startIndex >= bufferSize) {
+            return {
+                rows: [],
+                startIndex,
+                totalCount: bufferSize,
+            };
+        }
+
         const configService = getProfilerConfigService();
         let view = configService.getView(this._currentViewId);
 
@@ -628,7 +641,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 return {
                     rows: [],
                     startIndex,
-                    totalCount: 0,
+                    totalCount: bufferSize,
                 };
             }
         }
