@@ -263,34 +263,46 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Gets the value of a field from an EventRow.
      * Handles both direct properties and additionalData.
+     * Supports both PascalCase (from view config) and camelCase field names.
      * Returns undefined for missing values so CSV formatter can handle them properly.
      */
     private getEventFieldValue(event: EventRow, field: string): string | number | Date | undefined {
-        // Map common field names to EventRow properties
+        // Map field names to EventRow properties
+        // Support both PascalCase (from view config like "EventClass") and
+        // camelCase (like "eventClass") for flexibility
         switch (field) {
             case "eventNumber":
                 return event.eventNumber;
             case "timestamp":
+            case "StartTime":
                 // Return Date object for timestamp - formatCsvCell will handle conversion
                 return event.timestamp;
             case "eventClass":
+            case "EventClass":
                 return event.eventClass;
             case "textData":
+            case "TextData":
                 return event.textData;
             case "databaseName":
+            case "DatabaseName":
                 return event.databaseName;
             case "spid":
+            case "SPID":
                 return event.spid;
             case "duration":
+            case "Duration":
                 return event.duration;
             case "cpu":
+            case "CPU":
                 return event.cpu;
             case "reads":
+            case "Reads":
                 return event.reads;
             case "writes":
+            case "Writes":
                 return event.writes;
             default:
-                // Check additionalData for other fields
+                // Check additionalData for other fields (e.g., ApplicationName, LoginName, etc.)
                 return event.additionalData?.[field];
         }
     }
