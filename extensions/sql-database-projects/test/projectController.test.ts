@@ -49,8 +49,35 @@ suite('ProjectsController', function (): void {
 
 	setup(function (): void {
 		testContext = createContext();
+
+		const emptyResultSet = { ...mockDacFxResult };
 		sinon.stub(utils, 'getSqlProjectsService').resolves({
 			openProject: async () => undefined,
+			createProject: async () => mockDacFxResult,
+			getProjectProperties: async () => ({
+				...mockDacFxResult,
+				projectGuid: 'BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575',
+				configuration: 'Debug',
+				outputPath: 'bin/Debug',
+				defaultCollation: '',
+				databaseSource: '',
+				databaseSchemaProvider: 'Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider',
+				projectStyle: mssql.ProjectType.SdkStyle,
+			}),
+			getCrossPlatformCompatibility: async () => ({ ...emptyResultSet, isCrossPlatformCompatible: true }),
+			getSqlCmdVariables: async () => ({ ...emptyResultSet, sqlCmdVariables: [] }),
+			getDatabaseReferences: async () => ({
+				...emptyResultSet,
+				dacpacReferences: [],
+				sqlProjectReferences: [],
+				systemDatabaseReferences: [],
+				nugetPackageReferences: [],
+			}),
+			getPreDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getPostDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getNoneItems: async () => ({ ...emptyResultSet, scripts: [] }),
+			getSqlObjectScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getFolders: async () => ({ ...emptyResultSet, folders: [] }),
 		} as unknown as mssql.ISqlProjectsService);
 	});
 
