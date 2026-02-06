@@ -70,13 +70,17 @@ const useStyles = makeStyles({
 export const UserSurveyPage = () => {
     const classes = useStyles();
     const context = useContext(UserSurveyContext);
-    const state = useUserSurveySelector((s) => s);
+    const questions = useUserSurveySelector((s) => s?.questions);
+    const title = useUserSurveySelector((s) => s?.title);
+    const subtitle = useUserSurveySelector((s) => s?.subtitle);
+    const submitButtonText = useUserSurveySelector((s) => s?.submitButtonText);
+    const cancelButtonText = useUserSurveySelector((s) => s?.cancelButtonText);
     const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
     const [userAnswers, setUserAnswers] = useState<Answers>({});
 
     const updateSubmitButtonState = () => {
-        for (let i = 0; i < state!.questions.length; i++) {
-            const question = state!.questions[i];
+        for (let i = 0; i < questions!.length; i++) {
+            const question = questions![i];
             // if question is not divider and not required, skip
             if (question.type === "divider") {
                 continue;
@@ -98,7 +102,7 @@ export const UserSurveyPage = () => {
         updateSubmitButtonState();
     };
 
-    if (!context || !state) {
+    if (!context || !questions) {
         return undefined;
     }
 
@@ -109,11 +113,11 @@ export const UserSurveyPage = () => {
                     style={{
                         marginBottom: "30px",
                     }}>
-                    {state.title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
+                    {title ?? locConstants.userFeedback.microsoftWouldLikeYourFeedback}
                 </h2>
-                {state.subtitle && <p>{state.subtitle}</p>}
+                {subtitle && <p>{subtitle}</p>}
 
-                {state.questions.map((question, index) => {
+                {questions.map((question, index) => {
                     switch (question.type) {
                         case "nsat":
                             return (
@@ -151,10 +155,10 @@ export const UserSurveyPage = () => {
                             appearance="primary"
                             disabled={isSubmitDisabled}
                             onClick={() => context.submit(userAnswers)}>
-                            {state.submitButtonText ?? locConstants.userFeedback.submit}
+                            {submitButtonText ?? locConstants.userFeedback.submit}
                         </Button>
                         <Button onClick={() => context.cancel()}>
-                            {state.cancelButtonText ?? locConstants.common.cancel}
+                            {cancelButtonText ?? locConstants.common.cancel}
                         </Button>
                     </div>
                 </div>

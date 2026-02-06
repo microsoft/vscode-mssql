@@ -28,17 +28,20 @@ const useStyles = makeStyles({
 export const ConnectionGroupPage = () => {
     const classes = useStyles();
     const context = useContext(ConnectionGroupContext);
-    const state = useConnectionGroupSelector((s) => s);
+    const existingGroupName = useConnectionGroupSelector((s) => s?.existingGroupName);
+    const description = useConnectionGroupSelector((s) => s?.description);
+    const color = useConnectionGroupSelector((s) => s?.color);
+    const message = useConnectionGroupSelector((s) => s?.message);
 
     // If context isn't available yet, don't render
-    if (!context || !state) {
+    if (!context) {
         return undefined;
     }
 
     return (
         <div className={classes.root}>
             <ConnectionGroupDialog
-                state={state}
+                state={{ existingGroupName, description, color, message, name: "" }}
                 saveConnectionGroup={context.saveConnectionGroup}
                 closeDialog={context.closeDialog}
             />

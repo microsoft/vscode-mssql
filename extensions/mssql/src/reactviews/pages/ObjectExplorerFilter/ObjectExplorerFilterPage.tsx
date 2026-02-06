@@ -79,7 +79,9 @@ export const useStyles = makeStyles({
 export const ObjectExplorerFilterPage = () => {
     const classes = useStyles();
     const context = useContext(ObjectExplorerFilterContext);
-    const state = useObjectExplorerFilterSelector((s) => s);
+    const filterProperties = useObjectExplorerFilterSelector((s) => s?.filterProperties);
+    const existingFilters = useObjectExplorerFilterSelector((s) => s?.existingFilters);
+    const nodePath = useObjectExplorerFilterSelector((s) => s?.nodePath);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
@@ -197,8 +199,8 @@ export const ObjectExplorerFilterPage = () => {
 
         const loadUiFilters = () => {
             setUiFilters(
-                state?.filterProperties?.map((value, index) => {
-                    const filter = state?.existingFilters?.find(
+                filterProperties?.map((value, index) => {
+                    const filter = existingFilters?.find(
                         (f) => f.name === value.name,
                     );
                     const operatorOptions = getFilterOperators(value);
@@ -222,7 +224,7 @@ export const ObjectExplorerFilterPage = () => {
         setIntialFocus();
         loadUiFilters();
         setErrorMessage(undefined);
-    }, [state?.filterProperties]);
+    }, [filterProperties]);
 
     function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
         switch (columnId) {
@@ -460,14 +462,14 @@ export const ObjectExplorerFilterPage = () => {
         [useTableColumnSizing_unstable({ columnSizingOptions })],
     );
     const rows = getRows();
-    if (!context || !state) {
+    if (!context || !filterProperties) {
         return undefined;
     }
     return (
         <div className={classes.root}>
             <Text size={400}>{l10n.t("Filter Settings")}</Text>
             <Body1Strong>
-                {locConstants.objectExplorerFiltering.path(state.nodePath!)}
+                {locConstants.objectExplorerFiltering.path(nodePath!)}
             </Body1Strong>
             {errorMessage && errorMessage !== "" && (
                 <MessageBar intent={"error"}>
