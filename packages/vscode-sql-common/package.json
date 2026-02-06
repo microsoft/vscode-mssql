@@ -31,9 +31,6 @@
     "chai": "^4.3.0",
     "ts-node": "^10.9.0"
   },
-  "peerDependencies": {
-    "vscode": "*"
-  },
   "engines": {
     "vscode": "^1.80.0"
   },
