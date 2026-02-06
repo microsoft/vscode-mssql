@@ -63,10 +63,10 @@ import {
 // In your activate() function
 export function activate(context: vscode.ExtensionContext) {
   const coordinator = new UriOwnershipCoordinator(context, {
-    extensionId: "your-publisher.your-extension",
     hideUiContextKey: "yourext.hideUIElements",
     ownsUri: (uri) => connectionManager.isConnected(uri) || connectionManager.isConnecting(uri),
     onDidChangeOwnership: connectionManager.onConnectionsChanged,
+    releaseUri: (uri) => connectionManager.disconnect(uri),
   });
 
   // Export the API for other extensions to consume
@@ -132,19 +132,26 @@ new UriOwnershipCoordinator(context: vscode.ExtensionContext, config: UriOwnersh
 
 Configuration passed to the coordinator:
 
+Note: the coordinator automatically uses `context.extension.id` as this extension's ID; it is not passed via config.
+
+If your connection manager isn't available at activation time, you can omit `ownsUri`/`onDidChangeOwnership` in the constructor and call `coordinator.initialize(...)` later.
+
 ```typescript
 interface UriOwnershipConfig {
-  /** Your extension's ID (e.g., "ms-mssql.mssql") */
-  extensionId: string;
-  
   /** Context key to set when another extension owns the active URI */
   hideUiContextKey: string;
+
+  /** Optional localized default warning message factory */
+  fileOwnedByOtherExtensionMessage?: (owningExtensionDisplayName: string) => string;
   
   /** Function to check if your extension owns a URI */
-  ownsUri: (uri: string) => boolean;
+  ownsUri?: (uri: string) => boolean;
   
   /** Event that fires when your extension's ownership changes */
-  onDidChangeOwnership: vscode.Event<void>;
+  onDidChangeOwnership?: vscode.Event<void>;
+
+  /** Optional callback to release/disconnect ownership of a URI */
+  releaseUri?: (uri: string) => void | Promise<void>;
 }
 ```
 
