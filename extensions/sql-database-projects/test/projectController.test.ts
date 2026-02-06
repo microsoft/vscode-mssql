@@ -385,17 +385,17 @@ suite('ProjectsController', function (): void {
 
 				// Assert: tasks.json exists at workspace level
 				const exists = await utils.exists(tasksJsonPath);
-				should(exists).be.true('.vscode/tasks.json should be created at workspace level when configureDefaultBuild is true');
+				expect(exists, '.vscode/tasks.json should be created at workspace level when configureDefaultBuild is true').to.be.true;
 
 				// If exists, check if isDefault is true in any build task
 				if (exists) {
 					const tasksJsonContent = await fs.readFile(tasksJsonPath, 'utf-8');
 					const tasksJson = JSON.parse(tasksJsonContent);
 
-					should(tasksJson.tasks).be.Array().and.have.length(1);
+					expect(tasksJson.tasks, 'tasks should be an array').to.be.an('array').with.lengthOf(1);
 					const task = tasksJson.tasks[0];
-					should(task.group).not.be.undefined();
-					should(task.group.isDefault).equal(true, 'The build task should have isDefault: true (boolean)');
+					expect(task.group, 'task group should be defined').to.not.be.undefined;
+					expect(task.group.isDefault, 'The build task should have isDefault: true (boolean)').to.equal(true);
 				}
 			});
 
@@ -445,12 +445,12 @@ suite('ProjectsController', function (): void {
 				const tasksJsonContent = await fs.readFile(tasksJsonPath, 'utf-8');
 				const tasksJson = JSON.parse(tasksJsonContent);
 
-				should(tasksJson.tasks).be.Array().and.have.length(2);
-				should(tasksJson.tasks[0].label).equal('Existing Task', 'Existing task should be preserved');
-				should(tasksJson.tasks[1].label).equal('Build', 'SQL build task should be added');
+				expect(tasksJson.tasks, 'tasks should be an array').to.be.an('array').with.lengthOf(2);
+				expect(tasksJson.tasks[0].label, 'Existing task should be preserved').to.equal('Existing Task');
+				expect(tasksJson.tasks[1].label, 'SQL build task should be added').to.equal(constants.getSqlProjectBuildTaskLabel('TestProjectWithTasks'));
 
 				// Assert: notification was shown
-				should(showInfoSpy.calledWith(constants.updatingExistingTasksJson)).be.true('Should show notification when updating existing tasks.json');
+				expect(showInfoSpy.calledWith(constants.updatingExistingTasksJson), 'Should show notification when updating existing tasks.json').to.be.true;
 			});
 
 			async function verifyFolderAdded(folderName: string, projController: ProjectsController, project: Project, node: BaseProjectTreeItem): Promise<void> {
