@@ -873,6 +873,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.editConnection",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch"
                 },
                 {
