@@ -5224,9 +5224,6 @@
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
     </trans-unit>
-    <trans-unit id="++CODE++7c412bad2f38ca126fbc2727f310946f41df9ad79cd6cfea31561e4cc87ceaf8">
-      <source xml:lang="en">Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.</source>
-    </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
     </trans-unit>

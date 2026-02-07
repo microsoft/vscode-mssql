@@ -2515,7 +2515,6 @@
         "comment": ["{0} is the server name"]
     },
     "Failed to establish connection": "Failed to establish connection",
-    "Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.": "Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
     "Unknown": "Unknown",
     "Copied \"{0}\" to clipboard/{0} is the object name": {
         "message": "Copied \"{0}\" to clipboard",
