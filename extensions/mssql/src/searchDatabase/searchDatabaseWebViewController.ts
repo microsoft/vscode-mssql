@@ -185,23 +185,6 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         try {
-            // Guard: ensure _targetNode is defined (command can be invoked without a node)
-            if (!this._targetNode?.connectionProfile) {
-                this.logError("Search Database requires an Object Explorer node to be selected");
-                this.state.loadStatus = ApiStatus.Error;
-                this.state.errorMessage = LocConstants.SearchDatabase.noNodeSelected;
-                this.updateState();
-
-                endActivity.endFailed(
-                    new Error("No Object Explorer node selected"),
-                    true,
-                    undefined,
-                    undefined,
-                    { operationId: this._operationId },
-                );
-                return;
-            }
-
             // Set up connection URI (use stable ownerUri)
             const connectionUri = this.getConnectionUri();
             this.state.connectionUri = connectionUri;
@@ -722,15 +705,6 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             state.errorMessage = undefined;
 
             try {
-                if (!this._targetNode?.connectionProfile) {
-                    this.logError(
-                        "Search Database requires an Object Explorer node to be selected",
-                    );
-                    state.loadStatus = ApiStatus.Error;
-                    state.errorMessage = LocConstants.SearchDatabase.noNodeSelected;
-                    return state;
-                }
-
                 const connectionUri = this.getConnectionUri();
                 state.connectionUri = connectionUri;
 

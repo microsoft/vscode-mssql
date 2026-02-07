@@ -2425,10 +2425,6 @@ export class SearchDatabase {
 
     public static failedToEstablishConnection = l10n.t("Failed to establish connection");
 
-    public static noNodeSelected = l10n.t(
-        "Unable to open Search Database Objects: No Object Explorer node provided. Please select a server or database node in Object Explorer.",
-    );
-
     public static typeTable = l10n.t("Table");
     public static typeView = l10n.t("View");
     public static typeStoredProcedure = l10n.t("Stored Procedure");

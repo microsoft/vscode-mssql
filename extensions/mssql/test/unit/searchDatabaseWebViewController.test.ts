@@ -805,27 +805,6 @@ suite("SearchDatabaseWebViewController", () => {
             expect(mockMetadataService.getMetadata).to.have.been.called;
         });
 
-        test("retry reducer sets error state when no target node is available", async () => {
-            // Create controller with a target node that has no connectionProfile
-            const nodeWithoutProfile = {} as unknown as TreeNodeInfo;
-            controller = new SearchDatabaseWebViewController(
-                mockContext,
-                mockVscodeWrapper,
-                mockMetadataService,
-                mockConnectionManager,
-                nodeWithoutProfile,
-                mockScriptingService,
-            );
-            await waitForInitialization();
-
-            const retryReducer = controller["_reducerHandlers"].get("retry");
-
-            const result = await retryReducer!(controller.state, {});
-
-            expect(result.loadStatus).to.equal(ApiStatus.Error);
-            expect(result.errorMessage).to.be.a("string").and.not.be.empty;
-        });
-
         test("retry reducer sets error state when connection fails", async () => {
             createController();
             await waitForInitialization();
