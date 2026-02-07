@@ -97,6 +97,10 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         const backupModel = new BackupDatabaseViewModel();
         this.state.ownerUri = this.connectionUri;
 
+        // Make sure the backup load state is set, so the loading ui properly displays
+        this.state.viewModel.model = backupModel;
+        this.updateState();
+
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
         const backupConfigInfo = (
             await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
