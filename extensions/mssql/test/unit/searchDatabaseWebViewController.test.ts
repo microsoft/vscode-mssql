@@ -194,7 +194,7 @@ suite("SearchDatabaseWebViewController", () => {
                     r.name.toLowerCase().includes("user") ||
                     r.schema.toLowerCase().includes("user"),
             );
-            expect(userResults.length).to.be.greaterThan(0);
+            expect(userResults).to.have.length.greaterThan(0);
         });
 
         test("search reducer handles empty search term", async () => {
@@ -216,7 +216,7 @@ suite("SearchDatabaseWebViewController", () => {
             const resultLower = await searchReducer!(controller.state, { searchTerm: "users" });
             const resultUpper = await searchReducer!(controller.state, { searchTerm: "USERS" });
 
-            expect(resultLower.searchResults.length).to.equal(resultUpper.searchResults.length);
+            expect(resultLower.searchResults).to.have.length(resultUpper.searchResults.length);
         });
 
         test("clearSearch reducer resets searchTerm", async () => {
@@ -337,7 +337,7 @@ suite("SearchDatabaseWebViewController", () => {
             const nonTableResults = result.searchResults.filter(
                 (r: SearchResultItem) => r.type !== MetadataType.Table,
             );
-            expect(nonTableResults.length).to.equal(0);
+            expect(nonTableResults).to.have.length(0);
         });
 
         test("setObjectTypeFilters reducer sets all filters at once", async () => {
@@ -380,13 +380,13 @@ suite("SearchDatabaseWebViewController", () => {
             const nonViewResults = result.searchResults.filter(
                 (r: SearchResultItem) => r.type !== MetadataType.View,
             );
-            expect(nonViewResults.length).to.equal(0);
+            expect(nonViewResults).to.have.length(0);
 
             // Verify at least one view exists
             const viewResults = result.searchResults.filter(
                 (r: SearchResultItem) => r.type === MetadataType.View,
             );
-            expect(viewResults.length).to.be.greaterThan(0);
+            expect(viewResults).to.have.length.greaterThan(0);
         });
 
         test("toggleSchemaFilter reducer adds schema when not selected", async () => {
@@ -430,11 +430,11 @@ suite("SearchDatabaseWebViewController", () => {
             // First clear schemas
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
             let result = await clearReducer!(controller.state, {});
-            expect(result.selectedSchemas.length).to.equal(0);
+            expect(result.selectedSchemas).to.have.length(0);
 
             // Then select all
             result = await selectAllReducer!(result, {});
-            expect(result.selectedSchemas.length).to.equal(result.availableSchemas.length);
+            expect(result.selectedSchemas).to.have.length(result.availableSchemas.length);
             expect(result.selectedSchemas).to.deep.equal(result.availableSchemas);
         });
 
@@ -448,10 +448,10 @@ suite("SearchDatabaseWebViewController", () => {
             );
 
             // Initially schemas are selected
-            expect(controller.state.selectedSchemas.length).to.be.greaterThan(0);
+            expect(controller.state.selectedSchemas).to.have.length.greaterThan(0);
 
             const result = await clearReducer!(controller.state, {});
-            expect(result.selectedSchemas.length).to.equal(0);
+            expect(result.selectedSchemas).to.have.length(0);
         });
 
         test("clearSchemaSelection filters out all results", async () => {
@@ -461,7 +461,7 @@ suite("SearchDatabaseWebViewController", () => {
             const clearReducer = controller["_reducerHandlers"].get("clearSchemaSelection");
 
             const result = await clearReducer!(controller.state, {});
-            expect(result.searchResults.length).to.equal(0);
+            expect(result.searchResults).to.have.length(0);
         });
 
         test("setSchemaFilters reducer sets selected schemas", async () => {
@@ -494,13 +494,13 @@ suite("SearchDatabaseWebViewController", () => {
             const nonDboResults = result.searchResults.filter(
                 (r: SearchResultItem) => r.schema !== "dbo",
             );
-            expect(nonDboResults.length).to.equal(0);
+            expect(nonDboResults).to.have.length(0);
 
             // Verify at least one dbo result exists
             const dboResults = result.searchResults.filter(
                 (r: SearchResultItem) => r.schema === "dbo",
             );
-            expect(dboResults.length).to.be.greaterThan(0);
+            expect(dboResults).to.have.length.greaterThan(0);
         });
 
         test("setSchemaFilters reducer with empty array shows no results", async () => {
@@ -512,7 +512,7 @@ suite("SearchDatabaseWebViewController", () => {
             const result = await setSchemaFiltersReducer!(controller.state, { schemas: [] });
 
             expect(result.selectedSchemas).to.deep.equal([]);
-            expect(result.searchResults.length).to.equal(0);
+            expect(result.searchResults).to.have.length(0);
         });
     });
 
