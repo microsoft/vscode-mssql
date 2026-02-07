@@ -5,7 +5,6 @@
 
 import * as os from 'os';
 import * as fs from 'fs';
-import * as request from 'request';
 import * as vscode from 'vscode';
 import axios, { AxiosRequestConfig } from 'axios';
 import * as constants from './constants';
@@ -62,45 +61,73 @@ export class HttpClient {
 	 * @param outputChannel The output channel to output status messages to
 	 * @returns Full path to the downloaded file or the contents of the file at the given downloadUrl
 	 */
-	public download(downloadUrl: string, targetPath: string, outputChannel?: vscode.OutputChannel): Promise<void> {
-		return new Promise((resolve, reject) => {
-			let totalMegaBytes: number | undefined = undefined;
+	public async download(downloadUrl: string, targetPath: string, outputChannel?: vscode.OutputChannel): Promise<void> {
+		try {
+			const response = await axios({
+				method: 'GET',
+				url: downloadUrl,
+				responseType: 'stream',
+				timeout: DownloadTimeoutMs
+			});
+
+			if (response.status !== 200) {
+				outputChannel?.appendLine(constants.downloadError);
+				throw new Error(`Failed to download (${response.status}): ${response.statusText}`);
+			}
+
+			const contentLengthHeader = response.headers['content-length'];
+			const totalBytes = parseInt(contentLengthHeader || '0');
+			const totalMegaBytes = totalBytes / (1024 * 1024);
+			outputChannel?.appendLine(`${constants.downloading} ${downloadUrl} (0 / ${totalMegaBytes.toFixed(2)} MB)`);
+
 			let receivedBytes = 0;
 			let printThreshold = 0.1;
-			let downloadRequest = request.get(downloadUrl, { timeout: DownloadTimeoutMs })
-				.on('error', downloadError => {
-					outputChannel?.appendLine(constants.downloadError);
-					reject(downloadError);
-				})
-				.on('response', (response) => {
-					if (response.statusCode !== 200) {
+
+			const writer = fs.createWriteStream(targetPath);
+
+			return new Promise((resolve, reject) => {
+				let settled = false;
+				
+				const cleanup = () => {
+					response.data.destroy();
+					writer.destroy();
+				};
+
+				const handleError = (err: Error) => {
+					if (!settled) {
+						settled = true;
+						cleanup();
 						outputChannel?.appendLine(constants.downloadError);
-						return reject(response.statusMessage);
+						reject(err);
 					}
-					let contentLength = response.headers['content-length'];
-					let totalBytes = parseInt(contentLength || '0');
-					totalMegaBytes = totalBytes / (1024 * 1024);
-					outputChannel?.appendLine(`${constants.downloading} ${downloadUrl} (0 / ${totalMegaBytes.toFixed(2)} MB)`);
-				})
-				.on('data', (data) => {
-					receivedBytes += data.length;
-					if (totalMegaBytes) {
-						let receivedMegaBytes = receivedBytes / (1024 * 1024);
-						let percentage = receivedMegaBytes / totalMegaBytes;
+				};
+
+				response.data.on('data', (chunk: Buffer) => {
+					receivedBytes += chunk.length;
+					if (totalMegaBytes > 0) {
+						const receivedMegaBytes = receivedBytes / (1024 * 1024);
+						const percentage = receivedMegaBytes / totalMegaBytes;
 						if (percentage >= printThreshold) {
 							outputChannel?.appendLine(`${constants.downloadProgress} (${receivedMegaBytes.toFixed(2)} / ${totalMegaBytes.toFixed(2)} MB)`);
 							printThreshold += 0.1;
 						}
 					}
 				});
-			downloadRequest.pipe(fs.createWriteStream(targetPath))
-				.on('close', async () => {
-					resolve();
-				})
-				.on('error', (downloadError) => {
-					reject(downloadError);
-					downloadRequest.abort();
+
+				writer.on('finish', () => {
+					if (!settled) {
+						settled = true;
+						resolve();
+					}
 				});
-		});
+				writer.on('error', handleError);
+				response.data.on('error', handleError);
+
+				response.data.pipe(writer);
+			});
+		} catch (error) {
+			outputChannel?.appendLine(constants.downloadError);
+			throw error;
+		}
 	}
 }
