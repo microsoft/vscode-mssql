@@ -2769,6 +2769,13 @@ export class Profiler {
     public static profilerNotSupportedOnFabric = l10n.t(
         "Profiler is not supported on Microsoft Fabric SQL databases.",
     );
+    // Details panel
+    public static failedToOpenInEditor = (error: string) =>
+        l10n.t({
+            message: "Failed to open text in editor: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class Proxy {
