@@ -6,7 +6,11 @@
 import React, { createContext, ReactNode, useContext, useCallback } from "react";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
-import { ProfilerWebviewState, ProfilerReducers } from "../../../sharedInterfaces/profiler";
+import {
+    ProfilerWebviewState,
+    ProfilerReducers,
+    FilterClause,
+} from "../../../sharedInterfaces/profiler";
 
 /**
  * RPC helper methods for Profiler operations
@@ -32,6 +36,10 @@ export interface ProfilerRpcMethods {
     fetchRows: (startIndex: number, count: number) => void;
     /** Select a row to show details in the panel */
     selectRow: (rowId: string) => void;
+    /** Apply filter clauses (client-side only) */
+    applyFilter: (clauses: FilterClause[]) => void;
+    /** Clear all filter clauses */
+    clearFilter: () => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -109,6 +117,17 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const applyFilter = useCallback(
+        (clauses: FilterClause[]) => {
+            extensionRpc?.action("applyFilter", { clauses });
+        },
+        [extensionRpc],
+    );
+
+    const clearFilter = useCallback(() => {
+        extensionRpc?.action("clearFilter", {});
+    }, [extensionRpc]);
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -123,6 +142,8 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 toggleAutoScroll,
                 fetchRows,
                 selectRow,
+                applyFilter,
+                clearFilter,
             }}>
             {children}
         </ProfilerContext.Provider>

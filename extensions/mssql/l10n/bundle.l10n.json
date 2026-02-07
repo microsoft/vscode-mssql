@@ -1235,6 +1235,8 @@
     "Resume": "Resume",
     "Clear Data": "Clear Data",
     "Auto-scroll": "Auto-scroll",
+    "Filter...": "Filter...",
+    "Clear Filter": "Clear Filter",
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
@@ -1257,6 +1259,28 @@
     "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection./{0} is the XEL file name": {
         "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
         "comment": ["{0} is the XEL file name"]
+    },
+    "Filter events by column values": "Filter events by column values",
+    "Clear all filters and show all events": "Clear all filters and show all events",
+    "No filter is currently active": "No filter is currently active",
+    "Filter Events": "Filter Events",
+    "Add Clause": "Add Clause",
+    "Remove": "Remove",
+    "No filter clauses defined. Add a clause to filter events.": "No filter clauses defined. Add a clause to filter events.",
+    "A new clause has been added.": "A new clause has been added.",
+    "All clauses have been cleared.": "All clauses have been cleared.",
+    "=": "=",
+    "<>": "<>",
+    "<": "<",
+    "<=": "<=",
+    ">": ">",
+    ">=": ">=",
+    "Is Null": "Is Null",
+    "Is Not Null": "Is Not Null",
+    "Filter active": "Filter active",
+    "Showing {0} of {1} events/{0} is filtered count, {1} is total count": {
+        "message": "Showing {0} of {1} events",
+        "comment": ["{0} is filtered count, {1} is total count"]
     },
     "Running": "Running",
     "Paused": "Paused",
@@ -1365,7 +1389,6 @@
     "Create Connection Profile": "Create Connection Profile",
     "Clear Recent Connections List": "Clear Recent Connections List",
     "Edit": "Edit",
-    "Remove": "Remove",
     "Manage Connection Profiles": "Manage Connection Profiles",
     "{{put-server-name-here}}": "{{put-server-name-here}}",
     "Server name or ADO.NET connection string": "Server name or ADO.NET connection string",
@@ -2697,6 +2720,10 @@
     "File: {0}/{0} is the file name": {
         "message": "File: {0}",
         "comment": ["{0} is the file name"]
+    },
+    "{0}/{1} events/{0} is the filtered count, {1} is the total count": {
+        "message": "{0}/{1} events",
+        "comment": ["{0} is the filtered count, {1} is the total count"]
     },
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",

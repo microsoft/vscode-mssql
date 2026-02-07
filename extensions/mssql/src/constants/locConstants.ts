@@ -2816,6 +2816,12 @@ export class Profiler {
             args: [fileName],
             comment: ["{0} is the file name"],
         });
+    public static eventsCountFiltered = (filtered: number, total: number) =>
+        l10n.t({
+            message: "{0}/{1} events",
+            args: [filtered, total],
+            comment: ["{0} is the filtered count, {1} is the total count"],
+        });
 }
 
 export class Proxy {

@@ -177,7 +177,7 @@ export class ProfilerConfigService {
         // Try each mapped event field until we find a value
         for (const mappedField of column.eventsMapped) {
             const value = this.getFieldValue(event, mappedField);
-            if (value !== null && value !== undefined && value !== "") {
+            if (value !== undefined && value !== "") {
                 return value;
             }
         }

@@ -1885,6 +1885,8 @@ export class LocConstants {
             resume: l10n.t("Resume"),
             clear: l10n.t("Clear Data"),
             autoScroll: l10n.t("Auto-scroll"),
+            filter: l10n.t("Filter..."),
+            clearFilter: l10n.t("Clear Filter"),
 
             // Toolbar labels
             selectSessionLabel: l10n.t("Select Session:"),
@@ -1914,6 +1916,47 @@ export class LocConstants {
                         "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
                     args: [fileName],
                     comment: ["{0} is the XEL file name"],
+                }),
+            filterTooltip: l10n.t("Filter events by column values"),
+            clearFilterTooltip: l10n.t("Clear all filters and show all events"),
+            clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+
+            // Filter dialog
+            filterDialogTitle: l10n.t("Filter Events"),
+            filterColumn: l10n.t("Column"),
+            filterOperator: l10n.t("Operator"),
+            filterValue: l10n.t("Value"),
+            addClause: l10n.t("Add Clause"),
+            removeClause: l10n.t("Remove"),
+            apply: l10n.t("Apply"),
+            ok: l10n.t("OK"),
+            cancel: l10n.t("Cancel"),
+            clearAll: l10n.t("Clear all"),
+            noFilterClauses: l10n.t("No filter clauses defined. Add a clause to filter events."),
+            clauseAdded: l10n.t("A new clause has been added."),
+            allClausesCleared: l10n.t("All clauses have been cleared."),
+
+            // Filter operators
+            operatorEquals: l10n.t("="),
+            operatorNotEquals: l10n.t("<>"),
+            operatorLessThan: l10n.t("<"),
+            operatorLessThanOrEqual: l10n.t("<="),
+            operatorGreaterThan: l10n.t(">"),
+            operatorGreaterThanOrEqual: l10n.t(">="),
+            operatorIsNull: l10n.t("Is Null"),
+            operatorIsNotNull: l10n.t("Is Not Null"),
+            operatorContains: l10n.t("Contains"),
+            operatorNotContains: l10n.t("Not Contains"),
+            operatorStartsWith: l10n.t("Starts With"),
+            operatorNotStartsWith: l10n.t("Not Starts With"),
+
+            // Filter status
+            filterActive: l10n.t("Filter active"),
+            filterActiveTooltip: (filteredCount: number, totalCount: number) =>
+                l10n.t({
+                    message: "Showing {0} of {1} events",
+                    args: [filteredCount, totalCount],
+                    comment: ["{0} is filtered count, {1} is total count"],
                 }),
 
             // Session states
