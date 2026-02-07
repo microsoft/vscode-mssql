@@ -16,6 +16,9 @@ import {
     DisposeViewRequest,
     BackupConfigInfoRequest,
     BackupRequest,
+    RestoreConfigInfoRequest,
+    RestoreRequest,
+    RestorePlanRequest,
 } from "../models/contracts/objectManagement";
 import {
     BackupConfigInfoResponse,
@@ -24,6 +27,12 @@ import {
     BackupParams,
     BackupResponse,
 } from "../sharedInterfaces/backup";
+import {
+    RestoreConfigInfoResponse,
+    RestoreParams,
+    RestorePlanResponse,
+    RestoreResponse,
+} from "../sharedInterfaces/restore";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class ObjectManagementService {
@@ -115,6 +124,46 @@ export class ObjectManagementService {
                 taskExecutionMode: taskMode,
             };
             return await this._client.sendRequest(BackupRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async getRestoreConfigInfo(connectionUri: string): Promise<RestoreConfigInfoResponse> {
+        try {
+            let params: DefaultDatabaseInfoParams = {
+                ownerUri: connectionUri,
+            };
+            return await this._client.sendRequest(RestoreConfigInfoRequest.type, params);
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async getRestorePlan(
+        restoreParams: RestoreParams,
+    ): Promise<RestorePlanResponse> {
+        try {
+            return await this._client.sendRequest(
+                RestorePlanRequest.type,
+                restoreParams,
+            );
+        } catch (e) {
+            this._client.logger.error(e);
+            throw e;
+        }
+    }
+
+    async restoreDatabase(
+        restoreParams: RestoreParams,
+    ): Promise<RestoreResponse> {
+        try {
+            return await this._client.sendRequest(
+                RestoreRequest.type,
+                restoreParams,
+            );
         } catch (e) {
             this._client.logger.error(e);
             throw e;

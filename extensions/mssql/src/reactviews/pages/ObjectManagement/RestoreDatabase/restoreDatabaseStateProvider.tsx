@@ -5,56 +5,52 @@
 
 import { ReactNode, createContext } from "react";
 import {
-    BackupDatabaseFormState,
-    BackupDatabaseProvider,
-    BackupDatabaseReducers,
-} from "../../../../sharedInterfaces/backup";
+    RestoreDatabaseFormState,
+    RestoreDatabaseProvider,
+    RestoreDatabaseReducers,
+    RestoreType,
+} from "../../../../sharedInterfaces/restore";
 import { getCoreRPCs } from "../../../common/utils";
 import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { ObjectManagementWebviewState } from "../../../../sharedInterfaces/objectManagement";
 import { WebviewRpc } from "../../../common/rpc";
 
-export interface BackupDatabaseContextProps extends BackupDatabaseProvider {
-    extensionRpc: WebviewRpc<BackupDatabaseReducers<BackupDatabaseFormState>>;
+export interface RestoreDatabaseContextProps extends RestoreDatabaseProvider {
+    extensionRpc: WebviewRpc<RestoreDatabaseReducers<RestoreDatabaseFormState>>;
 }
 
-const BackupDatabaseContext = createContext<BackupDatabaseContextProps | undefined>(undefined);
+const RestoreDatabaseContext = createContext<RestoreDatabaseContextProps | undefined>(undefined);
 
-interface BackupDatabaseProviderProps {
+interface RestoreDatabaseProviderProps {
     children: ReactNode;
 }
 
-const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
+const RestoreDatabaseStateProvider: React.FC<RestoreDatabaseProviderProps> = ({ children }) => {
     const webviewState = useVscodeWebview<
-        ObjectManagementWebviewState<BackupDatabaseFormState>,
-        BackupDatabaseReducers<BackupDatabaseFormState>
+        ObjectManagementWebviewState<RestoreDatabaseFormState>,
+        RestoreDatabaseReducers<RestoreDatabaseFormState>
     >();
 
     return (
-        <BackupDatabaseContext.Provider
+        <RestoreDatabaseContext.Provider
             value={{
                 extensionRpc: webviewState!.extensionRpc,
-                state: webviewState?.state as ObjectManagementWebviewState<BackupDatabaseFormState>,
+                state: webviewState?.state as ObjectManagementWebviewState<RestoreDatabaseFormState>,
                 themeKind: webviewState?.themeKind,
                 keyBindings: webviewState?.keyBindings,
                 ...getCoreRPCs(webviewState),
                 formAction(event) {
                     webviewState?.extensionRpc.action("formAction", { event });
                 },
-                backupDatabase: function (): void {
-                    webviewState?.extensionRpc.action("backupDatabase", {});
+                restoreDatabase: function (): void {
+                    webviewState?.extensionRpc.action("restoreDatabase", {});
                 },
-                openBackupScript: function (): void {
-                    webviewState?.extensionRpc.action("openBackupScript", {});
+                openRestoreScript: function (): void {
+                    webviewState?.extensionRpc.action("openRestoreScript", {});
                 },
-                setSaveLocation: function (saveToUrl: boolean): void {
-                    webviewState?.extensionRpc.action("setSaveLocation", {
-                        saveToUrl,
-                    });
-                },
-                removeBackupFile: function (filePath: string): void {
-                    webviewState?.extensionRpc.action("removeBackupFile", {
-                        filePath,
+                setRestoreType: function (restoreType: RestoreType): void {
+                    webviewState?.extensionRpc.action("setRestoreType", {
+                        restoreType,
                     });
                 },
                 openFileBrowser: function (
@@ -94,13 +90,6 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                         shouldOpen,
                     });
                 },
-                handleFileChange(index: number, newValue: string, isFolderChange: boolean): void {
-                    webviewState?.extensionRpc.action("handleFileChange", {
-                        index,
-                        newValue,
-                        isFolderChange,
-                    });
-                },
                 loadAzureComponent(componentName: string): void {
                     webviewState?.extensionRpc.action("loadAzureComponent", {
                         componentName,
@@ -108,8 +97,8 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
                 },
             }}>
             {children}
-        </BackupDatabaseContext.Provider>
+        </RestoreDatabaseContext.Provider>
     );
 };
 
-export { BackupDatabaseContext, BackupDatabaseStateProvider };
+export { RestoreDatabaseContext, RestoreDatabaseStateProvider };

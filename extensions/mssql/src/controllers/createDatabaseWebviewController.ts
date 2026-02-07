@@ -32,6 +32,7 @@ interface CreateDatabaseViewInfo {
     containmentTypes?: OptionsCollection;
 }
 
+// Not a form based webview, so the type of the form state is not relevant and can be set to unknown
 export class CreateDatabaseWebviewController extends ObjectManagementWebviewController {
     private objectInfo: { [key: string]: unknown } | undefined;
 

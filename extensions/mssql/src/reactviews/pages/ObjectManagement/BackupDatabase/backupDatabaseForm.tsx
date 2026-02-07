@@ -17,7 +17,10 @@ import {
 } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
-import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
+import {
+    BackupDatabaseFormState,
+    BackupDatabaseViewModel,
+} from "../../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
@@ -30,7 +33,6 @@ import { BackupFileCard } from "./backupFileCard";
 import { ApiStatus, ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import {
     ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 
@@ -150,9 +152,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             : {}
                     }>
                     <FormField<
-                        ObjectManagementFormState,
-                        ObjectManagementWebviewState,
-                        ObjectManagementFormItemSpec,
+                        BackupDatabaseFormState,
+                        ObjectManagementWebviewState<BackupDatabaseFormState>,
+                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                         BackupDatabaseContextProps
                     >
                         context={context}
@@ -188,9 +190,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                 : {}
                         }>
                         <FormField<
-                            ObjectManagementFormState,
-                            ObjectManagementWebviewState,
-                            ObjectManagementFormItemSpec,
+                            BackupDatabaseFormState,
+                            ObjectManagementWebviewState<BackupDatabaseFormState>,
+                            ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                             BackupDatabaseContextProps
                         >
                             context={context}
@@ -243,9 +245,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                             : {}
                     }>
                     <FormField<
-                        ObjectManagementFormState,
-                        ObjectManagementWebviewState,
-                        ObjectManagementFormItemSpec,
+                        BackupDatabaseFormState,
+                        ObjectManagementWebviewState<BackupDatabaseFormState>,
+                        ObjectManagementFormItemSpec<BackupDatabaseFormState>,
                         BackupDatabaseContextProps
                     >
                         context={context}

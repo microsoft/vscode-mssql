@@ -6,9 +6,9 @@
 import { ObjectManagementWebviewState } from "../../../sharedInterfaces/objectManagement";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
-export function useObjectManagementSelector<T>(
-    selector: (state: ObjectManagementWebviewState) => T,
+export function useObjectManagementSelector<T, S>(
+    selector: (state: ObjectManagementWebviewState<S>) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ObjectManagementWebviewState, void, T>(selector, equals);
+    return useVscodeSelector<ObjectManagementWebviewState<S>, void, T>(selector, equals);
 }

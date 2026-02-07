@@ -2847,3 +2847,34 @@ export class BackupDatabase {
         });
     };
 }
+
+export class RestoreDatabase {
+    public static restoreDatabaseTitle = l10n.t("Restore Database");
+    public static sourceDatabase = l10n.t("Source Database");
+    public static targetDatabase = l10n.t("Target Database");
+    public static files = l10n.t("Files");
+    public static relocateDbFiles = l10n.t("Relocate all files");
+    public static general = l10n.t("General");
+    public static overwriteExistingDb = l10n.t("Overwrite the existing database (WITH REPLACE)");
+    public static preserveReplicationSettings = l10n.t(
+        "Preserve the replication settings (WITH KEEP_REPLICATION)",
+    );
+    public static restrictAccessToRestoredDb = l10n.t(
+        "Restrict access to the restored database (WITH RESTRICTED_USER)",
+    );
+    public static recoveryState = l10n.t("Recovery state");
+    public static restoreWithRecovery = l10n.t("RESTORE WITH RECOVERY");
+    public static restoreWithNoRecovery = l10n.t("RESTORE WITH NORECOVERY");
+    public static restoreWithStandby = l10n.t("RESTORE WITH STANDBY");
+    public static standbyFile = l10n.t("Standby file");
+    public static tailLogBackup = l10n.t("Tail-log backup");
+    public static takeTailLogBackup = l10n.t("Take tail-log backup before restore");
+    public static leaveSourceDatabase = l10n.t(
+        "Leave the source database the restoring state (WITH NORECOVERY)",
+    );
+    public static tailLogBackupFile = l10n.t("Tail-log backup file");
+    public static serverConnections = l10n.t("Server Connections");
+    public static closeExistingConnections = l10n.t(
+        "Close existing connections to destination database",
+    );
+}

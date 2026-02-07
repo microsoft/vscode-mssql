@@ -1923,6 +1923,17 @@ export class LocConstants {
                 }),
         };
     }
+
+    public get restoreDatabase() {
+        return {
+            loadingRestoreDatabase: l10n.t("Loading restore database..."),
+            restore: l10n.t("Restore"),
+            restoreDatabase: l10n.t("Restore Database"),
+            database: l10n.t("Database"),
+            backupFile: l10n.t("Backup File"),
+            url: l10n.t("URL"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

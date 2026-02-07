@@ -6,13 +6,13 @@
 import { FormContextProps, FormReducers } from "./form";
 import { ApiStatus } from "./webview";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
-import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
-import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
+import { ObjectManagementFormItemSpec, ObjectManagementWebviewState } from "./objectManagement";
 import {
-    ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
-    ObjectManagementWebviewState,
+    DisasterRecoveryAzureFormState,
+    DisasterRecoveryAzureReducers,
+    DisasterRecoveryViewModel,
+    DisasterRecoveryAzureProvider,
 } from "./objectManagement";
 
 //#region Sql Tools Service Interfaces
@@ -178,7 +178,7 @@ export interface BackupEncryptor {
     encryptorName: string;
 }
 
-export class BackupDatabaseViewModel {
+export class BackupDatabaseViewModel extends DisasterRecoveryViewModel {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     databaseName: string = "";
@@ -188,30 +188,17 @@ export class BackupDatabaseViewModel {
     saveToUrl: boolean = false;
     backupFiles: BackupFile[] = [];
     backupUrl: string = "";
-
-    // Azure
-    tenants: AzureTenant[] = [];
-    subscriptions: AzureSubscription[] = [];
-    storageAccounts: StorageAccount[] = [];
-    blobContainers: BlobContainer[] = [];
-    azureComponentStatuses: Record<string, ApiStatus> = {};
 }
 
 export interface BackupDatabaseParams {
-    state: ObjectManagementWebviewState;
+    state: ObjectManagementWebviewState<BackupDatabaseFormState>;
     taskExecutionMode: TaskExecutionMode;
 }
 
-export interface BackupDatabaseNode {
-    label: string;
-    nodeUri: string;
-    nodePath: string;
-    nodeStatus: string;
-}
-
-export interface BackupDatabaseReducers
-    extends FormReducers<ObjectManagementFormState>,
-        FileBrowserReducers {
+export interface BackupDatabaseReducers<TFormState>
+    extends FormReducers<TFormState>,
+        FileBrowserReducers,
+        DisasterRecoveryAzureReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -249,22 +236,18 @@ export interface BackupDatabaseReducers
         newValue: string;
         isFolderChange: boolean;
     };
-
-    /**
-     * Loads the specified Azure component for backup to URL operations
-     */
-    loadAzureComponent: { componentName: string };
 }
 
 export interface BackupDatabaseProvider
     extends FormContextProps<
-            ObjectManagementFormState,
-            ObjectManagementWebviewState,
-            ObjectManagementFormItemSpec
+            BackupDatabaseFormState,
+            ObjectManagementWebviewState<BackupDatabaseFormState>,
+            ObjectManagementFormItemSpec<BackupDatabaseFormState>
         >,
-        FileBrowserProvider {
+        FileBrowserProvider,
+        DisasterRecoveryAzureProvider {
     /**
-     * Gets the database information associated with the backup operation
+     * Bsacks up the database based on the provided backup information
      */
     backupDatabase(): void;
 
@@ -292,15 +275,9 @@ export interface BackupDatabaseProvider
      * @param isFolderChange  Indicates whether the change is for the folder path or the file name
      */
     handleFileChange(index: number, newValue: string, isFolderChange: boolean): void;
-
-    /**
-     * Loads the specified Azure component for backup to URL operations
-     * @param componentName  The name of the Azure component to load
-     */
-    loadAzureComponent(componentName: string): void;
 }
 
-export interface BackupDatabaseFormState {
+export interface BackupDatabaseFormState extends DisasterRecoveryAzureFormState {
     backupName: string;
     backupType: BackupType;
     copyOnly: boolean;
@@ -316,13 +293,6 @@ export interface BackupDatabaseFormState {
     encryptionEnabled: boolean;
     encryptionAlgorithm: EncryptionAlgorithm;
     encryptorName: string;
-
-    // Save to Azure URL fields
-    accountId: string;
-    tenantId: string;
-    subscriptionId: string;
-    storageAccountId: string;
-    blobContainerId: string;
 }
 
 export interface BackupFile {

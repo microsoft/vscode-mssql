@@ -21,6 +21,7 @@ interface DropDatabaseViewInfo {
     objectInfo: { [key: string]: unknown };
 }
 
+// Not a form based webview, so the type of the form state is not relevant and can be set to unknown
 export class DropDatabaseWebviewController extends ObjectManagementWebviewController {
     private databaseNameForDrop = "";
     private objectInfo: { [key: string]: unknown } | undefined;

@@ -134,6 +134,7 @@ export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
+export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -185,6 +186,8 @@ export const dropDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
 export const backupDatabaseHelpLink =
     "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
+export const restoreDatabaseHelpLink =
+    "https://learn.microsoft.com/en-us/sql/t-sql/statements/restore-statements-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
@@ -326,7 +329,7 @@ export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
 
-// Deployment Constants
+// Backup/Restore Constants
 export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const disk = "Disk";
 export const url = "URL";

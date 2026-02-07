@@ -115,6 +115,7 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
+import { RestoreDatabaseWebviewController } from "./restoreDatabaseWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1939,6 +1940,24 @@ export default class MainController implements vscode.Disposable {
                                 void this.connectionManager.disconnect(ownerUri);
                             }
                         });
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRestoreDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const reactPanel = new RestoreDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.objectManagementService,
+                            this._connectionMgr,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            node,
+                        );
+                        reactPanel.revealToForeground();
                     },
                 ),
             );

@@ -14,6 +14,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import {
     BackupCompression,
+    BackupDatabaseFormState,
     BackupDatabaseViewModel,
     BackupType,
     EncryptionAlgorithm,
@@ -32,7 +33,6 @@ import { TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import {
     ObjectManagementDialogType,
-    ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../src/sharedInterfaces/objectManagement";
 
@@ -45,7 +45,7 @@ suite("BackupDatabaseWebviewController", () => {
     let mockFileBrowserService: FileBrowserService;
     let mockAzureBlobService: AzureBlobService;
     let controller: BackupDatabaseWebviewController;
-    let mockInitialState: ObjectManagementWebviewState;
+    let mockInitialState: ObjectManagementWebviewState<BackupDatabaseFormState>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sendActionEvent: sinon.SinonStub;
     let getBackupConfigInfoStub: sinon.SinonStub;
@@ -143,7 +143,7 @@ suite("BackupDatabaseWebviewController", () => {
                 subscriptionId: "",
                 storageAccountId: "",
                 blobContainerId: "",
-            } as ObjectManagementFormState,
+            } as BackupDatabaseFormState,
             formComponents: {},
             fileBrowserState: undefined,
             dialog: undefined,
@@ -158,7 +158,7 @@ suite("BackupDatabaseWebviewController", () => {
                     value: allFileTypes,
                 },
             ],
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
 
         await controller["initializeDialog"]();
 
@@ -233,14 +233,14 @@ suite("BackupDatabaseWebviewController", () => {
                 model: { saveToUrl: false } as BackupDatabaseViewModel,
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
 
         const urlMockState = {
             viewModel: {
                 model: { saveToUrl: true } as BackupDatabaseViewModel,
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
 
         expect(controller["getActiveFormComponents"](controller.state).length).to.equal(20);
 
@@ -337,19 +337,19 @@ suite("BackupDatabaseWebviewController", () => {
                 model: { backupFiles: [{ filePath: "some-path", isExisting: true }] },
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         const mockNewFiles = {
             viewModel: {
                 model: { backupFiles: [{ filePath: "some-path", isExisting: false }] },
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         const mockNoFiles = {
             viewModel: {
                 model: { backupFiles: [] },
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
 
         const mediaSetComponent = controller.state.formComponents["mediaSet"];
         expect(mediaSetComponent.type).to.equal("dropdown");
@@ -537,7 +537,7 @@ suite("BackupDatabaseWebviewController", () => {
                     },
                     dialogType: ObjectManagementDialogType.BackupDatabase,
                 },
-            } as ObjectManagementWebviewState,
+            } as ObjectManagementWebviewState<BackupDatabaseFormState>,
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
@@ -564,7 +564,7 @@ suite("BackupDatabaseWebviewController", () => {
                     },
                     dialogType: ObjectManagementDialogType.BackupDatabase,
                 },
-            } as ObjectManagementWebviewState,
+            } as ObjectManagementWebviewState<BackupDatabaseFormState>,
             {},
         );
         expect(backupDatabaseStub).to.have.been.calledOnce;
@@ -612,7 +612,7 @@ suite("BackupDatabaseWebviewController", () => {
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
             formErrors: ["test"],
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         const result = await controller["_reducerHandlers"].get("setSaveLocation")(state, {
             saveToUrl: true,
         });
@@ -633,7 +633,7 @@ suite("BackupDatabaseWebviewController", () => {
                 },
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         const mediaStub = sandbox
             .stub(controller as any, "setMediaOptionsIfExistingFiles")
             .callsFake((state) => state);
@@ -662,7 +662,7 @@ suite("BackupDatabaseWebviewController", () => {
                 },
                 dialogType: ObjectManagementDialogType.BackupDatabase,
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
 
         let result = await controller["_reducerHandlers"].get("handleFileChange")(state, {
             index: 0,
@@ -769,7 +769,7 @@ suite("BackupDatabaseWebviewController", () => {
                 ...mockInitialState.viewModel,
                 model: { ...mockInitialState.viewModel.model, backupFiles: [] },
             },
-        } as ObjectManagementWebviewState;
+        } as ObjectManagementWebviewState<BackupDatabaseFormState>;
         let result = await controller["_reducerHandlers"].get("submitFilePath")(state, {
             selectedPath: "newPath/newFile.bak",
         });
