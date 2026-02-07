@@ -37,11 +37,12 @@ const useStyles = makeStyles({
 export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
-    if (!state || !context) {
+    const view = useTableDesignerSelector((s) => s?.view);
+    const model = useTableDesignerSelector((s) => s?.model);
+    if (!context) {
         return null;
     }
-    const components = state.view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
+    const components = view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
     return (
         <div className={classes.root}>
             {components
@@ -53,7 +54,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                 .map((component: DesignerDataPropertyInfo) => {
                     switch (component.componentType) {
                         case "input": {
-                            const modelInputProps = state.model![
+                            const modelInputProps = model![
                                 component.propertyName
                             ]! as InputBoxProperties;
                             return (
@@ -67,7 +68,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "textarea": {
-                            const modelTextAreaProps = state.model![
+                            const modelTextAreaProps = model![
                                 component.propertyName
                             ] as InputBoxProperties;
                             return (
@@ -83,7 +84,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "dropdown": {
-                            const modelProps = state.model![
+                            const modelProps = model![
                                 component.propertyName
                             ] as DropDownProperties;
                             return (
@@ -97,7 +98,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "checkbox": {
-                            const modelCheckboxProps = state.model![
+                            const modelCheckboxProps = model![
                                 component.propertyName
                             ] as CheckBoxProperties;
                             return (
@@ -111,7 +112,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "table": {
-                            const modelTableProps = state.model![
+                            const modelTableProps = model![
                                 component.propertyName
                             ] as DesignerTableProperties;
                             return (

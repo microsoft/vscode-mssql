@@ -78,17 +78,17 @@ export const DesignerPropertiesPane = () => {
     const classes = useStyles();
     const accordionStyles = useAccordionStyles();
     const context = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
-    if (!context || !state) {
+    const propertiesPaneData = useTableDesignerSelector((s) => s?.propertiesPaneData);
+    const model = useTableDesignerSelector((s) => s?.model);
+    if (!context || !propertiesPaneData) {
         return null;
     }
-    const propertiesPaneData = state.propertiesPaneData!;
     const componentPath = propertiesPaneData.componentPath!;
     const tablePropertyName = componentPath[0] as string;
     const index = componentPath[componentPath.length - 1] as number;
-    const parentTableProperties = state.propertiesPaneData?.component
+    const parentTableProperties = propertiesPaneData.component
         .componentProperties as DesignerTableProperties;
-    const parentTablePropertiesModel = state.model![
+    const parentTablePropertiesModel = model![
         tablePropertyName
     ] as DesignerTableProperties;
     const data = parentTablePropertiesModel.data![index];

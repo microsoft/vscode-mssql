@@ -53,29 +53,32 @@ const useStyles = makeStyles({
 export const DesignerMainPane = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
-    if (!state || !context) {
+    const model = useTableDesignerSelector((s) => s?.model);
+    const view = useTableDesignerSelector((s) => s?.view);
+    const tabStates = useTableDesignerSelector((s) => s?.tabStates);
+    const issues = useTableDesignerSelector((s) => s?.issues);
+    if (!context) {
         return null;
     }
-    const [tableName, setTableName] = useState((state.model!["name"] as InputBoxProperties).value);
-    const [schema, setSchema] = useState((state.model!["schema"] as InputBoxProperties).value);
+    const [tableName, setTableName] = useState((model!["name"] as InputBoxProperties).value);
+    const [schema, setSchema] = useState((model!["schema"] as InputBoxProperties).value);
 
     useEffect(() => {
-        setTableName((state.model!["name"] as InputBoxProperties).value);
-        setSchema((state.model!["schema"] as InputBoxProperties).value);
-    }, [state.model]);
+        setTableName((model!["name"] as InputBoxProperties).value);
+        setSchema((model!["schema"] as InputBoxProperties).value);
+    }, [model]);
 
     const getCurrentTabIssuesCount = (tabId: string) => {
-        const tabComponents = state.view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
+        const tabComponents = view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
         if (!tabComponents) {
             return 0;
         }
-        if (state.issues?.length === 0) {
+        if (issues?.length === 0) {
             return 0;
         }
         let count = 0;
-        for (let i = 0; i < state?.issues!.length; i++) {
-            const issue = state.issues![i];
+        for (let i = 0; i < issues!.length; i++) {
+            const issue = issues![i];
             if (issue.propertyPath && issue.propertyPath.length > 0) {
                 if (tabComponents.find((c: { propertyName: string }) => c.propertyName === issue.propertyPath![0])) {
                     count++;
@@ -122,7 +125,7 @@ export const DesignerMainPane = () => {
     }
 
     function getSortedSchemaValues() {
-        const schemas = (state?.model?.["schema"] as DropDownProperties).values;
+        const schemas = (model?.["schema"] as DropDownProperties).values;
         const systemSchemas = new Set([
             "db_accessadmin",
             "db_backupoperator",
@@ -206,12 +209,12 @@ export const DesignerMainPane = () => {
                 </Field>
                 <TabList
                     size="small"
-                    selectedValue={state.tabStates?.mainPaneTab}
+                    selectedValue={tabStates?.mainPaneTab}
                     onTabSelect={(_event, data) => {
                         context.setTab(data.value as DesignerMainPaneTabs);
                         context.setPropertiesComponents(undefined);
                     }}>
-                    {state.view?.tabs.map((tab) => {
+                    {view?.tabs.map((tab) => {
                         const ariaLabel = getTabAriaLabel(tab.id);
                         return (
                             <Tab title={ariaLabel} value={tab.id} key={tab.id}>
@@ -232,11 +235,11 @@ export const DesignerMainPane = () => {
                     })}
                 </TabList>
 
-                {state.view?.tabs.map((tab) => {
+                {view?.tabs.map((tab) => {
                     return (
                         <div
                             style={{
-                                display: state.tabStates?.mainPaneTab === tab.id ? "" : "none",
+                                display: tabStates?.mainPaneTab === tab.id ? "" : "none",
                                 width: "100%",
                                 height: "100%",
                             }}

@@ -53,17 +53,20 @@ const useStyles = makeStyles({
 
 export const DesignerChangesPreviewButton = () => {
     const designerContext = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
+    const apiState = useTableDesignerSelector((s) => s?.apiState);
+    const publishingError = useTableDesignerSelector((s) => s?.publishingError);
+    const generatePreviewReportResult = useTableDesignerSelector((s) => s?.generatePreviewReportResult);
+    const issues = useTableDesignerSelector((s) => s?.issues);
     const markdownClasses = useMarkdownStyles();
     const classes = useStyles();
-    if (!designerContext || !state) {
+    if (!designerContext) {
         return null;
     }
 
     const [isConfirmationChecked, setIsConfirmationChecked] = useState(false);
 
     const generateScriptIcon = () => {
-        switch (state?.apiState?.generateScriptState) {
+        switch (apiState?.generateScriptState) {
             case LoadState.Loading:
                 return <Spinner size="extra-small" />;
             case LoadState.Error:
@@ -102,7 +105,7 @@ export const DesignerChangesPreviewButton = () => {
                         style={{
                             textAlign: "justify",
                         }}>
-                        {state?.publishingError ?? ""}
+                        {publishingError ?? ""}
                     </MessageBarBody>
                     <MessageBarActions>
                         <Button
@@ -180,7 +183,7 @@ export const DesignerChangesPreviewButton = () => {
             <DialogContent>
                 <ErrorCircleRegular className={classes.errorIcon} />
                 <div>
-                    {state.generatePreviewReportResult?.schemaValidationError ??
+                    {generatePreviewReportResult?.schemaValidationError ??
                         locConstants.tableDesigner.errorLoadingPreview}
                 </div>
             </DialogContent>
@@ -213,7 +216,7 @@ export const DesignerChangesPreviewButton = () => {
                             overflow: "hidden",
                         }}>
                         <div className={markdownClasses.markdownPage}>
-                            <Markdown>{state?.generatePreviewReportResult?.report}</Markdown>
+                            <Markdown>{generatePreviewReportResult?.report}</Markdown>
                         </div>
                         <Checkbox
                             style={{
@@ -266,7 +269,7 @@ export const DesignerChangesPreviewButton = () => {
                         <Button
                             icon={generateScriptIcon()}
                             iconPosition="after"
-                            disabled={state.apiState?.previewState !== LoadState.Loaded}
+                            disabled={apiState?.previewState !== LoadState.Loaded}
                             appearance="secondary"
                             onClick={designerContext.generateScript}>
                             {locConstants.publishDialog.openPublishScript}
@@ -279,22 +282,22 @@ export const DesignerChangesPreviewButton = () => {
     };
 
     const getDialogContent = () => {
-        if (state?.apiState?.publishState === LoadState.Loading) {
+        if (apiState?.publishState === LoadState.Loading) {
             return publishingLoadingDialogContents();
         }
-        if (state?.apiState?.publishState === LoadState.Loaded) {
+        if (apiState?.publishState === LoadState.Loaded) {
             return publishingSuccessDialogContents();
         }
-        if (state?.apiState?.publishState === LoadState.Error) {
+        if (apiState?.publishState === LoadState.Error) {
             return publishingErrorDialogContents();
         }
-        if (state?.apiState?.previewState === LoadState.Loading) {
+        if (apiState?.previewState === LoadState.Loading) {
             return previewLoadingDialogContents();
         }
-        if (state?.apiState?.previewState === LoadState.Error) {
+        if (apiState?.previewState === LoadState.Error) {
             return previewLoadingErrorDialogContents();
         }
-        if (state?.apiState?.previewState === LoadState.Loaded) {
+        if (apiState?.previewState === LoadState.Loaded) {
             return previewLoadedSuccessDialogContents();
         }
     };
@@ -311,7 +314,7 @@ export const DesignerChangesPreviewButton = () => {
                     onClick={() => {
                         designerContext.generatePreviewReport();
                     }}
-                    disabled={(state?.issues?.length ?? 0) > 0}>
+                    disabled={(issues?.length ?? 0) > 0}>
                     {locConstants.publishDialog.publishChanges}
                 </Button>
             </DialogTrigger>

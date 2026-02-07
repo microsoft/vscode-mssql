@@ -109,8 +109,10 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
 
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
-    if (!context || !state) {
+    const issues = useTableDesignerSelector((s) => s?.issues);
+    const tableInfoId = useTableDesignerSelector((s) => s?.tableInfo?.id);
+    const propertiesPaneData = useTableDesignerSelector((s) => s?.propertiesPaneData);
+    if (!context) {
         return undefined;
     }
     const classes = useStyles();
@@ -247,7 +249,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     };
 
     const getRowError = (index: number): string | undefined => {
-        const issue = state.issues?.find((i: designer.DesignerIssue) => {
+        const issue = issues?.find((i: designer.DesignerIssue) => {
             if (!i.propertyPath) {
                 return false;
             }
@@ -536,7 +538,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                         setFocusedRowId(index);
                                         // If properties pane is already open, update its content to show this row's properties
                                         if (
-                                            state.propertiesPaneData &&
+                                            propertiesPaneData &&
                                             UiArea !== "PropertiesView"
                                         ) {
                                             context?.setPropertiesComponents({
@@ -559,7 +561,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                     columnIndex,
                                                     columnsDef.length,
                                                 )}
-                                                id={`table-cell-${state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
+                                                id={`table-cell-${tableInfoId}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
                                                     maxHeight: "30px",

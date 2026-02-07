@@ -107,15 +107,17 @@ const useStyles = makeStyles({
 export const TableDesigner = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = useTableDesignerSelector((s) => s);
+    const propertiesPaneData = useTableDesignerSelector((s) => s?.propertiesPaneData);
+    const apiState = useTableDesignerSelector((s) => s?.apiState);
+    const initializationError = useTableDesignerSelector((s) => s?.initializationError);
     const editorRef = useRef<HTMLDivElement>(null);
     const propertiesPanelRef = useRef<ImperativePanelHandle>(null);
-    if (!state || !context) {
+    if (!context) {
         return null;
     }
 
     useEffect(() => {
-        if (!state.propertiesPaneData) {
+        if (!propertiesPaneData) {
             return;
         }
         // Adjust properties panel size when maximize/restore toggles
@@ -132,13 +134,13 @@ export const TableDesigner = () => {
                 propertiesPanelRef.current?.resize(30);
             }
         }
-    }, [state.propertiesPaneData, context.propertiesPaneResizeInfo.isMaximized]);
+    }, [propertiesPaneData, context.propertiesPaneResizeInfo.isMaximized]);
 
-    const isErrorState = state.apiState?.initializeState === designer.LoadState.Error;
+    const isErrorState = apiState?.initializeState === designer.LoadState.Error;
 
     return (
         <div className={classes.root}>
-            {state.apiState?.initializeState === designer.LoadState.Loading && (
+            {apiState?.initializeState === designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
                     <Spinner
                         label={locConstants.tableDesigner.loadingTableDesigner}
@@ -150,12 +152,12 @@ export const TableDesigner = () => {
                 <ErrorDialog
                     open={isErrorState}
                     title={locConstants.tableDesigner.errorLoadingDesigner}
-                    message={state?.initializationError ?? ""}
+                    message={initializationError ?? ""}
                     retryLabel={locConstants.tableDesigner.retry}
                     onRetry={() => context.initializeTableDesigner()}
                 />
             )}
-            {state.apiState?.initializeState === designer.LoadState.Loaded && (
+            {apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
                     <PanelGroup direction="vertical">
                         <Panel defaultSize={75}>
@@ -169,7 +171,7 @@ export const TableDesigner = () => {
                                         <PanelResizeHandle
                                             className={classes.verticalResizeHandle}
                                         />
-                                        {state.propertiesPaneData && (
+                                        {propertiesPaneData && (
                                             <Panel
                                                 defaultSize={0}
                                                 minSize={10}
