@@ -70,25 +70,25 @@ const useStyles = makeStyles({
     },
 });
 
+// Type prefix constants for search shorthand (e.g. "t:name" to search tables)
+const TYPE_PREFIXES: { prefix: string; filterKey: keyof ObjectTypeFilters }[] = [
+    { prefix: "t:", filterKey: "tables" },
+    { prefix: "v:", filterKey: "views" },
+    { prefix: "f:", filterKey: "functions" },
+    { prefix: "sp:", filterKey: "storedProcedures" },
+];
+
 // Helper to detect if search has a type prefix
 const hasTypePrefix = (searchTerm: string): boolean => {
     const trimmed = searchTerm.trim().toLowerCase();
-    return (
-        trimmed.startsWith("t:") ||
-        trimmed.startsWith("v:") ||
-        trimmed.startsWith("f:") ||
-        trimmed.startsWith("sp:")
-    );
+    return TYPE_PREFIXES.some(({ prefix }) => trimmed.startsWith(prefix));
 };
 
 // Helper to get which type is active from the search prefix
 const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | null => {
     const trimmed = searchTerm.trim().toLowerCase();
-    if (trimmed.startsWith("t:")) return "tables";
-    if (trimmed.startsWith("v:")) return "views";
-    if (trimmed.startsWith("f:")) return "functions";
-    if (trimmed.startsWith("sp:")) return "storedProcedures";
-    return null;
+    const match = TYPE_PREFIXES.find(({ prefix }) => trimmed.startsWith(prefix));
+    return match?.filterKey ?? null;
 };
 
 export const SearchDatabaseFilters: React.FC = React.memo(() => {
