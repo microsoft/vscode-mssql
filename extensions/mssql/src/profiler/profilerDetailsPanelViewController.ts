@@ -29,6 +29,7 @@ export class ProfilerDetailsPanelViewController extends ReactWebviewViewControll
     ProfilerDetailsPanelReducers
 > {
     private static _instance: ProfilerDetailsPanelViewController | undefined;
+    private static _registrationDisposable: vscode.Disposable | undefined;
 
     constructor(context: vscode.ExtensionContext, vscodeWrapper: VscodeWrapper) {
         super(context, vscodeWrapper, "profilerDetails", PROFILER_DETAILS_VIEW_ID, {
@@ -59,14 +60,34 @@ export class ProfilerDetailsPanelViewController extends ReactWebviewViewControll
     }
 
     /**
-     * Register the view provider with VS Code
+     * Register the view provider with VS Code.
+     * Only registers once - subsequent calls return the existing disposable.
      */
     public static register(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
     ): vscode.Disposable {
+        // If already registered, return a no-op disposable
+        if (ProfilerDetailsPanelViewController._registrationDisposable) {
+            return { dispose: () => {} };
+        }
+
         const instance = ProfilerDetailsPanelViewController.getInstance(context, vscodeWrapper);
-        return vscode.window.registerWebviewViewProvider(PROFILER_DETAILS_VIEW_ID, instance);
+        ProfilerDetailsPanelViewController._registrationDisposable =
+            vscode.window.registerWebviewViewProvider(PROFILER_DETAILS_VIEW_ID, instance);
+        return ProfilerDetailsPanelViewController._registrationDisposable;
+    }
+
+    /**
+     * Reset the singleton instance and registration state.
+     * This is intended for testing purposes only.
+     */
+    public static resetForTesting(): void {
+        if (ProfilerDetailsPanelViewController._registrationDisposable) {
+            ProfilerDetailsPanelViewController._registrationDisposable.dispose();
+        }
+        ProfilerDetailsPanelViewController._instance = undefined;
+        ProfilerDetailsPanelViewController._registrationDisposable = undefined;
     }
 
     /**

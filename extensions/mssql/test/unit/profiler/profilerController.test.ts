@@ -9,6 +9,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { ProfilerController } from "../../../src/profiler/profilerController";
+import { ProfilerDetailsPanelViewController } from "../../../src/profiler/profilerDetailsPanelViewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerService } from "../../../src/services/profilerService";
 import ConnectionManager from "../../../src/controllers/connectionManager";
@@ -160,6 +161,11 @@ suite("ProfilerController Tests", () => {
                 },
             );
 
+        // Stub registerWebviewViewProvider to prevent actual VS Code registration
+        sandbox
+            .stub(vscode.window, "registerWebviewViewProvider")
+            .returns({ dispose: sandbox.stub() } as unknown as vscode.Disposable);
+
         mockContext = {
             extensionUri: vscode.Uri.parse("https://localhost"),
             extensionPath: "/test/path",
@@ -174,6 +180,7 @@ suite("ProfilerController Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
+        ProfilerDetailsPanelViewController.resetForTesting();
         sandbox.restore();
     });
 
@@ -490,12 +497,18 @@ suite("ProfilerController Integration Tests", () => {
                 },
             );
 
+        // Stub registerWebviewViewProvider to prevent actual VS Code registration
+        sandbox
+            .stub(vscode.window, "registerWebviewViewProvider")
+            .returns({ dispose: sandbox.stub() } as unknown as vscode.Disposable);
+
         mockProfilerService = createMockProfilerService();
         mockSessionManager = new ProfilerSessionManager(mockProfilerService);
     });
 
     teardown(async () => {
         await mockSessionManager.dispose();
+        ProfilerDetailsPanelViewController.resetForTesting();
         sandbox.restore();
     });
 
@@ -591,6 +604,11 @@ suite("ProfilerController Server Type Tests", () => {
                 },
             );
 
+        // Stub registerWebviewViewProvider to prevent actual VS Code registration
+        sandbox
+            .stub(vscode.window, "registerWebviewViewProvider")
+            .returns({ dispose: sandbox.stub() } as unknown as vscode.Disposable);
+
         mockContext = {
             extensionUri: vscode.Uri.parse("https://localhost"),
             extensionPath: "/test/path",
@@ -637,6 +655,7 @@ suite("ProfilerController Server Type Tests", () => {
 
     teardown(async () => {
         await mockSessionManager.dispose();
+        ProfilerDetailsPanelViewController.resetForTesting();
         sandbox.restore();
     });
 
