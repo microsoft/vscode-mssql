@@ -26,7 +26,6 @@ import { ProjectsController } from '../src/controllers/projectController';
 import { promises as fs } from 'fs';
 import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from './testContext';
 import { Project } from '../src/models/project';
-import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
 import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
 import { FolderNode, FileNode } from '../src/models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../src/models/tree/baseTreeItem';
@@ -700,67 +699,6 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
-			test('Publish dialog should open from ProjectController', async function (): Promise<void> {
-				let opened = false;
-
-				let publishDialog = TypeMoq.Mock.ofType(PublishDatabaseDialog);
-				publishDialog.setup(x => x.openDialog()).returns(() => { opened = true; });
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => publishDialog.object);
-				const proj = new Project('FakePath');
-				sinon.stub(proj, 'getProjectTargetVersion').returns('150');
-				await projController.object.publishProject(proj);
-				should(opened).equal(true);
-			});
-
-			test('Callbacks are hooked up and called from Publish dialog', async function (): Promise<void> {
-				const projectFile = await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline)
-				const projFolder = path.dirname(projectFile);
-				await testUtils.createTestDataSources(this.test, baselines.openDataSourcesBaseline, projFolder);
-				const proj = await Project.openProject(projectFile);
-
-				const publishHoller = 'hello from callback for publish()';
-				const generateHoller = 'hello from callback for generateScript()';
-
-				let holler = 'nothing';
-
-				const setupPublishDialog = (): PublishDatabaseDialog => {
-					const dialog = new PublishDatabaseDialog(proj);
-					sinon.stub(dialog, 'getConnectionUri').returns(Promise.resolve('fake|connection|uri'));
-					return dialog;
-				};
-
-				let publishDialog = setupPublishDialog();
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => {
-					return publishDialog;
-				});
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), true)).returns(() => {
-					holler = publishHoller;
-					return Promise.resolve(undefined);
-				});
-
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), false)).returns(() => {
-					holler = generateHoller;
-					return Promise.resolve(undefined);
-				});
-				publishDialog.publishToExistingServer = true;
-				void projController.object.publishProject(proj);
-				await publishDialog.publishClick();
-
-				should(holler).equal(publishHoller, 'executionCallback() is supposed to have been setup and called for Publish scenario');
-
-				publishDialog = setupPublishDialog();
-				void projController.object.publishProject(proj);
-				await publishDialog.generateScriptClick();
-
-				should(holler).equal(generateHoller, 'executionCallback() is supposed to have been setup and called for GenerateScript scenario');
-			});
-
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
 				const fakeDacpacContents = 'SwiftFlewHiawathasArrow';
 				let postCopyContents = '';

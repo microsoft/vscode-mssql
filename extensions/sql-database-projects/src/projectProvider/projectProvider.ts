@@ -145,7 +145,7 @@ export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvide
 		const publishAction: dataworkspace.IProjectAction = {
 			id: constants.publishAction,
 			icon: IconPathHelper.publish,
-			run: (treeItem: dataworkspace.WorkspaceTreeItem) => this.projectController.publishProject(treeItem)
+			run: (treeItem: dataworkspace.WorkspaceTreeItem) => this.projectController.publishProjectDialog(treeItem)
 		};
 
 		const changeTargetPlatformAction: dataworkspace.IProjectAction = {

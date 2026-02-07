@@ -13,6 +13,7 @@ import { TestContext, createContext } from './testContext';
 import { ProjectType } from 'mssql';
 import * as sqldbproj from 'sqldbproj';
 import * as constants from '../src/common/constants';
+import * as utils from '../src/common/utils';
 
 suite('BuildHelper: Build Helper tests', function (): void {
 	test('Should get correct build arguments for legacy-style projects', function (): void {
@@ -96,7 +97,7 @@ suite('BuildHelper: Build Helper tests', function (): void {
 		const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
 		// Verify that the build directory was created successfully
-		should(success).equal(true, 'Build directory creation should succeed');
+		expect(success, 'Build directory creation should succeed').to.equal(true);
 
 		const buildDirPath = buildHelper.extensionBuildDirPath;
 
@@ -128,7 +129,7 @@ suite('BuildHelper: Build Helper tests', function (): void {
 		for (const fileName of allRequiredFiles) {
 			const filePath = path.join(buildDirPath, fileName);
 			const exists = await utils.exists(filePath);
-			should(exists).equal(true, `Required file '${fileName}' should exist in build directory at ${filePath}`);
+			expect(exists, `Required file '${fileName}' should exist in build directory at ${filePath}`).to.equal(true);
 		}
 	});
 });
