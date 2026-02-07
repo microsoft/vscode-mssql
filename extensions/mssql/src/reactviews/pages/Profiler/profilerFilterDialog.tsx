@@ -337,7 +337,13 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
                     field: c.field,
                     operator: c.operator,
                     value: VALUE_NOT_REQUIRED_OPERATORS.includes(c.operator) ? undefined : c.value,
-                    typeHint: typeHint as "string" | "number" | "date" | "datetime" | "boolean" | undefined,
+                    typeHint: typeHint as
+                        | "string"
+                        | "number"
+                        | "date"
+                        | "datetime"
+                        | "boolean"
+                        | undefined,
                 };
             });
 
@@ -462,8 +468,7 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
                                 appearance="subtle"
                                 onClick={handleAddClause}
                                 aria-label={loc.addClause}
-                                className={classes.actionLink}
-                            >
+                                className={classes.actionLink}>
                                 <Add20Regular className={classes.actionLinkIcon} />
                                 {loc.addClause}
                             </Link>
@@ -473,8 +478,7 @@ export const ProfilerFilterDialog: React.FC<ProfilerFilterDialogProps> = ({
                                     appearance="subtle"
                                     onClick={handleClearAll}
                                     aria-label={loc.clearAll}
-                                    className={classes.actionLink}
-                                >
+                                    className={classes.actionLink}>
                                     {loc.clearAll}
                                 </Link>
                             )}

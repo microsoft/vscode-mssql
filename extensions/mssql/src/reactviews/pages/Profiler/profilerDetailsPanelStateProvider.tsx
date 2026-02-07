@@ -20,9 +20,9 @@ export interface ProfilerDetailsPanelRpcMethods {
     copyToClipboard: (text: string) => void;
 }
 
-export const ProfilerDetailsPanelContext = createContext<ProfilerDetailsPanelRpcMethods | undefined>(
-    undefined,
-);
+export const ProfilerDetailsPanelContext = createContext<
+    ProfilerDetailsPanelRpcMethods | undefined
+>(undefined);
 
 interface ProfilerDetailsPanelProviderProps {
     children: ReactNode;
