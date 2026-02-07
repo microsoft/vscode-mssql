@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
+import * as path from "path";
 import { expect } from "chai";
 import { ProfilerService } from "../../src/services/profilerService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
@@ -143,7 +144,7 @@ suite("ProfilerService Tests", () => {
 
             const result = await profilerService.startProfiling(
                 testOwnerUri,
-                "C:\\path\\to\\file.xel",
+                path.join("path", "to", "file.xel"),
                 ProfilingSessionType.LocalFile,
             );
 
