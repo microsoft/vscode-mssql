@@ -122,6 +122,93 @@ export const COMMANDS = {
         command: "powershell.exe",
         args: ["-Command", `& "${path}" -SwitchLinuxEngine`],
     }),
+    GET_CONTAINERS: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.ID}}"],
+    }),
+    GET_CONTAINERS_BY_NAME: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.Names}}"],
+    }),
+    GET_CONTAINER_NAME_FROM_ID: (containerId: string): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--filter", `id=${containerId}`, "--format", "{{.Names}}"],
+    }),
+    INSPECT: (id: string): DockerCommand => ({
+        command: "docker",
+        args: ["inspect", sanitizeContainerInput(id)],
+    }),
+    PULL_IMAGE: (versionTag: string): DockerCommand => ({
+        command: "docker",
+        args: ["pull", `mcr.microsoft.com/mssql/server:${versionTag}`],
+    }),
+    // Fixed command to start SQL Server container with proper sanitization
+    START_SQL_SERVER: (
+        name: string,
+        password: string,
+        port: number,
+        versionTag: string,
+        hostname: string,
+    ): DockerCommand => {
+        const args = [
+            "run",
+            "-e",
+            "ACCEPT_EULA=Y",
+            "-e",
+            `SA_PASSWORD=${password}`,
+            "-p",
+            `${port}:${defaultPortNumber}`,
+            "--name",
+            sanitizeContainerInput(name),
+        ];
+
+        if (hostname) {
+            args.push("--hostname", sanitizeContainerInput(hostname));
+        }
+
+        args.push(
+            "-d",
+            `mcr.microsoft.com/mssql/server:${versionTag}`
+        );
+
+        return { command: "docker", args };
+    },
+    CHECK_CONTAINER_RUNNING: (name: string): DockerCommand => ({
+        command: "docker",
+        args: [
+            "ps",
+            "--filter",
+            `name=${sanitizeContainerInput(name)}`,
+            "--filter",
+            "status=running",
+            "--format",
+            "{{.Names}}",
+        ],
+    }),
+    VALIDATE_CONTAINER_NAME: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.Names}}"],
+    }),
+    START_CONTAINER: (name: string): DockerCommand => ({
+        command: "docker",
+        args: ["start", sanitizeContainerInput(name)],
+    }),
+    CHECK_LOGS: (
+        name: string,
+        timestamp: string,
+    ): {
+        dockerCmd: DockerCommand;
+        grepCmd: DockerCommand;
+    } => ({
+        dockerCmd: {
+            command: "docker",
+            args: ["logs", "--since", timestamp, sanitizeContainerInput(name)],
+        },
+        grepCmd: {
+            command: platform() === "win32" ? "findstr" : "grep",
+            args: ["Recovery is complete"],
+        },
+    }),
     CHECK_CONTAINER_READY: `Recovery is complete`,
     GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
         command: "curl",
@@ -545,8 +632,8 @@ export async function checkEngine(): Promise<DockerCommandParams> {
                 platform() === Platform.Linux
                     ? LocalContainers.linuxDockerPermissionsError
                     : platform() === Platform.Mac
-                      ? LocalContainers.rosettaError
-                      : LocalContainers.windowsContainersError,
+                        ? LocalContainers.rosettaError
+                        : LocalContainers.windowsContainersError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -606,7 +693,7 @@ export async function getDockerPath(executable: string): Promise<string> {
             const basePath = parts.slice(0, dockerIndex + 1).join(path.sep);
             return path.join(basePath, executable);
         }
-    } catch {}
+    } catch { }
     return "";
 }
 
@@ -727,7 +814,7 @@ export async function startDocker(
             dockerStartedThroughExtension: "false",
         });
         return { success: true };
-    } catch {} // If this command fails, docker is not running, so we proceed to start it.
+    } catch { } // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node);
