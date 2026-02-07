@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from "fs";
+import * as os from "os";
+import { Writable } from "stream";
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
@@ -673,17 +675,8 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
-            onExportToCsv: async (
-                csvContent: string,
-                suggestedFileName: string,
-                trigger: "manual" | "closePrompt",
-            ) => {
-                await this.handleExportToCsv(
-                    webviewController,
-                    csvContent,
-                    suggestedFileName,
-                    trigger,
-                );
+            onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
+                return await this.handleExportToCsv(webviewController, suggestedFileName);
             },
         });
 
@@ -766,19 +759,18 @@ export class ProfilerController {
     }
 
     /**
-     * Handles exporting profiler events to a CSV file
+     * Handles exporting profiler events to a CSV file.
+     * Shows save dialog and returns a write stream for CSV content.
+     * @returns A writable stream to write CSV content to, or undefined if user cancelled
      */
     private async handleExportToCsv(
         webviewController: ProfilerWebviewController,
-        csvContent: string,
         suggestedFileName: string,
-        trigger: "manual" | "closePrompt",
-    ): Promise<void> {
+    ): Promise<Writable | undefined> {
         try {
             // Get a default folder - use user's home directory or workspace folder
             const defaultFolder =
-                vscode.workspace.workspaceFolders?.[0]?.uri ??
-                vscode.Uri.file(require("os").homedir());
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(os.homedir());
 
             // Show save dialog
             const saveUri = await vscode.window.showSaveDialog({
@@ -792,38 +784,48 @@ export class ProfilerController {
             if (!saveUri) {
                 // User cancelled
                 this._logger.verbose("Export to CSV cancelled by user");
-                return;
+                return undefined;
             }
 
-            // Write the CSV content to the file
-            await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(csvContent));
+            // Create a write stream to the file
+            const filePath = saveUri.fsPath;
+            const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
 
-            // Count the number of rows exported (count newlines minus header)
-            const rowCount = csvContent.split("\n").length - 1;
+            // Handle stream completion
+            writeStream.on("finish", () => {
+                // Mark export as successful in state
+                webviewController.setExportComplete();
 
-            // Send telemetry for successful export
-            ProfilerTelemetry.sendExportCsv(rowCount, trigger);
+                // Show success message with Open File button
+                void vscode.window
+                    .showInformationMessage(
+                        LocProfiler.exportSuccess(filePath),
+                        LocProfiler.openFile,
+                    )
+                    .then(async (openFile) => {
+                        if (openFile === LocProfiler.openFile) {
+                            // Open the exported file in VS Code
+                            const doc = await vscode.workspace.openTextDocument(saveUri);
+                            await vscode.window.showTextDocument(doc);
+                        }
+                    });
 
-            // Mark export as successful in state
-            webviewController.setExportComplete();
+                this._logger.verbose(`Profiler events exported to ${filePath}`);
+            });
 
-            // Show success message with Open File button
-            const openFile = await vscode.window.showInformationMessage(
-                LocProfiler.exportSuccess(saveUri.fsPath),
-                LocProfiler.openFile,
-            );
+            // Handle stream errors
+            writeStream.on("error", (error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            });
 
-            if (openFile === LocProfiler.openFile) {
-                // Open the exported file in VS Code
-                const doc = await vscode.workspace.openTextDocument(saveUri);
-                await vscode.window.showTextDocument(doc);
-            }
-
-            this._logger.verbose(`Profiler events exported to ${saveUri.fsPath}`);
+            return writeStream;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
             this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            return undefined;
         }
     }
 
@@ -1006,17 +1008,8 @@ export class ProfilerController {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
             // Export is still available for XEL file sessions
-            onExportToCsv: async (
-                csvContent: string,
-                suggestedFileName: string,
-                trigger: "manual" | "closePrompt",
-            ) => {
-                await this.handleExportToCsv(
-                    webviewController,
-                    csvContent,
-                    suggestedFileName,
-                    trigger,
-                );
+            onExportToCsv: async (suggestedFileName: string) => {
+                return await this.handleExportToCsv(webviewController, suggestedFileName);
             },
         });
     }

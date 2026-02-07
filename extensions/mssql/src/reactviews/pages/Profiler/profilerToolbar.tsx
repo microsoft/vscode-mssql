@@ -19,8 +19,6 @@ import {
     Next24Regular,
     EraserRegular,
     Add24Regular,
-    FilterDismiss24Regular,
-    Filter24Regular,
     ArrowExportRegular,
 } from "@fluentui/react-icons";
 import {
@@ -90,7 +88,6 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     isCreatingSession,
     isReadOnly,
     xelFileName,
-    isFilterActive,
     totalEventCount,
     onNewSession,
     onSelectSession,
@@ -100,8 +97,6 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
-    onFilter,
-    onClearFilter,
     onExportToCsv,
 }) => {
     const isRunning = sessionState === SessionState.Running;
@@ -267,33 +262,6 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         onClick={onClear}
                         disabled={isReadOnly}>
                         {loc.clear}
-                    </ToolbarButton>
-                </Tooltip>
-
-                <ToolbarDivider />
-
-                {/* Filter button - opens filter dialog */}
-                <Tooltip content={loc.filterTooltip} relationship="label">
-                    <ToolbarButton
-                        aria-label={loc.filter}
-                        icon={<Filter24Regular />}
-                        onClick={onFilter}>
-                        {loc.filter}
-                    </ToolbarButton>
-                </Tooltip>
-
-                {/* Clear Filter button */}
-                <Tooltip
-                    content={
-                        isFilterActive ? loc.clearFilterTooltip : loc.clearFilterDisabledTooltip
-                    }
-                    relationship="label">
-                    <ToolbarButton
-                        aria-label={loc.clearFilter}
-                        icon={<FilterDismiss24Regular />}
-                        onClick={onClearFilter}
-                        disabled={!isFilterActive}>
-                        {loc.clearFilter}
                     </ToolbarButton>
                 </Tooltip>
 

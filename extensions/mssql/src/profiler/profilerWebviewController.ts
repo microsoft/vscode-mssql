@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { Writable } from "stream";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
     ProfilerWebviewState,
@@ -15,7 +16,6 @@ import {
     NewEventsAvailableParams,
     RowsRemovedParams,
     FilterClause,
-    FilterStateChangedParams,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
@@ -31,6 +31,7 @@ import {
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 import { ProfilerTelemetry } from "./profilerTelemetry";
+import { generateCsvContent, generateExportTimestamp } from "../sharedInterfaces/csvUtils";
 
 /**
  * Events emitted by the profiler webview controller
@@ -46,12 +47,8 @@ export interface ProfilerWebviewEvents {
     onStartSession?: (sessionId: string) => void;
     /** Emitted when view is changed from the UI */
     onViewChange?: (viewId: string) => void;
-    /** Emitted when export to CSV is requested from the UI */
-    onExportToCsv?: (
-        csvContent: string,
-        suggestedFileName: string,
-        trigger: "manual" | "closePrompt",
-    ) => void;
+    /** Emitted when export to CSV is requested from the UI. Returns a stream to write CSV content to. */
+    onExportToCsv?: (suggestedFileName: string) => Promise<Writable | undefined>;
 }
 
 /**
@@ -240,8 +237,13 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // Just close without export
             return undefined; // Allow close
         } else {
-            // Cancel button clicked (result is undefined) - restore the panel
-            return super.showRestorePrompt();
+            // Cancel button clicked (result is undefined) - keep panel open without further prompts
+            return {
+                title: "",
+                run: async () => {
+                    // No-op: do nothing and keep the panel open
+                },
+            };
         }
     }
 
@@ -267,84 +269,85 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             return;
         }
 
-        // Generate CSV content
-        const csvContent = this.generateCsvFromEvents(allEvents, viewConfig);
-
         // Generate suggested file name
         const sessionName = this._currentSession.sessionName || "profiler_events";
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const timestamp = generateExportTimestamp();
         const suggestedFileName = `${sessionName}_${timestamp}`;
 
-        // Perform export using event handler (triggered by close prompt)
+        // Request a stream from the event handler and write CSV content to it
         if (this._eventHandlers.onExportToCsv) {
-            await new Promise<void>((resolve) => {
-                // Create a temporary handler to know when export is complete
-                const originalHandler = this._eventHandlers.onExportToCsv;
-                this._eventHandlers.onExportToCsv = async (content, fileName, trigger) => {
-                    if (originalHandler) {
-                        await originalHandler(content, fileName, trigger);
-                    }
-                    resolve();
-                };
-                this._eventHandlers.onExportToCsv(csvContent, suggestedFileName, "closePrompt");
-            });
+            const stream = await this._eventHandlers.onExportToCsv(suggestedFileName);
+            if (stream) {
+                await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                stream.end(); // Close the stream to trigger 'finish' event
+            }
         }
     }
 
     /**
      * Generates CSV content from events using the current view configuration.
+     * Uses shared csvUtils for consistent CSV formatting across the extension.
+     * Writes directly to the provided stream for memory efficiency.
      */
-    private generateCsvFromEvents(events: EventRow[], viewConfig: ProfilerViewConfig): string {
-        // Get column headers from view config
-        const columns = viewConfig.columns;
-        const headers = columns.map((col) => `"${col.header.replace(/"/g, '""')}"`);
+    private async generateCsvFromEvents(
+        stream: Writable,
+        events: EventRow[],
+        viewConfig: ProfilerViewConfig,
+    ): Promise<void> {
+        const columns = viewConfig.columns.map((col) => ({
+            field: col.field,
+            header: col.header,
+        }));
 
-        // Generate CSV rows
-        const rows = events.map((event) => {
-            return columns
-                .map((col) => {
-                    const value = this.getEventFieldValue(event, col.field);
-                    // Escape quotes and wrap in quotes
-                    const stringValue = String(value).replace(/"/g, '""');
-                    return `"${stringValue}"`;
-                })
-                .join(",");
-        });
-
-        // Combine headers and rows
-        return [headers.join(","), ...rows].join("\n");
+        await generateCsvContent(stream, columns, events, (event, field) =>
+            this.getEventFieldValue(event, field),
+        );
     }
 
     /**
      * Gets the value of a field from an EventRow.
      * Handles both direct properties and additionalData.
+     * Supports both PascalCase (from view config) and camelCase field names.
+     * Returns undefined for missing values so CSV formatter can handle them properly.
      */
-    private getEventFieldValue(event: EventRow, field: string): string | number | undefined {
-        // Map common field names to EventRow properties
+    private getEventFieldValue(event: EventRow, field: string): string | number | Date | undefined {
+        // Map field names to EventRow properties
+        // Support both PascalCase (from view config like "EventClass") and
+        // camelCase (like "eventClass") for flexibility
         switch (field) {
             case "eventNumber":
                 return event.eventNumber;
             case "timestamp":
-                return event.timestamp?.toISOString() ?? "";
+            case "StartTime":
+                // Return Date object for timestamp - formatCsvCell will handle conversion
+                return event.timestamp;
             case "eventClass":
-                return event.eventClass ?? "";
+            case "EventClass":
+                return event.eventClass;
             case "textData":
-                return event.textData ?? "";
+            case "TextData":
+                return event.textData;
             case "databaseName":
-                return event.databaseName ?? "";
+            case "DatabaseName":
+                return event.databaseName;
             case "spid":
+            case "SPID":
                 return event.spid;
             case "duration":
+            case "Duration":
                 return event.duration;
             case "cpu":
+            case "CPU":
                 return event.cpu;
             case "reads":
+            case "Reads":
                 return event.reads;
             case "writes":
+            case "Writes":
                 return event.writes;
             default:
-                // Check additionalData for other fields
-                return event.additionalData?.[field] ?? "";
+                // Check additionalData for other fields (e.g., ApplicationName, LoginName, etc.)
+                return event.additionalData?.[field];
         }
     }
 
@@ -480,192 +483,35 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             },
         );
 
-        // Handle row selection from webview - update state with selected event details
-        this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            const selectedEvent = this.handleRowSelection(payload.rowId);
-            return {
-                ...state,
-                selectedEvent,
-            };
-        });
-
-        // Handle Open in Editor request from embedded details panel
-        this.registerReducer(
-            "openInEditor",
-            async (state, payload: { textData: string; eventName?: string }) => {
-                await this.openTextInEditor(payload.textData);
-                return state;
-            },
-        );
-
-        // Handle Copy to Clipboard request from embedded details panel
-        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
-            await vscode.env.clipboard.writeText(payload.text);
-            void vscode.window.showInformationMessage("Copied to clipboard");
-            return state;
-        });
-
-        // Handle close details panel request
-        this.registerReducer("closeDetailsPanel", (state) => {
-            return {
-                ...state,
-                selectedEvent: undefined,
-            };
-        });
-
-        // Handle apply filter request
-        this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.setFilter(payload.clauses);
-
-                // Calculate filtered count using grid row-based filtering
-                const filteredCount = this.calculateFilteredCount(payload.clauses);
-                const totalCount = this._filteredBuffer.totalCount;
-
-                // Notify webview of filter change
-                void this.sendFilterStateChanged();
-
-                // Notify webview to clear and refetch filtered data
-                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
-
-                // After clear, notify of available filtered data
-                setTimeout(() => {
-                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
-                        newCount: filteredCount,
-                        totalCount: filteredCount,
-                    } as NewEventsAvailableParams);
-                }, 0);
-
-                // Update status bar immediately to show filtered count
-                this.state = {
-                    ...state,
-                    filterState: {
-                        enabled: payload.clauses.length > 0,
-                        clauses: payload.clauses,
-                    },
-                    totalRowCount: totalCount,
-                    filteredRowCount: filteredCount,
-                };
-                this.updateStatusBar();
-
-                return this.state;
-            }
-            return state;
-        });
-
-        // Handle clear filter request from webview
-        this.registerReducer("clearFilter", (state) => {
-            if (this._filteredBuffer) {
-                this._filteredBuffer.clearFilter();
-                const totalCount = this._filteredBuffer.totalCount;
-
-                // Notify webview of filter change
-                void this.sendFilterStateChanged();
-
-                // Notify webview to clear and refetch unfiltered data
-                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
-
-                // After clear, notify of all available data
-                setTimeout(() => {
-                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
-                        newCount: totalCount,
-                        totalCount: totalCount,
-                    } as NewEventsAvailableParams);
-                }, 0);
-
-                // Update status bar immediately to show total count
-                this.state = {
-                    ...state,
-                    filterState: { enabled: false, clauses: [] },
-                    totalRowCount: totalCount,
-                    filteredRowCount: totalCount,
-                };
-                this.updateStatusBar();
-
-                return this.state;
-            }
-            return state;
-        });
-
-        // Handle export to CSV request
+        // Handle export to CSV request from webview
+        // Generate CSV from the RingBuffer (source of truth) rather than from grid data
+        // This ensures ALL events in the session buffer are exported
         this.registerReducer(
             "exportToCsv",
             (state, payload: { csvContent: string; suggestedFileName: string }) => {
-                if (this._eventHandlers.onExportToCsv) {
-                    this._eventHandlers.onExportToCsv(
-                        payload.csvContent,
-                        payload.suggestedFileName,
-                        "manual",
-                    );
+                // Generate CSV from buffer if we have a session
+                if (
+                    this._currentSession &&
+                    this._currentSession.events.size > 0 &&
+                    this.state.viewConfig
+                ) {
+                    const allEvents = this._currentSession.events.getAllRows();
+                    const viewConfig = this.state.viewConfig;
+                    if (this._eventHandlers.onExportToCsv) {
+                        // Request stream and write CSV (async, but reducer returns synchronously)
+                        void this._eventHandlers
+                            .onExportToCsv(payload.suggestedFileName)
+                            .then(async (stream) => {
+                                if (stream) {
+                                    await this.generateCsvFromEvents(stream, allEvents, viewConfig);
+                                    stream.end(); // Close the stream to trigger 'finish' event
+                                }
+                            });
+                    }
                 }
                 return state;
             },
         );
-    }
-
-    /**
-     * Handle row selection - get event details and return them for state update
-     */
-    private handleRowSelection(
-        rowId: string,
-    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
-        if (!this._currentSession) {
-            return undefined;
-        }
-
-        // Find the event in the ring buffer by its ID
-        const event = this._currentSession.events.findById(rowId);
-        if (!event) {
-            return undefined;
-        }
-
-        // Build the selected event details using the centralized ProfilerConfigService
-        const viewConfig = this._currentSession.viewConfig;
-        const selectedEventDetails = getProfilerConfigService().buildEventDetails(
-            event,
-            viewConfig,
-        );
-
-        return selectedEventDetails;
-    }
-
-    /**
-     * Open text content in a new VS Code editor
-     */
-    private async openTextInEditor(textData: string): Promise<void> {
-        try {
-            const document = await vscode.workspace.openTextDocument({
-                content: textData,
-                language: "sql",
-            });
-
-            await vscode.window.showTextDocument(document, {
-                viewColumn: vscode.ViewColumn.One,
-                preview: true,
-            });
-        } catch (error) {
-            void vscode.window.showErrorMessage(
-                `Failed to open in editor: ${error instanceof Error ? error.message : String(error)}`,
-            );
-        }
-    }
-
-    /**
-     * Send filter state changed notification to the webview
-     */
-    private async sendFilterStateChanged(): Promise<void> {
-        if (!this._filteredBuffer) {
-            return;
-        }
-
-        const params: FilterStateChangedParams = {
-            isFilterActive: this._filteredBuffer.isFilterActive,
-            clauseCount: this._filteredBuffer.clauses.length,
-            totalCount: this._filteredBuffer.totalCount,
-            filteredCount: this._filteredBuffer.filteredCount,
-        };
-
-        await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
     }
 
     /**
@@ -1356,7 +1202,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             hasUnexportedEvents: false,
             lastExportTimestamp: Date.now(),
         };
-        // Disable close prompt since data has been exported
+        // After a successful export there are no unexported events,
+        // so do not show the close prompt until new events arrive.
         this.showRestorePromptAfterClose = false;
     }
 

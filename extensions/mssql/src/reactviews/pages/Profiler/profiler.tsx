@@ -627,9 +627,9 @@ export const Profiler: React.FC = () => {
                 onStop={handleStop}
                 onClear={handleClear}
                 onViewChange={handleViewChange}
-                onAutoScrollToggle={handleAutoScrollToggle}
                 onFilter={handleFilter}
                 onClearFilter={handleClearFilter}
+                onAutoScrollToggle={handleAutoScrollToggle}
                 onExportToCsv={handleExportToCsv}
             />
             <ProfilerFilterDialog
