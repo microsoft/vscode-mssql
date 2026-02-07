@@ -38,18 +38,19 @@ const useStyles = makeStyles({
 });
 
 const MainLayout = () => {
-    const state = useSchemaDesignerSelector((s) => s);
-    const isDabEnabled = state?.enableDAB ?? false;
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const stateActiveView = useSchemaDesignerSelector((s) => s?.activeView);
+    const isDabEnabled = enableDAB ?? false;
     const [activeView, setActiveView] = useState<SchemaDesigner.SchemaDesignerActiveView>(() =>
-        getActiveViewFromState(state?.activeView),
+        getActiveViewFromState(stateActiveView),
     );
     const classes = useStyles();
     const schemaDesignerLabel = locConstants.schemaDesigner.schemaDesignerNavLabel;
     const dabLabel = locConstants.schemaDesigner.dabNavLabel;
 
     useEffect(() => {
-        setActiveView(getActiveViewFromState(state?.activeView));
-    }, [state?.activeView]);
+        setActiveView(getActiveViewFromState(stateActiveView));
+    }, [stateActiveView]);
 
     if (isDabEnabled) {
         return (

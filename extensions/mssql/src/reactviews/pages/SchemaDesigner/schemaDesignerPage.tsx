@@ -30,10 +30,10 @@ const useStyles = makeStyles({
 });
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
-    const state = useSchemaDesignerSelector((s) => s);
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
 
-    const isDabEnabled = state?.enableDAB ?? false;
+    const isDabEnabled = enableDAB ?? false;
 
     if (!context) {
         return undefined;

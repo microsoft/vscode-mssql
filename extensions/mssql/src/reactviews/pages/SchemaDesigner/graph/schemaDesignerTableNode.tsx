@@ -667,10 +667,10 @@ const TableColumns = ({
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const state = useSchemaDesignerSelector((s) => s);
+    const enableExpandCollapseButtons = useSchemaDesignerSelector((s) => s?.enableExpandCollapseButtons);
 
     // Get setting from webview state, default to true if not set
-    const expandCollapseEnabled = state?.enableExpandCollapseButtons ?? true;
+    const expandCollapseEnabled = enableExpandCollapseButtons ?? true;
 
     const deletedColumns = context.showChangesHighlight
         ? (context.deletedColumnsByTable.get(table.id) ?? [])

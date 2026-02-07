@@ -30,9 +30,9 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
-    const state = useSchemaDesignerSelector((s) => s);
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
-    const isDabEnabled = state?.enableDAB ?? false;
+    const isDabEnabled = enableDAB ?? false;
 
     if (!isDabEnabled) {
         return <></>;
