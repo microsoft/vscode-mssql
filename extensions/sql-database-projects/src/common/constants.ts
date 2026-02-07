@@ -729,7 +729,6 @@ export const unhandledMoveNode = l10n.t("Unhandled node type for move");
 
 //#region tasks.json
 export const updatingExistingTasksJson = l10n.t("A SQL Projects build task has been added to the existing tasks.json file.");
-export const sqlProjectBuildTaskLabel = 'sqlproj: Build';
 export const netCoreBuildArg = '/p:NetCoreBuild=true';
 export const systemDacpacsLocationArgPrefix = '/p:SystemDacpacsLocation=';
 export const netCoreTargetsPathArgPrefix = '/p:NETCoreTargetsPath=';
