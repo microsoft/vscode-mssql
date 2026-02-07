@@ -16,7 +16,12 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     datatypes: string[];
     waitForNextFrame: () => Promise<void>;
     extractSchema: () => SchemaDesigner.Schema;
-    onMaybeAutoArrange: (preTableCount: number, postTableCount: number) => Promise<void> | void;
+    onMaybeAutoArrange: (
+        preTableCount: number,
+        postTableCount: number,
+        preForeignKeyCount: number,
+        postForeignKeyCount: number,
+    ) => Promise<void> | void;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
@@ -310,11 +315,15 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             }
 
             const src = resolveColumnNameByName(sourceTable, col);
-            if (!src.success) {
-                return src;
+            if (src.success === false) {
+                return {
+                    success: false,
+                    reason: src.reason,
+                    message: src.message,
+                };
             }
             const tgt = resolveColumnNameByName(referencedTable, refCol);
-            if (!tgt.success) {
+            if (tgt.success === false) {
                 return {
                     success: false,
                     reason: tgt.reason,
@@ -352,6 +361,10 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         let needsScriptRefresh = false;
         let workingSchema = extractSchema();
         const preTableCount = workingSchema.tables.length;
+        const preForeignKeyCount = workingSchema.tables.reduce(
+            (sum, table) => sum + (table.foreignKeys?.length ?? 0),
+            0,
+        );
 
         try {
             for (let i = 0; i < params.edits.length; i++) {
@@ -423,7 +436,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "drop_table": {
                         const resolved = resolveTable(schema, edit.table);
-                        if (!resolved.success) {
+                        if (resolved.success === false) {
                             return fail(resolved.reason, resolved.message);
                         }
 
@@ -460,7 +473,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "set_table": {
                         const resolved = resolveTable(schema, edit.table);
-                        if (!resolved.success) {
+                        if (resolved.success === false) {
                             return fail(resolved.reason, resolved.message);
                         }
                         const previousSchemaName = resolved.table.schema;
@@ -517,7 +530,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "add_column": {
                         const resolved = resolveTable(schema, edit.table);
-                        if (!resolved.success) {
+                        if (resolved.success === false) {
                             return fail(resolved.reason, resolved.message);
                         }
 
@@ -575,7 +588,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "drop_column": {
                         const resolvedTable = resolveTable(schema, edit.table);
-                        if (!resolvedTable.success) {
+                        if (resolvedTable.success === false) {
                             return fail(resolvedTable.reason, resolvedTable.message);
                         }
 
@@ -584,7 +597,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         }
 
                         const resolvedColumn = resolveColumn(resolvedTable.table, edit.column);
-                        if (!resolvedColumn.success) {
+                        if (resolvedColumn.success === false) {
                             return fail(resolvedColumn.reason, resolvedColumn.message);
                         }
 
@@ -629,7 +642,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "set_column": {
                         const resolvedTable = resolveTable(schema, edit.table);
-                        if (!resolvedTable.success) {
+                        if (resolvedTable.success === false) {
                             return fail(resolvedTable.reason, resolvedTable.message);
                         }
 
@@ -638,7 +651,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         }
 
                         const resolvedColumn = resolveColumn(resolvedTable.table, edit.column);
-                        if (!resolvedColumn.success) {
+                        if (resolvedColumn.success === false) {
                             return fail(resolvedColumn.reason, resolvedColumn.message);
                         }
 
@@ -697,7 +710,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "add_foreign_key": {
                         const resolvedTable = resolveTable(schema, edit.table);
-                        if (!resolvedTable.success) {
+                        if (resolvedTable.success === false) {
                             return fail(resolvedTable.reason, resolvedTable.message);
                         }
 
@@ -717,7 +730,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         }
 
                         const referenced = resolveTable(schema, edit.foreignKey.referencedTable);
-                        if (!referenced.success) {
+                        if (referenced.success === false) {
                             return fail(referenced.reason, referenced.message);
                         }
 
@@ -726,7 +739,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             referenced.table,
                             edit.foreignKey.mappings,
                         );
-                        if (!mappingsResult.success) {
+                        if (mappingsResult.success === false) {
                             return fail(mappingsResult.reason, mappingsResult.message);
                         }
 
@@ -783,7 +796,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "drop_foreign_key": {
                         const resolvedTable = resolveTable(schema, edit.table);
-                        if (!resolvedTable.success) {
+                        if (resolvedTable.success === false) {
                             return fail(resolvedTable.reason, resolvedTable.message);
                         }
 
@@ -795,7 +808,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             resolvedTable.table,
                             edit.foreignKey,
                         );
-                        if (!resolvedForeignKey.success) {
+                        if (resolvedForeignKey.success === false) {
                             return fail(resolvedForeignKey.reason, resolvedForeignKey.message);
                         }
 
@@ -840,7 +853,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     case "set_foreign_key": {
                         const resolvedTable = resolveTable(schema, edit.table);
-                        if (!resolvedTable.success) {
+                        if (resolvedTable.success === false) {
                             return fail(resolvedTable.reason, resolvedTable.message);
                         }
 
@@ -852,7 +865,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             resolvedTable.table,
                             edit.foreignKey,
                         );
-                        if (!resolvedForeignKey.success) {
+                        if (resolvedForeignKey.success === false) {
                             return fail(resolvedForeignKey.reason, resolvedForeignKey.message);
                         }
 
@@ -861,7 +874,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         let referencedTableName = resolvedForeignKey.foreignKey.referencedTableName;
                         if (edit.set?.referencedTable) {
                             const referenced = resolveTable(schema, edit.set.referencedTable);
-                            if (!referenced.success) {
+                            if (referenced.success === false) {
                                 return fail(referenced.reason, referenced.message);
                             }
                             referencedSchemaName = referenced.table.schema;
@@ -874,7 +887,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                             schema: referencedSchemaName,
                             name: referencedTableName,
                         });
-                        if (!referencedTableForMappings.success) {
+                        if (referencedTableForMappings.success === false) {
                             return fail(
                                 referencedTableForMappings.reason,
                                 referencedTableForMappings.message,
@@ -887,7 +900,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 referencedTableForMappings.table,
                                 edit.set.mappings,
                             );
-                            if (!mappingsResult.success) {
+                            if (mappingsResult.success === false) {
                                 return fail(mappingsResult.reason, mappingsResult.message);
                             }
 
@@ -974,8 +987,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             }
 
             const postTableCount = workingSchema.tables.length;
+            const postForeignKeyCount = workingSchema.tables.reduce(
+                (sum, table) => sum + (table.foreignKeys?.length ?? 0),
+                0,
+            );
             try {
-                await onMaybeAutoArrange(preTableCount, postTableCount);
+                await onMaybeAutoArrange(
+                    preTableCount,
+                    postTableCount,
+                    preForeignKeyCount,
+                    postForeignKeyCount,
+                );
             } catch (error) {
                 console.warn("Schema Designer tool auto-arrange failed", error);
             }

@@ -34,7 +34,7 @@ export type SchemaDesignerToolParams =
     | {
           operation: "apply_edits";
           payload: {
-              expectedVersion?: string;
+              expectedVersion: string;
               targetHint?: TargetHint;
               edits: SchemaDesigner.SchemaDesignerEdit[];
           };

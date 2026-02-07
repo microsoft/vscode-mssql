@@ -111,8 +111,8 @@ export class ProfilerController {
             // Store the engine type for this profiler URI
             this._profilerEngineTypes.set(profilerUri, this._currentEngineType);
 
-            // Use the common setup method
-            await this.setupProfilerUI(profilerUri);
+            // Use the common setup method - pass engine type to avoid race condition
+            await this.setupProfilerUI(profilerUri, this._currentEngineType);
         } catch (e) {
             this._logger.error(`Error launching profiler: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToLaunchProfiler(String(e)));
@@ -478,19 +478,22 @@ export class ProfilerController {
      * Prompts user to select a template and session name, creates the session,
      * and auto-starts profiling.
      * @param profilerUri - The URI of the established profiler connection
+     * @param engineType - The engine type for filtering templates
      */
-    private async setupProfilerUI(profilerUri: string): Promise<void> {
+    private async setupProfilerUI(profilerUri: string, engineType: EngineType): Promise<void> {
         this._profilerUri = profilerUri;
 
         // Step 1: Show template selection quick pick (filtered by engine type)
         const configService = getProfilerConfigService();
-        const templates = configService.getTemplatesForEngine(this._currentEngineType);
+        const templates = configService.getTemplatesForEngine(engineType);
         this._logger.verbose(
-            `Filtered templates for engine ${this._currentEngineType}: ${templates.length} available`,
+            `Filtered templates for engine ${engineType}: ${templates.length} available`,
         );
 
         if (templates.length === 0) {
             vscode.window.showWarningMessage(LocProfiler.noTemplatesAvailable);
+            // Disconnect since no templates are available and we can't proceed
+            await this._connectionManager.disconnect(profilerUri);
             return;
         }
 
@@ -687,18 +690,83 @@ export class ProfilerController {
         // Check if the entered session name already exists on the server
         const sessionExists = xeventSessions.includes(sessionName);
 
-        if (sessionExists) {
-            // Auto-start the existing session
-            this._logger.verbose(
-                `Session '${sessionName}' already exists on server, auto-starting...`,
-            );
-            await this.startSession(sessionName, webviewController);
-        } else {
-            // Session doesn't exist - user will need to create it or select an existing one
-            this._logger.verbose(
-                "Profiler UI created. Select a session and click Start to begin profiling.",
-            );
-            vscode.window.showInformationMessage(LocProfiler.profilerReady);
+            if (sessionExists) {
+                // Session already exists - just start it
+                this._logger.verbose(
+                    `Session '${sessionName}' already exists, starting without creating`,
+                );
+                webviewController.setSelectedSession(sessionName);
+                await this.startSession(sessionName, webviewController);
+
+                vscode.window.showInformationMessage(
+                    LocProfiler.sessionStartedSuccessfully(sessionName),
+                );
+            } else {
+                // Session doesn't exist - create it first
+                webviewController.setCreatingSession(true);
+
+                // Create the session template
+                const template: ProfilerSessionTemplate = {
+                    name: selectedTemplate.template.name,
+                    defaultView: selectedTemplate.template.defaultView,
+                    createStatement: selectedTemplate.template.createStatement,
+                };
+
+                this._logger.verbose(
+                    `Creating XEvent session: ${sessionName} with template: ${template.name}`,
+                );
+
+                // Register handler for session created notification
+                const sessionCreatedPromise = new Promise<void>((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        disposable.dispose();
+                        reject(new Error(LocProfiler.sessionCreationTimedOut));
+                    }, 30000); // 30 second timeout
+
+                    const disposable = this._sessionManager.onSessionCreated(
+                        profilerUri,
+                        (params) => {
+                            clearTimeout(timeout);
+                            disposable.dispose();
+                            this._logger.verbose(
+                                `Session created notification received: ${params.sessionName}`,
+                            );
+                            resolve();
+                        },
+                    );
+                });
+
+                // Send create session request
+                await this._sessionManager.createXEventSession(profilerUri, sessionName, template);
+
+                // Wait for session created notification
+                await sessionCreatedPromise;
+
+                // Refresh available sessions to include the new one
+                const updatedXeventSessions =
+                    await this._sessionManager.getXEventSessions(profilerUri);
+                const updatedAvailableSessions = updatedXeventSessions.map((name) => ({
+                    id: name,
+                    name: name,
+                }));
+
+                webviewController.updateAvailableSessions(updatedAvailableSessions);
+                webviewController.setSelectedSession(sessionName);
+                webviewController.setCreatingSession(false);
+
+                this._logger.verbose(`Session '${sessionName}' created successfully`);
+
+                // Auto-start the session
+                await this.startSession(sessionName, webviewController);
+
+                vscode.window.showInformationMessage(
+                    LocProfiler.sessionStartedSuccessfully(sessionName),
+                );
+            }
+        } catch (e) {
+            this._logger.error(`Error creating/starting session: ${e}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
+            webviewController.dispose();
         }
     }
 

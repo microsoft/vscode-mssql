@@ -979,4 +979,150 @@ suite("ProfilerController Server Type Tests", () => {
         // No webview panel should be created since user cancelled
         expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
     });
+
+    test("should show error when temp connection fails during database selection for Azure SQL", async () => {
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver.database.windows.net",
+                authenticationType: "AzureMFA",
+                database: "", // No database selected - will trigger database selection
+            },
+        };
+
+        // First connect call (for temp connection to get database list) fails
+        (mockConnectionManager.connect as sinon.SinonStub).resolves(false);
+
+        const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // Should show error message about failed connection
+        expect(showErrorMessageStub).to.have.been.called;
+        // Should NOT create webview since we couldn't get databases
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
+    });
+
+    test("should show warning when no user databases found for Azure SQL", async () => {
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "testserver.database.windows.net",
+                authenticationType: "AzureMFA",
+                database: "", // No database selected
+            },
+        };
+
+        // Return only system databases
+        (mockConnectionManager.listDatabases as sinon.SinonStub).resolves([
+            "master",
+            "tempdb",
+            "model",
+            "msdb",
+        ]);
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // Should show warning about no databases found
+        expect(showWarningMessageStub).to.have.been.called;
+        // Should NOT create webview since no user databases
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.false;
+    });
+
+    test("should start existing session without creating when session already exists", async () => {
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "localhost",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        // Template selection and session name
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("ExistingSession");
+
+        // Session already exists on server
+        (mockProfilerService.getXEventSessions as sinon.SinonStub).resolves({
+            sessions: ["ExistingSession", "OtherSession"],
+        });
+
+        const createXEventSessionStub = mockProfilerService.createXEventSession as sinon.SinonStub;
+        const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // Should NOT call createXEventSession since session exists
+        expect(createXEventSessionStub).to.not.have.been.called;
+        // Should call startProfiling to start the existing session
+        expect(startProfilingStub).to.have.been.called;
+    });
+
+    test("should show error and dispose webview when session creation fails", async () => {
+        const mockTreeNodeInfo = {
+            connectionProfile: {
+                server: "localhost",
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+            },
+        };
+
+        const mockTemplateItem = {
+            label: "Standard",
+            description: "Standard profiler template",
+            detail: "Engine: Standalone",
+            template: {
+                id: "Standard_OnPrem",
+                name: "Standard",
+                defaultView: "Standard View",
+                createStatement: "CREATE EVENT SESSION",
+            },
+        };
+
+        showQuickPickStub.resolves(mockTemplateItem);
+        (vscode.window.showInputBox as sinon.SinonStub).resolves("NewSession");
+
+        // Session does not exist
+        (mockProfilerService.getXEventSessions as sinon.SinonStub).resolves({
+            sessions: [],
+        });
+
+        // Session creation fails
+        (mockProfilerService.createXEventSession as sinon.SinonStub).rejects(
+            new Error("Failed to create session"),
+        );
+
+        const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
+
+        createController();
+        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
+
+        await launchCommand!(mockTreeNodeInfo);
+
+        // Should show error message about session creation failure
+        expect(showErrorMessageStub).to.have.been.called;
+        // Disconnect should be called during webview disposal
+        expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
+    });
 });
