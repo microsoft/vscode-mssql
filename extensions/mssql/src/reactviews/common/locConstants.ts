@@ -1664,7 +1664,6 @@ export class LocConstants {
                 }),
             defaultError: l10n.t("An error occurred while loading data."),
             errorLoadingDatabaseObjects: l10n.t("Error loading database objects"),
-            retry: l10n.t("Retry"),
             searching: l10n.t("Searching..."),
             objectsFound: (count: number) =>
                 l10n.t({
@@ -1694,7 +1693,6 @@ export class LocConstants {
             searchPlaceholder: l10n.t(
                 "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
             ),
-            refresh: l10n.t("Refresh"),
 
             // Results table headers
             name: l10n.t("Name"),
@@ -1711,7 +1709,6 @@ export class LocConstants {
             filterBySchema: l10n.t("Filter by schema"),
             filterByType: l10n.t("Filter by type"),
             filterColumnAriaLabel: (columnName: string) => l10n.t("Filter {0}", columnName),
-            clearFilter: l10n.t("Clear"),
             selectAll: l10n.t("Select All"),
 
             // Action menu items

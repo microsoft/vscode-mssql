@@ -86,7 +86,7 @@ export const SearchDatabaseToolbar: React.FC = () => {
                 size="medium"
             />
             <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh}>
-                {loc.searchDatabase.refresh}
+                {loc.common.refresh}
             </Button>
         </div>
     );

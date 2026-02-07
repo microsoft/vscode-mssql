@@ -115,7 +115,7 @@ export const SearchDatabasePage: React.FC = () => {
                     open={isErrorState}
                     title={loc.searchDatabase.errorLoadingDatabaseObjects}
                     message={errorMessage || loc.searchDatabase.defaultError}
-                    retryLabel={loc.searchDatabase.retry}
+                    retryLabel={loc.common.retry}
                     onRetry={() => context.retry()}
                 />
             )}
