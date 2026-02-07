@@ -93,7 +93,7 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
 
     const stateRef = useRef<State | undefined>(undefined);
     const listenersRef = useRef(new Set<() => void>());
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [hasInitialState, setHasInitialState] = useState(false);
 
     const getSnapshot = useCallback(() => {
         // Return a safe default while not initialized to prevent useSyncExternalStore from erroring
@@ -120,50 +120,83 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
 
         extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
             stateRef.current = params;
+            setHasInitialState(true);
             emit();
         });
 
         async function bootstrap() {
             try {
-                // Coordinate all initialization operations
-                const [theme, keyboardShortcuts, initialState, eol, fileContents] =
-                    await Promise.all([
-                        extensionRpc.sendRequest(GetThemeRequest.type),
-                        extensionRpc.sendRequest(GetKeyBindingsConfigRequest.type),
-                        extensionRpc.sendRequest(GetStateRequest.type<State>()),
-                        extensionRpc.sendRequest(GetEOLRequest.type),
-                        extensionRpc.sendRequest(GetLocalizationRequest.type),
-                    ]);
-
-                // Set state atomically
-                setTheme(theme);
-                setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
+                // First paint gate: only wait for initial state.
+                const initialState = await extensionRpc.sendRequest(GetStateRequest.type<State>());
                 stateRef.current = initialState;
-                setEOL(eol);
-
-                // Handle localization if available
-                if (fileContents) {
-                    await l10n.config({
-                        contents: fileContents,
-                    });
-                    // Brief delay to ensure l10n is properly initialized
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                    LocConstants.createInstance();
-                }
-                setLocalization(true);
-
-                // Send load stats notification
-                await extensionRpc.sendNotification(LoadStatsNotification.type, {
-                    loadCompleteTimeStamp: Date.now(),
-                });
-
-                // Mark as initialized and emit state change
-                setIsInitialized(true);
+                setHasInitialState(true);
                 emit();
+
+                // Non-critical initialization should not block first render.
+                void (async () => {
+                    try {
+                        const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
+                        setTheme(theme);
+                    } catch (error) {
+                        console.error("Theme bootstrap failed:", error);
+                    }
+                })();
+
+                void (async () => {
+                    try {
+                        const keyboardShortcuts = await extensionRpc.sendRequest(
+                            GetKeyBindingsConfigRequest.type,
+                        );
+                        setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
+                    } catch (error) {
+                        console.error("KeyBindings bootstrap failed:", error);
+                    }
+                })();
+
+                void (async () => {
+                    try {
+                        const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
+                        setEOL(eol);
+                    } catch (error) {
+                        console.error("EOL bootstrap failed:", error);
+                    }
+                })();
+
+                void (async () => {
+                    try {
+                        const fileContents = await extensionRpc.sendRequest(
+                            GetLocalizationRequest.type,
+                        );
+                        if (fileContents) {
+                            await l10n.config({
+                                contents: fileContents,
+                            });
+                            // Brief delay to ensure l10n is properly initialized
+                            await new Promise((resolve) => setTimeout(resolve, 100));
+                            LocConstants.createInstance();
+                        }
+                    } catch (error) {
+                        console.error("Localization bootstrap failed:", error);
+                    } finally {
+                        setLocalization(true);
+                    }
+                })();
+
+                void extensionRpc
+                    .sendNotification(LoadStatsNotification.type, {
+                        loadCompleteTimeStamp: Date.now(),
+                    })
+                    .catch((error) => {
+                        console.error("Load stats notification failed:", error);
+                    });
             } catch (error) {
                 console.error("Bootstrap failed:", error);
-                // Still mark as initialized to prevent infinite loading
-                setIsInitialized(true);
+                // Prevent indefinite blank screen when initial state fetch fails.
+                if (stateRef.current === undefined) {
+                    stateRef.current = {} as State;
+                }
+                setHasInitialState(true);
+                emit();
             }
         }
 
@@ -189,8 +222,8 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
                 }}
                 theme={webviewTheme(theme)}>
                 {
-                    // don't render webview unless initialization is complete and state is available
-                    isInitialized && stateRef.current !== undefined && children
+                    // don't render webview until initial state is available
+                    hasInitialState && stateRef.current !== undefined && children
                 }
             </FluentProvider>
         </VscodeWebviewContext2.Provider>

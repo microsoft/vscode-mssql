@@ -51,6 +51,7 @@ import {
 import { MessageReader } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
+import { getLocalizationFileContentsCached } from "./localizationCache";
 
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
@@ -326,11 +327,13 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         });
 
         this.onRequest(GetLocalizationRequest.type, async () => {
-            if (vscode.l10n.uri?.fsPath) {
-                const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
-                const fileContents = Buffer.from(file).toString();
-                return fileContents;
-            } else {
+            try {
+                return await getLocalizationFileContentsCached();
+            } catch (error) {
+                const l10nUri = vscode.l10n.uri?.toString() ?? "undefined";
+                this.logger.warn(
+                    `Failed to read localization file ${l10nUri}: ${getErrorMessage(error)}`,
+                );
                 return undefined;
             }
         });

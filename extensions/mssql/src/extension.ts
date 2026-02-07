@@ -22,6 +22,7 @@ import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
 import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
+import { initializeWebviewLocalizationCache } from "./controllers/localizationCache";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -30,6 +31,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
+    // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
+    initializeWebviewLocalizationCache();
 
     IconUtils.initialize(context.extensionUri);
 
