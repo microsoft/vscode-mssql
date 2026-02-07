@@ -8,6 +8,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import {
     BackupComponent,
     BackupCompression,
+    BackupConfigInfo,
     BackupDatabaseParams,
     BackupDatabaseViewModel,
     BackupEncryptor,
@@ -46,7 +47,7 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { AzureBlobService } from "../models/contracts/azureBlob";
-import { getExpirationDateForSas } from "../utils/utils";
+import { getErrorMessage, getExpirationDateForSas } from "../utils/utils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -102,9 +103,23 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.updateState();
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
-        const backupConfigInfo = (
-            await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
-        )?.backupConfigInfo;
+        let backupConfigInfo: BackupConfigInfo;
+        let backupConfigError: string = "";
+        try {
+            backupConfigInfo = (
+                await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
+            )?.backupConfigInfo;
+        } catch (error) {
+            backupConfigError = getErrorMessage(error);
+        }
+        if (backupConfigError || !backupConfigInfo) {
+            backupModel.loadState = ApiStatus.Error;
+            this.state.errorMessage =
+                backupConfigError || LocConstants.BackupDatabase.unableToLoadBackupConfig;
+            this.state.viewModel.model = backupModel;
+            this.updateState();
+            return;
+        }
 
         // File Browser setup
         this.state.defaultFileBrowserExpandPath = backupConfigInfo.defaultBackupFolder;
