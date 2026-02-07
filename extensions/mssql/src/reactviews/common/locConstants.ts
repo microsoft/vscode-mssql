@@ -1492,7 +1492,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database"),
+            title: l10n.t("Create Database (Preview)"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1516,12 +1516,13 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             createButton: l10n.t("Create"),
             cancelButton: l10n.t("Cancel"),
+            creatingDatabase: l10n.t("Creating database"),
         };
     }
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database"),
+            title: l10n.t("Drop Database (Preview)"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -1542,6 +1543,7 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
+            droppingDatabase: l10n.t("Dropping database"),
         };
     }
 

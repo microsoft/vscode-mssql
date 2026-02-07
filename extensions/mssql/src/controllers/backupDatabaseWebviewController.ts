@@ -83,6 +83,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             objectManagementService,
             ObjectManagementDialogType.BackupDatabase,
             dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
             "backupDatabaseDialog",
             connectionUri,
             serverName,
