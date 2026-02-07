@@ -173,8 +173,8 @@ suite("SearchDatabaseWebViewController", () => {
         // In production, this is resolved when the webview sends a LoadStatsNotification,
         // but in tests the webview is mocked so we resolve it manually.
         controller["_webviewReady"].resolve();
-        // Allow the async initialization chain (ensureConnection, loadDatabases, loadMetadata) to complete
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        // Wait for the initialization chain (ensureConnection, loadDatabases, loadMetadata) to complete
+        await controller.initialized;
     }
 
     suite("Search Reducers", () => {

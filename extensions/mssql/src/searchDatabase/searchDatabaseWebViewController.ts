@@ -25,6 +25,7 @@ import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest"
 import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
+import { Deferred } from "../protocol";
 import { generateGuid } from "../models/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -41,6 +42,8 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
     private _ownerUri: string;
     // Unique identifier for this webview instance - used for telemetry correlation
     private _operationId: string;
+    // Deferred that resolves when initialization completes (success or error)
+    private _initialized: Deferred<void> = new Deferred<void>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -110,7 +113,25 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         this.registerRpcHandlers();
         // Wait for the webview to finish bootstrapping before initializing
         // so the loading spinner is visible while connecting and loading metadata
-        void this.whenWebviewReady().then(() => this.initialize());
+        void this.whenWebviewReady()
+            .then(() => this.initialize())
+            .catch((err) => {
+                this.logError(`Initialization failed: ${getErrorMessage(err)}`);
+                this.state.loadStatus = ApiStatus.Error;
+                this.state.errorMessage = getErrorMessage(err);
+                this.updateState();
+            })
+            .finally(() => {
+                this._initialized.resolve();
+            });
+    }
+
+    /**
+     * Returns a promise that resolves when initialization is complete (success or error).
+     * Useful for tests that need to wait for the controller to be ready.
+     */
+    public get initialized(): Promise<void> {
+        return this._initialized.promise;
     }
 
     /**
