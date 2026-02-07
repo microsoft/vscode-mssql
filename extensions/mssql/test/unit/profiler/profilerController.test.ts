@@ -419,10 +419,20 @@ suite("ProfilerController Tests", () => {
             },
         };
 
-        test("should not auto-start session when session name does not exist on server", async () => {
+        test("should auto-start session after creating when session name does not exist on server", async () => {
             showQuickPickStub.resolves(mockTemplateItem);
             // Use a session name that doesn't exist in the mock (Session1, Session2)
             (vscode.window.showInputBox as sinon.SinonStub).resolves("NewSession");
+
+            // Set up session created handler to resolve immediately (needed for session creation)
+            (mockProfilerService.onSessionCreated as sinon.SinonStub).callsFake(
+                (_ownerUri: string, handler: (params: unknown) => void) => {
+                    setTimeout(() => {
+                        handler({ sessionName: "NewSession", templateName: "Standard" });
+                    }, 10);
+                    return { dispose: sandbox.stub() };
+                },
+            );
 
             const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
@@ -434,10 +444,10 @@ suite("ProfilerController Tests", () => {
             // Verify that the webview panel was created
             expect(createWebviewPanelStub).to.have.been.called;
 
-            // Verify that startProfiling was NOT called (session doesn't exist)
-            expect(startProfilingStub).to.not.have.been.called;
+            // Verify that startProfiling WAS called (session is auto-started after creation)
+            expect(startProfilingStub).to.have.been.called;
 
-            // Verify the "profiler ready" message was shown
+            // Verify the success message was shown
             expect(showInformationMessageStub).to.have.been.called;
         });
 
@@ -994,10 +1004,10 @@ suite("ProfilerController Server Type Tests", () => {
 
         const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(
+            mockTreeNodeInfo.connectionProfile as IConnectionProfile,
+        );
 
         // Should show error message about failed connection
         expect(showErrorMessageStub).to.have.been.called;
@@ -1022,10 +1032,10 @@ suite("ProfilerController Server Type Tests", () => {
             "msdb",
         ]);
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(
+            mockTreeNodeInfo.connectionProfile as IConnectionProfile,
+        );
 
         // Should show warning about no databases found
         expect(showWarningMessageStub).to.have.been.called;
@@ -1067,10 +1077,10 @@ suite("ProfilerController Server Type Tests", () => {
         const createXEventSessionStub = mockProfilerService.createXEventSession as sinon.SinonStub;
         const startProfilingStub = mockProfilerService.startProfiling as sinon.SinonStub;
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(
+            mockTreeNodeInfo.connectionProfile as IConnectionProfile,
+        );
 
         // Should NOT call createXEventSession since session exists
         expect(createXEventSessionStub).to.not.have.been.called;
@@ -1115,14 +1125,14 @@ suite("ProfilerController Server Type Tests", () => {
 
         const showErrorMessageStub = vscode.window.showErrorMessage as sinon.SinonStub;
 
-        createController();
-        const launchCommand = registeredCommands.get("mssql.profiler.launchFromObjectExplorer");
-
-        await launchCommand!(mockTreeNodeInfo);
+        const controller = createController();
+        await controller.launchProfilerWithConnection(
+            mockTreeNodeInfo.connectionProfile as IConnectionProfile,
+        );
 
         // Should show error message about session creation failure
         expect(showErrorMessageStub).to.have.been.called;
-        // Disconnect should be called during webview disposal
-        expect((mockConnectionManager.disconnect as sinon.SinonStub).called).to.be.true;
+        // Webview should still be created (user can try creating a different session)
+        expect((vscode.window.createWebviewPanel as sinon.SinonStub).called).to.be.true;
     });
 });

@@ -690,84 +690,79 @@ export class ProfilerController {
         // Check if the entered session name already exists on the server
         const sessionExists = xeventSessions.includes(sessionName);
 
-            if (sessionExists) {
-                // Session already exists - just start it
-                this._logger.verbose(
-                    `Session '${sessionName}' already exists, starting without creating`,
-                );
-                webviewController.setSelectedSession(sessionName);
-                await this.startSession(sessionName, webviewController);
+        if (sessionExists) {
+            // Session already exists - just start it
+            this._logger.verbose(
+                `Session '${sessionName}' already exists, starting without creating`,
+            );
+            webviewController.setSelectedSession(sessionName);
+            await this.startSession(sessionName, webviewController);
 
-                vscode.window.showInformationMessage(
-                    LocProfiler.sessionStartedSuccessfully(sessionName),
-                );
-            } else {
-                // Session doesn't exist - create it first
-                webviewController.setCreatingSession(true);
+            vscode.window.showInformationMessage(
+                LocProfiler.sessionStartedSuccessfully(sessionName),
+            );
+        } else {
+            // Session doesn't exist - create it first
+            webviewController.setCreatingSession(true);
 
-                // Create the session template
-                const template: ProfilerSessionTemplate = {
-                    name: selectedTemplate.template.name,
-                    defaultView: selectedTemplate.template.defaultView,
-                    createStatement: selectedTemplate.template.createStatement,
-                };
+            // Create the session template
+            const template: ProfilerSessionTemplate = {
+                name: selectedTemplate.template.name,
+                defaultView: selectedTemplate.template.defaultView,
+                createStatement: selectedTemplate.template.createStatement,
+            };
 
-                this._logger.verbose(
-                    `Creating XEvent session: ${sessionName} with template: ${template.name}`,
-                );
+            this._logger.verbose(
+                `Creating XEvent session: ${sessionName} with template: ${template.name}`,
+            );
 
-                // Register handler for session created notification
-                const sessionCreatedPromise = new Promise<void>((resolve, reject) => {
-                    const timeout = setTimeout(() => {
-                        disposable.dispose();
-                        reject(new Error(LocProfiler.sessionCreationTimedOut));
-                    }, 30000); // 30 second timeout
+            // Register handler for session created notification
+            const sessionCreatedPromise = new Promise<void>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    disposable.dispose();
+                    reject(new Error(LocProfiler.sessionCreationTimedOut));
+                }, 30000); // 30 second timeout
 
-                    const disposable = this._sessionManager.onSessionCreated(
-                        profilerUri,
-                        (params) => {
-                            clearTimeout(timeout);
-                            disposable.dispose();
-                            this._logger.verbose(
-                                `Session created notification received: ${params.sessionName}`,
-                            );
-                            resolve();
-                        },
+                const disposable = this._sessionManager.onSessionCreated(profilerUri, (params) => {
+                    clearTimeout(timeout);
+                    disposable.dispose();
+                    this._logger.verbose(
+                        `Session created notification received: ${params.sessionName}`,
                     );
+                    resolve();
                 });
+            });
 
-                // Send create session request
-                await this._sessionManager.createXEventSession(profilerUri, sessionName, template);
+            // Send create session request
+            await this._sessionManager.createXEventSession(profilerUri, sessionName, template);
 
-                // Wait for session created notification
-                await sessionCreatedPromise;
+            // Wait for session created notification
+            await sessionCreatedPromise;
 
-                // Refresh available sessions to include the new one
-                const updatedXeventSessions =
-                    await this._sessionManager.getXEventSessions(profilerUri);
-                const updatedAvailableSessions = updatedXeventSessions.map((name) => ({
-                    id: name,
-                    name: name,
-                }));
+            // Refresh available sessions to include the new one
+            const updatedXeventSessions = await this._sessionManager.getXEventSessions(profilerUri);
+            const updatedAvailableSessions = updatedXeventSessions.map((name) => ({
+                id: name,
+                name: name,
+            }));
 
-                webviewController.updateAvailableSessions(updatedAvailableSessions);
-                webviewController.setSelectedSession(sessionName);
-                webviewController.setCreatingSession(false);
+            webviewController.updateAvailableSessions(updatedAvailableSessions);
+            webviewController.setSelectedSession(sessionName);
+            webviewController.setCreatingSession(false);
 
-                this._logger.verbose(`Session '${sessionName}' created successfully`);
+            this._logger.verbose(`Session '${sessionName}' created successfully`);
 
-                // Auto-start the session
-                await this.startSession(sessionName, webviewController);
+            // Auto-start the session
+            await this.startSession(sessionName, webviewController);
 
-                vscode.window.showInformationMessage(
-                    LocProfiler.sessionStartedSuccessfully(sessionName),
-                );
-            }
-        } catch (e) {
-            this._logger.error(`Error creating/starting session: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
-            webviewController.dispose();
+            vscode.window.showInformationMessage(
+                LocProfiler.sessionStartedSuccessfully(sessionName),
+            );
         }
+    }
+    catch(e) {
+        this._logger.error(`Error creating/starting session: ${e}`);
+        vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
     }
 
     /**

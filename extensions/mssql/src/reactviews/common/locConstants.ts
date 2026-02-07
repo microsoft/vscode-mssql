@@ -1843,37 +1843,6 @@ export class LocConstants {
         };
     }
 
-    public get backupDatabase() {
-        return {
-            loadingBackupDatabase: l10n.t("Loading backup database..."),
-            backup: l10n.t("Backup"),
-            script: l10n.t("Script"),
-            advanced: l10n.t("Advanced"),
-            advancedBackupOptions: l10n.t("Advanced Backup Options"),
-            searchOptions: l10n.t("Search options"),
-            saveToUrl: l10n.t("Save to URL"),
-            saveToDisk: l10n.t("Save to Disk"),
-            backupLocation: l10n.t("Backup Location"),
-            backupFiles: l10n.t("Backup Files"),
-            createNew: l10n.t("Create New"),
-            chooseExisting: l10n.t("Choose Existing"),
-            folderPath: l10n.t("Folder Path"),
-            fileName: l10n.t("File Name"),
-            existingFile: l10n.t("Existing File"),
-            newFile: l10n.t("New File"),
-            browseForPath: l10n.t("Browse forvpath"),
-            removeFile: l10n.t("Remove file"),
-            chooseAtLeastOneFile: l10n.t("Please choose at least one backup file"),
-            chooseUniqueFile: l10n.t("Please choose a unique backup file name"),
-            loading: l10n.t("Loading..."),
-            folderPathRequired: l10n.t("Folder path is required"),
-            fileNameRequired: l10n.t("File name is required"),
-            transactionLog: l10n.t("Transaction Log"),
-            encryption: l10n.t("Encryption"),
-            media: l10n.t("Media"),
-        };
-    }
-
     public get profiler() {
         return {
             // Toolbar buttons
