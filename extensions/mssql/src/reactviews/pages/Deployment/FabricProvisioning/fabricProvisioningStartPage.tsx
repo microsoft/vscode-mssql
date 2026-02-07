@@ -7,7 +7,6 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 import { useDeploymentSelector } from "../deploymentSelector";
 
@@ -34,12 +33,11 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningStartPage = () => {
     const classes = useStyles();
-    const fabricProvisioningState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as FabricProvisioningState;
+    const loadState = useDeploymentSelector((s) => s.deploymentTypeState?.loadState);
+    const errorMessage = useDeploymentSelector((s) => s.deploymentTypeState?.errorMessage);
 
     const renderMainContent = () => {
-        switch (fabricProvisioningState?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -55,7 +53,7 @@ export const FabricProvisioningStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{fabricProvisioningState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }

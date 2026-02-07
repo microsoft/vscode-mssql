@@ -39,11 +39,11 @@ interface HeaderProps {
 
 export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
     const classes = useStyles();
-    const localContainersState = useDeploymentSelector((s) => s.deploymentTypeState);
+    const localContainersStateExists = useDeploymentSelector((s) => s.deploymentTypeState != null);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!localContainersState) {
+    if (!localContainersStateExists) {
         return undefined;
     }
 

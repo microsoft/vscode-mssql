@@ -33,10 +33,11 @@ const useStyles = makeStyles({
 
 export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const localContainersState = useDeploymentSelector((s) => s.deploymentTypeState);
+    const loadState = useDeploymentSelector((s) => s.deploymentTypeState?.loadState);
+    const errorMessage = useDeploymentSelector((s) => s.deploymentTypeState?.errorMessage);
 
     const renderMainContent = () => {
-        switch (localContainersState?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -52,7 +53,7 @@ export const LocalContainersStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }

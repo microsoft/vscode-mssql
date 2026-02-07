@@ -38,9 +38,10 @@ const useStyles = makeStyles({
 export const DeploymentStartPage = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const state = useDeploymentSelector((s) => s);
+    const loadState = useDeploymentSelector((s) => s.loadState);
+    const errorMessage = useDeploymentSelector((s) => s.errorMessage);
     const renderMainContent = () => {
-        switch (state?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -56,13 +57,13 @@ export const DeploymentStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{state?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }
     };
 
-    if (!context || !state) {
+    if (!context || !loadState) {
         return undefined;
     }
 

@@ -67,12 +67,14 @@ const useStyles = makeStyles({
 export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const state = useDeploymentSelector((s) => s);
+    const dialog = useDeploymentSelector((s) => s.dialog);
+    const localContainersState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as LocalContainersState;
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const localContainersState = state?.deploymentTypeState as LocalContainersState;
 
-    if (!context || !state || !localContainersState) return undefined;
+    if (!context || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
@@ -133,16 +135,16 @@ export const LocalContainersInputForm: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
-                    {state.dialog?.type === "createConnectionGroup" && (
+                    {dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
                             state={
-                                (state.dialog as CreateConnectionGroupDialogProps).props
+                                (dialog as CreateConnectionGroupDialogProps).props
                             }
                             saveConnectionGroup={context.createConnectionGroup}
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
-                    {state.dialog?.type === "armSql2025Error" && (
+                    {dialog?.type === "armSql2025Error" && (
                         <ArmSql2025ErrorDialog closeDialog={context.closeArmSql2025ErrorDialog} />
                     )}
                     {renderFormFields(false)}

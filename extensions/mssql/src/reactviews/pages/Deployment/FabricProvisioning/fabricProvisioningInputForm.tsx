@@ -71,8 +71,9 @@ const useStyles = makeStyles({
 export const FabricProvisioningInputForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const state = useDeploymentSelector((s) => s);
-    const fabricProvisioningState = state?.deploymentTypeState as FabricProvisioningState;
+    const fabricProvisioningState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as FabricProvisioningState;
 
     if (!context || !fabricProvisioningState) return undefined;
 

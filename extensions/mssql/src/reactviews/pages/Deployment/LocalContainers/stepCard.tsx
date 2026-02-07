@@ -61,7 +61,7 @@ interface StepCardProps {
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
-    const state = useDeploymentSelector((s) => s);
+    const stateExists = useDeploymentSelector((s) => s != null);
     const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
@@ -69,7 +69,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state) {
+    if (!stateExists) {
         return undefined;
     }
 
@@ -78,7 +78,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             setExpanded(true);
             setIsNewlyErrored(true);
         }
-    }, [state]);
+    }, [step.loadState]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {

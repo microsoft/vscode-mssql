@@ -132,11 +132,29 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
     const context = useContext(DeploymentContext);
     const [showPrevious, setShowPrevious] = useState(false);
 
-    const fabricProvisioningState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as FabricProvisioningState;
+    const provisionLoadState = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.provisionLoadState,
+    );
+    const connectionLoadState = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.connectionLoadState,
+    );
+    const errorMessage = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.errorMessage,
+    );
+    const databaseName = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.formState?.databaseName,
+    );
+    const deploymentStartTime = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.deploymentStartTime,
+    );
+    const tenantName = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.tenantName,
+    );
+    const workspaceName = useDeploymentSelector(
+        (s) => (s.deploymentTypeState as FabricProvisioningState)?.workspaceName,
+    );
 
-    if (!context || !fabricProvisioningState || showPrevious === undefined) return undefined;
+    if (!context || !provisionLoadState || showPrevious === undefined) return undefined;
 
     const handleRetry = async () => {
         await context.retryCreateDatabase();
@@ -149,10 +167,10 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
 
     const getStatusIcon = () => {
         let status: ApiStatus;
-        if (fabricProvisioningState.provisionLoadState !== ApiStatus.Loaded) {
-            status = fabricProvisioningState.provisionLoadState;
+        if (provisionLoadState !== ApiStatus.Loaded) {
+            status = provisionLoadState;
         } else {
-            status = fabricProvisioningState.connectionLoadState;
+            status = connectionLoadState;
         }
         if (status === ApiStatus.NotStarted) {
             return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
@@ -168,13 +186,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
 
     const getHeaderText = () => {
         let headerText = locConstants.fabricProvisioning.finishedDeployment;
-        if (fabricProvisioningState.provisionLoadState === ApiStatus.Error) {
+        if (provisionLoadState === ApiStatus.Error) {
             headerText = locConstants.fabricProvisioning.deploymentFailed;
-        } else if (fabricProvisioningState.provisionLoadState !== ApiStatus.Loaded) {
+        } else if (provisionLoadState !== ApiStatus.Loaded) {
             headerText = `${locConstants.fabricProvisioning.deploymentInProgress}...`;
-        } else if (fabricProvisioningState.connectionLoadState === ApiStatus.Error) {
+        } else if (connectionLoadState === ApiStatus.Error) {
             headerText = locConstants.fabricProvisioning.connectionFailed;
-        } else if (fabricProvisioningState.connectionLoadState !== ApiStatus.Loaded) {
+        } else if (connectionLoadState !== ApiStatus.Loaded) {
             headerText = `${locConstants.fabricProvisioning.connectingToDatabase}`;
         }
         return headerText;
@@ -184,7 +202,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
         <FabricProvisioningInputForm />
     ) : (
         <div>
-            {fabricProvisioningState.provisionLoadState === ApiStatus.Error && (
+            {provisionLoadState === ApiStatus.Error && (
                 <Button
                     className={classes.backButton}
                     onClick={handleBack}
@@ -198,7 +216,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                 <div className={classes.innerDiv}>
                     <div className={classes.contentHeader}>
                         {locConstants.fabricProvisioning.provisioning}{" "}
-                        {fabricProvisioningState.formState.databaseName}
+                        {databaseName}
                     </div>
                     <Card className={classes.cardDiv}>
                         <div className={classes.separatorDiv} />
@@ -209,13 +227,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                             </div>
                         </div>
                         <div className={classes.cardContentDiv}>
-                            {fabricProvisioningState.errorMessage ? (
+                            {errorMessage ? (
                                 <div className={classes.cardColumn}>
                                     <span className={classes.cardItem}>
                                         <span className={classes.cardItemLabel}>
                                             {locConstants.common.error}:
                                         </span>
-                                        {fabricProvisioningState.errorMessage}
+                                        {errorMessage}
                                     </span>
                                 </div>
                             ) : (
@@ -225,13 +243,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                                             <span className={classes.cardItemLabel}>
                                                 {locConstants.fabricProvisioning.deploymentName}:
                                             </span>
-                                            {fabricProvisioningState.formState.databaseName}
+                                            {databaseName}
                                         </span>
                                         <span className={classes.cardItem}>
                                             <span className={classes.cardItemLabel}>
                                                 {locConstants.fabricProvisioning.startTime}:
                                             </span>
-                                            {fabricProvisioningState.deploymentStartTime}
+                                            {deploymentStartTime}
                                         </span>
                                     </div>
                                     <div
@@ -241,20 +259,20 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                                             <span className={classes.cardItemLabel}>
                                                 {locConstants.azure.tenant}:
                                             </span>
-                                            {fabricProvisioningState.tenantName}
+                                            {tenantName}
                                         </span>
                                         <span className={classes.cardItem}>
                                             <span className={classes.cardItemLabel}>
                                                 {locConstants.fabricProvisioning.workspace}:
                                             </span>
-                                            {fabricProvisioningState.workspaceName}
+                                            {workspaceName}
                                         </span>
                                     </div>
                                 </>
                             )}
                         </div>
                     </Card>
-                    {fabricProvisioningState.provisionLoadState === ApiStatus.Error && (
+                    {provisionLoadState === ApiStatus.Error && (
                         <div className={classes.buttonDiv}>
                             <Button
                                 className={classes.button}
@@ -270,7 +288,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                             </Button>
                         </div>
                     )}
-                    {fabricProvisioningState.connectionLoadState === ApiStatus.Loaded && (
+                    {connectionLoadState === ApiStatus.Loaded && (
                         <div className={classes.buttonDiv}>
                             <Button
                                 className={classes.button}

@@ -5,7 +5,6 @@
 
 import { makeStyles, Text } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
@@ -40,11 +39,11 @@ interface HeaderProps {
 
 export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft }) => {
     const classes = useStyles();
-    const fabricProvisioningState = useDeploymentSelector(
-        (s) => s.deploymentTypeState,
-    ) as FabricProvisioningState;
+    const fabricProvisioningStateExists = useDeploymentSelector(
+        (s) => s.deploymentTypeState != null,
+    );
 
-    if (!fabricProvisioningState) return undefined;
+    if (!fabricProvisioningStateExists) return undefined;
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>
