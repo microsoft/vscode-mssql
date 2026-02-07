@@ -2946,14 +2946,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onSearchDatabase(node?: any): Promise<void> {
-        // Guard: require a node when invoked from command palette without selection
-        if (!node?.connectionProfile) {
-            void this._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.SearchDatabase.noNodeSelected,
-            );
-            return;
-        }
-
         const searchDatabaseWebView = new SearchDatabaseWebViewController(
             this._context,
             this._vscodeWrapper,

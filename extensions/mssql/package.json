@@ -869,6 +869,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.searchDatabase",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch"
                 },
                 {
