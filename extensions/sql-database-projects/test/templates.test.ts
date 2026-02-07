@@ -25,7 +25,7 @@ suite('Templates', function (): void {
 	test('Should load all templates from files', async function (): Promise<void> {
 		// check expected counts
 
-		const numScriptObjectTypes = 17;
+		const numScriptObjectTypes = 16;
 
 		expect(templates.projectScriptTypes().length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} script object types to be loaded`);
 		expect(Object.keys(templates.projectScriptTypes()).length).to.equal(numScriptObjectTypes, `Expected ${numScriptObjectTypes} keys in script object types`);

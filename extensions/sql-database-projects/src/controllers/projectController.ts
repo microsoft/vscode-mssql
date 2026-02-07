@@ -261,13 +261,10 @@ export class ProjectsController {
 
 		// Determine the target folder: workspace root if available, otherwise project folder
 		const targetFolder = workspaceFolder ? workspaceFolder.uri.fsPath : project.projectFolderPath;
-		const vscodeFolder = path.join(targetFolder, '.vscode');
-		const tasksJsonPath = path.join(vscodeFolder, 'tasks.json');
+		const vscodeFolder = path.join(targetFolder, constants.vscodeFolderName);
+		const tasksJsonPath = path.join(vscodeFolder, constants.tasksJsonFileName);
 
-		// Generate the new SQL project build task from template
-		const tasksTemplate = templates.get(ItemType.tasks);
-		const newTasksContent = templates.macroExpansion(tasksTemplate.templateScript, new Map([['ConfigureDefaultBuild', configureDefaultBuild.toString()]]));
-		const newTasksJson = JSON.parse(newTasksContent);
+		const projectName = path.basename(project.projectFilePath, constants.sqlprojExtension);
 
 		// Check if tasks.json already exists at workspace level
 		if (await utils.exists(tasksJsonPath)) {
@@ -276,21 +273,29 @@ export class ProjectsController {
 				const existingContent = await fs.readFile(tasksJsonPath, 'utf8');
 				const existingTasksJson = JSON.parse(existingContent);
 
-				// Ensure tasks array exists
+				if (existingTasksJson.tasks !== undefined && !Array.isArray(existingTasksJson.tasks)) {
+					// This error is caught below — project creation still succeeds, only the tasks.json update is skipped
+					throw new Error(constants.tasksJsonInvalidTasksArrayError);
+				}
+
+				// Initialize tasks array if it doesn't exist yet
 				if (!existingTasksJson.tasks) {
 					existingTasksJson.tasks = [];
 				}
 
-				// Check if the SQL project build task already exists
+				// Check if a build task for this specific project already exists
+				const taskLabel = constants.getSqlProjectBuildTaskLabel(projectName);
 				const sqlBuildTaskExists = existingTasksJson.tasks.some(
-					(task: { label?: string; type?: string }) =>
-						task.label === constants.sqlProjectBuildTaskLabel ||
-						(task.label === 'Build' && task.type === 'shell')
+					(task: { label?: string }) =>
+						task.label === taskLabel
 				);
 
 				if (!sqlBuildTaskExists) {
-					// Merge the new task(s) into existing tasks
-					existingTasksJson.tasks.push(...newTasksJson.tasks);
+					// Only create the task when we need to add it
+					const newTask = this.createBuildTaskForProject(project, projectName, configureDefaultBuild);
+
+					// Merge the new task into existing tasks
+					existingTasksJson.tasks.push(newTask);
 
 					// Write back the merged tasks.json
 					await fs.writeFile(tasksJsonPath, JSON.stringify(existingTasksJson, null, '\t'), 'utf8');
@@ -298,18 +303,60 @@ export class ProjectsController {
 					// Show notification to user
 					void vscode.window.showInformationMessage(constants.updatingExistingTasksJson);
 				}
-				// If task already exists, do nothing
 			} catch (error) {
-				// If parsing fails, log error and skip
-				this._outputChannel.appendLine(`Error parsing existing tasks.json: ${error}`);
+				// If parsing fails, log error and notify user with option to view output
+				const errorMessage = utils.getErrorMessage(error);
+				this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
+
+				TelemetryReporter.createErrorEvent2(TelemetryViews.ProjectController, TelemetryActions.tasksJsonError, error)
+					.withAdditionalProperties({
+						hasWorkspaceFolder: (workspaceFolder !== undefined).toString(),
+						errorMessage: errorMessage
+					})
+					.send();
+
+				void utils.showErrorMessageWithOutputChannel(constants.tasksJsonUpdateError, errorMessage, this._outputChannel);
 			}
 		} else {
-			// Create new tasks.json at workspace level
+			// Create new tasks.json - only create the task when needed
+			const newTask = this.createBuildTaskForProject(project, projectName, configureDefaultBuild);
+			const newTasksJson = utils.createTasksJson([newTask]);
+
 			await fs.mkdir(vscodeFolder, { recursive: true });
 			await fs.writeFile(tasksJsonPath, JSON.stringify(newTasksJson, null, '\t'), 'utf8');
+
+			// If created inside the project folder (no workspace), add to project's None items
+			if (!workspaceFolder) {
+				await project.addNoneItem(utils.convertSlashesForSqlProj(`${constants.vscodeFolderName}/${constants.tasksJsonFileName}`));
+			}
+		}
+	}
+
+	/**
+	 * Creates a build task object for the given project
+	 */
+	private createBuildTaskForProject(project: ISqlProject, projectName: string, configureDefaultBuild: boolean): object {
+		// Use forward slashes for cross-platform compatibility (dotnet accepts both)
+		const projectFilePathNormalized = utils.getPlatformSafeFileEntryPath(project.projectFilePath);
+
+		// Build args array for process execution (avoids shell escaping issues)
+		const buildArgs: string[] = [constants.build, projectFilePathNormalized];
+		if (project.sqlProjStyleName !== constants.sdkStyleProjectStyleName) {
+			// Legacy projects need additional build arguments
+			// No quotes needed - process execution handles paths with spaces correctly
+			const buildDirPath = utils.getPlatformSafeFileEntryPath(this.buildHelper.extensionBuildDirPath);
+			buildArgs.push(
+				constants.netCoreBuildArg,
+				`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`,
+				`${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`
+			);
 		}
 
-		// Note: We don't add tasks.json to the project's None items since it's at workspace level
+		return utils.createSqlProjectBuildTask({
+			projectName,
+			buildArgs,
+			isDefault: configureDefaultBuild
+		});
 	}
 
 	private async addFileToProjectFromTemplate(project: ISqlProject, itemType: templates.ProjectScriptType, relativePath: string, expansionMacros: Map<string, string>): Promise<string> {
