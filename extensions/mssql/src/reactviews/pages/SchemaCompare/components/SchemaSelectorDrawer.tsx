@@ -104,12 +104,17 @@ const SchemaSelectorDrawer = (props: Props) => {
     const classes = useStyles();
 
     const context = useContext(schemaCompareContext);
-    const state = useSchemaCompareSelector((s) => s);
+    const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
+    const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
+    const auxiliaryEndpointInfo = useSchemaCompareSelector((s) => s.auxiliaryEndpointInfo);
+    const activeServers = useSchemaCompareSelector((s) => s.activeServers);
+    const databases = useSchemaCompareSelector((s) => s.databases);
+    const isSqlProjectExtensionInstalled = useSchemaCompareSelector((s) => s.isSqlProjectExtensionInstalled);
 
     const currentEndpoint =
         props.endpointType === "source"
-            ? state.sourceEndpointInfo
-            : state.targetEndpointInfo;
+            ? sourceEndpointInfo
+            : targetEndpointInfo;
 
     const [schemaType, setSchemaType] = useState(
         endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
@@ -148,7 +153,7 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         updateOkButtonState(schemaType);
-    }, [state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
+    }, [auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
 
     // Handle auto-selection of newly created connections
     useEffect(() => {
@@ -179,13 +184,13 @@ const SchemaSelectorDrawer = (props: Props) => {
             setDisableOkButton(false);
         } else if (
             type === "dacpac" &&
-            (state.auxiliaryEndpointInfo?.packageFilePath ||
+            (auxiliaryEndpointInfo?.packageFilePath ||
                 currentEndpoint?.packageFilePath)
         ) {
             setDisableOkButton(false);
         } else if (
             type === "sqlproj" &&
-            (state.auxiliaryEndpointInfo?.projectFilePath ||
+            (auxiliaryEndpointInfo?.projectFilePath ||
                 currentEndpoint?.projectFilePath)
         ) {
             setDisableOkButton(false);
@@ -197,13 +202,13 @@ const SchemaSelectorDrawer = (props: Props) => {
     const getFilePathForProjectOrDacpac = () => {
         if (schemaType === "dacpac") {
             return (
-                state.auxiliaryEndpointInfo?.packageFilePath ||
+                auxiliaryEndpointInfo?.packageFilePath ||
                 currentEndpoint?.packageFilePath ||
                 ""
             );
         } else if (schemaType === "sqlproj") {
             return (
-                state.auxiliaryEndpointInfo?.projectFilePath ||
+                auxiliaryEndpointInfo?.projectFilePath ||
                 currentEndpoint?.projectFilePath ||
                 ""
             );
@@ -234,8 +239,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     const handleSelectFile = (fileType: "dacpac" | "sqlproj") => {
         const endpoint =
             props.endpointType === "source"
-                ? state.sourceEndpointInfo
-                : state.targetEndpointInfo;
+                ? sourceEndpointInfo
+                : targetEndpointInfo;
 
         context.selectFile(endpoint, props.endpointType, fileType);
     };
@@ -256,7 +261,7 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.showDrawer(false);
     };
 
-    let isSqlProjExtensionInstalled = state.isSqlProjectExtensionInstalled;
+    let isSqlProjExtensionInstalled = isSqlProjectExtensionInstalled;
 
     return (
         <Drawer
@@ -302,11 +307,11 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseServerSelected(event, data)
                                 }>
-                                {Object.keys(state.activeServers).map((connUri) => {
+                                {Object.keys(activeServers).map((connUri) => {
                                     return (
                                         <Option key={connUri} value={connUri}>
-                                            {state.activeServers[connUri].profileName ||
-                                                state.activeServers[connUri].server}
+                                            {activeServers[connUri].profileName ||
+                                                activeServers[connUri].server}
                                         </Option>
                                     );
                                 })}
@@ -330,7 +335,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
-                                {state.databases.map((db) => {
+                                {databases.map((db) => {
                                     return (
                                         <Option key={db} value={db}>
                                             {db}

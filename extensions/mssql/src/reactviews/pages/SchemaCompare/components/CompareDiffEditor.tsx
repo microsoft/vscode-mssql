@@ -73,9 +73,9 @@ interface Props {
 const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
     ({ selectedDiffId, renderSideBySide }, ref) => {
         const classes = useStyles();
-        const state = useSchemaCompareSelector((s) => s);
+        const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
         const { themeKind } = useVscodeWebview2<SchemaCompareWebViewState, SchemaCompareReducers>();
-        const compareResult = state.schemaCompareResult;
+        const compareResult = schemaCompareResult;
         const diff = compareResult?.differences[selectedDiffId];
         const editorRef = useRef<any>(null);
 

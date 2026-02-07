@@ -18,19 +18,20 @@ const useStyles = makeStyles({
 });
 
 const Message = () => {
-    const state = useSchemaCompareSelector((s) => s);
+    const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
     const classes = useStyles();
 
     let message = "";
     if (
-        !state.isComparisonInProgress &&
-        state.schemaCompareResult &&
-        state.schemaCompareResult.areEqual
+        !isComparisonInProgress &&
+        schemaCompareResult &&
+        schemaCompareResult.areEqual
     ) {
         message = loc.schemaCompare.noDifferences;
-    } else if (state.isComparisonInProgress) {
+    } else if (isComparisonInProgress) {
         message = loc.schemaCompare.initializingComparison;
-    } else if (!state.isComparisonInProgress && !state.schemaCompareResult) {
+    } else if (!isComparisonInProgress && !schemaCompareResult) {
         message = loc.schemaCompare.intro;
     }
 
@@ -40,9 +41,9 @@ const Message = () => {
 
     return (
         <div className={classes.container}>
-            {state.isComparisonInProgress && <Spinner labelPosition="below" label={message} />}
+            {isComparisonInProgress && <Spinner labelPosition="below" label={message} />}
 
-            {!state.isComparisonInProgress && (
+            {!isComparisonInProgress && (
                 <Text size={400} align="center">
                     {message}
                 </Text>

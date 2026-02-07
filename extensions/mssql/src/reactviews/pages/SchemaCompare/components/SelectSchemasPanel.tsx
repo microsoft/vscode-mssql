@@ -61,19 +61,19 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const targetId = useId("target");
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
-    const state = useSchemaCompareSelector((s) => s);
+    const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
+    const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
+    const defaultDeploymentOptionsResult = useSchemaCompareSelector((s) => s.defaultDeploymentOptionsResult);
+    const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
 
-    const sourceEndpointInfo = state.sourceEndpointInfo;
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
-
-    const targetEndpointInfo = state.targetEndpointInfo;
     let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
 
     const handleCompare = () => {
         context.compare(
-            state.sourceEndpointInfo,
-            state.targetEndpointInfo,
-            state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            defaultDeploymentOptionsResult.defaultDeploymentOptions,
         );
     };
 
@@ -95,7 +95,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 label={loc.schemaCompare.source}
                 buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
                 value={sourceEndpointDisplay}
-                disableBrowseButton={state.isComparisonInProgress}
+                disableBrowseButton={isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("source")}
                 className={classes.marginRight}
             />
@@ -105,7 +105,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 label={loc.schemaCompare.target}
                 buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
                 value={targetEndpointDisplay}
-                disableBrowseButton={state.isComparisonInProgress}
+                disableBrowseButton={isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 
@@ -114,9 +114,9 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 size="medium"
                 onClick={handleCompare}
                 disabled={
-                    isEndpointEmpty(state.sourceEndpointInfo) ||
-                    isEndpointEmpty(state.targetEndpointInfo) ||
-                    state.isComparisonInProgress
+                    isEndpointEmpty(sourceEndpointInfo) ||
+                    isEndpointEmpty(targetEndpointInfo) ||
+                    isComparisonInProgress
                 }>
                 {loc.schemaCompare.compare}
             </Button>

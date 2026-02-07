@@ -94,8 +94,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     ({ onDiffSelected, selectedDiffId, siblingRef }, ref) => {
         const classes = useStyles();
         const context = React.useContext(schemaCompareContext);
-        const state = useSchemaCompareSelector((s) => s);
-        const compareResult = state.schemaCompareResult;
+        const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+        const isIncludeExcludeAllOperationInProgress = useSchemaCompareSelector((s) => s.isIncludeExcludeAllOperationInProgress);
+        const compareResult = schemaCompareResult;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"
         >("allIncluded");
@@ -140,7 +141,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             } else {
                 setDiffInclusionLevel("allExcluded");
             }
-        }, [state.schemaCompareResult]);
+        }, [schemaCompareResult]);
 
         const formatName = (nameParts: string[]): string => {
             if (!nameParts || nameParts.length === 0) {
@@ -211,7 +212,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             createTableColumn<DiffEntry>({
                 columnId: "include",
                 renderHeaderCell: () => {
-                    if (state.isIncludeExcludeAllOperationInProgress) {
+                    if (isIncludeExcludeAllOperationInProgress) {
                         return (
                             <div>
                                 <Spinner
@@ -245,7 +246,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
-                                disabled={state.isIncludeExcludeAllOperationInProgress}
+                                disabled={isIncludeExcludeAllOperationInProgress}
                             />
                         </DataGridCell>
                     );

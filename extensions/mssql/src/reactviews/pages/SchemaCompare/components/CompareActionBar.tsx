@@ -29,24 +29,29 @@ interface Props {
 
 const CompareActionBar = (props: Props) => {
     const context = useContext(schemaCompareContext);
-    const state = useSchemaCompareSelector((s) => s);
+    const endpointsSwitched = useSchemaCompareSelector((s) => s.endpointsSwitched);
+    const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
+    const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
+    const defaultDeploymentOptionsResult = useSchemaCompareSelector((s) => s.defaultDeploymentOptionsResult);
+    const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
+    const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
 
     useEffect(() => {
-        if (state.endpointsSwitched) {
-            if (state.sourceEndpointInfo && state.targetEndpointInfo) {
+        if (endpointsSwitched) {
+            if (sourceEndpointInfo && targetEndpointInfo) {
                 handleCompare();
             } else {
                 // Reset the flag when comparison doesn't run so subsequent switches trigger the effect
                 context.resetEndpointsSwitched();
             }
         }
-    }, [state.endpointsSwitched]);
+    }, [endpointsSwitched]);
 
     const handleCompare = () => {
         context.compare(
-            state.sourceEndpointInfo,
-            state.targetEndpointInfo,
-            state.defaultDeploymentOptionsResult.defaultDeploymentOptions,
+            sourceEndpointInfo,
+            targetEndpointInfo,
+            defaultDeploymentOptionsResult.defaultDeploymentOptions,
         );
     };
 
@@ -56,15 +61,15 @@ const CompareActionBar = (props: Props) => {
 
     const handleGenerateScript = () => {
         context.generateScript(
-            state.targetEndpointInfo.serverName,
-            state.targetEndpointInfo.databaseName,
+            targetEndpointInfo.serverName,
+            targetEndpointInfo.databaseName,
         );
     };
 
     const handlePublishChanges = () => {
         context.publishChanges(
-            state.targetEndpointInfo.serverName,
-            state.targetEndpointInfo.databaseName,
+            targetEndpointInfo.serverName,
+            targetEndpointInfo.databaseName,
         );
     };
 
@@ -73,7 +78,7 @@ const CompareActionBar = (props: Props) => {
     };
 
     const handleSwitchEndpoints = () => {
-        context.switchEndpoints(state.targetEndpointInfo, state.sourceEndpointInfo);
+        context.switchEndpoints(targetEndpointInfo, sourceEndpointInfo);
     };
 
     const handleOpenScmp = () => {
@@ -92,23 +97,23 @@ const CompareActionBar = (props: Props) => {
     };
 
     const hasIncludedDiffs = (): boolean => {
-        return state.schemaCompareResult.differences.some((diff) => diff.included);
+        return schemaCompareResult.differences.some((diff) => diff.included);
     };
 
     const disableGenerateScriptButton = (): boolean => {
         if (
             !(
-                state.targetEndpointInfo &&
-                Number(state.targetEndpointInfo.endpointType) ===
+                targetEndpointInfo &&
+                Number(targetEndpointInfo.endpointType) ===
                     SchemaCompareEndpointType.Database
             )
         ) {
             return true;
-        } else if (state.isComparisonInProgress) {
+        } else if (isComparisonInProgress) {
             return true;
         } else if (
-            state.schemaCompareResult === undefined ||
-            state.schemaCompareResult.differences.length === 0
+            schemaCompareResult === undefined ||
+            schemaCompareResult.differences.length === 0
         ) {
             return true;
         }
@@ -122,10 +127,10 @@ const CompareActionBar = (props: Props) => {
 
     const disableApplyButton = (): boolean => {
         if (
-            state.schemaCompareResult &&
-            state.schemaCompareResult.differences &&
-            state.schemaCompareResult.differences.length > 0 &&
-            Number(state.targetEndpointInfo.endpointType) !==
+            schemaCompareResult &&
+            schemaCompareResult.differences &&
+            schemaCompareResult.differences.length > 0 &&
+            Number(targetEndpointInfo.endpointType) !==
                 SchemaCompareEndpointType.Dacpac
         ) {
             if (!hasIncludedDiffs()) {
@@ -146,9 +151,9 @@ const CompareActionBar = (props: Props) => {
                 icon={<ColumnDoubleCompareRegular />}
                 onClick={handleCompare}
                 disabled={
-                    isEndpointEmpty(state.sourceEndpointInfo) ||
-                    isEndpointEmpty(state.targetEndpointInfo) ||
-                    state.isComparisonInProgress
+                    isEndpointEmpty(sourceEndpointInfo) ||
+                    isEndpointEmpty(targetEndpointInfo) ||
+                    isComparisonInProgress
                 }>
                 {loc.schemaCompare.compare}
             </ToolbarButton>
@@ -157,7 +162,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.stop}
                 icon={<StopFilled />}
                 onClick={handleStop}
-                disabled={!state.isComparisonInProgress}>
+                disabled={!isComparisonInProgress}>
                 {loc.schemaCompare.stop}
             </ToolbarButton>
             <ToolbarButton
@@ -173,7 +178,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
-                disabled={state.isComparisonInProgress || disableApplyButton()}>
+                disabled={isComparisonInProgress || disableApplyButton()}>
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
@@ -182,9 +187,9 @@ const CompareActionBar = (props: Props) => {
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
                 disabled={
-                    state.isComparisonInProgress ||
-                    isEndpointEmpty(state.sourceEndpointInfo) ||
-                    isEndpointEmpty(state.targetEndpointInfo)
+                    isComparisonInProgress ||
+                    isEndpointEmpty(sourceEndpointInfo) ||
+                    isEndpointEmpty(targetEndpointInfo)
                 }>
                 {loc.schemaCompare.options}
             </ToolbarButton>
@@ -195,9 +200,9 @@ const CompareActionBar = (props: Props) => {
                 icon={<ArrowSwapFilled />}
                 onClick={handleSwitchEndpoints}
                 disabled={
-                    state.isComparisonInProgress ||
-                    (isEndpointEmpty(state.sourceEndpointInfo) &&
-                        isEndpointEmpty(state.targetEndpointInfo))
+                    isComparisonInProgress ||
+                    (isEndpointEmpty(sourceEndpointInfo) &&
+                        isEndpointEmpty(targetEndpointInfo))
                 }>
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>
@@ -207,7 +212,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                 icon={<DocumentArrowUpRegular />}
                 onClick={handleOpenScmp}
-                disabled={state.isComparisonInProgress}>
+                disabled={isComparisonInProgress}>
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>
             <ToolbarButton
@@ -216,9 +221,9 @@ const CompareActionBar = (props: Props) => {
                 icon={<SaveRegular />}
                 onClick={handleSaveScmp}
                 disabled={
-                    state.isComparisonInProgress ||
-                    isEndpointEmpty(state.sourceEndpointInfo) ||
-                    isEndpointEmpty(state.targetEndpointInfo)
+                    isComparisonInProgress ||
+                    isEndpointEmpty(sourceEndpointInfo) ||
+                    isEndpointEmpty(targetEndpointInfo)
                 }>
                 {loc.schemaCompare.saveScmpFile}
             </ToolbarButton>

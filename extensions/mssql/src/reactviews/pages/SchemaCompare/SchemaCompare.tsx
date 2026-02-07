@@ -41,7 +41,8 @@ const useStyles = makeStyles({
 export const SchemaComparePage = () => {
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
-    const state = useSchemaCompareSelector((s) => s);
+    const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+    const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
@@ -78,9 +79,9 @@ export const SchemaComparePage = () => {
 
     const showMessage = () => {
         if (
-            !state.schemaCompareResult ||
-            state.schemaCompareResult.areEqual ||
-            state.isComparisonInProgress
+            !schemaCompareResult ||
+            schemaCompareResult.areEqual ||
+            isComparisonInProgress
         ) {
             return true;
         }
