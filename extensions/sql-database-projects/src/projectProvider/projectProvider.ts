@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ThemedIconPath } from 'azdata';
 import * as dataworkspace from 'dataworkspace';
 import * as sqldbproj from 'sqldbproj';
 import * as vscode from 'vscode';
@@ -14,7 +13,6 @@ import { SqlDatabaseProjectTreeViewProvider } from '../controllers/databaseProje
 import { ProjectsController } from '../controllers/projectController';
 import { Project } from '../models/project';
 import { BaseProjectTreeItem } from '../models/tree/baseTreeItem';
-import { getDockerImageSpec } from '../models/deploy/deployService';
 
 export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvider, sqldbproj.IExtension {
 	constructor(private projectController: ProjectsController) {
@@ -145,7 +143,7 @@ export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvide
 		const publishAction: dataworkspace.IProjectAction = {
 			id: constants.publishAction,
 			icon: IconPathHelper.publish,
-			run: (treeItem: dataworkspace.WorkspaceTreeItem) => this.projectController.publishProject(treeItem)
+			run: (treeItem: dataworkspace.WorkspaceTreeItem) => this.projectController.publishProjectDialog(treeItem)
 		};
 
 		const changeTargetPlatformAction: dataworkspace.IProjectAction = {
@@ -160,35 +158,11 @@ export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvide
 	}
 
 	/**
-	 * Gets the data to be displayed in the project dashboard
+	 * Gets the data to be displayed in the project dashboard.
+	 * Dashboard is not used in VS Code, so this returns empty.
 	 */
-	public getDashboardComponents(projectFile: string): dataworkspace.IDashboardTable[] {
-		const width = 200;
-		const publishInfo: dataworkspace.IDashboardTable = {
-			name: constants.PublishHistory,
-			columns: [{ displayName: constants.Status, width: width, type: 'icon' },
-			{ displayName: constants.Date, width: width },
-			{ displayName: constants.Time, width: width },
-			{ displayName: constants.TargetPlatform, width: width },
-			{ displayName: constants.TargetServer, width: width },
-			{ displayName: constants.TargetDatabase, width: width }],
-			data: this.projectController.getDashboardPublishData(projectFile)
-		};
-
-		const buildInfo: dataworkspace.IDashboardTable = {
-			name: constants.BuildHistory,
-			columns: [{ displayName: constants.Status, width: width, type: 'icon' },
-			{ displayName: constants.Date, width: width },
-			{ displayName: constants.Time, width: width },
-			{ displayName: constants.TargetPlatform, width: width }],
-			data: this.projectController.getDashboardBuildData(projectFile)
-		};
-
-		return [publishInfo, buildInfo];
-	}
-
-	public get image(): ThemedIconPath {
-		return IconPathHelper.dashboardSqlProj;
+	public getDashboardComponents(_projectFile: string): dataworkspace.IDashboardTable[] {
+		return [];
 	}
 
 	public openSqlNewProjectDialog(allowedTargetPlatforms?: sqldbproj.SqlTargetPlatform[]): Promise<vscode.Uri | undefined> {
@@ -220,11 +194,4 @@ export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvide
 		return this.projectController.generateProjectFromOpenApiSpec(options);
 	}
 
-	public getDockerImageSpec(projectName: string, baseImage: string, imageUniqueId?: string): sqldbproj.DockerImageSpec {
-		return getDockerImageSpec(projectName, baseImage, imageUniqueId);
-	}
-
-	public cleanDockerObjectsIfNeeded(imageLabel: string): Promise<void> {
-		return this.projectController.deployService.cleanDockerObjectsIfNeeded(imageLabel);
-	}
 }

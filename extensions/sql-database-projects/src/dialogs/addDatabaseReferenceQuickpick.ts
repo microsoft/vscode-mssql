@@ -11,7 +11,6 @@ import { DbServerValues, populateResultWithVars } from './utils';
 import { AddDatabaseReferenceSettings } from '../controllers/projectController';
 import { IDacpacReferenceSettings, INugetPackageReferenceSettings, IProjectReferenceSettings, ISystemDatabaseReferenceSettings } from '../models/IDatabaseReferenceSettings';
 import { Project } from '../models/project';
-import { getSystemDbOptions, promptDacpacLocation } from './addDatabaseReferenceDialog';
 import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../common/telemetry';
 import { ProjectType, SystemDbReferenceType } from 'vscode-mssql';
 
@@ -404,4 +403,32 @@ async function promptReferenceType(project: Project): Promise<SystemDbReferenceT
 	}
 
 	return referenceType;
+}
+
+/**
+ * Gets the available system database options for a project based on its target version
+ */
+function getSystemDbOptions(project: Project): string[] {
+	const projectTargetVersion = project.getProjectTargetVersion().toLowerCase();
+	if (projectTargetVersion.includes('azure') || projectTargetVersion.includes('dw')) {
+		return [constants.master];
+	}
+	return [constants.master, constants.msdb];
+}
+
+/**
+ * Prompts the user to select a dacpac file
+ */
+async function promptDacpacLocation(): Promise<vscode.Uri[] | undefined> {
+	return await vscode.window.showOpenDialog(
+		{
+			canSelectFiles: true,
+			canSelectFolders: false,
+			canSelectMany: false,
+			defaultUri: vscode.workspace.workspaceFolders ? (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[])[0].uri : undefined,
+			openLabel: constants.selectString,
+			title: constants.selectDacpac,
+			filters: { [constants.dacpacFiles]: ['dacpac'] },
+		}
+	);
 }

@@ -63,20 +63,6 @@ declare module 'sqldbproj' {
 		 * @param options The additional options to use
 		 */
 		addItemPrompt(project: ISqlProject, relativeFilePath: string, options?: AddItemOptions): Promise<void>;
-
-		/**
-		 * Gets the information required to start a docker container for publishing to
-		 * @param projectName The name of the project being published
-		 * @param baseImage The base docker image being deployed
-		 * @param imageUniqueId The unique ID to use in the name, default is a random GUID
-		 */
-		getDockerImageSpec(projectName: string, baseImage: string, imageUniqueId?: string): DockerImageSpec;
-
-		/**
-		 * Checks if any containers with the specified label already exist, and if they do prompt the user whether they want to clean them up
-		 * @param imageLabel The label of the container to search for
-		 */
-		cleanDockerObjectsIfNeeded(imageLabel: string): Promise<void>;
 	}
 
 	export interface AddItemOptions {
@@ -337,35 +323,5 @@ declare module 'sqldbproj' {
 		sqlDwServerless = 'Azure Synapse Serverless SQL Pool',
 		sqlDwUnified = 'Synapse Data Warehouse in Microsoft Fabric',
 		sqlDbFabric = 'SQL database in Fabric (preview)'
-	}
-
-	export interface ISqlConnectionProperties {
-		tenantId?: string,
-		accountId?: string
-		serverName: string,
-		userName: string,
-		password: string,
-		port: number,
-		dbName: string,
-		profileName?: string,
-		connectionRetryTimeout?: number
-	}
-
-	/**
-	 * Information for deploying a new docker container
-	 */
-	interface DockerImageSpec {
-		/**
-		 * The label to apply to the container
-		 */
-		label: string;
-		/**
-		 * The full name to give the container
-		 */
-		containerName: string;
-		/**
-		 * The tag to apply to the container
-		 */
-		tag: string
 	}
 }

@@ -9,7 +9,6 @@ import { BaseProjectTreeItem } from './baseTreeItem';
 import * as fileTree from './fileFolderTreeItem';
 import { Project } from '../project';
 import * as utils from '../../common/utils';
-import * as mssql from 'mssql';
 import * as vscodeMssql from 'vscode-mssql';
 import { DatabaseReferencesTreeItem } from './databaseReferencesTreeItem';
 import { DatabaseProjectItemType, RelativeOuterPath, ExternalStreamingJob, sqlprojExtension, CollapseProjectNodesKey, errorPrefix } from '../../common/constants';
@@ -61,12 +60,7 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
 	}
 
 	public get type(): DatabaseProjectItemType {
-		let projectType;
-		if (utils.getAzdataApi()) {
-			projectType = this.project.sqlProjStyle === mssql.ProjectType.SdkStyle ? DatabaseProjectItemType.project : DatabaseProjectItemType.legacyProject;
-		} else {
-			projectType = this.project.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? DatabaseProjectItemType.project : DatabaseProjectItemType.legacyProject;
-		}
+		const projectType = this.project.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? DatabaseProjectItemType.project : DatabaseProjectItemType.legacyProject;
 		return projectType;
 	}
 

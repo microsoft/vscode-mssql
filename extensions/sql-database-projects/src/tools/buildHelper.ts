@@ -13,7 +13,6 @@ import * as constants from '../common/constants';
 import { HttpClient } from '../common/httpClient';
 import { DBProjectConfigurationKey } from './netcoreTool';
 import { ProjectType } from '../common/typeHelper';
-import * as mssql from 'mssql';
 import * as vscodeMssql from 'vscode-mssql';
 
 const buildDirectory = 'BuildDirectory';
@@ -25,7 +24,7 @@ export class BuildHelper {
 	private initialized: boolean = false;
 
 	constructor() {
-		const extName = utils.getAzdataApi() ? sqldbproj.extension.name : sqldbproj.extension.vsCodeName;
+		const extName = sqldbproj.extension.vsCodeName;
 		this.extensionDir = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
 		this.extensionBuildDir = path.join(this.extensionDir, buildDirectory);
 	}
@@ -193,9 +192,7 @@ export class BuildHelper {
 		];
 
 		// Adding NETCoreTargetsPath only for non-SDK style projects
-		const isSdkStyle = utils.getAzdataApi()
-			? sqlProjStyle === mssql.ProjectType.SdkStyle
-			: sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
+		const isSdkStyle = sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
 
 		if (!isSdkStyle) {
 			args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);

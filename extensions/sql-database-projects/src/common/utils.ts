@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as azdataType from 'azdata';
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as constants from './constants';
 import * as path from 'path';
 import * as glob from 'fast-glob';
 import * as dataworkspace from 'dataworkspace';
-import * as mssql from 'mssql';
 import * as vscodeMssql from 'vscode-mssql';
 import * as fse from 'fs-extra';
 import * as which from 'which';
@@ -18,11 +16,6 @@ import { promises as fs } from 'fs';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
 import { SystemDatabase } from './typeHelper';
 import { DeploymentScenario } from './enums';
-
-export interface ValidationResult {
-	errorMessage: string;
-	validated: boolean
-}
 
 /**
  * Consolidates on the error message string
@@ -168,7 +161,7 @@ export function convertSlashesForSqlProj(filePath: string): string {
  * @returns
  */
 export function systemDatabaseToString(systemDb: SystemDatabase): string {
-	if (systemDb === mssql.SystemDatabase.Master || systemDb === vscodeMssql.SystemDatabase.Master) {
+	if (systemDb === vscodeMssql.SystemDatabase.Master) {
 		return constants.master;
 	} else {
 		return constants.msdb;
@@ -176,11 +169,7 @@ export function systemDatabaseToString(systemDb: SystemDatabase): string {
 }
 
 export function getSystemDatabase(name: string): SystemDatabase {
-	if (getAzdataApi()) {
-		return name === constants.master ? mssql.SystemDatabase.Master : mssql.SystemDatabase.MSDB;
-	} else {
-		return name === constants.master ? vscodeMssql.SystemDatabase.Master : vscodeMssql.SystemDatabase.MSDB;
-	}
+	return name === constants.master ? vscodeMssql.SystemDatabase.Master : vscodeMssql.SystemDatabase.MSDB;
 }
 
 /**
@@ -302,46 +291,27 @@ export function getSqlProjectsInWorkspace(): Promise<vscode.Uri[]> {
 }
 
 export function getDataWorkspaceExtensionApi(): dataworkspace.IExtension {
-	const dataworkspaceExtName = getAzdataApi() ? dataworkspace.extension.name : dataworkspace.extension.vscodeName;
-	const extension = vscode.extensions.getExtension(dataworkspaceExtName)!;
+	const extension = vscode.extensions.getExtension(dataworkspace.extension.vscodeName)!;
 	return extension.exports;
 }
 
-export type IDacFxService = mssql.IDacFxService | vscodeMssql.IDacFxService;
-export type ISchemaCompareService = mssql.ISchemaCompareService | vscodeMssql.ISchemaCompareService;
-export type ISqlProjectsService = mssql.ISqlProjectsService | vscodeMssql.ISqlProjectsService;
+export type IDacFxService = vscodeMssql.IDacFxService;
+export type ISchemaCompareService = vscodeMssql.ISchemaCompareService;
+export type ISqlProjectsService = vscodeMssql.ISqlProjectsService;
 
 export async function getDacFxService(): Promise<IDacFxService> {
-	if (getAzdataApi()) {
-		const ext = vscode.extensions.getExtension(mssql.extension.name) as vscode.Extension<mssql.IExtension>;
-		const api = await ext.activate();
-		return api.dacFx;
-	} else {
-		const api = await getVscodeMssqlApi();
-		return api.dacFx;
-	}
+	const api = await getVscodeMssqlApi();
+	return api.dacFx;
 }
 
 export async function getSchemaCompareService(): Promise<ISchemaCompareService> {
-	if (getAzdataApi()) {
-		const ext = vscode.extensions.getExtension(mssql.extension.name) as vscode.Extension<mssql.IExtension>;
-		const api = await ext.activate();
-		return api.schemaCompare;
-	} else {
-		const api = await getVscodeMssqlApi();
-		return api.schemaCompare;
-	}
+	const api = await getVscodeMssqlApi();
+	return api.schemaCompare;
 }
 
 export async function getSqlProjectsService(): Promise<ISqlProjectsService> {
-	if (getAzdataApi()) {
-		const ext = vscode.extensions.getExtension(mssql.extension.name) as vscode.Extension<mssql.IExtension>;
-		const api = await ext.activate();
-		return api.sqlProjects;
-	} else {
-		const api = await getVscodeMssqlApi();
-		return api.sqlProjects;
-	}
+	const api = await getVscodeMssqlApi();
+	return api.sqlProjects;
 }
 
 export async function getVscodeMssqlApi(): Promise<vscodeMssql.IExtension> {
@@ -364,7 +334,7 @@ export async function defaultAzureAccountServiceFactory(): Promise<vscodeMssql.I
 /*
  * Returns the default deployment options from DacFx, filtered to appropriate options for the given project.
  */
-export async function getDefaultPublishDeploymentOptions(project: ISqlProject): Promise<mssql.DeploymentOptions | vscodeMssql.DeploymentOptions> {
+export async function getDefaultPublishDeploymentOptions(project: ISqlProject): Promise<vscodeMssql.DeploymentOptions> {
 	const dacFxService = await getDacFxService();
 	const result = await (dacFxService as vscodeMssql.IDacFxService).getDeploymentOptions(DeploymentScenario.Deployment as unknown as vscodeMssql.DeploymentScenario);
 	// this option needs to be true for same database references validation to work
@@ -450,68 +420,6 @@ export function timeConversion(duration: number): string {
 	return portions.join(', ');
 }
 
-// Try to load the azdata API - but gracefully handle the failure in case we're running
-// in a context where the API doesn't exist (such as VS Code)
-let azdataApi: typeof azdataType | undefined = undefined;
-try {
-	azdataApi = require('azdata');
-	if (!azdataApi?.version) {
-		// webpacking makes the require return an empty object instead of throwing an error so make sure we clear the var
-		azdataApi = undefined;
-	}
-} catch {
-	// no-op
-}
-
-/**
- * Gets the azdata API if it's available in the context this extension is running in.
- * @returns The azdata API if it's available
- */
-export function getAzdataApi(): typeof azdataType | undefined {
-	return azdataApi;
-}
-
-export async function createFolderIfNotExist(folderPath: string): Promise<void> {
-	try {
-		await fse.mkdir(folderPath);
-	} catch {
-		// Ignore if failed
-	}
-}
-
-export async function retry<T>(
-	name: string,
-	attempt: () => Promise<T>,
-	verify: (result: T) => Promise<ValidationResult>,
-	formatResult: (result: T) => Promise<string>,
-	outputChannel: vscode.OutputChannel,
-	numberOfAttempts: number = 10,
-	waitInSeconds: number = 2
-): Promise<T | undefined> {
-	for (let count = 0; count < numberOfAttempts; count++) {
-		outputChannel.appendLine(constants.retryWaitMessage(waitInSeconds, name));
-		await new Promise(c => setTimeout(c, waitInSeconds * 1000));
-		outputChannel.appendLine(constants.retryRunMessage(count, numberOfAttempts, name));
-
-		try {
-			let result = await attempt();
-			const validationResult = await verify(result);
-			const formattedResult = await formatResult(result);
-			if (validationResult.validated) {
-				outputChannel.appendLine(constants.retrySucceedMessage(name, formattedResult));
-				return result;
-			} else {
-				outputChannel.appendLine(constants.retryFailedMessage(name, formattedResult, validationResult.errorMessage));
-			}
-
-		} catch (err) {
-			outputChannel.appendLine(constants.retryMessage(name, getErrorMessage(err)));
-		}
-	}
-
-	return undefined;
-}
-
 /**
  * Detects whether the specified command-line command is available on the current machine
  */
@@ -527,43 +435,6 @@ export async function detectCommandInstallation(command: string): Promise<boolea
 	}
 
 	return false;
-}
-
-export function validateSqlServerPortNumber(port: string | undefined): boolean {
-	if (!port) {
-		return false;
-	}
-	const valueAsNum = +port;
-	return !isNaN(valueAsNum) && valueAsNum > 0 && valueAsNum < 65535;
-}
-
-export function isEmptyString(input: string | undefined): boolean {
-	return input === undefined || input === '';
-}
-
-export function isValidSQLPassword(password: string, userName: string = 'sa'): boolean {
-	// Validate SQL Server password
-	const containsUserName = password && userName !== undefined && password.toUpperCase().includes(userName.toUpperCase());
-	// Instead of using one RegEx, I am separating it to make it more readable.
-	const hasUpperCase = /[A-Z]/.test(password) ? 1 : 0;
-	const hasLowerCase = /[a-z]/.test(password) ? 1 : 0;
-	const hasNumbers = /\d/.test(password) ? 1 : 0;
-	const hasNonAlphas = /\W/.test(password) ? 1 : 0;
-	return !containsUserName && password.length >= 8 && password.length <= 128 && (hasUpperCase + hasLowerCase + hasNumbers + hasNonAlphas >= 3);
-}
-
-export async function showErrorMessageWithOutputChannel(errorMessageFunc: (error: string) => string, error: any, outputChannel: vscode.OutputChannel): Promise<void> {
-	const result = await vscode.window.showErrorMessage(errorMessageFunc(getErrorMessage(error)), constants.checkoutOutputMessage);
-	if (result === constants.checkoutOutputMessage) {
-		outputChannel.show();
-	}
-}
-
-export async function showInfoMessageWithOutputChannel(message: string, outputChannel: vscode.OutputChannel): Promise<void> {
-	const result = await vscode.window.showInformationMessage(message, constants.checkoutOutputMessage);
-	if (result === constants.checkoutOutputMessage) {
-		outputChannel.show();
-	}
 }
 
 /**
@@ -665,116 +536,29 @@ export function getFoldersAlongPath(startFolder: string, endFolder: string): str
 }
 
 /**
- * Returns SQL version number from docker image name which is in the beginning of the image name
- * @param imageName docker image name
- * @returns SQL server version
- */
-export function findSqlVersionInImageName(imageName: string): number | undefined {
-
-	// Regex to find the version in the beginning of the image name
-	// e.g. 2017-CU16-ubuntu, 2019-latest
-	const regex = new RegExp('^([0-9]+)[-].+$');
-
-	if (regex.test(imageName)) {
-		const finds = regex.exec(imageName);
-		if (finds) {
-
-			// 0 is the full match and 1 is the number with pattern inside the first ()
-			return +finds[1];
-		}
-	}
-	return undefined;
-}
-
-/**
- * Returns SQL version number from target platform name
- * @param targetPlatform target platform
- * @returns SQL server version
- */
-export function findSqlVersionInTargetPlatform(targetPlatform: string): number | undefined {
-
-	// Regex to find the version in target platform
-	// e.g. SQL Server 2019
-	const regex = new RegExp('([0-9]+)$');
-
-	if (regex.test(targetPlatform)) {
-		const finds = regex.exec(targetPlatform);
-		if (finds) {
-
-			// 0 is the full match and 1 is the number with pattern inside the first ()
-			return +finds[1];
-		}
-	}
-	return undefined;
-}
-
-export function throwIfNotConnected(connectionResult: azdataType.ConnectionResult): void {
-	if (!connectionResult.connected) {
-		throw new Error(`${connectionResult.errorMessage} (${connectionResult.errorCode})`);
-	}
-}
-
-/**
- * Checks whether or not the provided file contains a create table statement
- * @param fullPath full path to file to check
- * @param projectTargetVersion target version of sql project containing this file
- * @returns true if file includes a create table statement, false if it doesn't
- */
-export async function fileContainsCreateTableStatement(fullPath: string, projectTargetVersion: string): Promise<boolean> {
-	let containsCreateTableStatement = false;
-
-	if (getAzdataApi() && await exists(fullPath)) {
-		const dacFxService = await getDacFxService() as mssql.IDacFxService;
-		try {
-			const result = await dacFxService.parseTSqlScript(fullPath, projectTargetVersion);
-			containsCreateTableStatement = result.containsCreateTableStatement;
-		} catch (e) {
-			console.error(getErrorMessage(e));
-		}
-	}
-
-	return containsCreateTableStatement;
-}
-
-/**
  * Gets target platform based on the server edition/version
  * @param serverInfo server information
  * @param serverUrl optional server URL, only used to check if it's a known domain for Microsoft Fabric DW
  * @returns target platform for the database project
  */
-export async function getTargetPlatformFromServerVersion(serverInfo: azdataType.ServerInfo | vscodeMssql.IServerInfo, serverUrl?: string): Promise<SqlTargetPlatform | undefined> {
+export async function getTargetPlatformFromServerVersion(serverInfo: vscodeMssql.IServerInfo, serverUrl?: string): Promise<SqlTargetPlatform | undefined> {
 	const isCloud = serverInfo.isCloud;
 
 	let targetPlatform;
 	if (isCloud) {
 		const engineEdition = serverInfo.engineEditionId;
-		const azdataApi = getAzdataApi();
-		if (azdataApi) {
-			if (isSqlDwUnifiedServer(serverUrl)) {
-				targetPlatform = SqlTargetPlatform.sqlDwUnified;
-			} else if (engineEdition === azdataApi.DatabaseEngineEdition.SqlOnDemand) {
-				targetPlatform = SqlTargetPlatform.sqlDwServerless;
-			} else if (engineEdition === azdataApi.DatabaseEngineEdition.SqlDbFabric) {
-				targetPlatform = SqlTargetPlatform.sqlDbFabric;
-			} else if (engineEdition === azdataApi.DatabaseEngineEdition.SqlDataWarehouse) {
-				targetPlatform = SqlTargetPlatform.sqlDW;
-			} else {
-				targetPlatform = SqlTargetPlatform.sqlAzure;
-			}
+		if (isSqlDwUnifiedServer(serverUrl)) {
+			targetPlatform = SqlTargetPlatform.sqlDwUnified;
+		} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlOnDemand) {
+			targetPlatform = SqlTargetPlatform.sqlDwServerless;
+		} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
+			targetPlatform = SqlTargetPlatform.sqlDbFabric;
+		} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDataWarehouse) {
+			targetPlatform = SqlTargetPlatform.sqlDW;
 		} else {
-			if (isSqlDwUnifiedServer(serverUrl)) {
-				targetPlatform = SqlTargetPlatform.sqlDwUnified;
-			} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlOnDemand) {
-				targetPlatform = SqlTargetPlatform.sqlDwServerless;
-			} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
-				targetPlatform = SqlTargetPlatform.sqlDbFabric;
-			} else if (engineEdition === vscodeMssql.DatabaseEngineEdition.SqlDataWarehouse) {
-				targetPlatform = SqlTargetPlatform.sqlDW;
-			} else {
-				targetPlatform = SqlTargetPlatform.sqlAzure;
-			}
+			targetPlatform = SqlTargetPlatform.sqlAzure;
 		}
-	} else if (serverInfo.engineEditionId === vscodeMssql.DatabaseEngineEdition.SqlDbFabric || serverInfo.engineEditionId === getAzdataApi()?.DatabaseEngineEdition.SqlDbFabric) {
+	} else if (serverInfo.engineEditionId === vscodeMssql.DatabaseEngineEdition.SqlDbFabric) {
 		// Temporary workaround for https://github.com/microsoft/azuredatastudio/issues/26260
 		// SqlDbFabric is not grouped into isCloud properly, remove this condition when it is fixed in SqlToolsService
 		targetPlatform = SqlTargetPlatform.sqlDbFabric;
@@ -868,7 +652,7 @@ export async function ensureFileExists(absoluteFilePath: string, contents?: stri
 	}
 }
 
-export function throwIfFailed(result: azdataType.ResultStatus | vscodeMssql.ResultStatus): void {
+export function throwIfFailed(result: vscodeMssql.ResultStatus): void {
 	if (!result.success) {
 		throw new Error(constants.errorPrefix(result.errorMessage));
 	}

@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as azdataType from 'azdata';
 import * as vscode from 'vscode';
 import * as vscodeMssql from 'vscode-mssql';
-import * as mssql from 'mssql';
 import * as templates from '../templates/templates';
 import * as path from 'path';
 
@@ -16,10 +14,8 @@ import { IconPathHelper } from '../common/iconHelper';
 import { WorkspaceTreeItem } from 'dataworkspace';
 import * as constants from '../common/constants';
 import { SqlDatabaseProjectProvider } from '../projectProvider/projectProvider';
-import { EntryType, GenerateProjectFromOpenApiSpecOptions, ItemType } from 'sqldbproj';
-import { FileNode, TableFileNode } from '../models/tree/fileFolderTreeItem';
-import { getAzdataApi } from '../common/utils';
-import { Project } from '../models/project';
+import { GenerateProjectFromOpenApiSpecOptions, ItemType } from 'sqldbproj';
+import { FileNode } from '../models/tree/fileFolderTreeItem';
 
 /**
  * The main controller class that initializes the extension
@@ -63,12 +59,11 @@ export default class MainController implements vscode.Disposable {
 
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.build', async (node: WorkspaceTreeItem) => { return this.projectsController.buildProject(node, false); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.buildWithCodeAnalysis', async (node: WorkspaceTreeItem) => { return this.projectsController.buildProject(node, true); }));
-		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.publish', async (node: WorkspaceTreeItem) => { return this.projectsController.publishProject(node); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.publishDialog', async (node: WorkspaceTreeItem) => { return this.projectsController.publishProjectDialog(node); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.schemaCompare', async (node: WorkspaceTreeItem) => { return this.projectsController.schemaCompare(node); }));
-		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.schemaComparePublishProjectChanges', async (operationId: string, projectFilePath: string, folderStructure: mssql.ExtractTarget): Promise<mssql.SchemaComparePublishProjectResult> => { return await this.projectsController.schemaComparePublishProjectChanges(operationId, projectFilePath, folderStructure); }));
-		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.updateProjectFromDatabase', async (node: azdataType.IConnectionProfile | vscodeMssql.ITreeNodeInfo | WorkspaceTreeItem) => { await this.projectsController.updateProjectFromDatabase(node); }));
-		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.createProjectFromDatabase', async (context: azdataType.IConnectionProfile | vscodeMssql.ITreeNodeInfo | undefined) => { return this.projectsController.createProjectFromDatabase(context); }));
+		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.schemaComparePublishProjectChanges', async (operationId: string, projectFilePath: string, folderStructure: vscodeMssql.ExtractTarget): Promise<vscodeMssql.SchemaComparePublishProjectResult> => { return await this.projectsController.schemaComparePublishProjectChanges(operationId, projectFilePath, folderStructure); }));
+		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.updateProjectFromDatabase', async (node: vscodeMssql.ITreeNodeInfo | WorkspaceTreeItem) => { await this.projectsController.updateProjectFromDatabase(node); }));
+		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.createProjectFromDatabase', async (context: vscodeMssql.ITreeNodeInfo | undefined) => { return this.projectsController.createProjectFromDatabase(context); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.generateProjectFromOpenApiSpec', async (options?: GenerateProjectFromOpenApiSpecOptions) => { return this.projectsController.generateProjectFromOpenApiSpec(options); }));
 
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.newScript', async (node: WorkspaceTreeItem) => { return this.projectsController.addItemPromptFromNode(node, ItemType.script); }));
@@ -94,30 +89,6 @@ export default class MainController implements vscode.Disposable {
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.changeTargetPlatform', async (node: WorkspaceTreeItem) => { return this.projectsController.changeTargetPlatform(node); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.validateExternalStreamingJob', async (node: WorkspaceTreeItem) => { return this.projectsController.validateExternalStreamingJob(node); }));
 		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.openFileWithWatcher', async (fileSystemUri: vscode.Uri, node: FileNode) => { return this.projectsController.openFileWithWatcher(fileSystemUri, node); }));
-		this.context.subscriptions.push(vscode.commands.registerCommand('sqlDatabaseProjects.openInDesigner', async (node: WorkspaceTreeItem) => {
-			if (node?.element instanceof TableFileNode) {
-				const tableFileNode = node.element as TableFileNode;
-
-				const projectPath = tableFileNode.projectFileUri.fsPath;
-				const project = await Project.openProject(projectPath);
-				const targetVersion = project.getProjectTargetVersion();
-				const filePath = tableFileNode.fileSystemUri.fsPath;
-
-				await getAzdataApi()!.designers.openTableDesigner('MSSQL', {
-					title: tableFileNode.friendlyName,
-					tooltip: `${projectPath} - ${tableFileNode.friendlyName}`,
-					id: filePath,
-					isNewTable: false,
-					tableScriptPath: filePath,
-					projectFilePath: projectPath,
-					allScripts: project.sqlObjectScripts.filter(entry => entry.type === EntryType.File && path.extname(entry.fsUri.fsPath).toLowerCase() === constants.sqlFileExtension)
-						.map(entry => entry.fsUri.fsPath),
-					targetVersion: targetVersion
-				}, {
-					'ProjectTargetVersion': targetVersion
-				});
-			}
-		}));
 
 		IconPathHelper.setExtensionContext(this.extensionContext);
 
