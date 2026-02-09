@@ -5,6 +5,7 @@
 
 import { type ReactNode } from "react";
 import {
+    Button,
     FlatTree,
     makeStyles,
     mergeClasses,
@@ -17,6 +18,7 @@ import {
 } from "@fluentui/react-components";
 import {
     ArrowUndo16Regular,
+    Checkmark16Regular,
     Column20Regular,
     Eye16Regular,
     Key20Regular,
@@ -43,10 +45,15 @@ type SchemaDesignerChangesTreeProps = {
         revertTooltip: string;
         revert: string;
         reveal: string;
+        keepTooltip?: string;
+        keep?: string;
     };
     onReveal: (change: SchemaChange) => void;
     onRevert: (change: SchemaChange) => void;
     getCanRevert: (change: SchemaChange) => { canRevert: boolean; reason?: string };
+    onKeep?: (change: SchemaChange) => void;
+    getCanKeep?: (change: SchemaChange) => { canKeep: boolean; reason?: string };
+    activeChangeId?: string;
 };
 
 const useStyles = makeStyles({
@@ -85,6 +92,10 @@ const useStyles = makeStyles({
     changeItemLayout: {
         // Default Fluent tree indentation is wide for child rows; use a tighter step for change items.
         paddingLeft: "calc((var(--fluent-TreeItem--level, 1) - 1) * 25px)",
+    },
+    activeChangeItemLayout: {
+        backgroundColor:
+            "color-mix(in srgb, var(--vscode-list-activeSelectionBackground) 18%, transparent)",
     },
     iconContainer: {
         display: "flex",
@@ -279,6 +290,9 @@ export const SchemaDesignerChangesTree = ({
     onReveal,
     onRevert,
     getCanRevert,
+    onKeep,
+    getCanKeep,
+    activeChangeId,
 }: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
 
@@ -421,12 +435,15 @@ export const SchemaDesignerChangesTree = ({
                         const change = item.change;
                         const actionBadge = getActionBadge(change.action);
                         const revertInfo = getCanRevert(change);
+                        const keepInfo = getCanKeep ? getCanKeep(change) : { canKeep: true };
                         return (
                             <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                 <TreeItemLayout
                                     className={mergeClasses(
                                         classes.treeItemLayout,
                                         classes.changeItemLayout,
+                                        change.id === activeChangeId &&
+                                            classes.activeChangeItemLayout,
                                     )}
                                     iconBefore={
                                         <span
@@ -452,6 +469,27 @@ export const SchemaDesignerChangesTree = ({
                                                     }}
                                                 />
                                             </Tooltip>
+                                            {onKeep && (
+                                                <Tooltip
+                                                    content={
+                                                        keepInfo.canKeep
+                                                            ? (loc.keepTooltip ?? "Keep")
+                                                            : (keepInfo.reason ?? "")
+                                                    }
+                                                    relationship="label">
+                                                    <Button
+                                                        appearance="primary"
+                                                        size="small"
+                                                        aria-label={loc.keep ?? "Keep"}
+                                                        icon={<Checkmark16Regular />}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onKeep(change);
+                                                        }}
+                                                        disabled={!keepInfo.canKeep}
+                                                    />
+                                                </Tooltip>
+                                            )}
                                             <Tooltip
                                                 content={
                                                     revertInfo.canRevert

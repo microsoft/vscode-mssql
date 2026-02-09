@@ -6,6 +6,8 @@
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { TypedEventEmitter } from "../../common/eventEmitter";
 
+export type SchemaDesignerChangesPanelTab = "baseline" | "pendingAi";
+
 export type MyEvents = {
     getScript: () => void;
     refreshFlowState: () => void;
@@ -13,6 +15,9 @@ export type MyEvents = {
     clearEdgeSelection: () => void;
     openCodeDrawer: () => void;
     toggleChangesPanel: () => void;
+    openChangesPanel: (tab?: SchemaDesignerChangesPanelTab) => void;
+    setActivePendingAiChange: (changeId: string | undefined) => void;
+    activePendingAiChangeUpdated: (changeId: string | undefined) => void;
     editTable: (
         table: SchemaDesigner.Table,
         schema: SchemaDesigner.Schema,

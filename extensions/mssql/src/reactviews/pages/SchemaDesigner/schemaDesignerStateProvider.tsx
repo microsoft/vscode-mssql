@@ -12,7 +12,7 @@ import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
-import eventBus from "./schemaDesignerEvents";
+import eventBus, { SchemaDesignerChangesPanelTab } from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
     registerSchemaDesignerGetSchemaStateHandler,
@@ -65,6 +65,17 @@ import {
 } from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
+import {
+    flattenPendingAiItems,
+    mergePendingAiTableGroups,
+    toAiLedgerItemKey,
+} from "./aiLedger/ledgerUtils";
+import {
+    AiLedgerApplyResult,
+    AiLedgerOperation,
+    PendingAiItem,
+    PendingAiTableGroup,
+} from "./aiLedger/operations";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -109,6 +120,8 @@ export interface SchemaDesignerContextProps
     setIsExporting: (value: boolean) => void;
     isChangesPanelVisible: boolean;
     setIsChangesPanelVisible: (value: boolean) => void;
+    changesPanelTab: SchemaDesignerChangesPanelTab;
+    setChangesPanelTab: (value: SchemaDesignerChangesPanelTab) => void;
     showChangesHighlight: boolean;
     setShowChangesHighlight: (value: boolean) => void;
     newTableIds: Set<string>;
@@ -121,6 +134,13 @@ export interface SchemaDesignerContextProps
     deletedForeignKeyEdges: Edge<SchemaDesigner.ForeignKey>[];
     baselineColumnOrderByTable: Map<string, string[]>;
     deletedTableNodes: Node<SchemaDesigner.Table>[];
+    aiLedger: PendingAiTableGroup[];
+    keepAiLedgerTable: (tableId: string) => void;
+    keepAiLedgerChange: (change: SchemaChange) => void;
+    keepAllAiLedger: () => void;
+    undoAiLedgerTable: (tableId: string) => Promise<boolean>;
+    undoAiLedgerChange: (change: SchemaChange) => Promise<boolean>;
+    undoAllAiLedger: () => Promise<boolean>;
 
     // Diff/Changes
     schemaChangesCount: number;
@@ -176,6 +196,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [isExporting, setIsExporting] = useState<boolean>(false);
     const skipDeleteConfirmationRef = useRef(false);
     const [isChangesPanelVisible, setIsChangesPanelVisible] = useState<boolean>(false);
+    const [changesPanelTab, setChangesPanelTab] =
+        useState<SchemaDesignerChangesPanelTab>("baseline");
     const [showChangesHighlight, setShowChangesHighlight] = useState<boolean>(false);
 
     // Baseline schema is fetched from the extension and must survive webview restore.
@@ -214,6 +236,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     >(new Map());
     const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
 
+    const [aiLedger, setAiLedger] = useState<PendingAiTableGroup[]>([]);
+    const pendingAiAutoFocusChangeIdRef = useRef<string | undefined>(undefined);
+    const pendingAiShouldAutoOpenPanelRef = useRef(false);
+
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
@@ -224,6 +250,95 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         reactFlow,
         resetView,
     });
+
+    const resolveAutoFocusPendingAiChangeId = useCallback(
+        (
+            operations: AiLedgerOperation[],
+            mergedLedger: PendingAiTableGroup[],
+        ): string | undefined => {
+            if (operations.length === 0) {
+                return undefined;
+            }
+
+            const itemsByKey = new Map(
+                flattenPendingAiItems(mergedLedger).map((item) => [item.key, item]),
+            );
+            let deleteFallbackChangeId: string | undefined;
+
+            for (let index = operations.length - 1; index >= 0; index--) {
+                const operation = operations[index];
+                const key = toAiLedgerItemKey(
+                    operation.category,
+                    operation.tableId,
+                    operation.objectId,
+                );
+                const item = itemsByKey.get(key);
+                if (!item) {
+                    continue;
+                }
+
+                const changeId = `ai-${item.key}`;
+                if (operation.action !== ChangeAction.Delete) {
+                    return changeId;
+                }
+                if (!deleteFallbackChangeId) {
+                    deleteFallbackChangeId = changeId;
+                }
+            }
+
+            return deleteFallbackChangeId;
+        },
+        [],
+    );
+
+    const onAiEditsApplied = useCallback(
+        (result: AiLedgerApplyResult) => {
+            setAiLedger((previousLedger) => {
+                const mergedLedger = mergePendingAiTableGroups(
+                    previousLedger,
+                    result.pendingGroups,
+                );
+                pendingAiAutoFocusChangeIdRef.current = resolveAutoFocusPendingAiChangeId(
+                    result.operations,
+                    mergedLedger,
+                );
+                pendingAiShouldAutoOpenPanelRef.current = !isChangesPanelVisible;
+                console.log("[SchemaDesigner][AI Ledger] Applied AI edits", {
+                    operations: result.operations,
+                    diffOperations: result.diffOperations,
+                    pendingGroups: result.pendingGroups,
+                    pendingItems: result.pendingItems,
+                    mergedGroups: mergedLedger,
+                    mergedItems: flattenPendingAiItems(mergedLedger),
+                });
+                return mergedLedger;
+            });
+        },
+        [isChangesPanelVisible, resolveAutoFocusPendingAiChangeId],
+    );
+
+    useEffect(() => {
+        const targetChangeId = pendingAiAutoFocusChangeIdRef.current;
+        if (!targetChangeId) {
+            return;
+        }
+
+        const targetExists = flattenPendingAiItems(aiLedger).some(
+            (item) => `ai-${item.key}` === targetChangeId,
+        );
+        if (!targetExists) {
+            pendingAiAutoFocusChangeIdRef.current = undefined;
+            pendingAiShouldAutoOpenPanelRef.current = false;
+            return;
+        }
+
+        if (pendingAiShouldAutoOpenPanelRef.current) {
+            eventBus.emit("openChangesPanel", "pendingAi");
+        }
+        eventBus.emit("setActivePendingAiChange", targetChangeId);
+        pendingAiAutoFocusChangeIdRef.current = undefined;
+        pendingAiShouldAutoOpenPanelRef.current = false;
+    }, [aiLedger]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -307,8 +422,17 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             validateTable,
             onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
+            onAiEditsApplied,
         });
-    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+    }, [
+        isInitialized,
+        extensionRpc,
+        schemaNames,
+        datatypes,
+        reactFlow,
+        onPushUndoState,
+        onAiEditsApplied,
+    ]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -511,6 +635,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const initializeSchemaDesigner = async () => {
         try {
             setIsInitialized(false);
+            setAiLedger([]);
             isInitializedRef.current = false;
             setInitializationError(undefined);
             const model = await extensionRpc.sendRequest(
@@ -558,6 +683,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const triggerInitialization = () => {
         setInitializationError(undefined);
         setIsInitialized(false);
+        setAiLedger([]);
         isInitializedRef.current = false;
         setInitializationRequestId((id) => id + 1);
     };
@@ -812,6 +938,312 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         skipDeleteConfirmationRef.current = false;
         return shouldSkip;
     };
+
+    const keepAiLedgerTable = useCallback((tableId: string) => {
+        setAiLedger((previousLedger) =>
+            previousLedger.filter((group) => group.tableId !== tableId),
+        );
+    }, []);
+
+    const keepAiLedgerChange = useCallback((change: SchemaChange) => {
+        const itemKey = toAiLedgerItemKey(change.category, change.tableId, change.objectId);
+        setAiLedger((previousLedger) => {
+            if (change.category === ChangeCategory.Table) {
+                return previousLedger.filter((group) => group.tableId !== change.tableId);
+            }
+
+            return previousLedger
+                .map((group) => {
+                    if (group.tableId !== change.tableId) {
+                        return group;
+                    }
+
+                    const nextItems = group.items.filter((item) => item.key !== itemKey);
+                    return { ...group, items: nextItems };
+                })
+                .filter((group) => group.items.length > 0);
+        });
+    }, []);
+
+    const keepAllAiLedger = useCallback(() => {
+        setAiLedger([]);
+    }, []);
+
+    const applyUndoForAiLedgerItem = useCallback(
+        async (item: PendingAiItem): Promise<boolean> => {
+            const schema = extractSchema();
+            const table = schema.tables.find((t) => t.id === item.tableId);
+
+            switch (item.category) {
+                case ChangeCategory.Table: {
+                    const baselineTable = item.baselineSnapshot as SchemaDesigner.Table | null;
+                    if (item.action === ChangeAction.Add) {
+                        if (!table) {
+                            return true;
+                        }
+                        return deleteTable(table, true);
+                    }
+                    if (item.action === ChangeAction.Delete) {
+                        if (!baselineTable) {
+                            return false;
+                        }
+                        if (table) {
+                            return updateTable({ ...baselineTable });
+                        }
+                        return addTable({ ...baselineTable });
+                    }
+                    if (!baselineTable) {
+                        return false;
+                    }
+                    if (table) {
+                        return updateTable({ ...baselineTable });
+                    }
+                    return addTable({ ...baselineTable });
+                }
+                case ChangeCategory.Column: {
+                    if (!table) {
+                        return false;
+                    }
+                    const baselineColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
+                    const currentColumn = item.currentSnapshot as SchemaDesigner.Column | null;
+                    const columnId = item.objectId ?? currentColumn?.id ?? baselineColumn?.id;
+                    if (!columnId) {
+                        return false;
+                    }
+
+                    let nextColumns = [...(table.columns ?? [])];
+                    if (item.action === ChangeAction.Add) {
+                        nextColumns = nextColumns.filter((column) => column.id !== columnId);
+                    } else if (item.action === ChangeAction.Delete) {
+                        if (!baselineColumn) {
+                            return false;
+                        }
+                        if (!nextColumns.some((column) => column.id === baselineColumn.id)) {
+                            nextColumns.push({ ...baselineColumn });
+                        }
+                    } else {
+                        if (!baselineColumn) {
+                            return false;
+                        }
+                        nextColumns = nextColumns.map((column) =>
+                            column.id === columnId ? { ...baselineColumn } : column,
+                        );
+                    }
+
+                    return updateTable({
+                        ...table,
+                        columns: nextColumns,
+                    });
+                }
+                case ChangeCategory.ForeignKey: {
+                    if (!table) {
+                        return false;
+                    }
+                    const baselineForeignKey =
+                        item.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                    const currentForeignKey =
+                        item.currentSnapshot as SchemaDesigner.ForeignKey | null;
+                    const foreignKeyId =
+                        item.objectId ?? currentForeignKey?.id ?? baselineForeignKey?.id;
+                    if (!foreignKeyId) {
+                        return false;
+                    }
+
+                    let nextForeignKeys = [...(table.foreignKeys ?? [])];
+                    if (item.action === ChangeAction.Add) {
+                        nextForeignKeys = nextForeignKeys.filter((fk) => fk.id !== foreignKeyId);
+                    } else if (item.action === ChangeAction.Delete) {
+                        if (!baselineForeignKey) {
+                            return false;
+                        }
+                        if (!nextForeignKeys.some((fk) => fk.id === baselineForeignKey.id)) {
+                            nextForeignKeys.push({ ...baselineForeignKey });
+                        }
+                    } else {
+                        if (!baselineForeignKey) {
+                            return false;
+                        }
+                        nextForeignKeys = nextForeignKeys.map((fk) =>
+                            fk.id === foreignKeyId ? { ...baselineForeignKey } : fk,
+                        );
+                    }
+
+                    return updateTable({
+                        ...table,
+                        foreignKeys: nextForeignKeys,
+                    });
+                }
+                default:
+                    return false;
+            }
+        },
+        [extractSchema, deleteTable, updateTable, addTable],
+    );
+
+    const applyUndoForAiLedgerItems = useCallback(
+        async (items: PendingAiItem[]): Promise<boolean> => {
+            if (items.length === 0) {
+                return false;
+            }
+
+            const pendingItems = [...items];
+            const maxAttempts = pendingItems.length * pendingItems.length;
+            let attempts = 0;
+
+            while (pendingItems.length > 0 && attempts < maxAttempts) {
+                attempts++;
+                let progressed = false;
+
+                for (let index = 0; index < pendingItems.length; index++) {
+                    const item = pendingItems[index];
+                    const success = await applyUndoForAiLedgerItem(item);
+                    if (!success) {
+                        continue;
+                    }
+
+                    pendingItems.splice(index, 1);
+                    index--;
+                    progressed = true;
+                }
+
+                if (!progressed) {
+                    return false;
+                }
+            }
+
+            return pendingItems.length === 0;
+        },
+        [applyUndoForAiLedgerItem],
+    );
+
+    const collectCascadeUndoItems = useCallback(
+        (group: PendingAiTableGroup, item: PendingAiItem): PendingAiItem[] => {
+            if (item.category === ChangeCategory.Table) {
+                return [...group.items];
+            }
+
+            if (item.category !== ChangeCategory.Column) {
+                return [item];
+            }
+
+            const baselineColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
+            const currentColumn = item.currentSnapshot as SchemaDesigner.Column | null;
+            const candidateColumnNames = new Set<string>();
+            if (baselineColumn?.name) {
+                candidateColumnNames.add(baselineColumn.name);
+            }
+            if (currentColumn?.name) {
+                candidateColumnNames.add(currentColumn.name);
+            }
+            if (item.objectName) {
+                candidateColumnNames.add(item.objectName);
+            }
+
+            const relatedForeignKeys = group.items.filter((candidate) => {
+                if (candidate.category !== ChangeCategory.ForeignKey) {
+                    return false;
+                }
+
+                const baselineFk = candidate.baselineSnapshot as SchemaDesigner.ForeignKey | null;
+                const currentFk = candidate.currentSnapshot as SchemaDesigner.ForeignKey | null;
+                const baselineColumns = baselineFk?.columns ?? [];
+                const currentColumns = currentFk?.columns ?? [];
+                return (
+                    baselineColumns.some((column) => candidateColumnNames.has(column)) ||
+                    currentColumns.some((column) => candidateColumnNames.has(column))
+                );
+            });
+
+            return [item, ...relatedForeignKeys];
+        },
+        [],
+    );
+
+    const undoAiLedgerTable = useCallback(
+        async (tableId: string): Promise<boolean> => {
+            const group = aiLedger.find((entry) => entry.tableId === tableId);
+            if (!group) {
+                return false;
+            }
+
+            const success = await applyUndoForAiLedgerItems([...group.items]);
+            if (!success) {
+                return false;
+            }
+
+            setAiLedger((previousLedger) =>
+                previousLedger.filter((entry) => entry.tableId !== tableId),
+            );
+            eventBus.emit("pushState");
+            eventBus.emit("getScript");
+            return true;
+        },
+        [aiLedger, applyUndoForAiLedgerItems],
+    );
+
+    const undoAiLedgerChange = useCallback(
+        async (change: SchemaChange): Promise<boolean> => {
+            const group = aiLedger.find((entry) => entry.tableId === change.tableId);
+            if (!group) {
+                return false;
+            }
+
+            const itemKey = toAiLedgerItemKey(change.category, change.tableId, change.objectId);
+            const item = group.items.find((candidate) => candidate.key === itemKey);
+            if (!item) {
+                return false;
+            }
+
+            const cascadeItems = collectCascadeUndoItems(group, item);
+            const uniqueItems = [
+                ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
+            ];
+            const success = await applyUndoForAiLedgerItems(uniqueItems);
+            if (!success) {
+                return false;
+            }
+
+            const removedKeys = new Set(uniqueItems.map((entry) => entry.key));
+            setAiLedger((previousLedger) =>
+                previousLedger
+                    .map((entry) => {
+                        if (entry.tableId !== group.tableId) {
+                            return entry;
+                        }
+
+                        if (item.category === ChangeCategory.Table) {
+                            return { ...entry, items: [] };
+                        }
+
+                        const remainingItems = entry.items.filter(
+                            (candidate) => !removedKeys.has(candidate.key),
+                        );
+                        return { ...entry, items: remainingItems };
+                    })
+                    .filter((entry) => entry.items.length > 0),
+            );
+
+            eventBus.emit("pushState");
+            eventBus.emit("getScript");
+            return true;
+        },
+        [aiLedger, applyUndoForAiLedgerItems, collectCascadeUndoItems],
+    );
+
+    const undoAllAiLedger = useCallback(async (): Promise<boolean> => {
+        const groups = [...aiLedger];
+        for (const group of groups) {
+            const success = await applyUndoForAiLedgerItems([...group.items]);
+            if (!success) {
+                return false;
+            }
+        }
+
+        setAiLedger([]);
+        eventBus.emit("pushState");
+        eventBus.emit("getScript");
+        return true;
+    }, [aiLedger, applyUndoForAiLedgerItems]);
 
     /**
      * Gets a table with its foreign keys from the flow
@@ -1102,6 +1534,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setDeletedForeignKeyEdges([]);
         setBaselineColumnOrderByTable(new Map());
         setDeletedTableNodes([]);
+        setAiLedger([]);
         return response;
     };
 
@@ -1286,6 +1719,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 setIsExporting,
                 isChangesPanelVisible,
                 setIsChangesPanelVisible,
+                changesPanelTab,
+                setChangesPanelTab,
                 showChangesHighlight,
                 setShowChangesHighlight,
                 newTableIds,
@@ -1298,6 +1733,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deletedForeignKeyEdges,
                 baselineColumnOrderByTable,
                 deletedTableNodes,
+                aiLedger,
+                keepAiLedgerTable,
+                keepAiLedgerChange,
+                keepAllAiLedger,
+                undoAiLedgerTable,
+                undoAiLedgerChange,
+                undoAllAiLedger,
                 schemaChangesCount,
                 schemaChanges,
                 schemaChangesSummary,

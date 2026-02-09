@@ -26,7 +26,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState, cloneElement } from "react";
+import { useCallback, useContext, useRef, useEffect, useState, cloneElement } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
@@ -36,6 +36,7 @@ import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 import { mergeColumnsWithDeleted } from "../diff/deletedVisualUtils";
 import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUtils";
+import { PendingAiItem } from "../aiLedger/operations";
 
 // Custom hook to detect text overflow
 const useTextOverflow = (text: string) => {
@@ -111,6 +112,9 @@ const useStyles = makeStyles({
     },
     tableNodeDeleted: {
         boxShadow: "0 0 0 2px var(--vscode-gitDecoration-deletedResourceForeground)",
+    },
+    tableNodeDiffModified: {
+        boxShadow: "0 0 0 2px var(--vscode-gitDecoration-modifiedResourceForeground)",
     },
     tableHeader: {
         width: "100%",
@@ -256,7 +260,72 @@ const useStyles = makeStyles({
         zIndex: 11,
         padding: "16px",
     },
+    aiActionsToolbar: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "4px",
+        padding: "2px",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        border: "1px solid var(--vscode-editorWidget-border)",
+        borderRadius: "6px",
+    },
+    aiIndicator: {
+        display: "inline-flex",
+        alignItems: "center",
+        marginLeft: "2px",
+        marginRight: "2px",
+    },
+    aiTableIndicator: {
+        position: "absolute",
+        left: "-18px",
+        top: "8px",
+        zIndex: 12,
+        color: "#d4af37",
+        pointerEvents: "none",
+    },
+    aiColumnIndicator: {
+        position: "absolute",
+        left: "-16px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 3,
+        color: "#d4af37",
+        pointerEvents: "none",
+    },
 });
+
+const toPendingAiSchemaChange = (item: PendingAiItem): SchemaChange => ({
+    id: `ai-${item.key}`,
+    action: item.action,
+    category: item.category,
+    tableId: item.tableId,
+    tableName: item.currentTableName ?? item.tableName,
+    tableSchema: item.currentTableSchema ?? item.tableSchema,
+    objectId: item.objectId,
+    objectName: item.objectName,
+    propertyChanges: item.propertyChanges,
+});
+
+const getPropertyChange = (
+    change: SchemaChange | undefined,
+    property: string,
+): { oldValue: string; newValue: string } | undefined => {
+    const propertyChange = change?.propertyChanges?.find((entry) => entry.property === property);
+    if (!propertyChange) {
+        return undefined;
+    }
+
+    return {
+        oldValue:
+            propertyChange.oldValue === null || propertyChange.oldValue === undefined
+                ? ""
+                : String(propertyChange.oldValue),
+        newValue:
+            propertyChange.newValue === null || propertyChange.newValue === undefined
+                ? ""
+                : String(propertyChange.newValue),
+    };
+};
 
 // TableHeaderActions component for the edit button and menu
 const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
@@ -328,15 +397,31 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableHeader component for the table title and subtitle
-const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) => {
+const TableHeader = ({
+    table,
+    isPendingAiMode,
+    pendingAiTableChange,
+}: {
+    table: SchemaDesigner.TableWithDeletedFlag;
+    isPendingAiMode: boolean;
+    pendingAiTableChange?: SchemaChange;
+}) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
     const isDeletedTable = table.isDeleted === true;
     const tableHighlight = context.modifiedTableHighlights.get(table.id);
+    const aiSchemaChange = getPropertyChange(pendingAiTableChange, "schema");
+    const aiNameChange = getPropertyChange(pendingAiTableChange, "name");
+    const showAiQualifiedDiff =
+        isPendingAiMode &&
+        pendingAiTableChange?.action === ChangeAction.Modify &&
+        (Boolean(aiSchemaChange) || Boolean(aiNameChange));
     const showQualifiedDiff =
         !isDeletedTable &&
         context.showChangesHighlight &&
-        (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange));
+        (showAiQualifiedDiff ||
+            (!isPendingAiMode &&
+                (Boolean(tableHighlight?.schemaChange) || Boolean(tableHighlight?.nameChange))));
 
     // Function to highlight text based on search
     const highlightText = (text: string) => {
@@ -376,10 +461,18 @@ const TableHeader = ({ table }: { table: SchemaDesigner.TableWithDeletedFlag }) 
     };
 
     const tooltipContent = `${table.schema}.${table.name}`;
-    const oldSchema = tableHighlight?.schemaChange?.oldValue ?? table.schema;
-    const newSchema = tableHighlight?.schemaChange?.newValue ?? table.schema;
-    const oldName = tableHighlight?.nameChange?.oldValue ?? table.name;
-    const newName = tableHighlight?.nameChange?.newValue ?? table.name;
+    const oldSchema = showAiQualifiedDiff
+        ? (aiSchemaChange?.oldValue ?? table.schema)
+        : (tableHighlight?.schemaChange?.oldValue ?? table.schema);
+    const newSchema = showAiQualifiedDiff
+        ? (aiSchemaChange?.newValue ?? table.schema)
+        : (tableHighlight?.schemaChange?.newValue ?? table.schema);
+    const oldName = showAiQualifiedDiff
+        ? (aiNameChange?.oldValue ?? table.name)
+        : (tableHighlight?.nameChange?.oldValue ?? table.name);
+    const newName = showAiQualifiedDiff
+        ? (aiNameChange?.newValue ?? table.name)
+        : (tableHighlight?.nameChange?.newValue ?? table.name);
     const oldQualified = `${oldSchema}.${oldName}`;
     const newQualified = `${newSchema}.${newName}`;
 
@@ -422,11 +515,23 @@ const TableColumn = ({
     column,
     table,
     isTableDeleted,
+    isPendingAiMode,
+    pendingAiChange,
+    suppressPendingAiColumnVisuals,
+    isApplyingPendingAiAction,
+    onKeepPendingAiChange,
+    onUndoPendingAiChange,
     onRequestUndo,
 }: {
     column: SchemaDesigner.ColumnWithDeletedFlag;
     table: SchemaDesigner.TableWithDeletedFlag;
     isTableDeleted: boolean;
+    isPendingAiMode: boolean;
+    pendingAiChange?: SchemaChange;
+    suppressPendingAiColumnVisuals: boolean;
+    isApplyingPendingAiAction: boolean;
+    onKeepPendingAiChange: (change: SchemaChange) => void;
+    onUndoPendingAiChange: (change: SchemaChange) => Promise<void>;
     onRequestUndo: (change: SchemaChange) => void;
 }) => {
     const styles = useStyles();
@@ -438,23 +543,40 @@ const TableColumn = ({
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
-    const showDeletedDiff = context.showChangesHighlight && isDeletedColumn;
-    const showAddedDiff =
-        !isDeletedColumn &&
-        !isTableDeleted &&
-        context.showChangesHighlight &&
-        context.newColumnIds.has(column.id);
+    const showBaselineHighlights = context.showChangesHighlight && !isPendingAiMode;
+    const effectivePendingAiChange =
+        isPendingAiMode && suppressPendingAiColumnVisuals ? undefined : pendingAiChange;
+    const aiNameChange = getPropertyChange(effectivePendingAiChange, "name");
+    const aiDataTypeChange = getPropertyChange(effectivePendingAiChange, "dataType");
+    const showDeletedDiff = isPendingAiMode
+        ? effectivePendingAiChange?.action === ChangeAction.Delete
+        : showBaselineHighlights && isDeletedColumn;
+    const showAddedDiff = isPendingAiMode
+        ? effectivePendingAiChange?.action === ChangeAction.Add
+        : !isDeletedColumn &&
+          !isTableDeleted &&
+          showBaselineHighlights &&
+          context.newColumnIds.has(column.id);
     const modifiedHighlight =
         !isDeletedColumn && !isTableDeleted
             ? context.modifiedColumnHighlights.get(column.id)
             : undefined;
     const hasNameChange = Boolean(modifiedHighlight?.nameChange);
     const hasDataTypeChange = Boolean(modifiedHighlight?.dataTypeChange);
-    const showNameDiff = context.showChangesHighlight && hasNameChange;
-    const showDataTypeDiff = context.showChangesHighlight && hasDataTypeChange;
-    const showModifiedDiff = showNameDiff || showDataTypeDiff;
+    const showNameDiff = isPendingAiMode
+        ? effectivePendingAiChange?.action === ChangeAction.Modify && Boolean(aiNameChange)
+        : showBaselineHighlights && hasNameChange;
+    const showDataTypeDiff = isPendingAiMode
+        ? effectivePendingAiChange?.action === ChangeAction.Modify && Boolean(aiDataTypeChange)
+        : showBaselineHighlights && hasDataTypeChange;
+    const showModifiedDiff = isPendingAiMode
+        ? effectivePendingAiChange?.action === ChangeAction.Modify
+        : showNameDiff || showDataTypeDiff;
     const showModifiedOther =
-        context.showChangesHighlight && !showModifiedDiff && modifiedHighlight?.hasOtherChanges;
+        !isPendingAiMode &&
+        showBaselineHighlights &&
+        !showModifiedDiff &&
+        modifiedHighlight?.hasOtherChanges;
     const columnChangeAction = showAddedDiff
         ? ChangeAction.Add
         : showDeletedDiff
@@ -466,7 +588,7 @@ const TableColumn = ({
         !isTableDeleted &&
         !context.isExporting &&
         Boolean(columnChangeAction) &&
-        context.showChangesHighlight;
+        showBaselineHighlights;
     const columnChange = columnChangeAction
         ? ({
               id: `column:${columnChangeAction}:${table.id}:${column.id}`,
@@ -481,8 +603,23 @@ const TableColumn = ({
         : undefined;
     const revertInfo =
         isHovered && columnChange ? context.canRevertChange(columnChange) : undefined;
+    const canShowPendingAiActions =
+        isPendingAiMode &&
+        isHovered &&
+        !context.isExporting &&
+        !isTableDeleted &&
+        !!effectivePendingAiChange;
 
     const renderName = () => {
+        if (isPendingAiMode && showNameDiff && aiNameChange) {
+            return (
+                <span className={styles.columnDiffValueGroup}>
+                    <span className={styles.columnDiffOldValue}>{aiNameChange.oldValue}</span>
+                    <span>{aiNameChange.newValue}</span>
+                </span>
+            );
+        }
+
         if (!showNameDiff || !modifiedHighlight?.nameChange) {
             return column.name;
         }
@@ -500,6 +637,17 @@ const TableColumn = ({
     const renderDataType = () => {
         if (column.isComputed) {
             return "COMPUTED";
+        }
+
+        if (isPendingAiMode && showDataTypeDiff && aiDataTypeChange) {
+            return (
+                <span className={styles.columnDiffValueGroup}>
+                    <span className={styles.columnDiffOldValue}>
+                        {aiDataTypeChange.oldValue.toUpperCase()}
+                    </span>
+                    <span>{aiDataTypeChange.newValue.toUpperCase()}</span>
+                </span>
+            );
         }
 
         if (!showDataTypeDiff || !modifiedHighlight?.dataTypeChange) {
@@ -533,6 +681,11 @@ const TableColumn = ({
                 }
                 setIsHovered(false);
             }}>
+            {isPendingAiMode && effectivePendingAiChange && (
+                <span className={styles.aiColumnIndicator} aria-hidden="true">
+                    <FluentIcons.Sparkle16Regular />
+                </span>
+            )}
             <Handle
                 type="source"
                 position={Position.Left}
@@ -581,6 +734,36 @@ const TableColumn = ({
                             }}
                         />
                     </Tooltip>
+                </div>
+            )}
+            {canShowPendingAiActions && effectivePendingAiChange && (
+                <div className={styles.columnUndoButtonWrapper}>
+                    <div className={styles.aiActionsToolbar}>
+                        <Tooltip content={"Keep"} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.Checkmark16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    onKeepPendingAiChange(effectivePendingAiChange);
+                                }}
+                                disabled={isApplyingPendingAiAction}
+                            />
+                        </Tooltip>
+                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                            <Button
+                                appearance="subtle"
+                                size="small"
+                                icon={<FluentIcons.ArrowUndo16Regular />}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void onUndoPendingAiChange(effectivePendingAiChange);
+                                }}
+                                disabled={isApplyingPendingAiAction}
+                            />
+                        </Tooltip>
+                    </div>
                 </div>
             )}
 
@@ -653,6 +836,13 @@ const TableColumns = ({
     columns,
     table,
     isDeletedTable,
+    isPendingAiMode,
+    pendingAiColumnChangesByColumnId,
+    pendingAiDeletedColumns,
+    suppressPendingAiColumnVisuals,
+    isApplyingPendingAiAction,
+    onKeepPendingAiChange,
+    onUndoPendingAiChange,
     isCollapsed,
     onToggleCollapse,
     onRequestUndo,
@@ -660,6 +850,13 @@ const TableColumns = ({
     columns: SchemaDesigner.Column[];
     table: SchemaDesigner.TableWithDeletedFlag;
     isDeletedTable: boolean;
+    isPendingAiMode: boolean;
+    pendingAiColumnChangesByColumnId: Map<string, SchemaChange>;
+    pendingAiDeletedColumns: SchemaDesigner.Column[];
+    suppressPendingAiColumnVisuals: boolean;
+    isApplyingPendingAiAction: boolean;
+    onKeepPendingAiChange: (change: SchemaChange) => void;
+    onUndoPendingAiChange: (change: SchemaChange) => Promise<void>;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
     onRequestUndo: (change: SchemaChange) => void;
@@ -669,10 +866,13 @@ const TableColumns = ({
 
     // Get setting from webview state, default to true if not set
     const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+    const showBaselineHighlights = context.showChangesHighlight && !isPendingAiMode;
 
-    const deletedColumns = context.showChangesHighlight
+    const deletedColumns = showBaselineHighlights
         ? (context.deletedColumnsByTable.get(table.id) ?? [])
-        : [];
+        : isPendingAiMode
+          ? pendingAiDeletedColumns
+          : [];
     const baselineOrder = context.baselineColumnOrderByTable.get(table.id) ?? [];
     const mergedColumns = mergeColumnsWithDeleted(columns, deletedColumns, baselineOrder);
 
@@ -702,6 +902,12 @@ const TableColumns = ({
                     column={column}
                     table={table}
                     isTableDeleted={isDeletedTable}
+                    isPendingAiMode={isPendingAiMode}
+                    pendingAiChange={pendingAiColumnChangesByColumnId.get(column.id)}
+                    suppressPendingAiColumnVisuals={suppressPendingAiColumnVisuals}
+                    isApplyingPendingAiAction={isApplyingPendingAiAction}
+                    onKeepPendingAiChange={onKeepPendingAiChange}
+                    onUndoPendingAiChange={onUndoPendingAiChange}
                     onRequestUndo={onRequestUndo}
                 />
             ))}
@@ -737,19 +943,97 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
     const [pendingUndoChange, setPendingUndoChange] = useState<SchemaChange | null>(null);
+    const [isApplyingPendingAiAction, setIsApplyingPendingAiAction] = useState(false);
     const undoWrapperRef = useRef<HTMLDivElement | null>(null);
+    const pendingAiMode = context.isChangesPanelVisible && context.changesPanelTab === "pendingAi";
+
+    const pendingAiGroup = pendingAiMode
+        ? context.aiLedger.find((group) => group.tableId === table.id)
+        : undefined;
+    const pendingAiTableChange = pendingAiGroup
+        ? (() => {
+              const tableItem = pendingAiGroup.items.find(
+                  (item) => item.category === ChangeCategory.Table,
+              );
+              return tableItem ? toPendingAiSchemaChange(tableItem) : undefined;
+          })()
+        : undefined;
+    const pendingAiTableOrForeignKeyChange = pendingAiGroup
+        ? (() => {
+              if (pendingAiTableChange) {
+                  return pendingAiTableChange;
+              }
+              const foreignKeyItem = pendingAiGroup.items.find(
+                  (item) => item.category === ChangeCategory.ForeignKey,
+              );
+              return foreignKeyItem ? toPendingAiSchemaChange(foreignKeyItem) : undefined;
+          })()
+        : undefined;
+    const pendingAiColumnChangesByColumnId = new Map<string, SchemaChange>(
+        (pendingAiGroup?.items ?? [])
+            .filter(
+                (item) =>
+                    item.category === ChangeCategory.Column && typeof item.objectId === "string",
+            )
+            .map((item) => [item.objectId as string, toPendingAiSchemaChange(item)]),
+    );
+    const pendingAiDeletedColumns = [
+        ...new Map(
+            (pendingAiGroup?.items ?? [])
+                .filter(
+                    (item) =>
+                        item.category === ChangeCategory.Column &&
+                        item.action === ChangeAction.Delete,
+                )
+                .map((item) => {
+                    const deletedColumn = item.baselineSnapshot as SchemaDesigner.Column | null;
+                    return [deletedColumn?.id ?? item.objectId ?? item.key, deletedColumn];
+                }),
+        ).values(),
+    ].filter((column): column is SchemaDesigner.Column => Boolean(column));
+    const hasPendingAiChanges = (pendingAiGroup?.items.length ?? 0) > 0;
+    const isPendingAiNewTable = pendingAiTableChange?.action === ChangeAction.Add;
+    const hasPendingAiNonTableChanges =
+        pendingAiGroup?.items.some((item) => item.category !== ChangeCategory.Table) ?? false;
 
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
     };
+    const handleKeepPendingAiChange = useCallback(
+        (change: SchemaChange) => {
+            context.keepAiLedgerChange(change);
+        },
+        [context],
+    );
+    const handleUndoPendingAiChange = useCallback(
+        async (change: SchemaChange) => {
+            if (isApplyingPendingAiAction) {
+                return;
+            }
+            setIsApplyingPendingAiAction(true);
+            try {
+                await context.undoAiLedgerChange(change);
+            } finally {
+                setIsApplyingPendingAiAction(false);
+            }
+        },
+        [context, isApplyingPendingAiAction],
+    );
 
-    const showAddedDiff =
-        !isDeletedTable && context.showChangesHighlight && context.newTableIds.has(table.id);
-    const showDeletedDiff = isDeletedTable && context.showChangesHighlight;
-    const showModifiedDiff =
-        !isDeletedTable &&
-        context.showChangesHighlight &&
-        context.modifiedTableHighlights.has(table.id);
+    const showAddedDiff = pendingAiMode
+        ? pendingAiTableChange?.action === ChangeAction.Add
+        : !isDeletedTable && context.showChangesHighlight && context.newTableIds.has(table.id);
+    const showDeletedDiff = pendingAiMode
+        ? pendingAiTableChange?.action === ChangeAction.Delete
+        : isDeletedTable && context.showChangesHighlight;
+    const showModifiedDiff = pendingAiMode
+        ? hasPendingAiChanges &&
+          pendingAiTableChange?.action !== ChangeAction.Add &&
+          pendingAiTableChange?.action !== ChangeAction.Delete &&
+          (pendingAiTableChange?.action === ChangeAction.Modify || hasPendingAiNonTableChanges)
+        : !isDeletedTable &&
+          context.showChangesHighlight &&
+          context.modifiedTableHighlights.has(table.id);
     const tableChangeAction = showDeletedDiff
         ? ChangeAction.Delete
         : showAddedDiff
@@ -758,7 +1042,15 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             ? ChangeAction.Modify
             : undefined;
     const showUndoButton =
-        Boolean(tableChangeAction) && !context.isExporting && (isHovered || isUndoDialogOpen);
+        !pendingAiMode &&
+        Boolean(tableChangeAction) &&
+        !context.isExporting &&
+        (isHovered || isUndoDialogOpen);
+    const showPendingAiTableActions =
+        pendingAiMode &&
+        Boolean(pendingAiTableOrForeignKeyChange) &&
+        !context.isExporting &&
+        isHovered;
     const tableChange = tableChangeAction
         ? ({
               id: `table:${tableChangeAction}:${table.id}`,
@@ -786,6 +1078,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
             className={mergeClasses(
                 styles.tableNodeContainer,
                 showAddedDiff && styles.tableNodeDiffAdded,
+                showModifiedDiff && styles.tableNodeDiffModified,
                 isDeletedTable && styles.tableNodeDeleted,
             )}
             onMouseEnter={() => setIsHovered(true)}
@@ -827,13 +1120,65 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                     </Tooltip>
                 </div>
             )}
+            {showPendingAiTableActions && pendingAiTableOrForeignKeyChange && (
+                <div
+                    className={styles.undoButtonWrapper}
+                    ref={undoWrapperRef}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}>
+                    <div className={styles.aiActionsToolbar}>
+                        <Tooltip content={"Keep"} relationship="label">
+                            <Button
+                                appearance="primary"
+                                size="small"
+                                icon={<FluentIcons.Checkmark16Regular />}
+                                disabled={isApplyingPendingAiAction}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleKeepPendingAiChange(pendingAiTableOrForeignKeyChange);
+                                }}
+                            />
+                        </Tooltip>
+                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                            <Button
+                                appearance="subtle"
+                                size="small"
+                                icon={<FluentIcons.ArrowUndo16Regular />}
+                                disabled={isApplyingPendingAiAction}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handleUndoPendingAiChange(
+                                        pendingAiTableOrForeignKeyChange,
+                                    );
+                                }}
+                            />
+                        </Tooltip>
+                    </div>
+                </div>
+            )}
+            {pendingAiMode && pendingAiTableOrForeignKeyChange && (
+                <span className={styles.aiTableIndicator} aria-hidden="true">
+                    <FluentIcons.Sparkle16Regular />
+                </span>
+            )}
             <div className={mergeClasses(isDeletedTable && styles.tableContentDisabled)}>
-                <TableHeader table={table} />
+                <TableHeader
+                    table={table}
+                    isPendingAiMode={pendingAiMode}
+                    pendingAiTableChange={pendingAiTableChange}
+                />
                 <Divider />
                 <TableColumns
                     columns={table.columns}
                     table={table}
                     isDeletedTable={isDeletedTable}
+                    isPendingAiMode={pendingAiMode}
+                    pendingAiColumnChangesByColumnId={pendingAiColumnChangesByColumnId}
+                    pendingAiDeletedColumns={pendingAiDeletedColumns}
+                    suppressPendingAiColumnVisuals={isPendingAiNewTable}
+                    isApplyingPendingAiAction={isApplyingPendingAiAction}
+                    onKeepPendingAiChange={handleKeepPendingAiChange}
+                    onUndoPendingAiChange={handleUndoPendingAiChange}
                     isCollapsed={isCollapsed}
                     onToggleCollapse={handleToggleCollapse}
                     onRequestUndo={handleRequestUndo}

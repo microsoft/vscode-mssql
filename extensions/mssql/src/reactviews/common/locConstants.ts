@@ -947,6 +947,12 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            pendingAiChangesButtonLabel: (changeCount: number) =>
+                l10n.t({
+                    message: "Pending AI Changes ({0})",
+                    args: [changeCount],
+                    comment: ["{0} is the number of pending AI changes"],
+                }),
             highlightChanges: l10n.t("Highlight Changes"),
             hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>

@@ -7,6 +7,10 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
+import * as lodash from "lodash";
+import { createAiLedgerApplyResult } from "./aiLedger/ledgerUtils";
+import { AiLedgerApplyResult, AiLedgerOperation } from "./aiLedger/operations";
+import { ChangeAction, ChangeCategory } from "./diff/diffUtils";
 import { tableUtils } from "./schemaDesignerUtils";
 
 export function registerSchemaDesignerApplyEditsHandler(params: {
@@ -34,6 +38,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     ) => string | undefined;
     onPushUndoState: () => void;
     onRequestScriptRefresh: () => void;
+    onAiEditsApplied?: (result: AiLedgerApplyResult) => void;
 }) {
     const {
         isInitialized,
@@ -51,6 +56,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         validateTable,
         onPushUndoState,
         onRequestScriptRefresh,
+        onAiEditsApplied,
     } = params;
 
     const normalizeIdentifier = (value: string | undefined): string => (value ?? "").toLowerCase();
@@ -359,7 +365,26 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
         let appliedEdits = 0;
         let needsScriptRefresh = false;
+        const baselineSchema = extractSchema();
         let workingSchema = extractSchema();
+        const operations: AiLedgerOperation[] = [];
+        let operationOrdinal = 0;
+        const cloneSnapshot = <T>(snapshot: T): T => {
+            if (snapshot === null || snapshot === undefined) {
+                return snapshot;
+            }
+            if (typeof structuredClone === "function") {
+                return structuredClone(snapshot);
+            }
+            return JSON.parse(JSON.stringify(snapshot)) as T;
+        };
+        const recordOperation = (operation: Omit<AiLedgerOperation, "id">): void => {
+            operations.push({
+                id: `ai-op:${operationOrdinal}`,
+                ...operation,
+            });
+            operationOrdinal += 1;
+        };
         const preTableCount = workingSchema.tables.length;
         const preForeignKeyCount = workingSchema.tables.reduce(
             (sum, table) => sum + (table.foreignKeys?.length ?? 0),
@@ -370,6 +395,9 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
             for (let i = 0; i < params.edits.length; i++) {
                 const edit = params.edits[i];
                 const schema = workingSchema;
+                const schemaBeforeEdit = cloneSnapshot(schema);
+                const operationCountBeforeEdit = operations.length;
+                const needsScriptRefreshBeforeEdit: boolean = needsScriptRefresh;
                 let didMutateThisEdit = false;
 
                 const fail = (
@@ -429,6 +457,28 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                         needsScriptRefresh = true;
                         workingSchema = { tables: [...workingSchema.tables, newTable] };
+                        recordOperation({
+                            category: ChangeCategory.Table,
+                            action: ChangeAction.Add,
+                            tableId: newTable.id,
+                            tableSchema: newTable.schema,
+                            tableName: newTable.name,
+                            beforeSnapshot: null,
+                            afterSnapshot: cloneSnapshot(newTable),
+                        });
+                        for (const column of newTable.columns ?? []) {
+                            recordOperation({
+                                category: ChangeCategory.Column,
+                                action: ChangeAction.Add,
+                                tableId: newTable.id,
+                                tableSchema: newTable.schema,
+                                tableName: newTable.name,
+                                objectId: column.id,
+                                objectName: column.name,
+                                beforeSnapshot: null,
+                                afterSnapshot: cloneSnapshot(column),
+                            });
+                        }
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -466,6 +516,15 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         };
 
                         needsScriptRefresh = true;
+                        recordOperation({
+                            category: ChangeCategory.Table,
+                            action: ChangeAction.Delete,
+                            tableId: resolved.table.id,
+                            tableSchema: resolved.table.schema,
+                            tableName: resolved.table.name,
+                            beforeSnapshot: cloneSnapshot(resolved.table),
+                            afterSnapshot: null,
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -523,6 +582,15 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 return { ...t, foreignKeys };
                             }),
                         };
+                        recordOperation({
+                            category: ChangeCategory.Table,
+                            action: ChangeAction.Modify,
+                            tableId: updated.id,
+                            tableSchema: updated.schema,
+                            tableName: updated.name,
+                            beforeSnapshot: cloneSnapshot(resolved.table),
+                            afterSnapshot: cloneSnapshot(updated),
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -581,6 +649,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.Column,
+                            action: ChangeAction.Add,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: newColumn.id,
+                            objectName: newColumn.name,
+                            beforeSnapshot: null,
+                            afterSnapshot: cloneSnapshot(newColumn),
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -635,6 +714,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.Column,
+                            action: ChangeAction.Delete,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: resolvedColumn.column.id,
+                            objectName: resolvedColumn.column.name,
+                            beforeSnapshot: cloneSnapshot(resolvedColumn.column),
+                            afterSnapshot: null,
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -703,6 +793,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.Column,
+                            action: ChangeAction.Modify,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: updatedColumn.id,
+                            objectName: updatedColumn.name,
+                            beforeSnapshot: cloneSnapshot(resolvedColumn.column),
+                            afterSnapshot: cloneSnapshot(updatedColumn),
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -789,6 +890,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.ForeignKey,
+                            action: ChangeAction.Add,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: newForeignKey.id,
+                            objectName: newForeignKey.name,
+                            beforeSnapshot: null,
+                            afterSnapshot: cloneSnapshot(newForeignKey),
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -846,6 +958,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.ForeignKey,
+                            action: ChangeAction.Delete,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: resolvedForeignKey.foreignKey.id,
+                            objectName: resolvedForeignKey.foreignKey.name,
+                            beforeSnapshot: cloneSnapshot(resolvedForeignKey.foreignKey),
+                            afterSnapshot: null,
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -970,6 +1093,17 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                                 t.id === normalized.id ? normalized : t,
                             ),
                         };
+                        recordOperation({
+                            category: ChangeCategory.ForeignKey,
+                            action: ChangeAction.Modify,
+                            tableId: normalized.id,
+                            tableSchema: normalized.schema,
+                            tableName: normalized.name,
+                            objectId: updatedForeignKey.id,
+                            objectName: updatedForeignKey.name,
+                            beforeSnapshot: cloneSnapshot(resolvedForeignKey.foreignKey),
+                            afterSnapshot: cloneSnapshot(updatedForeignKey),
+                        });
                         appliedEdits++;
                         didMutateThisEdit = true;
                         break;
@@ -977,6 +1111,16 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
 
                     default:
                         return fail("invalid_request", `Unknown edit op: ${(edit as any)?.op}`);
+                }
+
+                if (didMutateThisEdit) {
+                    const hasSchemaMutation = !lodash.isEqual(schemaBeforeEdit, workingSchema);
+                    if (!hasSchemaMutation) {
+                        didMutateThisEdit = false;
+                        appliedEdits = Math.max(0, appliedEdits - 1);
+                        operations.splice(operationCountBeforeEdit);
+                        needsScriptRefresh = needsScriptRefreshBeforeEdit;
+                    }
                 }
 
                 if (didMutateThisEdit) {
@@ -1000,6 +1144,15 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 );
             } catch (error) {
                 console.warn("Schema Designer tool auto-arrange failed", error);
+            }
+
+            if (appliedEdits > 0 && operations.length > 0 && onAiEditsApplied) {
+                const aiLedgerResult = createAiLedgerApplyResult(
+                    baselineSchema,
+                    workingSchema,
+                    operations,
+                );
+                onAiEditsApplied(aiLedgerResult);
             }
 
             return {

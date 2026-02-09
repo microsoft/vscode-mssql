@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -27,9 +27,13 @@ import {
     ConnectionLineType,
 } from "@xyflow/react";
 import {
+    ArrowDown16Regular,
     ArrowUndo16Regular,
+    ArrowUp16Regular,
     BranchCompare16Regular,
     BranchCompare16Filled,
+    Checkmark16Regular,
+    Eye16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -38,6 +42,11 @@ import {
     filterDeletedNodes,
     mergeDeletedTableNodes,
 } from "../diff/deletedVisualUtils";
+import {
+    getVisiblePendingAiItems,
+    getVisiblePendingAiSchemaChanges,
+    toPendingAiSchemaChange,
+} from "../aiLedger/ledgerUtils";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
@@ -108,8 +117,43 @@ export const SchemaDesignerFlow = () => {
         reason?: string;
         position: { x: number; y: number };
     } | null>(null);
+    const [pendingAiEdgeToolbarState, setPendingAiEdgeToolbarState] = useState<{
+        change: SchemaChange;
+        position: { x: number; y: number };
+    } | null>(null);
     const [edgeUndoDialogOpen, setEdgeUndoDialogOpen] = useState(false);
     const [pendingEdgeUndoChange, setPendingEdgeUndoChange] = useState<SchemaChange | null>(null);
+    const [activePendingAiChangeId, setActivePendingAiChangeId] = useState<string | undefined>(
+        undefined,
+    );
+    const [isApplyingPendingAiAction, setIsApplyingPendingAiAction] = useState(false);
+    const isPendingAiVisualMode =
+        context.isChangesPanelVisible && context.changesPanelTab === "pendingAi";
+    const shouldShowBaselineHighlights = context.showChangesHighlight && !isPendingAiVisualMode;
+    const visiblePendingAiItems = useMemo(
+        () => getVisiblePendingAiItems(context.aiLedger),
+        [context.aiLedger],
+    );
+    const pendingAiForeignKeyActions = useMemo(() => {
+        const actionByForeignKeyId = new Map<string, ChangeAction>();
+        for (const item of visiblePendingAiItems) {
+            if (item.category !== ChangeCategory.ForeignKey || !item.objectId) {
+                continue;
+            }
+            actionByForeignKeyId.set(item.objectId, item.action);
+        }
+        return actionByForeignKeyId;
+    }, [visiblePendingAiItems]);
+    const pendingAiForeignKeyChanges = useMemo(() => {
+        const changesByForeignKeyId = new Map<string, SchemaChange>();
+        for (const item of visiblePendingAiItems) {
+            if (item.category !== ChangeCategory.ForeignKey || !item.objectId) {
+                continue;
+            }
+            changesByForeignKeyId.set(item.objectId, toPendingAiSchemaChange(item));
+        }
+        return changesByForeignKeyId;
+    }, [visiblePendingAiItems]);
 
     const highlightedEdges = useMemo(() => {
         const addedClass = "schema-designer-edge-added";
@@ -117,14 +161,19 @@ export const SchemaDesignerFlow = () => {
         let didChange = false;
         const nextEdges = relationshipEdges.map((edge) => {
             const foreignKeyId = edge.data?.id;
-            const shouldHighlight =
-                context.showChangesHighlight &&
-                !!foreignKeyId &&
-                context.newForeignKeyIds.has(foreignKeyId);
-            const shouldShowModified =
-                context.showChangesHighlight &&
-                !!foreignKeyId &&
-                context.modifiedForeignKeyIds.has(foreignKeyId);
+            const aiAction = foreignKeyId
+                ? pendingAiForeignKeyActions.get(foreignKeyId)
+                : undefined;
+            const shouldHighlight = isPendingAiVisualMode
+                ? aiAction === ChangeAction.Add
+                : shouldShowBaselineHighlights &&
+                  !!foreignKeyId &&
+                  context.newForeignKeyIds.has(foreignKeyId);
+            const shouldShowModified = isPendingAiVisualMode
+                ? aiAction === ChangeAction.Modify
+                : shouldShowBaselineHighlights &&
+                  !!foreignKeyId &&
+                  context.modifiedForeignKeyIds.has(foreignKeyId);
 
             const baseClass = edge.className?.split(/\s+/).filter(Boolean) ?? [];
             const classSet = new Set(baseClass);
@@ -152,33 +201,114 @@ export const SchemaDesignerFlow = () => {
 
         return didChange ? nextEdges : relationshipEdges;
     }, [
-        context.showChangesHighlight,
         context.newForeignKeyIds,
         context.modifiedForeignKeyIds,
+        isPendingAiVisualMode,
+        pendingAiForeignKeyActions,
         relationshipEdges,
+        shouldShowBaselineHighlights,
     ]);
 
     const displayEdges = useMemo(() => {
-        if (!context.showChangesHighlight || context.deletedForeignKeyEdges.length === 0) {
+        if (!shouldShowBaselineHighlights || context.deletedForeignKeyEdges.length === 0) {
             return highlightedEdges;
         }
 
         return [...highlightedEdges, ...context.deletedForeignKeyEdges];
-    }, [context.deletedForeignKeyEdges, context.showChangesHighlight, highlightedEdges]);
+    }, [context.deletedForeignKeyEdges, highlightedEdges, shouldShowBaselineHighlights]);
 
     const displayNodes = useMemo(() => {
-        if (!context.showChangesHighlight) {
+        if (!shouldShowBaselineHighlights) {
             return schemaNodes;
         }
 
         return mergeDeletedTableNodes(schemaNodes, deletedSchemaNodes);
-    }, [context.showChangesHighlight, deletedSchemaNodes, schemaNodes]);
+    }, [deletedSchemaNodes, schemaNodes, shouldShowBaselineHighlights]);
+
+    const pendingAiChanges = useMemo<SchemaChange[]>(() => {
+        return getVisiblePendingAiSchemaChanges(context.aiLedger);
+    }, [context.aiLedger]);
+
+    const activePendingAiIndex = useMemo(() => {
+        if (pendingAiChanges.length === 0) {
+            return -1;
+        }
+        if (!activePendingAiChangeId) {
+            return 0;
+        }
+        const index = pendingAiChanges.findIndex((change) => change.id === activePendingAiChangeId);
+        return index >= 0 ? index : 0;
+    }, [activePendingAiChangeId, pendingAiChanges]);
+
+    const activePendingAiChange =
+        activePendingAiIndex >= 0 ? pendingAiChanges[activePendingAiIndex] : undefined;
+
+    const revealChangeInDiagram = useCallback(
+        (change: SchemaChange) => {
+            context.updateSelectedNodes([]);
+            eventBus.emit("clearEdgeSelection");
+
+            if (change.category === ChangeCategory.ForeignKey && change.objectId) {
+                eventBus.emit("revealForeignKeyEdges", change.objectId);
+                return;
+            }
+
+            context.updateSelectedNodes([change.tableId]);
+            context.setCenter(change.tableId, true);
+        },
+        [context],
+    );
+
+    const showPendingAiFloatingToolbar = isPendingAiVisualMode && pendingAiChanges.length > 0;
 
     useEffect(() => {
-        if (!context.showChangesHighlight) {
+        if (!shouldShowBaselineHighlights) {
             setEdgeUndoState(null);
         }
-    }, [context.showChangesHighlight]);
+    }, [shouldShowBaselineHighlights]);
+
+    useEffect(() => {
+        if (!isPendingAiVisualMode) {
+            setPendingAiEdgeToolbarState(null);
+        }
+    }, [isPendingAiVisualMode]);
+
+    useEffect(() => {
+        if (pendingAiChanges.length === 0) {
+            setActivePendingAiChangeId(undefined);
+            return;
+        }
+
+        if (
+            !activePendingAiChangeId ||
+            !pendingAiChanges.some((change) => change.id === activePendingAiChangeId)
+        ) {
+            setActivePendingAiChangeId(pendingAiChanges[0].id);
+        }
+    }, [activePendingAiChangeId, pendingAiChanges]);
+
+    useEffect(() => {
+        const handleSetActivePendingAiChange = (changeId: string | undefined) => {
+            if (!changeId) {
+                setActivePendingAiChangeId(undefined);
+                return;
+            }
+            const change = pendingAiChanges.find((pendingChange) => pendingChange.id === changeId);
+            if (change) {
+                setActivePendingAiChangeId(changeId);
+                revealChangeInDiagram(change);
+            }
+        };
+
+        eventBus.on("setActivePendingAiChange", handleSetActivePendingAiChange);
+        return () => {
+            eventBus.off("setActivePendingAiChange", handleSetActivePendingAiChange);
+        };
+    }, [pendingAiChanges, revealChangeInDiagram]);
+
+    useEffect(() => {
+        eventBus.emit("activePendingAiChangeUpdated", activePendingAiChange?.id);
+    }, [activePendingAiChange?.id, isPendingAiVisualMode]);
 
     useEffect(() => {
         setDeletedSchemaNodes((prev) => {
@@ -478,6 +608,65 @@ export const SchemaDesignerFlow = () => {
         return dialogResponse;
     };
 
+    const handleRevealActivePendingAiChange = () => {
+        if (!activePendingAiChange) {
+            return;
+        }
+        revealChangeInDiagram(activePendingAiChange);
+    };
+
+    const handleKeepActivePendingAiChange = () => {
+        if (!activePendingAiChange || isApplyingPendingAiAction) {
+            return;
+        }
+        context.keepAiLedgerChange(activePendingAiChange);
+    };
+
+    const handleUndoActivePendingAiChange = async () => {
+        if (!activePendingAiChange || isApplyingPendingAiAction) {
+            return;
+        }
+        setIsApplyingPendingAiAction(true);
+        try {
+            await context.undoAiLedgerChange(activePendingAiChange);
+        } finally {
+            setIsApplyingPendingAiAction(false);
+        }
+    };
+
+    const handleKeepPendingAiEdgeChange = () => {
+        if (!pendingAiEdgeToolbarState || isApplyingPendingAiAction) {
+            return;
+        }
+        context.keepAiLedgerChange(pendingAiEdgeToolbarState.change);
+        setPendingAiEdgeToolbarState(null);
+    };
+
+    const handleUndoPendingAiEdgeChange = async () => {
+        if (!pendingAiEdgeToolbarState || isApplyingPendingAiAction) {
+            return;
+        }
+        setIsApplyingPendingAiAction(true);
+        try {
+            await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
+            setPendingAiEdgeToolbarState(null);
+        } finally {
+            setIsApplyingPendingAiAction(false);
+        }
+    };
+
+    const navigatePendingAiChange = (step: 1 | -1) => {
+        if (pendingAiChanges.length === 0) {
+            return;
+        }
+
+        const currentIndex = activePendingAiIndex >= 0 ? activePendingAiIndex : 0;
+        const nextIndex = (currentIndex + step + pendingAiChanges.length) % pendingAiChanges.length;
+        const nextChange = pendingAiChanges[nextIndex];
+        setActivePendingAiChangeId(nextChange.id);
+        revealChangeInDiagram(nextChange);
+    };
+
     return (
         <div style={{ width: "100%", height: "100%", position: "relative" }} ref={flowWrapperRef}>
             <Toaster toasterId={toasterId} position="top-end" />
@@ -511,7 +700,36 @@ export const SchemaDesignerFlow = () => {
                 isValidConnection={validateConnection}
                 connectionMode={ConnectionMode.Loose}
                 onEdgeMouseEnter={(event, edge) => {
-                    if (!context.showChangesHighlight || context.isExporting) {
+                    if (isPendingAiVisualMode && !context.isExporting) {
+                        const foreignKeyId = edge.data?.id;
+                        if (!foreignKeyId) {
+                            setPendingAiEdgeToolbarState(null);
+                            return;
+                        }
+
+                        const pendingAiFkChange = pendingAiForeignKeyChanges.get(foreignKeyId);
+                        if (!pendingAiFkChange) {
+                            setPendingAiEdgeToolbarState(null);
+                            return;
+                        }
+
+                        const rect = flowWrapperRef.current?.getBoundingClientRect();
+                        if (!rect) {
+                            setPendingAiEdgeToolbarState(null);
+                            return;
+                        }
+
+                        setPendingAiEdgeToolbarState({
+                            change: pendingAiFkChange,
+                            position: {
+                                x: event.clientX - rect.left + 6,
+                                y: event.clientY - rect.top - 6,
+                            },
+                        });
+                        return;
+                    }
+
+                    if (!shouldShowBaselineHighlights || context.isExporting) {
                         setEdgeUndoState(null);
                         return;
                     }
@@ -587,6 +805,7 @@ export const SchemaDesignerFlow = () => {
                         return;
                     }
                     setEdgeUndoState(null);
+                    setPendingAiEdgeToolbarState(null);
                 }}
                 onDelete={() => {
                     eventBus.emit("getScript");
@@ -633,6 +852,125 @@ export const SchemaDesignerFlow = () => {
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
+            {showPendingAiFloatingToolbar && (
+                <div
+                    style={{
+                        position: "absolute",
+                        left: "50%",
+                        bottom: "14px",
+                        transform: "translateX(-50%)",
+                        zIndex: 8,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 8px",
+                        borderRadius: "8px",
+                        border: "1px solid var(--vscode-editorWidget-border)",
+                        backgroundColor: "var(--vscode-editorWidget-background)",
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+                    }}>
+                    <Button
+                        size="small"
+                        appearance="primary"
+                        icon={<Checkmark16Regular />}
+                        onClick={handleKeepActivePendingAiChange}
+                        disabled={!activePendingAiChange || isApplyingPendingAiAction}>
+                        Keep
+                    </Button>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        icon={<ArrowUndo16Regular />}
+                        onClick={() => {
+                            void handleUndoActivePendingAiChange();
+                        }}
+                        disabled={!activePendingAiChange || isApplyingPendingAiAction}>
+                        {locConstants.schemaDesigner.undo}
+                    </Button>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        icon={<Eye16Regular />}
+                        onClick={handleRevealActivePendingAiChange}
+                        disabled={!activePendingAiChange}>
+                        Reveal
+                    </Button>
+                    <span
+                        style={{
+                            fontSize: "12px",
+                            color: "var(--vscode-descriptionForeground)",
+                            minWidth: "56px",
+                            textAlign: "center",
+                        }}>
+                        {`${activePendingAiIndex + 1} of ${pendingAiChanges.length}`}
+                    </span>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        icon={<ArrowUp16Regular />}
+                        aria-label="Previous AI change"
+                        onClick={() => navigatePendingAiChange(-1)}
+                        disabled={pendingAiChanges.length === 0}
+                    />
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        icon={<ArrowDown16Regular />}
+                        aria-label="Next AI change"
+                        onClick={() => navigatePendingAiChange(1)}
+                        disabled={pendingAiChanges.length === 0}
+                    />
+                </div>
+            )}
+            {pendingAiEdgeToolbarState && (
+                <div
+                    ref={edgeUndoWrapperRef}
+                    style={{
+                        position: "absolute",
+                        left: pendingAiEdgeToolbarState.position.x,
+                        top: pendingAiEdgeToolbarState.position.y,
+                        zIndex: 5,
+                        padding: "10px",
+                    }}
+                    onMouseLeave={() => setPendingAiEdgeToolbarState(null)}>
+                    <div
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "6px 8px",
+                            borderRadius: "8px",
+                            border: "1px solid var(--vscode-editorWidget-border)",
+                            backgroundColor: "var(--vscode-editorWidget-background)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                        }}>
+                        <Tooltip content={"Keep"} relationship="label">
+                            <Button
+                                size="small"
+                                appearance="primary"
+                                icon={<Checkmark16Regular />}
+                                disabled={isApplyingPendingAiAction}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleKeepPendingAiEdgeChange();
+                                }}
+                            />
+                        </Tooltip>
+                        <Tooltip content={locConstants.schemaDesigner.undo} relationship="label">
+                            <Button
+                                size="small"
+                                appearance="subtle"
+                                icon={<ArrowUndo16Regular />}
+                                disabled={isApplyingPendingAiAction}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    void handleUndoPendingAiEdgeChange();
+                                }}
+                            />
+                        </Tooltip>
+                    </div>
+                </div>
+            )}
             {edgeUndoState && (
                 <div
                     ref={edgeUndoWrapperRef}

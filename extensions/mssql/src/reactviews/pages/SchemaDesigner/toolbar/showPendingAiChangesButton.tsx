@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, ToolbarButton, Tooltip, makeStyles } from "@fluentui/react-components";
-import { BranchCompare20Regular } from "@fluentui/react-icons";
+import * as fluentIcons from "@fluentui/react-icons";
 import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
+import { getVisiblePendingAiSchemaChanges } from "../aiLedger/ledgerUtils";
 
 const useStyles = makeStyles({
     container: {
@@ -27,33 +28,28 @@ const useStyles = makeStyles({
     },
 });
 
-export function ShowChangesButton() {
+export function ShowPendingAiChangesButton() {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
+    const pendingAiCount = getVisiblePendingAiSchemaChanges(context.aiLedger).length;
+    if (pendingAiCount === 0) {
+        return undefined;
+    }
+
     return (
         <Tooltip
-            content={locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}
+            content={locConstants.schemaDesigner.pendingAiChangesButtonLabel(pendingAiCount)}
             relationship="label">
             <span className={classes.container}>
                 <ToolbarButton
                     onClick={() => {
-                        if (
-                            context.isChangesPanelVisible &&
-                            context.changesPanelTab === "baseline"
-                        ) {
-                            eventBus.emit("toggleChangesPanel");
-                            return;
-                        }
-
-                        eventBus.emit("openChangesPanel", "baseline");
+                        eventBus.emit("openChangesPanel", "pendingAi");
                     }}
-                    icon={<BranchCompare20Regular />}
+                    icon={<fluentIcons.Sparkle16Regular />}
                 />
-                {context.schemaChangesCount > 0 && (
-                    <Badge size="small" className={classes.badge}>
-                        {context.schemaChangesCount}
-                    </Badge>
-                )}
+                <Badge size="small" className={classes.badge}>
+                    {pendingAiCount}
+                </Badge>
             </span>
         </Tooltip>
     );
