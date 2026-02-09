@@ -12,11 +12,12 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Text } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
-import { ProfilerFilterDialog } from "./profilerFilterDialog";
+import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
+import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
 import {
     SessionState,
     ProfilerNotifications,
@@ -24,6 +25,8 @@ import {
     NewEventsAvailableParams,
     RowsRemovedParams,
     FilterClause,
+    FilterType,
+    ProfilerColumnDef,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -43,7 +46,7 @@ let notificationHandlersRegistered = false;
  * Formatter for optional numeric fields - shows empty string for undefined/null
  */
 const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
-    if (value === undefined || value === null) {
+    if (value === undefined) {
         return "";
     }
     return String(value);
@@ -114,7 +117,9 @@ export const Profiler: React.FC = () => {
         (s) => s.filterState ?? { enabled: false, clauses: [] },
     );
 
-    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
+    const isFilterActive =
+        (filterState.enabled && filterState.clauses.length > 0) ||
+        (filterState.quickFilter !== undefined && filterState.quickFilter.trim() !== "");
 
     const {
         pauseResume,
@@ -128,15 +133,20 @@ export const Profiler: React.FC = () => {
         fetchRows,
         applyFilter,
         clearFilter,
+        setQuickFilter,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
-    const reactGridRef = useRef<SlickgridReactInstance | null>(null);
+    const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const [localRowCount, setLocalRowCount] = useState(0);
-    const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
-    const [defaultFilterField, setDefaultFilterField] = useState<string | undefined>(undefined);
+
+    // Popover state
+    const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
+    const [popoverAnchorRect, setPopoverAnchorRect] = useState<DOMRect | undefined>(undefined);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
     const isFetchingRef = useRef(false);
-    const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
+    const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
@@ -165,19 +175,28 @@ export const Profiler: React.FC = () => {
             }
             setLocalRowCount(0);
             isFetchingRef.current = false;
-            pendingFetchRef.current = null;
+            pendingFetchRef.current = undefined;
             // Don't fetch here - NewEventsAvailable notification from extension will handle it
         }
     }, [clearGeneration]);
 
     /**
-     * Opens the filter dialog with the specified column pre-selected
-     * @param field The field name of the column to pre-select
+     * Opens the column filter popover anchored to the funnel button.
+     * @param field The field name of the column
+     * @param buttonElement The funnel button element for anchor positioning
      */
-    const openFilterForColumn = useCallback((field: string) => {
-        setDefaultFilterField(field);
-        setIsFilterDialogOpen(true);
-    }, []);
+    const openFilterForColumn = useCallback(
+        (field: string, buttonElement: HTMLElement) => {
+            const colDef = viewConfig?.columns?.find((c) => c.field === field);
+            if (!colDef) {
+                return;
+            }
+            setPopoverColumn(colDef);
+            setPopoverAnchorRect(buttonElement.getBoundingClientRect());
+            setIsPopoverOpen(true);
+        },
+        [viewConfig],
+    );
 
     // Store the callback in a ref so we can access it from the grid event handler
     const openFilterForColumnRef = useRef(openFilterForColumn);
@@ -226,6 +245,11 @@ export const Profiler: React.FC = () => {
                     (clause) => clause.field === column.field,
                 );
 
+                // Apply filtered class to header cell for text color
+                if (hasActiveFilter) {
+                    args.node.classList.add("slick-header-column-filtered");
+                }
+
                 // Create filter button (same class as QueryResult for consistent styling)
                 const filterButton = document.createElement("button");
                 filterButton.id = "filter-btn";
@@ -239,7 +263,7 @@ export const Profiler: React.FC = () => {
                 filterButton.addEventListener("click", (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    openFilterForColumnRef.current(fieldName);
+                    openFilterForColumnRef.current(fieldName, filterButton);
                 });
 
                 // Append filter button to the header cell (same as QueryResult pattern)
@@ -297,8 +321,10 @@ export const Profiler: React.FC = () => {
 
             if (hasActiveFilter) {
                 filterButton.classList.add("filtered");
+                headerCell.classList.add("slick-header-column-filtered");
             } else {
                 filterButton.classList.remove("filtered");
+                headerCell.classList.remove("slick-header-column-filtered");
             }
         });
     }, [filterState]);
@@ -349,7 +375,7 @@ export const Profiler: React.FC = () => {
                 if (pendingFetchRef.current) {
                     const currentCount = dataView.getItemCount();
                     const targetTotalCount = pendingFetchRef.current.count;
-                    pendingFetchRef.current = null;
+                    pendingFetchRef.current = undefined;
 
                     // Only fetch if there's still data we don't have
                     const eventsToFetch = targetTotalCount - currentCount;
@@ -394,7 +420,7 @@ export const Profiler: React.FC = () => {
             }
             setLocalRowCount(0);
             isFetchingRef.current = false;
-            pendingFetchRef.current = null;
+            pendingFetchRef.current = undefined;
         });
 
         // Handle rows removed notification (ring buffer overflow)
@@ -419,9 +445,23 @@ export const Profiler: React.FC = () => {
         );
     }, []);
 
-    // Handle scroll event for infinite scroll
+    /**
+     * Handles closing the popover without applying.
+     */
+    const handlePopoverClose = useCallback(() => {
+        setIsPopoverOpen(false);
+        setPopoverColumn(undefined);
+        setPopoverAnchorRect(undefined);
+    }, []);
+
+    // Close popover when grid scrolls horizontally (FR-016)
     const handleScroll = useCallback(
         (event: CustomEvent) => {
+            // Close popover on any scroll
+            if (isPopoverOpen) {
+                handlePopoverClose();
+            }
+
             const args = event.detail?.args;
             if (!args || !reactGridRef.current?.dataView) {
                 return;
@@ -445,7 +485,7 @@ export const Profiler: React.FC = () => {
                 }
             }
         },
-        [fetchRows, totalRowCount],
+        [fetchRows, totalRowCount, isPopoverOpen, handlePopoverClose],
     );
 
     // Convert view config columns to SlickGrid column definitions
@@ -568,47 +608,111 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
-    /**
-     * Handles opening the filter dialog from the toolbar (no column pre-selected).
-     */
-    const handleFilter = useCallback(() => {
-        setDefaultFilterField(undefined); // Clear any previously set default field
-        setIsFilterDialogOpen(true);
-    }, []);
+    // ─── Popover handlers ─────────────────────────────────────────────────
 
     /**
-     * Handles applying filter clauses from the filter dialog.
-     * @param clauses The filter clauses to apply
+     * Compute distinct values for the current popover column (categorical only).
      */
-    const handleApplyFilter = useCallback(
-        (clauses: FilterClause[]) => {
-            applyFilter(clauses);
-            setIsFilterDialogOpen(false);
-            setDefaultFilterField(undefined); // Clear default field after applying
+    const popoverDistinctValues = useMemo(() => {
+        if (!isPopoverOpen || !popoverColumn) {
+            return [];
+        }
+        const filterType = getFilterType(popoverColumn);
+        if (filterType !== FilterType.Categorical) {
+            return [];
+        }
+        const dataView = reactGridRef.current?.dataView;
+        if (!dataView) {
+            return [];
+        }
+
+        const field = popoverColumn.field;
+        const seen = new Set<string>();
+        const itemCount = dataView.getItemCount();
+        for (let i = 0; i < itemCount; i++) {
+            const item = dataView.getItemByIdx(i);
+            if (item) {
+                const val = String((item as Record<string, unknown>)[field] ?? "");
+                if (val !== "") {
+                    seen.add(val);
+                }
+            }
+        }
+        return Array.from(seen).sort((a, b) => a.localeCompare(b));
+    }, [isPopoverOpen, popoverColumn, localRowCount]); // localRowCount dependency ensures refresh when data changes
+
+    /**
+     * Current filter clause for the popover column (if any).
+     */
+    const popoverCurrentClause = useMemo(() => {
+        if (!popoverColumn) {
+            return undefined;
+        }
+        return filterState.clauses.find((c) => c.field === popoverColumn.field);
+    }, [popoverColumn, filterState.clauses]);
+
+    /**
+     * Handles applying a filter from the popover for a specific column.
+     * Merges the new clause into the existing clauses array.
+     */
+    const handlePopoverApply = useCallback(
+        (clause: FilterClause) => {
+            // Replace any existing clause for this field, or add a new one
+            const otherClauses = filterState.clauses.filter((c) => c.field !== clause.field);
+            applyFilter([...otherClauses, clause]);
+            handlePopoverClose();
         },
-        [applyFilter],
+        [filterState.clauses, applyFilter, handlePopoverClose],
     );
 
     /**
-     * Handles clearing the active filter from the toolbar.
-     * Removes all filter clauses and shows all events.
+     * Handles clearing the filter for a specific column from the popover.
+     */
+    const handlePopoverClear = useCallback(() => {
+        if (!popoverColumn) {
+            return;
+        }
+        const remainingClauses = filterState.clauses.filter((c) => c.field !== popoverColumn.field);
+        if (remainingClauses.length === 0) {
+            clearFilter();
+        } else {
+            applyFilter(remainingClauses);
+        }
+        handlePopoverClose();
+    }, [popoverColumn, filterState.clauses, applyFilter, clearFilter, handlePopoverClose]);
+
+    /**
+     * Handles quick filter changes from the toolbar.
+     */
+    const handleQuickFilterChange = useCallback(
+        (term: string) => {
+            setQuickFilter(term);
+        },
+        [setQuickFilter],
+    );
+
+    /**
+     * Handles clearing all filters (clauses + quick filter) from the toolbar.
      */
     const handleClearFilter = useCallback(() => {
         clearFilter();
-        setIsFilterDialogOpen(false);
-        setDefaultFilterField(undefined); // Clear default field after clearing filter
-    }, [clearFilter]);
+        setQuickFilter("");
+    }, [clearFilter, setQuickFilter]);
 
     /**
-     * Handles dialog open/close state changes.
-     * Clears the default field when dialog is closed.
+     * Handles removing a single column's filter from the active filters bar.
      */
-    const handleFilterDialogOpenChange = useCallback((open: boolean) => {
-        setIsFilterDialogOpen(open);
-        if (!open) {
-            setDefaultFilterField(undefined);
-        }
-    }, []);
+    const handleRemoveColumnFilter = useCallback(
+        (field: string) => {
+            const remainingClauses = filterState.clauses.filter((c) => c.field !== field);
+            if (remainingClauses.length === 0) {
+                clearFilter();
+            } else {
+                applyFilter(remainingClauses);
+            }
+        },
+        [filterState.clauses, applyFilter, clearFilter],
+    );
 
     return (
         <div className={classes.profilerContainer}>
@@ -622,6 +726,7 @@ export const Profiler: React.FC = () => {
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
                 isFilterActive={isFilterActive}
+                quickFilterTerm={filterState.quickFilter ?? ""}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -630,18 +735,32 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
-                onFilter={handleFilter}
                 onClearFilter={handleClearFilter}
+                onQuickFilterChange={handleQuickFilterChange}
             />
-            <ProfilerFilterDialog
+            <ProfilerActiveFiltersBar
+                clauses={filterState.clauses}
                 columns={viewConfig?.columns ?? []}
-                currentClauses={filterState.clauses}
-                isOpen={isFilterDialogOpen}
-                defaultField={defaultFilterField}
-                onOpenChange={handleFilterDialogOpenChange}
-                onApplyFilter={handleApplyFilter}
+                onRemoveFilter={handleRemoveColumnFilter}
             />
+            {popoverColumn && (
+                <ProfilerColumnFilterPopover
+                    column={popoverColumn}
+                    anchorRect={popoverAnchorRect}
+                    isOpen={isPopoverOpen}
+                    currentClause={popoverCurrentClause}
+                    distinctValues={popoverDistinctValues}
+                    onClose={handlePopoverClose}
+                    onApply={handlePopoverApply}
+                    onClear={handlePopoverClear}
+                />
+            )}
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
+                {isFilterActive && localRowCount === 0 && (
+                    <Text className={classes.emptyFilterMessage} align="center" size={300}>
+                        {locConstants.profiler.noResultsMatchFilter}
+                    </Text>
+                )}
                 <SlickgridReact
                     gridId="profilerGrid"
                     columns={columns}
@@ -721,6 +840,12 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
+    emptyFilterMessage: {
+        display: "flex",
+        justifyContent: "center",
+        padding: "16px",
+        color: "var(--vscode-descriptionForeground)",
+    },
 });
 
 // Global styles for SlickGrid that need to be injected as CSS
@@ -744,6 +869,11 @@ const slickGridStyles = `
     --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
     --slick-cell-border-left: 0;
+
+    --slick-header-column-border-right: 1px solid var(--vscode-editorWidget-border);
+    --slick-header-column-border-top: 1px solid var(--vscode-editorWidget-border);
+    --slick-header-column-border-bottom: 1px solid var(--vscode-editorWidget-border);
+    --slick-header-column-border-left: 0;
 
     /* Column picker colors */
     --slick-column-picker-background-color: var(--vscode-menu-background);
@@ -829,6 +959,14 @@ const slickGridStyles = `
 /* Filtered state - filled funnel icon for light theme */
 .vscode-light #profilerGrid .slick-header-filterbutton.filtered {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23007ACC' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
+}
+
+/* Column header with active filter - color the text to match funnel icon */
+#profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
+    color: #75BEFF;
+}
+.vscode-light #profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
+    color: #007ACC;
 }
 
 /* Auto-hide scrollbars when not needed */

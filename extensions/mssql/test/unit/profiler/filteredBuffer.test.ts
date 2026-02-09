@@ -7,7 +7,12 @@ import { expect } from "chai";
 import { v4 as uuidv4 } from "uuid";
 import { RingBuffer } from "../../../src/profiler/ringBuffer";
 import { FilteredBuffer } from "../../../src/profiler/filteredBuffer";
-import { IndexedRow, FilterOperator, FilterClause } from "../../../src/profiler/profilerTypes";
+import {
+    IndexedRow,
+    FilterOperator,
+    FilterClause,
+    FilterTypeHint,
+} from "../../../src/profiler/profilerTypes";
 
 interface TestRow extends IndexedRow {
     eventNumber: number;
@@ -264,7 +269,12 @@ suite("FilteredBuffer Tests", () => {
             buffer.add(createTestRow("test3", 100));
 
             filteredBuffer.setFilter([
-                { field: "value", operator: FilterOperator.Equals, value: 100, typeHint: "number" },
+                {
+                    field: "value",
+                    operator: FilterOperator.Equals,
+                    value: 100,
+                    typeHint: FilterTypeHint.Number,
+                },
             ]);
 
             const rows = filteredBuffer.getFilteredRows();
@@ -313,7 +323,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.LessThan,
                     value: 25,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -330,7 +340,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "name",
                     operator: FilterOperator.LessThan,
                     value: 5,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -351,7 +361,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.LessThanOrEqual,
                     value: 20,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -371,7 +381,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.GreaterThan,
                     value: 15,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -391,7 +401,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: 20,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -560,7 +570,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.GreaterThan,
                     value: 50,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -575,7 +585,12 @@ suite("FilteredBuffer Tests", () => {
 
             filteredBuffer.setFilter([
                 { field: "name", operator: FilterOperator.Contains, value: "apple" },
-                { field: "value", operator: FilterOperator.Equals, value: 999, typeHint: "number" },
+                {
+                    field: "value",
+                    operator: FilterOperator.Equals,
+                    value: 999,
+                    typeHint: FilterTypeHint.Number,
+                },
             ]);
 
             const rows = filteredBuffer.getFilteredRows();
@@ -610,7 +625,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
                     value: new Date(now - 5000).toISOString(),
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -639,7 +654,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "active",
                     operator: FilterOperator.Equals,
                     value: true,
-                    typeHint: "boolean",
+                    typeHint: FilterTypeHint.Boolean,
                 },
             ]);
 
@@ -684,7 +699,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "value",
                     operator: FilterOperator.Equals,
                     value: "  100  " as unknown as number,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -795,7 +810,12 @@ suite("FilteredBuffer Tests", () => {
             eventBuffer.add(createEventRow({ spid: undefined }));
 
             eventFilteredBuffer.setFilter([
-                { field: "spid", operator: FilterOperator.Equals, value: 55, typeHint: "number" },
+                {
+                    field: "spid",
+                    operator: FilterOperator.Equals,
+                    value: 55,
+                    typeHint: FilterTypeHint.Number,
+                },
             ]);
 
             const rows = eventFilteredBuffer.getFilteredRows();
@@ -825,7 +845,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "duration",
                     operator: FilterOperator.GreaterThan,
                     value: 1000,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -844,7 +864,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "cpu",
                     operator: FilterOperator.LessThanOrEqual,
                     value: 100,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -862,7 +882,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "reads",
                     operator: FilterOperator.NotEquals,
                     value: 0,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -954,7 +974,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
                     value: "2024-03-01T00:00:00.000Z",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -968,7 +988,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.LessThan,
                     value: "2024-06-01",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -983,7 +1003,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.Equals,
                     value: "2024-01-15T10:30:00.000Z",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -998,7 +1018,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: "2024-06-01T08:00:00.000Z",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -1012,7 +1032,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.LessThanOrEqual,
                     value: "2024-03-20T14:45:00.000Z",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -1026,13 +1046,13 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: "2024-02-01",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
                 {
                     field: "timestamp",
                     operator: FilterOperator.LessThan,
                     value: "2024-07-01",
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -1047,7 +1067,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "timestamp",
                     operator: FilterOperator.GreaterThan,
                     value: filterDate.toISOString(),
-                    typeHint: "date",
+                    typeHint: FilterTypeHint.Date,
                 },
             ]);
 
@@ -1110,7 +1130,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThan,
                     value: "2026-01-21 20:29:10.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1125,7 +1145,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: "2026-01-21 20:29:10.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1139,7 +1159,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.LessThan,
                     value: "2026-01-21 20:32:00.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1154,7 +1174,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.LessThanOrEqual,
                     value: "2026-01-21 20:32:00.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1168,7 +1188,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.Equals,
                     value: "2026-01-21 20:29:10.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1183,7 +1203,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.NotEquals,
                     value: "2026-01-21 20:29:10.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1197,13 +1217,13 @@ suite("FilteredBuffer Tests", () => {
                     field: "StartTime",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: "2026-01-21 20:29:10.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
                 {
                     field: "StartTime",
                     operator: FilterOperator.LessThan,
                     value: "2026-01-21 21:00:00.000",
-                    typeHint: "datetime",
+                    typeHint: FilterTypeHint.DateTime,
                 },
             ]);
 
@@ -1307,7 +1327,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "duration",
                     operator: FilterOperator.GreaterThan,
                     value: 1000,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -1319,12 +1339,17 @@ suite("FilteredBuffer Tests", () => {
             complexFilteredBuffer.setFilter([
                 { field: "eventClass", operator: FilterOperator.Contains, value: "Batch" },
                 { field: "textData", operator: FilterOperator.NotContains, value: "INSERT" },
-                { field: "spid", operator: FilterOperator.Equals, value: 55, typeHint: "number" },
+                {
+                    field: "spid",
+                    operator: FilterOperator.Equals,
+                    value: 55,
+                    typeHint: FilterTypeHint.Number,
+                },
                 {
                     field: "duration",
                     operator: FilterOperator.LessThanOrEqual,
                     value: 1000,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -1342,7 +1367,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "duration",
                     operator: FilterOperator.GreaterThanOrEqual,
                     value: 100,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
                 { field: "spid", operator: FilterOperator.IsNotNull },
             ]);
@@ -1359,7 +1384,12 @@ suite("FilteredBuffer Tests", () => {
                     value: "SQL:BatchCompleted",
                 },
                 { field: "databaseName", operator: FilterOperator.Equals, value: "NonExistentDB" },
-                { field: "spid", operator: FilterOperator.Equals, value: 999, typeHint: "number" },
+                {
+                    field: "spid",
+                    operator: FilterOperator.Equals,
+                    value: 999,
+                    typeHint: FilterTypeHint.Number,
+                },
             ]);
 
             const rows = complexFilteredBuffer.getFilteredRows();
@@ -1424,7 +1454,7 @@ suite("FilteredBuffer Tests", () => {
                     field: "optionalNum",
                     operator: FilterOperator.GreaterThan,
                     value: 100,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
@@ -1455,13 +1485,169 @@ suite("FilteredBuffer Tests", () => {
                     field: "duration",
                     operator: FilterOperator.GreaterThan,
                     value: 1000,
-                    typeHint: "number",
+                    typeHint: FilterTypeHint.Number,
                 },
             ]);
 
             const rows = optFiltered.getFilteredRows();
             expect(rows).to.have.length(1);
             expect(rows[0].name).to.equal("slow");
+        });
+    });
+
+    suite("EndsWith operator", () => {
+        test("should match values that end with the specified string", () => {
+            buffer.add(createTestRow("SELECT * FROM users", 1));
+            buffer.add(createTestRow("INSERT INTO orders", 2));
+            buffer.add(createTestRow("DELETE FROM users", 3));
+
+            filteredBuffer.setFilter([
+                { field: "name", operator: FilterOperator.EndsWith, value: "users" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows[0].name).to.equal("SELECT * FROM users");
+            expect(rows[1].name).to.equal("DELETE FROM users");
+        });
+
+        test("should be case-insensitive", () => {
+            buffer.add(createTestRow("query.SQL", 1));
+            buffer.add(createTestRow("query.txt", 2));
+
+            filteredBuffer.setFilter([
+                { field: "name", operator: FilterOperator.EndsWith, value: ".sql" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("query.SQL");
+        });
+
+        test("should return no results when nothing matches", () => {
+            buffer.add(createTestRow("hello", 1));
+            buffer.add(createTestRow("world", 2));
+
+            filteredBuffer.setFilter([
+                { field: "name", operator: FilterOperator.EndsWith, value: "xyz" },
+            ]);
+
+            expect(filteredBuffer.getFilteredRows()).to.have.length(0);
+        });
+    });
+
+    suite("NotEndsWith operator", () => {
+        test("should match values that do not end with the specified string", () => {
+            buffer.add(createTestRow("SELECT * FROM users", 1));
+            buffer.add(createTestRow("INSERT INTO orders", 2));
+            buffer.add(createTestRow("DELETE FROM users", 3));
+
+            filteredBuffer.setFilter([
+                { field: "name", operator: FilterOperator.NotEndsWith, value: "users" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("INSERT INTO orders");
+        });
+
+        test("should be case-insensitive", () => {
+            buffer.add(createTestRow("query.SQL", 1));
+            buffer.add(createTestRow("query.txt", 2));
+
+            filteredBuffer.setFilter([
+                { field: "name", operator: FilterOperator.NotEndsWith, value: ".sql" },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].name).to.equal("query.txt");
+        });
+    });
+
+    suite("In operator", () => {
+        test("should match values in the specified set", () => {
+            buffer.add(createTestRow("Alpha", 1, 0, "catA"));
+            buffer.add(createTestRow("Beta", 2, 0, "catB"));
+            buffer.add(createTestRow("Gamma", 3, 0, "catC"));
+            buffer.add(createTestRow("Delta", 4, 0, "catA"));
+
+            filteredBuffer.setFilter([
+                {
+                    field: "category",
+                    operator: FilterOperator.In,
+                    values: ["catA", "catC"],
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(3);
+            expect(rows.map((r) => r.name)).to.deep.equal(["Alpha", "Gamma", "Delta"]);
+        });
+
+        test("should be case-insensitive", () => {
+            buffer.add(createTestRow("A", 1, 0, "CatA"));
+            buffer.add(createTestRow("B", 2, 0, "CATB"));
+            buffer.add(createTestRow("C", 3, 0, "catc"));
+
+            filteredBuffer.setFilter([
+                {
+                    field: "category",
+                    operator: FilterOperator.In,
+                    values: ["cata", "catB"],
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.map((r) => r.name)).to.deep.equal(["A", "B"]);
+        });
+
+        test("should return no results when values array is empty", () => {
+            buffer.add(createTestRow("A", 1, 0, "catA"));
+            buffer.add(createTestRow("B", 2, 0, "catB"));
+
+            filteredBuffer.setFilter([
+                {
+                    field: "category",
+                    operator: FilterOperator.In,
+                    values: [],
+                },
+            ]);
+
+            expect(filteredBuffer.getFilteredRows()).to.have.length(0);
+        });
+
+        test("should return no results when values is undefined", () => {
+            buffer.add(createTestRow("A", 1, 0, "catA"));
+
+            filteredBuffer.setFilter([
+                {
+                    field: "category",
+                    operator: FilterOperator.In,
+                    values: undefined,
+                },
+            ]);
+
+            expect(filteredBuffer.getFilteredRows()).to.have.length(0);
+        });
+
+        test("should handle numeric field values converted to strings", () => {
+            buffer.add(createTestRow("A", 100));
+            buffer.add(createTestRow("B", 200));
+            buffer.add(createTestRow("C", 300));
+
+            filteredBuffer.setFilter([
+                {
+                    field: "value",
+                    operator: FilterOperator.In,
+                    values: ["100", "300"],
+                },
+            ]);
+
+            const rows = filteredBuffer.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.map((r) => r.name)).to.deep.equal(["A", "C"]);
         });
     });
 });

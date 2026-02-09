@@ -68,9 +68,6 @@
     <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
       <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
     </trans-unit>
-    <trans-unit id="++CODE++6b4b85b9276c1917ce3d749e584ea03acb78546dc61403270971da658d06ce4a">
-      <source xml:lang="en">A new clause has been added.</source>
-    </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
     </trans-unit>
@@ -109,6 +106,9 @@
     <trans-unit id="++CODE++4a7870205fd96778561ad4653fea7c80cc5fffbc97a43337c1d45f0493e4ee0e">
       <source xml:lang="en">Action Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
+      <source xml:lang="en">Active filters:</source>
+    </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
     </trans-unit>
@@ -123,9 +123,6 @@
     </trans-unit>
     <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
       <source xml:lang="en">Add Account</source>
-    </trans-unit>
-    <trans-unit id="++CODE++64a5d3d445f986159dfc1cad55ae05438735ca751184d2a3899581b268a2dd0c">
-      <source xml:lang="en">Add Clause</source>
     </trans-unit>
     <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
       <source xml:lang="en">Add Column</source>
@@ -211,9 +208,6 @@
     </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8ea705ad1d28701938279c99ce54282d1e0699b8d2af1164b67f03e4c30c1142">
-      <source xml:lang="en">All clauses have been cleared.</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -790,6 +784,9 @@
     <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
       <source xml:lang="en">Clear All</source>
     </trans-unit>
+    <trans-unit id="++CODE++209d178dae312190122119feaf037ac343e2cb4f298ee03d7254fcc71da5e50a">
+      <source xml:lang="en">Clear All Filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
       <source xml:lang="en">Clear Data</source>
     </trans-unit>
@@ -831,6 +828,9 @@
     </trans-unit>
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9d57c82931ed2fcf9bbbc9dbc259e850c0c2b7d57b06e24b627597e60019bc6a">
+      <source xml:lang="en">Clear quick filter and all column filters</source>
     </trans-unit>
     <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
       <source xml:lang="en">Clear token cache</source>
@@ -1553,6 +1553,9 @@
     <trans-unit id="++CODE++b16cf0590a6c78b2e8047509582e5448bd55e408cd112bd1f064e34529f6ce3d">
       <source xml:lang="en">Description for the table.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
+      <source xml:lang="en">Deselect All</source>
+    </trans-unit>
     <trans-unit id="++CODE++b481dd486903dcfcb9af96c386e0455b3d7653785be92c9bb85bb02de161d062">
       <source xml:lang="en">Design, visualize, and evolve database schemas using an interactive diagram with synchronized SQL generation.</source>
     </trans-unit>
@@ -1738,8 +1741,14 @@
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++a1afcfa3e45c63a614a4d0646298473382e20d077466ce245a0f991dbe7f0a22">
+      <source xml:lang="en">Enter a date...</source>
+    </trans-unit>
     <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
       <source xml:lang="en">Enter a name for the new profiler session</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
+      <source xml:lang="en">Enter a number...</source>
     </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
@@ -1779,6 +1788,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
+      <source xml:lang="en">Enter text...</source>
     </trans-unit>
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
@@ -1916,6 +1928,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
+      <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
       <source xml:lang="en">Excel</source>
@@ -2331,9 +2347,6 @@
     <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
       <source xml:lang="en">Filter Changes</source>
     </trans-unit>
-    <trans-unit id="++CODE++22fe2ae9a68514df7a617599647fa0728a361acb6888afa0a187dd208391ecca">
-      <source xml:lang="en">Filter Events</source>
-    </trans-unit>
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
     </trans-unit>
@@ -2358,11 +2371,21 @@
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
     </trans-unit>
+    <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
+      <source xml:lang="en">Filter operator</source>
+    </trans-unit>
     <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
       <source xml:lang="en">Filter shortcuts</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9542a271957e5da6241a181f50baa24e710645a5007dfa3e45c27bbad587791">
+      <source xml:lang="en">Filter value</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
       <source xml:lang="en">Filter...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
+      <source xml:lang="en">Filter: {0}</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
       <source xml:lang="en">Find</source>
@@ -2682,6 +2705,9 @@
     </trans-unit>
     <trans-unit id="++CODE++addd610c6d7490077d732bef42a410cdb12538afd39f1bbdc7a3942f39222645">
       <source xml:lang="en">Importing selections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8bc1d53cc57c24b79bf7c260b1f3b29973caab7b8f501c33016b321ebfc274f1">
+      <source xml:lang="en">In</source>
     </trans-unit>
     <trans-unit id="++CODE++edc1807b28e26d830c47aea48d193d0a4a8d3f07dfc4cb3b11f43eabe698f01e">
       <source xml:lang="en">In case you missed it</source>
@@ -3401,9 +3427,6 @@
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
-    <trans-unit id="++CODE++e180bc8df0c35b5cc2ee9b7e4c128f5e0cc73343d325507cf7c49ab685c03c4d">
-      <source xml:lang="en">No filter clauses defined. Add a clause to filter events.</source>
-    </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
@@ -3438,6 +3461,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
       <source xml:lang="en">No results for the active editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6f175c0cc2e82f1f69f421b3776d1a306fc92dbce166cbf045a4d8e31f5608e">
+      <source xml:lang="en">No results match the current filters</source>
     </trans-unit>
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
@@ -3946,6 +3972,9 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
+    <trans-unit id="++CODE++3d4e273abc06c9c813509cdd979ca01705ae3c105fdb5e9b20476a6f4948c30a">
+      <source xml:lang="en">Quick filter all columnsȂ</source>
+    </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>
     </trans-unit>
@@ -4025,6 +4054,10 @@
     </trans-unit>
     <trans-unit id="++CODE++23c5cdc6269ef451d3b3aed87b2cf78c0153cc9097143b6140f23d2331f5947f">
       <source xml:lang="en">Remove filter</source>
+    </trans-unit>
+    <trans-unit id="++CODE++094e39c37800d5830e170aa0fbb976b10df2e3a9b847a6ec019c1e304bc509a6">
+      <source xml:lang="en">Remove filter for {0}</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
       <source xml:lang="en">Remove recent connection</source>
@@ -4410,6 +4443,13 @@
     </trans-unit>
     <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
       <source xml:lang="en">Search term cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
+      <source xml:lang="en">Search values...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7">
+      <source xml:lang="en">Search within {0} text content</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
       <source xml:lang="en">Search workspaces...</source>
@@ -5256,6 +5296,9 @@
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
+      <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
+    </trans-unit>
     <trans-unit id="++CODE++749b400ba20ba43ab49bfea89c887715c90666b26c5f0a8d9dbedf1dafce1735">
       <source xml:lang="en">Use the default server setting</source>
     </trans-unit>
@@ -5370,6 +5413,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
+      <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
@@ -5638,6 +5684,11 @@
       <note>{0} is the status
 {1} is the message</note>
     </trans-unit>
+    <trans-unit id="++CODE++98705269dd591aad37bacd7289a91ccb143232441bfe1143db9f2704c6f029e8">
+      <source xml:lang="en">{0}/{1}</source>
+      <note>{0} is selected count
+{1} is total count</note>
+    </trans-unit>
     <trans-unit id="++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb">
       <source xml:lang="en">{0}/{1} events</source>
       <note>{0} is the filtered count, {1} is the total count</note>
@@ -5646,6 +5697,11 @@
       <source xml:lang="en">{0}: {1}</source>
       <note>{0} is the task name
 {1} is the status</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is the column name
+{1} is the filter description</note>
     </trans-unit>
     <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
       <source xml:lang="en">{0}: {1}</source>

@@ -122,6 +122,11 @@ export interface ViewColumn {
     /** Whether the column is filterable */
     filterable?: boolean;
     /**
+     * Filter type for the column: determines the filter UI and available operators.
+     * Defaults to Text for string columns if not specified.
+     */
+    filterType?: FilterType;
+    /**
      * Array of XEvent field names that map to this column.
      * When converting an event row, the first matching field will be used.
      */
@@ -229,12 +234,29 @@ export enum FilterOperator {
     StartsWith = "startsWith",
     /** Field does not start with the value */
     NotStartsWith = "notStartsWith",
+    /** Field ends with the value (case-insensitive) */
+    EndsWith = "endsWith",
+    /** Field does not end with the value */
+    NotEndsWith = "notEndsWith",
+    /** Field value is one of a set of values (OR logic within a single column) */
+    In = "in",
 }
 
 /**
  * Type hint for filter value parsing
  */
-export type FilterTypeHint = "string" | "number" | "date" | "datetime" | "boolean";
+export enum FilterTypeHint {
+    /** String/text data */
+    String = "string",
+    /** Numeric data */
+    Number = "number",
+    /** Date data (without time) */
+    Date = "date",
+    /** Date/time data */
+    DateTime = "datetime",
+    /** Boolean data */
+    Boolean = "boolean",
+}
 
 /**
  * A single filter clause for client-side filtering.
@@ -247,8 +269,25 @@ export interface FilterClause {
     operator: FilterOperator;
     /** The value to compare against (not used for IsNull/IsNotNull) */
     value?: string | number | boolean | null;
+    /** Set of values for the In operator (OR logic within a single column) */
+    values?: string[];
     /** Optional type hint for value parsing */
     typeHint?: FilterTypeHint;
+}
+
+/**
+ * Filter type for columns.
+ * Determines the filter UI and operators available for a column.
+ */
+export enum FilterType {
+    /** Show a searchable checkbox list of distinct values (e.g., EventClass, DatabaseName) */
+    Categorical = "categorical",
+    /** Show text operator input (contains/starts with/ends with) for long text (e.g., TextData) */
+    Text = "text",
+    /** Show numeric operator input (equals/greater than/less than, etc.) */
+    Numeric = "numeric",
+    /** Show date/time operator input (equals/greater than/less than, etc.) */
+    Date = "date",
 }
 
 /**
@@ -260,4 +299,6 @@ export interface FilterState {
     enabled: boolean;
     /** Array of filter clauses (combined with AND logic) */
     clauses: FilterClause[];
+    /** Quick filter search term (cross-column case-insensitive contains) */
+    quickFilter?: string;
 }
