@@ -84,7 +84,7 @@ const useStyles = makeStyles({
     },
     changeItemLayout: {
         // Default Fluent tree indentation is wide for child rows; use a tighter step for change items.
-        paddingLeft: "calc((var(--fluent-TreeItem--level, 1) - 1) * 20px)",
+        paddingLeft: "calc((var(--fluent-TreeItem--level, 1) - 1) * 25px)",
     },
     iconContainer: {
         display: "flex",
