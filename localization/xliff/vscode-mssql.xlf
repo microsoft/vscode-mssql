@@ -3663,6 +3663,10 @@
     <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
       <source xml:lang="en">Paused - click to resume</source>
     </trans-unit>
+    <trans-unit id="++CODE++7a317710fe2bc5a0c5a887a6233463ac0119f238dffaceb85df119a55ab643ff">
+      <source xml:lang="en">Pending AI Changes ({0})</source>
+      <note>{0} is the number of pending AI changes</note>
+    </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
