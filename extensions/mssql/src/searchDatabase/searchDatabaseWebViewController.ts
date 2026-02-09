@@ -117,7 +117,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         void this.whenWebviewReady()
             .then(() => this.initialize())
             .catch((err) => {
-                this.logError(`Initialization failed: ${getErrorMessage(err)}`);
+                this.logError(`Error initializing Search Database: ${getErrorMessage(err)}`);
                 this.state.loadStatus = ApiStatus.Error;
                 this.state.errorMessage = getErrorMessage(err);
                 this.updateState();
@@ -189,41 +189,26 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             },
         );
 
-        try {
-            // Set up connection URI (use stable ownerUri)
-            const connectionUri = this.getConnectionUri();
-            this.state.connectionUri = connectionUri;
+        // Set up connection URI (use stable ownerUri)
+        const connectionUri = this.getConnectionUri();
+        this.state.connectionUri = connectionUri;
 
-            // Ensure connection is established
-            await this.ensureConnection(connectionUri);
+        // Ensure connection is established
+        await this.ensureConnection(connectionUri);
 
-            // Load available databases
-            await this.loadDatabases();
+        // Load available databases
+        await this.loadDatabases();
 
-            // Load initial metadata for selected database
-            await this.loadMetadata();
+        // Load initial metadata for selected database
+        await this.loadMetadata();
 
-            this.state.loadStatus = ApiStatus.Loaded;
-            this.logInfo("Search Database initialization completed successfully");
-            this.updateState();
+        this.state.loadStatus = ApiStatus.Loaded;
+        this.logInfo("Search Database initialization completed successfully");
+        this.updateState();
 
-            endActivity.end(ActivityStatus.Succeeded, {
-                operationId: this._operationId,
-            });
-        } catch (error) {
-            this.logError(`Error initializing Search Database: ${getErrorMessage(error)}`);
-            this.state.loadStatus = ApiStatus.Error;
-            this.state.errorMessage = getErrorMessage(error);
-            this.updateState();
-
-            endActivity.endFailed(
-                new Error("Failed to initialize Search Database"),
-                true,
-                undefined,
-                undefined,
-                { operationId: this._operationId },
-            );
-        }
+        endActivity.end(ActivityStatus.Succeeded, {
+            operationId: this._operationId,
+        });
     }
 
     /**
