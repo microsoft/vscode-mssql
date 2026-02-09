@@ -59,6 +59,7 @@ export class BuildHelper {
 		const microsoftBuildSqlDefaultVersion = '2.0.0'; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
 
 		const dacFxBuildFiles: string[] = [
+			'Microsoft.Build.Sql.dll',
 			'Microsoft.Data.SqlClient.dll',
 			'Microsoft.Data.Tools.Schema.Sql.dll',
 			'Microsoft.Data.Tools.Schema.Tasks.Sql.dll',

@@ -49,11 +49,10 @@ declare module "dataworkspace" {
     validateWorkspace(): Promise<boolean>;
 
     /**
-     * Opens the new project dialog with only the specified project type
-     * @param projectType project type to open the dialog for
+     * Opens the new project dialog
      * @returns the uri of the created the project or undefined if no project was created
      */
-    openSpecificProjectNewProjectDialog(projectType: IProjectType): Promise<vscode.Uri | undefined>;
+    openSpecificProjectNewProjectDialog(): Promise<vscode.Uri | undefined>;
 
     /**
      * Determines if a given character is a valid filename character

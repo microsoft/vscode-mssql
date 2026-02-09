@@ -99,6 +99,8 @@ export enum TelemetryActions {
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
     PublishProjectConnectionError = "PublishProjectConnection",
+    PublishServerConnected = "PublishServerConnected",
+    SqlCmdVariablesModified = "SqlCmdVariablesModified",
     GenerateSqlPackageCommand = "GenerateSqlPackageCommand",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
