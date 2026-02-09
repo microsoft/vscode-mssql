@@ -170,6 +170,10 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         this.logger.warn(`[${this._operationId}] ${message}`);
     }
 
+    private logVerbose(message: string): void {
+        this.logger.verbose(`[${this._operationId}] ${message}`);
+    }
+
     /**
      * Initialize the webview by loading databases and setting up connection
      */
@@ -230,11 +234,18 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
     }
 
     /**
-     * Ensure a connection is established for the given URI
+     * Ensure a connection is established for the given URI and specified database.
+     *
+     * Handles three connection states:
+     * 1. Already connected to the target database — reuses the existing connection.
+     * 2. Connected to a different database — disconnects and reconnects to the target.
+     * 3. Not connected — initiates a new connection. If a connection attempt is already
+     *    in flight (e.g. triggered by the retry reducer racing with initialization),
+     *    we poll until it settles rather than starting a duplicate connection request.
      */
     private async ensureConnection(connectionUri: string): Promise<void> {
         const targetDatabase = this.state.selectedDatabase;
-        this.logInfo(
+        this.logVerbose(
             `Ensuring connection for URI '${connectionUri}', target database '${targetDatabase}'`,
         );
 
@@ -245,14 +256,14 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
             if (currentDatabase === targetDatabase) {
                 // Existing connection is already targeting the desired database.
-                this.logInfo(
+                this.logVerbose(
                     `Already connected to target database '${targetDatabase}', reusing connection`,
                 );
                 return;
             }
 
             // Connected, but to a different database. Disconnect so we can reconnect to the correct one.
-            this.logInfo(
+            this.logVerbose(
                 `Connected to '${currentDatabase}' but need '${targetDatabase}', reconnecting`,
             );
             await this._connectionManager.disconnect(connectionUri);
@@ -262,11 +273,11 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         connectionCreds.database = targetDatabase;
 
         if (!this._connectionManager.isConnecting(connectionUri)) {
-            this.logInfo(`Connecting to database '${targetDatabase}'`);
+            this.logVerbose(`Connecting to database '${targetDatabase}'`);
             await this._connectionManager.connect(connectionUri, connectionCreds);
         } else {
             // A connection attempt is already in flight. Poll until it completes.
-            const maxWaitMs = 30000;
+            const maxWaitMs = 30_000;
             const pollIntervalMs = 500;
             let elapsedMs = 0;
 
@@ -294,7 +305,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         try {
             const databases = await this._metadataService.getDatabases(this.state.connectionUri);
             this.state.availableDatabases = databases as string[];
-            this.logInfo(`Loaded ${this.state.availableDatabases.length} databases`);
+            this.logVerbose(`Loaded ${this.state.availableDatabases.length} databases`);
         } catch (error) {
             this.logError(`Error loading databases: ${getErrorMessage(error)}`);
             // Don't fail initialization if database list fails
@@ -306,12 +317,12 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
      * Load metadata for the currently selected database
      */
     private async loadMetadata(): Promise<void> {
-        this.logInfo(`Loading metadata for database '${this.state.selectedDatabase}'`);
+        this.logVerbose(`Loading metadata for database '${this.state.selectedDatabase}'`);
         const cacheKey = `${this.state.connectionUri}:${this.state.selectedDatabase}`;
 
         // Check cache first
         if (this._metadataCache.has(cacheKey)) {
-            this.logInfo(`Using cached metadata for ${this.state.selectedDatabase}`);
+            this.logVerbose(`Using cached metadata for ${this.state.selectedDatabase}`);
 
             sendActionEvent(TelemetryViews.SearchDatabase, TelemetryActions.LoadMetadata, {
                 operationId: this._operationId,
@@ -360,7 +371,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             // Select all schemas by default
             this.state.selectedSchemas = [...uniqueSchemas];
 
-            this.logInfo(
+            this.logVerbose(
                 `Loaded ${metadata.length} objects for database ${this.state.selectedDatabase}`,
             );
 
@@ -424,7 +435,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         // Use cached SearchResultItems instead of re-transforming from ObjectMetadata
         const allItems = this._searchResultItemCache.get(cacheKey) || [];
 
-        this.logInfo(
+        this.logVerbose(
             `Applying filters and search: searchTerm='${this.state.searchTerm}', totalItems=${allItems.length}, selectedSchemas=${this.state.selectedSchemas.length}, filters=${JSON.stringify(this.state.objectTypeFilters)}`,
         );
 
@@ -465,7 +476,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         this.state.searchResults = results;
         this.state.totalResultCount = results.length;
-        this.logInfo(`Search complete: ${results.length} results match current filters`);
+        this.logVerbose(`Search complete: ${results.length} results match current filters`);
     }
 
     /**
@@ -529,7 +540,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
     private registerRpcHandlers(): void {
         // Search
         this.registerReducer("search", async (state, payload) => {
-            this.logInfo(`Search requested with term: '${payload.searchTerm}'`);
+            this.logVerbose(`Search requested with term: '${payload.searchTerm}'`);
             state.searchTerm = payload.searchTerm;
             this.applyFiltersAndSearch();
 
@@ -545,7 +556,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("clearSearch", async (state) => {
-            this.logInfo("Search cleared");
+            this.logVerbose("Search cleared");
             state.searchTerm = "";
             this.applyFiltersAndSearch();
             return state;
@@ -553,7 +564,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         // Filters
         this.registerReducer("setDatabase", async (state, payload) => {
-            this.logInfo(
+            this.logVerbose(
                 `Database change requested: '${state.selectedDatabase}' -> '${payload.database}'`,
             );
             if (state.selectedDatabase !== payload.database) {
@@ -576,8 +587,6 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                 state.connectionUri = connectionUri;
 
                 try {
-                    // Disconnect to reconnect with new database context
-                    await this._connectionManager.disconnect(connectionUri);
                     await this.ensureConnection(connectionUri);
                     await this.loadMetadata();
 
@@ -605,7 +614,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         this.registerReducer("toggleObjectTypeFilter", async (state, payload) => {
             const filterKey = payload.objectType as keyof ObjectTypeFilters;
-            this.logInfo(
+            this.logVerbose(
                 `Toggling object type filter '${filterKey}': ${state.objectTypeFilters[filterKey]} -> ${!state.objectTypeFilters[filterKey]}`,
             );
             state.objectTypeFilters[filterKey] = !state.objectTypeFilters[filterKey];
@@ -614,7 +623,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("setObjectTypeFilters", async (state, payload) => {
-            this.logInfo(`Setting object type filters: ${JSON.stringify(payload.filters)}`);
+            this.logVerbose(`Setting object type filters: ${JSON.stringify(payload.filters)}`);
             state.objectTypeFilters = { ...payload.filters };
             this.applyFiltersAndSearch();
             return state;
@@ -624,7 +633,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             const schema = payload.schema;
             const index = state.selectedSchemas.indexOf(schema);
             const action = index === -1 ? "adding" : "removing";
-            this.logInfo(`Toggling schema filter: ${action} '${schema}'`);
+            this.logVerbose(`Toggling schema filter: ${action} '${schema}'`);
             if (index === -1) {
                 state.selectedSchemas = [...state.selectedSchemas, schema];
             } else {
@@ -635,21 +644,21 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("setSchemaFilters", async (state, payload) => {
-            this.logInfo(`Setting schema filters: ${payload.schemas.length} schemas selected`);
+            this.logVerbose(`Setting schema filters: ${payload.schemas.length} schemas selected`);
             state.selectedSchemas = [...payload.schemas];
             this.applyFiltersAndSearch();
             return state;
         });
 
         this.registerReducer("selectAllSchemas", async (state) => {
-            this.logInfo(`Selecting all schemas (${state.availableSchemas.length} schemas)`);
+            this.logVerbose(`Selecting all schemas (${state.availableSchemas.length} schemas)`);
             state.selectedSchemas = [...state.availableSchemas];
             this.applyFiltersAndSearch();
             return state;
         });
 
         this.registerReducer("clearSchemaSelection", async (state) => {
-            this.logInfo("Clearing all schema selections");
+            this.logVerbose("Clearing all schema selections");
             state.selectedSchemas = [];
             this.applyFiltersAndSearch();
             return state;
@@ -657,7 +666,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         // Object Actions
         this.registerReducer("scriptObject", async (state, payload) => {
-            this.logInfo(
+            this.logVerbose(
                 `Script object requested: '${payload.object.fullName}' as ${payload.scriptType}`,
             );
             await this.scriptObject(payload.object, payload.scriptType);
@@ -665,19 +674,19 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("editData", async (state, payload) => {
-            this.logInfo(`Edit data requested for: '${payload.object.fullName}'`);
+            this.logVerbose(`Edit data requested for: '${payload.object.fullName}'`);
             await this.editData(payload.object);
             return state;
         });
 
         this.registerReducer("modifyTable", async (state, payload) => {
-            this.logInfo(`Modify table requested for: '${payload.object.fullName}'`);
+            this.logVerbose(`Modify table requested for: '${payload.object.fullName}'`);
             await this.modifyTable(payload.object);
             return state;
         });
 
         this.registerReducer("copyObjectName", async (state, payload) => {
-            this.logInfo(`Copying object name: '${payload.object.fullName}'`);
+            this.logVerbose(`Copying object name: '${payload.object.fullName}'`);
             await vscode.env.clipboard.writeText(payload.object.fullName);
             void vscode.window.showInformationMessage(
                 LocConstants.SearchDatabase.copiedToClipboard(payload.object.fullName),
@@ -693,7 +702,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         // Data refresh
         this.registerReducer("refreshDatabases", async (state) => {
-            this.logInfo("Refreshing databases list");
+            this.logVerbose("Refreshing databases list");
             await this.loadDatabases();
             return state;
         });
@@ -724,7 +733,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         });
 
         this.registerReducer("refreshResults", async (state) => {
-            this.logInfo(`Refreshing results for database '${state.selectedDatabase}'`);
+            this.logVerbose(`Refreshing results for database '${state.selectedDatabase}'`);
 
             const endActivity = startActivity(
                 TelemetryViews.SearchDatabase,
@@ -844,12 +853,9 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         try {
-            this.logInfo(
+            this.logVerbose(
                 `Scripting object '${object.fullName}' (type: ${object.metadataTypeName}) with script type '${scriptType}'`,
             );
-
-            // Ensure connection is established before scripting
-            await this.ensureConnection(this.state.connectionUri);
 
             // Create IScriptingObject from SearchResultItem
             // Normalize the type name for scripting service compatibility
@@ -857,7 +863,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                 object.metadataTypeName,
                 object.type,
             );
-            this.logInfo(
+            this.logVerbose(
                 `Resolved scripting type name: '${scriptingTypeName}' (from metadataTypeName: '${object.metadataTypeName}')`,
             );
 
@@ -888,7 +894,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             const script = await this._scriptingService.script(scriptingParams);
 
             if (script) {
-                this.logInfo(
+                this.logVerbose(
                     `Script generated successfully for '${object.fullName}', opening in editor`,
                 );
                 // Open script in a new editor
@@ -941,7 +947,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         try {
-            this.logInfo(
+            this.logVerbose(
                 `Opening Edit Data for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
             );
             // Create a synthetic node structure that matches what TableExplorerWebViewController expects
@@ -1000,7 +1006,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         try {
-            this.logInfo(
+            this.logVerbose(
                 `Opening Modify Table for '${object.fullName}' in database '${this.state.selectedDatabase}'`,
             );
             // Create a synthetic node structure that matches what TableDesignerWebviewController expects
