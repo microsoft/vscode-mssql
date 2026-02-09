@@ -1242,7 +1242,8 @@ export async function startDabDockerContainer(
 
 /**
  * Checks if the DAB container is ready to accept connections
- * Polls the health endpoint until it responds or times out
+ * Polls the health endpoint until it responds or times out.
+ * Uses setTimeout loop to avoid overlapping requests (fetch timeout is 5s, poll interval is 1s).
  * @param containerName Name of the container (for logging)
  * @param port Port the DAB API is exposed on
  */
@@ -1258,50 +1259,53 @@ export async function checkIfDabContainerIsReady(
         `Checking if DAB container ${containerName} is ready on port ${port}...`,
     );
 
-    return new Promise((resolve) => {
-        const interval = setInterval(async () => {
+    const poll = async (): Promise<DockerCommandParams> => {
+        // Check timeout before polling
+        if (Date.now() - start > timeoutMs) {
+            // Try to get container logs for debugging
             try {
-                // Use native fetch to check health endpoint
-                const response = await fetch(`http://localhost:${port}/`, {
-                    method: "GET",
-                    signal: AbortSignal.timeout(5000),
-                });
-
-                // DAB returns various status codes, but any response means it's running
-                if (response.status >= 200 && response.status < 500) {
-                    clearInterval(interval);
-                    dockerLogger.appendLine(
-                        `DAB container ${containerName} is ready! (HTTP ${response.status})`,
-                    );
-                    return resolve({ success: true, port });
+                const container = await getContainerByName(containerName);
+                if (container) {
+                    const logs = await container.logs({
+                        stdout: true,
+                        stderr: true,
+                        tail: 50,
+                    });
+                    dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
                 }
             } catch {
-                // Ignore errors and retry - container may not be ready yet
+                // Ignore log retrieval errors
             }
+            return {
+                success: false,
+                error: LocalContainers.dabContainerReadyTimeout,
+            };
+        }
 
-            if (Date.now() - start > timeoutMs) {
-                clearInterval(interval);
-                // Try to get container logs for debugging
-                try {
-                    const container = await getContainerByName(containerName);
-                    if (container) {
-                        const logs = await container.logs({
-                            stdout: true,
-                            stderr: true,
-                            tail: 50,
-                        });
-                        dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
-                    }
-                } catch {
-                    // Ignore log retrieval errors
-                }
-                return resolve({
-                    success: false,
-                    error: LocalContainers.dabContainerReadyTimeout,
-                });
+        try {
+            // Use native fetch to check health endpoint
+            const response = await fetch(`http://localhost:${port}/`, {
+                method: "GET",
+                signal: AbortSignal.timeout(5000),
+            });
+
+            // DAB returns various status codes, but any response means it's running
+            if (response.status >= 200 && response.status < 500) {
+                dockerLogger.appendLine(
+                    `DAB container ${containerName} is ready! (HTTP ${response.status})`,
+                );
+                return { success: true, port };
             }
-        }, intervalMs);
-    });
+        } catch {
+            // Ignore errors and retry - container may not be ready yet
+        }
+
+        // Schedule next poll after current attempt finishes
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+        return poll();
+    };
+
+    return poll();
 }
 
 /**
