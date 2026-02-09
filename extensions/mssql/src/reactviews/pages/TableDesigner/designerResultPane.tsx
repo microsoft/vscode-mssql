@@ -14,7 +14,7 @@ import {
 
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { useContext, useEffect, useState } from "react";
 import {
     DesignerDefinitionPane,
@@ -27,7 +27,7 @@ export const DesignerResultPane = () => {
     const model = useTableDesignerSelector((s) => s?.model);
     const tabStates = useTableDesignerSelector((s) => s?.tabStates);
     const issues = useTableDesignerSelector((s) => s?.issues);
-    const { themeKind } = useVscodeWebview2<TableDesignerWebviewState, TableDesignerReducers>();
+    const { themeKind } = useVscodeWebview<TableDesignerWebviewState, TableDesignerReducers>();
 
     if (!context) {
         return undefined;

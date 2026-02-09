@@ -20,7 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { ReactElement, useContext } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -149,13 +149,13 @@ const CommandBarOverflowMenu = ({ actions }: { actions: CommandBarAction[] }) =>
 
 const CommandBar = (props: CommandBarProps) => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview2<qr.QueryResultWebviewState, qr.QueryResultReducers>();
+    const { themeKind } = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const context = useContext(QueryResultCommandsContext);
     const resultSetSummaries = useQueryResultSelector<
         Record<number, Record<number, qr.ResultSetSummary>>
     >((s) => s.resultSetSummaries);
     const selection = useQueryResultSelector<qr.ISlickRange[] | undefined>((s) => s.selection);
-    const { keyBindings } = useVscodeWebview2();
+    const { keyBindings } = useVscodeWebview();
 
     const maximizeShortcut = keyBindings[WebviewAction.QueryResultMaximizeGrid];
     const restoreShortcut = keyBindings[WebviewAction.QueryResultMaximizeGrid];

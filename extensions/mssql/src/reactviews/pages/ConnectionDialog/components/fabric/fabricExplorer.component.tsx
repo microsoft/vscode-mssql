@@ -11,7 +11,7 @@ import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
 import { Status } from "../../../../../sharedInterfaces/webview";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
-import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider2";
 import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -34,7 +34,7 @@ export const FabricExplorer = ({
         (s) => s.loadingAzureTenantsStatus,
     );
     // const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
-    const { themeKind } = useVscodeWebview2<
+    const { themeKind } = useVscodeWebview<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();

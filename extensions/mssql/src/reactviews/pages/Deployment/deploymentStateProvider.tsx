@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { createContext, useMemo } from "react";
 import {
     DeploymentContextProps,
@@ -12,7 +12,7 @@ import {
     DeploymentType,
     DeploymentWebviewState,
 } from "../../../sharedInterfaces/deployment";
-import { getCoreRPCs2 } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 import { FormEvent } from "../../../sharedInterfaces/form";
 
@@ -23,11 +23,11 @@ interface DeploymentProviderProps {
 }
 
 const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<DeploymentWebviewState, DeploymentReducers>();
+    const { extensionRpc } = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
 
     const commands = useMemo<DeploymentContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             //#region Common Reducers
             initializeDeploymentSpecifics: function (deploymentType: DeploymentType): void {
                 extensionRpc.action("initializeDeploymentSpecifics", {

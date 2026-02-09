@@ -34,7 +34,7 @@ import {
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -131,7 +131,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
         (s) => s.defaultFileBrowserExpandPath,
     );
     const fileFilterOptions = useBackupDatabaseSelector((s) => s.fileFilterOptions);
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
 
     if (!context || !viewModel) {
         return null;

@@ -5,7 +5,7 @@
 
 import { locConstants } from "../../../common/locConstants";
 import { DialogHeader } from "../../../common/dialogHeader.component";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider2";
 import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
@@ -15,7 +15,7 @@ const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");
 
 export const ConnectionHeader = () => {
-    const { themeKind } = useVscodeWebview2<
+    const { themeKind } = useVscodeWebview<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();

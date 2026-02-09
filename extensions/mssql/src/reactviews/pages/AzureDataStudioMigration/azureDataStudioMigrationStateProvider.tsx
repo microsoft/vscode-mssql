@@ -5,7 +5,7 @@
 
 import React, { createContext, ReactNode } from "react";
 
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 import { AzureDataStudioMigrationWebviewState } from "../../../sharedInterfaces/azureDataStudioMigration";
 
@@ -24,7 +24,7 @@ interface AzureDataStudioMigrationProviderProps {
 const AzureDataStudioMigrationStateProvider: React.FC<AzureDataStudioMigrationProviderProps> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview2<AzureDataStudioMigrationWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview<AzureDataStudioMigrationWebviewState, void>();
     return (
         <AzureDataStudioMigrationContext.Provider value={{ extensionRpc }}>
             {children}

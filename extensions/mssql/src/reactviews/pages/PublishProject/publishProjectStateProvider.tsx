@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 import {
     PublishDialogReducers,
@@ -32,7 +32,7 @@ export const PublishProjectContext = createContext<PublishProjectContextProps | 
 export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const { extensionRpc, themeKind } = useVscodeWebview2<
+    const { extensionRpc, themeKind } = useVscodeWebview<
         PublishDialogState,
         PublishDialogReducers
     >();

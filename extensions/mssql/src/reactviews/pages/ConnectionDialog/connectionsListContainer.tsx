@@ -26,7 +26,7 @@ import {
 } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const buttonContainer = "buttonContainer";
@@ -111,7 +111,7 @@ export const ConnectionsListContainer = () => {
     const context = useContext(ConnectionDialogContext);
     const savedConnections = useConnectionDialogSelector((s) => s.savedConnections);
     const recentConnections = useConnectionDialogSelector((s) => s.recentConnections);
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();

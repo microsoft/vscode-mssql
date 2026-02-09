@@ -6,7 +6,7 @@
 import { useEffect, useRef, forwardRef } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider2";
 import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
@@ -74,7 +74,7 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
     ({ selectedDiffId, renderSideBySide }, ref) => {
         const classes = useStyles();
         const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
-        const { themeKind } = useVscodeWebview2<SchemaCompareWebViewState, SchemaCompareReducers>();
+        const { themeKind } = useVscodeWebview<SchemaCompareWebViewState, SchemaCompareReducers>();
         const compareResult = schemaCompareResult;
         const diff = compareResult?.differences[selectedDiffId];
         const editorRef = useRef<any>(null);

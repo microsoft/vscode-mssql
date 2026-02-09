@@ -10,8 +10,8 @@ import {
     TableExplorerContextProps,
     ExportData,
 } from "../../../sharedInterfaces/tableExplorer";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs } from "../../common/utils";
 
 const TableExplorerContext = createContext<TableExplorerContextProps>(
     {} as TableExplorerContextProps,
@@ -20,11 +20,11 @@ const TableExplorerContext = createContext<TableExplorerContextProps>(
 export const TableExplorerStateProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<TableExplorerWebViewState, TableExplorerReducers>();
+    const { extensionRpc } = useVscodeWebview<TableExplorerWebViewState, TableExplorerReducers>();
 
     const commands = useMemo<TableExplorerContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             commitChanges: function (): void {
                 extensionRpc.action("commitChanges", {});
             },

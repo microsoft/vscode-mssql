@@ -20,7 +20,7 @@ import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { IconStack } from "./iconMenu";
 import { PropertiesPane } from "./properties";
 import { locConstants } from "../../common/locConstants";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 
@@ -93,7 +93,7 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );

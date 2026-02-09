@@ -10,7 +10,7 @@ import {
     ObjectManagementDialogType,
 } from "../../../sharedInterfaces/objectManagement";
 import { DropDatabaseDialogPage } from "./dropDatabaseDialogPage";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider2";
 import { useObjectManagementSelector } from "./objectManagementSelector";
 import "../../index.css";
 import { createRoot } from "react-dom/client";
@@ -37,13 +37,13 @@ const DropDatabaseDialogRoot = () => {
 
 const App = () => {
     return (
-        <VscodeWebviewProvider2>
+        <VscodeWebviewProvider>
             <ObjectManagementStateProvider>
                 <FluentProvider>
                     <DropDatabaseDialogRoot />
                 </FluentProvider>
             </ObjectManagementStateProvider>
-        </VscodeWebviewProvider2>
+        </VscodeWebviewProvider>
     );
 };
 

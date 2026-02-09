@@ -7,8 +7,8 @@ import * as sc from "../../../sharedInterfaces/schemaCompare";
 import * as mssql from "vscode-mssql";
 
 import { createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs } from "../../common/utils";
 
 const schemaCompareContext = createContext<sc.SchemaCompareContextProps>(
     {} as sc.SchemaCompareContextProps,
@@ -19,14 +19,14 @@ interface SchemaCompareStateProviderProps {
 }
 
 const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         sc.SchemaCompareWebViewState,
         sc.SchemaCompareReducers
     >();
 
     const commands = useMemo<sc.SchemaCompareContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             isSqlProjectExtensionInstalled: function (): void {
                 extensionRpc.action("isSqlProjectExtensionInstalled", {});
             },
