@@ -2909,7 +2909,7 @@ Erreur :
       <trans-unit id="++CODE++15cd589c54029c6184391a850fda8a6d72923d92e0d4a43391a69cf2b18c3472">
         <source xml:lang="en">Failed to start profiler: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to start profiler: {0}</target>
+        <target state="translated">Échec du démarrage du profileur : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
@@ -4787,7 +4787,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc">
         <source xml:lang="en">Pause</source>
-        <target state="new">Pause</target>
+        <target state="translated">Suspendre</target>
       </trans-unit>
       <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
         <source xml:lang="en">Pause event collection</source>
@@ -4795,7 +4795,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
         <source xml:lang="en">Paused</source>
-        <target state="new">Paused</target>
+        <target state="translated">En pause</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
         <source xml:lang="en">Paused - click to resume</source>
@@ -5404,7 +5404,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
         <source xml:lang="en">Running</source>
-        <target state="new">Running</target>
+        <target state="translated">En cours d’exécution</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -5957,7 +5957,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92">
         <source xml:lang="en">Session name cannot be empty</source>
-        <target state="new">Session name cannot be empty</target>
+        <target state="translated">Le nom de la session ne peut pas être vide</target>
       </trans-unit>
       <trans-unit id="++CODE++2c6d33a689f8b43a18f472efe28829ae3540f663dbed5479969b981f67887d13">
         <source xml:lang="en">Session name must be {0} characters or less</source>
@@ -6205,7 +6205,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
         <source xml:lang="en">Start</source>
-        <target state="new">Start</target>
+        <target state="translated">Début</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
@@ -6271,7 +6271,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1a4f630ac1b69fd00728fa8a672ded71d0eae8516cb23e78f94529113399b79b">
         <source xml:lang="en">Stopped</source>
-        <target state="new">Stopped</target>
+        <target state="translated">Arrêtée</target>
       </trans-unit>
       <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
         <source xml:lang="en">Stopping Container...</source>
@@ -6722,6 +6722,10 @@ Requête : {2}</target>
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
         <target state="translated">Impossible de développer. Pour plus d’informations, consultez les journaux.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
+        <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+        <target state="new">Unable to load backup configuration. Please try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
