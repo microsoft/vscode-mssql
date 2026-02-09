@@ -1285,7 +1285,7 @@
     "Public": "Public",
     "Private": "Private",
     "Drop Database": "Drop Database",
-    "Rename Database": "Rename Database",
+    "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
