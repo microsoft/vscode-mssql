@@ -215,8 +215,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
             <div className={classes.outerDiv}>
                 <div className={classes.innerDiv}>
                     <div className={classes.contentHeader}>
-                        {locConstants.fabricProvisioning.provisioning}{" "}
-                        {databaseName}
+                        {locConstants.fabricProvisioning.provisioning} {databaseName}
                     </div>
                     <Card className={classes.cardDiv}>
                         <div className={classes.separatorDiv} />

@@ -34,12 +34,18 @@ export const AzureBrowsePage = () => {
     const formState = useConnectionDialogSelector((s) => s.formState);
     const azureServers = useConnectionDialogSelector((s) => s.azureServers);
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
-    const loadingAzureAccountsStatus = useConnectionDialogSelector((s) => s.loadingAzureAccountsStatus);
+    const loadingAzureAccountsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureAccountsStatus,
+    );
     const azureSubscriptions = useConnectionDialogSelector((s) => s.azureSubscriptions);
     const azureTenantSignInCounts = useConnectionDialogSelector((s) => s.azureTenantSignInCounts);
     const azureTenantStatus = useConnectionDialogSelector((s) => s.azureTenantStatus);
-    const loadingAzureSubscriptionsStatus = useConnectionDialogSelector((s) => s.loadingAzureSubscriptionsStatus);
-    const loadingAzureServersStatus = useConnectionDialogSelector((s) => s.loadingAzureServersStatus);
+    const loadingAzureSubscriptionsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureSubscriptionsStatus,
+    );
+    const loadingAzureServersStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureServersStatus,
+    );
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     if (context === undefined) {
@@ -104,9 +110,7 @@ export const AzureBrowsePage = () => {
 
     // subscriptions
     useEffect(() => {
-        const subs = removeDuplicates(
-            azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`),
-        );
+        const subs = removeDuplicates(azureSubscriptions.map((sub) => `${sub.name} (${sub.id})`));
         setSubscriptions(subs.sort());
 
         updateComboboxSelection(
@@ -216,9 +220,7 @@ export const AzureBrowsePage = () => {
             return; // should not be visible if no server is selected
         }
 
-        const server = azureServers.find(
-            (server) => server.server === selectedServer,
-        );
+        const server = azureServers.find((server) => server.server === selectedServer);
 
         if (!server) {
             return;
@@ -294,13 +296,9 @@ export const AzureBrowsePage = () => {
                                                     {Loc.azure.currentlySignedInAs}
                                                     <br />
                                                     <ul>
-                                                        {azureAccounts.map(
-                                                            (account) => (
-                                                                <li key={account.id}>
-                                                                    {account.name}
-                                                                </li>
-                                                            ),
-                                                        )}
+                                                        {azureAccounts.map((account) => (
+                                                            <li key={account.id}>{account.name}</li>
+                                                        ))}
                                                     </ul>
                                                 </>
                                             )}
@@ -359,8 +357,7 @@ export const AzureBrowsePage = () => {
                                     }}
                                     size="small"
                                 />
-                                {loadingAzureSubscriptionsStatus ===
-                                ApiStatus.Loading ? (
+                                {loadingAzureSubscriptionsStatus === ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined}
                             </>
@@ -503,9 +500,7 @@ export const AzureBrowsePage = () => {
                                 )
                                 .map((inputName, idx) => {
                                     const component =
-                                        formComponents[
-                                            inputName as keyof IConnectionDialogProfile
-                                        ];
+                                        formComponents[inputName as keyof IConnectionDialogProfile];
                                     if (component?.hidden !== false) {
                                         return undefined;
                                     }

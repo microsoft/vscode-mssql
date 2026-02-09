@@ -84,9 +84,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "dropdown": {
-                            const modelProps = model![
-                                component.propertyName
-                            ] as DropDownProperties;
+                            const modelProps = model![component.propertyName] as DropDownProperties;
                             return (
                                 <DesignerDropdown
                                     component={component}

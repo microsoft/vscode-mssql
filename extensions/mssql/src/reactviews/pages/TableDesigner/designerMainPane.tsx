@@ -80,7 +80,11 @@ export const DesignerMainPane = () => {
         for (let i = 0; i < issues!.length; i++) {
             const issue = issues![i];
             if (issue.propertyPath && issue.propertyPath.length > 0) {
-                if (tabComponents.find((c: { propertyName: string }) => c.propertyName === issue.propertyPath![0])) {
+                if (
+                    tabComponents.find(
+                        (c: { propertyName: string }) => c.propertyName === issue.propertyPath![0],
+                    )
+                ) {
                     count++;
                 }
             }

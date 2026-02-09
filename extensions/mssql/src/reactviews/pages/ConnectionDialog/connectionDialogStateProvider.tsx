@@ -108,9 +108,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 extensionRpc.action("signIntoAzureForFirewallRule");
             },
             signIntoAzureForBrowse: function (
-                browseTarget:
-                    | ConnectionInputMode.AzureBrowse
-                    | ConnectionInputMode.FabricBrowse,
+                browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
             ): void {
                 extensionRpc.action("signIntoAzureForBrowse", {
                     browseTarget,
@@ -155,9 +153,7 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     sqlDb,
                 );
             },
-            changePassword: async function (
-                newPassword: string,
-            ): Promise<ChangePasswordResult> {
+            changePassword: async function (newPassword: string): Promise<ChangePasswordResult> {
                 return await extensionRpc.sendRequest(
                     ChangePasswordWebviewRequest.type,
                     newPassword,

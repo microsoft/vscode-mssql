@@ -109,12 +109,12 @@ const SchemaSelectorDrawer = (props: Props) => {
     const auxiliaryEndpointInfo = useSchemaCompareSelector((s) => s.auxiliaryEndpointInfo);
     const activeServers = useSchemaCompareSelector((s) => s.activeServers);
     const databases = useSchemaCompareSelector((s) => s.databases);
-    const isSqlProjectExtensionInstalled = useSchemaCompareSelector((s) => s.isSqlProjectExtensionInstalled);
+    const isSqlProjectExtensionInstalled = useSchemaCompareSelector(
+        (s) => s.isSqlProjectExtensionInstalled,
+    );
 
     const currentEndpoint =
-        props.endpointType === "source"
-            ? sourceEndpointInfo
-            : targetEndpointInfo;
+        props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
 
     const [schemaType, setSchemaType] = useState(
         endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
@@ -184,14 +184,12 @@ const SchemaSelectorDrawer = (props: Props) => {
             setDisableOkButton(false);
         } else if (
             type === "dacpac" &&
-            (auxiliaryEndpointInfo?.packageFilePath ||
-                currentEndpoint?.packageFilePath)
+            (auxiliaryEndpointInfo?.packageFilePath || currentEndpoint?.packageFilePath)
         ) {
             setDisableOkButton(false);
         } else if (
             type === "sqlproj" &&
-            (auxiliaryEndpointInfo?.projectFilePath ||
-                currentEndpoint?.projectFilePath)
+            (auxiliaryEndpointInfo?.projectFilePath || currentEndpoint?.projectFilePath)
         ) {
             setDisableOkButton(false);
         } else {
@@ -201,17 +199,9 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     const getFilePathForProjectOrDacpac = () => {
         if (schemaType === "dacpac") {
-            return (
-                auxiliaryEndpointInfo?.packageFilePath ||
-                currentEndpoint?.packageFilePath ||
-                ""
-            );
+            return auxiliaryEndpointInfo?.packageFilePath || currentEndpoint?.packageFilePath || "";
         } else if (schemaType === "sqlproj") {
-            return (
-                auxiliaryEndpointInfo?.projectFilePath ||
-                currentEndpoint?.projectFilePath ||
-                ""
-            );
+            return auxiliaryEndpointInfo?.projectFilePath || currentEndpoint?.projectFilePath || "";
         }
     };
 
@@ -237,10 +227,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     };
 
     const handleSelectFile = (fileType: "dacpac" | "sqlproj") => {
-        const endpoint =
-            props.endpointType === "source"
-                ? sourceEndpointInfo
-                : targetEndpointInfo;
+        const endpoint = props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
 
         context.selectFile(endpoint, props.endpointType, fileType);
     };

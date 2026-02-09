@@ -32,7 +32,9 @@ const CompareActionBar = (props: Props) => {
     const endpointsSwitched = useSchemaCompareSelector((s) => s.endpointsSwitched);
     const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
     const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
-    const defaultDeploymentOptionsResult = useSchemaCompareSelector((s) => s.defaultDeploymentOptionsResult);
+    const defaultDeploymentOptionsResult = useSchemaCompareSelector(
+        (s) => s.defaultDeploymentOptionsResult,
+    );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
 
@@ -60,17 +62,11 @@ const CompareActionBar = (props: Props) => {
     };
 
     const handleGenerateScript = () => {
-        context.generateScript(
-            targetEndpointInfo.serverName,
-            targetEndpointInfo.databaseName,
-        );
+        context.generateScript(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
     };
 
     const handlePublishChanges = () => {
-        context.publishChanges(
-            targetEndpointInfo.serverName,
-            targetEndpointInfo.databaseName,
-        );
+        context.publishChanges(targetEndpointInfo.serverName, targetEndpointInfo.databaseName);
     };
 
     const handleOptionsClicked = () => {
@@ -104,8 +100,7 @@ const CompareActionBar = (props: Props) => {
         if (
             !(
                 targetEndpointInfo &&
-                Number(targetEndpointInfo.endpointType) ===
-                    SchemaCompareEndpointType.Database
+                Number(targetEndpointInfo.endpointType) === SchemaCompareEndpointType.Database
             )
         ) {
             return true;
@@ -130,8 +125,7 @@ const CompareActionBar = (props: Props) => {
             schemaCompareResult &&
             schemaCompareResult.differences &&
             schemaCompareResult.differences.length > 0 &&
-            Number(targetEndpointInfo.endpointType) !==
-                SchemaCompareEndpointType.Dacpac
+            Number(targetEndpointInfo.endpointType) !== SchemaCompareEndpointType.Dacpac
         ) {
             if (!hasIncludedDiffs()) {
                 return true;
@@ -201,8 +195,7 @@ const CompareActionBar = (props: Props) => {
                 onClick={handleSwitchEndpoints}
                 disabled={
                     isComparisonInProgress ||
-                    (isEndpointEmpty(sourceEndpointInfo) &&
-                        isEndpointEmpty(targetEndpointInfo))
+                    (isEndpointEmpty(sourceEndpointInfo) && isEndpointEmpty(targetEndpointInfo))
                 }>
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>

@@ -33,8 +33,7 @@ export const ConnectionFormPage = () => {
     return (
         <div>
             {mainOptions.map((inputName, idx) => {
-                const component =
-                    formComponents[inputName as keyof IConnectionDialogProfile];
+                const component = formComponents[inputName as keyof IConnectionDialogProfile];
                 if (component?.hidden !== false) {
                     return undefined;
                 }

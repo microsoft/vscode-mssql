@@ -13,8 +13,5 @@ export function useTableDesignerSelector<T>(
     selector: (state: TableDesignerWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<TableDesignerWebviewState, TableDesignerReducers, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<TableDesignerWebviewState, TableDesignerReducers, T>(selector, equals);
 }

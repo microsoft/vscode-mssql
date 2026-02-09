@@ -667,7 +667,9 @@ const TableColumns = ({
 }) => {
     const styles = useStyles();
     const context = useContext(SchemaDesignerContext);
-    const enableExpandCollapseButtons = useSchemaDesignerSelector((s) => s?.enableExpandCollapseButtons);
+    const enableExpandCollapseButtons = useSchemaDesignerSelector(
+        (s) => s?.enableExpandCollapseButtons,
+    );
 
     // Get setting from webview state, default to true if not set
     const expandCollapseEnabled = enableExpandCollapseButtons ?? true;

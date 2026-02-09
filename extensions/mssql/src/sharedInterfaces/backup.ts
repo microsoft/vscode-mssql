@@ -9,10 +9,7 @@ import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
-import {
-    ObjectManagementFormState,
-    ObjectManagementWebviewState,
-} from "./objectManagement";
+import { ObjectManagementFormState, ObjectManagementWebviewState } from "./objectManagement";
 
 //#region Sql Tools Service Interfaces
 

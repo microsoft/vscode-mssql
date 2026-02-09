@@ -40,7 +40,9 @@ export const AdvancedOptionsDrawer = ({
 }) => {
     const context = useContext(ConnectionDialogContext);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
-    const groupedAdvancedOptions = useConnectionDialogSelector((s) => s.connectionComponents.groupedAdvancedOptions);
+    const groupedAdvancedOptions = useConnectionDialogSelector(
+        (s) => s.connectionComponents.groupedAdvancedOptions,
+    );
     const formState = useConnectionDialogSelector((s) => s.formState);
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
@@ -52,9 +54,7 @@ export const AdvancedOptionsDrawer = ({
 
     function doesGroupHaveVisibleOptions(group: ConnectionComponentGroup) {
         return group.options.some((optionName) =>
-            isOptionVisible(
-                formComponents[optionName] as ConnectionDialogFormItemSpec,
-            ),
+            isOptionVisible(formComponents[optionName] as ConnectionDialogFormItemSpec),
         );
     }
 
@@ -116,9 +116,7 @@ export const AdvancedOptionsDrawer = ({
                          * If the user is not searching, we only open the sections that the user has opened
                          */
                         searchSettingsText
-                            ? groupedAdvancedOptions.map(
-                                  (group) => group.groupName,
-                              )
+                            ? groupedAdvancedOptions.map((group) => group.groupName)
                             : userOpenedSections
                     }>
                     {groupedAdvancedOptions
@@ -133,9 +131,7 @@ export const AdvancedOptionsDrawer = ({
                                     <AccordionPanel>
                                         {group.options
                                             .filter((optionName) =>
-                                                isOptionVisible(
-                                                    formComponents[optionName]!,
-                                                ),
+                                                isOptionVisible(formComponents[optionName]!),
                                             )
                                             .map((optionName, idx) => {
                                                 return (
@@ -148,11 +144,7 @@ export const AdvancedOptionsDrawer = ({
                                                         key={idx}
                                                         context={context}
                                                         formState={formState}
-                                                        component={
-                                                            formComponents[
-                                                                optionName
-                                                            ]!
-                                                        }
+                                                        component={formComponents[optionName]!}
                                                         idx={idx}
                                                     />
                                                 );

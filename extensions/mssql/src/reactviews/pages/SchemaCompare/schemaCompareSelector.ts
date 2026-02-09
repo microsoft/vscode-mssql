@@ -13,8 +13,5 @@ export function useSchemaCompareSelector<T>(
     selector: (state: SchemaCompareWebViewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<SchemaCompareWebViewState, SchemaCompareReducers, T>(
-        selector,
-        equals,
-    );
+    return useVscodeSelector<SchemaCompareWebViewState, SchemaCompareReducers, T>(selector, equals);
 }

@@ -39,9 +39,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }
         [extensionRpc],
     );
 
-    return (
-        <UserSurveyContext.Provider value={commands}>{children}</UserSurveyContext.Provider>
-    );
+    return <UserSurveyContext.Provider value={commands}>{children}</UserSurveyContext.Provider>;
 };
 
 export { UserSurveyContext, UserSurveyStateProvider };

@@ -55,7 +55,9 @@ export const DesignerChangesPreviewButton = () => {
     const designerContext = useContext(TableDesignerContext);
     const apiState = useTableDesignerSelector((s) => s?.apiState);
     const publishingError = useTableDesignerSelector((s) => s?.publishingError);
-    const generatePreviewReportResult = useTableDesignerSelector((s) => s?.generatePreviewReportResult);
+    const generatePreviewReportResult = useTableDesignerSelector(
+        (s) => s?.generatePreviewReportResult,
+    );
     const issues = useTableDesignerSelector((s) => s?.issues);
     const markdownClasses = useMarkdownStyles();
     const classes = useStyles();

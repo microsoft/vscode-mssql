@@ -200,9 +200,7 @@ export const ObjectExplorerFilterPage = () => {
         const loadUiFilters = () => {
             setUiFilters(
                 filterProperties?.map((value, index) => {
-                    const filter = existingFilters?.find(
-                        (f) => f.name === value.name,
-                    );
+                    const filter = existingFilters?.find((f) => f.name === value.name);
                     const operatorOptions = getFilterOperators(value);
                     const defaultOperator = operatorOptions[0] ?? NodeFilterOperator.Equals;
                     return {
@@ -468,9 +466,7 @@ export const ObjectExplorerFilterPage = () => {
     return (
         <div className={classes.root}>
             <Text size={400}>{l10n.t("Filter Settings")}</Text>
-            <Body1Strong>
-                {locConstants.objectExplorerFiltering.path(nodePath!)}
-            </Body1Strong>
+            <Body1Strong>{locConstants.objectExplorerFiltering.path(nodePath!)}</Body1Strong>
             {errorMessage && errorMessage !== "" && (
                 <MessageBar intent={"error"}>
                     <MessageBarBody>

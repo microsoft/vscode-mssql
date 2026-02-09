@@ -95,7 +95,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         const classes = useStyles();
         const context = React.useContext(schemaCompareContext);
         const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
-        const isIncludeExcludeAllOperationInProgress = useSchemaCompareSelector((s) => s.isIncludeExcludeAllOperationInProgress);
+        const isIncludeExcludeAllOperationInProgress = useSchemaCompareSelector(
+            (s) => s.isIncludeExcludeAllOperationInProgress,
+        );
         const compareResult = schemaCompareResult;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"

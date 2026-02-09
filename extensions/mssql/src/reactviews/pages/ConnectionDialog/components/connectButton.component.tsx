@@ -32,18 +32,11 @@ export const ConnectButton = ({
             id={ConnectButtonId}
             type="submit"
             appearance="primary"
-            disabled={
-                connectionStatus === ApiStatus.Loading ||
-                !readyToConnect
-            }
+            disabled={connectionStatus === ApiStatus.Loading || !readyToConnect}
             className={className}
             style={style}
             iconPosition="after"
-            icon={
-                connectionStatus === ApiStatus.Loading ? (
-                    <Spinner size="tiny" />
-                ) : undefined
-            }>
+            icon={connectionStatus === ApiStatus.Loading ? <Spinner size="tiny" /> : undefined}>
             {locConstants.connectionDialog.connect}
         </Button>
     );

@@ -94,9 +94,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
         [extensionRpc],
     );
 
-    return (
-        <DeploymentContext.Provider value={commands}>{children}</DeploymentContext.Provider>
-    );
+    return <DeploymentContext.Provider value={commands}>{children}</DeploymentContext.Provider>;
 };
 
 export { DeploymentContext, DeploymentStateProvider };

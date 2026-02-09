@@ -31,12 +31,16 @@ import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsL
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
-    const loadingAzureAccountsStatus = useConnectionDialogSelector((s) => s.loadingAzureAccountsStatus);
+    const loadingAzureAccountsStatus = useConnectionDialogSelector(
+        (s) => s.loadingAzureAccountsStatus,
+    );
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const formState = useConnectionDialogSelector((s) => s.formState);
     const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
-    const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     if (context === undefined) {

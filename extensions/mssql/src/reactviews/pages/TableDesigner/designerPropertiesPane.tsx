@@ -88,9 +88,7 @@ export const DesignerPropertiesPane = () => {
     const index = componentPath[componentPath.length - 1] as number;
     const parentTableProperties = propertiesPaneData.component
         .componentProperties as DesignerTableProperties;
-    const parentTablePropertiesModel = model![
-        tablePropertyName
-    ] as DesignerTableProperties;
+    const parentTablePropertiesModel = model![tablePropertyName] as DesignerTableProperties;
     const data = parentTablePropertiesModel.data![index];
 
     const groups = Array.from(

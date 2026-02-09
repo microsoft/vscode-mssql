@@ -73,9 +73,7 @@ export const ConnectionInfoFormContainer = () => {
     const styles = useStyles();
 
     const changePasswordDialogState =
-        dialog?.type === "changePassword"
-            ? (dialog as ChangePasswordDialogProps).props
-            : undefined;
+        dialog?.type === "changePassword" ? (dialog as ChangePasswordDialogProps).props : undefined;
 
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
@@ -117,9 +115,7 @@ export const ConnectionInfoFormContainer = () => {
                     />
                 )}
                 {dialog?.type === "loadFromConnectionString" && (
-                    <ConnectionStringDialog
-                        dialogProps={dialog as ConnectionStringDialogProps}
-                    />
+                    <ConnectionStringDialog dialogProps={dialog as ConnectionStringDialogProps} />
                 )}
                 {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
@@ -137,9 +133,7 @@ export const ConnectionInfoFormContainer = () => {
                 >
                     context={context}
                     formState={formState}
-                    component={
-                        formComponents["profileName"] as ConnectionDialogFormItemSpec
-                    }
+                    component={formComponents["profileName"] as ConnectionDialogFormItemSpec}
                     idx={0}
                     props={{ orientation: "horizontal" }}
                 />
@@ -152,9 +146,7 @@ export const ConnectionInfoFormContainer = () => {
                 >
                     context={context}
                     formState={formState}
-                    component={
-                        formComponents["groupId"] as ConnectionDialogFormItemSpec
-                    }
+                    component={formComponents["groupId"] as ConnectionDialogFormItemSpec}
                     idx={0}
                     props={{ orientation: "horizontal" }}
                     componentProps={{

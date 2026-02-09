@@ -127,7 +127,9 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
     const dialog = useBackupDatabaseSelector((s) => s.dialog);
     const fileBrowserState = useBackupDatabaseSelector((s) => s.fileBrowserState);
     const ownerUri = useBackupDatabaseSelector((s) => s.ownerUri);
-    const defaultFileBrowserExpandPath = useBackupDatabaseSelector((s) => s.defaultFileBrowserExpandPath);
+    const defaultFileBrowserExpandPath = useBackupDatabaseSelector(
+        (s) => s.defaultFileBrowserExpandPath,
+    );
     const fileFilterOptions = useBackupDatabaseSelector((s) => s.fileFilterOptions);
     const { themeKind } = useVscodeWebview2();
 
@@ -292,11 +294,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                         style={{
                             padding: "10px",
                         }}
-                        src={
-                            themeKind === ColorThemeKind.Dark
-                                ? backupDarkIcon
-                                : backupLightIcon
-                        }
+                        src={themeKind === ColorThemeKind.Dark ? backupDarkIcon : backupLightIcon}
                         alt={`${locConstants.backupDatabase.backup} - ${backupViewModel.databaseName}`}
                         height={60}
                         width={60}

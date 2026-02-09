@@ -63,7 +63,9 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const context = useContext(schemaCompareContext);
     const sourceEndpointInfo = useSchemaCompareSelector((s) => s.sourceEndpointInfo);
     const targetEndpointInfo = useSchemaCompareSelector((s) => s.targetEndpointInfo);
-    const defaultDeploymentOptionsResult = useSchemaCompareSelector((s) => s.defaultDeploymentOptionsResult);
+    const defaultDeploymentOptionsResult = useSchemaCompareSelector(
+        (s) => s.defaultDeploymentOptionsResult,
+    );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
 
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);

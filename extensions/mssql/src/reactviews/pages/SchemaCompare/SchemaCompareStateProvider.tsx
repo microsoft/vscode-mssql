@@ -125,10 +125,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     deploymentOptions: deploymentOptions,
                 });
             },
-            generateScript: function (
-                targetServerName: string,
-                targetDatabaseName: string,
-            ): void {
+            generateScript: function (targetServerName: string, targetDatabaseName: string): void {
                 extensionRpc.action("generateScript", {
                     targetServerName: targetServerName,
                     targetDatabaseName: targetDatabaseName,
@@ -193,9 +190,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     );
 
     return (
-        <schemaCompareContext.Provider value={commands}>
-            {children}
-        </schemaCompareContext.Provider>
+        <schemaCompareContext.Provider value={commands}>{children}</schemaCompareContext.Provider>
     );
 };
 

@@ -39,7 +39,9 @@ export const LocalContainersSetupStepsPage: React.FC = () => {
     }
 
     useEffect(() => {
-        const wrappedState = { deploymentTypeState: localContainersState } as DeploymentWebviewState;
+        const wrappedState = {
+            deploymentTypeState: localContainersState,
+        } as DeploymentWebviewState;
         void runDockerStep(context, wrappedState, lastStep);
         setStepsLoaded(isLastStepLoaded(wrappedState, lastStep));
         setStepsErrored(checkStepErrored(wrappedState));

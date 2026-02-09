@@ -186,7 +186,7 @@ export class TableExplorerService implements ITableExplorerService {
 
     /**
      * Gets the SQL Tools Service client instance.
-     * @returns {SqlToolsServiceClient} The SQL Tools Service client used for database operations.
+     * @returns The SQL Tools Service client used for database operations.
      */
     public get sqlToolsClient(): SqlToolsServiceClient {
         return this._client;

@@ -163,9 +163,10 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     stateRef.current = state;
 
     const getComponentId = useMemo(
-        () => (componentPath: (string | number)[]): string => {
-            return `${stateRef.current?.tableInfo?.id}_${componentPath.join("_")}`;
-        },
+        () =>
+            (componentPath: (string | number)[]): string => {
+                return `${stateRef.current?.tableInfo?.id}_${componentPath.join("_")}`;
+            },
         [],
     );
 
@@ -319,9 +320,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     );
 
     return (
-        <TableDesignerContext.Provider value={commands}>
-            {children}
-        </TableDesignerContext.Provider>
+        <TableDesignerContext.Provider value={commands}>{children}</TableDesignerContext.Provider>
     );
 };
 

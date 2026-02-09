@@ -23,11 +23,7 @@ const Message = () => {
     const classes = useStyles();
 
     let message = "";
-    if (
-        !isComparisonInProgress &&
-        schemaCompareResult &&
-        schemaCompareResult.areEqual
-    ) {
+    if (!isComparisonInProgress && schemaCompareResult && schemaCompareResult.areEqual) {
         message = loc.schemaCompare.noDifferences;
     } else if (isComparisonInProgress) {
         message = loc.schemaCompare.initializingComparison;

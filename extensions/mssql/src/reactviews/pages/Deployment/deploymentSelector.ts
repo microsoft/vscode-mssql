@@ -3,10 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    DeploymentReducers,
-    DeploymentWebviewState,
-} from "../../../sharedInterfaces/deployment";
+import { DeploymentReducers, DeploymentWebviewState } from "../../../sharedInterfaces/deployment";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useDeploymentSelector<T>(

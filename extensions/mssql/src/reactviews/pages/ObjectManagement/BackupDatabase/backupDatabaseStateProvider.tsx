@@ -92,9 +92,7 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
     }, [extensionRpc]);
 
     return (
-        <BackupDatabaseContext.Provider value={commands}>
-            {children}
-        </BackupDatabaseContext.Provider>
+        <BackupDatabaseContext.Provider value={commands}>{children}</BackupDatabaseContext.Provider>
     );
 };
 

@@ -78,11 +78,7 @@ export const SchemaComparePage = () => {
     };
 
     const showMessage = () => {
-        if (
-            !schemaCompareResult ||
-            schemaCompareResult.areEqual ||
-            isComparisonInProgress
-        ) {
+        if (!schemaCompareResult || schemaCompareResult.areEqual || isComparisonInProgress) {
             return true;
         }
 
