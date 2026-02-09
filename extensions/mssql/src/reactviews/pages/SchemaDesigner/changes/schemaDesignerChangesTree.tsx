@@ -82,6 +82,10 @@ const useStyles = makeStyles({
             paddingRight: "5px",
         },
     },
+    changeItemLayout: {
+        // Default Fluent tree indentation is wide for child rows; use a tighter step for change items.
+        paddingLeft: "calc((var(--fluent-TreeItem--level, 1) - 1) * 20px)",
+    },
     iconContainer: {
         display: "flex",
         alignItems: "center",
@@ -420,7 +424,10 @@ export const SchemaDesignerChangesTree = ({
                         return (
                             <TreeItem key={flatTreeItem.value} {...treeItemProps}>
                                 <TreeItemLayout
-                                    className={mergeClasses(classes.treeItemLayout)}
+                                    className={mergeClasses(
+                                        classes.treeItemLayout,
+                                        classes.changeItemLayout,
+                                    )}
                                     iconBefore={
                                         <span
                                             className={mergeClasses(
