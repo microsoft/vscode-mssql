@@ -10,7 +10,6 @@ import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureaut
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
 import {
-    ObjectManagementFormItemSpec,
     ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "./objectManagement";
