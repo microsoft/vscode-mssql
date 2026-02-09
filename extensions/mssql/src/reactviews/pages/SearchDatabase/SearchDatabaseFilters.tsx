@@ -77,10 +77,10 @@ const hasTypePrefix = (searchTerm: string): boolean => {
 };
 
 // Helper to get which type is active from the search prefix
-const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | null => {
+const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | undefined => {
     const trimmed = searchTerm.trim().toLowerCase();
     const match = SEARCH_TYPE_PREFIXES.find(({ prefix }) => trimmed.startsWith(prefix));
-    return match?.filterKey ?? null;
+    return match?.filterKey ?? undefined;
 };
 
 export const SearchDatabaseFilters: React.FC = React.memo(() => {

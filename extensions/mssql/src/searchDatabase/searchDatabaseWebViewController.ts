@@ -408,7 +408,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
      * Parse search term for type prefix (t:, v:, f:, sp:) and return the type filter and remaining search text
      */
     private parseSearchPrefix(searchTerm: string): {
-        typeFilter: MetadataType | null;
+        typeFilter: MetadataType | undefined;
         searchText: string;
     } {
         const trimmed = searchTerm.trim();
@@ -423,7 +423,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
             };
         }
 
-        return { typeFilter: null, searchText: trimmed };
+        return { typeFilter: undefined, searchText: trimmed };
     }
 
     /**
@@ -446,7 +446,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         );
 
         // Filter by object type - use search prefix if present, otherwise use panel filters
-        if (searchTypeFilter !== null) {
+        if (searchTypeFilter !== undefined) {
             // Search prefix overrides panel filters - only show the specified type
             results = results.filter((item) => item.type === searchTypeFilter);
         } else {
@@ -547,7 +547,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
                 operationId: this._operationId,
                 resultCount: state.totalResultCount.toString(),
                 hasSearchPrefix: (
-                    this.parseSearchPrefix(payload.searchTerm).typeFilter !== null
+                    this.parseSearchPrefix(payload.searchTerm).typeFilter !== undefined
                 ).toString(),
             });
 
