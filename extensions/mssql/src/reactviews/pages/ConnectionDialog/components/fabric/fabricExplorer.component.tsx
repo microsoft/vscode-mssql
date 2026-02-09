@@ -31,7 +31,7 @@ export const FabricExplorer = ({
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
     const loadingAzureTenantsStatus = useConnectionDialogSelector((s) => s.loadingAzureTenantsStatus);
-    const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
+    // const fabricWorkspacesLoadStatus = useConnectionDialogSelector((s) => s.fabricWorkspacesLoadStatus);
     const { themeKind } = useVscodeWebview2<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
