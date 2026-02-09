@@ -197,17 +197,7 @@ export class SqlDatabaseProjectProvider implements dataworkspace.IProjectProvide
 			targetPlatforms = targetPlatforms.filter(p => allowedTargetPlatforms.toString().includes(p));
 		}
 
-		const projectType: dataworkspace.IProjectType = {
-			id: constants.emptySqlDatabaseProjectTypeId,
-			projectFileExtension: constants.sqlprojExtension.replace(/\./g, ''),
-			displayName: constants.emptyProjectTypeDisplayName,
-			description: constants.emptyProjectTypeDescription,
-			icon: IconPathHelper.colorfulSqlProject,
-			targetPlatforms: targetPlatforms,
-			defaultTargetPlatform: constants.defaultTargetPlatform
-		};
-
-		const projectUri = getDataWorkspaceExtensionApi().openSpecificProjectNewProjectDialog(projectType);
+		const projectUri = getDataWorkspaceExtensionApi().openSpecificProjectNewProjectDialog();
 		return projectUri;
 	}
 
