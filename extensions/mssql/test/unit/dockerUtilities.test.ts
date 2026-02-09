@@ -19,6 +19,7 @@ import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 import * as dockerodeClient from "../../src/docker/dockerodeClient";
 import { PassThrough } from "stream";
+import * as fs from "fs";
 
 chai.use(sinonChai);
 
@@ -1300,28 +1301,49 @@ suite("Docker Utilities", () => {
 
     test("startDabDockerContainer: should start a DAB container successfully", async () => {
         const startStub = sandbox.stub().resolves();
-        const createContainerStub = sandbox.stub().resolves({ start: startStub });
+        // putArchive must consume the stream before resolving to avoid ENOENT errors
+        // when the temp file is cleaned up before tar finishes reading
+        const putArchiveStub = sandbox.stub().callsFake((stream: NodeJS.ReadableStream) => {
+            return new Promise<void>((resolve) => {
+                stream.on("end", resolve);
+                stream.on("error", resolve);
+                stream.resume(); // Consume the stream
+            });
+        });
+        const createContainerStub = sandbox.stub().resolves({
+            start: startStub,
+            putArchive: putArchiveStub,
+        });
         const dockerClientMock = createDockerClientMock({
             createContainer: createContainerStub,
         });
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
-        const result = await dockerUtils.startDabDockerContainer(
-            "test-dab-container",
-            5000,
-            "/path/to/config.json",
-        );
+        // Create a real temp file since tar.create is non-configurable and can't be stubbed
+        const { configFilePath, tempDir } = createTempFile();
 
-        expect(createContainerStub).to.have.been.calledOnce;
-        expect(startStub).to.have.been.calledOnce;
-        expect(result.success).to.be.true;
-        expect(result.port).to.equal(5000);
+        try {
+            const result = await dockerUtils.startDabDockerContainer(
+                "test-dab-container",
+                5000,
+                configFilePath,
+            );
 
-        // Verify the container creation options
-        const createOptions = createContainerStub.firstCall.args[0];
-        expect(createOptions.name).to.equal("test-dab-container");
-        expect(createOptions.Cmd).to.deep.equal(["--ConfigFileName", "/App/dab-config.json"]);
-        expect(createOptions.HostConfig.Binds[0]).to.include("/path/to/config.json");
+            expect(createContainerStub).to.have.been.calledOnce;
+            expect(putArchiveStub).to.have.been.calledOnce;
+            expect(startStub).to.have.been.calledOnce;
+            expect(result.success).to.be.true;
+            expect(result.port).to.equal(5000);
+
+            // Verify the container creation options
+            const createOptions = createContainerStub.firstCall.args[0];
+            expect(createOptions.name).to.equal("test-dab-container");
+            expect(createOptions.Cmd).to.deep.equal(["--ConfigFileName", "/App/dab-config.json"]);
+        } finally {
+            // Cleanup temp files
+            fs.unlinkSync(configFilePath);
+            fs.rmdirSync(tempDir);
+        }
     });
 
     test("startDabDockerContainer: should return error when container creation fails", async () => {
@@ -1331,15 +1353,24 @@ suite("Docker Utilities", () => {
         });
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
-        const result = await dockerUtils.startDabDockerContainer(
-            "test-dab-container",
-            5000,
-            "/path/to/config.json",
-        );
+        // Create a real temp file since tar.create is non-configurable and can't be stubbed
+        const { configFilePath, tempDir } = createTempFile();
 
-        expect(result.success).to.be.false;
-        expect(result.error).to.include("Failed to start DAB container");
-        expect(result.fullErrorText).to.include("Container creation failed");
+        try {
+            const result = await dockerUtils.startDabDockerContainer(
+                "test-dab-container",
+                5000,
+                configFilePath,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.include("Failed to start DAB container");
+            expect(result.fullErrorText).to.include("Container creation failed");
+        } finally {
+            // Cleanup temp files
+            fs.unlinkSync(configFilePath);
+            fs.rmdirSync(tempDir);
+        }
     });
 
     test("checkIfDabContainerIsReady: should return success when container responds", async () => {
@@ -1534,3 +1565,11 @@ suite("Docker Utilities", () => {
         expect(result).to.equal(8080);
     });
 });
+
+function createTempFile() {
+    const tempDir = path.join(os.tmpdir(), `dab-test-${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+    const configFilePath = path.join(tempDir, "dab-config.json");
+    fs.writeFileSync(configFilePath, JSON.stringify({ test: true }));
+    return { configFilePath, tempDir };
+}
