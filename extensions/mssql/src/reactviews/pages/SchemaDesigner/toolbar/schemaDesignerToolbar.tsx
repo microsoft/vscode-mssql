@@ -18,7 +18,7 @@ import { useContext } from "react";
 
 export function SchemaDesignerToolbar() {
     const context = useContext(SchemaDesignerContext);
-    
+
     return (
         <div style={{ width: "100%", height: "30px", padding: "5px 0px" }}>
             <Toolbar
@@ -41,14 +41,12 @@ export function SchemaDesignerToolbar() {
                 <ToolbarDivider />
                 <AutoArrangeButton />
                 <FilterTablesButton />
-                {
-                    context.isDabEnabled() && (
-                        <>
-                            <ToolbarDivider />
-                            <ShowChangesButton />
-                        </>
-                    )
-                }
+                {context.isDabEnabled() && (
+                    <>
+                        <ToolbarDivider />
+                        <ShowChangesButton />
+                    </>
+                )}
             </Toolbar>
         </div>
     );
