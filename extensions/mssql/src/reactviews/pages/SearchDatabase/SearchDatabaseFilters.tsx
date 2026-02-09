@@ -17,7 +17,7 @@ import {
 import { TableRegular, EyeRegular, CodeRegular, MathFormulaRegular } from "@fluentui/react-icons";
 import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
 import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
-import { ObjectTypeFilters } from "../../../sharedInterfaces/searchDatabase";
+import { ObjectTypeFilters, SEARCH_TYPE_PREFIXES } from "../../../sharedInterfaces/searchDatabase";
 import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -70,24 +70,16 @@ const useStyles = makeStyles({
     },
 });
 
-// Type prefix constants for search shorthand (e.g. "t:name" to search tables)
-const TYPE_PREFIXES: { prefix: string; filterKey: keyof ObjectTypeFilters }[] = [
-    { prefix: "t:", filterKey: "tables" },
-    { prefix: "v:", filterKey: "views" },
-    { prefix: "f:", filterKey: "functions" },
-    { prefix: "sp:", filterKey: "storedProcedures" },
-];
-
 // Helper to detect if search has a type prefix
 const hasTypePrefix = (searchTerm: string): boolean => {
     const trimmed = searchTerm.trim().toLowerCase();
-    return TYPE_PREFIXES.some(({ prefix }) => trimmed.startsWith(prefix));
+    return SEARCH_TYPE_PREFIXES.some(({ prefix }) => trimmed.startsWith(prefix));
 };
 
 // Helper to get which type is active from the search prefix
 const getActiveTypeFromPrefix = (searchTerm: string): keyof ObjectTypeFilters | null => {
     const trimmed = searchTerm.trim().toLowerCase();
-    const match = TYPE_PREFIXES.find(({ prefix }) => trimmed.startsWith(prefix));
+    const match = SEARCH_TYPE_PREFIXES.find(({ prefix }) => trimmed.startsWith(prefix));
     return match?.filterKey ?? null;
 };
 

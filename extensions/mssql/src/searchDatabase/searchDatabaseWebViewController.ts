@@ -11,6 +11,7 @@ import {
     SearchResultItem,
     ObjectTypeFilters,
     ScriptType,
+    SEARCH_TYPE_PREFIXES,
 } from "../sharedInterfaces/searchDatabase";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -414,14 +415,12 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
         const trimmedLower = trimmed.toLowerCase();
 
         // Check for type prefixes - use trimmed string for slicing to handle leading whitespace correctly
-        if (trimmedLower.startsWith("t:")) {
-            return { typeFilter: MetadataType.Table, searchText: trimmed.slice(2).trim() };
-        } else if (trimmedLower.startsWith("v:")) {
-            return { typeFilter: MetadataType.View, searchText: trimmed.slice(2).trim() };
-        } else if (trimmedLower.startsWith("f:")) {
-            return { typeFilter: MetadataType.Function, searchText: trimmed.slice(2).trim() };
-        } else if (trimmedLower.startsWith("sp:")) {
-            return { typeFilter: MetadataType.SProc, searchText: trimmed.slice(3).trim() };
+        const match = SEARCH_TYPE_PREFIXES.find(({ prefix }) => trimmedLower.startsWith(prefix));
+        if (match) {
+            return {
+                typeFilter: match.metadataType,
+                searchText: trimmed.slice(match.prefix.length).trim(),
+            };
         }
 
         return { typeFilter: null, searchText: trimmed };

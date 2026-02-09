@@ -34,6 +34,21 @@ export interface ObjectTypeFilters {
 }
 
 /**
+ * Search type prefix mappings used for shorthand search syntax (e.g. "t:Users" to search tables).
+ * Shared between the React frontend (filter UI) and the backend controller (search parsing).
+ */
+export const SEARCH_TYPE_PREFIXES: {
+    prefix: string;
+    metadataType: MetadataType;
+    filterKey: keyof ObjectTypeFilters;
+}[] = [
+    { prefix: "t:", metadataType: MetadataType.Table, filterKey: "tables" },
+    { prefix: "v:", metadataType: MetadataType.View, filterKey: "views" },
+    { prefix: "f:", metadataType: MetadataType.Function, filterKey: "functions" },
+    { prefix: "sp:", metadataType: MetadataType.SProc, filterKey: "storedProcedures" },
+];
+
+/**
  * State for the Search Database webview
  */
 export interface SearchDatabaseWebViewState {
