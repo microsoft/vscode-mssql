@@ -2863,4 +2863,7 @@ export class BackupDatabase {
             comment: ["{0} is the error message"],
         });
     };
+    public static unableToLoadBackupConfig = l10n.t(
+        "Unable to load backup configuration. Please try again.",
+    );
 }

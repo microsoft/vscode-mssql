@@ -2715,6 +2715,7 @@
         "message": "Generating SAS key failed: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
