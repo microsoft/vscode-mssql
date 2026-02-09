@@ -33,7 +33,7 @@ import { parseWebviewKeyboardShortcutConfig } from "./keyboardUtils";
  * @template State interface that contains definitions for all state properties.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
-export interface VscodeWebviewContext2Props<State, Reducers> {
+export interface VscodeWebviewContextProps<State, Reducers> {
     /**
      * The vscode api instance.
      */
@@ -69,11 +69,11 @@ export interface VscodeWebviewContext2Props<State, Reducers> {
 
 const vscodeApiInstance = vsCodeApiInstance.vscodeApiInstance;
 
-export const VscodeWebviewContext2 = createContext<
-    VscodeWebviewContext2Props<unknown, unknown> | undefined
+export const VscodeWebviewContext = createContext<
+    VscodeWebviewContextProps<unknown, unknown> | undefined
 >(undefined);
 
-interface VscodeWebviewProvider2Props {
+interface VscodeWebviewProviderProps {
     children: React.ReactNode;
 }
 
@@ -82,7 +82,7 @@ interface VscodeWebviewProvider2Props {
  * theming, state management, rpc and vscode api.
  * @param param0 child components
  */
-export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebviewProvider2Props) {
+export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebviewProviderProps) {
     const vscodeApi = vscodeApiInstance;
     const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
 
@@ -204,7 +204,7 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
     }, []);
 
     return (
-        <VscodeWebviewContext2.Provider
+        <VscodeWebviewContext.Provider
             value={{
                 vscodeApi,
                 extensionRpc,
@@ -226,14 +226,14 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
                     hasInitialState && stateRef.current !== undefined && children
                 }
             </FluentProvider>
-        </VscodeWebviewContext2.Provider>
+        </VscodeWebviewContext.Provider>
     );
 }
 
-export function useVscodeWebview2<State, Reducers>() {
-    const context = useContext(VscodeWebviewContext2);
+export function useVscodeWebview<State, Reducers>() {
+    const context = useContext(VscodeWebviewContext);
     if (!context) {
-        throw new Error("useVscodeWebview2 must be used within a VscodeWebviewProvider2");
+        throw new Error("useVscodeWebview must be used within a VscodeWebviewProvider");
     }
-    return context as VscodeWebviewContext2Props<State, Reducers>;
+    return context as VscodeWebviewContextProps<State, Reducers>;
 }

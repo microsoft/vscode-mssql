@@ -5,8 +5,8 @@
 
 import { ReactNode, createContext, useMemo } from "react";
 import { BackupDatabaseProvider } from "../../../../sharedInterfaces/backup";
-import { getCoreRPCs2 } from "../../../common/utils";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { getCoreRPCs } from "../../../common/utils";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import {
     ObjectManagementReducers,
     ObjectManagementWebviewState,
@@ -24,7 +24,7 @@ interface BackupDatabaseProviderProps {
 }
 
 const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         ObjectManagementWebviewState,
         ObjectManagementReducers
     >();
@@ -32,7 +32,7 @@ const BackupDatabaseStateProvider: React.FC<BackupDatabaseProviderProps> = ({ ch
     const commands = useMemo(() => {
         return {
             extensionRpc,
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             formAction(event: any) {
                 extensionRpc.action("formAction", { event });
             },

@@ -10,8 +10,8 @@ import {
 } from "../../../sharedInterfaces/objectExplorerFilter";
 
 import { createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 const ObjectExplorerFilterContext = createContext<ObjectExplorerFilterContextProps | undefined>(
     undefined,
@@ -24,11 +24,11 @@ interface ObjectExplorerFilterStateProviderProps {
 const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview2<ObjectExplorerFilterState, ObjectExplorerReducers>();
+    const { extensionRpc } = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
 
     const commands = useMemo<ObjectExplorerFilterContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             submit: function (filters): void {
                 extensionRpc.action("submit", {
                     filters: filters,

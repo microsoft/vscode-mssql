@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     AddFirewallRuleContextProps,
     AddFirewallRuleReducers,
     AddFirewallRuleState,
 } from "../../../sharedInterfaces/addFirewallRule";
-import { getCoreRPCs2 } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
 const AddFirewallRuleContext = createContext<AddFirewallRuleContextProps | undefined>(undefined);
@@ -20,11 +20,11 @@ interface AddFirewallRuleProviderProps {
 }
 
 const AddFirewallRuleStateProvider: React.FC<AddFirewallRuleProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<AddFirewallRuleState, AddFirewallRuleReducers>();
+    const { extensionRpc } = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
 
     const commands = useMemo<AddFirewallRuleContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
                 extensionRpc.action("addFirewallRule", {
                     firewallRuleSpec,

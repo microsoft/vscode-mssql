@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { SearchDatabasePage } from "./SearchDatabasePage";
 import { SearchDatabaseStateProvider } from "./SearchDatabaseStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
+    <VscodeWebviewProvider>
         <SearchDatabaseStateProvider>
             <SearchDatabasePage />
         </SearchDatabaseStateProvider>
-    </VscodeWebviewProvider2>,
+    </VscodeWebviewProvider>,
 );

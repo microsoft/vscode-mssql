@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
 } from "../../../sharedInterfaces/userSurvey";
-import { getCoreRPCs2 } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
 const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(undefined);
 
@@ -19,11 +19,11 @@ interface UserSurveyProviderProps {
 }
 
 const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<UserSurveyState, UserSurveyReducers>();
+    const { extensionRpc } = useVscodeWebview<UserSurveyState, UserSurveyReducers>();
 
     const commands = useMemo<UserSurveyContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             submit: async (answers: Record<string, string>) => {
                 await extensionRpc.action("submit", {
                     answers: answers,

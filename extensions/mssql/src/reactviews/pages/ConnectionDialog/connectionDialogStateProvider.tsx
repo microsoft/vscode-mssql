@@ -14,8 +14,8 @@ import {
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
 import {
@@ -30,14 +30,14 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         ConnectionDialogWebviewState,
         ConnectionDialogReducers
     >();
 
     const commands = useMemo<ConnectionDialogContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             loadConnection: function (connection: IConnectionDialogProfile): void {
                 extensionRpc.action("loadConnection", {
                     connection: connection,

@@ -10,7 +10,7 @@ import {
     DesignerDefinitionPaneRef,
     DesignerDefinitionTabs,
 } from "../../../common/designerDefinitionPane";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export interface DabDefinitionsPanelRef {
@@ -19,7 +19,7 @@ export interface DabDefinitionsPanelRef {
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
     const context = useContext(SchemaDesignerContext);
-    const { themeKind } = useVscodeWebview2<
+    const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
