@@ -9,6 +9,8 @@ All notable changes to the SQL Database Projects extension will be documented in
 ## [1.5.7] - 2026-02-27
 
 - Fixed an issue where system dacpac files were missing from the BuildDirectory, causing build failures for projects with system database references.
+- Fixed an issue where adding a DbFabric/FabricDw NuGet package reference through the database reference incorrectly displayed the master system database as msdb.
+- Fixed an issue where deleting DbFabric/FabricDw master NuGet package references from the SQL project database references failed.
 
 ## [1.5.6] - 2026-01-28
 
