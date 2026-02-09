@@ -8,11 +8,13 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import should = require('should/as-function');
 import { BuildHelper } from '../src/tools/buildHelper';
 import { TestContext, createContext } from './testContext';
 import { ProjectType } from 'mssql';
 import * as sqldbproj from 'sqldbproj';
 import * as constants from '../src/common/constants';
+import * as utils from '../src/common/utils';
 
 suite('BuildHelper: Build Helper tests', function (): void {
 	test('Should get correct build arguments for legacy-style projects', function (): void {
