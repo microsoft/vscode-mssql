@@ -517,6 +517,9 @@
       <Item ItemId=";bundle.++CODE++07a70d0f8dcd3b512fbe302a9052f2a7c309d8ef1a2d6279bb2fec89a8037514" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to connect to the selected server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu effectuer la connexion au serveur sélectionné.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1873,6 +1876,9 @@
       <Item ItemId=";bundle.++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[View:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher :]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2338,6 +2344,9 @@
       <Item ItemId=";bundle.++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter a name for the new profiler session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entrer un nom pour la nouvelle session du profileur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2803,6 +2812,9 @@
       <Item ItemId=";bundle.++CODE++2c6d33a689f8b43a18f472efe28829ae3540f663dbed5479969b981f67887d13" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session name must be {0} characters or less]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le nom de la session doit comprendre {0} caractères ou moins]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2899,6 +2911,9 @@
       <Item ItemId=";bundle.++CODE++2dcc68490694632d6cbfafe090666d170ed7a4e66bc160ca4c4feef1cf974c8b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-scroll disabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le défilement automatique est désactivé]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2977,6 +2992,9 @@
       <Item ItemId=";bundle.++CODE++2ee872ecd1c6074e5ce040609b1ba3ec2a9d987d039fd9e913cafeeba666d1e7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stopping profiler session "{0}"...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arrêt de la session du profileur « {0} » en cours... Merci de patienter.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3100,6 +3118,9 @@
       <Item ItemId=";bundle.++CODE++30fb5ec81b38c80bd2d85fce38abae5feb4cd8e3afcf2084fc37b76c8e2ae6a8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-scroll]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Défilement automatique]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3430,6 +3451,9 @@
       <Item ItemId=";bundle.++CODE++37344542a7e5c1efe17609d8b0a03cfce9724b28b06beef14f1cdd17ef737245" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Engine: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Moteur : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4219,6 +4243,9 @@
       <Item ItemId=";bundle.++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start profiling session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Démarrer la session de profilage]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4234,6 +4261,9 @@
       <Item ItemId=";bundle.++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pause event collection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Interrompre la collecte d’événements]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4744,12 +4774,18 @@
       <Item ItemId=";bundle.++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session not running]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La session n’est pas en cours d’exécution]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session creation timed out]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le délai d’attente pour la création de la session a expiré]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4837,6 +4873,9 @@
       <Item ItemId=";bundle.++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No profiler connection available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucune connexion de profileur n’est disponible]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5032,6 +5071,9 @@
       <Item ItemId=";bundle.++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[MyProfilerSession]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[MyProfilerSession]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5956,6 +5998,9 @@
       <Item ItemId=";bundle.++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profiler ready. Select a session from the dropdown and click Start to begin profiling.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Profiler est prêt. Sélectionnez une session à partir de la liste déroulante, puis cliquez sur Démarrer pour commencer le profilage.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5989,6 +6034,9 @@
       <Item ItemId=";bundle.++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No templates available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun modèle n’est disponible]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6238,6 +6286,9 @@
       <Item ItemId=";bundle.++CODE++65abe5d6d2a9bdcd83c3acd37c760bca33782062560df379bb995b27056969af" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a session first]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner d’abord une session]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6595,6 +6646,9 @@
       <Item ItemId=";bundle.++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profiler Session Status]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[État de la session Profiler]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6610,6 +6664,9 @@
       <Item ItemId=";bundle.++CODE++6bc9f61b6c77fbd2c69ef9bb0cbfb74f2f01ec0e9ba331938cb1b4a0d62e4f09" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection error: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur de connexion : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6724,6 +6781,9 @@
       <Item ItemId=";bundle.++CODE++6d54f9ecea632e075385f044d66bfd47b2f26322cec751084d0f45b0532cf7ba" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not Started]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non démarré]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6784,6 +6844,9 @@
       <Item ItemId=";bundle.++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Profiler Session - Select Template]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nouvelle session de Profiler – Sélectionner un modèle]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6997,6 +7060,9 @@
       <Item ItemId=";bundle.++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Auto-scroll enabled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le défilement automatique est activé]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7120,6 +7186,9 @@
       <Item ItemId=";bundle.++CODE++72f5a889e3b36e8962aaf7d969eedf93448ceff066decd1befc6fc437103897f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profiler session '{0}' created successfully. Starting profiling...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La session Profiler « {0} » a été correctement créée. Démarrage du profilage en cours... Merci de patienter.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7630,6 +7699,9 @@
       <Item ItemId=";bundle.++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Profiler Session - Enter Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nouvelle session Profiler – Nommez-la]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8032,6 +8104,9 @@
       <Item ItemId=";bundle.++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a new profiling session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer une session de profilage]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8326,6 +8401,9 @@
       <Item ItemId=";bundle.++CODE++86147502503bfa8f5f4b25b018362f8a6990334ff839907a0c3008e98d4d7125" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No saved connections found. Please create a connection first.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucune connexion enregistrée n’a été trouvée. Veuillez d’abord établir une connexion.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8746,6 +8824,9 @@
       <Item ItemId=";bundle.++CODE++8cd78d11cdd7e9d0eb109913becdbf01449df1797ccb72604224b8a3ba943196" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session name can only contain letters, numbers, underscores, and hyphens]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le nom de session peut uniquement contenir des lettres, des chiffres, des traits de soulignement et des traits d’union]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9616,6 +9697,9 @@
       <Item ItemId=";bundle.++CODE++9d6298c8a19610c3253afad30305a202c182b8bffab325a89302b0d3420c7873" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No profiler templates available]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun modèle de profileur n’est disponible]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9667,6 +9751,9 @@
       <Item ItemId=";bundle.++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not running]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Non exécuté]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -9808,6 +9895,9 @@
       <Item ItemId=";bundle.++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profiler: No session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Profiler : aucune session]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10111,6 +10201,9 @@
       <Item ItemId=";bundle.++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a profiler template]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner un modèle de profileur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10441,6 +10534,9 @@
       <Item ItemId=";bundle.++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating session...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Création de la session en cours... Merci de patienter.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10780,6 +10876,9 @@
       <Item ItemId=";bundle.++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Paused - click to resume]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[En pause – Cliquer pour reprendre]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -10957,6 +11056,9 @@
       <Item ItemId=";bundle.++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear Data]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Effacer les données]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12385,6 +12487,9 @@
       <Item ItemId=";bundle.++CODE++cbd2958b1fe1b6ca98cbb77b80166a16187b9b2c5a0b7e7d8c8bb718b57b48f8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select Session:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner une session :]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12949,6 +13054,9 @@
       <Item ItemId=";bundle.++CODE++d6352ab85759b6f5b9cae594a4b92e97b81d85af640c575ba7d553d7a6833443" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear all events (keeps session running)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Effacer tous les événements (la session demeure active)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12964,6 +13072,9 @@
       <Item ItemId=";bundle.++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resume]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Reprise]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13015,6 +13126,9 @@
       <Item ItemId=";bundle.++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} events]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} événements]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13237,6 +13351,9 @@
       <Item ItemId=";bundle.++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a session...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner une session...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13531,6 +13648,9 @@
       <Item ItemId=";bundle.++CODE++def70944c9bb9c3b77129e6fc48cfcd043031a86ae747060a3e97985d254c4f2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Création en cours... Merci de patienter.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13618,6 +13738,9 @@
       <Item ItemId=";bundle.++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create profiler session: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu créer la session du profileur : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13831,6 +13954,9 @@
       <Item ItemId=";bundle.++CODE++e3d920bce049a4644ce154bb0d5751edf90ddee5dbfd34ccc55ab53c065c6dfb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to launch profiler: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu lancer le profileur : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -13882,6 +14008,9 @@
       <Item ItemId=";bundle.++CODE++e4d1dad5c74ad296c45ca01ac7e9e7fedffc7478a3556f8962465760b98c5391" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stop session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arrêter la session]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -15175,6 +15304,9 @@
       <Item ItemId=";bundle.++CODE++fc0bb85f3867f1df067d69d6446c6df5b8bdd4caf25718a67bdc68c9e079bd5f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Session]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nouvelle session]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -17074,12 +17206,18 @@
       <Item ItemId=";package.mssql.profiler.eventBufferSize" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nombre maximal d’événements à conserver en mémoire pour Profiler. Lorsque cette limite est atteinte, les événements antérieurs sont supprimés. Augmentez cette valeur si vous devez conserver d’autres d’événements pendant les sessions de profilage.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.profiler.launchFromObjectExplorer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Launch Profiler]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lancer Profiler]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
