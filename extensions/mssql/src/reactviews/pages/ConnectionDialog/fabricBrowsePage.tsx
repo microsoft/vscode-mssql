@@ -37,10 +37,6 @@ export const FabricBrowsePage = () => {
     const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
     const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
     const formState = useConnectionDialogSelector((s) => s.formState);
-    const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
-    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
-        (s) => s.fabricWorkspacesLoadStatus,
-    );
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
     if (context === undefined) {
@@ -129,8 +125,6 @@ export const FabricBrowsePage = () => {
                     </div>
                     <div className={styles.componentGroupContainer}>
                         <FabricExplorer
-                            fabricWorkspaces={fabricWorkspaces}
-                            fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
                             onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                             onSelectAccountId={handleSelectAccountId}
                             onSelectTenantId={handleSelectTenantId}
