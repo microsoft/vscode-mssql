@@ -1910,6 +1910,7 @@ export class LocConstants {
             autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
             autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
             filterTooltip: l10n.t("Filter events by column values"),
+            sortTooltip: l10n.t("Sort column"),
             clearFilterTooltip: l10n.t("Clear all filters and show all events"),
             clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
 

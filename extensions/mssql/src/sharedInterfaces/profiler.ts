@@ -13,14 +13,16 @@ import {
     FilterType,
     FilterTypeHint,
     ColumnDataType,
+    SortDirection,
+    SortState,
 } from "../profiler/profilerTypes";
 
 // Re-export ProfilerEvent for convenience
 export type { ProfilerEvent };
 
 // Re-export types for convenience
-export { SessionState, FilterOperator, FilterType, FilterTypeHint, ColumnDataType };
-export type { FilterClause, FilterState };
+export { SessionState, FilterOperator, FilterType, FilterTypeHint, ColumnDataType, SortDirection };
+export type { FilterClause, FilterState, SortState };
 
 /**
  * Maximum length for session names

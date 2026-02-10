@@ -21,20 +21,20 @@
     border-bottom: 1px solid var(--vscode-panel-border) !important;
 }
 
-/* Hide sort indicators since sorting is disabled */
+/* Hide sort indicators since sorting is managed by custom sort buttons */
 #profilerGrid .slick-sort-indicator,
 #profilerGrid .slick-sort-indicator-asc,
 #profilerGrid .slick-sort-indicator-desc {
     display: none !important;
 }
 
-/* Header cell with filter — use flexbox layout for inline filter icon */
+/* Header cell with filter — use flexbox layout for inline sort & filter icons */
 #profilerGrid .slick-header-column.slick-header-with-filter {
     display: flex;
     align-items: center;
 }
 
-/* Column name uses flex to leave space for filter button */
+/* Column name uses flex to leave space for sort + filter buttons */
 #profilerGrid .slick-header-with-filter .slick-column-name {
     white-space: nowrap;
     overflow: hidden;
@@ -44,6 +44,63 @@
     margin-bottom: 0;
 }
 
+/* Sort button base styling — unsorted state shows two arrows (up + down) */
+#profilerGrid .slick-header-sortbutton {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-size: 14px;
+    flex: 0 0 auto;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+}
+
+#profilerGrid .slick-header-sortbutton:hover {
+    opacity: 1;
+}
+
+/* Sort icon — unsorted (two arrows) — dark theme (default) */
+#profilerGrid .slick-header-sortbutton {
+    background-image: url("../../media/sort_inverse.svg");
+}
+
+/* Sort icon — unsorted (two arrows) — light theme */
+.vscode-light #profilerGrid .slick-header-sortbutton,
+.vscode-high-contrast.vscode-high-contrast-light #profilerGrid .slick-header-sortbutton {
+    background-image: url("../../media/sort.svg");
+}
+
+/* Sort icon — ascending (single up arrow) — dark theme */
+#profilerGrid .slick-header-sortbutton.sorted-asc {
+    opacity: 1;
+    background-image: url("../../media/sort_asc_inverse.svg");
+}
+
+/* Sort icon — ascending (single up arrow) — light theme */
+.vscode-light #profilerGrid .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light #profilerGrid .slick-header-sortbutton.sorted-asc {
+    background-image: url("../../media/sort_asc.svg");
+}
+
+/* Sort icon — descending (single down arrow) — dark theme */
+#profilerGrid .slick-header-sortbutton.sorted-desc {
+    opacity: 1;
+    background-image: url("../../media/sort_desc_inverse.svg");
+}
+
+/* Sort icon — descending (single down arrow) — light theme */
+.vscode-light #profilerGrid .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light #profilerGrid .slick-header-sortbutton.sorted-desc {
+    background-image: url("../../media/sort_desc.svg");
+}
 /* Filter button base styling */
 #profilerGrid .slick-header-filterbutton {
     background-position: center center;
