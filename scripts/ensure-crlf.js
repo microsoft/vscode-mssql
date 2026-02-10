@@ -2,37 +2,15 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
 
-const eolAttributeCache = new Map();
+const SKIP_PATTERNS = [/(^|\/|\\)\.husky(\/|\\)/, /\.sh$/i, /\.init$/i];
 
 function shellQuote(value) {
     return `'${String(value).replace(/'/g, "'\\''")}'`;
 }
 
-function isLfByGitAttributes(file) {
-    if (eolAttributeCache.has(file)) {
-        return eolAttributeCache.get(file);
-    }
-
-    // Respect .gitattributes (e.g. *.sh text eol=lf). This prevents the hook from
-    // rewriting files that are explicitly required to stay LF.
-    try {
-        const output = execSync(`git check-attr -z eol -- ${shellQuote(file)}`, {
-            encoding: "buffer",
-        })
-            .toString("utf8")
-            .split("\0")
-            .filter(Boolean);
-
-        // Format is: <path>\0<attr>\0<value>\0
-        const value = output[2];
-        const isLf = value === "lf";
-        eolAttributeCache.set(file, isLf);
-        return isLf;
-    } catch {
-        // If git check-attr fails (e.g. file not in index), fall back to enforcing CRLF.
-        eolAttributeCache.set(file, false);
-        return false;
-    }
+function shouldSkipFile(file) {
+    const normalized = String(file).replace(/\\/g, "/");
+    return SKIP_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 function getFiles(targetAll) {
@@ -52,7 +30,7 @@ function isBinary(buffer) {
 }
 
 function convertFile(file) {
-    if (isLfByGitAttributes(file)) {
+    if (shouldSkipFile(file)) {
         return false;
     }
 
