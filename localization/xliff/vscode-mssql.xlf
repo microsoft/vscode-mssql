@@ -19,8 +19,14 @@
     <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
       <source xml:lang="en">(1 row affected)</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce28beb78671368d7785b24466a36ea09e009fe854a78e87310f98abc355910d">
+      <source xml:lang="en">(deleted)</source>
+    </trans-unit>
     <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
       <source xml:lang="en">(empty)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9edb143e79ddd4919e5661a06e9de8a16d0516db0af0b684779b1c3a49a95ba2">
+      <source xml:lang="en">(unnamed)</source>
     </trans-unit>
     <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
       <source xml:lang="en">({0} rows affected)</source>
@@ -286,6 +292,9 @@
     </trans-unit>
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bfb1f1019506449ef24d778987ca7a372c86c9e62e75c6bf0b2151cf9839789b">
+      <source xml:lang="en">Apply AI edits to track pending AI changes here.</source>
     </trans-unit>
     <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
       <source xml:lang="en">Apply Changes</source>
@@ -2774,8 +2783,17 @@
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
     </trans-unit>
+    <trans-unit id="++CODE++183f00f483d3844e875d26eac74c676054383aef38ed5a8e4d1505ef21008585">
+      <source xml:lang="en">Keep</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7efe7262251d6bf49c6b914c8d6877544ffd9ea7133a5e25f8b3677807a73c23">
+      <source xml:lang="en">Keep All</source>
+    </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3787877a1143b24ff44b3d04b0c570207943f458f92410805c2a8541cc963df0">
+      <source xml:lang="en">Keep this AI change</source>
     </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
@@ -3171,6 +3189,9 @@
       <note>{0} is the qualified table name
 {1} is a list of property changes</note>
     </trans-unit>
+    <trans-unit id="++CODE++d94eaf69438863a8d5ef755e74e6840048386eefbf0e34f39004d2e9c9157778">
+      <source xml:lang="en">Modify</source>
+    </trans-unit>
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
@@ -3386,6 +3407,9 @@
       <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
       <note>{0} is the connection id
 {1} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dea3ba6967308b4d18c239d0dfab2d8f4a5b2082fa8146fb686456d6723b25a7">
+      <source xml:lang="en">No pending AI changes</source>
     </trans-unit>
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -3685,6 +3709,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
       <source xml:lang="en">Paused - click to resume</source>
+    </trans-unit>
+    <trans-unit id="++CODE++07fdf82cef1ed5cef805a19321ba6e97f5eb0383bc34013ad69ab9d1e22849b9">
+      <source xml:lang="en">Pending AI Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++7a317710fe2bc5a0c5a887a6233463ac0119f238dffaceb85df119a55ab643ff">
       <source xml:lang="en">Pending AI Changes ({0})</source>
@@ -5164,6 +5191,12 @@
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ee88bcfd6a2821d3cc887bbe2dd847b85c2f59a4b3e217be73ac5222802c95e">
+      <source xml:lang="en">Undo All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a97b567547d43fd1409d79c4c9cb9e3a4697084c7b1d23e0a15e3fb51f24feb">
+      <source xml:lang="en">Undo this AI change</source>
+    </trans-unit>
     <trans-unit id="++CODE++0c79e1387ac8034b8d51c64dd2349fe325ba5b03148a5eef241e5d0e77096b1a">
       <source xml:lang="en">Unfreeze columns</source>
     </trans-unit>
@@ -5407,6 +5440,9 @@
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
+    <trans-unit id="++CODE++881d5fb60090f59aabba4f287d7596317ca7091d00c2180b6cbc8ab018b9febd">
+      <source xml:lang="en">column</source>
+    </trans-unit>
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
     </trans-unit>
@@ -5422,6 +5458,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792">
       <source xml:lang="en">for more information.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0721f39c9628152077131fcf05c277452eb928541ad5c9fe7a408fdf3b359033">
+      <source xml:lang="en">foreign key</source>
     </trans-unit>
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -5455,6 +5494,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0d4fc4a78d3706edccafb665a8b2fdd9309e82c78625bb0f2b8e7bb9e1c4d21c">
+      <source xml:lang="en">table</source>
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
