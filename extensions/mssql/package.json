@@ -155,6 +155,7 @@
         "@types/lodash": "^4.17.21"
     },
     "dependencies": {
+        "@microsoft/vscode-sql-common": "link:../../packages/vscode-sql-common",
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^10.0.0",
         "@azure/arm-storage": "^19.0.0",
@@ -203,6 +204,9 @@
         }
     },
     "contributes": {
+        "vscode-sql-common-features": {
+            "uriOwnershipApi": true
+        },
         "viewsContainers": {
             "activitybar": [
                 {
@@ -390,7 +394,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries && !mssql.hideUIElements",
                     "group": "navigation@1"
                 },
                 {
@@ -405,7 +409,7 @@
                 },
                 {
                     "command": "mssql.connect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource not in mssql.connections && !mssql.hideUIElements",
                     "group": "navigation@3"
                 },
                 {
@@ -442,12 +446,12 @@
             "editor/context": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql",
+                    "when": "editorLangId == sql && !mssql.hideUIElements",
                     "group": "0_mssql"
                 },
                 {
                     "submenu": "mssql.copilot.editorSubmenu",
-                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled && !mssql.hideUIElements",
                     "group": "0_mssql"
                 }
             ],
