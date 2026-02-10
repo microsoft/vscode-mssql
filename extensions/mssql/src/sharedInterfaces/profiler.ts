@@ -235,32 +235,3 @@ export namespace ProfilerNotifications {
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
 }
-
-// ============================================================================
-// Profiler Details Panel (VS Code Panel View)
-// ============================================================================
-
-/**
- * State for the profiler details panel webview (VS Code Panel view)
- */
-export interface ProfilerDetailsPanelState {
-    /** The currently selected event details (undefined if no event selected) */
-    selectedEvent: ProfilerSelectedEventDetails | undefined;
-    /** Session name for context */
-    sessionName?: string;
-}
-
-/**
- * Reducers for the profiler details panel webview
- */
-export interface ProfilerDetailsPanelReducers {
-    /** Open TextData content in a new VS Code editor */
-    openInEditor: {
-        textData: string;
-        eventName?: string;
-    };
-    /** Copy text to clipboard */
-    copyToClipboard: {
-        text: string;
-    };
-}
