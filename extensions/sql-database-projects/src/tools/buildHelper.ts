@@ -59,6 +59,7 @@ export class BuildHelper {
 		const microsoftBuildSqlDefaultVersion = '2.0.0'; // default version of Microsoft.Build.Sql nuget to use for building legacy style projects, update in README when updating this
 
 		const dacFxBuildFiles: string[] = [
+			'Microsoft.Build.Sql.dll',
 			'Microsoft.Data.SqlClient.dll',
 			'Microsoft.Data.Tools.Schema.Sql.dll',
 			'Microsoft.Data.Tools.Schema.Tasks.Sql.dll',
@@ -187,8 +188,8 @@ export class BuildHelper {
 	public constructBuildArguments(buildDirPath: string, sqlProjStyle: ProjectType): string[] {
 		buildDirPath = utils.getQuotedPath(buildDirPath);
 		const args: string[] = [
-			'/p:NetCoreBuild=true',
-			`/p:SystemDacpacsLocation=${buildDirPath}`
+			constants.netCoreBuildArg,
+			`${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`
 		];
 
 		// Adding NETCoreTargetsPath only for non-SDK style projects
@@ -197,7 +198,7 @@ export class BuildHelper {
 			: sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
 
 		if (!isSdkStyle) {
-			args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);
+			args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);
 		}
 
 		return args;

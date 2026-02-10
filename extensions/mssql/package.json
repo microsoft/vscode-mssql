@@ -183,7 +183,7 @@
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
         "slickgrid-react": "^9.8.0",
-        "tar": "^7.4.3",
+        "tar": "^7.5.7",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
         "uuid": "^11.0.5",
@@ -2913,6 +2913,343 @@
                 "toolReferenceName": "mssql_schema_designer",
                 "userDescription": "Open or manage the active schema designer (no connection needed if it is already open).",
                 "icon": "$(edit)"
+            },
+            {
+                "name": "mssql_dab",
+                "modelDescription": "Inspect and update Data API Builder (DAB) state for the active schema designer. Operations: 'get_state' (no payload) and 'apply_changes'. For apply_changes, use { operation: 'apply_changes', payload: { expectedVersion, changes }, options? }; expectedVersion is required inside payload. Entity refs are either { id } or { schemaName, tableName }. Compact change shapes: set_api_types { type, apiTypes[] }; set_entity_enabled { type, entity, isEnabled }; set_entity_actions { type, entity, actions[] }; patch_entity_settings { type, entity, set{ entityName?, authorizationRole?, customRestPath?, customGraphQLType? } }; set_only_enabled_entities { type, entities[] }; set_all_entities_enabled { type, isEnabled }.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "dab",
+                    "schema",
+                    "api"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "$defs": {
+                        "entityRef": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        }
+                                    },
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "schemaName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "tableName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        }
+                                    },
+                                    "required": [
+                                        "schemaName",
+                                        "tableName"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ]
+                        },
+                        "advancedSettingsPatch": {
+                            "type": "object",
+                            "properties": {
+                                "entityName": {
+                                    "type": "string",
+                                    "minLength": 1
+                                },
+                                "authorizationRole": {
+                                    "type": "string",
+                                    "enum": [
+                                        "anonymous",
+                                        "authenticated"
+                                    ]
+                                },
+                                "customRestPath": {
+                                    "description": "Entity REST path override (for example: 't_41'). Use null to clear.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                },
+                                "customGraphQLType": {
+                                    "description": "Entity GraphQL type override. Use null to clear.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            },
+                            "minProperties": 1,
+                            "additionalProperties": false
+                        }
+                    },
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "operation": {
+                                    "type": "string",
+                                    "enum": [
+                                        "get_state"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "operation"
+                            ],
+                            "additionalProperties": false
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "operation": {
+                                    "type": "string",
+                                    "enum": [
+                                        "apply_changes"
+                                    ]
+                                },
+                                "payload": {
+                                    "type": "object",
+                                    "properties": {
+                                        "expectedVersion": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "targetHint": {
+                                            "type": "object",
+                                            "properties": {
+                                                "server": {
+                                                    "type": "string",
+                                                    "minLength": 1
+                                                },
+                                                "database": {
+                                                    "type": "string",
+                                                    "minLength": 1
+                                                }
+                                            },
+                                            "required": [
+                                                "server",
+                                                "database"
+                                            ],
+                                            "additionalProperties": false
+                                        },
+                                        "changes": {
+                                            "type": "array",
+                                            "minItems": 1,
+                                            "items": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "set_api_types"
+                                                                ]
+                                                            },
+                                                            "apiTypes": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "rest",
+                                                                        "graphql",
+                                                                        "mcp"
+                                                                    ]
+                                                                },
+                                                                "minItems": 1,
+                                                                "uniqueItems": true
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "apiTypes"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "set_entity_enabled"
+                                                                ]
+                                                            },
+                                                            "entity": {
+                                                                "$ref": "#/$defs/entityRef"
+                                                            },
+                                                            "isEnabled": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "entity",
+                                                            "isEnabled"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "set_entity_actions"
+                                                                ]
+                                                            },
+                                                            "entity": {
+                                                                "$ref": "#/$defs/entityRef"
+                                                            },
+                                                            "actions": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "create",
+                                                                        "read",
+                                                                        "update",
+                                                                        "delete"
+                                                                    ]
+                                                                },
+                                                                "minItems": 1,
+                                                                "uniqueItems": true
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "entity",
+                                                            "actions"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "patch_entity_settings"
+                                                                ]
+                                                            },
+                                                            "entity": {
+                                                                "$ref": "#/$defs/entityRef"
+                                                            },
+                                                            "set": {
+                                                                "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
+                                                                "$ref": "#/$defs/advancedSettingsPatch"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "entity",
+                                                            "set"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "set_only_enabled_entities"
+                                                                ]
+                                                            },
+                                                            "entities": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "$ref": "#/$defs/entityRef"
+                                                                },
+                                                                "minItems": 1
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "entities"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "set_all_entities_enabled"
+                                                                ]
+                                                            },
+                                                            "isEnabled": {
+                                                                "type": "boolean"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "isEnabled"
+                                                        ],
+                                                        "additionalProperties": false
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "expectedVersion",
+                                        "changes"
+                                    ],
+                                    "additionalProperties": false
+                                },
+                                "options": {
+                                    "type": "object",
+                                    "properties": {
+                                        "returnState": {
+                                            "type": "string",
+                                            "enum": [
+                                                "full",
+                                                "summary",
+                                                "none"
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            },
+                            "required": [
+                                "operation",
+                                "payload"
+                            ],
+                            "additionalProperties": false
+                        }
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Data API Builder",
+                "toolReferenceName": "mssql_dab",
+                "userDescription": "Inspect or update Data API Builder settings for the active schema designer.",
+                "icon": "$(database)"
             },
             {
                 "name": "mssql_connect",

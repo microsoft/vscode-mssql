@@ -121,9 +121,9 @@ export class Project implements ISqlProject {
 
 	public get sqlProjStyleName(): string {
 		if (utils.getAzdataApi()) {
-			return this.sqlProjStyle === mssql.ProjectType.SdkStyle ? 'SdkStyle' : 'LegacyStyle';
+			return this.sqlProjStyle === mssql.ProjectType.SdkStyle ? constants.sdkStyleProjectStyleName : constants.legacyStyleProjectStyleName;
 		} else {
-			return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? 'SdkStyle' : 'LegacyStyle';
+			return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? constants.sdkStyleProjectStyleName : constants.legacyStyleProjectStyleName;
 		}
 	}
 
