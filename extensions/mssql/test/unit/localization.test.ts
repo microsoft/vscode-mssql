@@ -43,4 +43,8 @@ suite("Localization Tests", () => {
         const testLocalizationConstant = l10n.t("test");
         expect(testLocalizationConstant).to.equal("prueba");
     });
+
+    teardown(async () => {
+        await setLocLang("en");
+    });
 });
