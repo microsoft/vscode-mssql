@@ -979,6 +979,7 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -994,7 +995,8 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
-    "Drop Database": "Drop Database",
+    "Creating database": "Creating database",
+    "Drop Database (Preview)": "Drop Database (Preview)",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1006,6 +1008,7 @@
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
+    "Dropping database": "Dropping database",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
@@ -1281,7 +1284,8 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
-    "Rename Database": "Rename Database",
+    "Drop Database": "Drop Database",
+    "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
@@ -2717,6 +2721,7 @@
         "message": "Generating SAS key failed: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
