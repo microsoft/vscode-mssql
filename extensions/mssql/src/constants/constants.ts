@@ -54,6 +54,7 @@ export const cmdNewQuery = "mssql.newQuery";
 export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConnection";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
+export const cmdSearchDatabase = "mssql.searchDatabase";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";
@@ -224,6 +225,7 @@ export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
+export const copilotDabToolName = "mssql_dab";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";

@@ -117,6 +117,10 @@
         <source xml:lang="en">Action Type</source>
         <target state="translated">動作類型</target>
       </trans-unit>
+      <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
+        <source xml:lang="en">Actions</source>
+        <target state="new">Actions</target>
+      </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
         <target state="translated">實際經過的 CPU 時間</target>
@@ -300,6 +304,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">An error occurred while copying results: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">複製結果時發生錯誤: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
+        <source xml:lang="en">An error occurred while loading data.</source>
+        <target state="new">An error occurred while loading data.</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -494,15 +502,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++30fb5ec81b38c80bd2d85fce38abae5feb4cd8e3afcf2084fc37b76c8e2ae6a8">
         <source xml:lang="en">Auto-scroll</source>
-        <target state="new">Auto-scroll</target>
+        <target state="translated">自動捲動</target>
       </trans-unit>
       <trans-unit id="++CODE++2dcc68490694632d6cbfafe090666d170ed7a4e66bc160ca4c4feef1cf974c8b">
         <source xml:lang="en">Auto-scroll disabled</source>
-        <target state="new">Auto-scroll disabled</target>
+        <target state="translated">已停用自動捲動</target>
       </trans-unit>
       <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
         <source xml:lang="en">Auto-scroll enabled</source>
-        <target state="new">Auto-scroll enabled</target>
+        <target state="translated">已啟用自動捲動</target>
       </trans-unit>
       <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
         <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
@@ -1004,7 +1012,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
         <source xml:lang="en">Clear Data</source>
-        <target state="new">Clear Data</target>
+        <target state="translated">清除資料</target>
       </trans-unit>
       <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
         <source xml:lang="en">Clear Filters</source>
@@ -1028,7 +1036,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d6352ab85759b6f5b9cae594a4b92e97b81d85af640c575ba7d553d7a6833443">
         <source xml:lang="en">Clear all events (keeps session running)</source>
-        <target state="new">Clear all events (keeps session running)</target>
+        <target state="translated">清除所有事件 (保持工作階段持續執行)</target>
       </trans-unit>
       <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
         <source xml:lang="en">Clear all filters</source>
@@ -1359,6 +1367,11 @@ Select "{0}" to establish a connection.</source>
         <note>{0} is the connection display name</note>
         <target state="translated">正在連線至 {0}...</target>
       </trans-unit>
+      <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
+        <source xml:lang="en">Connecting to {0}...</source>
+        <note>{0} is the server name</note>
+        <target state="new">Connecting to {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">正在連線到:</target>
@@ -1419,7 +1432,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++6bc9f61b6c77fbd2c69ef9bb0cbfb74f2f01ec0e9ba331938cb1b4a0d62e4f09">
         <source xml:lang="en">Connection error: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Connection error: {0}</target>
+        <target state="translated">連線錯誤: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
         <source xml:lang="en">Connection failed: {0}</source>
@@ -1527,6 +1540,11 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Copied</source>
         <target state="translated">已複製</target>
       </trans-unit>
+      <trans-unit id="++CODE++5729bfc2e8db943201613faaab43256239d22b9beff66b83b894a92fcf29264e">
+        <source xml:lang="en">Copied "{0}" to clipboard</source>
+        <note>{0} is the object name</note>
+        <target state="new">Copied "{0}" to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">複製</target>
@@ -1538,6 +1556,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">複製標頭</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
+        <source xml:lang="en">Copy Object Name</source>
+        <target state="new">Copy Object Name</target>
       </trans-unit>
       <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
         <source xml:lang="en">Copy Script</source>
@@ -1631,6 +1653,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create Database</source>
         <target state="translated">建立資料庫</target>
       </trans-unit>
+      <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
+        <source xml:lang="en">Create Database (Preview)</source>
+        <target state="new">Create Database (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">建立防火牆規則</target>
@@ -1670,7 +1696,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
         <source xml:lang="en">Create a new profiling session</source>
-        <target state="new">Create a new profiling session</target>
+        <target state="translated">建立新的分析工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
         <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
@@ -1707,9 +1733,13 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Creating and starting your SQL Server container</source>
         <target state="translated">正在建立並啟動您的 SQL Server 容器</target>
       </trans-unit>
+      <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
+        <source xml:lang="en">Creating database</source>
+        <target state="new">Creating database</target>
+      </trans-unit>
       <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
         <source xml:lang="en">Creating session...</source>
-        <target state="new">Creating session...</target>
+        <target state="translated">正在建立工作階段...</target>
       </trans-unit>
       <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
         <source xml:lang="en">Creating workspace with capacity {0}</source>
@@ -1718,7 +1748,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++def70944c9bb9c3b77129e6fc48cfcd043031a86ae747060a3e97985d254c4f2">
         <source xml:lang="en">Creating...</source>
-        <target state="new">Creating...</target>
+        <target state="translated">正在建立...</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1777,6 +1807,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
         <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
         <target state="translated">DacFx 服務無法使用。無法執行發佈及產生指令碼作業。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
+        <source xml:lang="en">Data API Builder</source>
+        <target state="new">Data API Builder</target>
       </trans-unit>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
@@ -2122,6 +2156,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Drop Database</source>
         <target state="translated">卸除資料庫</target>
       </trans-unit>
+      <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
+        <source xml:lang="en">Drop Database (Preview)</source>
+        <target state="new">Drop Database (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
         <source xml:lang="en">Drop Database Options</source>
         <target state="translated">刪除資料庫選項</target>
@@ -2129,6 +2167,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
         <source xml:lang="en">Drop active connections</source>
         <target state="translated">卸除使用中連線</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
+        <source xml:lang="en">Dropping database</source>
+        <target state="new">Dropping database</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2151,6 +2193,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
         <source xml:lang="en">Edit Connection Profile</source>
         <target state="translated">編輯連線設定檔</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
+        <source xml:lang="en">Edit Data</source>
+        <target state="new">Edit Data</target>
       </trans-unit>
       <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
         <source xml:lang="en">Edit Data (Preview)</source>
@@ -2227,7 +2273,7 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++37344542a7e5c1efe17609d8b0a03cfce9724b28b06beef14f1cdd17ef737245">
         <source xml:lang="en">Engine: {0}</source>
         <note>{0} is the engine type</note>
-        <target state="new">Engine: {0}</target>
+        <target state="translated">引擎: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
@@ -2239,7 +2285,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
         <source xml:lang="en">Enter a name for the new profiler session</source>
-        <target state="new">Enter a name for the new profiler session</target>
+        <target state="translated">輸入新分析工具工作階段的名稱</target>
       </trans-unit>
       <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
         <source xml:lang="en">Enter application name</source>
@@ -2389,6 +2435,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Error loading Table Designer</source>
         <target state="translated">載入資料表設計工具時發生錯誤</target>
       </trans-unit>
+      <trans-unit id="++CODE++46d21a3d00fbab9fc7b91fa6516b4f6e151557d29318ce4ec616e65825a754e6">
+        <source xml:lang="en">Error loading database objects</source>
+        <target state="new">Error loading database objects</target>
+      </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
         <target state="translated">載入資料庫時發生錯誤</target>
@@ -2486,10 +2536,20 @@ Error:
         <source xml:lang="en">Execute</source>
         <target state="translated">執行</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
+        <source xml:lang="en">Execute '{0}' operation on Data API Builder?</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Execute '{0}' operation on Data API Builder?</target>
+      </trans-unit>
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
         <note>{0} is the operation name</note>
         <target state="translated">是否要在結構描述設計工具上執行 '{0}' 作業?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
+        <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Executing '{0}' operation on Data API Builder</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
@@ -2695,7 +2755,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++07a70d0f8dcd3b512fbe302a9052f2a7c309d8ef1a2d6279bb2fec89a8037514">
         <source xml:lang="en">Failed to connect to the selected server.</source>
-        <target state="new">Failed to connect to the selected server.</target>
+        <target state="translated">無法連接到所選的伺服器。</target>
       </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
@@ -2721,7 +2781,7 @@ Error:
       <trans-unit id="++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1">
         <source xml:lang="en">Failed to create profiler session: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to create profiler session: {0}</target>
+        <target state="translated">無法建立分析工具工作階段: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
         <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
@@ -2747,6 +2807,10 @@ Error:
         <note>{0} is the database name
 {1} is the error message</note>
         <target state="translated">無法刪除資料庫 '{0}'。{1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d84b3d155999e4fbb9375b2096b6b34a6799bc70319582c93eff74f3a69e1ebb">
+        <source xml:lang="en">Failed to establish connection</source>
+        <target state="new">Failed to establish connection</target>
       </trans-unit>
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
@@ -2819,7 +2883,7 @@ Error:
       <trans-unit id="++CODE++e3d920bce049a4644ce154bb0d5751edf90ddee5dbfd34ccc55ab53c065c6dfb">
         <source xml:lang="en">Failed to launch profiler: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to launch profiler: {0}</target>
+        <target state="translated">無法啟動分析工具: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
         <source xml:lang="en">Failed to list databases</source>
@@ -2837,6 +2901,16 @@ Error:
       <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
         <source xml:lang="en">Failed to load publish profile</source>
         <target state="translated">無法載入發佈設定檔</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
+        <source xml:lang="en">Failed to open Edit Data: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Edit Data: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
+        <source xml:lang="en">Failed to open Modify Table: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Modify Table: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -2902,6 +2976,11 @@ Error:
         <note>{0} is the error message returned from the save scmp operation</note>
         <target state="translated">無法儲存 scmp 檔案: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
+        <source xml:lang="en">Failed to script object: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to script object: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
         <target state="translated">無法啟動 SQL Server 容器。請檢查錯誤訊息以獲取詳細資料，然後再試一次。</target>
@@ -2909,7 +2988,7 @@ Error:
       <trans-unit id="++CODE++15cd589c54029c6184391a850fda8a6d72923d92e0d4a43391a69cf2b18c3472">
         <source xml:lang="en">Failed to start profiler: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to start profiler: {0}</target>
+        <target state="translated">無法啟動分析工具: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
@@ -3020,6 +3099,14 @@ Error:
         <source xml:lang="en">Filter by keyword</source>
         <target state="translated">依關鍵字篩選</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e35e285106ad4a8ff905af2f619136cb2d19f6a588eec3ce15ea95afb506dcc">
+        <source xml:lang="en">Filter by name</source>
+        <target state="new">Filter by name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
+        <source xml:lang="en">Filter by schema</source>
+        <target state="new">Filter by schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
         <target state="translated">依類型篩選</target>
@@ -3035,6 +3122,10 @@ Error:
       <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
         <source xml:lang="en">Filter shortcuts</source>
         <target state="translated">篩選捷徑</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
+        <source xml:lang="en">Filter {0}</source>
+        <target state="new">Filter {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3173,6 +3264,14 @@ Error:
       <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
         <source xml:lang="en">Full</source>
         <target state="translated">已滿</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
+        <source xml:lang="en">Function</source>
+        <target state="new">Function</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
+        <source xml:lang="en">Functions</source>
+        <target state="new">Functions</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -3831,6 +3930,10 @@ Error:
         <source xml:lang="en">Loading backup database...</source>
         <target state="translated">正在載入備份資料庫...</target>
       </trans-unit>
+      <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
+        <source xml:lang="en">Loading database objects</source>
+        <target state="new">Loading database objects</target>
+      </trans-unit>
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
         <note>{0} is the name of the workspace</note>
@@ -4119,6 +4222,10 @@ Error:
 {1} is a list of property changes</note>
         <target state="translated">已修改資料表 {0}: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
+        <source xml:lang="en">Modify Table</source>
+        <target state="new">Modify Table</target>
+      </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
         <target state="translated">更多查詢動作</target>
@@ -4146,7 +4253,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
         <source xml:lang="en">MyProfilerSession</source>
-        <target state="new">MyProfilerSession</target>
+        <target state="translated">MyProfilerSession</target>
       </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
@@ -4218,11 +4325,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746">
         <source xml:lang="en">New Profiler Session - Enter Name</source>
-        <target state="new">New Profiler Session - Enter Name</target>
+        <target state="translated">新 Profiler 工作階段 - 輸入名稱</target>
       </trans-unit>
       <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
         <source xml:lang="en">New Profiler Session - Select Template</source>
-        <target state="new">New Profiler Session - Select Template</target>
+        <target state="translated">新 Profiler 工作階段 - 選取範本</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -4230,7 +4337,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fc0bb85f3867f1df067d69d6446c6df5b8bdd4caf25718a67bdc68c9e079bd5f">
         <source xml:lang="en">New Session</source>
-        <target state="new">New Session</target>
+        <target state="translated">新增工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -4379,6 +4486,10 @@ Error:
         <note>{0} is the name of the workspace</note>
         <target state="translated">在工作區 '{0}' 中找不到任何資料庫。</target>
       </trans-unit>
+      <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
+        <source xml:lang="en">No databases found on the server. Please check your connection.</source>
+        <target state="new">No databases found on the server. Please check your connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
         <target state="translated">找不到任何元素</target>
@@ -4405,17 +4516,21 @@ Error:
 {1} is the uri</note>
         <target state="translated">不需要為 URI 為 {1} 的連線 {0} 重新整理 Microsoft Entra 帳戶權杖</target>
       </trans-unit>
+      <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
+        <source xml:lang="en">No objects found</source>
+        <target state="new">No objects found</target>
+      </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
         <target state="translated">沒有擱置的變更。進行編輯以產生指令碼。</target>
       </trans-unit>
       <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
         <source xml:lang="en">No profiler connection available</source>
-        <target state="new">No profiler connection available</target>
+        <target state="translated">無可用的分析工具連線</target>
       </trans-unit>
       <trans-unit id="++CODE++9d6298c8a19610c3253afad30305a202c182b8bffab325a89302b0d3420c7873">
         <source xml:lang="en">No profiler templates available</source>
-        <target state="new">No profiler templates available</target>
+        <target state="translated">沒有可用的分析工具範本</target>
       </trans-unit>
       <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
         <source xml:lang="en">No property changes available.</source>
@@ -4439,7 +4554,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++86147502503bfa8f5f4b25b018362f8a6990334ff839907a0c3008e98d4d7125">
         <source xml:lang="en">No saved connections found. Please create a connection first.</source>
-        <target state="new">No saved connections found. Please create a connection first.</target>
+        <target state="translated">找不到已儲存的連線。請先建立連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -4467,7 +4582,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
         <source xml:lang="en">No templates available</source>
-        <target state="new">No templates available</target>
+        <target state="translated">沒有任何可用的範本</target>
       </trans-unit>
       <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
         <source xml:lang="en">No tenant selected</source>
@@ -4519,7 +4634,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6d54f9ecea632e075385f044d66bfd47b2f26322cec751084d0f45b0532cf7ba">
         <source xml:lang="en">Not Started</source>
-        <target state="new">Not Started</target>
+        <target state="translated">未開始</target>
       </trans-unit>
       <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
         <source xml:lang="en">Not Starts With</source>
@@ -4539,7 +4654,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
         <source xml:lang="en">Not running</source>
-        <target state="new">Not running</target>
+        <target state="translated">未執行</target>
       </trans-unit>
       <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
         <source xml:lang="en">Not signed in</source>
@@ -4577,6 +4692,10 @@ Error:
       <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
         <source xml:lang="en">Object Type</source>
         <target state="translated">物件類型</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
+        <source xml:lang="en">Object Types</source>
+        <target state="new">Object Types</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -4787,19 +4906,19 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc">
         <source xml:lang="en">Pause</source>
-        <target state="new">Pause</target>
+        <target state="translated">暫停</target>
       </trans-unit>
       <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
         <source xml:lang="en">Pause event collection</source>
-        <target state="new">Pause event collection</target>
+        <target state="translated">暫停事件集合</target>
       </trans-unit>
       <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
         <source xml:lang="en">Paused</source>
-        <target state="new">Paused</target>
+        <target state="translated">已暫停</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
         <source xml:lang="en">Paused - click to resume</source>
-        <target state="new">Paused - click to resume</target>
+        <target state="translated">已暫停 - 點擊以繼續</target>
       </trans-unit>
       <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
         <source xml:lang="en">Perform checksum before writing to media</source>
@@ -4965,20 +5084,29 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
         <source xml:lang="en">Profiler Session Status</source>
-        <target state="new">Profiler Session Status</target>
+        <target state="translated">Profiler 工作階段狀態</target>
+      </trans-unit>
+      <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
+        <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
+        <target state="new">Profiler is not supported on Microsoft Fabric SQL databases.</target>
       </trans-unit>
       <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
         <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
-        <target state="new">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</target>
+        <target state="translated">Profiler 已就緒。請從下拉式功能表選取工作階段，然後點擊 [開始] 以啟動分析。</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5a889e3b36e8962aaf7d969eedf93448ceff066decd1befc6fc437103897f">
         <source xml:lang="en">Profiler session '{0}' created successfully. Starting profiling...</source>
         <note>{0} is the session name</note>
-        <target state="new">Profiler session '{0}' created successfully. Starting profiling...</target>
+        <target state="translated">成功建立 Profiler 工作階段「{0}」。正在啟動分析...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
+        <source xml:lang="en">Profiler session '{0}' started successfully.</source>
+        <note>{0} is the session name</note>
+        <target state="new">Profiler session '{0}' started successfully.</target>
       </trans-unit>
       <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
         <source xml:lang="en">Profiler: No session</source>
-        <target state="new">Profiler: No session</target>
+        <target state="translated">Profiler: 沒有工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
         <source xml:lang="en">Properties</source>
@@ -5031,10 +5159,6 @@ Error:
       <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
         <source xml:lang="en">Publish Project</source>
         <target state="translated">發佈專案</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
-        <source xml:lang="en">Publish Project (Preview)</source>
-        <target state="translated">發佈專案 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++71aa5c7a75828ce61b76e517dd10ea3c23ff9149be8b5fb6006ccb9f784bd38c">
         <source xml:lang="en">Publish Project - {0}</source>
@@ -5216,9 +5340,9 @@ Error:
         <note>{0} is the object type</note>
         <target state="translated">移除 {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
-        <source xml:lang="en">Rename Database</source>
-        <target state="translated">重新命名資料庫</target>
+      <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
+        <source xml:lang="en">Rename Database (Preview)</source>
+        <target state="new">Rename Database (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -5309,7 +5433,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
         <source xml:lang="en">Resume</source>
-        <target state="new">Resume</target>
+        <target state="translated">繼續</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -5404,7 +5528,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
         <source xml:lang="en">Running</source>
-        <target state="new">Running</target>
+        <target state="translated">執行中</target>
       </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -5661,13 +5785,29 @@ Query: {2}</source>
         <source xml:lang="en">Schema/Object Type</source>
         <target state="translated">結構描述/物件類型</target>
       </trans-unit>
+      <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
+        <source xml:lang="en">Schemas</source>
+        <target state="new">Schemas</target>
+      </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
         <target state="translated">指令碼</target>
       </trans-unit>
+      <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
+        <source xml:lang="en">Script as Alter</source>
+        <target state="new">Script as Alter</target>
+      </trans-unit>
       <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
         <source xml:lang="en">Script as Create</source>
         <target state="translated">指令碼為建立</target>
+      </trans-unit>
+      <trans-unit id="++CODE++322de6924dbe3c139348ee124dcc19e9ca0de352f0b03a3846d60ec82eb1f44d">
+        <source xml:lang="en">Script as Drop</source>
+        <target state="new">Script as Drop</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ff98ebd77a41e1bbbde627a6d59c75d1f0c638d766414f8a1d10734624710015">
+        <source xml:lang="en">Script as Execute</source>
+        <target state="new">Script as Execute</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -5677,9 +5817,22 @@ Query: {2}</source>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">指令碼已複製到剪貼簿。</target>
       </trans-unit>
+      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
+        <source xml:lang="en">Search Database Objects - {0}</source>
+        <note>{0} is the server name</note>
+        <target state="new">Search Database Objects - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
         <target state="translated">搜尋工作區</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
+        <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>
+        <target state="new">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
         <source xml:lang="en">Search changes...</source>
@@ -5721,6 +5874,10 @@ Query: {2}</source>
         <source xml:lang="en">Search...</source>
         <target state="translated">搜尋...</target>
       </trans-unit>
+      <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
+        <source xml:lang="en">Searching...</source>
+        <target state="new">Searching...</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">選取</target>
@@ -5743,7 +5900,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++cbd2958b1fe1b6ca98cbb77b80166a16187b9b2c5a0b7e7d8c8bb718b57b48f8">
         <source xml:lang="en">Select Session:</source>
-        <target state="new">Select Session:</target>
+        <target state="translated">選取工作階段:</target>
       </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
@@ -5760,6 +5917,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">選取目標結構描述</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
+        <source xml:lang="en">Select Top 1000</source>
+        <target state="new">Select Top 1000</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -5781,13 +5942,17 @@ Query: {2}</source>
         <source xml:lang="en">Select a database</source>
         <target state="translated">選取資料庫</target>
       </trans-unit>
+      <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
+        <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
+        <target state="new">Select a database for profiling (Azure SQL requires a specific database)</target>
+      </trans-unit>
       <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
         <source xml:lang="en">Select a file</source>
         <target state="translated">選取檔案</target>
       </trans-unit>
       <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
         <source xml:lang="en">Select a profiler template</source>
-        <target state="new">Select a profiler template</target>
+        <target state="translated">選取分析工具範本</target>
       </trans-unit>
       <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
         <source xml:lang="en">Select a server</source>
@@ -5795,11 +5960,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++65abe5d6d2a9bdcd83c3acd37c760bca33782062560df379bb995b27056969af">
         <source xml:lang="en">Select a session first</source>
-        <target state="new">Select a session first</target>
+        <target state="translated">請先選取一個工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18">
         <source xml:lang="en">Select a session...</source>
-        <target state="new">Select a session...</target>
+        <target state="translated">選取一個工作階段...</target>
       </trans-unit>
       <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
         <source xml:lang="en">Select a storage account</source>
@@ -5949,24 +6114,24 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
         <source xml:lang="en">Session creation timed out</source>
-        <target state="new">Session creation timed out</target>
+        <target state="translated">工作階段建立逾時</target>
       </trans-unit>
       <trans-unit id="++CODE++8cd78d11cdd7e9d0eb109913becdbf01449df1797ccb72604224b8a3ba943196">
         <source xml:lang="en">Session name can only contain letters, numbers, underscores, and hyphens</source>
-        <target state="new">Session name can only contain letters, numbers, underscores, and hyphens</target>
+        <target state="translated">工作階段只能包含字母、數字、底線與連字號</target>
       </trans-unit>
       <trans-unit id="++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92">
         <source xml:lang="en">Session name cannot be empty</source>
-        <target state="new">Session name cannot be empty</target>
+        <target state="translated">工作階段名稱不可空白</target>
       </trans-unit>
       <trans-unit id="++CODE++2c6d33a689f8b43a18f472efe28829ae3540f663dbed5479969b981f67887d13">
         <source xml:lang="en">Session name must be {0} characters or less</source>
         <note>{0} is the maximum length</note>
-        <target state="new">Session name must be {0} characters or less</target>
+        <target state="translated">工作階段名稱必須少於 (含) {0} 個字元</target>
       </trans-unit>
       <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
         <source xml:lang="en">Session not running</source>
-        <target state="new">Session not running</target>
+        <target state="translated">工作階段未執行</target>
       </trans-unit>
       <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
         <source xml:lang="en">Set Default</source>
@@ -6205,7 +6370,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
         <source xml:lang="en">Start</source>
-        <target state="new">Start</target>
+        <target state="translated">開始</target>
       </trans-unit>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
@@ -6217,7 +6382,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7">
         <source xml:lang="en">Start profiling session</source>
-        <target state="new">Start profiling session</target>
+        <target state="translated">啟動分析工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
         <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
@@ -6267,11 +6432,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++e4d1dad5c74ad296c45ca01ac7e9e7fedffc7478a3556f8962465760b98c5391">
         <source xml:lang="en">Stop session</source>
-        <target state="new">Stop session</target>
+        <target state="translated">停止工作階段</target>
       </trans-unit>
       <trans-unit id="++CODE++1a4f630ac1b69fd00728fa8a672ded71d0eae8516cb23e78f94529113399b79b">
         <source xml:lang="en">Stopped</source>
-        <target state="new">Stopped</target>
+        <target state="translated">已停止</target>
       </trans-unit>
       <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
         <source xml:lang="en">Stopping Container...</source>
@@ -6280,7 +6445,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++2ee872ecd1c6074e5ce040609b1ba3ec2a9d987d039fd9e913cafeeba666d1e7">
         <source xml:lang="en">Stopping profiler session "{0}"...</source>
         <note>{0} is the session name</note>
-        <target state="new">Stopping profiler session "{0}"...</target>
+        <target state="translated">正在停止 Profiler 工作階段「{0}」...</target>
       </trans-unit>
       <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
         <source xml:lang="en">Storage Account</source>
@@ -6289,6 +6454,14 @@ Query: {2}</source>
       <trans-unit id="++CODE++6549c4671adc57fc8e91f8f954ddc90c5afa351bdac948dc76c0a1bdc604d3bc">
         <source xml:lang="en">Storage Account is required</source>
         <target state="translated">需要儲存體帳戶</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
+        <source xml:lang="en">Stored Procedure</source>
+        <target state="new">Stored Procedure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
+        <source xml:lang="en">Stored Procedures</source>
+        <target state="new">Stored Procedures</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -6435,6 +6608,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
         <source xml:lang="en">Table updated in schema designer successfully.</source>
         <target state="translated">已成功在結構描述設計工具中更新資料表。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
+        <source xml:lang="en">Tables</source>
+        <target state="new">Tables</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6707,6 +6884,10 @@ Query: {2}</source>
         <source xml:lang="en">Truncate the transaction log</source>
         <target state="translated">截斷交易記錄</target>
       </trans-unit>
+      <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
+        <source xml:lang="en">Try adjusting your search or filters</source>
+        <target state="new">Try adjusting your search or filters</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
         <target state="translated">試用</target>
@@ -6722,6 +6903,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
         <target state="translated">無法展開。如需詳細資訊，請檢查記錄。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
+        <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+        <target state="new">Unable to load backup configuration. Please try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -6750,6 +6935,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
         <source xml:lang="en">Unfreeze columns/rows</source>
         <target state="translated">取消凍結資料行/資料列</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
+        <source xml:lang="en">Unknown</source>
+        <target state="new">Unknown</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -6895,6 +7084,10 @@ Query: {2}</source>
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">非常滿意</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
+        <source xml:lang="en">View</source>
+        <target state="new">View</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
         <target state="translated">檢視更多</target>
@@ -6913,7 +7106,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
-        <target state="new">View:</target>
+        <target state="translated">檢視:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69c404591e99d86fd11f5ae1b15ebd246d4836aaa88a29f75f3f3d61c028357a">
+        <source xml:lang="en">Views</source>
+        <target state="new">Views</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -7211,7 +7408,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056">
         <source xml:lang="en">{0} events</source>
         <note>{0} is the number of events</note>
-        <target state="new">{0} events</target>
+        <target state="translated">{0} 個事件</target>
       </trans-unit>
       <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
@@ -7232,6 +7429,11 @@ Query: {2}</source>
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} 個問題</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
+        <source xml:lang="en">{0} objects found</source>
+        <note>{0} is the number of objects found</note>
+        <target state="new">{0} objects found</target>
       </trans-unit>
       <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
         <source xml:lang="en">{0} of {1}</source>
@@ -7507,8 +7709,8 @@ Query: {2}</source>
         <target state="translated">使用 SQL 繫結建立 Azure 函數</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
-        <source xml:lang="en">Create Database</source>
-        <target state="translated">建立資料庫</target>
+        <source xml:lang="en">Create Database (Preview)</source>
+        <target state="new">Create Database (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -7581,8 +7783,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">不要顯示提示來啟用以 UI 為基礎的功能</target>
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
-        <source xml:lang="en">Drop Database</source>
-        <target state="translated">卸除資料庫</target>
+        <source xml:lang="en">Drop Database (Preview)</source>
+        <target state="new">Drop Database (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -7784,7 +7986,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Profiler</source>
-        <target state="new">Launch Profiler</target>
+        <target state="translated">啟動 Profiler</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -7816,7 +8018,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.profiler.eventBufferSize">
         <source xml:lang="en">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</source>
-        <target state="new">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</target>
+        <target state="translated">Profiler 記憶體中可保留的最大事件數量。達到此限制時，會刪除較舊的事件。若您需要在分析工作階段期間保留更多事件，請提高此數值。</target>
       </trans-unit>
       <trans-unit id="mssql.logFilesRemovalLimit">
         <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
@@ -7949,8 +8151,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">移除 Microsoft Entra 帳戶</target>
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
-        <source xml:lang="en">Rename Database</source>
-        <target state="translated">重新命名資料庫</target>
+        <source xml:lang="en">Rename Database (Preview)</source>
+        <target state="new">Rename Database (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -8007,6 +8209,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">執行指令碼</target>
+      </trans-unit>
+      <trans-unit id="mssql.searchDatabase">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>

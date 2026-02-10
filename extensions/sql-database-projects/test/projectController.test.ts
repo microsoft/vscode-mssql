@@ -26,7 +26,6 @@ import { ProjectsController } from '../src/controllers/projectController';
 import { promises as fs } from 'fs';
 import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from './testContext';
 import { Project } from '../src/models/project';
-import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
 import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
 import { FolderNode, FileNode } from '../src/models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../src/models/tree/baseTreeItem';
@@ -49,8 +48,35 @@ suite('ProjectsController', function (): void {
 
 	setup(function (): void {
 		testContext = createContext();
+
+		const emptyResultSet = { ...mockDacFxResult };
 		sinon.stub(utils, 'getSqlProjectsService').resolves({
 			openProject: async () => undefined,
+			createProject: async () => mockDacFxResult,
+			getProjectProperties: async () => ({
+				...mockDacFxResult,
+				projectGuid: 'BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575',
+				configuration: 'Debug',
+				outputPath: 'bin/Debug',
+				defaultCollation: '',
+				databaseSource: '',
+				databaseSchemaProvider: 'Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider',
+				projectStyle: mssql.ProjectType.SdkStyle,
+			}),
+			getCrossPlatformCompatibility: async () => ({ ...emptyResultSet, isCrossPlatformCompatible: true }),
+			getSqlCmdVariables: async () => ({ ...emptyResultSet, sqlCmdVariables: [] }),
+			getDatabaseReferences: async () => ({
+				...emptyResultSet,
+				dacpacReferences: [],
+				sqlProjectReferences: [],
+				systemDatabaseReferences: [],
+				nugetPackageReferences: [],
+			}),
+			getPreDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getPostDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getNoneItems: async () => ({ ...emptyResultSet, scripts: [] }),
+			getSqlObjectScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+			getFolders: async () => ({ ...emptyResultSet, folders: [] }),
 		} as unknown as mssql.ISqlProjectsService);
 	});
 
@@ -385,17 +411,17 @@ suite('ProjectsController', function (): void {
 
 				// Assert: tasks.json exists at workspace level
 				const exists = await utils.exists(tasksJsonPath);
-				should(exists).be.true('.vscode/tasks.json should be created at workspace level when configureDefaultBuild is true');
+				expect(exists, '.vscode/tasks.json should be created at workspace level when configureDefaultBuild is true').to.be.true;
 
 				// If exists, check if isDefault is true in any build task
 				if (exists) {
 					const tasksJsonContent = await fs.readFile(tasksJsonPath, 'utf-8');
 					const tasksJson = JSON.parse(tasksJsonContent);
 
-					should(tasksJson.tasks).be.Array().and.have.length(1);
+					expect(tasksJson.tasks, 'tasks should be an array').to.be.an('array').with.lengthOf(1);
 					const task = tasksJson.tasks[0];
-					should(task.group).not.be.undefined();
-					should(task.group.isDefault).equal('true', 'The build task should have isDefault: true');
+					expect(task.group, 'task group should be defined').to.not.be.undefined;
+					expect(task.group.isDefault, 'The build task should have isDefault: true (boolean)').to.equal(true);
 				}
 			});
 
@@ -445,12 +471,12 @@ suite('ProjectsController', function (): void {
 				const tasksJsonContent = await fs.readFile(tasksJsonPath, 'utf-8');
 				const tasksJson = JSON.parse(tasksJsonContent);
 
-				should(tasksJson.tasks).be.Array().and.have.length(2);
-				should(tasksJson.tasks[0].label).equal('Existing Task', 'Existing task should be preserved');
-				should(tasksJson.tasks[1].label).equal('Build', 'SQL build task should be added');
+				expect(tasksJson.tasks, 'tasks should be an array').to.be.an('array').with.lengthOf(2);
+				expect(tasksJson.tasks[0].label, 'Existing task should be preserved').to.equal('Existing Task');
+				expect(tasksJson.tasks[1].label, 'SQL build task should be added').to.equal(constants.getSqlProjectBuildTaskLabel('TestProjectWithTasks'));
 
 				// Assert: notification was shown
-				should(showInfoSpy.calledWith(constants.updatingExistingTasksJson)).be.true('Should show notification when updating existing tasks.json');
+				expect(showInfoSpy.calledWith(constants.updatingExistingTasksJson), 'Should show notification when updating existing tasks.json').to.be.true;
 			});
 
 			async function verifyFolderAdded(folderName: string, projController: ProjectsController, project: Project, node: BaseProjectTreeItem): Promise<void> {
@@ -700,65 +726,10 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
-			test('Publish dialog should open from ProjectController', async function (): Promise<void> {
-				let opened = false;
+			const sandbox = sinon.createSandbox();
 
-				let publishDialog = TypeMoq.Mock.ofType(PublishDatabaseDialog);
-				publishDialog.setup(x => x.openDialog()).returns(() => { opened = true; });
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => publishDialog.object);
-				const proj = new Project('FakePath');
-				sinon.stub(proj, 'getProjectTargetVersion').returns('150');
-				await projController.object.publishProject(proj);
-				should(opened).equal(true);
-			});
-
-			test('Callbacks are hooked up and called from Publish dialog', async function (): Promise<void> {
-				const projectFile = await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline)
-				const projFolder = path.dirname(projectFile);
-				await testUtils.createTestDataSources(this.test, baselines.openDataSourcesBaseline, projFolder);
-				const proj = await Project.openProject(projectFile);
-
-				const publishHoller = 'hello from callback for publish()';
-				const generateHoller = 'hello from callback for generateScript()';
-
-				let holler = 'nothing';
-
-				const setupPublishDialog = (): PublishDatabaseDialog => {
-					const dialog = new PublishDatabaseDialog(proj);
-					sinon.stub(dialog, 'getConnectionUri').returns(Promise.resolve('fake|connection|uri'));
-					return dialog;
-				};
-
-				let publishDialog = setupPublishDialog();
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => {
-					return publishDialog;
-				});
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), true)).returns(() => {
-					holler = publishHoller;
-					return Promise.resolve(undefined);
-				});
-
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), false)).returns(() => {
-					holler = generateHoller;
-					return Promise.resolve(undefined);
-				});
-				publishDialog.publishToExistingServer = true;
-				void projController.object.publishProject(proj);
-				await publishDialog.publishClick();
-
-				should(holler).equal(publishHoller, 'executionCallback() is supposed to have been setup and called for Publish scenario');
-
-				publishDialog = setupPublishDialog();
-				void projController.object.publishProject(proj);
-				await publishDialog.generateScriptClick();
-
-				should(holler).equal(generateHoller, 'executionCallback() is supposed to have been setup and called for GenerateScript scenario');
+			teardown(function (): void {
+				sandbox.restore();
 			});
 
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
@@ -780,7 +751,7 @@ suite('ProjectsController', function (): void {
 					builtDacpacPath = await testUtils.createTestFile(this.test, fakeDacpacContents, 'output.dacpac');
 					return builtDacpacPath;
 				});
-				sinon.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
+				sandbox.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
 
 				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 
@@ -791,6 +762,20 @@ suite('ProjectsController', function (): void {
 				should(builtDacpacPath).not.equal(publishedDacpacPath, 'built and published dacpac paths should be different');
 				should(postCopyContents).equal(fakeDacpacContents, 'contents of built and published dacpacs should match');
 				await fs.rm(publishedDacpacPath);
+			});
+
+			test('publishProject should invoke mssql.publishDatabaseProject command with correct project path', async function (): Promise<void> {
+				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
+				const expectedProjectPath = proj.projectFilePath;
+
+				const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand').resolves();
+
+				const projController = new ProjectsController(testContext.outputChannel);
+				await projController.publishProject(proj);
+
+				expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
+				expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
+				expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
 			});
 		});
 	});

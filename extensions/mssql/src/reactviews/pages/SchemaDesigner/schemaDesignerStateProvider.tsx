@@ -15,6 +15,7 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
@@ -132,6 +133,7 @@ export interface SchemaDesignerContextProps
 
     // DAB (Data API Builder) state
     dabConfig: Dab.DabConfig | null;
+    isDabEnabled: () => boolean;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
@@ -215,14 +217,32 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const extractSchemaRef = useRef<() => SchemaDesigner.Schema>(() => ({ tables: [] }));
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+
+    useEffect(() => {
+        dabConfigRef.current = dabConfig;
+    }, [dabConfig]);
 
     const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
         resetView,
     });
+
+    const extractSchema = useCallback(() => {
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        return schema;
+    }, [reactFlow]);
+
+    useEffect(() => {
+        extractSchemaRef.current = extractSchema;
+    }, [extractSchema]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -307,7 +327,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
         });
-    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+    }, [
+        isInitialized,
+        extensionRpc,
+        schemaNames,
+        datatypes,
+        reactFlow,
+        onPushUndoState,
+        extractSchema,
+    ]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -316,7 +344,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             extensionRpc,
             extractSchema,
         });
-    }, [isInitialized, extensionRpc]);
+    }, [isInitialized, extensionRpc, extractSchema]);
+
+    useEffect(() => {
+        registerSchemaDesignerDabToolHandlers({
+            extensionRpc,
+            isInitializedRef,
+            getCurrentDabConfig: () => dabConfigRef.current,
+            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            commitDabConfig: (config) => {
+                setDabConfig(config);
+            },
+        });
+    }, [extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -607,14 +647,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
         );
-    };
-
-    const extractSchema = () => {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-        return schema;
     };
 
     /**
@@ -1241,6 +1273,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
+    const isDabEnabled = () => state?.enableDAB ?? false;
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1303,6 +1337,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 canRevertChange,
                 // DAB state
                 dabConfig,
+                isDabEnabled,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
                 updateDabApiTypes,

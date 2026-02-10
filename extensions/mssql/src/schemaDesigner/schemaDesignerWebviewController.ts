@@ -465,6 +465,25 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
     }
 
+    public async getDabToolState(): Promise<Dab.GetDabToolStateResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.GetDabToolStateRequest.type, undefined);
+    }
+
+    public async applyDabToolChanges(
+        params: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
+    }
+
+    public showDabView(): void {
+        this.updateState({
+            ...this.state,
+            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+        });
+    }
+
     public get designerKey(): string {
         return this._key;
     }

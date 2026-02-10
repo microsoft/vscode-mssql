@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
@@ -1034,4 +1035,655 @@ export function registerSchemaDesignerGetSchemaStateHandler(params: {
     };
 
     extensionRpc.onRequest(SchemaDesigner.GetSchemaStateRequest.type, handleGetSchemaState);
+}
+
+type DabApplyFailureReason = Extract<Dab.ApplyDabToolChangesResponse, { success: false }>["reason"];
+type ApplyReturnState = "full" | "summary" | "none";
+
+const GET_STATE_ENTITY_THRESHOLD = 150;
+const APPLY_CHANGES_ENTITY_THRESHOLD = 100;
+
+function cloneDabConfig(config: Dab.DabConfig): Dab.DabConfig {
+    return {
+        apiTypes: [...config.apiTypes],
+        entities: config.entities.map((entity) => ({
+            ...entity,
+            enabledActions: [...entity.enabledActions],
+            advancedSettings: { ...entity.advancedSettings },
+        })),
+    };
+}
+
+function normalizeIdentifier(value: string | undefined): string {
+    return (value ?? "").trim().toLowerCase();
+}
+
+function buildDabSummary(config: Dab.DabConfig): Dab.DabToolSummary {
+    return {
+        entityCount: config.entities.length,
+        enabledEntityCount: config.entities.filter((entity) => entity.isEnabled).length,
+        apiTypes: [...config.apiTypes],
+    };
+}
+
+function isApplyReturnState(value: unknown): value is ApplyReturnState {
+    return value === "full" || value === "summary" || value === "none";
+}
+
+async function buildApplyStatePayload(
+    config: Dab.DabConfig,
+    requestedReturnState: ApplyReturnState,
+    precomputedVersion?: string,
+): Promise<
+    Pick<
+        Extract<Dab.ApplyDabToolChangesResponse, { success: true }>,
+        "returnState" | "stateOmittedReason" | "version" | "summary" | "config"
+    >
+> {
+    const summary = buildDabSummary(config);
+    const version = precomputedVersion ?? (await computeDabVersion(config));
+
+    if (requestedReturnState === "none") {
+        return {
+            returnState: "none",
+            stateOmittedReason: "caller_requested_none",
+            version,
+            summary,
+        };
+    }
+
+    if (requestedReturnState === "summary") {
+        return {
+            returnState: "summary",
+            stateOmittedReason: "caller_requested_summary",
+            version,
+            summary,
+        };
+    }
+
+    if (summary.entityCount > APPLY_CHANGES_ENTITY_THRESHOLD) {
+        return {
+            returnState: "summary",
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary,
+        };
+    }
+
+    return {
+        returnState: "full",
+        version,
+        summary,
+        config,
+    };
+}
+
+function normalizeDabConfigForVersion(config: Dab.DabConfig) {
+    return {
+        apiTypes: [...config.apiTypes].map(normalizeIdentifier).sort((a, b) => a.localeCompare(b)),
+        entities: [...config.entities]
+            .map((entity) => ({
+                id: normalizeIdentifier(entity.id),
+                tableName: normalizeIdentifier(entity.tableName),
+                schemaName: normalizeIdentifier(entity.schemaName),
+                isEnabled: entity.isEnabled,
+                enabledActions: [...entity.enabledActions]
+                    .map(normalizeIdentifier)
+                    .sort((a, b) => a.localeCompare(b)),
+                advancedSettings: {
+                    entityName: normalizeIdentifier(entity.advancedSettings.entityName),
+                    authorizationRole: normalizeIdentifier(
+                        entity.advancedSettings.authorizationRole,
+                    ),
+                    customRestPath:
+                        entity.advancedSettings.customRestPath !== undefined
+                            ? entity.advancedSettings.customRestPath
+                            : null,
+                    customGraphQLType:
+                        entity.advancedSettings.customGraphQLType !== undefined
+                            ? entity.advancedSettings.customGraphQLType
+                            : null,
+                },
+            }))
+            .sort((a, b) => {
+                const bySchema = a.schemaName.localeCompare(b.schemaName);
+                if (bySchema !== 0) {
+                    return bySchema;
+                }
+                const byTable = a.tableName.localeCompare(b.tableName);
+                if (byTable !== 0) {
+                    return byTable;
+                }
+                return a.id.localeCompare(b.id);
+            }),
+    };
+}
+
+async function computeDabVersion(config: Dab.DabConfig): Promise<string> {
+    const payload = JSON.stringify(normalizeDabConfigForVersion(config));
+    const encoder = new TextEncoder();
+    const digest = await crypto.subtle.digest("SHA-256", encoder.encode(payload));
+    const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0"))
+        .join("")
+        .toLowerCase();
+    return `dabcfg_${hash}`;
+}
+
+function ensureInitializedAndSyncedDabConfig(
+    currentConfig: Dab.DabConfig | null,
+    schemaTables: SchemaDesigner.Table[],
+): { config: Dab.DabConfig; changed: boolean } {
+    let changed = false;
+    const normalizedConfig = currentConfig
+        ? cloneDabConfig(currentConfig)
+        : Dab.createDefaultConfig(schemaTables);
+    if (!currentConfig) {
+        changed = true;
+    }
+
+    const tablesById = new Map(schemaTables.map((table) => [table.id, table]));
+    const syncedEntities: Dab.DabEntityConfig[] = [];
+
+    for (const entity of normalizedConfig.entities) {
+        const table = tablesById.get(entity.id);
+        if (!table) {
+            changed = true;
+            continue;
+        }
+
+        if (entity.tableName !== table.name || entity.schemaName !== table.schema) {
+            changed = true;
+        }
+
+        syncedEntities.push({
+            ...entity,
+            tableName: table.name,
+            schemaName: table.schema,
+        });
+        tablesById.delete(entity.id);
+    }
+
+    for (const table of schemaTables) {
+        if (!tablesById.has(table.id)) {
+            continue;
+        }
+        syncedEntities.push(Dab.createDefaultEntityConfig(table));
+        changed = true;
+    }
+
+    return {
+        config: {
+            ...normalizedConfig,
+            entities: syncedEntities,
+        },
+        changed,
+    };
+}
+
+function getDuplicateEntityName(config: Dab.DabConfig): string | undefined {
+    const seen = new Set<string>();
+    for (const entity of config.entities) {
+        const normalizedEntityName = normalizeIdentifier(entity.advancedSettings.entityName);
+        if (!normalizedEntityName) {
+            continue;
+        }
+        if (seen.has(normalizedEntityName)) {
+            return entity.advancedSettings.entityName;
+        }
+        seen.add(normalizedEntityName);
+    }
+    return undefined;
+}
+
+function resolveEntityRef(
+    config: Dab.DabConfig,
+    entityRef: Dab.DabEntityRef,
+):
+    | { success: true; entity: Dab.DabEntityConfig; index: number }
+    | { success: false; reason: DabApplyFailureReason; message: string } {
+    const hasId = typeof (entityRef as { id?: unknown }).id === "string";
+    const hasSchemaTable =
+        typeof (entityRef as { schemaName?: unknown }).schemaName === "string" &&
+        typeof (entityRef as { tableName?: unknown }).tableName === "string";
+
+    if (hasId === hasSchemaTable) {
+        return {
+            success: false,
+            reason: "invalid_request",
+            message: "Invalid entity reference. Use either id OR schemaName+tableName.",
+        };
+    }
+
+    if (hasId) {
+        const id = (entityRef as { id: string }).id;
+        const index = config.entities.findIndex((entity) => entity.id === id);
+        if (index < 0) {
+            return {
+                success: false,
+                reason: "not_found",
+                message: `Entity not found: ${id}`,
+            };
+        }
+        return { success: true, entity: config.entities[index], index };
+    }
+
+    const schemaName = normalizeIdentifier((entityRef as { schemaName: string }).schemaName);
+    const tableName = normalizeIdentifier((entityRef as { tableName: string }).tableName);
+    const matches = config.entities
+        .map((entity, index) => ({ entity, index }))
+        .filter(
+            ({ entity }) =>
+                normalizeIdentifier(entity.schemaName) === schemaName &&
+                normalizeIdentifier(entity.tableName) === tableName,
+        );
+
+    if (matches.length === 0) {
+        return {
+            success: false,
+            reason: "not_found",
+            message: `Entity not found: ${(entityRef as { schemaName: string }).schemaName}.${(entityRef as { tableName: string }).tableName}`,
+        };
+    }
+
+    if (matches.length > 1) {
+        return {
+            success: false,
+            reason: "validation_error",
+            message: `Entity reference resolved to more than one entity: ${(entityRef as { schemaName: string }).schemaName}.${(entityRef as { tableName: string }).tableName}`,
+        };
+    }
+
+    return {
+        success: true,
+        entity: matches[0].entity,
+        index: matches[0].index,
+    };
+}
+
+function applyDabToolChange(
+    config: Dab.DabConfig,
+    change: Dab.DabToolChange,
+): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
+    const allowedApiTypes = new Set<Dab.ApiType>(Object.values(Dab.ApiType));
+    const allowedActions = new Set<Dab.EntityAction>(Object.values(Dab.EntityAction));
+
+    switch (change.type) {
+        case "set_api_types": {
+            if (!Array.isArray(change.apiTypes) || change.apiTypes.length === 0) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes must be a non-empty array.",
+                };
+            }
+            const uniqueApiTypes = new Set(change.apiTypes);
+            if (uniqueApiTypes.size !== change.apiTypes.length) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes must be unique.",
+                };
+            }
+            if (change.apiTypes.some((apiType) => !allowedApiTypes.has(apiType))) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "apiTypes contains unsupported values.",
+                };
+            }
+            config.apiTypes = [...change.apiTypes];
+            return { success: true };
+        }
+
+        case "set_entity_enabled": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                isEnabled: change.isEnabled,
+            };
+            return { success: true };
+        }
+
+        case "set_entity_actions": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+
+            if (!Array.isArray(change.actions) || change.actions.length === 0) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions must be a non-empty array.",
+                };
+            }
+            const uniqueActions = new Set(change.actions);
+            if (uniqueActions.size !== change.actions.length) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions must be unique.",
+                };
+            }
+            if (change.actions.some((action) => !allowedActions.has(action))) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: "actions contains unsupported values.",
+                };
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                enabledActions: [...change.actions],
+            };
+            return { success: true };
+        }
+
+        case "patch_entity_settings": {
+            const resolvedEntity = resolveEntityRef(config, change.entity);
+            if (resolvedEntity.success === false) {
+                return resolvedEntity;
+            }
+
+            const patch = change.set ?? {};
+            const patchKeys = Object.keys(patch);
+            if (patchKeys.length === 0) {
+                return {
+                    success: false,
+                    reason: "invalid_request",
+                    message: "patch_entity_settings.set must include at least one property.",
+                };
+            }
+
+            const updatedSettings: Dab.EntityAdvancedSettings = {
+                ...resolvedEntity.entity.advancedSettings,
+            };
+
+            for (const key of patchKeys) {
+                const value = (patch as Record<string, unknown>)[key];
+                switch (key) {
+                    case "entityName":
+                        if (typeof value !== "string" || value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "entityName must be a non-empty string.",
+                            };
+                        }
+                        updatedSettings.entityName = value.trim();
+                        break;
+                    case "authorizationRole":
+                        if (
+                            value !== Dab.AuthorizationRole.Anonymous &&
+                            value !== Dab.AuthorizationRole.Authenticated
+                        ) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message:
+                                    "authorizationRole must be 'anonymous' or 'authenticated'.",
+                            };
+                        }
+                        updatedSettings.authorizationRole = value;
+                        break;
+                    case "customRestPath":
+                        if (value === null) {
+                            delete updatedSettings.customRestPath;
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customRestPath must be a string or null.",
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customRestPath cannot be an empty string.",
+                            };
+                        }
+                        updatedSettings.customRestPath = value.trim();
+                        break;
+                    case "customGraphQLType":
+                        if (value === null) {
+                            delete updatedSettings.customGraphQLType;
+                            break;
+                        }
+                        if (typeof value !== "string") {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customGraphQLType must be a string or null.",
+                            };
+                        }
+                        if (value.trim().length === 0) {
+                            return {
+                                success: false,
+                                reason: "invalid_request",
+                                message: "customGraphQLType cannot be an empty string.",
+                            };
+                        }
+                        updatedSettings.customGraphQLType = value.trim();
+                        break;
+                    default:
+                        return {
+                            success: false,
+                            reason: "invalid_request",
+                            message: `Unsupported patch property: ${key}.`,
+                        };
+                }
+            }
+
+            config.entities[resolvedEntity.index] = {
+                ...resolvedEntity.entity,
+                advancedSettings: updatedSettings,
+            };
+
+            const duplicateEntityName = getDuplicateEntityName(config);
+            if (duplicateEntityName) {
+                return {
+                    success: false,
+                    reason: "validation_error",
+                    message: `entityName must be unique across entities. Duplicate: ${duplicateEntityName}`,
+                };
+            }
+
+            return { success: true };
+        }
+
+        case "set_only_enabled_entities": {
+            if (!Array.isArray(change.entities) || change.entities.length === 0) {
+                return {
+                    success: false,
+                    reason: "invalid_request",
+                    message: "set_only_enabled_entities.entities must be a non-empty array.",
+                };
+            }
+
+            const selectedEntityIds = new Set<string>();
+            for (const entityRef of change.entities) {
+                const resolvedEntity = resolveEntityRef(config, entityRef);
+                if (resolvedEntity.success === false) {
+                    return resolvedEntity;
+                }
+                selectedEntityIds.add(resolvedEntity.entity.id);
+            }
+
+            config.entities = config.entities.map((entity) => ({
+                ...entity,
+                isEnabled: selectedEntityIds.has(entity.id),
+            }));
+            return { success: true };
+        }
+
+        case "set_all_entities_enabled": {
+            config.entities = config.entities.map((entity) => ({
+                ...entity,
+                isEnabled: change.isEnabled,
+            }));
+            return { success: true };
+        }
+
+        default:
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: `Unknown change type: ${(change as { type?: string }).type ?? "unknown"}`,
+            };
+    }
+}
+
+export function registerSchemaDesignerDabToolHandlers(params: {
+    extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
+    isInitializedRef: { current: boolean };
+    getCurrentDabConfig: () => Dab.DabConfig | null;
+    getCurrentSchemaTables: () => SchemaDesigner.Table[];
+    commitDabConfig: (config: Dab.DabConfig) => void;
+}) {
+    const {
+        extensionRpc,
+        isInitializedRef,
+        getCurrentDabConfig,
+        getCurrentSchemaTables,
+        commitDabConfig,
+    } = params;
+
+    const handleGetState = async (): Promise<Dab.GetDabToolStateResponse> => {
+        if (!isInitializedRef.current) {
+            throw new Error(locConstants.schemaDesigner.schemaDesignerNotInitialized);
+        }
+
+        const baseSnapshot = getCurrentDabConfig();
+        const schemaTables = getCurrentSchemaTables();
+        const syncedSnapshot = ensureInitializedAndSyncedDabConfig(baseSnapshot, schemaTables);
+
+        if (syncedSnapshot.changed) {
+            commitDabConfig(syncedSnapshot.config);
+        }
+
+        const summary = buildDabSummary(syncedSnapshot.config);
+        const version = await computeDabVersion(syncedSnapshot.config);
+        const returnState =
+            summary.entityCount > GET_STATE_ENTITY_THRESHOLD
+                ? ("summary" as const)
+                : ("full" as const);
+
+        if (returnState === "full") {
+            return {
+                returnState,
+                version,
+                summary,
+                config: syncedSnapshot.config,
+            };
+        }
+
+        return {
+            returnState,
+            stateOmittedReason: "entity_count_over_threshold",
+            version,
+            summary,
+        };
+    };
+
+    const handleApplyChanges = async (
+        request: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> => {
+        if (!isInitializedRef.current) {
+            return {
+                success: false,
+                reason: "internal_error",
+                message: locConstants.schemaDesigner.schemaDesignerNotInitialized,
+            };
+        }
+
+        if (!request?.expectedVersion) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: "Missing expectedVersion.",
+            };
+        }
+
+        if (!Array.isArray(request.changes) || request.changes.length === 0) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: "Missing changes (non-empty array).",
+            };
+        }
+
+        const requestedReturnState = request.options?.returnState ?? "full";
+        if (!isApplyReturnState(requestedReturnState)) {
+            return {
+                success: false,
+                reason: "invalid_request",
+                message: `Unsupported returnState: ${String(requestedReturnState)}`,
+            };
+        }
+
+        const baseSnapshot = ensureInitializedAndSyncedDabConfig(
+            getCurrentDabConfig(),
+            getCurrentSchemaTables(),
+        ).config;
+        const version = await computeDabVersion(baseSnapshot);
+
+        if (request.expectedVersion !== version) {
+            const staleState = await buildApplyStatePayload(
+                baseSnapshot,
+                requestedReturnState,
+                version,
+            );
+            return {
+                success: false,
+                reason: "stale_state",
+                message: "DAB configuration changed since last read.",
+                version: staleState.version,
+                summary: staleState.summary,
+                returnState: staleState.returnState,
+                ...(staleState.stateOmittedReason
+                    ? { stateOmittedReason: staleState.stateOmittedReason }
+                    : {}),
+                ...(staleState.config ? { config: staleState.config } : {}),
+            };
+        }
+
+        const workingSnapshot = cloneDabConfig(baseSnapshot);
+        let appliedChanges = 0;
+
+        for (let i = 0; i < request.changes.length; i++) {
+            const applyResult = applyDabToolChange(workingSnapshot, request.changes[i]);
+            if (applyResult.success === false) {
+                commitDabConfig(workingSnapshot);
+                return {
+                    success: false,
+                    reason: applyResult.reason,
+                    message: applyResult.message,
+                    failedChangeIndex: i,
+                    appliedChanges,
+                    version: await computeDabVersion(workingSnapshot),
+                    summary: buildDabSummary(workingSnapshot),
+                };
+            }
+            appliedChanges++;
+        }
+
+        commitDabConfig(workingSnapshot);
+        const successState = await buildApplyStatePayload(workingSnapshot, requestedReturnState);
+
+        return {
+            success: true,
+            appliedChanges,
+            ...successState,
+        };
+    };
+
+    extensionRpc.onRequest(Dab.GetDabToolStateRequest.type, handleGetState);
+    extensionRpc.onRequest(Dab.ApplyDabToolChangesRequest.type, handleApplyChanges);
 }
