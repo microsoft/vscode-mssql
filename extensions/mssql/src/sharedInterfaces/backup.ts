@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextPropsNoState, FormReducers } from "./form";
+import { FormContextProps, FormReducers } from "./form";
 import { ApiStatus } from "./webview";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
@@ -253,7 +253,7 @@ export interface BackupDatabaseReducers
 }
 
 export interface BackupDatabaseProvider
-    extends FormContextPropsNoState<ObjectManagementFormState>,
+    extends FormContextProps<ObjectManagementFormState>,
         FileBrowserProvider {
     /**
      * Gets the database information associated with the backup operation

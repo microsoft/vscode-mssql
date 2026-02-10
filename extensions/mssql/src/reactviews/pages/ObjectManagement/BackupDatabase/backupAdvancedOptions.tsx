@@ -18,7 +18,7 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormFieldNoState } from "../../../common/forms/form.component";
+import { FormField } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
 import { BackupDatabaseViewModel, BackupType, MediaSet } from "../../../../sharedInterfaces/backup";
@@ -169,7 +169,7 @@ export const AdvancedOptionsDrawer = ({
                                                         shouldShowComponent(
                                                             option.propertyName,
                                                         ) && (
-                                                            <FormFieldNoState<
+                                                            <FormField<
                                                                 ObjectManagementFormState,
                                                                 ObjectManagementWebviewState,
                                                                 ObjectManagementFormItemSpec,

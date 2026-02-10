@@ -19,7 +19,7 @@ import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormFieldNoState } from "../../../common/forms/form.component";
+import { FormField } from "../../../common/forms/form.component";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "../connectionDialogSelector";
 import {
@@ -135,7 +135,7 @@ export const AdvancedOptionsDrawer = ({
                                             )
                                             .map((optionName, idx) => {
                                                 return (
-                                                    <FormFieldNoState<
+                                                    <FormField<
                                                         IConnectionDialogProfile,
                                                         ConnectionDialogWebviewState,
                                                         ConnectionDialogFormItemSpec,

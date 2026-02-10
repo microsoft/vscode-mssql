@@ -8,7 +8,7 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectButton } from "./components/connectButton.component";
 import { Button, Label, makeStyles } from "@fluentui/react-components";
-import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     AuthenticationType,
     ConnectionDialogContextProps,
@@ -161,7 +161,7 @@ export const FabricBrowsePage = () => {
                                         }
 
                                         return (
-                                            <FormFieldNoState<
+                                            <FormField<
                                                 IConnectionDialogProfile,
                                                 ConnectionDialogWebviewState,
                                                 ConnectionDialogFormItemSpec,

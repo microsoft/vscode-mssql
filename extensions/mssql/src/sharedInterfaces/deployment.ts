@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    FormContextPropsNoState,
+    FormContextProps,
     FormEvent,
     FormItemOptions,
     FormItemSpec,
@@ -72,7 +72,7 @@ export interface DeploymentCommonReducers {
     dispose: {};
 }
 
-export interface DeploymentCommonContextProps extends FormContextPropsNoState<DeploymentFormState> {
+export interface DeploymentCommonContextProps extends FormContextProps<DeploymentFormState> {
     /**
      * Initializes the deployment context with specific deployment type details.
      * @param deploymentType The type of deployment to initialize.
