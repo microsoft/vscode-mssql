@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { IExtension, IProjectType } from "dataworkspace";
+import { IExtension } from "dataworkspace";
 import { WorkspaceService } from "../services/workspaceService";
 import { defaultProjectSaveLocation } from "./projectLocationHelper";
-import { openSpecificProjectNewProjectDialog } from "../dialogs/newProjectDialog";
+import { createNewProjectWithQuickpick } from "../dialogs/newProjectQuickpick";
 import {
   isValidBasename,
   isValidBasenameErrorMessage,
@@ -43,12 +43,13 @@ export class DataWorkspaceExtension implements IExtension {
     return this.workspaceService.validateWorkspace();
   }
 
-  openSpecificProjectNewProjectDialog(projectType: IProjectType): Promise<vscode.Uri | undefined> {
+  openSpecificProjectNewProjectDialog(): Promise<vscode.Uri | undefined> {
     if (!this.workspaceService.isProjectProviderAvailable) {
       void vscode.window.showErrorMessage(noProjectProvidingExtensionsInstalled);
+      return Promise.resolve(undefined);
     }
 
-    return openSpecificProjectNewProjectDialog(projectType, this.workspaceService);
+    return createNewProjectWithQuickpick(this.workspaceService);
   }
 
   isValidFilenameCharacter(c: string): boolean {

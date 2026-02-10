@@ -7,7 +7,7 @@ import * as os from "os";
 import * as path from "path";
 import { IProjectType } from "dataworkspace";
 import { promises as fs } from "fs";
-import { ProjectProviderRegistry } from "../common/projectProviderRegistry";
+import { ProjectProviderRegistry } from "../src/common/projectProviderRegistry";
 
 export const testProjectType: IProjectType = {
   id: "tp1",

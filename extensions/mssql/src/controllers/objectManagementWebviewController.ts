@@ -41,12 +41,28 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
     protected readonly parentUrn?: string;
     protected readonly objectUrn?: string;
 
+    /**
+     * Constructor for ObjectManagementWebviewController
+     * @param context extension context
+     * @param vscodeWrapper vscode wrapper instance
+     * @param objectManagementService object management service instance
+     * @param dialogType type of the dialog
+     * @param dialogTitle title of the dialog
+     * @param webviewTitle title of the webview tab
+     * @param sourceFile source file path
+     * @param connectionUri connection URI
+     * @param serverName server name
+     * @param databaseName database name
+     * @param parentUrn parent URN
+     * @param objectUrn object URN
+     */
     protected constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         dialogType: ObjectManagementDialogType,
         dialogTitle: string,
+        webviewTitle: string,
         sourceFile: string,
         connectionUri: string,
         serverName: string,
@@ -79,7 +95,7 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
                 dialog: undefined,
             },
             {
-                title: dialogTitle,
+                title: webviewTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),

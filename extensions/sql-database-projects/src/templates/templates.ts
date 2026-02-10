@@ -85,7 +85,6 @@ export async function loadTemplates(templateFolderPath: string) {
 		loadObjectTypeInfo(ItemType.externalStream, constants.externalStreamFriendlyName, templateFolderPath, 'newTsqlExternalStreamTemplate.sql'),
 		loadObjectTypeInfo(ItemType.externalStreamingJob, constants.externalStreamingJobFriendlyName, templateFolderPath, 'newTsqlExternalStreamingJobTemplate.sql'),
 		loadObjectTypeInfo(ItemType.publishProfile, constants.publishProfileFriendlyName, templateFolderPath, 'newPublishProfileTemplate.publish.xml'),
-		loadObjectTypeInfo(ItemType.tasks, constants.tasksJsonFriendlyName, templateFolderPath, 'tasksTemplate.json'),
 		loadObjectTypeInfo(ItemType.trigger, constants.triggerFriendlyName, templateFolderPath, 'newTsqlTriggerTemplate.sql'),
 		loadObjectTypeInfo(ItemType.databaseTrigger, constants.databaseTriggerFriendlyName, templateFolderPath, 'newTsqlDatabaseTriggerTemplate.sql'),
 		loadObjectTypeInfo(ItemType.sequence, constants.sequenceFriendlyName, templateFolderPath, 'newTsqlSequenceTemplate.sql')
