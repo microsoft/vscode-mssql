@@ -110,7 +110,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 "sqlDatabaseProjects.publishDialog",
                 async (node: WorkspaceTreeItem) => {
-                    return this.projectsController.publishProjectDialog(node);
+                    return this.projectsController.publishProject(node);
                 },
             ),
         );
