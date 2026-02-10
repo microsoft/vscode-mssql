@@ -18,10 +18,7 @@ import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
 import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
-import {
-    createDataViewSortFn,
-    getNextSortState,
-} from "../../../profiler/profilerSortUtils";
+import { createDataViewSortFn, getNextSortState } from "../../../profiler/profilerSortUtils";
 import {
     SessionState,
     ProfilerNotifications,
@@ -93,7 +90,6 @@ function getFormatterConfig(
     }
     return undefined;
 }
-
 
 export const Profiler: React.FC = () => {
     const classes = useStyles();
@@ -212,24 +208,21 @@ export const Profiler: React.FC = () => {
      * Apply the current sort to the DataView.
      * Should be called whenever sort state changes or new rows are added.
      */
-    const applySortToDataView = useCallback(
-        (sort: SortState | null) => {
-            const dataView = reactGridRef.current?.dataView;
-            if (!dataView) {
-                return;
-            }
-            const sortFn = createDataViewSortFn(sort);
-            dataView.sort(sortFn, true);
+    const applySortToDataView = useCallback((sort: SortState | null) => {
+        const dataView = reactGridRef.current?.dataView;
+        if (!dataView) {
+            return;
+        }
+        const sortFn = createDataViewSortFn(sort);
+        dataView.sort(sortFn, true);
 
-            // Force the grid to repaint immediately after sorting
-            const grid = reactGridRef.current?.slickGrid;
-            if (grid) {
-                grid.invalidate();
-                grid.render();
-            }
-        },
-        [],
-    );
+        // Force the grid to repaint immediately after sorting
+        const grid = reactGridRef.current?.slickGrid;
+        if (grid) {
+            grid.invalidate();
+            grid.render();
+        }
+    }, []);
 
     /**
      * Updates the sort button icon CSS classes in the header for a given column.
@@ -240,9 +233,7 @@ export const Profiler: React.FC = () => {
             if (!grid) {
                 return;
             }
-            const headerContainer = grid
-                .getContainerNode()
-                ?.querySelector(".slick-header-columns");
+            const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
             if (!headerContainer) {
                 return;
             }
@@ -281,10 +272,7 @@ export const Profiler: React.FC = () => {
                 }
 
                 // Update icon for current column
-                updateSortButtonIcon(
-                    field,
-                    newSort?.field === field ? newSort.direction : null,
-                );
+                updateSortButtonIcon(field, newSort?.field === field ? newSort.direction : null);
 
                 // Apply sort to DataView
                 applySortToDataView(newSort);
@@ -359,10 +347,7 @@ export const Profiler: React.FC = () => {
                         sortButton.classList.add("sorted-desc");
                     }
                 }
-                sortButton.setAttribute(
-                    "aria-label",
-                    locConstants.profiler.sortTooltip,
-                );
+                sortButton.setAttribute("aria-label", locConstants.profiler.sortTooltip);
                 sortButton.setAttribute("title", locConstants.profiler.sortTooltip);
                 sortButton.tabIndex = -1;
 
@@ -620,7 +605,7 @@ export const Profiler: React.FC = () => {
         );
     }, []);
 
-     // Handle row selection (click or keyboard navigation) to show details in the panel
+    // Handle row selection (click or keyboard navigation) to show details in the panel
     const handleRowSelection = useCallback(
         (rowIndex: number) => {
             if (!reactGridRef.current?.dataView) {
