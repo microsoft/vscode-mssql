@@ -822,6 +822,96 @@ suite("DabTool Tests", () => {
             expect(duplicateName.message).to.include("entityName must be unique");
         });
 
+        test("apply_changes patch_entity_settings rejects whitespace-only strings and trims accepted values", async () => {
+            const harness = createDabHandlerHarness({
+                tables: [createTable("t1", "dbo", "Users")],
+                dabConfig: null,
+            });
+            let currentState = await harness.getState();
+
+            const whitespaceEntityName = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { entityName: "   " },
+                    },
+                ],
+            });
+            expect(whitespaceEntityName.success).to.equal(false);
+            if (whitespaceEntityName.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(whitespaceEntityName.reason).to.equal("invalid_request");
+            expect(whitespaceEntityName.message).to.equal("entityName must be a non-empty string.");
+
+            currentState = await harness.getState();
+            const whitespaceRestPath = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customRestPath: "   " },
+                    },
+                ],
+            });
+            expect(whitespaceRestPath.success).to.equal(false);
+            if (whitespaceRestPath.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(whitespaceRestPath.reason).to.equal("invalid_request");
+            expect(whitespaceRestPath.message).to.equal(
+                "customRestPath cannot be an empty string.",
+            );
+
+            currentState = await harness.getState();
+            const whitespaceGraphQLType = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: { customGraphQLType: "   " },
+                    },
+                ],
+            });
+            expect(whitespaceGraphQLType.success).to.equal(false);
+            if (whitespaceGraphQLType.success) {
+                throw new Error("Expected failure response");
+            }
+            expect(whitespaceGraphQLType.reason).to.equal("invalid_request");
+            expect(whitespaceGraphQLType.message).to.equal(
+                "customGraphQLType cannot be an empty string.",
+            );
+
+            currentState = await harness.getState();
+            const trimmedSuccess = await harness.applyChanges({
+                expectedVersion: currentState.version,
+                changes: [
+                    {
+                        type: "patch_entity_settings",
+                        entity: { id: "t1" },
+                        set: {
+                            entityName: "  UsersApi  ",
+                            customRestPath: "  /users  ",
+                            customGraphQLType: "  UsersType  ",
+                        },
+                    },
+                ],
+            });
+            expect(trimmedSuccess.success).to.equal(true);
+            if (!trimmedSuccess.success) {
+                throw new Error("Expected success response");
+            }
+            const settings = trimmedSuccess.config?.entities[0].advancedSettings;
+            expect(settings).to.exist;
+            expect(settings?.entityName).to.equal("UsersApi");
+            expect(settings?.customRestPath).to.equal("/users");
+            expect(settings?.customGraphQLType).to.equal("UsersType");
+        });
+
         test("apply_changes validates set_only_enabled_entities and unknown change types", async () => {
             const harness = createDabHandlerHarness({
                 tables: [createTable("t1", "dbo", "Users")],

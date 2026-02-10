@@ -1073,6 +1073,7 @@ function isApplyReturnState(value: unknown): value is ApplyReturnState {
 async function buildApplyStatePayload(
     config: Dab.DabConfig,
     requestedReturnState: ApplyReturnState,
+    precomputedVersion?: string,
 ): Promise<
     Pick<
         Extract<Dab.ApplyDabToolChangesResponse, { success: true }>,
@@ -1080,7 +1081,7 @@ async function buildApplyStatePayload(
     >
 > {
     const summary = buildDabSummary(config);
-    const version = await computeDabVersion(config);
+    const version = precomputedVersion ?? (await computeDabVersion(config));
 
     if (requestedReturnState === "none") {
         return {
@@ -1406,14 +1407,14 @@ function applyDabToolChange(
                 const value = (patch as Record<string, unknown>)[key];
                 switch (key) {
                     case "entityName":
-                        if (typeof value !== "string" || value.length === 0) {
+                        if (typeof value !== "string" || value.trim().length === 0) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
                                 message: "entityName must be a non-empty string.",
                             };
                         }
-                        updatedSettings.entityName = value;
+                        updatedSettings.entityName = value.trim();
                         break;
                     case "authorizationRole":
                         if (
@@ -1441,14 +1442,14 @@ function applyDabToolChange(
                                 message: "customRestPath must be a string or null.",
                             };
                         }
-                        if (value.length === 0) {
+                        if (value.trim().length === 0) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
                                 message: "customRestPath cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customRestPath = value;
+                        updatedSettings.customRestPath = value.trim();
                         break;
                     case "customGraphQLType":
                         if (value === null) {
@@ -1462,14 +1463,14 @@ function applyDabToolChange(
                                 message: "customGraphQLType must be a string or null.",
                             };
                         }
-                        if (value.length === 0) {
+                        if (value.trim().length === 0) {
                             return {
                                 success: false,
                                 reason: "invalid_request",
                                 message: "customGraphQLType cannot be an empty string.",
                             };
                         }
-                        updatedSettings.customGraphQLType = value;
+                        updatedSettings.customGraphQLType = value.trim();
                         break;
                     default:
                         return {
@@ -1634,7 +1635,11 @@ export function registerSchemaDesignerDabToolHandlers(params: {
         const version = await computeDabVersion(baseSnapshot);
 
         if (request.expectedVersion !== version) {
-            const staleState = await buildApplyStatePayload(baseSnapshot, requestedReturnState);
+            const staleState = await buildApplyStatePayload(
+                baseSnapshot,
+                requestedReturnState,
+                version,
+            );
             return {
                 success: false,
                 reason: "stale_state",
