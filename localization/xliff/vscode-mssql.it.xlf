@@ -323,15 +323,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <note>{0} is the error message</note>
         <target state="translated">Si è verificato un errore durante il recupero delle righe: {0}</target>
       </trans-unit>
-      <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
-        <source xml:lang="en">An error occurred while searching database objects</source>
-        <target state="translated">Si è verificato un errore durante la ricerca di oggetti di database</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
-        <source xml:lang="en">An error occurred while searching database objects: {0}</source>
-        <note>{0} is the error detail returned from the search operation</note>
-        <target state="translated">Si è verificato un errore durante la ricerca di oggetti di database: {0}</target>
-      </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
         <note>{0} is the error message</note>
@@ -2323,10 +2314,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Enter new password</source>
         <target state="translated">Immetti la nuova password</target>
       </trans-unit>
-      <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
-        <source xml:lang="en">Enter part of an object name to search for</source>
-        <target state="translated">Immettere parte del nome di un oggetto da cercare</target>
-      </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
         <target state="translated">Immetti la password</target>
@@ -3638,10 +3625,6 @@ Errore:
         <source xml:lang="en">Invalid connection URI provided.</source>
         <target state="translated">È stato specificato un URI di connessione non valido.</target>
       </trans-unit>
-      <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
-        <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
-        <target state="translated">URI di connessione non valido. Assicurarsi di avere una connessione di database attiva.</target>
-      </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
         <target state="translated">Stringa di connessione non valida: {0}</target>
@@ -4403,10 +4386,6 @@ Errore:
         <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
         <target state="translated">Nessuna connessione di database attiva nell'editor corrente. Stabilire una connessione per continuare.</target>
       </trans-unit>
-      <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
-        <source xml:lang="en">No active database connection. Please connect to a database first.</source>
-        <target state="translated">Nessuna connessione di database attiva. Connettersi prima a un database.</target>
-      </trans-unit>
       <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
         <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
         <target state="translated">Non è possibile trovare finestre di progettazione dello schema attive. Aprire prima una finestra di progettazione dello schema usando /showSchema o dall'interfaccia utente.</target>
@@ -4471,11 +4450,6 @@ Errore:
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
         <target state="translated">Nessun dato disponibile</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
-        <source xml:lang="en">No database objects found matching '{0}'</source>
-        <note>{0} is the search term</note>
-        <target state="translated">Nessun oggetto di database corrispondente a '{0}' trovato</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -5842,10 +5816,6 @@ Query: {2}</target>
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Cerca gruppi di connessione</target>
       </trans-unit>
-      <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
-        <source xml:lang="en">Search for database objects...</source>
-        <target state="translated">Cerca oggetti di database...</target>
-      </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
         <target state="translated">Opzioni di ricerca</target>
@@ -5861,10 +5831,6 @@ Query: {2}</target>
       <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
         <source xml:lang="en">Search tables...</source>
         <target state="translated">Cerca tabelle...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
-        <source xml:lang="en">Search term cannot be empty</source>
-        <target state="translated">Il termine di ricerca non può essere vuoto</target>
       </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
@@ -6015,11 +5981,6 @@ Query: {2}</target>
       <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
         <target state="translated">Selezionare un'estensione per gestire le autorizzazioni di condivisione delle connessioni</target>
-      </trans-unit>
-      <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
-        <source xml:lang="en">Select an object to view its definition ({0} results)</source>
-        <note>{0} is the number of results</note>
-        <target state="translated">Selezionare un oggetto per visualizzarne la definizione ({0} risultati)</target>
       </trans-unit>
       <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
         <source xml:lang="en">Select an operation</source>
