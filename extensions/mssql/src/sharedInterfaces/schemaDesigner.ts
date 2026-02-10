@@ -151,20 +151,6 @@ export namespace SchemaDesigner {
     }
 
     /**
-     * Represents a script for a table
-     */
-    export interface TableScript {
-        /**
-         * Unique identifier for the table
-         */
-        tableId: string;
-        /**
-         * Script of the table
-         */
-        script: string;
-    }
-
-    /**
      * Schema designer model ready event
      * This event is sent when the schema designer model is ready
      */
@@ -299,20 +285,6 @@ export namespace SchemaDesigner {
          * Session id for the schema designer session
          */
         sessionId: string;
-    }
-
-    export interface SchemaDesignerReport {
-        tableId: string;
-        tableName: string;
-        updateScript: string;
-        actionsPerformed: string[];
-        tableState: SchemaDesignerReportTableState;
-    }
-
-    export enum SchemaDesignerReportTableState {
-        Created = 0,
-        Updated = 1,
-        Dropped = 2,
     }
 
     export interface ISchemaDesignerService {

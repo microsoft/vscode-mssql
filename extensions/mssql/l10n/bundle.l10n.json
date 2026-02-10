@@ -979,6 +979,7 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -994,7 +995,8 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
-    "Drop Database": "Drop Database",
+    "Creating database": "Creating database",
+    "Drop Database (Preview)": "Drop Database (Preview)",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -1006,6 +1008,7 @@
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
+    "Dropping database": "Dropping database",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
@@ -1293,7 +1296,8 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
-    "Rename Database": "Rename Database",
+    "Drop Database": "Drop Database",
+    "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
@@ -2250,6 +2254,15 @@
         "message": "Executing '{0}' operation on schema designer",
         "comment": ["{0} is the operation name"]
     },
+    "Data API Builder": "Data API Builder",
+    "Execute '{0}' operation on Data API Builder?/{0} is the operation name": {
+        "message": "Execute '{0}' operation on Data API Builder?",
+        "comment": ["{0} is the operation name"]
+    },
+    "Executing '{0}' operation on Data API Builder/{0} is the operation name": {
+        "message": "Executing '{0}' operation on Data API Builder",
+        "comment": ["{0} is the operation name"]
+    },
     "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.": "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
@@ -2649,6 +2662,10 @@
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
     },
+    "Profiler session '{0}' started successfully./{0} is the session name": {
+        "message": "Profiler session '{0}' started successfully.",
+        "comment": ["{0} is the session name"]
+    },
     "Profiler ready. Select a session from the dropdown and click Start to begin profiling.": "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     "Stopping profiler session \"{0}\".../{0} is the session name": {
         "message": "Stopping profiler session \"{0}\"...",
@@ -2658,6 +2675,9 @@
         "message": "Failed to open text in editor: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
+    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
+    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
@@ -2724,6 +2744,7 @@
         "message": "Generating SAS key failed: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

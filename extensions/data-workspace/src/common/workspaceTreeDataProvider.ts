@@ -63,7 +63,10 @@ export class WorkspaceTreeDataProvider
       return items
         ? items.map(
             (item) =>
-              <WorkspaceTreeItem>{ treeDataProvider: element.treeDataProvider, element: item },
+              <WorkspaceTreeItem>{
+                treeDataProvider: element.treeDataProvider,
+                element: item,
+              },
           )
         : [];
     } else {

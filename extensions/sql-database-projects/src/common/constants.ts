@@ -24,6 +24,8 @@ export const msdb = 'msdb';
 export const MicrosoftDatatoolsSchemaSqlSql = 'Microsoft.Data.Tools.Schema.Sql.Sql';
 export const databaseSchemaProvider = 'DatabaseSchemaProvider';
 export const sqlProjectSdk = 'Microsoft.Build.Sql';
+export const sdkStyleProjectStyleName = 'SdkStyle';
+export const legacyStyleProjectStyleName = 'LegacyStyle';
 export const problemMatcher = '$sqlproj-problem-matcher';
 export const sqlProjTaskType = 'sqlproj-build';
 export const dotnet = 'dotnet';
@@ -726,6 +728,18 @@ export const unhandledMoveNode = l10n.t("Unhandled node type for move");
 //#endregion
 
 //#region tasks.json
-export const updatingExistingTasksJson = l10n.t("A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.");
-export const sqlProjectBuildTaskLabel = 'sqlproj: Build';
+export const updatingExistingTasksJson = l10n.t("A SQL Projects build task has been added to the existing tasks.json file.");
+export const netCoreBuildArg = '/p:NetCoreBuild=true';
+export const systemDacpacsLocationArgPrefix = '/p:SystemDacpacsLocation=';
+export const netCoreTargetsPathArgPrefix = '/p:NETCoreTargetsPath=';
+export const tasksJsonVersion = '2.0.0';
+export const vscodeFolderName = '.vscode';
+export const tasksJsonFileName = 'tasks.json';
+export const processTaskType = 'process';
+export const sqlprojBuildTaskLabelPrefix = 'sqlproj: Build';
+export function getSqlProjectBuildTaskLabel(projectName: string): string { return `${sqlprojBuildTaskLabelPrefix} ${projectName}`; }
+export function getSqlProjectBuildTaskDetail(projectName: string): string { return l10n.t("Builds the {0} SQL project", projectName); }
+export function tasksJsonUpdateError(error: string): string { return l10n.t("Error updating existing tasks.json: {0}", error); }
+export const tasksJsonInvalidTasksArrayError = l10n.t("Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.");
+
 //#endregion
