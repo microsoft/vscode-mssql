@@ -188,8 +188,8 @@ export class BuildHelper {
 	public constructBuildArguments(buildDirPath: string, sqlProjStyle: ProjectType): string[] {
 		buildDirPath = utils.getQuotedPath(buildDirPath);
 		const args: string[] = [
-			'/p:NetCoreBuild=true',
-			`/p:SystemDacpacsLocation=${buildDirPath}`
+			constants.netCoreBuildArg,
+			`${constants.systemDacpacsLocationArgPrefix}${buildDirPath}`
 		];
 
 		// Adding NETCoreTargetsPath only for non-SDK style projects
@@ -198,7 +198,7 @@ export class BuildHelper {
 			: sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
 
 		if (!isSdkStyle) {
-			args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);
+			args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);
 		}
 
 		return args;

@@ -132,6 +132,7 @@ export interface SchemaDesignerContextProps
 
     // DAB (Data API Builder) state
     dabConfig: Dab.DabConfig | null;
+    isDabEnabled: () => boolean;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
@@ -1241,6 +1242,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
+    const isDabEnabled = () => state?.enableDAB ?? false;
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -1303,6 +1306,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 canRevertChange,
                 // DAB state
                 dabConfig,
+                isDabEnabled,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
                 updateDabApiTypes,

@@ -22,6 +22,10 @@
         <source xml:lang="en">    stdout: </source>
         <target state="translated">    stdout:</target>
       </trans-unit>
+      <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
+        <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
+        <target state="new">A SQL Projects build task has been added to the existing tasks.json file.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e2d59c066568f43ffe7a751eee191d989fc7704e637847e5e502382ade01dfb">
         <source xml:lang="en">A SQLCMD Variable with the same name already exists in this project</source>
         <target state="translated">此项目中已存在同名的 SQLCMD 变量</target>
@@ -57,10 +61,6 @@
       <trans-unit id="++CODE++51c6f6f7088acc0dd08061a0d7a08e200653d1fbdc6f47315aa2e99eb3ca1920">
         <source xml:lang="en">A reference to this database already exists in this project</source>
         <target state="translated">此项目中已存在对此数据库的引用</target>
-      </trans-unit>
-      <trans-unit id="++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8">
-        <source xml:lang="en">A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.</source>
-        <target state="translated">工作区中已存在 tasks.json 文件。正在将 SQL 项目生成任务添加到现有文件。</target>
       </trans-unit>
       <trans-unit id="++CODE++7078c833200717b99c1414ef7696aaf5d7af1c16d201435b2ce243dba8891e4b">
         <source xml:lang="en">A {0} script already exists. The new script will not be included in build.</source>
@@ -197,6 +197,10 @@
       <trans-unit id="++CODE++167a9f61c87101ded76d9d8e39680662a12b6ac2aa063cc9442060968683c079">
         <source xml:lang="en">Build with Code Analysis</source>
         <target state="translated">使用 Code Analysis 生成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0">
+        <source xml:lang="en">Builds the {0} SQL project</source>
+        <target state="new">Builds the {0} SQL project</target>
       </trans-unit>
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
@@ -554,6 +558,10 @@
         <source xml:lang="en">Error trying to read {0} of project '{1}'. {2}</source>
         <target state="translated">尝试读取项目“{0}”的 {1} 时出错。{2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928">
+        <source xml:lang="en">Error updating existing tasks.json: {0}</source>
+        <target state="new">Error updating existing tasks.json: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++169717657881b0e97115c2aae940a802fe1189d93441b13296718be44f617882">
         <source xml:lang="en">Error when moving file from {0} to {1}. Error: {2}</source>
         <target state="translated">从 {0} 到 {1} 移动文件时出错。错误: {2}</target>
@@ -722,6 +730,10 @@
       <trans-unit id="++CODE++ce3b50d9c5e5441b3acdf8741944081d3d78f2436fbe961f6b9a83f133654bb1">
         <source xml:lang="en">Invalid database reference in .sqlproj file</source>
         <target state="translated">.Sqlproj 文件中的数据库引用无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++930304a5516931a4bdbd2e5b2b4b255765a068c8a01653f2736f7e81a66129ac">
+        <source xml:lang="en">Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.</source>
+        <target state="new">Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++de5c107673bc91c5c4e4e372cb8ba05666c30c9f83b8087ffbaac76cecce6432">
         <source xml:lang="en">Invalid input: {0}</source>
