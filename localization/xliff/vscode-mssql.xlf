@@ -1250,6 +1250,9 @@
     <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
       <source xml:lang="en">Create Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
+      <source xml:lang="en">Create Database (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
@@ -1308,6 +1311,9 @@
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
     </trans-unit>
+    <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
+      <source xml:lang="en">Creating database</source>
+    </trans-unit>
     <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
       <source xml:lang="en">Creating session...</source>
     </trans-unit>
@@ -1361,6 +1367,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
       <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
+      <source xml:lang="en">Data API Builder</source>
     </trans-unit>
     <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
       <source xml:lang="en">Data API Builder Configuration</source>
@@ -1624,11 +1633,17 @@
     <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
       <source xml:lang="en">Drop Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
+      <source xml:lang="en">Drop Database (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
       <source xml:lang="en">Drop Database Options</source>
     </trans-unit>
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
+      <source xml:lang="en">Dropping database</source>
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -1899,8 +1914,16 @@
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
+      <source xml:lang="en">Execute &apos;{0}&apos; operation on Data API Builder?</source>
+      <note>{0} is the operation name</note>
+    </trans-unit>
     <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
       <source xml:lang="en">Execute &apos;{0}&apos; operation on the schema designer?</source>
+      <note>{0} is the operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
+      <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API Builder</source>
       <note>{0} is the operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
@@ -3368,6 +3391,9 @@
       <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
       <note>{0} is the name of the workspace</note>
     </trans-unit>
+    <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
+      <source xml:lang="en">No databases found on the server. Please check your connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
       <source xml:lang="en">No elements found</source>
     </trans-unit>
@@ -3824,11 +3850,18 @@
       <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file &apos;{0}&apos; and cannot start or create live sessions without a database connection.</source>
       <note>{0} is the file name</note>
     </trans-unit>
+    <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
+      <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
+    </trans-unit>
     <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
       <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5a889e3b36e8962aaf7d969eedf93448ceff066decd1befc6fc437103897f">
       <source xml:lang="en">Profiler session &apos;{0}&apos; created successfully. Starting profiling...</source>
+      <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
+      <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
       <note>{0} is the session name</note>
     </trans-unit>
     <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
@@ -4021,8 +4054,8 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
-    <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
-      <source xml:lang="en">Rename Database</source>
+    <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
+      <source xml:lang="en">Rename Database (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -4449,6 +4482,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
+      <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
     </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
@@ -5170,6 +5206,9 @@
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
+      <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
     </trans-unit>
@@ -5773,7 +5812,7 @@
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">Create Database</source>
+      <source xml:lang="en">Create Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
@@ -5827,7 +5866,7 @@
       <source xml:lang="en">Do not show prompts to enable UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database</source>
+      <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
@@ -6100,7 +6139,7 @@
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database</source>
+      <source xml:lang="en">Rename Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>

@@ -9,6 +9,30 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { IConnectionProfile } from "../../models/interfaces";
 import { removeUndefinedProperties } from "../../utils/utils";
 
+export interface ToolTargetHint {
+    server: string;
+    database: string;
+}
+
+export interface ToolTargetContext {
+    server?: string;
+    database?: string;
+}
+
+function normalizeTarget(value: string | undefined): string {
+    return (value ?? "").trim().toLowerCase();
+}
+
+export function matchesStrictTargetHint(
+    target: ToolTargetContext,
+    targetHint: ToolTargetHint,
+): boolean {
+    return (
+        normalizeTarget(target.server) === normalizeTarget(targetHint.server) &&
+        normalizeTarget(target.database) === normalizeTarget(targetHint.database)
+    );
+}
+
 /**
  * Gets a user-friendly display name for a connection, or a fallback placeholder if connection info is not available.
  * This is used in Copilot tool messages to show meaningful information to users while keeping connection IDs for debugging.
