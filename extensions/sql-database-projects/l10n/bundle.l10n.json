@@ -379,5 +379,8 @@
   "Move": "Move",
   "Error when renaming file from {0} to {1}. Error: {2}": "Error when renaming file from {0} to {1}. Error: {2}",
   "Unhandled node type for move": "Unhandled node type for move",
-  "A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.": "A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file."
+  "A SQL Projects build task has been added to the existing tasks.json file.": "A SQL Projects build task has been added to the existing tasks.json file.",
+  "Builds the {0} SQL project": "Builds the {0} SQL project",
+  "Error updating existing tasks.json: {0}": "Error updating existing tasks.json: {0}",
+  "Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.": "Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again."
 }
