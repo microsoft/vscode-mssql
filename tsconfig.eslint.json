@@ -8,11 +8,5 @@
         "skipLibCheck": true,
         "noEmit": true
     },
-    "include": [],
-    "references": [
-        { "path": "./extensions/mssql/tsconfig.extension.json" },
-        { "path": "./extensions/mssql/tsconfig.react.json" },
-        { "path": "./extensions/data-workspace/tsconfig.json" },
-        { "path": "./extensions/sql-database-projects/tsconfig.extension.json" }
-    ]
+    "include": ["typings/**/*.d.ts"]
 }
