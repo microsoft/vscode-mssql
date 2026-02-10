@@ -11,12 +11,12 @@ type ExtractTarget = vscodeMssql.ExtractTarget;
  * Data model to communicate for Import API
  */
 export interface ImportDataModel {
-	connectionUri: string;
-	database: string;
-	projName: string;
-	filePath: string;
-	version: string;
-	extractTarget: ExtractTarget;
-	sdkStyle: boolean;
-	includePermissions?: boolean;
+    connectionUri: string;
+    database: string;
+    projName: string;
+    filePath: string;
+    version: string;
+    extractTarget: ExtractTarget;
+    sdkStyle: boolean;
+    includePermissions?: boolean;
 }

@@ -29,21 +29,28 @@ export function mapExtractTargetEnum(inputTarget: string): vscodeMssql.ExtractTa
 }
 
 export interface DbServerValues {
-	dbName?: string,
-	dbVariable?: string,
-	serverName?: string,
-	serverVariable?: string
+    dbName?: string;
+    dbVariable?: string;
+    serverName?: string;
+    serverVariable?: string;
 }
 
-export function populateResultWithVars(referenceSettings: IUserDatabaseReferenceSettings, dbServerValues: DbServerValues) {
-	if (dbServerValues.dbVariable) {
-		referenceSettings.databaseName = ensureSetOrDefined(dbServerValues.dbName);
-		referenceSettings.databaseVariable = ensureSetOrDefined(removeSqlCmdVariableFormatting(dbServerValues.dbVariable));
-		referenceSettings.serverName = ensureSetOrDefined(dbServerValues.serverName);
-		referenceSettings.serverVariable = ensureSetOrDefined(removeSqlCmdVariableFormatting(dbServerValues.serverVariable));
-	} else {
-		referenceSettings.databaseVariableLiteralValue = ensureSetOrDefined(dbServerValues.dbName);
-	}
+export function populateResultWithVars(
+    referenceSettings: IUserDatabaseReferenceSettings,
+    dbServerValues: DbServerValues,
+) {
+    if (dbServerValues.dbVariable) {
+        referenceSettings.databaseName = ensureSetOrDefined(dbServerValues.dbName);
+        referenceSettings.databaseVariable = ensureSetOrDefined(
+            removeSqlCmdVariableFormatting(dbServerValues.dbVariable),
+        );
+        referenceSettings.serverName = ensureSetOrDefined(dbServerValues.serverName);
+        referenceSettings.serverVariable = ensureSetOrDefined(
+            removeSqlCmdVariableFormatting(dbServerValues.serverVariable),
+        );
+    } else {
+        referenceSettings.databaseVariableLiteralValue = ensureSetOrDefined(dbServerValues.dbName);
+    }
 }
 
 /**
@@ -51,8 +58,8 @@ export function populateResultWithVars(referenceSettings: IUserDatabaseReference
  * @param setting
  */
 export function ensureSetOrDefined(setting?: string): string | undefined {
-	if (!setting || setting.trim().length === 0) {
-		return undefined;
-	}
-	return setting;
+    if (!setting || setting.trim().length === 0) {
+        return undefined;
+    }
+    return setting;
 }

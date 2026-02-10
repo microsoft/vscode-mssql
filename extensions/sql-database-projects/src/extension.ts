@@ -19,15 +19,18 @@ export function activate(context: vscode.ExtensionContext): Promise<SqlDatabaseP
 	context.subscriptions.push(mainController);
 	context.subscriptions.push(TelemetryReporter);
 
-	// Register the Sql project task provider
-	const taskProvider = vscode.tasks.registerTaskProvider(constants.sqlProjTaskType, new SqlDatabaseProjectTaskProvider());
-	context.subscriptions.push(taskProvider);
+    // Register the Sql project task provider
+    const taskProvider = vscode.tasks.registerTaskProvider(
+        constants.sqlProjTaskType,
+        new SqlDatabaseProjectTaskProvider(),
+    );
+    context.subscriptions.push(taskProvider);
 
-	return mainController.activate();
+    return mainController.activate();
 }
 
 export function deactivate(): void {
-	for (let controller of controllers) {
-		controller.deactivate();
-	}
+    for (let controller of controllers) {
+        controller.deactivate();
+    }
 }

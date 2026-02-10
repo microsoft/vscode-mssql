@@ -159,8 +159,8 @@
         "category": "%sqlDatabaseProjects.displayName%"
       },
       {
-        "command": "sqlDatabaseProjects.publishDialog",
-        "title": "%sqlDatabaseProjects.publishDialog%",
+        "command": "sqlDatabaseProjects.publish",
+        "title": "%sqlDatabaseProjects.publish%",
         "category": "%sqlDatabaseProjects.displayName%"
       },
       {
@@ -314,7 +314,7 @@
           "when": "false"
         },
         {
-          "command": "sqlDatabaseProjects.publishDialog",
+          "command": "sqlDatabaseProjects.publish",
           "when": "false"
         },
         {
@@ -396,7 +396,7 @@
           "group": "1_dbProjectsFirst@2"
         },
         {
-          "command": "sqlDatabaseProjects.publishDialog",
+          "command": "sqlDatabaseProjects.publish",
           "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/ && !azdataAvailable",
           "group": "1_dbProjectsFirst@3"
         },
@@ -574,7 +574,7 @@
     "@microsoft/ads-extension-telemetry": "^3.0.1",
     "@xmldom/xmldom": "0.8.4",
     "ajv": "^6.12.6",
-    "axios": "^1.12.0",
+    "axios": "^1.13.5",
     "extract-zip": "^2.0.1",
     "fast-glob": "^3.2.7",
     "fs-extra": "^5.0.0",

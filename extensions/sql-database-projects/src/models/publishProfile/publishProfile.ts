@@ -26,58 +26,71 @@ export interface PublishProfile {
 }
 
 export async function readPublishProfile(profileUri: vscode.Uri): Promise<PublishProfile> {
-	try {
-		const dacFxService = await utils.getDacFxService();
-		const profile = await load(profileUri, dacFxService);
-		return profile;
-	} catch (e) {
-		void vscode.window.showErrorMessage(constants.profileReadError(e));
-		throw e;
-	}
+    try {
+        const dacFxService = await utils.getDacFxService();
+        const profile = await load(profileUri, dacFxService);
+        return profile;
+    } catch (e) {
+        void vscode.window.showErrorMessage(constants.profileReadError(e));
+        throw e;
+    }
 }
 
 /**
  * parses the specified file to load publish settings
  */
-export async function load(profileUri: vscode.Uri, dacfxService: utils.IDacFxService): Promise<PublishProfile> {
-	const profileText = await fs.readFile(profileUri.fsPath);
-	const profileXmlDoc: Document = new xmldom.DOMParser().parseFromString(profileText.toString());
+export async function load(
+    profileUri: vscode.Uri,
+    dacfxService: utils.IDacFxService,
+): Promise<PublishProfile> {
+    const profileText = await fs.readFile(profileUri.fsPath);
+    const profileXmlDoc: Document = new xmldom.DOMParser().parseFromString(profileText.toString());
 
-	// read target database name
-	let targetDbName: string = '';
-	let targetDatabaseNameCount = profileXmlDoc.documentElement.getElementsByTagName(constants.targetDatabaseName).length;
-	if (targetDatabaseNameCount > 0) {
-		// if there is more than one TargetDatabaseName nodes, SSDT uses the name in the last one so we'll do the same here
-		targetDbName = profileXmlDoc.documentElement.getElementsByTagName(constants.targetDatabaseName)[targetDatabaseNameCount - 1].textContent!;
-	}
+    // read target database name
+    let targetDbName: string = "";
+    let targetDatabaseNameCount = profileXmlDoc.documentElement.getElementsByTagName(
+        constants.targetDatabaseName,
+    ).length;
+    if (targetDatabaseNameCount > 0) {
+        // if there is more than one TargetDatabaseName nodes, SSDT uses the name in the last one so we'll do the same here
+        targetDbName = profileXmlDoc.documentElement.getElementsByTagName(
+            constants.targetDatabaseName,
+        )[targetDatabaseNameCount - 1].textContent!;
+    }
 
-	const connectionInfo = await readConnectionString(profileXmlDoc);
-	const optionsResult = await dacfxService.getOptionsFromProfile(profileUri.fsPath);
+    const connectionInfo = await readConnectionString(profileXmlDoc);
+    const optionsResult = await dacfxService.getOptionsFromProfile(profileUri.fsPath);
 
-	// get all SQLCMD variables to include from the profile
-	const sqlCmdVariables = utils.readSqlCmdVariables(profileXmlDoc, true);
+    // get all SQLCMD variables to include from the profile
+    const sqlCmdVariables = utils.readSqlCmdVariables(profileXmlDoc, true);
 
-	TelemetryReporter.createActionEvent(TelemetryViews.SqlProjectPublishDialog, TelemetryActions.profileLoaded)
-		.withAdditionalProperties({
-			hasTargetDbName: (!!targetDbName).toString(),
-			hasConnectionString: (!!connectionInfo?.connectionId).toString(),
-			hasSqlCmdVariables: (sqlCmdVariables.size > 0).toString()
-		}).send();
+    TelemetryReporter.createActionEvent(
+        TelemetryViews.SqlProjectPublishDialog,
+        TelemetryActions.profileLoaded,
+    )
+        .withAdditionalProperties({
+            hasTargetDbName: (!!targetDbName).toString(),
+            hasConnectionString: (!!connectionInfo?.connectionId).toString(),
+            hasSqlCmdVariables: (sqlCmdVariables.size > 0).toString(),
+        })
+        .send();
 
-	return {
-		databaseName: targetDbName,
-		serverName: connectionInfo.server,
-		connectionId: connectionInfo.connectionId,
-		connection: connectionInfo.connection,
-		sqlCmdVariables: sqlCmdVariables,
-		options: optionsResult.deploymentOptions
-	};
+    return {
+        databaseName: targetDbName,
+        serverName: connectionInfo.server,
+        connectionId: connectionInfo.connectionId,
+        connection: connectionInfo.connection,
+        sqlCmdVariables: sqlCmdVariables,
+        options: optionsResult.deploymentOptions,
+    };
 }
 
-async function readConnectionString(xmlDoc: any): Promise<{ connectionId: string, connection: string, server: string }> {
-	let targetConnection: string = '';
-	let connId: string = '';
-	let server: string = '';
+async function readConnectionString(
+    xmlDoc: any,
+): Promise<{ connectionId: string; connection: string; server: string }> {
+    let targetConnection: string = "";
+    let connId: string = "";
+    let server: string = "";
 
 	if (xmlDoc.documentElement.getElementsByTagName(constants.targetConnectionString).length > 0) {
 		const targetConnectionString = xmlDoc.documentElement.getElementsByTagName(constants.TargetConnectionString)[0].textContent;
@@ -94,18 +107,17 @@ async function readConnectionString(xmlDoc: any): Promise<{ connectionId: string
 				// TODO@chgagnon - hook up VS Code MSSQL
 			}
 
-			targetConnection = `${server} (${username})`;
-		} catch (err) {
-			throw new Error(constants.unableToCreatePublishConnection(utils.getErrorMessage(err)));
-		}
-	}
+            targetConnection = `${server} (${username})`;
+        } catch (err) {
+            throw new Error(constants.unableToCreatePublishConnection(utils.getErrorMessage(err)));
+        }
+    }
 
-
-	return {
-		connectionId: connId,
-		connection: targetConnection,
-		server: server
-	};
+    return {
+        connectionId: connId,
+        connection: targetConnection,
+        server: server,
+    };
 }
 
 /**
@@ -117,13 +129,15 @@ export async function savePublishProfile(profilePath: string, databaseName: stri
 }
 
 export function promptToSaveProfile(project: Project, publishProfileUri?: vscode.Uri) {
-	return vscode.window.showSaveDialog(
-		{
-			defaultUri: publishProfileUri ?? vscode.Uri.file(path.join(project.projectFolderPath, `${project.projectFileName}_1.publish.xml`)),
-			saveLabel: constants.save,
-			filters: {
-				'Publish files': ['publish.xml'],
-			}
-		}
-	);
+    return vscode.window.showSaveDialog({
+        defaultUri:
+            publishProfileUri ??
+            vscode.Uri.file(
+                path.join(project.projectFolderPath, `${project.projectFileName}_1.publish.xml`),
+            ),
+        saveLabel: constants.save,
+        filters: {
+            "Publish files": ["publish.xml"],
+        },
+    });
 }

@@ -12,6 +12,6 @@ export interface UpdateProjectDataModel {
 }
 
 export const enum UpdateProjectAction {
-	Compare = 0,
-	Update = 1
+    Compare = 0,
+    Update = 1,
 }
