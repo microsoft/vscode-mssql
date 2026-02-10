@@ -296,7 +296,7 @@ export class ProfilerConfigService {
 
         return {
             rowId: event.id,
-            eventName: event.eventClass || "Unknown Event",
+            eventName: event.eventClass || "",
             textData: event.textData || "",
             properties,
         };

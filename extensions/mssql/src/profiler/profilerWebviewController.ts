@@ -14,6 +14,7 @@ import {
     ProfilerNotifications,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
@@ -313,9 +314,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Handle row selection - get event details and return them for state update
      */
-    private handleRowSelection(
-        rowId: string,
-    ): import("../sharedInterfaces/profiler").ProfilerSelectedEventDetails | undefined {
+    private handleRowSelection(rowId: string): ProfilerSelectedEventDetails | undefined {
         if (!this._currentSession) {
             return undefined;
         }

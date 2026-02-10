@@ -577,7 +577,7 @@ suite("ProfilerConfigService Tests", () => {
         test("should handle missing or null values", () => {
             const view = createViewTemplate();
             const event = createEventRow({
-                textData: undefined,
+                textData: "",
                 additionalData: {
                     empty_field: "",
                 },
@@ -585,7 +585,7 @@ suite("ProfilerConfigService Tests", () => {
 
             const result = configService.buildEventDetails(event, view);
 
-            // textData should be empty string when undefined
+            // textData should be empty string when empty
             expect(result.textData).to.equal("");
 
             // Properties with empty values should have empty string values
@@ -593,15 +593,15 @@ suite("ProfilerConfigService Tests", () => {
             expect(textDataProp?.value).to.equal("");
         });
 
-        test("should use 'Unknown Event' as fallback for eventName", () => {
+        test("should use empty string as fallback for eventName", () => {
             const view = createViewTemplate();
             const event = createEventRow({
-                eventClass: undefined,
+                eventClass: "",
             });
 
             const result = configService.buildEventDetails(event, view);
 
-            expect(result.eventName).to.equal("Unknown Event");
+            expect(result.eventName).to.equal("");
         });
 
         test("should handle empty textData", () => {
@@ -618,7 +618,7 @@ suite("ProfilerConfigService Tests", () => {
         test("should handle event with no additional data", () => {
             const view = createViewTemplate();
             const event = createEventRow({
-                additionalData: undefined,
+                additionalData: {},
             });
 
             const result = configService.buildEventDetails(event, view);
