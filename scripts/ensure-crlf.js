@@ -1,12 +1,8 @@
 #!/usr/bin/env node
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 
 const SKIP_PATTERNS = [/(^|\/|\\)\.husky(\/|\\)/, /\.sh$/i, /\.init$/i];
-
-function shellQuote(value) {
-    return `'${String(value).replace(/'/g, "'\\''")}'`;
-}
 
 function shouldSkipFile(file) {
     const normalized = String(file).replace(/\\/g, "/");
@@ -14,10 +10,10 @@ function shouldSkipFile(file) {
 }
 
 function getFiles(targetAll) {
-    const command = targetAll
-        ? "git ls-files -z"
-        : "git diff --cached --name-only --diff-filter=ACM -z";
-    const output = execSync(command, { encoding: "buffer" });
+    const args = targetAll
+        ? ["ls-files", "-z"]
+        : ["diff", "--cached", "--name-only", "--diff-filter=ACM", "-z"];
+    const output = execFileSync("git", args, { encoding: "buffer" });
     return output
         .toString("utf8")
         .split("\0")
@@ -60,7 +56,7 @@ function stageFiles(files) {
         return;
     }
 
-    execSync("git add -- " + files.map(shellQuote).join(" "), { stdio: "inherit" });
+    execFileSync("git", ["add", "--", ...files], { stdio: "inherit" });
 }
 
 function main() {
