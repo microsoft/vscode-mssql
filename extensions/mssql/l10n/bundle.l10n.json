@@ -2048,7 +2048,6 @@
         "message": "{0} has been closed. Would you like to restore it?",
         "comment": ["{0} is the webview name"]
     },
-    "Publish Project (Preview)": "Publish Project (Preview)",
     "Publish Profile": "Publish Profile",
     "Load profile...": "Load profile...",
     "Save As": "Save As",
