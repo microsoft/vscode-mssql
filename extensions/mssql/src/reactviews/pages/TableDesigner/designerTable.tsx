@@ -21,6 +21,7 @@ import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerDropdown } from "./designerDropdown";
 import { DesignerInputBox } from "./designerInputBox";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { locConstants } from "../../common/locConstants";
 
 export type DesignerTableProps = {
@@ -108,6 +109,9 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
 
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
+    const issues = useTableDesignerSelector((s) => s?.issues);
+    const tableInfoId = useTableDesignerSelector((s) => s?.tableInfo?.id);
+    const propertiesPaneData = useTableDesignerSelector((s) => s?.propertiesPaneData);
     if (!context) {
         return undefined;
     }
@@ -245,7 +249,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
     };
 
     const getRowError = (index: number): string | undefined => {
-        const issue = context?.state.issues?.find((i) => {
+        const issue = issues?.find((i: designer.DesignerIssue) => {
             if (!i.propertyPath) {
                 return false;
             }
@@ -533,10 +537,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                     onFocus={(_event) => {
                                         setFocusedRowId(index);
                                         // If properties pane is already open, update its content to show this row's properties
-                                        if (
-                                            context.state.propertiesPaneData &&
-                                            UiArea !== "PropertiesView"
-                                        ) {
+                                        if (propertiesPaneData && UiArea !== "PropertiesView") {
                                             context?.setPropertiesComponents({
                                                 componentPath: [...componentPath, index],
                                                 component: component,
@@ -557,7 +558,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                     columnIndex,
                                                     columnsDef.length,
                                                 )}
-                                                id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
+                                                id={`table-cell-${tableInfoId}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
                                                     maxHeight: "30px",

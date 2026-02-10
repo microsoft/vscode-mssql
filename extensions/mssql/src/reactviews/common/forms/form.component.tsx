@@ -21,6 +21,7 @@ import {
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import {
     FormContextProps,
+    FormContextPropsNoState,
     FormItemSpec,
     FormItemType,
     FormState,
@@ -421,3 +422,347 @@ export const useFormStyles = makeStyles({
         marginLeft: "auto",
     },
 });
+
+/**
+ * FormInput variant for VscodeWebviewProvider2 - takes formState as a separate parameter
+ */
+export const FormInputNoState = <
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextPropsNoState<TForm>,
+>({
+    context,
+    formState: _formState,
+    value,
+    target,
+    type,
+    placeholder,
+    props,
+}: {
+    context: TContext;
+    formState: TForm;
+    value: string;
+    target: keyof TForm;
+    type: "input" | "password" | "textarea";
+    placeholder: string;
+    props?: any;
+}) => {
+    const [formInputValue, setFormInputValue] = useState(value);
+    const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        setFormInputValue(value);
+    }, [value]);
+
+    const handleChange = (data: string) => {
+        setFormInputValue(data);
+        context?.formAction({
+            propertyName: target,
+            isAction: false,
+            value: data,
+            updateValidation: false,
+        });
+    };
+
+    const handleBlur = () => {
+        context?.formAction({
+            propertyName: target,
+            isAction: false,
+            value: formInputValue,
+            updateValidation: true,
+        });
+    };
+
+    return (
+        <>
+            {type === "input" && (
+                <Input
+                    value={formInputValue}
+                    onChange={(_value, data) => handleChange(data.value)}
+                    onBlur={handleBlur}
+                    size="small"
+                    placeholder={placeholder}
+                    {...props}
+                />
+            )}
+            {type === "password" && (
+                <Input
+                    type={showPassword ? "text" : "password"}
+                    value={formInputValue}
+                    onChange={(_value, data) => handleChange(data.value)}
+                    onBlur={handleBlur}
+                    placeholder={placeholder}
+                    size="small"
+                    contentAfter={
+                        <Button
+                            onClick={() => setShowPassword(!showPassword)}
+                            icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
+                            appearance="transparent"
+                            size="small"
+                            aria-label={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }></Button>
+                    }
+                    {...props}
+                />
+            )}
+            {type === "textarea" && (
+                <Textarea
+                    value={formInputValue}
+                    size="small"
+                    onChange={(_value, data) => handleChange(data.value)}
+                    onBlur={handleBlur}
+                    {...props}
+                />
+            )}
+        </>
+    );
+};
+
+/**
+ * FormField variant for VscodeWebviewProvider2 - takes formState as a separate parameter
+ */
+export const FormFieldNoState = <
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextPropsNoState<TForm>,
+>({
+    context,
+    formState,
+    component,
+    idx,
+    props,
+    componentProps,
+}: {
+    context: TContext;
+    formState: TForm;
+    component: TFormItemSpec;
+    idx: number;
+    props?: FieldProps;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    componentProps?: any; // any because we don't know what the component will be
+}) => {
+    if (!component) {
+        console.error("Form component is undefined");
+        return undefined;
+    }
+
+    const formStyles = useFormStyles();
+
+    return (
+        <div className={formStyles.formComponentDiv} key={idx}>
+            <Field
+                validationMessage={component.validation?.validationMessage ?? ""}
+                orientation={component.type === FormItemType.Checkbox ? "horizontal" : "vertical"}
+                validationState={
+                    component.validation
+                        ? component.validation.isValid
+                            ? "none"
+                            : "error"
+                        : "none"
+                }
+                required={component.required}
+                // @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
+                label={
+                    // The html here shouldn't need to be sanitized, and should be safe
+                    // because it's only ever set by forms internal to the extension
+                    component.tooltip ? (
+                        {
+                            children: (_: unknown, slotProps: LabelProps) => (
+                                <InfoLabel {...slotProps} info={component.tooltip}>
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html: component.label,
+                                        }}
+                                    />
+                                </InfoLabel>
+                            ),
+                        }
+                    ) : (
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: component.label,
+                            }}
+                        />
+                    )
+                }
+                {...props}
+                style={{ color: tokens.colorNeutralForeground1 }}>
+                {generateFormComponentNoState<TForm, TState, TFormItemSpec, TContext>(
+                    context,
+                    formState,
+                    component,
+                    componentProps,
+                )}
+            </Field>
+            {component?.actionButtons?.length! > 0 && (
+                <div className={formStyles.formComponentActionDiv}>
+                    {component.actionButtons?.map((actionButton, idx) => {
+                        return (
+                            <Button
+                                key={idx + actionButton.id}
+                                style={{ width: "auto", whiteSpace: "nowrap" }}
+                                onClick={() =>
+                                    context?.formAction({
+                                        propertyName: component.propertyName,
+                                        isAction: true,
+                                        value: actionButton.id,
+                                    })
+                                }>
+                                {actionButton.label}
+                            </Button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
+/**
+ * generateFormComponent variant for VscodeWebviewProvider2 - takes formState as a separate parameter
+ */
+export function generateFormComponentNoState<
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextPropsNoState<TForm>,
+>(context: TContext, formState: TForm, component: TFormItemSpec, props?: any) {
+    switch (component.type) {
+        case FormItemType.Input:
+            return (
+                <FormInputNoState<TForm, TState, TFormItemSpec, TContext>
+                    context={context}
+                    formState={formState}
+                    value={(formState[component.propertyName] as string) ?? ""}
+                    target={component.propertyName}
+                    type="input"
+                    placeholder={component.placeholder ?? ""}
+                    props={props}
+                />
+            );
+        case FormItemType.TextArea:
+            return (
+                <FormInputNoState<TForm, TState, TFormItemSpec, TContext>
+                    context={context}
+                    formState={formState}
+                    value={(formState[component.propertyName] as string) ?? ""}
+                    target={component.propertyName}
+                    type="textarea"
+                    placeholder={component.placeholder ?? ""}
+                    props={props}
+                />
+            );
+        case FormItemType.Password:
+            return (
+                <FormInputNoState<TForm, TState, TFormItemSpec, TContext>
+                    context={context}
+                    formState={formState}
+                    value={(formState[component.propertyName] as string) ?? ""}
+                    target={component.propertyName}
+                    placeholder={component.placeholder ?? ""}
+                    type="password"
+                    props={props}
+                />
+            );
+        case FormItemType.Dropdown:
+            if (component.options === undefined) {
+                throw new Error("Dropdown component must have options");
+            }
+            return (
+                <Dropdown
+                    size="small"
+                    placeholder={component.placeholder ?? ""}
+                    value={
+                        component.options.find(
+                            (option) => option.value === formState[component.propertyName],
+                        )?.displayName ?? ""
+                    }
+                    selectedOptions={[formState[component.propertyName] as string]}
+                    onOptionSelect={(event, data) => {
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
+                    }}
+                    {...props}>
+                    {component.options?.map((option, idx) => {
+                        return (
+                            <Option
+                                key={(component.propertyName as string) + idx}
+                                value={option.value}
+                                color={option.color}>
+                                {option.displayName}
+                            </Option>
+                        );
+                    })}
+                </Dropdown>
+            );
+        case FormItemType.SearchableDropdown:
+            if (component.options === undefined) {
+                throw new Error("Dropdown component must have options");
+            }
+            const dropdownOptions = component.options.map((opt) => ({
+                value: opt.value,
+                text: opt.displayName,
+                color: opt.color,
+                description: opt.description,
+                icon: opt.icon,
+            }));
+            const selectedOption = dropdownOptions.find(
+                (option) => option.value === formState[component.propertyName],
+            );
+            return (
+                <SearchableDropdown
+                    options={dropdownOptions}
+                    placeholder={component.placeholder}
+                    searchBoxPlaceholder={component.searchBoxPlaceholder}
+                    selectedOption={selectedOption}
+                    onSelect={(option) => {
+                        if (props && props.onSelect) {
+                            props.onSelect(option.value);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: option.value,
+                            });
+                        }
+                    }}
+                    size="small"
+                    clearable={true}
+                    ariaLabel={component.label}
+                    {...props}
+                />
+            );
+        case FormItemType.Checkbox:
+            return (
+                <Checkbox
+                    size="medium"
+                    checked={(formState[component.propertyName] as boolean) ?? false}
+                    onChange={(_value, data) =>
+                        context?.formAction({
+                            propertyName: component.propertyName,
+                            isAction: false,
+                            value: data.checked,
+                        })
+                    }
+                    {...props}
+                />
+            );
+    }
+}

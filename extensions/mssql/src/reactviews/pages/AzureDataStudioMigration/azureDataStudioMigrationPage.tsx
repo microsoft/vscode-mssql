@@ -65,36 +65,39 @@ export const AzureDataStudioMigrationPage = () => {
         AzureDataStudioMigrationWebviewState,
         AzureDataStudioMigrationReducers
     >();
-    const state = useAzureDataStudioMigrationSelector((s) => s);
+    const adsConfigPath = useAzureDataStudioMigrationSelector((s) => s?.adsConfigPath);
+    const stateConnectionGroups = useAzureDataStudioMigrationSelector((s) => s?.connectionGroups);
+    const stateConnections = useAzureDataStudioMigrationSelector((s) => s?.connections);
+    const stateDialog = useAzureDataStudioMigrationSelector((s) => s?.dialog);
 
-    const [configPath, setConfigPath] = useState(state.adsConfigPath ?? "");
+    const [configPath, setConfigPath] = useState(adsConfigPath ?? "");
     const [connectionGroups, setConnectionGroups] = useState<AdsMigrationConnectionGroup[]>(
-        state.connectionGroups ?? [],
+        stateConnectionGroups ?? [],
     );
     const [connections, setConnections] = useState<AdsMigrationConnection[]>(
-        state.connections ?? [],
+        stateConnections ?? [],
     );
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
-    const [dialog, setDialog] = useState(state.dialog);
+    const [dialog, setDialog] = useState(stateDialog);
     const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
-        setConfigPath(state.adsConfigPath ?? "");
-    }, [state.adsConfigPath]);
+        setConfigPath(adsConfigPath ?? "");
+    }, [adsConfigPath]);
 
     useEffect(() => {
-        setConnectionGroups(state.connectionGroups ?? []);
-    }, [state.connectionGroups]);
+        setConnectionGroups(stateConnectionGroups ?? []);
+    }, [stateConnectionGroups]);
 
     useEffect(() => {
-        setConnections(state.connections ?? []);
+        setConnections(stateConnections ?? []);
         setPasswordVisibility({});
-    }, [state.connections]);
+    }, [stateConnections]);
 
     useEffect(() => {
-        setDialog(state.dialog);
-    }, [state.dialog]);
+        setDialog(stateDialog);
+    }, [stateDialog]);
 
     const groupSelection = useMemo(() => {
         const total = connectionGroups.filter(

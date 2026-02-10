@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -40,12 +39,11 @@ interface HeaderProps {
 
 export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
     const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState;
+    const localContainersStateExists = useDeploymentSelector((s) => s.deploymentTypeState != null);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!context || !localContainersState) {
+    if (!localContainersStateExists) {
         return undefined;
     }
 

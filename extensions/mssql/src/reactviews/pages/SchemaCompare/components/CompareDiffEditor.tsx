@@ -3,9 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useRef, forwardRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 import { DiffEditor } from "@monaco-editor/react";
-import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "../schemaCompareSelector";
+import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import {
+    SchemaCompareReducers,
+    SchemaCompareWebViewState,
+} from "../../../../sharedInterfaces/schemaCompare";
 import { resolveVscodeThemeType } from "../../../common/utils";
 import { Divider, makeStyles, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -68,8 +73,9 @@ interface Props {
 const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
     ({ selectedDiffId, renderSideBySide }, ref) => {
         const classes = useStyles();
-        const context = useContext(schemaCompareContext);
-        const compareResult = context.state.schemaCompareResult;
+        const schemaCompareResult = useSchemaCompareSelector((s) => s.schemaCompareResult);
+        const { themeKind } = useVscodeWebview2<SchemaCompareWebViewState, SchemaCompareReducers>();
+        const compareResult = schemaCompareResult;
         const diff = compareResult?.differences[selectedDiffId];
         const editorRef = useRef<any>(null);
 
@@ -109,7 +115,7 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
                     language="sql"
                     original={modified}
                     modified={original}
-                    theme={resolveVscodeThemeType(context.themeKind)}
+                    theme={resolveVscodeThemeType(themeKind)}
                     options={{
                         renderSideBySide: renderSideBySide ?? true,
                         renderOverviewRuler: true,
