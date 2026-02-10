@@ -36,10 +36,6 @@ Per altre informazioni sui progetti [vedere la documentazione](https://aka.ms/az
         <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
         <target state="translated">Elenco dei progetti nell'area di lavoro da escludere dal viewlet dei progetti</target>
       </trans-unit>
-      <trans-unit id="manage-project-command">
-        <source xml:lang="en">Manage</source>
-        <target state="translated">Gestisci</target>
-      </trans-unit>
       <trans-unit id="new-command">
         <source xml:lang="en">New</source>
         <target state="translated">Nuovo</target>

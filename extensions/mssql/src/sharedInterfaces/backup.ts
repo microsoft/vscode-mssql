@@ -198,13 +198,6 @@ export interface BackupDatabaseParams {
     taskExecutionMode: TaskExecutionMode;
 }
 
-export interface BackupDatabaseNode {
-    label: string;
-    nodeUri: string;
-    nodePath: string;
-    nodeStatus: string;
-}
-
 export interface BackupDatabaseReducers
     extends FormReducers<ObjectManagementFormState>,
         FileBrowserReducers {
