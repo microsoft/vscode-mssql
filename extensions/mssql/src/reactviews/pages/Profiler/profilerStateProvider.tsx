@@ -10,6 +10,7 @@ import {
     ProfilerWebviewState,
     ProfilerReducers,
     FilterClause,
+    ColumnFilterCriteria,
 } from "../../../sharedInterfaces/profiler";
 
 /**
@@ -38,6 +39,16 @@ export interface ProfilerRpcMethods {
     applyFilter: (clauses: FilterClause[]) => void;
     /** Clear all filter clauses */
     clearFilter: () => void;
+    /** Apply a column-level filter */
+    applyColumnFilter: (field: string, criteria: ColumnFilterCriteria) => void;
+    /** Clear a column-level filter */
+    clearColumnFilter: (field: string) => void;
+    /** Set quick filter term */
+    setQuickFilter: (term: string) => void;
+    /** Clear all filters (quick filter and column filters) */
+    clearAllFilters: () => void;
+    /** Request distinct values for a categorical column */
+    getDistinctValues: (field: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -119,6 +130,38 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         extensionRpc?.action("clearFilter", {});
     }, [extensionRpc]);
 
+    const applyColumnFilter = useCallback(
+        (field: string, criteria: ColumnFilterCriteria) => {
+            extensionRpc?.action("applyColumnFilter", { field, criteria });
+        },
+        [extensionRpc],
+    );
+
+    const clearColumnFilter = useCallback(
+        (field: string) => {
+            extensionRpc?.action("clearColumnFilter", { field });
+        },
+        [extensionRpc],
+    );
+
+    const setQuickFilter = useCallback(
+        (term: string) => {
+            extensionRpc?.action("setQuickFilter", { term });
+        },
+        [extensionRpc],
+    );
+
+    const clearAllFilters = useCallback(() => {
+        extensionRpc?.action("clearAllFilters", {});
+    }, [extensionRpc]);
+
+    const getDistinctValues = useCallback(
+        (field: string) => {
+            extensionRpc?.action("getDistinctValues", { field });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -134,6 +177,11 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 fetchRows,
                 applyFilter,
                 clearFilter,
+                applyColumnFilter,
+                clearColumnFilter,
+                setQuickFilter,
+                clearAllFilters,
+                getDistinctValues,
             }}>
             {children}
         </ProfilerContext.Provider>

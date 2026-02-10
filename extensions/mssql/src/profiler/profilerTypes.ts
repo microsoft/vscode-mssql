@@ -121,6 +121,8 @@ export interface ViewColumn {
     sortable?: boolean;
     /** Whether the column is filterable */
     filterable?: boolean;
+    /** For string columns: "categorical" for checkbox list, "text" for operator input */
+    filterMode?: "categorical" | "text";
     /**
      * Array of XEvent field names that map to this column.
      * When converting an event row, the first matching field will be used.
@@ -260,4 +262,30 @@ export interface FilterState {
     enabled: boolean;
     /** Array of filter clauses (combined with AND logic) */
     clauses: FilterClause[];
+    /** Quick filter term for cross-column search */
+    quickFilter?: string;
+    /** Column-level filters keyed by column field name */
+    columnFilters?: Record<string, ColumnFilterCriteria>;
+}
+
+/**
+ * Filter type for column-level filtering - determines the filter UI and logic
+ */
+export type ColumnFilterType = "categorical" | "numeric" | "date" | "text";
+
+/**
+ * Represents the filter criteria for a single column.
+ * Used for column-level filtering in the profiler grid.
+ */
+export interface ColumnFilterCriteria {
+    /** The column field this filter applies to */
+    field: string;
+    /** Filter type matching the column's data type */
+    filterType: ColumnFilterType;
+    /** For categorical: selected values (OR logic within) */
+    selectedValues?: string[];
+    /** For operator-based: the comparison operator */
+    operator?: FilterOperator;
+    /** For operator-based: the comparison value */
+    value?: string | number;
 }

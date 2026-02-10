@@ -34,12 +34,14 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "EventClass",
                     header: "EventClass",
                     width: 150,
+                    filterMode: "categorical",
                     eventsMapped: ["eventClass", "name"],
                 },
                 {
                     field: "TextData",
                     header: "TextData",
                     width: 150,
+                    filterMode: "text",
                     eventsMapped: ["options_text", "batch_text", "statement"],
                 },
                 {
@@ -138,12 +140,14 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "EventClass",
                     header: "EventClass",
                     width: 150,
+                    filterMode: "categorical",
                     eventsMapped: ["eventClass", "name"],
                 },
                 {
                     field: "TextData",
                     header: "TextData",
                     width: 150,
+                    filterMode: "text",
                     eventsMapped: ["options_text", "batch_text", "statement"],
                 },
                 {
@@ -189,12 +193,14 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "EventClass",
                     header: "EventClass",
                     width: 150,
+                    filterMode: "categorical",
                     eventsMapped: ["eventClass", "name"],
                 },
                 {
                     field: "TextData",
                     header: "TextData",
                     width: 150,
+                    filterMode: "text",
                     eventsMapped: ["options_text", "batch_text", "statement"],
                 },
                 {
@@ -252,12 +258,14 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "EventClass",
                     header: "EventClass",
                     width: 150,
+                    filterMode: "categorical",
                     eventsMapped: ["eventClass", "name"],
                 },
                 {
                     field: "TextData",
                     header: "TextData",
                     width: 150,
+                    filterMode: "text",
                     eventsMapped: [
                         "options_text",
                         "batch_text",
@@ -361,6 +369,7 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "EventClass",
                     header: "EventClass",
                     width: 150,
+                    filterMode: "categorical",
                     eventsMapped: ["eventClass", "name"],
                 },
                 {
@@ -374,6 +383,7 @@ export const defaultProfilerConfig: ProfilerConfig = {
                     field: "TextData",
                     header: "TextData",
                     width: 150,
+                    filterMode: "text",
                     eventsMapped: ["options_text", "batch_text", "statement"],
                 },
                 {

@@ -5,14 +5,21 @@
 
 import { NotificationType } from "vscode-jsonrpc";
 import { ProfilerEvent } from "../models/contracts/profiler";
-import { SessionState, FilterClause, FilterState, FilterOperator } from "../profiler/profilerTypes";
+import {
+    SessionState,
+    FilterClause,
+    FilterState,
+    FilterOperator,
+    ColumnFilterCriteria,
+    ColumnFilterType,
+} from "../profiler/profilerTypes";
 
 // Re-export ProfilerEvent for convenience
 export type { ProfilerEvent };
 
 // Re-export types for convenience
 export { SessionState, FilterOperator };
-export type { FilterClause, FilterState };
+export type { FilterClause, FilterState, ColumnFilterCriteria, ColumnFilterType };
 
 /**
  * Maximum length for session names
@@ -23,6 +30,11 @@ export const SESSION_NAME_MAX_LENGTH = 50;
  * Data type for a column - determines filtering behavior
  */
 export type ColumnType = "string" | "number" | "datetime";
+
+/**
+ * Filter mode for string columns - determines the filter UI
+ */
+export type FilterMode = "categorical" | "text";
 
 /**
  * Column definition for the profiler grid (shared between extension and webview)
@@ -40,6 +52,8 @@ export interface ProfilerColumnDef {
     sortable?: boolean;
     /** Whether the column is filterable */
     filterable?: boolean;
+    /** For string columns: "categorical" for checkbox list, "text" for operator input */
+    filterMode?: FilterMode;
 }
 
 /**
@@ -162,6 +176,25 @@ export interface ProfilerReducers {
     };
     /** Clear all filter clauses */
     clearFilter: Record<string, never>;
+    /** Apply a column-level filter */
+    applyColumnFilter: {
+        field: string;
+        criteria: ColumnFilterCriteria;
+    };
+    /** Clear a column-level filter */
+    clearColumnFilter: {
+        field: string;
+    };
+    /** Set the quick filter term */
+    setQuickFilter: {
+        term: string;
+    };
+    /** Clear all filters (quick filter and all column filters) */
+    clearAllFilters: Record<string, never>;
+    /** Get distinct values for a categorical column */
+    getDistinctValues: {
+        field: string;
+    };
 }
 
 /**
@@ -216,6 +249,11 @@ export namespace ProfilerNotifications {
     export const FilterStateChanged = new NotificationType<FilterStateChangedParams>(
         "filterStateChanged",
     );
+
+    /** Notification sent when distinct values are available for a column */
+    export const DistinctValuesResponse = new NotificationType<DistinctValuesResponseParams>(
+        "distinctValuesResponse",
+    );
 }
 
 /**
@@ -230,4 +268,14 @@ export interface FilterStateChangedParams {
     totalCount: number;
     /** Count of events matching the filter */
     filteredCount: number;
+}
+
+/**
+ * Payload for distinct values response notification
+ */
+export interface DistinctValuesResponseParams {
+    /** Column field name */
+    field: string;
+    /** Distinct values sorted alphabetically */
+    values: string[];
 }

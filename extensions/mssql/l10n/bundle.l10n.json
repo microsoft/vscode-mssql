@@ -1202,6 +1202,7 @@
     "Filter events by column values": "Filter events by column values",
     "Clear all filters and show all events": "Clear all filters and show all events",
     "No filter is currently active": "No filter is currently active",
+    "events": "events",
     "Filter Events": "Filter Events",
     "Add Clause": "Add Clause",
     "Remove": "Remove",
@@ -1219,6 +1220,49 @@
         "message": "Showing {0} of {1} events",
         "comment": ["{0} is filtered count, {1} is total count"]
     },
+    "Quick filter all columns...": "Quick filter all columns...",
+    "Filter: {0}/{0} is the column name": {
+        "message": "Filter: {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Search values...": "Search values...",
+    "Available filter values": "Available filter values",
+    "No matching values": "No matching values",
+    "{0} selected": "{0} selected",
+    "Example: Find queries with {0} > 100/{0} is the column name": {
+        "message": "Example: Find queries with {0} > 100",
+        "comment": ["{0} is the column name"]
+    },
+    "Search within {0} text content/{0} is the column name": {
+        "message": "Search within {0} text content",
+        "comment": ["{0} is the column name"]
+    },
+    "Enter text...": "Enter text...",
+    "Must be a valid number": "Must be a valid number",
+    "Must be a valid date": "Must be a valid date",
+    "No results match the current filters": "No results match the current filters",
+    "Clear All Filters": "Clear All Filters",
+    "Filter actions": "Filter actions",
+    "Apply filter for {0}/{0} is the column name": {
+        "message": "Apply filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Clear filter for {0}/{0} is the column name": {
+        "message": "Clear filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Numeric filter options": "Numeric filter options",
+    "Text filter options": "Text filter options",
+    "Date filter options": "Date filter options",
+    "equals": "equals",
+    "not equals": "not equals",
+    "greater than": "greater than",
+    "greater or equal": "greater or equal",
+    "less than": "less than",
+    "less or equal": "less or equal",
+    "contains": "contains",
+    "starts with": "starts with",
+    "ends with": "ends with",
     "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",

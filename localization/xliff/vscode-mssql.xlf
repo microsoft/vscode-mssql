@@ -299,6 +299,10 @@
     <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
       <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
     </trans-unit>
+    <trans-unit id="++CODE++e74b3ca4207c84145ecd21a49a03e07bd35e62b42359af7f0f1e9c6889b03676">
+      <source xml:lang="en">Apply filter for {0}</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>
@@ -389,6 +393,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++de2bb0db1e82dc9441ae21a93f6b83b417eadb3c770ac19b1e3ad8b726224502">
+      <source xml:lang="en">Available filter values</source>
     </trans-unit>
     <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
       <source xml:lang="en">Average: {0}</source>
@@ -720,6 +727,9 @@
     <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
       <source xml:lang="en">Clear All</source>
     </trans-unit>
+    <trans-unit id="++CODE++209d178dae312190122119feaf037ac343e2cb4f298ee03d7254fcc71da5e50a">
+      <source xml:lang="en">Clear All Filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
       <source xml:lang="en">Clear Data</source>
     </trans-unit>
@@ -755,6 +765,10 @@
     </trans-unit>
     <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
       <source xml:lang="en">Clear cache and refresh token</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2bbd1719063bd0a770f5e274ef9dd4ad74f177b283b6787fe9c4a66b2fa8022b">
+      <source xml:lang="en">Clear filter for {0}</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
@@ -1372,6 +1386,9 @@
     <trans-unit id="++CODE++0c44c1ef5c326d66d59992daca9150070537b80433d82792a6f4a8451bbba635">
       <source xml:lang="en">Database not found on the server</source>
     </trans-unit>
+    <trans-unit id="++CODE++5ae5a86bb570daee4f94795ab9f6bc56bd40c09964c98a4255e90dd04bebf324">
+      <source xml:lang="en">Date filter options</source>
+    </trans-unit>
     <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
       <source xml:lang="en">Default</source>
     </trans-unit>
@@ -1674,6 +1691,9 @@
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
     </trans-unit>
+    <trans-unit id="++CODE++a462b8c590652563cb55e5dc6e55e0b7ac0123f0a5dd70f9043bdef3d4fa5417">
+      <source xml:lang="en">Enter text...</source>
+    </trans-unit>
     <trans-unit id="++CODE++e8ebf41062c66e03ca98f0459c1a1084a419d525efb3b86b92f01f25edfebbde">
       <source xml:lang="en">Enter the SQL Login password for user &apos;{0}&apos;.</source>
       <note>{0} is the SQL Login username</note>
@@ -1810,6 +1830,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
+      <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
       <source xml:lang="en">Excel</source>
@@ -2190,6 +2214,9 @@
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++37dd87f0cd2ec3de970b32c981e090428c1d76cdfb3b295875039e51a229b53a">
+      <source xml:lang="en">Filter actions</source>
+    </trans-unit>
     <trans-unit id="++CODE++8303b392b5ebd96463b39a2d278551d266b1ee0a5a4a707daa49a142fdfedcc5">
       <source xml:lang="en">Filter active</source>
     </trans-unit>
@@ -2213,6 +2240,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ec9c8be4d7dede5d0b4ded3caba65e4311e4d5cca428b1c65b2d4d08b07f5707">
       <source xml:lang="en">Filter...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
+      <source xml:lang="en">Filter: {0}</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
       <source xml:lang="en">Find</source>
@@ -3007,6 +3038,12 @@
       <source xml:lang="en">Multiple connection groups with ID &apos;{0}&apos; found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
       <note>{0} is the root id</note>
     </trans-unit>
+    <trans-unit id="++CODE++577f731c6313b4d443f052e8399e74883edc6e6d60b299e47869b5c4ae9e6eaf">
+      <source xml:lang="en">Must be a valid date</source>
+    </trans-unit>
+    <trans-unit id="++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730">
+      <source xml:lang="en">Must be a valid number</source>
+    </trans-unit>
     <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
       <source xml:lang="en">My Data</source>
     </trans-unit>
@@ -3190,6 +3227,9 @@
     <trans-unit id="++CODE++4b4d7ac22cee34f92cd16fbe4193b0eb106e185100ea38f72b0190e1affaf933">
       <source xml:lang="en">No matches found</source>
     </trans-unit>
+    <trans-unit id="++CODE++7c34e25da2784a9a18d3722faadc03ecbac9613acdc4306e406bb11c6a9c4fcf">
+      <source xml:lang="en">No matching values</source>
+    </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
     </trans-unit>
@@ -3212,6 +3252,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
       <source xml:lang="en">No results for the active editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6f175c0cc2e82f1f69f421b3776d1a306fc92dbce166cbf045a4d8e31f5608e">
+      <source xml:lang="en">No results match the current filters</source>
     </trans-unit>
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
@@ -3303,6 +3346,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c99820f3223f2cbaeafafc29c3dc7556fe01ceb16d95ab7be0d0d387369e6104">
+      <source xml:lang="en">Numeric filter options</source>
     </trans-unit>
     <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
       <source xml:lang="en">OK</source>
@@ -3691,6 +3737,9 @@
       <source xml:lang="en">Query {0}:  Query cost (relative to the script):  {1}%</source>
       <note>{0} is the query number
 {1} is the query cost</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
+      <source xml:lang="en">Quick filter all columns...</source>
     </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>
@@ -4122,6 +4171,13 @@
     </trans-unit>
     <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
       <source xml:lang="en">Search term cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++404b4ef5cba30d5d524422e7639bb1502d686405be95ff2dec636eb5fedfe992">
+      <source xml:lang="en">Search values...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8edd6334b0bab41988824ee1be6ba87f837875770411649f22a45f6caeb369e7">
+      <source xml:lang="en">Search within {0} text content</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
       <source xml:lang="en">Search workspaces...</source>
@@ -4667,6 +4723,9 @@
     <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
       <source xml:lang="en">Text View</source>
     </trans-unit>
+    <trans-unit id="++CODE++daad0a25ac3e0846e75e6190f809e6531a35f4338f82cfebe387cf6dfd37ed82">
+      <source xml:lang="en">Text filter options</source>
+    </trans-unit>
     <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
       <note>{0} is a url to learn more about the new features</note>
@@ -5083,6 +5142,9 @@
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
+    <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
+      <source xml:lang="en">contains</source>
+    </trans-unit>
     <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
       <source xml:lang="en">database</source>
     </trans-unit>
@@ -5096,8 +5158,23 @@
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
     </trans-unit>
+    <trans-unit id="++CODE++19ecc104ac1b52b3645832bd247ae9fc353060b435aa391e707deb92db017728">
+      <source xml:lang="en">ends with</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e93cb41d4a7d2395d9bdfe4d8616f9b52762523bb44e75bf7701cd9d2e0d1cb7">
+      <source xml:lang="en">equals</source>
+    </trans-unit>
+    <trans-unit id="++CODE++862417b9e7c3720bcb3263cd873b09892d787823b6f9a0f453e42824c5a4d4b6">
+      <source xml:lang="en">events</source>
+    </trans-unit>
     <trans-unit id="++CODE++0895e3ea3d207f413c6e9c0870ef6824c14f2142a3f719d7dabf315b55a20792">
       <source xml:lang="en">for more information.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ca0d3217ff5651fc345f2a23d3f163edfef64175e45b1d735a0be4520d80664f">
+      <source xml:lang="en">greater or equal</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f792652c06ffa9d795e75118a7c8329290a516dfd060a9ee0163093db50664f1">
+      <source xml:lang="en">greater than</source>
     </trans-unit>
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -5114,11 +5191,20 @@
     <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
       <source xml:lang="en">items selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++daa6e4199392764f6d2bcbb1c757988d9bd551828aa63593524771752344dc13">
+      <source xml:lang="en">less or equal</source>
+    </trans-unit>
+    <trans-unit id="++CODE++59238e4f67ce8670dfec068a47b8042ccb8025a41dcafaf97e332f7593422008">
+      <source xml:lang="en">less than</source>
+    </trans-unit>
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
     </trans-unit>
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c83cb9c83f01a1dd4f46165ee292e834d69397b661e8c6d72689019245f92d71">
+      <source xml:lang="en">not equals</source>
     </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
@@ -5128,6 +5214,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107">
+      <source xml:lang="en">starts with</source>
     </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
@@ -5247,6 +5336,9 @@
     <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
       <source xml:lang="en">{0} rows selected, click to load summary</source>
       <note>{0} is the number of rows to fetch summary statistics for</note>
+    </trans-unit>
+    <trans-unit id="++CODE++acc5536c4d87e47b215a43dad69c7eeece17400ab7af59cef90400b2c6f707ae">
+      <source xml:lang="en">{0} selected</source>
     </trans-unit>
     <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
       <source xml:lang="en">{0} selected</source>

@@ -20,7 +20,6 @@ import {
     EraserRegular,
     Add24Regular,
     FilterDismiss24Regular,
-    Filter24Regular,
 } from "@fluentui/react-icons";
 import {
     SessionState,
@@ -28,6 +27,7 @@ import {
     ProfilerTemplateConfig,
 } from "../../../sharedInterfaces/profiler";
 import { locConstants } from "../../common/locConstants";
+import { QuickFilterInput } from "./components/QuickFilterInput";
 
 export interface ProfilerToolbarProps {
     /** Current session state */
@@ -48,6 +48,12 @@ export interface ProfilerToolbarProps {
     isCreatingSession?: boolean;
     /** Whether a filter is currently active */
     isFilterActive: boolean;
+    /** Current quick filter value */
+    quickFilterValue: string;
+    /** Total number of events */
+    totalRowCount: number;
+    /** Number of events after filtering */
+    filteredRowCount: number;
     /** Callback when new session is requested */
     onNewSession: () => void;
     /** Callback when session is selected */
@@ -64,8 +70,8 @@ export interface ProfilerToolbarProps {
     onViewChange: (viewId: string) => void;
     /** Callback when auto-scroll is toggled */
     onAutoScrollToggle: () => void;
-    /** Callback when filter button is clicked to open filter dialog */
-    onFilter: () => void;
+    /** Callback when quick filter value changes */
+    onQuickFilterChange: (value: string) => void;
     /** Callback when clear filter is clicked */
     onClearFilter: () => void;
 }
@@ -80,6 +86,9 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     autoScroll,
     isCreatingSession,
     isFilterActive,
+    quickFilterValue,
+    totalRowCount,
+    filteredRowCount,
     onNewSession,
     onSelectSession,
     onStart,
@@ -88,7 +97,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
-    onFilter,
+    onQuickFilterChange,
     onClearFilter,
 }) => {
     const isRunning = sessionState === SessionState.Running;
@@ -216,15 +225,8 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
                 <ToolbarDivider />
 
-                {/* Filter button - opens filter dialog */}
-                <Tooltip content={loc.filterTooltip} relationship="label">
-                    <ToolbarButton
-                        aria-label={loc.filter}
-                        icon={<Filter24Regular />}
-                        onClick={onFilter}>
-                        {loc.filter}
-                    </ToolbarButton>
-                </Tooltip>
+                {/* Quick Filter Input - replaces the old filter button */}
+                <QuickFilterInput value={quickFilterValue} onChange={onQuickFilterChange} />
 
                 {/* Clear Filter button */}
                 <Tooltip
@@ -240,6 +242,35 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         {loc.clearFilter}
                     </ToolbarButton>
                 </Tooltip>
+
+                {/* Event count display */}
+                <div
+                    className="profiler-toolbar-event-count"
+                    aria-label={`${filteredRowCount} of ${totalRowCount} events`}
+                    aria-live="polite"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "0 8px",
+                        fontSize: "12px",
+                        color: "var(--vscode-descriptionForeground)",
+                    }}>
+                    <span className="event-count-label">
+                        {filteredRowCount !== totalRowCount ? (
+                            <>
+                                <strong style={{ color: "var(--vscode-foreground)" }}>
+                                    {filteredRowCount.toLocaleString()}
+                                </strong>
+                                {" / "}
+                                {totalRowCount.toLocaleString()} {loc.events}
+                            </>
+                        ) : (
+                            <>
+                                {totalRowCount.toLocaleString()} {loc.events}
+                            </>
+                        )}
+                    </span>
+                </div>
 
                 <ToolbarDivider />
 
