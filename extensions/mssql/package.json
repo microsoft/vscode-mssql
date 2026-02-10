@@ -2916,7 +2916,7 @@
             },
             {
                 "name": "mssql_dab",
-                "modelDescription": "Inspect and update Data API Builder (DAB) state for the active schema designer. Operations: 'get_state' (no payload) and 'apply_changes'. For apply_changes, use { operation: 'apply_changes', payload: { expectedVersion, changes }, options? }; expectedVersion is required inside payload. change.type must be one of: 'set_api_types', 'set_entity_enabled', 'set_entity_actions', 'patch_entity_settings', 'set_only_enabled_entities', 'set_all_entities_enabled'. Entity refs are either { id } or { schemaName, tableName }. To enable only a specific set of tables, use one 'set_only_enabled_entities' change containing exactly those entities.",
+                "modelDescription": "Inspect and update Data API Builder (DAB) state for the active schema designer. Operations: 'get_state' (no payload) and 'apply_changes'. For apply_changes, use { operation: 'apply_changes', payload: { expectedVersion, changes }, options? }; expectedVersion is required inside payload. Entity refs are either { id } or { schemaName, tableName }. Compact change shapes: set_api_types { type, apiTypes[] }; set_entity_enabled { type, entity, isEnabled }; set_entity_actions { type, entity, actions[] }; patch_entity_settings { type, entity, set{ entityName?, authorizationRole?, customRestPath?, customGraphQLType? } }; set_only_enabled_entities { type, entities[] }; set_all_entities_enabled { type, isEnabled }.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2977,6 +2977,7 @@
                                     ]
                                 },
                                 "customRestPath": {
+                                    "description": "Entity REST path override (for example: 't_41'). Use null to clear.",
                                     "oneOf": [
                                         {
                                             "type": "string",
@@ -2988,6 +2989,7 @@
                                     ]
                                 },
                                 "customGraphQLType": {
+                                    "description": "Entity GraphQL type override. Use null to clear.",
                                     "oneOf": [
                                         {
                                             "type": "string",
@@ -3156,6 +3158,7 @@
                                                                 "$ref": "#/$defs/entityRef"
                                                             },
                                                             "set": {
+                                                                "description": "Patch advanced settings. Example: { entityName: '41', authorizationRole: 'authenticated', customRestPath: 't_41', customGraphQLType: null }.",
                                                                 "$ref": "#/$defs/advancedSettingsPatch"
                                                             }
                                                         },
