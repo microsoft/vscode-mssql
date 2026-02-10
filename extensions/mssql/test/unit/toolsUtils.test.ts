@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
     getDisplayNameForTool,
     buildChatAgentConnectPrompt,
+    matchesStrictTargetHint,
 } from "../../src/copilot/tools/toolsUtils";
 import { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -159,6 +160,35 @@ suite("toolsUtils Tests", () => {
             expect(parsed).to.not.have.property("profileId");
             expect(parsed).to.not.have.property("profileName");
             expect(parsed).to.not.have.property("database");
+        });
+    });
+
+    suite("matchesStrictTargetHint", () => {
+        test("returns true for case-insensitive exact server+database match", () => {
+            const result = matchesStrictTargetHint(
+                { server: " LocalHost ", database: " AdventureWorks " },
+                { server: "localhost", database: "adventureworks" },
+            );
+
+            expect(result).to.equal(true);
+        });
+
+        test("returns false when server does not match", () => {
+            const result = matchesStrictTargetHint(
+                { server: "localhost", database: "AdventureWorks" },
+                { server: "otherserver", database: "AdventureWorks" },
+            );
+
+            expect(result).to.equal(false);
+        });
+
+        test("returns false when active server is missing but targetHint has server", () => {
+            const result = matchesStrictTargetHint(
+                { database: "AdventureWorks" },
+                { server: "localhost", database: "AdventureWorks" },
+            );
+
+            expect(result).to.equal(false);
         });
     });
 });
