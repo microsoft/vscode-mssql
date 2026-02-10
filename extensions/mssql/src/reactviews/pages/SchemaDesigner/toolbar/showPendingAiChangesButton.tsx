@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Badge, ToolbarButton, Tooltip, makeStyles } from "@fluentui/react-components";
-import * as fluentIcons from "@fluentui/react-icons";
+import { Sparkle16Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -33,7 +33,7 @@ export function ShowPendingAiChangesButton() {
     const classes = useStyles();
     const pendingAiCount = getVisiblePendingAiSchemaChanges(context.aiLedger).length;
     if (pendingAiCount === 0) {
-        return undefined;
+        return null;
     }
 
     return (
@@ -45,7 +45,7 @@ export function ShowPendingAiChangesButton() {
                     onClick={() => {
                         eventBus.emit("openChangesPanel", "pendingAi");
                     }}
-                    icon={<fluentIcons.Sparkle16Regular />}
+                    icon={<Sparkle16Regular />}
                 />
                 <Badge size="small" className={classes.badge}>
                     {pendingAiCount}

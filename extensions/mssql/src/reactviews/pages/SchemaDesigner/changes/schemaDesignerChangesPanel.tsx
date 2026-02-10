@@ -65,11 +65,9 @@ export const SchemaDesignerChangesPanel = () => {
     );
 
     const loc = locConstants.schemaDesigner.changesPanel;
-    const aiLabels = {
-        pendingAiTab: "Pending AI Changes",
-        pendingAiEmptyTitle: "No pending AI changes",
-        pendingAiEmptySubtitle: "Apply AI edits to track pending AI changes here.",
-    };
+    const pendingAiTabLabel = locConstants.schemaDesigner.pendingAiTabLabel;
+    const pendingAiEmptyTitle = locConstants.schemaDesigner.pendingAiEmptyTitle;
+    const pendingAiEmptySubtitle = locConstants.schemaDesigner.pendingAiEmptySubtitle;
 
     useEffect(() => {
         changesPanelTabRef.current = context.changesPanelTab;
@@ -457,7 +455,9 @@ export const SchemaDesignerChangesPanel = () => {
                             ? locConstants.schemaDesigner.changesPanelTitle(
                                   context.schemaChangesCount,
                               )
-                            : `${aiLabels.pendingAiTab} (${aiLedgerChangesCount})`
+                            : locConstants.schemaDesigner.pendingAiChangesPanelTitle(
+                                  aiLedgerChangesCount,
+                              )
                     }
                     onClose={() => {
                         panelRef.current?.collapse();
@@ -519,22 +519,24 @@ export const SchemaDesignerChangesPanel = () => {
                         {hasNoPendingAiResults ? (
                             <SchemaDesignerChangesEmptyState
                                 icon={<Checkmark24Regular />}
-                                title={aiLabels.pendingAiEmptyTitle}
-                                subtitle={aiLabels.pendingAiEmptySubtitle}
+                                title={pendingAiEmptyTitle}
+                                subtitle={pendingAiEmptySubtitle}
                             />
                         ) : (
                             <SchemaDesignerChangesTree
                                 flatTree={pendingAiFlatTree}
                                 flatTreeItems={pendingAiFlatTreeItems}
                                 searchText=""
-                                ariaLabel={aiLabels.pendingAiTab}
+                                ariaLabel={pendingAiTabLabel}
                                 activeChangeId={activePendingAiChangeId}
                                 loc={{
                                     ...loc,
-                                    keep: "Keep",
-                                    keepTooltip: "Keep this AI change",
+                                    keep: locConstants.schemaDesigner.keep,
+                                    keepTooltip:
+                                        locConstants.schemaDesigner.keepAiChangeTooltip,
                                     revert: locConstants.schemaDesigner.undo,
-                                    revertTooltip: "Undo this AI change",
+                                    revertTooltip:
+                                        locConstants.schemaDesigner.undoAiChangeTooltip,
                                 }}
                                 onReveal={handleReveal}
                                 onKeep={handleKeepAiChange}
@@ -551,7 +553,7 @@ export const SchemaDesignerChangesPanel = () => {
                                 appearance="primary"
                                 onClick={handleKeepAllAi}
                                 disabled={isApplyingAiAction}>
-                                Keep All
+                                {locConstants.schemaDesigner.keepAll}
                             </Button>
                             <Button
                                 size="small"
@@ -560,15 +562,15 @@ export const SchemaDesignerChangesPanel = () => {
                                     void handleUndoAllAi();
                                 }}
                                 disabled={isApplyingAiAction}>
-                                Undo All
+                                {locConstants.schemaDesigner.undoAll}
                             </Button>
                         </div>
                     </>
                 ) : (
                     <SchemaDesignerChangesEmptyState
                         icon={<Checkmark24Regular />}
-                        title={aiLabels.pendingAiEmptyTitle}
-                        subtitle={aiLabels.pendingAiEmptySubtitle}
+                        title={pendingAiEmptyTitle}
+                        subtitle={pendingAiEmptySubtitle}
                     />
                 )}
             </div>

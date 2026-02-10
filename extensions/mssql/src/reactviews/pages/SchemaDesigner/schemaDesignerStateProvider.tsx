@@ -310,14 +310,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     mergedLedger,
                 );
                 pendingAiShouldAutoOpenPanelRef.current = !isChangesPanelVisible;
-                console.log("[SchemaDesigner][AI Ledger] Applied AI edits", {
-                    operations: result.operations,
-                    diffOperations: result.diffOperations,
-                    pendingGroups: result.pendingGroups,
-                    pendingItems: result.pendingItems,
-                    mergedGroups: mergedLedger,
-                    mergedItems: flattenPendingAiItems(mergedLedger),
-                });
                 return mergedLedger;
             });
         },

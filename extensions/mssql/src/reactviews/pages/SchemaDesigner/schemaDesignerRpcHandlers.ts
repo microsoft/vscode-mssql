@@ -8,7 +8,7 @@ import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
 import { v4 as uuidv4 } from "uuid";
-import * as lodash from "lodash";
+import isEqual from "lodash/isEqual";
 import { createAiLedgerApplyResult } from "./aiLedger/ledgerUtils";
 import { AiLedgerApplyResult, AiLedgerOperation } from "./aiLedger/operations";
 import { ChangeAction, ChangeCategory } from "./diff/diffUtils";
@@ -1115,7 +1115,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 }
 
                 if (didMutateThisEdit) {
-                    const hasSchemaMutation = !lodash.isEqual(schemaBeforeEdit, workingSchema);
+                    const hasSchemaMutation = !isEqual(schemaBeforeEdit, workingSchema);
                     if (!hasSchemaMutation) {
                         didMutateThisEdit = false;
                         appliedEdits = Math.max(0, appliedEdits - 1);

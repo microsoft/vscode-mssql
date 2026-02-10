@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as lodash from "lodash";
+import isEqual from "lodash/isEqual";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { locConstants } from "../../../common/locConstants";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -78,7 +79,9 @@ function buildGroupTitle(
     const original = toQualifiedName(originalSchema, originalName);
     const current = toQualifiedName(currentSchema, currentName);
     const baseTitle = original === current ? current : `${original} -> ${current}`;
-    return isDeleted ? `${baseTitle} (deleted)` : baseTitle;
+    return isDeleted
+        ? `${baseTitle} ${locConstants.schemaDesigner.aiLedgerDeletedSuffix}`
+        : baseTitle;
 }
 
 function buildItemFriendlyName(item: {
@@ -90,7 +93,7 @@ function buildItemFriendlyName(item: {
     if (item.category === ChangeCategory.Table) {
         return toQualifiedName(item.tableSchema, item.tableName);
     }
-    return item.objectName ?? "(unnamed)";
+    return item.objectName ?? locConstants.schemaDesigner.aiLedgerUnnamed;
 }
 
 function buildItemTitle(item: {
@@ -103,19 +106,19 @@ function buildItemTitle(item: {
     const target =
         item.category === ChangeCategory.Table
             ? toQualifiedName(item.tableSchema, item.tableName)
-            : (item.objectName ?? "(unnamed)");
+            : (item.objectName ?? locConstants.schemaDesigner.aiLedgerUnnamed);
     const actionLabel =
         item.action === ChangeAction.Add
-            ? "Add"
+            ? locConstants.schemaDesigner.aiLedgerActionAdd
             : item.action === ChangeAction.Delete
-              ? "Delete"
-              : "Modify";
+              ? locConstants.schemaDesigner.aiLedgerActionDelete
+              : locConstants.schemaDesigner.aiLedgerActionModify;
     const categoryLabel =
         item.category === ChangeCategory.Table
-            ? "table"
+            ? locConstants.schemaDesigner.aiLedgerCategoryTable
             : item.category === ChangeCategory.Column
-              ? "column"
-              : "foreign key";
+              ? locConstants.schemaDesigner.aiLedgerCategoryColumn
+              : locConstants.schemaDesigner.aiLedgerCategoryForeignKey;
     return `${actionLabel} ${categoryLabel}: ${target}`;
 }
 
@@ -172,7 +175,7 @@ function buildCanonicalItem(args: {
     if (
         baselineSnapshot !== null &&
         currentSnapshot !== null &&
-        lodash.isEqual(baselineSnapshot, currentSnapshot)
+        isEqual(baselineSnapshot, currentSnapshot)
     ) {
         return undefined;
     }
