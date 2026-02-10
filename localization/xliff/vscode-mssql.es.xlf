@@ -5160,10 +5160,6 @@ Error:
         <source xml:lang="en">Publish Project</source>
         <target state="translated">Publicación del proyecto</target>
       </trans-unit>
-      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
-        <source xml:lang="en">Publish Project (Preview)</source>
-        <target state="translated">Publicar proyecto (versión preliminar)</target>
-      </trans-unit>
       <trans-unit id="++CODE++71aa5c7a75828ce61b76e517dd10ea3c23ff9149be8b5fb6006ccb9f784bd38c">
         <source xml:lang="en">Publish Project - {0}</source>
         <note>{0} is the name of the project being published</note>
