@@ -106,11 +106,11 @@
     <trans-unit id="++CODE++4a7870205fd96778561ad4653fea7c80cc5fffbc97a43337c1d45f0493e4ee0e">
       <source xml:lang="en">Action Type</source>
     </trans-unit>
-    <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
-      <source xml:lang="en">Actions</source>
-    </trans-unit>
     <trans-unit id="++CODE++2c599b85806c57eccd08af9ac2bfb4a6f1f81b2ea125bdca3fdb22dc902695e3">
       <source xml:lang="en">Active filters:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
+      <source xml:lang="en">Actions</source>
     </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -2456,6 +2456,9 @@
     <trans-unit id="++CODE++c97e4310054d0eac7186d3f17446802485f036aec155d65ddd1c193cc6273bd4">
       <source xml:lang="en">Filter: {0}</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
+      <source xml:lang="en">Filter {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
       <source xml:lang="en">Find</source>
