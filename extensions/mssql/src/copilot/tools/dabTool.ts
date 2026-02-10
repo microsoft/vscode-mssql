@@ -12,12 +12,7 @@ import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesi
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
-import { matchesStrictTargetHint } from "./toolsUtils";
-
-interface TargetHint {
-    server: string;
-    database: string;
-}
+import { matchesStrictTargetHint, ToolTargetHint } from "./toolsUtils";
 
 type DabToolOperation = "get_state" | "apply_changes";
 
@@ -27,7 +22,7 @@ export type DabToolParams =
           operation: "apply_changes";
           payload: {
               expectedVersion: string;
-              targetHint?: TargetHint;
+              targetHint?: ToolTargetHint;
               changes: Dab.DabToolChange[];
           };
           options?: {
@@ -72,7 +67,7 @@ interface DabToolError {
         server?: string;
         database: string;
     };
-    targetHint?: TargetHint;
+    targetHint?: ToolTargetHint;
     failedChangeIndex?: number;
     appliedChanges?: number;
     version?: string;
