@@ -3,17 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextProps, FormReducers } from "./form";
+import { FormContextPropsNoState, FormReducers } from "./form";
 import { ApiStatus } from "./webview";
 import { FileBrowserProvider, FileBrowserReducers } from "./fileBrowser";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 import { BlobContainer, StorageAccount } from "@azure/arm-storage";
 import { TaskExecutionMode } from "./schemaCompare";
-import {
-    ObjectManagementFormItemSpec,
-    ObjectManagementFormState,
-    ObjectManagementWebviewState,
-} from "./objectManagement";
+import { ObjectManagementFormState, ObjectManagementWebviewState } from "./objectManagement";
 
 //#region Sql Tools Service Interfaces
 
@@ -250,11 +246,7 @@ export interface BackupDatabaseReducers
 }
 
 export interface BackupDatabaseProvider
-    extends FormContextProps<
-            ObjectManagementFormState,
-            ObjectManagementWebviewState,
-            ObjectManagementFormItemSpec
-        >,
+    extends FormContextPropsNoState<ObjectManagementFormState>,
         FileBrowserProvider {
     /**
      * Gets the database information associated with the backup operation

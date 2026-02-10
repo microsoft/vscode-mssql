@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import { DesignerDefinitionPaneRef } from "../../common/designerDefinitionPane";
-import { getCoreRPCs } from "../../common/utils";
+import { getCoreRPCs2 } from "../../common/utils";
 
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { ReactNode, createContext, useRef, useState } from "react";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { ReactNode, createContext, useMemo, useRef, useState } from "react";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 
-export interface TableDesignerContextProps
-    extends WebviewContextProps<designer.TableDesignerWebviewState> {
+export interface TableDesignerContextProps extends CoreRPCs {
     resultPaneResizeInfo: {
         originalHeight: number;
         setOriginalHeight: (height: number) => void;
@@ -137,10 +137,13 @@ interface TableDesignerProviderProps {
 }
 
 const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ children }) => {
-    const webviewState = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview2<
         designer.TableDesignerWebviewState,
         designer.TableDesignerReducers
     >();
+
+    // Use selector to get state for callbacks
+    const state = useTableDesignerSelector((s) => s);
 
     // Result pane height state
     const [resultPaneHeight, setResultPaneHeight] = useState<number>(300);
@@ -153,161 +156,171 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
     const [originalWidth, setOriginalWidth] = useState<number>(450);
 
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-    const tableState = webviewState?.state;
     const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
 
-    function getComponentId(componentPath: (string | number)[]): string {
-        return `${tableState.tableInfo?.id}_${componentPath.join("_")}`;
-    }
+    // Keep a ref to the current state for use in callbacks
+    const stateRef = useRef(state);
+    stateRef.current = state;
 
-    return (
-        <TableDesignerContext.Provider
-            value={{
-                ...getCoreRPCs(webviewState),
-                processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
-                    webviewState?.extensionRpc.action("processTableEdit", {
-                        table: tableState.tableInfo!,
-                        tableChangeInfo: tableChangeInfo,
-                    });
-                },
-                publishChanges: function (): void {
-                    webviewState?.extensionRpc.action("publishChanges", {
-                        table: tableState.tableInfo!,
-                    });
-                },
-                generateScript: function (): void {
-                    webviewState?.extensionRpc.action("generateScript", {
-                        table: tableState.tableInfo!,
-                    });
-                },
-                generatePreviewReport: function (): void {
-                    webviewState?.extensionRpc.action("generatePreviewReport", {
-                        table: tableState.tableInfo!,
-                    });
-                },
-                initializeTableDesigner: function (): void {
-                    void webviewState?.extensionRpc.sendNotification(
-                        designer.InitializeTableDesignerNotification.type,
-                    );
-                },
-                scriptAsCreate: function (): void {
-                    void webviewState?.extensionRpc.sendNotification(
-                        designer.ScriptAsCreateNotification.type,
-                        {
-                            script:
-                                (tableState.model!["script"] as designer.InputBoxProperties)
-                                    .value ?? "",
-                        },
-                    );
-                },
-                copyScriptAsCreateToClipboard: function (): void {
-                    void webviewState?.extensionRpc.sendNotification(
-                        designer.CopyScriptAsCreateToClipboardNotification.type,
-                        {
-                            script:
-                                (tableState.model!["script"] as designer.InputBoxProperties)
-                                    .value ?? "",
-                        },
-                    );
-                },
-                setTab: function (tabId: designer.DesignerMainPaneTabs): void {
-                    webviewState?.extensionRpc.action("setTab", {
-                        tabId: tabId,
-                    });
-                },
-                getComponentId: getComponentId,
-                getErrorMessage: function (componentPath: (string | number)[]): string | undefined {
-                    const componentPathStr = componentPath.join(".");
-                    const result = [];
-                    for (const issue of tableState.issues ?? []) {
-                        if (issue.propertyPath) {
-                            if (issue.propertyPath?.join(".") === componentPathStr) {
-                                result.push(issue.description);
-                            }
+    const getComponentId = useMemo(
+        () =>
+            (componentPath: (string | number)[]): string => {
+                return `${stateRef.current?.tableInfo?.id}_${componentPath.join("_")}`;
+            },
+        [],
+    );
+
+    const commands = useMemo<TableDesignerContextProps>(
+        () => ({
+            ...getCoreRPCs2(extensionRpc),
+            processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
+                extensionRpc.action("processTableEdit", {
+                    table: stateRef.current?.tableInfo!,
+                    tableChangeInfo: tableChangeInfo,
+                });
+            },
+            publishChanges: function (): void {
+                extensionRpc.action("publishChanges", {
+                    table: stateRef.current?.tableInfo!,
+                });
+            },
+            generateScript: function (): void {
+                extensionRpc.action("generateScript", {
+                    table: stateRef.current?.tableInfo!,
+                });
+            },
+            generatePreviewReport: function (): void {
+                extensionRpc.action("generatePreviewReport", {
+                    table: stateRef.current?.tableInfo!,
+                });
+            },
+            initializeTableDesigner: function (): void {
+                void extensionRpc.sendNotification(
+                    designer.InitializeTableDesignerNotification.type,
+                );
+            },
+            scriptAsCreate: function (): void {
+                void extensionRpc.sendNotification(designer.ScriptAsCreateNotification.type, {
+                    script:
+                        (stateRef.current?.model?.["script"] as designer.InputBoxProperties)
+                            ?.value ?? "",
+                });
+            },
+            copyScriptAsCreateToClipboard: function (): void {
+                void extensionRpc.sendNotification(
+                    designer.CopyScriptAsCreateToClipboardNotification.type,
+                    {
+                        script:
+                            (stateRef.current?.model?.["script"] as designer.InputBoxProperties)
+                                ?.value ?? "",
+                    },
+                );
+            },
+            setTab: function (tabId: designer.DesignerMainPaneTabs): void {
+                extensionRpc.action("setTab", {
+                    tabId: tabId,
+                });
+            },
+            getComponentId: getComponentId,
+            getErrorMessage: function (componentPath: (string | number)[]): string | undefined {
+                const componentPathStr = componentPath.join(".");
+                const result = [];
+                for (const issue of stateRef.current?.issues ?? []) {
+                    if (issue.propertyPath) {
+                        if (issue.propertyPath?.join(".") === componentPathStr) {
+                            result.push(issue.description);
                         }
                     }
-                    if (result.length === 0) {
-                        return undefined;
-                    }
-                    return result.join("\n") ?? "";
-                },
-                setPropertiesComponents: function (
-                    components: designer.PropertiesPaneData | undefined,
-                ): void {
-                    webviewState?.extensionRpc.action("setPropertiesComponents", {
-                        components: components!,
-                    });
-                },
-                setResultTab: function (tabId: designer.DesignerResultPaneTabs): void {
-                    webviewState?.extensionRpc.action("setResultTab", {
-                        tabId: tabId,
-                    });
-                },
-                closeDesigner: function (): void {
-                    void webviewState?.extensionRpc.sendNotification(
-                        designer.CloseDesignerNotification.type,
-                    );
-                },
-                continueEditing: function (): void {
-                    webviewState?.extensionRpc.action("continueEditing", {});
-                },
-                copyPublishErrorToClipboard: function (): void {
-                    void webviewState?.extensionRpc.sendNotification(
-                        designer.CopyPublishErrorToClipboardNotification.type,
-                        {
-                            error: tableState.publishingError ?? "",
-                        },
-                    );
-                },
-                state: webviewState?.state as designer.TableDesignerWebviewState,
-                themeKind: webviewState?.themeKind,
-                keyBindings: webviewState?.keyBindings,
-                resultPaneResizeInfo: {
-                    originalHeight: originalHeight,
-                    setOriginalHeight: setOriginalHeight,
-                    isMaximized: isResultPaneFullScreen,
-                    setIsMaximized: setIsResultPaneFullScreen,
-                    currentHeight: resultPaneHeight,
-                    setCurrentHeight: setResultPaneHeight,
-                },
-                propertiesPaneResizeInfo: {
-                    originalWidth: originalWidth,
-                    setOriginalWidth: setOriginalWidth,
-                    isMaximized: isPropertiesPaneFullScreen,
-                    setIsMaximized: setIsPropertiesPaneFullScreen,
-                    currentWidth: propertiesPaneWidth,
-                    setCurrentWidth: setPropertiesPaneWidth,
-                },
-                elementRefs: elementRefs,
-                addElementRef: function (
-                    path: (string | number)[],
-                    ref: any,
-                    UiArea: designer.DesignerUIArea,
-                ): void {
-                    const key = getComponentId(path);
-                    /**
-                     * If the component is in the main view, we don't want to store the reference
-                     * of the component copy in the properties view.
-                     */
-                    if (UiArea === "PropertiesView" && elementRefs.current[key]) {
-                        return;
-                    }
-                    return (elementRefs.current[key] = ref);
-                },
-                toggleDefinitionPane: function (): void {
-                    if (!definitionPaneRef.current) {
-                        return;
-                    }
-                    if (definitionPaneRef.current.isCollapsed()) {
-                        definitionPaneRef.current.openPanel(25);
-                    } else {
-                        definitionPaneRef.current.closePanel();
-                    }
-                },
-                definitionPaneRef,
-            }}>
-            {children}
-        </TableDesignerContext.Provider>
+                }
+                if (result.length === 0) {
+                    return undefined;
+                }
+                return result.join("\n") ?? "";
+            },
+            setPropertiesComponents: function (
+                components: designer.PropertiesPaneData | undefined,
+            ): void {
+                extensionRpc.action("setPropertiesComponents", {
+                    components: components!,
+                });
+            },
+            setResultTab: function (tabId: designer.DesignerResultPaneTabs): void {
+                extensionRpc.action("setResultTab", {
+                    tabId: tabId,
+                });
+            },
+            closeDesigner: function (): void {
+                void extensionRpc.sendNotification(designer.CloseDesignerNotification.type);
+            },
+            continueEditing: function (): void {
+                extensionRpc.action("continueEditing", {});
+            },
+            copyPublishErrorToClipboard: function (): void {
+                void extensionRpc.sendNotification(
+                    designer.CopyPublishErrorToClipboardNotification.type,
+                    {
+                        error: stateRef.current?.publishingError ?? "",
+                    },
+                );
+            },
+            resultPaneResizeInfo: {
+                originalHeight: originalHeight,
+                setOriginalHeight: setOriginalHeight,
+                isMaximized: isResultPaneFullScreen,
+                setIsMaximized: setIsResultPaneFullScreen,
+                currentHeight: resultPaneHeight,
+                setCurrentHeight: setResultPaneHeight,
+            },
+            propertiesPaneResizeInfo: {
+                originalWidth: originalWidth,
+                setOriginalWidth: setOriginalWidth,
+                isMaximized: isPropertiesPaneFullScreen,
+                setIsMaximized: setIsPropertiesPaneFullScreen,
+                currentWidth: propertiesPaneWidth,
+                setCurrentWidth: setPropertiesPaneWidth,
+            },
+            elementRefs: elementRefs,
+            addElementRef: function (
+                path: (string | number)[],
+                ref: any,
+                UiArea: designer.DesignerUIArea,
+            ): void {
+                const key = getComponentId(path);
+                /**
+                 * If the component is in the main view, we don't want to store the reference
+                 * of the component copy in the properties view.
+                 */
+                if (UiArea === "PropertiesView" && elementRefs.current[key]) {
+                    return;
+                }
+                return (elementRefs.current[key] = ref);
+            },
+            toggleDefinitionPane: function (): void {
+                if (!definitionPaneRef.current) {
+                    return;
+                }
+                if (definitionPaneRef.current.isCollapsed()) {
+                    definitionPaneRef.current.openPanel(25);
+                } else {
+                    definitionPaneRef.current.closePanel();
+                }
+            },
+            definitionPaneRef,
+        }),
+        [
+            extensionRpc,
+            getComponentId,
+            originalHeight,
+            isResultPaneFullScreen,
+            resultPaneHeight,
+            originalWidth,
+            isPropertiesPaneFullScreen,
+            propertiesPaneWidth,
+        ],
+    );
+
+    return (
+        <TableDesignerContext.Provider value={commands}>{children}</TableDesignerContext.Provider>
     );
 };
 

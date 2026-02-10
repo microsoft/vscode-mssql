@@ -19,8 +19,9 @@ import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormField } from "../../../common/forms/form.component";
+import { FormFieldNoState } from "../../../common/forms/form.component";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "../connectionDialogSelector";
 import {
     ConnectionComponentGroup,
     ConnectionDialogContextProps,
@@ -38,6 +39,11 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(ConnectionDialogContext);
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const groupedAdvancedOptions = useConnectionDialogSelector(
+        (s) => s.connectionComponents.groupedAdvancedOptions,
+    );
+    const formState = useConnectionDialogSelector((s) => s.formState);
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
     const accordionStyles = useAccordionStyles();
@@ -48,9 +54,7 @@ export const AdvancedOptionsDrawer = ({
 
     function doesGroupHaveVisibleOptions(group: ConnectionComponentGroup) {
         return group.options.some((optionName) =>
-            isOptionVisible(
-                context?.state?.formComponents[optionName] as ConnectionDialogFormItemSpec,
-            ),
+            isOptionVisible(formComponents[optionName] as ConnectionDialogFormItemSpec),
         );
     }
 
@@ -112,12 +116,10 @@ export const AdvancedOptionsDrawer = ({
                          * If the user is not searching, we only open the sections that the user has opened
                          */
                         searchSettingsText
-                            ? context.state.connectionComponents.groupedAdvancedOptions.map(
-                                  (group) => group.groupName,
-                              )
+                            ? groupedAdvancedOptions.map((group) => group.groupName)
                             : userOpenedSections
                     }>
-                    {context.state.connectionComponents.groupedAdvancedOptions
+                    {groupedAdvancedOptions
                         .filter((group) => doesGroupHaveVisibleOptions(group))
                         .map((group, groupIndex) => {
                             return (
@@ -129,13 +131,11 @@ export const AdvancedOptionsDrawer = ({
                                     <AccordionPanel>
                                         {group.options
                                             .filter((optionName) =>
-                                                isOptionVisible(
-                                                    context.state.formComponents[optionName]!,
-                                                ),
+                                                isOptionVisible(formComponents[optionName]!),
                                             )
                                             .map((optionName, idx) => {
                                                 return (
-                                                    <FormField<
+                                                    <FormFieldNoState<
                                                         IConnectionDialogProfile,
                                                         ConnectionDialogWebviewState,
                                                         ConnectionDialogFormItemSpec,
@@ -143,11 +143,8 @@ export const AdvancedOptionsDrawer = ({
                                                     >
                                                         key={idx}
                                                         context={context}
-                                                        component={
-                                                            context.state.formComponents[
-                                                                optionName
-                                                            ]!
-                                                        }
+                                                        formState={formState}
+                                                        component={formComponents[optionName]!}
                                                         idx={idx}
                                                     />
                                                 );

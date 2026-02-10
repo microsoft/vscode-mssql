@@ -6,7 +6,6 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 
-// eslint-disable-next-line custom-eslint-rules/banned-imports -- test helper needs shared interface types
 import { SelectionSummaryStats, ISlickRange } from "../../src/sharedInterfaces/queryResult";
 import { selectionSummaryHelper } from "../../src/queryResult/utils";
 

@@ -3,46 +3,51 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentContextProps } from "../../../../sharedInterfaces/deployment";
+import {
+    DeploymentContextProps,
+    DeploymentWebviewState,
+} from "../../../../sharedInterfaces/deployment";
 import { LocalContainersState } from "../../../../sharedInterfaces/localContainers";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 /**
  * Runs a Docker step if the current step is less than or equal to the last step.
- * @param state The context containing the state and methods to complete Docker steps.
+ * @param context The context containing the methods to complete Docker steps.
+ * @param state The state containing the deployment type state.
  * @param lastStep The index of the last step to check against.
  */
 export async function runDockerStep(
-    state: DeploymentContextProps,
+    context: DeploymentContextProps,
+    state: DeploymentWebviewState,
     lastStep: number,
 ): Promise<void> {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
+    const localContainersState = state.deploymentTypeState as LocalContainersState;
     const currentStep = localContainersState.currentDockerStep;
     // If the current step is less than or equal to the last step,
     // complete the step to move to the next one
     if (currentStep <= lastStep) {
-        await state.completeDockerStep(currentStep);
+        await context.completeDockerStep(currentStep);
     }
 }
 
 /**
  * Checks if the last step in the Docker deployment process is loaded.
- * @param state The context containing the state of the Docker deployment.
+ * @param state The state containing the deployment type state.
  * @param lastStep The index of the last step to check.
  * @return True if the last step is loaded, false otherwise.
  */
-export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number): boolean {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
+export function isLastStepLoaded(state: DeploymentWebviewState, lastStep: number): boolean {
+    const localContainersState = state.deploymentTypeState as LocalContainersState;
     return localContainersState.dockerSteps[lastStep].loadState === ApiStatus.Loaded;
 }
 
 /**
  * Checks if the current Docker step has errored.
- * @param state The context containing the state of the Docker deployment.
+ * @param state The state containing the deployment type state.
  * @return True if the current step has errored, false otherwise.
  */
-export function checkStepErrored(state: DeploymentContextProps): boolean {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
+export function checkStepErrored(state: DeploymentWebviewState): boolean {
+    const localContainersState = state.deploymentTypeState as LocalContainersState;
 
     // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
     if (

@@ -39,18 +39,22 @@ import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { KeyCode } from "../../../../common/keys";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
-import { ApiStatus, ColorThemeKind, Status } from "../../../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
 import { FilterIcon } from "../../../../common/icons/filter";
+import { useConnectionDialogSelector } from "../../connectionDialogSelector";
+import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
-    fabricWorkspacesLoadStatus,
     selectedWorkspace,
     searchFilter = "",
-    theme,
 }: WorkspaceContentsList) => {
     const styles = useFabricExplorerStyles();
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
+    const { themeKind: theme } = useVscodeWebview2();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
         ArtifactTypeFilter.ShowAll,
@@ -409,11 +413,9 @@ const ArtifactTypeFilter = {
 
 interface WorkspaceContentsList {
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
-    fabricWorkspacesLoadStatus: Status;
     selectedWorkspace: FabricWorkspaceInfo | undefined;
     searchFilter?: string;
     typeFilter?: string[];
-    theme: ColorThemeKind;
 }
 
 interface FabricSqlGridItem extends FabricSqlDbInfo {
