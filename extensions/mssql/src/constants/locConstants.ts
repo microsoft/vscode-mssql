@@ -28,7 +28,9 @@ export class Common {
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
+export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -1909,6 +1911,21 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on Data API Builder?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on Data API Builder",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     );
@@ -2846,4 +2863,7 @@ export class BackupDatabase {
             comment: ["{0} is the error message"],
         });
     };
+    public static unableToLoadBackupConfig = l10n.t(
+        "Unable to load backup configuration. Please try again.",
+    );
 }

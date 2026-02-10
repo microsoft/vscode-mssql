@@ -15,6 +15,7 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus, { SchemaDesignerChangesPanelTab } from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
@@ -242,9 +243,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const extractSchemaRef = useRef<() => SchemaDesigner.Schema>(() => ({ tables: [] }));
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+
+    useEffect(() => {
+        dabConfigRef.current = dabConfig;
+    }, [dabConfig]);
 
     const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
@@ -339,6 +346,17 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         pendingAiAutoFocusChangeIdRef.current = undefined;
         pendingAiShouldAutoOpenPanelRef.current = false;
     }, [aiLedger]);
+    const extractSchema = useCallback(() => {
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        return schema;
+    }, [reactFlow]);
+
+    useEffect(() => {
+        extractSchemaRef.current = extractSchema;
+    }, [extractSchema]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -432,6 +450,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         reactFlow,
         onPushUndoState,
         onAiEditsApplied,
+        extractSchema,
     ]);
 
     // Respond with the current schema state
@@ -441,7 +460,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             extensionRpc,
             extractSchema,
         });
-    }, [isInitialized, extensionRpc]);
+    }, [isInitialized, extensionRpc, extractSchema]);
+
+    useEffect(() => {
+        registerSchemaDesignerDabToolHandlers({
+            extensionRpc,
+            isInitializedRef,
+            getCurrentDabConfig: () => dabConfigRef.current,
+            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            commitDabConfig: (config) => {
+                setDabConfig(config);
+            },
+        });
+    }, [extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -734,14 +765,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
         );
-    };
-
-    const extractSchema = () => {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-        return schema;
     };
 
     /**
