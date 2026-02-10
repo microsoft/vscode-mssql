@@ -1681,10 +1681,6 @@
         <source xml:lang="en">Publish</source>
         <target state="translated">发布</target>
       </trans-unit>
-      <trans-unit id="sqlDatabaseProjects.publishDialog">
-        <source xml:lang="en">Publish (Preview)</source>
-        <target state="translated">发布(预览版)</target>
-      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
         <target state="translated">重命名</target>
