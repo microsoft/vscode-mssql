@@ -3,7 +3,7 @@
 import tseslint from "typescript-eslint";
 import notice from "eslint-plugin-notice";
 import jsdoc from "eslint-plugin-jsdoc";
-import { fixupPluginRules, includeIgnoreFile } from "@eslint/compat";
+import { includeIgnoreFile } from "@eslint/compat";
 import reactRecommended from "eslint-plugin-react/configs/recommended.js";
 import react from "eslint-plugin-react";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
@@ -105,14 +105,6 @@ const sharedRules = {
         },
     ],
     "@stylistic/semi": "warn",
-    "prettier/prettier": [
-        "error",
-        {
-            endOfLine: "auto",
-            printWidth: 100,
-            bracketSameLine: true,
-        },
-    ],
 };
 
 export default [
