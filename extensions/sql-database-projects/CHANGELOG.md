@@ -11,6 +11,8 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added five new SQL object templates: Schema, Table-Valued Function, Trigger, Database Trigger, and Sequence.
 - Fixed an issue where the SQL project build task was being created at the project level instead of the workspace level.
 - Fixed an issue where system dacpac files were missing from the BuildDirectory, causing build failures for projects with system database references.
+- Fixed an issue where adding a DbFabric/FabricDw NuGet package reference through the database reference incorrectly displayed the master system database as msdb.
+- Fixed an issue where deleting DbFabric/FabricDw master NuGet package references from the SQL project database references failed.
 
 ## [1.5.6] - 2026-01-28
 
