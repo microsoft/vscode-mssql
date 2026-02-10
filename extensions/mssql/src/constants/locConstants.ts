@@ -2746,6 +2746,12 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
     public static profilerReady = l10n.t(
         "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     );
@@ -2769,6 +2775,17 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
+
+    // Database selection for Azure SQL
+    public static selectDatabaseForProfiler = l10n.t(
+        "Select a database for profiling (Azure SQL requires a specific database)",
+    );
+    public static noDatabasesFound = l10n.t(
+        "No databases found on the server. Please check your connection.",
+    );
+    public static profilerNotSupportedOnFabric = l10n.t(
+        "Profiler is not supported on Microsoft Fabric SQL databases.",
+    );
 }
 
 export class Proxy {
