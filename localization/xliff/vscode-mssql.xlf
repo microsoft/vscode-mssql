@@ -4914,6 +4914,9 @@
     <trans-unit id="++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea">
       <source xml:lang="en">Sort ascending</source>
     </trans-unit>
+    <trans-unit id="++CODE++e320e8c6ef9cc79399346a80f7074742cbc9e7ad78b2592c81929cf08b17f9ed">
+      <source xml:lang="en">Sort column</source>
+    </trans-unit>
     <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
       <source xml:lang="en">Sort descending</source>
     </trans-unit>

@@ -314,3 +314,24 @@ export interface FilterState {
     /** Quick filter search term (cross-column case-insensitive contains) */
     quickFilter?: string;
 }
+
+/**
+ * Sort direction for profiler grid columns
+ */
+export enum SortDirection {
+    /** Ascending order (A-Z, 0-9, oldest-newest) */
+    ASC = "asc",
+    /** Descending order (Z-A, 9-0, newest-oldest) */
+    DESC = "desc",
+}
+
+/**
+ * Sort state for the profiler grid.
+ * Only one column can be sorted at a time.
+ */
+export interface SortState {
+    /** The field/column being sorted */
+    field: string;
+    /** The sort direction */
+    direction: SortDirection;
+}

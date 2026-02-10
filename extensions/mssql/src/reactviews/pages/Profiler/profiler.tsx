@@ -19,6 +19,10 @@ import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
 import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
 import {
+    createDataViewSortFn,
+    getNextSortState,
+} from "../../../profiler/profilerSortUtils";
+import {
     SessionState,
     ProfilerNotifications,
     FetchRowsResponse,
@@ -27,6 +31,8 @@ import {
     FilterClause,
     FilterType,
     ProfilerColumnDef,
+    SortDirection,
+    SortState,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -133,6 +139,9 @@ export const Profiler: React.FC = () => {
     const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const [localRowCount, setLocalRowCount] = useState(0);
 
+    // Sort state — only one column can be sorted at a time
+    const [sortState, setSortState] = useState<SortState | null>(null);
+
     // Popover state
     const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
     const [popoverAnchorRect, setPopoverAnchorRect] = useState<DOMRect | undefined>(undefined);
@@ -143,6 +152,7 @@ export const Profiler: React.FC = () => {
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
+    const sortStateRef = useRef(sortState);
 
     // Keep refs in sync with current values
     useEffect(() => {
@@ -153,6 +163,11 @@ export const Profiler: React.FC = () => {
         fetchRowsRef.current = fetchRows;
     }, [fetchRows]);
 
+    // Keep sort state ref in sync
+    useEffect(() => {
+        sortStateRef.current = sortState;
+    }, [sortState]);
+
     // Handle clear when clearGeneration changes (ensures RingBuffer is cleared before we reset local index)
     useEffect(() => {
         if (clearGeneration !== lastClearGenerationRef.current) {
@@ -162,6 +177,7 @@ export const Profiler: React.FC = () => {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
+            setSortState(null);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
             // Don't fetch here - NewEventsAvailable notification from extension will handle it
@@ -192,6 +208,99 @@ export const Profiler: React.FC = () => {
         openFilterForColumnRef.current = openFilterForColumn;
     }, [openFilterForColumn]);
 
+    /**
+     * Apply the current sort to the DataView.
+     * Should be called whenever sort state changes or new rows are added.
+     */
+    const applySortToDataView = useCallback(
+        (sort: SortState | null) => {
+            const dataView = reactGridRef.current?.dataView;
+            if (!dataView) {
+                return;
+            }
+            const sortFn = createDataViewSortFn(sort);
+            dataView.sort(sortFn, true);
+
+            // Force the grid to repaint immediately after sorting
+            const grid = reactGridRef.current?.slickGrid;
+            if (grid) {
+                grid.invalidate();
+                grid.render();
+            }
+        },
+        [],
+    );
+
+    /**
+     * Updates the sort button icon CSS classes in the header for a given column.
+     */
+    const updateSortButtonIcon = useCallback(
+        (columnId: string, direction: SortDirection | null) => {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return;
+            }
+            const headerContainer = grid
+                .getContainerNode()
+                ?.querySelector(".slick-header-columns");
+            if (!headerContainer) {
+                return;
+            }
+            const headerCell = headerContainer.querySelector(
+                `.slick-header-column[data-id="${columnId}"]`,
+            );
+            if (!headerCell) {
+                return;
+            }
+            const sortButton = headerCell.querySelector(".slick-header-sortbutton");
+            if (!sortButton) {
+                return;
+            }
+            sortButton.classList.remove("sorted-asc", "sorted-desc");
+            if (direction === SortDirection.ASC) {
+                sortButton.classList.add("sorted-asc");
+            } else if (direction === SortDirection.DESC) {
+                sortButton.classList.add("sorted-desc");
+            }
+        },
+        [],
+    );
+
+    /**
+     * Handle sort button click — cycles through NONE → ASC → DESC → NONE.
+     * Only one column can be sorted at a time.
+     */
+    const handleSortClick = useCallback(
+        (field: string) => {
+            setSortState((prevSort) => {
+                const newSort = getNextSortState(prevSort, field);
+
+                // If switching to a different column, clear previous column's icon
+                if (prevSort && (!newSort || newSort.field !== prevSort.field)) {
+                    updateSortButtonIcon(prevSort.field, null);
+                }
+
+                // Update icon for current column
+                updateSortButtonIcon(
+                    field,
+                    newSort?.field === field ? newSort.direction : null,
+                );
+
+                // Apply sort to DataView
+                applySortToDataView(newSort);
+
+                return newSort;
+            });
+        },
+        [applySortToDataView, updateSortButtonIcon],
+    );
+
+    // Store sort click handler in a ref for access in header cell renderer
+    const handleSortClickRef = useRef(handleSortClick);
+    useEffect(() => {
+        handleSortClickRef.current = handleSortClick;
+    }, [handleSortClick]);
+
     // Store filter state in ref for access in header cell renderer
     const filterStateRef = useRef(filterState);
     useEffect(() => {
@@ -208,12 +317,12 @@ export const Profiler: React.FC = () => {
         if (grid) {
             grid.onHeaderCellRendered.subscribe((_e, args) => {
                 const column = args.column;
-                // Only add filter button to filterable columns
+                // Only add sort/filter buttons to filterable columns
                 if (column.filterable === false) {
                     return;
                 }
 
-                // Check if filter class already added (button already exists)
+                // Check if filter class already added (buttons already exist)
                 if (args.node.classList.contains("slick-header-with-filter")) {
                     return;
                 }
@@ -239,7 +348,34 @@ export const Profiler: React.FC = () => {
                     args.node.classList.add("slick-header-column-filtered");
                 }
 
-                // Create filter button (same class as QueryResult for consistent styling)
+                // --- Sort button (appended FIRST, appears BEFORE filter icon) ---
+                const sortButton = document.createElement("button");
+                sortButton.className = "slick-header-sortbutton";
+                const currentSort = sortStateRef.current;
+                if (currentSort && currentSort.field === column.field) {
+                    if (currentSort.direction === SortDirection.ASC) {
+                        sortButton.classList.add("sorted-asc");
+                    } else if (currentSort.direction === SortDirection.DESC) {
+                        sortButton.classList.add("sorted-desc");
+                    }
+                }
+                sortButton.setAttribute(
+                    "aria-label",
+                    locConstants.profiler.sortTooltip,
+                );
+                sortButton.setAttribute("title", locConstants.profiler.sortTooltip);
+                sortButton.tabIndex = -1;
+
+                const sortFieldName = column.field as string;
+                sortButton.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleSortClickRef.current(sortFieldName);
+                });
+
+                args.node.appendChild(sortButton);
+
+                // --- Filter button (appended SECOND, appears AFTER sort icon) ---
                 const filterButton = document.createElement("button");
                 filterButton.id = "filter-btn";
                 filterButton.className = `slick-header-filterbutton${hasActiveFilter ? " filtered" : ""}`;
@@ -259,8 +395,12 @@ export const Profiler: React.FC = () => {
                 args.node.appendChild(filterButton);
             });
 
-            // Clean up filter buttons when header cell is destroyed
+            // Clean up sort and filter buttons when header cell is destroyed
             grid.onBeforeHeaderCellDestroy.subscribe((_e, args) => {
+                const sortButton = args.node.querySelector(".slick-header-sortbutton");
+                if (sortButton) {
+                    sortButton.remove();
+                }
                 const filterButton = args.node.querySelector(".slick-header-filterbutton");
                 if (filterButton) {
                     filterButton.remove();
@@ -318,6 +458,43 @@ export const Profiler: React.FC = () => {
         });
     }, [filterState]);
 
+    // Update sort button icons when sort state changes
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return;
+        }
+
+        const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
+        if (!headerContainer) {
+            return;
+        }
+
+        const gridColumns = grid.getColumns();
+        gridColumns.forEach((column) => {
+            const headerCell = headerContainer.querySelector(
+                `.slick-header-column[data-id="${column.id}"]`,
+            );
+            if (!headerCell) {
+                return;
+            }
+
+            const sortButton = headerCell.querySelector(".slick-header-sortbutton");
+            if (!sortButton) {
+                return;
+            }
+
+            sortButton.classList.remove("sorted-asc", "sorted-desc");
+            if (sortState && sortState.field === column.field) {
+                if (sortState.direction === SortDirection.ASC) {
+                    sortButton.classList.add("sorted-asc");
+                } else if (sortState.direction === SortDirection.DESC) {
+                    sortButton.classList.add("sorted-desc");
+                }
+            }
+        });
+    }, [sortState]);
+
     // Register notification handlers ONCE per webview lifecycle
     useEffect(() => {
         // Use module-level flag to absolutely prevent duplicate registrations
@@ -350,11 +527,18 @@ export const Profiler: React.FC = () => {
                         dataView.addItems(newRows);
                         dataView.endUpdate();
 
+                        // Re-sort if a sort is active so new rows are in the correct position
+                        const currentSort = sortStateRef.current;
+                        if (currentSort) {
+                            dataView.reSort();
+                        }
+
                         const newCount = dataView.getItemCount();
                         setLocalRowCount(newCount);
 
-                        // Auto-scroll if enabled
-                        if (autoScrollRef.current && grid) {
+                        // Auto-scroll if enabled (scroll to bottom for natural order,
+                        // or just stay at bottom when sorted — user scrolls manually)
+                        if (autoScrollRef.current && grid && !currentSort) {
                             grid.scrollRowToTop(newCount - 1);
                         }
                     }
@@ -410,6 +594,8 @@ export const Profiler: React.FC = () => {
             setLocalRowCount(0);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
+            // Reset sort — the data is being reloaded
+            setSortState(null);
         });
 
         // Handle rows removed notification (ring buffer overflow)
@@ -568,7 +754,9 @@ export const Profiler: React.FC = () => {
         if (!grid) {
             return;
         }
-        // Force re-render of headers to add filter buttons to new columns
+        // Reset sort when columns/view changes — sorted column may no longer exist
+        setSortState(null);
+        // Force re-render of headers to add sort + filter buttons to new columns
         const currentColumns = grid.getColumns();
         if (currentColumns.length > 0) {
             grid.setColumns(currentColumns);

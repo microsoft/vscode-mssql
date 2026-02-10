@@ -1264,6 +1264,7 @@
         "comment": ["{0} is the XEL file name"]
     },
     "Filter events by column values": "Filter events by column values",
+    "Sort column": "Sort column",
     "Clear all filters and show all events": "Clear all filters and show all events",
     "No filter is currently active": "No filter is currently active",
     "=": "=",
