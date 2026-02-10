@@ -3502,9 +3502,6 @@
     <trans-unit id="++CODE++8b16bd9dad67de61232d9a5b357dccd2799ad7405dc0f9626bf5937686e59061">
       <source xml:lang="en">No event selected</source>
     </trans-unit>
-    <trans-unit id="++CODE++e180bc8df0c35b5cc2ee9b7e4c128f5e0cc73343d325507cf7c49ab685c03c4d">
-      <source xml:lang="en">No filter clauses defined. Add a clause to filter events.</source>
-    </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>

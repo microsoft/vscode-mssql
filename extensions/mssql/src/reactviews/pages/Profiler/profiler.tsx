@@ -434,6 +434,47 @@ export const Profiler: React.FC = () => {
         );
     }, []);
 
+     // Handle row selection (click or keyboard navigation) to show details in the panel
+    const handleRowSelection = useCallback(
+        (rowIndex: number) => {
+            if (!reactGridRef.current?.dataView) {
+                return;
+            }
+
+            const dataView = reactGridRef.current.dataView;
+            const item = dataView.getItem(rowIndex);
+
+            if (item && item.id) {
+                selectRow(item.id);
+            }
+        },
+        [selectRow],
+    );
+
+    // Handle row click to show details in the panel
+    const handleRowClick = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
+
+    // Handle active cell change (keyboard navigation) to show details in the panel
+    const handleActiveCellChanged = useCallback(
+        (event: CustomEvent) => {
+            const args = event.detail?.args;
+            if (!args || args.row === undefined || args.row === null) {
+                return;
+            }
+            handleRowSelection(args.row);
+        },
+        [handleRowSelection],
+    );
+
     /**
      * Handles closing the popover without applying.
      */
