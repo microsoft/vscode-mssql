@@ -30,12 +30,6 @@ const useStyles = makeStyles({
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-    const isDabEnabled = context?.state?.enableDAB ?? false;
-
-    if (!isDabEnabled) {
-        return <></>;
-    }
-
     return (
         <Tooltip
             content={locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}
