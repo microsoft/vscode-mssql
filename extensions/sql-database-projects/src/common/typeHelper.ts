@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from 'mssql';
-import * as vscodeMssql from 'vscode-mssql';
+import * as mssql from "mssql";
+import * as vscodeMssql from "vscode-mssql";
 
 export type ProjectType = mssql.ProjectType | vscodeMssql.ProjectType;
 export type GetScriptsResult = mssql.GetScriptsResult | vscodeMssql.GetScriptsResult;
