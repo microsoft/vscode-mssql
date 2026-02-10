@@ -145,6 +145,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
+                tsconfigRootDir: __dirname,
                 project: [
                     "./extensions/mssql/tsconfig.extension.json",
                     "./extensions/mssql/tsconfig.react.json",
@@ -183,6 +184,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
+                tsconfigRootDir: __dirname,
                 project: "./extensions/data-workspace/tsconfig.json",
             },
         },
@@ -212,6 +214,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
+                tsconfigRootDir: __dirname,
                 project: "./extensions/sql-database-projects/tsconfig.extension.json",
             },
         },

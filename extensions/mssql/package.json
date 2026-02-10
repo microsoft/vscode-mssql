@@ -63,7 +63,7 @@
         "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
         "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
         "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle",
-        "lint": "eslint --quiet --cache ./src ./test",
+        "lint": "node ../../node_modules/eslint/bin/eslint.js --quiet --cache ./src ./test",
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "yarn instrument && yarn e2eTest",

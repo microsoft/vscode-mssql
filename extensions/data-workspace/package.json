@@ -38,7 +38,7 @@
         "compile": "yarn build",
         "watch:extension": "tsc -watch -p tsconfig.json --preserveWatchOutput",
         "watch": "yarn build:prepare && run-p -l watch:extension",
-        "lint": "eslint ./src",
+        "lint": "node ../../node_modules/eslint/bin/eslint.js ./src",
         "localization:extract": "node ../../scripts/localization-extract.js data-workspace",
         "localization:generate": "node ../../scripts/localization-generate.js data-workspace .",
         "localization": "yarn localization:extract",
