@@ -20,6 +20,8 @@ steps:
 
   - template: ./templates/build-data-workspace.yml@self
 
+  - template: ./templates/build-mssql-database-management-keybindings.yml@self
+
   - task: PublishPipelineArtifact@1
     displayName: Publish artifacts
     inputs:

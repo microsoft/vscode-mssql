@@ -128,6 +128,12 @@ jobs:
           cd extensions/data-workspace
           vsce package
 
+      - name: Keybindings - Package extension
+        continue-on-error: true
+        run: |
+          cd extensions/mssql-database-management-keybindings
+          vsce package
+
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v6
         with:
@@ -145,6 +151,12 @@ jobs:
         with:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
+
+      - name: Keybindings - Upload VSIX files
+        uses: actions/upload-artifact@v6
+        with:
+          name: keybindings-vsix
+          path: ./extensions/mssql-database-management-keybindings/*.vsix
 
       - name: Setting up change icons
         if: env.should_compare_baseline == 'true'
