@@ -9,7 +9,7 @@ import {
     AddFirewallRuleContextProps,
     AddFirewallRuleReducers,
     AddFirewallRuleState,
-} from "../../../../src/sharedInterfaces/addFirewallRule";
+} from "../../../sharedInterfaces/addFirewallRule";
 import { getCoreRPCs2 } from "../../common/utils";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
