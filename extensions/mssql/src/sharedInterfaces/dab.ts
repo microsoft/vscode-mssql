@@ -216,21 +216,21 @@ export namespace Dab {
      * Entity reference for DAB tool operations.
      * Exactly one form is supported: id OR schemaName+tableName.
      */
-    export type DABEntityRef = { id: string } | { schemaName: string; tableName: string };
+    export type DabEntityRef = { id: string } | { schemaName: string; tableName: string };
 
-    export type DABEntitySettingsPatch = Partial<
+    export type DabEntitySettingsPatch = Partial<
         Omit<EntityAdvancedSettings, "customRestPath" | "customGraphQLType">
     > & {
         customRestPath?: string | null;
         customGraphQLType?: string | null;
     };
 
-    export type DABToolChange =
+    export type DabToolChange =
         | { type: "set_api_types"; apiTypes: ApiType[] }
-        | { type: "set_entity_enabled"; entity: DABEntityRef; isEnabled: boolean }
-        | { type: "set_entity_actions"; entity: DABEntityRef; actions: EntityAction[] }
-        | { type: "patch_entity_settings"; entity: DABEntityRef; set: DABEntitySettingsPatch }
-        | { type: "set_only_enabled_entities"; entities: DABEntityRef[] }
+        | { type: "set_entity_enabled"; entity: DabEntityRef; isEnabled: boolean }
+        | { type: "set_entity_actions"; entity: DabEntityRef; actions: EntityAction[] }
+        | { type: "patch_entity_settings"; entity: DabEntityRef; set: DabEntitySettingsPatch }
+        | { type: "set_only_enabled_entities"; entities: DabEntityRef[] }
         | { type: "set_all_entities_enabled"; isEnabled: boolean };
 
     export interface DabToolSummary {
@@ -255,7 +255,7 @@ export namespace Dab {
 
     export interface ApplyDabToolChangesParams {
         expectedVersion: string;
-        changes: DABToolChange[];
+        changes: DabToolChange[];
         options?: {
             returnState?: "full" | "summary" | "none";
         };

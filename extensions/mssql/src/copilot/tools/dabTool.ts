@@ -12,9 +12,10 @@ import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesi
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { Dab } from "../../sharedInterfaces/dab";
+import { matchesStrictTargetHint } from "./toolsUtils";
 
 interface TargetHint {
-    server?: string;
+    server: string;
     database: string;
 }
 
@@ -27,7 +28,7 @@ export type DabToolParams =
           payload: {
               expectedVersion: string;
               targetHint?: TargetHint;
-              changes: Dab.DABToolChange[];
+              changes: Dab.DabToolChange[];
           };
           options?: {
               returnState?: "full" | "summary" | "none";
@@ -128,7 +129,7 @@ export class DabTool extends ToolBase<DabToolParams> {
             };
         };
 
-        const countChanges = (changes: Dab.DABToolChange[]): DabToolChangeCounts => {
+        const countChanges = (changes: Dab.DabToolChange[]): DabToolChangeCounts => {
             const counts: DabToolChangeCounts = {
                 set_api_types_count: 0,
                 set_entity_enabled_count: 0,
@@ -172,24 +173,6 @@ export class DabTool extends ToolBase<DabToolParams> {
             setOnlyEnabledEntitiesCount: counts.set_only_enabled_entities_count,
             setAllEntitiesEnabledCount: counts.set_all_entities_enabled_count,
         });
-
-        const normalize = (value: string | undefined) => (value ?? "").trim().toLowerCase();
-        const matchesTargetHint = (
-            designer: SchemaDesignerWebviewController,
-            targetHint: TargetHint,
-        ): boolean => {
-            if (normalize(designer.database) !== normalize(targetHint.database)) {
-                return false;
-            }
-
-            const targetHintServer = targetHint.server?.trim();
-            const activeServer = designer.server?.trim();
-            if (targetHintServer && activeServer) {
-                return normalize(activeServer) === normalize(targetHintServer);
-            }
-
-            return true;
-        };
 
         try {
             const activeDesigner = schemaDesignerManager.getActiveDesigner();
@@ -268,7 +251,13 @@ export class DabTool extends ToolBase<DabToolParams> {
 
             const changeCounts = countChanges(changes);
             const targetHint = options.input.payload?.targetHint;
-            if (targetHint && !matchesTargetHint(activeDesigner, targetHint)) {
+            if (
+                targetHint &&
+                !matchesStrictTargetHint(
+                    { server: activeDesigner.server, database: activeDesigner.database },
+                    targetHint,
+                )
+            ) {
                 const err: DabToolError = {
                     success: false,
                     reason: "target_mismatch",

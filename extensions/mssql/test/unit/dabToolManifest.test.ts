@@ -79,6 +79,19 @@ suite("DAB LM tool manifest schema", () => {
         expect(payload.properties?.changes?.minItems).to.equal(1);
     });
 
+    test("validates targetHint requires both server and database when provided", () => {
+        const tool = getTool();
+        const rootOneOf = tool.inputSchema?.oneOf ?? undefined;
+        const applyChanges = rootOneOf.find(
+            (variant: any) => variant?.properties?.operation?.enum?.[0] === "apply_changes",
+        );
+        expect(applyChanges, "missing apply_changes oneOf variant").to.exist;
+
+        const targetHintRequired =
+            applyChanges.properties?.payload?.properties?.targetHint?.required ?? [];
+        expect(targetHintRequired.slice().sort()).to.deep.equal(["database", "server"]);
+    });
+
     test("enforces additionalProperties: false on root/payload/options/change schemas", () => {
         const tool = getTool();
         const rootOneOf = tool.inputSchema?.oneOf ?? undefined;

@@ -142,6 +142,35 @@ suite("DabTool Tests", () => {
             expect(mockDesigner.showDabView.called).to.equal(false);
         });
 
+        test("enforces strict targetHint match when active server is missing", async () => {
+            const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
+            sandbox.stub(mockDesigner as any, "server").get(() => undefined);
+            sandbox.stub(mockDesigner as any, "database").get(() => "AdventureWorks");
+
+            const managerStub = {
+                getActiveDesigner: sandbox.stub().returns(mockDesigner),
+            };
+            sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns(managerStub as any);
+
+            const options = {
+                input: {
+                    operation: "apply_changes",
+                    payload: {
+                        expectedVersion: "dabcfg_abc",
+                        targetHint: { server: "localhost", database: "AdventureWorks" },
+                        changes: [{ type: "set_all_entities_enabled", isEnabled: false }],
+                    },
+                },
+            } as vscode.LanguageModelToolInvocationOptions<DabToolParams>;
+
+            const parsed = JSON.parse(await dabTool.call(options, mockToken));
+            expect(parsed.success).to.equal(false);
+            expect(parsed.reason).to.equal("target_mismatch");
+            expect(mockDesigner.applyDabToolChanges.called).to.equal(false);
+            expect(mockDesigner.revealToForeground.called).to.equal(false);
+            expect(mockDesigner.showDabView.called).to.equal(false);
+        });
+
         test("accepts case-insensitive targetHint match and applies changes", async () => {
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             sandbox.stub(mockDesigner as any, "server").get(() => "LocalHost");

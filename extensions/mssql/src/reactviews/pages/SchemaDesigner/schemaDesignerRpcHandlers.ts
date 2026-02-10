@@ -1236,7 +1236,7 @@ function getDuplicateEntityName(config: Dab.DabConfig): string | undefined {
 
 function resolveEntityRef(
     config: Dab.DabConfig,
-    entityRef: Dab.DABEntityRef,
+    entityRef: Dab.DabEntityRef,
 ):
     | { success: true; entity: Dab.DabEntityConfig; index: number }
     | { success: false; reason: DabApplyFailureReason; message: string } {
@@ -1301,7 +1301,7 @@ function resolveEntityRef(
 
 function applyDabToolChange(
     config: Dab.DabConfig,
-    change: Dab.DABToolChange,
+    change: Dab.DabToolChange,
 ): { success: true } | { success: false; reason: DabApplyFailureReason; message: string } {
     const allowedApiTypes = new Set<Dab.ApiType>(Object.values(Dab.ApiType));
     const allowedActions = new Set<Dab.EntityAction>(Object.values(Dab.EntityAction));
