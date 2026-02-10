@@ -9,7 +9,7 @@ import * as fs from "fs";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
-import { SessionType, SessionState, EngineType } from "./profilerTypes";
+import { SessionType, SessionState, EngineType, XelFileInfo } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
