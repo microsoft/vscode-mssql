@@ -618,16 +618,16 @@ export class ProjectsController {
 	}
 
 	/**
-	 * Builds and publishes a project using the Publish Dialog
+	 * Builds and publishes a project
 	 * @param treeNode a treeItem in a project's hierarchy, to be used to obtain a Project
 	 */
-	public async publishProjectDialog(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+	public async publishProject(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
 	/**
-	 * Builds and publishes a project using the Publish Dialog
+	 * Builds and publishes a project
 	 * @param project Project to be built and published
 	 */
-	public async publishProjectDialog(project: Project): Promise<void>;
-	public async publishProjectDialog(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
+	public async publishProject(project: Project): Promise<void>;
+	public async publishProject(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
 		const project: Project = await this.getProjectFromContext(context);
 		return await vscode.commands.executeCommand(constants.mssqlPublishProjectCommand, project.projectFilePath);
 	}
