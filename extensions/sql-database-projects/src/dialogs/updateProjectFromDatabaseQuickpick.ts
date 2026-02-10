@@ -40,7 +40,7 @@ export async function UpdateProjectFromDatabaseWithQuickpick(
         // User cancelled
         return undefined;
     }
-    let connectionUri: string = "";
+    let connectionUri = "";
     let dbs: string[] | undefined = undefined;
 
     // Prompt 1b. Select database (if not already specified in connection profile)

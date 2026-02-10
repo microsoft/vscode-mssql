@@ -29,7 +29,7 @@ export async function runDockerStep(
  * Checks if the last step in the Docker deployment process is loaded.
  * @param state The context containing the state of the Docker deployment.
  * @param lastStep The index of the last step to check.
- * @return {boolean} True if the last step is loaded, false otherwise.
+ * @return True if the last step is loaded, false otherwise.
  */
 export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number): boolean {
     const localContainersState = state.state.deploymentTypeState as LocalContainersState;
@@ -39,7 +39,7 @@ export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number
 /**
  * Checks if the current Docker step has errored.
  * @param state The context containing the state of the Docker deployment.
- * @return {boolean} True if the current step has errored, false otherwise.
+ * @return True if the current step has errored, false otherwise.
  */
 export function checkStepErrored(state: DeploymentContextProps): boolean {
     const localContainersState = state.state.deploymentTypeState as LocalContainersState;

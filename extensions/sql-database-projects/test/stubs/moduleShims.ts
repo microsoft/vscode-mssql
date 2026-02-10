@@ -91,7 +91,6 @@ function createSqlToolsShim(name: string): AnyObject {
 }
 
 function createAzdataShim(): AnyObject {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const azdata = require("@microsoft/azdata-test/out/stubs/azdata") as AnyObject;
 
     azdata.TaskExecutionMode = azdata.TaskExecutionMode ?? { execute: "execute", script: "script" };
@@ -124,7 +123,6 @@ function createModuleOverrides(): Record<string, AnyObject> {
 }
 
 export function installModuleShims(): void {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mod: AnyObject = require("module");
 
     if ((globalThis as AnyObject)[globalShimFlag]) {
