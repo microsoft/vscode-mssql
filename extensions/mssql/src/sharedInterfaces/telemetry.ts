@@ -163,6 +163,7 @@ export enum TelemetryActions {
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
     SchemaDesignerTool = "SchemaDesignerTool",
+    DabTool = "DabTool",
     SaveConnectionGroup = "SaveConnectionGroup",
     DragAndDrop = "DragAndDrop",
     ExportToImage = "ExportToImage",
