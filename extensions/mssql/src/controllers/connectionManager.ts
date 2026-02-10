@@ -1519,10 +1519,14 @@ export default class ConnectionManager {
             ),
         );
         sendActionEvent(
-            TelemetryViews.ConnectionPrompt,
+            TelemetryViews.ConnectionManager,
             TelemetryActions.CreateConnectionResult,
-            undefined,
-            undefined,
+            {
+                connectedEngineEditionId: String(result.serverInfo.engineEditionId),
+            },
+            {
+                connectedEngineEditionId: result.serverInfo.engineEditionId,
+            },
             newCredentials as IConnectionProfile,
             result.serverInfo,
         );
