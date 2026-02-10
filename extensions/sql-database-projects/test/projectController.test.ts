@@ -764,12 +764,16 @@ suite('ProjectsController', function (): void {
 
 				const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
 
-				const projController = new ProjectsController(testContext.outputChannel);
-				await projController.publishProject(proj);
+				try {
+					const projController = new ProjectsController(testContext.outputChannel);
+					await projController.publishProject(proj);
 
-				expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
-				expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
-				expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
+					expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
+					expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
+					expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
+				} finally {
+					executeCommandStub.restore();
+				}
 			});
 		});
 	});
