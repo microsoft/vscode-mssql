@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, MessageBar, MessageBarBody } from "@fluentui/react-components";
+import {
+    Button,
+    makeStyles,
+    MessageBar,
+    MessageBarBody,
+    Spinner,
+} from "@fluentui/react-components";
 import { ReactNode } from "react";
 
 const useStyles = makeStyles({
@@ -41,6 +47,11 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
         lineHeight: "20px",
     },
+    loadingMessageBody: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
     footer: {
         position: "sticky",
         bottom: 0,
@@ -64,9 +75,10 @@ const useStyles = makeStyles({
 });
 
 export interface ObjectManagementDialogProps {
-    title: string;
+    title?: string;
     description?: string;
     errorMessage?: string;
+    loadingMessage?: string;
     primaryLabel: string;
     cancelLabel: string;
     helpLabel?: string;
@@ -84,6 +96,7 @@ export const ObjectManagementDialog = ({
     title,
     description,
     errorMessage,
+    loadingMessage,
     primaryLabel,
     cancelLabel,
     helpLabel,
@@ -101,13 +114,25 @@ export const ObjectManagementDialog = ({
     return (
         <div className={styles.page} aria-label={title}>
             <div className={styles.content}>
-                <div className={styles.header}>
-                    <div className={styles.title}>{title}</div>
-                    {description && <div className={styles.description}>{description}</div>}
-                </div>
+                {title || description ? (
+                    <div className={styles.header}>
+                        {title && <div className={styles.title}>{title}</div>}
+                        {description && <div className={styles.description}>{description}</div>}
+                    </div>
+                ) : null}
                 {errorMessage && (
                     <MessageBar intent={"error"}>
                         <MessageBarBody>{errorMessage}</MessageBarBody>
+                    </MessageBar>
+                )}
+                {loadingMessage && (
+                    <MessageBar intent={"info"}>
+                        <MessageBarBody>
+                            <div className={styles.loadingMessageBody}>
+                                <Spinner size="tiny" />
+                                <span>{loadingMessage}</span>
+                            </div>
+                        </MessageBarBody>
                     </MessageBar>
                 )}
                 {children}

@@ -15,6 +15,8 @@ const isWatch = args.includes("--watch") || args.includes("-w");
 const config = {
     entryPoints: {
         addFirewallRule: "src/reactviews/pages/AddFirewallRule/index.tsx",
+        backupDatabaseDialog:
+            "src/reactviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
         connectionDialog: "src/reactviews/pages/ConnectionDialog/index.tsx",
         connectionGroup: "src/reactviews/pages/ConnectionGroup/index.tsx",
         DacpacDialog: "src/reactviews/pages/DacpacDialog/index.tsx",
@@ -32,6 +34,7 @@ const config = {
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
+        profiler: "src/reactviews/pages/Profiler/index.tsx",
         azureDataStudioMigration: "src/reactviews/pages/AzureDataStudioMigration/index.tsx",
     },
     bundle: true,

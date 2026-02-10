@@ -15,6 +15,7 @@ import {
     RenameObjectRequest,
     DropDatabaseRequest,
     ObjectManagementSqlObject,
+    BackupConfigInfoRequest,
 } from "../../src/models/contracts/objectManagement";
 
 suite("ObjectManagementService Tests", () => {
@@ -149,5 +150,23 @@ suite("ObjectManagementService Tests", () => {
             deleteBackupHistory: false,
             generateScript: true,
         });
+    });
+
+    test("getBackupConfigInfo returns backup config info", async () => {
+        sqlToolsClientStub.sendRequest
+            .withArgs(BackupConfigInfoRequest.type, sinon.match.any)
+            .resolves(true);
+
+        const result = await objectManagementService.getBackupConfigInfo("ownerUri");
+
+        expect(result).to.equal(true);
+    });
+
+    test("backupDatabase returns backup response", async () => {
+        sqlToolsClientStub.sendRequest.withArgs(sinon.match.any, sinon.match.any).resolves(true);
+
+        const result = await objectManagementService.backupDatabase("ownerUri", {} as any, 0);
+
+        expect(result).to.equal(true);
     });
 });

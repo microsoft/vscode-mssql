@@ -101,6 +101,11 @@ export interface SearchableDropdownProps {
     clearable?: boolean;
 
     /**
+     * If true, shows placeholder text when no option is selected instead of auto-selecting the first option.
+     */
+    showPlaceholder?: boolean;
+
+    /**
      * Minimum width for the dropdown popup surface.
      * Defaults to 150px; set disableMinPopupWidth to true to turn off.
      */
@@ -479,9 +484,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, []);
 
     useEffect(() => {
-        const fallbackOption = props.options[0] ?? { value: "" };
+        // If showPlaceholder is true, use empty value to show placeholder; otherwise fall back to first option
+        const fallbackOption = props.showPlaceholder
+            ? { value: "" }
+            : (props.options[0] ?? { value: "" });
         setSelectedOption(props.selectedOption ?? fallbackOption);
-    }, [props.selectedOption, props.options]);
+    }, [props.selectedOption, props.options, props.showPlaceholder]);
 
     useEffect(() => {
         if (!isOpen) {

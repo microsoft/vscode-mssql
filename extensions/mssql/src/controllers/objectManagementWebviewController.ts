@@ -9,21 +9,27 @@ import {
     ObjectManagementActionResult,
     ObjectManagementCancelNotification,
     ObjectManagementDialogType,
+    ObjectManagementFormItemSpec,
+    ObjectManagementFormState,
     ObjectManagementHelpNotification,
+    ObjectManagementReducers,
     ObjectManagementScriptRequest,
     ObjectManagementSubmitRequest,
     ObjectManagementWebviewState,
 } from "../sharedInterfaces/objectManagement";
-import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementService } from "../services/objectManagementService";
 import { generateGuid } from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
+import { FormWebviewController } from "../forms/formWebviewController";
+import { FormItemSpec } from "../sharedInterfaces/form";
 
-export abstract class ObjectManagementWebviewController extends ReactWebviewPanelController<
+export abstract class ObjectManagementWebviewController extends FormWebviewController<
+    ObjectManagementFormState,
     ObjectManagementWebviewState,
-    void,
+    ObjectManagementFormItemSpec,
+    ObjectManagementReducers,
     string
 > {
     protected readonly contextId = generateGuid();
@@ -35,12 +41,28 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
     protected readonly parentUrn?: string;
     protected readonly objectUrn?: string;
 
+    /**
+     * Constructor for ObjectManagementWebviewController
+     * @param context extension context
+     * @param vscodeWrapper vscode wrapper instance
+     * @param objectManagementService object management service instance
+     * @param dialogType type of the dialog
+     * @param dialogTitle title of the dialog
+     * @param webviewTitle title of the webview tab
+     * @param sourceFile source file path
+     * @param connectionUri connection URI
+     * @param serverName server name
+     * @param databaseName database name
+     * @param parentUrn parent URN
+     * @param objectUrn object URN
+     */
     protected constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         dialogType: ObjectManagementDialogType,
         dialogTitle: string,
+        webviewTitle: string,
         sourceFile: string,
         connectionUri: string,
         serverName: string,
@@ -59,9 +81,21 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
                 },
                 isLoading: true,
                 dialogTitle,
+
+                // Initial empty form state
+                formState: {} as ObjectManagementFormState,
+                formComponents: {},
+                formErrors: [],
+
+                // Empty file browser state
+                ownerUri: connectionUri,
+                fileFilterOptions: [],
+                fileBrowserState: undefined,
+                defaultFileBrowserExpandPath: "",
+                dialog: undefined,
             },
             {
-                title: dialogTitle,
+                title: webviewTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
@@ -89,6 +123,7 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
     protected abstract handleScript(
         params: ObjectManagementActionParams["params"],
     ): Promise<ObjectManagementActionResult>;
+
     protected abstract get helpLink(): string;
 
     protected start(): void {
@@ -166,5 +201,25 @@ export abstract class ObjectManagementWebviewController extends ReactWebviewPane
         this.onNotification(ObjectManagementHelpNotification.type, () => {
             void this.vscodeWrapper.openExternal(this.helpLink);
         });
+    }
+
+    async updateItemVisibility() {}
+
+    protected getActiveFormComponents(
+        state: ObjectManagementWebviewState,
+    ): (keyof ObjectManagementFormState)[] {
+        return Object.keys(state.formComponents) as (keyof ObjectManagementFormState)[];
+    }
+
+    // This can be overridden by subclasses to provide form components
+    protected setFormComponents(): Record<
+        string,
+        FormItemSpec<
+            ObjectManagementFormState,
+            ObjectManagementWebviewState,
+            ObjectManagementFormItemSpec
+        >
+    > {
+        return {};
     }
 }
