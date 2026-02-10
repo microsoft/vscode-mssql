@@ -92,6 +92,7 @@ import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
+import { DabTool } from "../copilot/tools/dabTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -814,6 +815,11 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             ),
+        );
+
+        // Register mssql_dab tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
         );
     }
 
