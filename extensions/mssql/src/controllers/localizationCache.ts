@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { getErrorMessage } from "../utils/utils";
 
 let localizationFileCache: string | undefined;
 let localizationFileReadPromise: Promise<string | undefined> | undefined;
@@ -22,6 +23,7 @@ export async function getLocalizationFileContentsCached(): Promise<string | unde
     }
 
     if (!vscode.l10n.uri) {
+        // No localization; running in English locale.
         return undefined;
     }
 
@@ -31,6 +33,9 @@ export async function getLocalizationFileContentsCached(): Promise<string | unde
             const fileContents = Buffer.from(file).toString();
             localizationFileCache = fileContents;
             return fileContents;
+        } catch (err) {
+            console.error("Error reading localization file:", getErrorMessage(err));
+            throw err;
         } finally {
             localizationFileReadPromise = undefined;
         }

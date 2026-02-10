@@ -131,7 +131,7 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                     targetDatabaseName: targetDatabaseName,
                 });
             },
-            publishChanges: function (targetDatabaseName: string, targetServerName: string) {
+            publishChanges: function (targetServerName: string, targetDatabaseName: string) {
                 extensionRpc.action("publishChanges", {
                     targetServerName: targetServerName,
                     targetDatabaseName: targetDatabaseName,
