@@ -1252,7 +1252,7 @@
     <trans-unit id="sqlDatabaseProjects.properties">
       <source xml:lang="en">Properties</source>
     </trans-unit>
-    <trans-unit id="sqlDatabaseProjects.publishDialog">
+    <trans-unit id="sqlDatabaseProjects.publish">
       <source xml:lang="en">Publish</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.rename">
