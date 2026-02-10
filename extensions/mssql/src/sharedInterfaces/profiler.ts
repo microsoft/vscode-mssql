@@ -5,13 +5,21 @@
 
 import { NotificationType } from "vscode-jsonrpc";
 import { ProfilerEvent } from "../models/contracts/profiler";
-import { SessionState, FilterClause, FilterState, FilterOperator } from "../profiler/profilerTypes";
+import {
+    SessionState,
+    FilterClause,
+    FilterState,
+    FilterOperator,
+    FilterType,
+    FilterTypeHint,
+    ColumnDataType,
+} from "../profiler/profilerTypes";
 
 // Re-export ProfilerEvent for convenience
 export type { ProfilerEvent };
 
 // Re-export types for convenience
-export { SessionState, FilterOperator };
+export { SessionState, FilterOperator, FilterType, FilterTypeHint, ColumnDataType };
 export type { FilterClause, FilterState };
 
 /**
@@ -20,9 +28,10 @@ export type { FilterClause, FilterState };
 export const SESSION_NAME_MAX_LENGTH = 50;
 
 /**
- * Data type for a column - determines filtering behavior
+ * Data type for a column - determines filtering behavior.
+ * Uses the same values as ColumnDataType enum.
  */
-export type ColumnType = "string" | "number" | "datetime";
+export type ColumnType = `${ColumnDataType}`;
 
 /**
  * Column definition for the profiler grid (shared between extension and webview)
@@ -40,6 +49,15 @@ export interface ProfilerColumnDef {
     sortable?: boolean;
     /** Whether the column is filterable */
     filterable?: boolean;
+    /**
+     * Filter type for the column: determines the filter UI and available operators.
+     * - "categorical": show a searchable checkbox list of distinct values (e.g., EventClass, DatabaseName)
+     * - "text": show text operator input (contains/starts with/ends with) for long text (e.g., TextData)
+     * - "numeric": show numeric operator input for number columns
+     * - "date": show date/time operator input for datetime columns
+     * Defaults to "text" if not specified.
+     */
+    filterType?: FilterType;
 }
 
 /**
@@ -170,8 +188,12 @@ export interface ProfilerReducers {
     applyFilter: {
         clauses: FilterClause[];
     };
-    /** Clear all filter clauses */
+    /** Clear all filter clauses and quick filter */
     clearFilter: Record<string, never>;
+    /** Set quick filter term (cross-column search) */
+    setQuickFilter: {
+        term: string;
+    };
 }
 
 /**

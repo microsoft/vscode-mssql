@@ -21,6 +21,13 @@ export class FilteredBuffer<T extends IndexedRow> {
     private _buffer: RingBuffer<T>;
     private _clauses: FilterClause[] = [];
     private _enabled: boolean = false;
+    private _quickFilter: string | undefined;
+
+    /**
+     * Optional function to convert raw buffer rows to a different shape
+     * before applying filters. When set, filters operate on the converted rows.
+     */
+    private _rowConverter: ((row: T) => Record<string, unknown>) | undefined;
 
     /**
      * Creates a new FilteredBuffer wrapping the given RingBuffer.
@@ -38,9 +45,19 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Gets whether filtering is currently enabled.
+     * Gets whether any filtering is currently active (column filters or quick filter).
      */
     get isFilterActive(): boolean {
+        return (
+            (this._enabled && this._clauses.length > 0) ||
+            (this._quickFilter !== undefined && this._quickFilter.trim() !== "")
+        );
+    }
+
+    /**
+     * Gets whether column-level filtering (clauses) is active.
+     */
+    get isClauseFilterActive(): boolean {
         return this._enabled && this._clauses.length > 0;
     }
 
@@ -52,6 +69,13 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
+     * Gets the current quick filter term.
+     */
+    get quickFilter(): string | undefined {
+        return this._quickFilter;
+    }
+
+    /**
      * Gets the total number of items in the underlying buffer (unfiltered count).
      */
     get totalCount(): number {
@@ -59,7 +83,7 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Gets the number of items that match the current filter.
+     * Gets the number of items that match the current filter (column + quick).
      * Returns total count if no filter is active.
      */
     get filteredCount(): number {
@@ -79,8 +103,9 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Clears all filter clauses and disables filtering.
-     * After clearing, all events in the buffer become visible.
+     * Clears all filter clauses and disables clause filtering.
+     * Does NOT clear quick filter — use clearQuickFilter() or clearAllFilters() for that.
+     * After clearing, all events in the buffer become visible (if no quick filter).
      */
     clearFilter(): void {
         this._clauses = [];
@@ -88,7 +113,39 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
-     * Enables or disables the filter without changing clauses.
+     * Sets the quick filter term (cross-column case-insensitive contains search).
+     * An empty/whitespace-only term disables quick filtering.
+     */
+    setQuickFilter(term: string | undefined): void {
+        this._quickFilter = term && term.trim() !== "" ? term : undefined;
+    }
+
+    /**
+     * Clears the quick filter.
+     */
+    clearQuickFilter(): void {
+        this._quickFilter = undefined;
+    }
+
+    /**
+     * Clears both column filters and the quick filter.
+     */
+    clearAllFilters(): void {
+        this.clearFilter();
+        this.clearQuickFilter();
+    }
+
+    /**
+     * Sets an optional row converter function.
+     * When set, rows are converted before filters are evaluated.
+     * This allows filtering on view-level column names instead of raw event fields.
+     */
+    setRowConverter(converter: ((row: T) => Record<string, unknown>) | undefined): void {
+        this._rowConverter = converter;
+    }
+
+    /**
+     * Enables or disables the clause filter without changing clauses.
      */
     setEnabled(enabled: boolean): void {
         this._enabled = enabled;
@@ -97,13 +154,98 @@ export class FilteredBuffer<T extends IndexedRow> {
     /**
      * Gets all rows that match the current filter.
      * Returns all rows if no filter is active.
+     * When a row converter is set, filters operate on converted rows.
      */
     getFilteredRows(): T[] {
         const allRows = this._buffer.getAllRows();
         if (!this.isFilterActive) {
             return allRows;
         }
-        return allRows.filter((row) => this.evaluateRow(row));
+
+        const hasClauseFilter = this._enabled && this._clauses.length > 0;
+        const hasQuickFilter = this._quickFilter !== undefined && this._quickFilter.trim() !== "";
+
+        return allRows.filter((row) => {
+            const targetRow = this._rowConverter ? (this._rowConverter(row) as T) : row;
+
+            if (hasClauseFilter && !this.evaluateRow(targetRow)) {
+                return false;
+            }
+            if (hasQuickFilter && !this.matchesQuickFilter(targetRow, this._quickFilter!)) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Gets the count of rows that match the current filter (column + quick).
+     * When a row converter is set, filters operate on converted rows.
+     * More efficient than getFilteredRows().length when you only need the count.
+     */
+    getFilteredCount(): number {
+        if (!this.isFilterActive) {
+            return this._buffer.size;
+        }
+        return this.getFilteredRows().length;
+    }
+
+    /**
+     * Gets converted and filtered rows for the grid, applying both column filters
+     * and quick filter, then slicing for pagination.
+     * When a row converter is set, returns converted rows (not raw buffer rows).
+     * @param startIndex - Starting index in the filtered result set
+     * @param count - Maximum number of rows to return
+     * @returns Object with rows, startIndex, and totalCount
+     */
+    getConvertedFilteredRange(
+        startIndex: number,
+        count: number,
+    ): { rows: Record<string, unknown>[]; startIndex: number; totalCount: number } {
+        const allRows = this._buffer.getAllRows();
+
+        const hasClauseFilter = this._enabled && this._clauses.length > 0;
+        const hasQuickFilter = this._quickFilter !== undefined && this._quickFilter.trim() !== "";
+
+        let convertedFiltered: Record<string, unknown>[];
+
+        if (!hasClauseFilter && !hasQuickFilter) {
+            // No filters — convert all rows
+            convertedFiltered = this._rowConverter
+                ? allRows.map((row) => this._rowConverter!(row))
+                : (allRows as unknown as Record<string, unknown>[]);
+        } else {
+            // Filter after converting
+            convertedFiltered = [];
+            for (const row of allRows) {
+                const converted = this._rowConverter
+                    ? this._rowConverter(row)
+                    : (row as unknown as Record<string, unknown>);
+
+                if (hasClauseFilter && !this.evaluateRow(converted as T)) {
+                    continue;
+                }
+                if (
+                    hasQuickFilter &&
+                    !this.matchesQuickFilter(converted as T, this._quickFilter!)
+                ) {
+                    continue;
+                }
+                convertedFiltered.push(converted);
+            }
+        }
+
+        const totalCount = convertedFiltered.length;
+        if (startIndex >= totalCount) {
+            return { rows: [], startIndex, totalCount };
+        }
+
+        const endIndex = Math.min(startIndex + count, totalCount);
+        return {
+            rows: convertedFiltered.slice(startIndex, endIndex),
+            startIndex,
+            totalCount,
+        };
     }
 
     /**
@@ -131,6 +273,31 @@ export class FilteredBuffer<T extends IndexedRow> {
             return true;
         }
         return this.evaluateRow(row);
+    }
+
+    /**
+     * Tests if a row matches the quick filter (cross-column OR, case-insensitive contains).
+     * Returns true if any column value contains the search term.
+     * Skips internal fields like 'id' and 'eventNumber'.
+     * @param row - The row to test
+     * @param quickFilter - The search term
+     */
+    matchesQuickFilter(row: T, quickFilter: string): boolean {
+        if (!quickFilter || quickFilter.trim() === "") {
+            return true;
+        }
+        const term = quickFilter.toLowerCase();
+        for (const key of Object.keys(row as Record<string, unknown>)) {
+            if (key === "id" || key === "eventNumber") {
+                continue;
+            }
+            const val = (row as Record<string, unknown>)[key];
+            // eslint-disable-next-line eqeqeq
+            if (val != undefined && String(val).toLowerCase().includes(term)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -197,6 +364,19 @@ export class FilteredBuffer<T extends IndexedRow> {
                 }
                 return !this.evaluateStartsWith(fieldValue, clause.value);
 
+            case FilterOperator.EndsWith:
+                return this.evaluateEndsWith(fieldValue, clause.value);
+
+            case FilterOperator.NotEndsWith:
+                // If field is null/missing, treat as "does not end with" => returns true
+                if (this.isNullOrUndefined(fieldValue)) {
+                    return true;
+                }
+                return !this.evaluateEndsWith(fieldValue, clause.value);
+
+            case FilterOperator.In:
+                return this.evaluateIn(fieldValue, clause.values);
+
             default:
                 // Unknown operator - default to no match
                 return false;
@@ -249,9 +429,10 @@ export class FilteredBuffer<T extends IndexedRow> {
 
         // Determine type hint from filter value if not provided
         const effectiveTypeHint =
-            typeHint ?? (typeof filterValue === "number" ? "number" : "string");
+            typeHint ??
+            (typeof filterValue === "number" ? FilterTypeHint.Number : FilterTypeHint.String);
 
-        if (effectiveTypeHint === "number") {
+        if (effectiveTypeHint === FilterTypeHint.Number) {
             const numFieldValue = this.parseNumber(fieldValue);
             const numFilterValue = this.parseNumber(filterValue);
             if (numFieldValue === undefined || numFilterValue === undefined) {
@@ -260,7 +441,10 @@ export class FilteredBuffer<T extends IndexedRow> {
             return numFieldValue === numFilterValue;
         }
 
-        if (effectiveTypeHint === "date" || effectiveTypeHint === "datetime") {
+        if (
+            effectiveTypeHint === FilterTypeHint.Date ||
+            effectiveTypeHint === FilterTypeHint.DateTime
+        ) {
             const dateFieldValue = this.parseDate(fieldValue);
             const dateFilterValue = this.parseDate(filterValue);
             if (dateFieldValue === undefined || dateFilterValue === undefined) {
@@ -269,7 +453,7 @@ export class FilteredBuffer<T extends IndexedRow> {
             return dateFieldValue.getTime() === dateFilterValue.getTime();
         }
 
-        if (effectiveTypeHint === "boolean") {
+        if (effectiveTypeHint === FilterTypeHint.Boolean) {
             const boolFieldValue = this.parseBoolean(fieldValue);
             const boolFilterValue = this.parseBoolean(filterValue);
             return boolFieldValue === boolFilterValue;
@@ -294,9 +478,10 @@ export class FilteredBuffer<T extends IndexedRow> {
         }
 
         const effectiveTypeHint =
-            typeHint ?? (typeof filterValue === "number" ? "number" : "string");
+            typeHint ??
+            (typeof filterValue === "number" ? FilterTypeHint.Number : FilterTypeHint.String);
 
-        if (effectiveTypeHint === "number") {
+        if (effectiveTypeHint === FilterTypeHint.Number) {
             const numFieldValue = this.parseNumber(fieldValue);
             const numFilterValue = this.parseNumber(filterValue);
             if (numFieldValue === undefined || numFilterValue === undefined) {
@@ -305,7 +490,10 @@ export class FilteredBuffer<T extends IndexedRow> {
             return numFieldValue - numFilterValue;
         }
 
-        if (effectiveTypeHint === "date" || effectiveTypeHint === "datetime") {
+        if (
+            effectiveTypeHint === FilterTypeHint.Date ||
+            effectiveTypeHint === FilterTypeHint.DateTime
+        ) {
             const dateFieldValue = this.parseDate(fieldValue);
             const dateFilterValue = this.parseDate(filterValue);
             if (dateFieldValue === undefined || dateFilterValue === undefined) {
@@ -346,6 +534,33 @@ export class FilteredBuffer<T extends IndexedRow> {
         const strFieldValue = String(fieldValue).toLowerCase();
         const strFilterValue = String(filterValue).toLowerCase();
         return strFieldValue.startsWith(strFilterValue);
+    }
+
+    /**
+     * Evaluates ends-with check - case-insensitive.
+     */
+    private evaluateEndsWith(
+        fieldValue: unknown,
+        filterValue: string | number | boolean | null | undefined,
+    ): boolean {
+        if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
+            return false;
+        }
+        const strFieldValue = String(fieldValue).toLowerCase();
+        const strFilterValue = String(filterValue).toLowerCase();
+        return strFieldValue.endsWith(strFilterValue);
+    }
+
+    /**
+     * Evaluates "in" (one-of) check - case-insensitive string comparison.
+     * Returns true if the field value matches any of the provided values.
+     */
+    private evaluateIn(fieldValue: unknown, values: string[] | undefined): boolean {
+        if (this.isNullOrUndefined(fieldValue) || !values || values.length === 0) {
+            return false;
+        }
+        const strFieldValue = String(fieldValue).toLowerCase();
+        return values.some((v) => strFieldValue === v.toLowerCase());
     }
 
     /**

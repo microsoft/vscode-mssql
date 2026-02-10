@@ -12,11 +12,12 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Text } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
-import { ProfilerFilterDialog } from "./profilerFilterDialog";
+import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
+import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
 import {
     SessionState,
     ProfilerNotifications,
@@ -24,11 +25,14 @@ import {
     NewEventsAvailableParams,
     RowsRemovedParams,
     FilterClause,
+    FilterType,
+    ProfilerColumnDef,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
+import "./profiler.css";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -43,7 +47,7 @@ let notificationHandlersRegistered = false;
  * Formatter for optional numeric fields - shows empty string for undefined/null
  */
 const optionalNumberFormatter: Formatter = (_row, _cell, value) => {
-    if (value === undefined || value === null) {
+    if (value === undefined) {
         return "";
     }
     return String(value);
@@ -84,17 +88,6 @@ function getFormatterConfig(
     return undefined;
 }
 
-// Inject SlickGrid styles once
-let stylesInjected = false;
-function injectSlickGridStyles() {
-    if (stylesInjected) {
-        return;
-    }
-    stylesInjected = true;
-    const styleElement = document.createElement("style");
-    styleElement.textContent = slickGridStyles;
-    document.head.appendChild(styleElement);
-}
 
 export const Profiler: React.FC = () => {
     const classes = useStyles();
@@ -116,7 +109,9 @@ export const Profiler: React.FC = () => {
         (s) => s.filterState ?? { enabled: false, clauses: [] },
     );
 
-    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
+    const isFilterActive =
+        (filterState.enabled && filterState.clauses.length > 0) ||
+        (filterState.quickFilter !== undefined && filterState.quickFilter.trim() !== "");
 
     const {
         pauseResume,
@@ -131,23 +126,23 @@ export const Profiler: React.FC = () => {
         selectRow,
         applyFilter,
         clearFilter,
+        setQuickFilter,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
-    const reactGridRef = useRef<SlickgridReactInstance | null>(null);
+    const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const [localRowCount, setLocalRowCount] = useState(0);
-    const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
-    const [defaultFilterField, setDefaultFilterField] = useState<string | undefined>(undefined);
+
+    // Popover state
+    const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
+    const [popoverAnchorRect, setPopoverAnchorRect] = useState<DOMRect | undefined>(undefined);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
     const isFetchingRef = useRef(false);
-    const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
+    const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
-
-    // Inject SlickGrid styles on mount
-    useEffect(() => {
-        injectSlickGridStyles();
-    }, []);
 
     // Keep refs in sync with current values
     useEffect(() => {
@@ -168,19 +163,28 @@ export const Profiler: React.FC = () => {
             }
             setLocalRowCount(0);
             isFetchingRef.current = false;
-            pendingFetchRef.current = null;
+            pendingFetchRef.current = undefined;
             // Don't fetch here - NewEventsAvailable notification from extension will handle it
         }
     }, [clearGeneration]);
 
     /**
-     * Opens the filter dialog with the specified column pre-selected
-     * @param field The field name of the column to pre-select
+     * Opens the column filter popover anchored to the funnel button.
+     * @param field The field name of the column
+     * @param buttonElement The funnel button element for anchor positioning
      */
-    const openFilterForColumn = useCallback((field: string) => {
-        setDefaultFilterField(field);
-        setIsFilterDialogOpen(true);
-    }, []);
+    const openFilterForColumn = useCallback(
+        (field: string, buttonElement: HTMLElement) => {
+            const colDef = viewConfig?.columns?.find((c) => c.field === field);
+            if (!colDef) {
+                return;
+            }
+            setPopoverColumn(colDef);
+            setPopoverAnchorRect(buttonElement.getBoundingClientRect());
+            setIsPopoverOpen(true);
+        },
+        [viewConfig],
+    );
 
     // Store the callback in a ref so we can access it from the grid event handler
     const openFilterForColumnRef = useRef(openFilterForColumn);
@@ -200,6 +204,7 @@ export const Profiler: React.FC = () => {
 
         // Subscribe to header cell rendered event to add filter buttons
         const grid = reactGrid.slickGrid;
+
         if (grid) {
             grid.onHeaderCellRendered.subscribe((_e, args) => {
                 const column = args.column;
@@ -229,6 +234,11 @@ export const Profiler: React.FC = () => {
                     (clause) => clause.field === column.field,
                 );
 
+                // Apply filtered class to header cell for text color
+                if (hasActiveFilter) {
+                    args.node.classList.add("slick-header-column-filtered");
+                }
+
                 // Create filter button (same class as QueryResult for consistent styling)
                 const filterButton = document.createElement("button");
                 filterButton.id = "filter-btn";
@@ -242,7 +252,7 @@ export const Profiler: React.FC = () => {
                 filterButton.addEventListener("click", (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    openFilterForColumnRef.current(fieldName);
+                    openFilterForColumnRef.current(fieldName, filterButton);
                 });
 
                 // Append filter button to the header cell (same as QueryResult pattern)
@@ -300,8 +310,10 @@ export const Profiler: React.FC = () => {
 
             if (hasActiveFilter) {
                 filterButton.classList.add("filtered");
+                headerCell.classList.add("slick-header-column-filtered");
             } else {
                 filterButton.classList.remove("filtered");
+                headerCell.classList.remove("slick-header-column-filtered");
             }
         });
     }, [filterState]);
@@ -352,7 +364,7 @@ export const Profiler: React.FC = () => {
                 if (pendingFetchRef.current) {
                     const currentCount = dataView.getItemCount();
                     const targetTotalCount = pendingFetchRef.current.count;
-                    pendingFetchRef.current = null;
+                    pendingFetchRef.current = undefined;
 
                     // Only fetch if there's still data we don't have
                     const eventsToFetch = targetTotalCount - currentCount;
@@ -397,7 +409,7 @@ export const Profiler: React.FC = () => {
             }
             setLocalRowCount(0);
             isFetchingRef.current = false;
-            pendingFetchRef.current = null;
+            pendingFetchRef.current = undefined;
         });
 
         // Handle rows removed notification (ring buffer overflow)
@@ -422,9 +434,23 @@ export const Profiler: React.FC = () => {
         );
     }, []);
 
-    // Handle scroll event for infinite scroll
+    /**
+     * Handles closing the popover without applying.
+     */
+    const handlePopoverClose = useCallback(() => {
+        setIsPopoverOpen(false);
+        setPopoverColumn(undefined);
+        setPopoverAnchorRect(undefined);
+    }, []);
+
+    // Close popover when grid scrolls horizontally (FR-016)
     const handleScroll = useCallback(
         (event: CustomEvent) => {
+            // Close popover on any scroll
+            if (isPopoverOpen) {
+                handlePopoverClose();
+            }
+
             const args = event.detail?.args;
             if (!args || !reactGridRef.current?.dataView) {
                 return;
@@ -448,7 +474,7 @@ export const Profiler: React.FC = () => {
                 }
             }
         },
-        [fetchRows, totalRowCount],
+        [fetchRows, totalRowCount, isPopoverOpen, handlePopoverClose],
     );
 
     // Convert view config columns to SlickGrid column definitions
@@ -529,6 +555,7 @@ export const Profiler: React.FC = () => {
             headerRowHeight: 30,
             showHeaderRow: false,
             forceFitColumns: false,
+            alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
         }),
         [themeKind],
@@ -571,87 +598,111 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll();
     };
 
-    // Handle row selection (click or keyboard navigation) to show details in the panel
-    const handleRowSelection = useCallback(
-        (rowIndex: number) => {
-            if (!reactGridRef.current?.dataView) {
-                return;
-            }
+    // ─── Popover handlers ─────────────────────────────────────────────────
 
-            const dataView = reactGridRef.current.dataView;
-            const item = dataView.getItem(rowIndex);
-
-            if (item && item.id) {
-                selectRow(item.id);
-            }
-        },
-        [selectRow],
-    );
-
-    // Handle row click to show details in the panel
-    const handleRowClick = useCallback(
-        (event: CustomEvent) => {
-            const args = event.detail?.args;
-            if (!args) {
-                return;
-            }
-            handleRowSelection(args.row);
-        },
-        [handleRowSelection],
-    );
-
-    // Handle active cell change (keyboard navigation) to show details in the panel
-    const handleActiveCellChanged = useCallback(
-        (event: CustomEvent) => {
-            const args = event.detail?.args;
-            if (!args || args.row === undefined || args.row === null) {
-                return;
-            }
-            handleRowSelection(args.row);
-        },
-        [handleRowSelection],
-    );
     /**
-     * Handles opening the filter dialog from the toolbar (no column pre-selected).
+     * Compute distinct values for the current popover column (categorical only).
      */
-    const handleFilter = useCallback(() => {
-        setDefaultFilterField(undefined); // Clear any previously set default field
-        setIsFilterDialogOpen(true);
-    }, []);
+    const popoverDistinctValues = useMemo(() => {
+        if (!isPopoverOpen || !popoverColumn) {
+            return [];
+        }
+        const filterType = getFilterType(popoverColumn);
+        if (filterType !== FilterType.Categorical) {
+            return [];
+        }
+        const dataView = reactGridRef.current?.dataView;
+        if (!dataView) {
+            return [];
+        }
+
+        const field = popoverColumn.field;
+        const seen = new Set<string>();
+        const itemCount = dataView.getItemCount();
+        for (let i = 0; i < itemCount; i++) {
+            const item = dataView.getItemByIdx(i);
+            if (item) {
+                const val = String((item as Record<string, unknown>)[field] ?? "");
+                if (val !== "") {
+                    seen.add(val);
+                }
+            }
+        }
+        return Array.from(seen).sort((a, b) => a.localeCompare(b));
+    }, [isPopoverOpen, popoverColumn, localRowCount]); // localRowCount dependency ensures refresh when data changes
 
     /**
-     * Handles applying filter clauses from the filter dialog.
-     * @param clauses The filter clauses to apply
+     * Current filter clause for the popover column (if any).
      */
-    const handleApplyFilter = useCallback(
-        (clauses: FilterClause[]) => {
-            applyFilter(clauses);
-            setIsFilterDialogOpen(false);
-            setDefaultFilterField(undefined); // Clear default field after applying
+    const popoverCurrentClause = useMemo(() => {
+        if (!popoverColumn) {
+            return undefined;
+        }
+        return filterState.clauses.find((c) => c.field === popoverColumn.field);
+    }, [popoverColumn, filterState.clauses]);
+
+    /**
+     * Handles applying a filter from the popover for a specific column.
+     * Merges the new clause into the existing clauses array.
+     */
+    const handlePopoverApply = useCallback(
+        (clause: FilterClause) => {
+            // Replace any existing clause for this field, or add a new one
+            const otherClauses = filterState.clauses.filter((c) => c.field !== clause.field);
+            applyFilter([...otherClauses, clause]);
+            handlePopoverClose();
         },
-        [applyFilter],
+        [filterState.clauses, applyFilter, handlePopoverClose],
     );
 
     /**
-     * Handles clearing the active filter from the toolbar.
-     * Removes all filter clauses and shows all events.
+     * Handles clearing the filter for a specific column from the popover.
+     */
+    const handlePopoverClear = useCallback(() => {
+        if (!popoverColumn) {
+            return;
+        }
+        const remainingClauses = filterState.clauses.filter((c) => c.field !== popoverColumn.field);
+        if (remainingClauses.length === 0) {
+            clearFilter();
+        } else {
+            applyFilter(remainingClauses);
+        }
+        handlePopoverClose();
+    }, [popoverColumn, filterState.clauses, applyFilter, clearFilter, handlePopoverClose]);
+
+    /**
+     * Handles quick filter changes from the toolbar.
+     */
+    const handleQuickFilterChange = useCallback(
+        (term: string) => {
+            setQuickFilter(term);
+        },
+        [setQuickFilter],
+    );
+
+    /**
+     * Handles clearing all filters (clauses + quick filter) from the toolbar.
      */
     const handleClearFilter = useCallback(() => {
         clearFilter();
-        setIsFilterDialogOpen(false);
-        setDefaultFilterField(undefined); // Clear default field after clearing filter
-    }, [clearFilter]);
+        setQuickFilter("");
+    }, [clearFilter, setQuickFilter]);
 
     /**
-     * Handles dialog open/close state changes.
-     * Clears the default field when dialog is closed.
+     * Handles removing a single column's filter from the active filters bar.
      */
-    const handleFilterDialogOpenChange = useCallback((open: boolean) => {
-        setIsFilterDialogOpen(open);
-        if (!open) {
-            setDefaultFilterField(undefined);
-        }
-    }, []);
+    const handleRemoveColumnFilter = useCallback(
+        (field: string) => {
+            const remainingClauses = filterState.clauses.filter((c) => c.field !== field);
+            if (remainingClauses.length === 0) {
+                clearFilter();
+            } else {
+                applyFilter(remainingClauses);
+            }
+        },
+        [filterState.clauses, applyFilter, clearFilter],
+    );
 
     return (
         <div className={classes.profilerContainer}>
@@ -667,6 +718,7 @@ export const Profiler: React.FC = () => {
                 isReadOnly={isReadOnly}
                 xelFileName={xelFileName}
                 isFilterActive={isFilterActive}
+                quickFilterTerm={filterState.quickFilter ?? ""}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -675,18 +727,32 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
-                onFilter={handleFilter}
                 onClearFilter={handleClearFilter}
+                onQuickFilterChange={handleQuickFilterChange}
             />
-            <ProfilerFilterDialog
+            <ProfilerActiveFiltersBar
+                clauses={filterState.clauses}
                 columns={viewConfig?.columns ?? []}
-                currentClauses={filterState.clauses}
-                isOpen={isFilterDialogOpen}
-                defaultField={defaultFilterField}
-                onOpenChange={handleFilterDialogOpenChange}
-                onApplyFilter={handleApplyFilter}
+                onRemoveFilter={handleRemoveColumnFilter}
             />
+            {popoverColumn && (
+                <ProfilerColumnFilterPopover
+                    column={popoverColumn}
+                    anchorRect={popoverAnchorRect}
+                    isOpen={isPopoverOpen}
+                    currentClause={popoverCurrentClause}
+                    distinctValues={popoverDistinctValues}
+                    onClose={handlePopoverClose}
+                    onApply={handlePopoverApply}
+                    onClear={handlePopoverClear}
+                />
+            )}
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
+                {isFilterActive && localRowCount === 0 && (
+                    <Text className={classes.emptyFilterMessage} align="center" size={300}>
+                        {locConstants.profiler.noResultsMatchFilter}
+                    </Text>
+                )}
                 <SlickgridReact
                     gridId="profilerGrid"
                     columns={columns}
@@ -768,155 +834,12 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
+    emptyFilterMessage: {
+        display: "flex",
+        justifyContent: "center",
+        padding: "16px",
+        color: "var(--vscode-descriptionForeground)",
+    },
 });
-
-// Global styles for SlickGrid that need to be injected as CSS
-// These use CSS custom properties with --slick- prefix which makeStyles doesn't support well
-const slickGridStyles = `
-#profilerGrid {
-    /* Main grid colors */
-    --slick-cell-even-background-color: var(--vscode-editor-background);
-    --slick-cell-odd-background-color: var(--vscode-editor-background);
-    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
-    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
-    --slick-cell-text-color: var(--vscode-foreground);
-    --slick-grid-header-background: var(--vscode-editor-background);
-    --slick-grid-header-text-color: var(--vscode-foreground);
-    --slick-grid-header-column-width: auto;
-    --slick-header-row-border-color: var(--vscode-panel-border);
-
-    /* Border colors */
-    --slick-border-color: var(--vscode-editorWidget-border);
-    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-left: 0;
-
-    /* Column picker colors */
-    --slick-column-picker-background-color: var(--vscode-menu-background);
-    --slick-column-picker-item-color: var(--vscode-menu-foreground);
-    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
-    --slick-column-picker-border-color: var(--vscode-menu-border);
-
-    /* Scrollbar colors */
-    --slick-scrollbar-background: var(--vscode-scrollbar-background);
-    --slick-scrollbar-thumb-background: var(--vscode-scrollbarSlider-background);
-    --slick-scrollbar-thumb-hover-background: var(--vscode-scrollbarSlider-hoverBackground);
-    --slick-scrollbar-thumb-active-background: var(--vscode-scrollbarSlider-activeBackground);
-
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Hide any sort indicators since sorting is disabled */
-#profilerGrid .slick-sort-indicator,
-#profilerGrid .slick-sort-indicator-asc,
-#profilerGrid .slick-sort-indicator-desc {
-    display: none !important;
-}
-
-/* Header cell with filter - use flexbox layout (same pattern as QueryResult) */
-#profilerGrid .slick-header-column.slick-header-with-filter {
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-}
-
-/* Column name should use flex to allow filter button space */
-#profilerGrid .slick-header-with-filter .slick-column-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1 1 0;
-    min-width: 0;
-    margin-bottom: 0;
-}
-
-/* Filter button base styling */
-#profilerGrid .slick-header-filterbutton {
-    background-position: center center;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-size: 14px;
-    flex: 0 0 auto;
-    margin-left: 4px;
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-    opacity: 0.6;
-    transition: opacity 0.15s ease;
-}
-
-#profilerGrid .slick-header-filterbutton:hover {
-    opacity: 1;
-}
-
-/* Filter icon (funnel) - dark theme (default) */
-#profilerGrid .slick-header-filterbutton {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23C5C5C5' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
-}
-
-/* Filter icon (funnel) - light theme */
-.vscode-light #profilerGrid .slick-header-filterbutton {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23424242' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
-}
-
-/* Filtered state - filled funnel icon for dark theme */
-#profilerGrid .slick-header-filterbutton.filtered {
-    opacity: 1;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%2375BEFF' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
-}
-
-/* Filtered state - filled funnel icon for light theme */
-.vscode-light #profilerGrid .slick-header-filterbutton.filtered {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23007ACC' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
-}
-
-/* Auto-hide scrollbars when not needed */
-#profilerGrid .slick-viewport {
-    overflow: auto !important;
-}
-
-/* Ensure internal grid structure fills container */
-#profilerGrid .slick-pane {
-    flex: 1;
-}
-
-#profilerGrid .slick-canvas {
-    width: 100%;
-    height: 100%;
-}
-
-/* Hide scrollbars when content fits */
-#profilerGrid .slick-viewport::-webkit-scrollbar {
-    width: 14px;
-    height: 14px;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-track {
-    background-color: transparent;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
-    background-color: var(--vscode-scrollbarSlider-background);
-    border-radius: 7px;
-    border: 3px solid transparent;
-    background-clip: padding-box;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:hover {
-    background-color: var(--vscode-scrollbarSlider-hoverBackground);
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:active {
-    background-color: var(--vscode-scrollbarSlider-activeBackground);
-}
-`;
 
 // #endregion

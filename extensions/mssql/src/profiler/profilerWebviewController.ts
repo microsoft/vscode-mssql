@@ -16,6 +16,8 @@ import {
     RowsRemovedParams,
     FilterClause,
     FilterStateChangedParams,
+    ColumnType,
+    FilterType,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
@@ -26,7 +28,8 @@ import {
     SessionState,
     TEMPLATE_ID_STANDARD_ONPREM,
     XelFileInfo,
-    FilterOperator,
+    FilterState,
+    ColumnDataType,
 } from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
@@ -65,6 +68,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     private _xelFileInfo: XelFileInfo | undefined;
     /** Filtered buffer for applying client-side filtering */
     private _filteredBuffer: FilteredBuffer<EventRow> | undefined;
+    /** Persisted filter state per session (keyed by session ID) */
+    private _sessionFilterState = new Map<string, FilterState>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -327,10 +332,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.registerReducer("applyFilter", (state, payload: { clauses: FilterClause[] }) => {
             if (this._filteredBuffer) {
                 this._filteredBuffer.setFilter(payload.clauses);
-
-                // Calculate filtered count using grid row-based filtering
-                const filteredCount = this.calculateFilteredCount(payload.clauses);
                 const totalCount = this._filteredBuffer.totalCount;
+                const filteredCount = this._filteredBuffer.getFilteredCount();
 
                 // Notify webview of filter change
                 void this.sendFilterStateChanged();
@@ -346,12 +349,12 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     } as NewEventsAvailableParams);
                 }, 0);
 
-                // Update status bar immediately to show filtered count
                 this.state = {
                     ...state,
                     filterState: {
                         enabled: payload.clauses.length > 0,
                         clauses: payload.clauses,
+                        quickFilter: this._filteredBuffer.quickFilter,
                     },
                     totalRowCount: totalCount,
                     filteredRowCount: filteredCount,
@@ -366,7 +369,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         // Handle clear filter request from webview
         this.registerReducer("clearFilter", (state) => {
             if (this._filteredBuffer) {
-                this._filteredBuffer.clearFilter();
+                this._filteredBuffer.clearAllFilters();
                 const totalCount = this._filteredBuffer.totalCount;
 
                 // Notify webview of filter change
@@ -383,12 +386,52 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                     } as NewEventsAvailableParams);
                 }, 0);
 
-                // Update status bar immediately to show total count
                 this.state = {
                     ...state,
-                    filterState: { enabled: false, clauses: [] },
+                    filterState: { enabled: false, clauses: [], quickFilter: undefined },
                     totalRowCount: totalCount,
                     filteredRowCount: totalCount,
+                };
+                this.updateStatusBar();
+
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle set quick filter request from webview
+        this.registerReducer("setQuickFilter", (state, payload: { term: string }) => {
+            if (this._filteredBuffer) {
+                const quickFilter = payload.term.trim();
+                const clauses = state.filterState?.clauses ?? [];
+                const hasColumnFilters = clauses.length > 0;
+                const hasQuickFilter = quickFilter !== "";
+
+                // Delegate quick filter to FilteredBuffer
+                this._filteredBuffer.setQuickFilter(hasQuickFilter ? quickFilter : undefined);
+
+                const totalCount = this._filteredBuffer.totalCount;
+                const filteredCount = this._filteredBuffer.getFilteredCount();
+
+                // Notify webview to clear and refetch
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        enabled: hasColumnFilters,
+                        clauses,
+                        quickFilter: hasQuickFilter ? quickFilter : undefined,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
                 };
                 this.updateStatusBar();
 
@@ -439,7 +482,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             isFilterActive: this._filteredBuffer.isFilterActive,
             clauseCount: this._filteredBuffer.clauses.length,
             totalCount: this._filteredBuffer.totalCount,
-            filteredCount: this._filteredBuffer.filteredCount,
+            filteredCount: this._filteredBuffer.getFilteredCount(),
         };
 
         await this.sendNotification(ProfilerNotifications.FilterStateChanged, params);
@@ -459,11 +502,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         const sessionState = state.sessionState;
         const isReadOnly = state.isReadOnly ?? this._isReadOnly;
         // Get count directly from current session's ring buffer if available (source of truth)
-        // Otherwise fall back to state (which might be stale)
         const totalRowCount = this._currentSession?.events.size ?? state.totalRowCount ?? 0;
 
-        // Get filtered count from state (which is calculated using ProfilerGridRow filtering)
-        // Don't use _filteredBuffer.filteredCount as it filters on raw EventRow fields
+        // Use FilteredBuffer as single source of truth for filter state
         const isFilterActive = this._filteredBuffer?.isFilterActive ?? false;
         const filteredRowCount = isFilterActive
             ? (state.filteredRowCount ?? totalRowCount)
@@ -562,6 +603,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 width?: number;
                 sortable?: boolean;
                 filterable?: boolean;
+                filterType?: string;
             }>;
         },
     ): ProfilerViewConfig {
@@ -572,10 +614,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             columns: view.columns.map((col) => ({
                 field: col.field,
                 header: col.header,
-                type: (col.type as "string" | "number" | "datetime") ?? "string",
+                type: (col.type ?? ColumnDataType.String) as ColumnType,
                 width: col.width,
                 sortable: col.sortable,
                 filterable: col.filterable,
+                filterType: col.filterType as FilterType | undefined,
             })),
         };
     }
@@ -585,6 +628,14 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * This enables the pull model where the webview requests data from the session's RingBuffer.
      */
     public setCurrentSession(session: ProfilerSession | undefined): void {
+        // Persist current session's filter state before switching
+        if (this._currentSession) {
+            const currentFilterState = this.state.filterState;
+            if (currentFilterState) {
+                this._sessionFilterState.set(this._currentSession.id, currentFilterState);
+            }
+        }
+
         this._currentSession = session;
 
         // Update state with the current session ID and its actual state
@@ -592,15 +643,38 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             // Create a filtered buffer wrapping the session's ring buffer
             this._filteredBuffer = new FilteredBuffer(session.events);
 
+            // Set up a row converter so filtering operates on view-level column names
+            this.updateFilteredBufferConverter();
+
+            // Restore persisted filter state for this session, if any
+            const savedFilterState = this._sessionFilterState.get(session.id);
+
             const sessionState = this.getSessionStateFromSession(session);
+
+            if (
+                savedFilterState &&
+                savedFilterState.enabled &&
+                savedFilterState.clauses.length > 0
+            ) {
+                // Re-apply saved filter to the new buffer
+                this._filteredBuffer.setFilter(savedFilterState.clauses);
+            }
+
+            // Restore quick filter if present
+            if (savedFilterState?.quickFilter) {
+                this._filteredBuffer.setQuickFilter(savedFilterState.quickFilter);
+            }
+
             this.state = {
                 ...this.state,
                 currentSessionId: session.id,
                 sessionState,
                 sessionName: session.sessionName,
-                totalRowCount: session.events.size, // Reset to actual buffer size
-                filteredRowCount: session.events.size, // Initially unfiltered
-                filterState: { enabled: false, clauses: [] }, // Reset filter on session change
+                totalRowCount: session.events.size,
+                filteredRowCount: savedFilterState?.enabled
+                    ? this._filteredBuffer.filteredCount
+                    : session.events.size,
+                filterState: savedFilterState ?? { enabled: false, clauses: [] },
             };
         } else {
             this._filteredBuffer = undefined;
@@ -637,11 +711,9 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         const totalCount = this._currentSession.events.size;
 
-        // Calculate filtered count using the same conversion logic as data fetching
-        // This ensures consistent filtering on ProfilerGridRow fields
-        const filteredCount = this._filteredBuffer.isFilterActive
-            ? this.calculateFilteredCount([...this._filteredBuffer.clauses])
-            : totalCount;
+        // Delegate filtered count calculation to FilteredBuffer
+        const hasAnyFilter = this._filteredBuffer.isFilterActive;
+        const filteredCount = hasAnyFilter ? this._filteredBuffer.getFilteredCount() : totalCount;
 
         this.state = {
             ...this.state,
@@ -651,12 +723,11 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         this.updateStatusBar();
 
         // When filter is active, notify only about filtered count
-        // This ensures the webview only fetches visible (matching) rows
-        const effectiveCount = this._filteredBuffer.isFilterActive ? filteredCount : totalCount;
+        const effectiveCount = hasAnyFilter ? filteredCount : totalCount;
 
         // Notify webview of new data availability
         const params: NewEventsAvailableParams = {
-            newCount: this._filteredBuffer.isFilterActive ? filteredCount : newCount,
+            newCount: hasAnyFilter ? filteredCount : newCount,
             totalCount: effectiveCount,
         };
         void this.sendNotification(ProfilerNotifications.NewEventsAvailable, params);
@@ -694,8 +765,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     /**
      * Fetch rows from the buffer and convert to grid rows.
      * This is the core method for the pull model.
-     * If filter is active, returns filtered rows; otherwise returns all rows.
-     * Captures buffer size at start for consistency.
+     * Delegates all filtering (column filters + quick filter) to FilteredBuffer.
      */
     private fetchRowsFromBuffer(startIndex: number, count: number): FetchRowsResponse {
         if (!this._currentSession || !this._filteredBuffer) {
@@ -706,397 +776,43 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             };
         }
 
-        // Capture the buffer size at the start for consistency
-        // Any new events arriving during this fetch will trigger another notification
-        const bufferSize = this._currentSession.events.size;
+        // Ensure converter is up to date
+        this.updateFilteredBufferConverter();
 
-        // If startIndex is beyond current buffer, return empty
-        if (startIndex >= bufferSize) {
-            return {
-                rows: [],
-                startIndex,
-                totalCount: bufferSize,
-            };
+        // Delegate to FilteredBuffer which handles conversion + filtering + pagination
+        const result = this._filteredBuffer.getConvertedFilteredRange(startIndex, count);
+
+        return {
+            rows: result.rows as ProfilerGridRow[],
+            startIndex: result.startIndex,
+            totalCount: result.totalCount,
+        };
+    }
+
+    /**
+     * Updates the row converter on the FilteredBuffer to use the current view.
+     * Should be called whenever the view changes or when a session is set.
+     */
+    private updateFilteredBufferConverter(): void {
+        if (!this._filteredBuffer) {
+            return;
         }
-
         const configService = getProfilerConfigService();
         let view = configService.getView(this._currentViewId);
-
-        // Fallback to first available view if current view not found
         if (!view) {
             const views = configService.getViews();
             if (views.length > 0) {
                 view = views[0];
                 this._currentViewId = view.id!;
             } else {
-                return {
-                    rows: [],
-                    startIndex,
-                    totalCount: bufferSize,
-                };
+                this._filteredBuffer.setRowConverter(undefined);
+                return;
             }
         }
-
-        // Get all events from the underlying buffer
-        const allEvents = this._filteredBuffer.buffer.getAllRows();
-
-        // Convert ALL events to grid rows first (needed for filtering by view column names)
-        const allGridRows: ProfilerGridRow[] = allEvents.map((event) => {
-            const row = configService.convertEventToViewRow(event, view);
-            return row as ProfilerGridRow;
+        const viewRef = view;
+        this._filteredBuffer.setRowConverter((event) => {
+            return configService.convertEventToViewRow(event, viewRef) as Record<string, unknown>;
         });
-
-        // Apply filtering to the converted grid rows
-        let filteredRows: ProfilerGridRow[];
-        if (this._filteredBuffer.isFilterActive) {
-            filteredRows = allGridRows.filter((row) => this.matchesFilter(row));
-        } else {
-            filteredRows = allGridRows;
-        }
-
-        const effectiveTotalCount = filteredRows.length;
-
-        // If startIndex is beyond available rows, return empty
-        if (startIndex >= effectiveTotalCount) {
-            return {
-                rows: [],
-                startIndex,
-                totalCount: effectiveTotalCount,
-            };
-        }
-
-        // Adjust count to not exceed available rows
-        const availableCount = Math.min(count, effectiveTotalCount - startIndex);
-        const endIndex = startIndex + availableCount;
-
-        // Get the slice of filtered rows
-        const rows = filteredRows.slice(startIndex, endIndex);
-
-        return {
-            rows,
-            startIndex,
-            totalCount: effectiveTotalCount,
-        };
-    }
-
-    /**
-     * Tests if a grid row matches the current filter clauses.
-     * All clauses must match (AND logic).
-     */
-    private matchesFilter(row: ProfilerGridRow): boolean {
-        const clauses = this._filteredBuffer?.clauses ?? [];
-        for (const clause of clauses) {
-            if (!this.evaluateClause(row, clause)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Evaluates a single filter clause against a grid row.
-     */
-    private evaluateClause(row: ProfilerGridRow, clause: FilterClause): boolean {
-        const fieldValue = row[clause.field];
-        const typeHint = clause.typeHint;
-
-        switch (clause.operator) {
-            case FilterOperator.IsNull:
-                // eslint-disable-next-line eqeqeq
-                return fieldValue == undefined;
-
-            case FilterOperator.IsNotNull:
-                // eslint-disable-next-line eqeqeq
-                return fieldValue != undefined;
-
-            case FilterOperator.Equals:
-                return this.evaluateEquals(fieldValue, clause.value, typeHint);
-
-            case FilterOperator.NotEquals:
-                return !this.evaluateEquals(fieldValue, clause.value, typeHint);
-
-            case FilterOperator.LessThan:
-                return this.evaluateComparison(fieldValue, clause.value, typeHint) < 0;
-
-            case FilterOperator.LessThanOrEqual:
-                return this.evaluateComparison(fieldValue, clause.value, typeHint) <= 0;
-
-            case FilterOperator.GreaterThan:
-                return this.evaluateComparison(fieldValue, clause.value, typeHint) > 0;
-
-            case FilterOperator.GreaterThanOrEqual:
-                return this.evaluateComparison(fieldValue, clause.value, typeHint) >= 0;
-
-            case FilterOperator.Contains:
-                return this.evaluateContains(fieldValue, clause.value);
-
-            case FilterOperator.NotContains:
-                // eslint-disable-next-line eqeqeq
-                if (fieldValue == undefined) {
-                    return true; // null doesn't contain anything
-                }
-                return !this.evaluateContains(fieldValue, clause.value);
-
-            case FilterOperator.StartsWith:
-                return this.evaluateStartsWith(fieldValue, clause.value);
-
-            case FilterOperator.NotStartsWith:
-                // eslint-disable-next-line eqeqeq
-                if (fieldValue == undefined) {
-                    return true; // null doesn't start with anything
-                }
-                return !this.evaluateStartsWith(fieldValue, clause.value);
-
-            default:
-                return false;
-        }
-    }
-
-    /**
-     * Evaluates equality between field value and filter value (case-insensitive for strings).
-     * For dates, compares using the comparison method for more accurate matching.
-     */
-    private evaluateEquals(
-        fieldValue: string | number | null,
-        filterValue: string | number | boolean | null | undefined,
-        typeHint?: string,
-    ): boolean {
-        // eslint-disable-next-line eqeqeq
-        if (fieldValue == undefined && filterValue == undefined) {
-            return true;
-        }
-        // eslint-disable-next-line eqeqeq
-        if (fieldValue == undefined) {
-            return false;
-        }
-        // eslint-disable-next-line eqeqeq
-        if (filterValue == undefined) {
-            return false;
-        }
-
-        // For date/datetime types, use comparison method
-        if (typeHint === "date" || typeHint === "datetime") {
-            return this.evaluateComparison(fieldValue, filterValue, typeHint) === 0;
-        }
-
-        // Auto-detect date if field value looks like a date string
-        if (typeof fieldValue === "string" && /^\d{4}-\d{2}-\d{2}[\sT]/.test(fieldValue)) {
-            const fieldDate = this.tryParseDate(String(fieldValue));
-            const filterDate = this.tryParseDate(String(filterValue));
-            if (fieldDate && filterDate) {
-                return fieldDate.getTime() === filterDate.getTime();
-            }
-        }
-
-        // String comparison (case-insensitive)
-        if (typeof fieldValue === "string" && typeof filterValue === "string") {
-            return fieldValue.toLowerCase() === filterValue.toLowerCase();
-        }
-
-        // Number comparison
-        if (typeof fieldValue === "number") {
-            const numValue =
-                typeof filterValue === "number" ? filterValue : parseFloat(String(filterValue));
-            if (!isNaN(numValue)) {
-                return fieldValue === numValue;
-            }
-        }
-
-        return String(fieldValue).toLowerCase() === String(filterValue).toLowerCase();
-    }
-
-    /**
-     * Tries to parse a string as a date. Supports common formats:
-     * - "2026-01-21 20:29:10.000" (profiler format)
-     * - "2026-01-21T20:29:10.000Z" (ISO 8601)
-     * - "2026-01-21" (date only)
-     */
-    private tryParseDate(value: string): Date | undefined {
-        if (!value || typeof value !== "string") {
-            return undefined;
-        }
-
-        // Try profiler format (space separator, milliseconds)
-        // Convert "2026-01-21 20:29:10.000" to "2026-01-21T20:29:10.000Z"
-        const profilerMatch = value.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2}(?:\.\d+)?)$/);
-        if (profilerMatch) {
-            const isoString = `${profilerMatch[1]}T${profilerMatch[2]}Z`;
-            const date = new Date(isoString);
-            if (!isNaN(date.getTime())) {
-                return date;
-            }
-        }
-
-        // Try ISO 8601 format directly
-        const date = new Date(value);
-        if (!isNaN(date.getTime())) {
-            return date;
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Evaluates comparison (numeric or date). Returns -1, 0, or 1.
-     * Automatically detects dates based on field format.
-     */
-    private evaluateComparison(
-        fieldValue: string | number | null,
-        filterValue: string | number | boolean | null | undefined,
-        typeHint?: string,
-    ): number {
-        // eslint-disable-next-line eqeqeq
-        if (fieldValue == undefined) {
-            return -1; // null is "less than" everything
-        }
-        // eslint-disable-next-line eqeqeq
-        if (filterValue == undefined) {
-            return 1; // field is "greater than" null/undefined filter
-        }
-
-        // Try date comparison first if field looks like a date or typeHint is date
-        if (typeHint === "date" || typeHint === "datetime") {
-            const fieldDate = this.tryParseDate(String(fieldValue));
-            const filterDate = this.tryParseDate(String(filterValue));
-
-            if (fieldDate && filterDate) {
-                const fieldTime = fieldDate.getTime();
-                const filterTime = filterDate.getTime();
-                if (fieldTime < filterTime) {
-                    return -1;
-                }
-                if (fieldTime > filterTime) {
-                    return 1;
-                }
-                return 0;
-            }
-        }
-
-        // Auto-detect date if field value looks like a date string
-        if (typeof fieldValue === "string" && /^\d{4}-\d{2}-\d{2}[\sT]/.test(fieldValue)) {
-            const fieldDate = this.tryParseDate(String(fieldValue));
-            const filterDate = this.tryParseDate(String(filterValue));
-
-            if (fieldDate && filterDate) {
-                const fieldTime = fieldDate.getTime();
-                const filterTime = filterDate.getTime();
-                if (fieldTime < filterTime) {
-                    return -1;
-                }
-                if (fieldTime > filterTime) {
-                    return 1;
-                }
-                return 0;
-            }
-        }
-
-        // Numeric comparison
-        const numFieldValue =
-            typeof fieldValue === "number" ? fieldValue : parseFloat(String(fieldValue));
-        const numFilterValue =
-            typeof filterValue === "number" ? filterValue : parseFloat(String(filterValue));
-
-        if (isNaN(numFieldValue) || isNaN(numFilterValue)) {
-            // Fall back to string comparison
-            const strField = String(fieldValue).toLowerCase();
-            const strFilter = String(filterValue).toLowerCase();
-            if (strField < strFilter) {
-                return -1;
-            }
-            if (strField > strFilter) {
-                return 1;
-            }
-            return 0;
-        }
-
-        if (numFieldValue < numFilterValue) {
-            return -1;
-        }
-        if (numFieldValue > numFilterValue) {
-            return 1;
-        }
-        return 0;
-    }
-
-    /**
-     * Evaluates contains (substring match, case-insensitive).
-     */
-    private evaluateContains(
-        fieldValue: string | number | null,
-        filterValue: string | number | boolean | null | undefined,
-    ): boolean {
-        // eslint-disable-next-line eqeqeq
-        if (fieldValue == undefined) {
-            return false;
-        }
-        // eslint-disable-next-line eqeqeq
-        if (filterValue == undefined || filterValue === "") {
-            return true; // Everything contains empty string
-        }
-        return String(fieldValue).toLowerCase().includes(String(filterValue).toLowerCase());
-    }
-
-    /**
-     * Evaluates starts with (prefix match, case-insensitive).
-     */
-    private evaluateStartsWith(
-        fieldValue: string | number | null,
-        filterValue: string | number | boolean | null | undefined,
-    ): boolean {
-        // eslint-disable-next-line eqeqeq
-        if (fieldValue == undefined) {
-            return false;
-        }
-        // eslint-disable-next-line eqeqeq
-        if (filterValue == undefined || filterValue === "") {
-            return true; // Everything starts with empty string
-        }
-        return String(fieldValue).toLowerCase().startsWith(String(filterValue).toLowerCase());
-    }
-
-    /**
-     * Calculates the count of rows that match the given filter clauses.
-     * Converts all events to grid rows and applies the filter.
-     */
-    private calculateFilteredCount(clauses: FilterClause[]): number {
-        if (!this._filteredBuffer || clauses.length === 0) {
-            return this._filteredBuffer?.totalCount ?? 0;
-        }
-
-        const configService = getProfilerConfigService();
-        const view = configService.getView(this._currentViewId);
-        if (!view) {
-            return this._filteredBuffer.totalCount;
-        }
-
-        // Get all events and convert to grid rows
-        const allEvents = this._filteredBuffer.buffer.getAllRows();
-        const allGridRows: ProfilerGridRow[] = allEvents.map((event) => {
-            return configService.convertEventToViewRow(event, view) as ProfilerGridRow;
-        });
-
-        // Count rows matching the filter using direct clause evaluation
-        let count = 0;
-        for (const row of allGridRows) {
-            if (this.matchesFilterClauses(row, clauses)) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    /**
-     * Tests if a grid row matches the given filter clauses.
-     * All clauses must match (AND logic).
-     */
-    private matchesFilterClauses(row: ProfilerGridRow, clauses: FilterClause[]): boolean {
-        for (const clause of clauses) {
-            if (!this.evaluateClause(row, clause)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

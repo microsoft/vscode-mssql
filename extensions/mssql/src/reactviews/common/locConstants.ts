@@ -1923,21 +1923,6 @@ export class LocConstants {
             clearFilterTooltip: l10n.t("Clear all filters and show all events"),
             clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
 
-            // Filter dialog
-            filterDialogTitle: l10n.t("Filter Events"),
-            filterColumn: l10n.t("Column"),
-            filterOperator: l10n.t("Operator"),
-            filterValue: l10n.t("Value"),
-            addClause: l10n.t("Add Clause"),
-            removeClause: l10n.t("Remove"),
-            apply: l10n.t("Apply"),
-            ok: l10n.t("OK"),
-            cancel: l10n.t("Cancel"),
-            clearAll: l10n.t("Clear all"),
-            noFilterClauses: l10n.t("No filter clauses defined. Add a clause to filter events."),
-            clauseAdded: l10n.t("A new clause has been added."),
-            allClausesCleared: l10n.t("All clauses have been cleared."),
-
             // Filter operators
             operatorEquals: l10n.t("="),
             operatorNotEquals: l10n.t("<>"),
@@ -1951,6 +1936,7 @@ export class LocConstants {
             operatorNotContains: l10n.t("Not Contains"),
             operatorStartsWith: l10n.t("Starts With"),
             operatorNotStartsWith: l10n.t("Not Starts With"),
+            operatorIn: l10n.t("In"),
 
             // Filter status
             filterActive: l10n.t("Filter active"),
@@ -2000,6 +1986,70 @@ export class LocConstants {
                 propertiesListAriaLabel: l10n.t("Event properties list"),
                 copiedToClipboard: l10n.t("Copied to clipboard"),
             },
+            // Filter popover
+            filterColumnHeader: (columnName: string) =>
+                l10n.t({
+                    message: "Filter: {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            operatorEndsWith: l10n.t("Ends With"),
+            operatorNotEndsWith: l10n.t("Not Ends With"),
+            applyFilter: l10n.t("Apply"),
+            clearColumnFilter: l10n.t("Clear"),
+            searchValues: l10n.t("Search values..."),
+            enterText: l10n.t("Enter text..."),
+            enterNumber: l10n.t("Enter a number..."),
+            enterDate: l10n.t("Enter a date..."),
+            selectAll: l10n.t("Select All"),
+            deselectAll: l10n.t("Deselect All"),
+            numericFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Example: Find queries with {0} > 100",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Search within {0} text content",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            noResultsMatchFilter: l10n.t("No results match the current filters"),
+
+            // Quick filter
+            quickFilterPlaceholder: l10n.t("Quick filter all columns\u2026"),
+            clearAllFilters: l10n.t("Clear All Filters"),
+            clearAllFiltersTooltip: l10n.t("Clear quick filter and all column filters"),
+
+            // Popover
+            closePopover: l10n.t("Close"),
+            emptyCategory: l10n.t("(empty)"),
+            selectedCount: (selected: number, total: number) =>
+                l10n.t({
+                    message: "{0}/{1}",
+                    args: [selected, total],
+                    comment: ["{0} is selected count", "{1} is total count"],
+                }),
+            enterDateFormat: l10n.t("YYYY-MM-DD HH:mm:ss"),
+            dateFormatError: l10n.t("Use format: YYYY-MM-DD HH:mm:ss[.SSS]"),
+            filterValue: l10n.t("Filter value"),
+            filterOperator: l10n.t("Filter operator"),
+
+            // Active filters bar
+            activeFiltersLabel: l10n.t("Active filters:"),
+            filterBadge: (columnName: string, desc: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [columnName, desc],
+                    comment: ["{0} is the column name", "{1} is the filter description"],
+                }),
+            removeFilter: (columnName: string) =>
+                l10n.t({
+                    message: "Remove filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
         };
     }
 }

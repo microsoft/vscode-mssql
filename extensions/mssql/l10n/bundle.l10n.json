@@ -1266,12 +1266,6 @@
     "Filter events by column values": "Filter events by column values",
     "Clear all filters and show all events": "Clear all filters and show all events",
     "No filter is currently active": "No filter is currently active",
-    "Filter Events": "Filter Events",
-    "Add Clause": "Add Clause",
-    "Remove": "Remove",
-    "No filter clauses defined. Add a clause to filter events.": "No filter clauses defined. Add a clause to filter events.",
-    "A new clause has been added.": "A new clause has been added.",
-    "All clauses have been cleared.": "All clauses have been cleared.",
     "=": "=",
     "<>": "<>",
     "<": "<",
@@ -1280,6 +1274,7 @@
     ">=": ">=",
     "Is Null": "Is Null",
     "Is Not Null": "Is Not Null",
+    "In": "In",
     "Filter active": "Filter active",
     "Showing {0} of {1} events/{0} is filtered count, {1} is total count": {
         "message": "Showing {0} of {1} events",
@@ -1308,6 +1303,44 @@
     "Read-only SQL text editor": "Read-only SQL text editor",
     "Event properties list": "Event properties list",
     "Copied to clipboard": "Copied to clipboard",
+    "Filter: {0}/{0} is the column name": {
+        "message": "Filter: {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Search values...": "Search values...",
+    "Enter text...": "Enter text...",
+    "Enter a number...": "Enter a number...",
+    "Enter a date...": "Enter a date...",
+    "Deselect All": "Deselect All",
+    "Example: Find queries with {0} > 100/{0} is the column name": {
+        "message": "Example: Find queries with {0} > 100",
+        "comment": ["{0} is the column name"]
+    },
+    "Search within {0} text content/{0} is the column name": {
+        "message": "Search within {0} text content",
+        "comment": ["{0} is the column name"]
+    },
+    "No results match the current filters": "No results match the current filters",
+    "Quick filter all columnsȂ": "Quick filter all columnsȂ",
+    "Clear All Filters": "Clear All Filters",
+    "Clear quick filter and all column filters": "Clear quick filter and all column filters",
+    "{0}/{1}/{0} is selected count{1} is total count": {
+        "message": "{0}/{1}",
+        "comment": ["{0} is selected count", "{1} is total count"]
+    },
+    "YYYY-MM-DD HH:mm:ss": "YYYY-MM-DD HH:mm:ss",
+    "Use format: YYYY-MM-DD HH:mm:ss[.SSS]": "Use format: YYYY-MM-DD HH:mm:ss[.SSS]",
+    "Filter value": "Filter value",
+    "Filter operator": "Filter operator",
+    "Active filters:": "Active filters:",
+    "{0}: {1}/{0} is the column name{1} is the filter description": {
+        "message": "{0}: {1}",
+        "comment": ["{0} is the column name", "{1} is the filter description"]
+    },
+    "Remove filter for {0}/{0} is the column name": {
+        "message": "Remove filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -1393,6 +1426,7 @@
     "Create Connection Profile": "Create Connection Profile",
     "Clear Recent Connections List": "Clear Recent Connections List",
     "Edit": "Edit",
+    "Remove": "Remove",
     "Manage Connection Profiles": "Manage Connection Profiles",
     "{{put-server-name-here}}": "{{put-server-name-here}}",
     "Server name or ADO.NET connection string": "Server name or ADO.NET connection string",
@@ -2724,8 +2758,6 @@
         "comment": ["{0} is the file name"]
     },
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
-    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Failed to open text in editor: {0}/{0} is the error message": {
         "message": "Failed to open text in editor: {0}",
         "comment": ["{0} is the error message"]
@@ -2738,6 +2770,8 @@
         "message": "{0}/{1} events",
         "comment": ["{0} is the filtered count, {1} is the total count"]
     },
+    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
+    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]

@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
     Tooltip,
     ToggleButton,
+    Input,
 } from "@fluentui/react-components";
 import {
     Play24Regular,
@@ -20,7 +21,6 @@ import {
     EraserRegular,
     Add24Regular,
     FilterDismiss24Regular,
-    Filter24Regular,
 } from "@fluentui/react-icons";
 import {
     SessionState,
@@ -52,6 +52,8 @@ export interface ProfilerToolbarProps {
     xelFileName?: string;
     /** Whether a filter is currently active */
     isFilterActive: boolean;
+    /** Current quick filter term */
+    quickFilterTerm: string;
     /** Callback when new session is requested */
     onNewSession: () => void;
     /** Callback when session is selected */
@@ -68,10 +70,10 @@ export interface ProfilerToolbarProps {
     onViewChange: (viewId: string) => void;
     /** Callback when auto-scroll is toggled */
     onAutoScrollToggle: () => void;
-    /** Callback when filter button is clicked to open filter dialog */
-    onFilter: () => void;
     /** Callback when clear filter is clicked */
     onClearFilter: () => void;
+    /** Callback when quick filter changes (debounced by consumer) */
+    onQuickFilterChange: (term: string) => void;
 }
 
 export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
@@ -94,8 +96,9 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
     onClear,
     onViewChange,
     onAutoScrollToggle,
-    onFilter,
     onClearFilter,
+    quickFilterTerm,
+    onQuickFilterChange,
 }) => {
     const isRunning = sessionState === SessionState.Running;
     const isPaused = sessionState === SessionState.Paused;
@@ -103,6 +106,32 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
         sessionState === SessionState.Stopped || sessionState === SessionState.NotStarted;
     const isActive = isRunning || isPaused;
     const hasTemplates = availableTemplates && availableTemplates.length > 0;
+
+    // Quick filter with debounce
+    const [localQuickFilter, setLocalQuickFilter] = useState(quickFilterTerm);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    const handleQuickFilterInput = useCallback(
+        (value: string) => {
+            // Enforce max length
+            const trimmed = value.slice(0, 1000);
+            setLocalQuickFilter(trimmed);
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+            debounceRef.current = setTimeout(() => {
+                onQuickFilterChange(trimmed);
+            }, 200);
+        },
+        [onQuickFilterChange],
+    );
+
+    // Sync local quick filter when external state clears it
+    React.useEffect(() => {
+        if (quickFilterTerm === "" && localQuickFilter !== "") {
+            setLocalQuickFilter("");
+        }
+    }, [quickFilterTerm]); // intentionally only react to external quickFilterTerm changes
 
     // Determine pause/resume button state - use Next icon (line before play) for Resume
     const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;
@@ -265,30 +294,34 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
                 <ToolbarDivider />
 
-                {/* Filter button - opens filter dialog */}
-                <Tooltip content={loc.filterTooltip} relationship="label">
-                    <ToolbarButton
-                        aria-label={loc.filter}
-                        icon={<Filter24Regular />}
-                        onClick={onFilter}>
-                        {loc.filter}
-                    </ToolbarButton>
-                </Tooltip>
-
-                {/* Clear Filter button */}
+                {/* Clear All Filters button */}
                 <Tooltip
                     content={
-                        isFilterActive ? loc.clearFilterTooltip : loc.clearFilterDisabledTooltip
+                        isFilterActive ? loc.clearAllFiltersTooltip : loc.clearFilterDisabledTooltip
                     }
                     relationship="label">
                     <ToolbarButton
-                        aria-label={loc.clearFilter}
+                        aria-label={loc.clearAllFilters}
                         icon={<FilterDismiss24Regular />}
                         onClick={onClearFilter}
                         disabled={!isFilterActive}>
-                        {loc.clearFilter}
+                        {loc.clearAllFilters}
                     </ToolbarButton>
                 </Tooltip>
+
+                {/* Quick filter input */}
+                <Input
+                    placeholder={loc.quickFilterPlaceholder}
+                    value={localQuickFilter}
+                    onChange={(_e, data) => handleQuickFilterInput(data.value ?? "")}
+                    aria-label={loc.quickFilterPlaceholder}
+                    style={{
+                        minWidth: "180px",
+                        maxWidth: "300px",
+                        marginLeft: "4px",
+                    }}
+                    size="small"
+                />
 
                 <ToolbarDivider />
 

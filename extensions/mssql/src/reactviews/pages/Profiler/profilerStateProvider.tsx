@@ -38,8 +38,10 @@ export interface ProfilerRpcMethods {
     selectRow: (rowId: string) => void;
     /** Apply filter clauses (client-side only) */
     applyFilter: (clauses: FilterClause[]) => void;
-    /** Clear all filter clauses */
+    /** Clear all filter clauses and quick filter */
     clearFilter: () => void;
+    /** Set quick filter term (cross-column search) */
+    setQuickFilter: (term: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -128,6 +130,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         extensionRpc?.action("clearFilter", {});
     }, [extensionRpc]);
 
+    const setQuickFilter = useCallback(
+        (term: string) => {
+            extensionRpc?.action("setQuickFilter", { term });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -144,6 +153,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 selectRow,
                 applyFilter,
                 clearFilter,
+                setQuickFilter,
             }}>
             {children}
         </ProfilerContext.Provider>
