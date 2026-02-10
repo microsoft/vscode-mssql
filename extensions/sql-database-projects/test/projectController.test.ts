@@ -726,6 +726,12 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
+			const sandbox = sinon.createSandbox();
+
+			teardown(function (): void {
+				sandbox.restore();
+			});
+
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
 				const fakeDacpacContents = 'SwiftFlewHiawathasArrow';
 				let postCopyContents = '';
@@ -745,7 +751,7 @@ suite('ProjectsController', function (): void {
 					builtDacpacPath = await testUtils.createTestFile(this.test, fakeDacpacContents, 'output.dacpac');
 					return builtDacpacPath;
 				});
-				sinon.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
+				sandbox.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
 
 				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 
@@ -762,18 +768,14 @@ suite('ProjectsController', function (): void {
 				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 				const expectedProjectPath = proj.projectFilePath;
 
-				const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
+				const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand').resolves();
 
-				try {
-					const projController = new ProjectsController(testContext.outputChannel);
-					await projController.publishProject(proj);
+				const projController = new ProjectsController(testContext.outputChannel);
+				await projController.publishProject(proj);
 
-					expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
-					expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
-					expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
-				} finally {
-					executeCommandStub.restore();
-				}
+				expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
+				expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
+				expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
 			});
 		});
 	});
