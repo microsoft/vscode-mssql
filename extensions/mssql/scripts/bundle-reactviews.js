@@ -32,6 +32,7 @@ const config = {
         dropDatabaseDialog: "src/reactviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
         tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
+        searchDatabase: "src/reactviews/pages/SearchDatabase/index.tsx",
         changelog: "src/reactviews/pages/Changelog/index.tsx",
         profiler: "src/reactviews/pages/Profiler/index.tsx",
         azureDataStudioMigration: "src/reactviews/pages/AzureDataStudioMigration/index.tsx",
