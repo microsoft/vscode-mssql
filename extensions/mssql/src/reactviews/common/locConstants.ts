@@ -1833,6 +1833,7 @@ export class LocConstants {
             filterTooltip: l10n.t("Filter events by column values"),
             clearFilterTooltip: l10n.t("Clear all filters and show all events"),
             clearFilterDisabledTooltip: l10n.t("No filter is currently active"),
+            events: l10n.t("events"),
 
             // Filter dialog
             filterDialogTitle: l10n.t("Filter Events"),
@@ -1867,6 +1868,66 @@ export class LocConstants {
                     args: [filteredCount, totalCount],
                     comment: ["{0} is filtered count, {1} is total count"],
                 }),
+
+            // Column filter UI
+            quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
+            filterColumnTitle: (columnName: string) =>
+                l10n.t({
+                    message: "Filter: {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            searchValuesPlaceholder: l10n.t("Search values..."),
+            categorySelectAll: l10n.t("Select All"),
+            categoryFilterListLabel: l10n.t("Available filter values"),
+            noValuesMatch: l10n.t("No matching values"),
+            selectedCount: l10n.t("{0} selected"),
+            numericFilterHint: (columnName: string) =>
+                l10n.t({
+                    message: "Example: Find queries with {0} > 100",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textDataHint: (columnName: string) =>
+                l10n.t({
+                    message: "Search within {0} text content",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            textFilterPlaceholder: l10n.t("Enter text..."),
+            invalidNumber: l10n.t("Must be a valid number"),
+            invalidDate: l10n.t("Must be a valid date"),
+            noFilterResults: l10n.t("No results match the current filters"),
+            clearAllFilters: l10n.t("Clear All Filters"),
+            columnFilterApply: l10n.t("Apply"),
+            columnFilterClear: l10n.t("Clear"),
+            filterActions: l10n.t("Filter actions"),
+            columnFilterApplyLabel: (columnName: string) =>
+                l10n.t({
+                    message: "Apply filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            columnFilterClearLabel: (columnName: string) =>
+                l10n.t({
+                    message: "Clear filter for {0}",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            numericFilterGroupLabel: l10n.t("Numeric filter options"),
+            textFilterGroupLabel: l10n.t("Text filter options"),
+            dateFilterGroupLabel: l10n.t("Date filter options"),
+
+            // Filter operators (for column filters)
+            opEquals: l10n.t("equals"),
+            opNotEquals: l10n.t("not equals"),
+            opGreaterThan: l10n.t("greater than"),
+            opGreaterOrEqual: l10n.t("greater or equal"),
+            opLessThan: l10n.t("less than"),
+            opLessOrEqual: l10n.t("less or equal"),
+            opContains: l10n.t("contains"),
+            opStartsWith: l10n.t("starts with"),
+            opEndsWith: l10n.t("ends with"),
 
             // Session states
             stateRunning: l10n.t("Running"),

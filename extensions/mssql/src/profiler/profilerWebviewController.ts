@@ -16,12 +16,18 @@ import {
     RowsRemovedParams,
     FilterClause,
     FilterStateChangedParams,
+    ColumnFilterCriteria,
 } from "../sharedInterfaces/profiler";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
-import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM, FilterOperator } from "./profilerTypes";
+import {
+    EventRow,
+    SessionState,
+    TEMPLATE_ID_STANDARD_ONPREM,
+    FilterOperator,
+} from "./profilerTypes";
 import { FilteredBuffer } from "./filteredBuffer";
 import { Profiler as LocProfiler } from "../constants/locConstants";
 
@@ -367,6 +373,183 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        // Handle apply column filter request from webview
+        this.registerReducer(
+            "applyColumnFilter",
+            (state, payload: { field: string; criteria: ColumnFilterCriteria }) => {
+                if (this._filteredBuffer) {
+                    this._filteredBuffer.setColumnFilter(payload.field, payload.criteria);
+
+                    const totalCount = this._filteredBuffer.totalCount;
+                    // Use the correct filtered count based on grid row filtering
+                    const filteredCount = this.getFilteredCount();
+
+                    // Notify webview of filter change
+                    void this.sendFilterStateChanged();
+
+                    // Notify webview to clear and refetch filtered data
+                    void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+                    setTimeout(() => {
+                        void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                            newCount: filteredCount,
+                            totalCount: filteredCount,
+                        } as NewEventsAvailableParams);
+                    }, 0);
+
+                    // Update filter state with new column filter
+                    const columnFilters = { ...state.filterState.columnFilters };
+                    columnFilters[payload.field] = payload.criteria;
+
+                    this.state = {
+                        ...state,
+                        filterState: {
+                            ...state.filterState,
+                            columnFilters,
+                        },
+                        totalRowCount: totalCount,
+                        filteredRowCount: filteredCount,
+                    };
+                    this.updateStatusBar();
+                    return this.state;
+                }
+                return state;
+            },
+        );
+
+        // Handle clear column filter request from webview
+        this.registerReducer("clearColumnFilter", (state, payload: { field: string }) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.clearColumnFilter(payload.field);
+
+                const totalCount = this._filteredBuffer.totalCount;
+                // Use the correct filtered count based on grid row filtering
+                const filteredCount = this.getFilteredCount();
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch filtered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                // Update filter state with removed column filter
+                const columnFilters = { ...state.filterState.columnFilters };
+                delete columnFilters[payload.field];
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        ...state.filterState,
+                        columnFilters:
+                            Object.keys(columnFilters).length > 0 ? columnFilters : undefined,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
+                };
+                this.updateStatusBar();
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle set quick filter request from webview
+        this.registerReducer("setQuickFilter", (state, payload: { term: string }) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.setQuickFilter(payload.term);
+
+                const totalCount = this._filteredBuffer.totalCount;
+                // Use the correct filtered count based on grid row filtering
+                const filteredCount = this.getFilteredCount();
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch filtered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: filteredCount,
+                        totalCount: filteredCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        ...state.filterState,
+                        quickFilter: payload.term || undefined,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: filteredCount,
+                };
+                this.updateStatusBar();
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle clear all filters request from webview
+        this.registerReducer("clearAllFilters", (state) => {
+            if (this._filteredBuffer) {
+                this._filteredBuffer.clearAllFilters();
+                const totalCount = this._filteredBuffer.totalCount;
+
+                // Notify webview of filter change
+                void this.sendFilterStateChanged();
+
+                // Notify webview to clear and refetch unfiltered data
+                void this.sendNotification(ProfilerNotifications.ClearGrid, {});
+                setTimeout(() => {
+                    void this.sendNotification(ProfilerNotifications.NewEventsAvailable, {
+                        newCount: totalCount,
+                        totalCount: totalCount,
+                    } as NewEventsAvailableParams);
+                }, 0);
+
+                this.state = {
+                    ...state,
+                    filterState: {
+                        enabled: false,
+                        clauses: [],
+                        quickFilter: undefined,
+                        columnFilters: undefined,
+                    },
+                    totalRowCount: totalCount,
+                    filteredRowCount: totalCount,
+                };
+                this.updateStatusBar();
+                return this.state;
+            }
+            return state;
+        });
+
+        // Handle get distinct values request from webview
+        this.registerReducer("getDistinctValues", (state, payload: { field: string }) => {
+            if (this._filteredBuffer) {
+                // Get the view column configuration to find the eventsMapped fields
+                const configService = getProfilerConfigService();
+                const view = configService.getView(this._currentViewId);
+                const column = view?.columns.find((c) => c.field === payload.field);
+
+                // Get the field names to search for (from eventsMapped or fall back to field name)
+                const mappedFields = column?.eventsMapped ?? [payload.field];
+
+                const values = this._filteredBuffer.getDistinctValues(mappedFields);
+
+                // Send distinct values response to webview
+                void this.sendNotification(ProfilerNotifications.DistinctValuesResponse, {
+                    field: payload.field,
+                    values: values,
+                });
+            }
+            return state;
+        });
     }
 
     /**
@@ -466,6 +649,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 width?: number;
                 sortable?: boolean;
                 filterable?: boolean;
+                filterMode?: "categorical" | "text";
+                eventsMapped?: string[];
             }>;
         },
     ): ProfilerViewConfig {
@@ -480,6 +665,8 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 width: col.width,
                 sortable: col.sortable,
                 filterable: col.filterable,
+                filterMode: col.filterMode,
+                eventsMapped: col.eventsMapped,
             })),
         };
     }
@@ -596,6 +783,36 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Gets the current filtered count by converting events to grid rows and applying filters.
+     * This ensures the count matches the actual filtered data sent to the webview.
+     */
+    private getFilteredCount(): number {
+        if (!this._currentSession || !this._filteredBuffer) {
+            return 0;
+        }
+
+        const configService = getProfilerConfigService();
+        const view = configService.getView(this._currentViewId);
+        if (!view) {
+            return this._filteredBuffer.totalCount;
+        }
+
+        // If no filter is active, return total count
+        if (!this._filteredBuffer.isFilterActive) {
+            return this._filteredBuffer.totalCount;
+        }
+
+        // Get all events and convert to grid rows
+        const allEvents = this._filteredBuffer.buffer.getAllRows();
+        const allGridRows: ProfilerGridRow[] = allEvents.map((event) => {
+            return configService.convertEventToViewRow(event, view) as ProfilerGridRow;
+        });
+
+        // Count rows that match the filter
+        return allGridRows.filter((row) => this.matchesFilter(row)).length;
+    }
+
+    /**
      * Fetch rows from the buffer and convert to grid rows.
      * This is the core method for the pull model.
      * If filter is active, returns filtered rows; otherwise returns all rows.
@@ -671,17 +888,98 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Tests if a grid row matches the current filter clauses.
+     * Tests if a grid row matches the current filter clauses and column filters.
      * All clauses must match (AND logic).
      */
     private matchesFilter(row: ProfilerGridRow): boolean {
+        // Check legacy filter clauses
         const clauses = this._filteredBuffer?.clauses ?? [];
         for (const clause of clauses) {
             if (!this.evaluateClause(row, clause)) {
                 return false;
             }
         }
+
+        // Check column filters
+        const columnFilters = this._filteredBuffer?.columnFilters;
+        if (columnFilters) {
+            for (const [_field, criteria] of columnFilters.entries()) {
+                if (!this.evaluateColumnFilter(row, criteria)) {
+                    return false;
+                }
+            }
+        }
+
+        // Check quick filter
+        const quickFilter = this._filteredBuffer?.quickFilter;
+        if (quickFilter && quickFilter.length > 0) {
+            if (!this.evaluateQuickFilter(row, quickFilter)) {
+                return false;
+            }
+        }
+
         return true;
+    }
+
+    /**
+     * Evaluates a column filter against a grid row.
+     */
+    private evaluateColumnFilter(row: ProfilerGridRow, criteria: ColumnFilterCriteria): boolean {
+        const fieldValue = row[criteria.field];
+
+        if (criteria.filterType === "categorical") {
+            // Categorical filter: OR logic within selected values
+            if (!criteria.selectedValues || criteria.selectedValues.length === 0) {
+                return true; // No selection = no filter
+            }
+            // eslint-disable-next-line eqeqeq
+            if (fieldValue == undefined) {
+                return false;
+            }
+            const strValue = String(fieldValue);
+            return criteria.selectedValues.some(
+                (selected) => selected.toLowerCase() === strValue.toLowerCase(),
+            );
+        }
+
+        // Operator-based filters (numeric, date, text)
+        if (!criteria.operator || criteria.value === undefined) {
+            return true; // No operator/value = no filter
+        }
+
+        // Create a filter clause and evaluate it
+        const clause: FilterClause = {
+            field: criteria.field,
+            operator: criteria.operator,
+            value: criteria.value,
+            typeHint:
+                criteria.filterType === "numeric"
+                    ? "number"
+                    : criteria.filterType === "date"
+                      ? "datetime"
+                      : "string",
+        };
+
+        return this.evaluateClause(row, clause);
+    }
+
+    /**
+     * Evaluates quick filter against a grid row.
+     * Returns true if any column contains the search term.
+     */
+    private evaluateQuickFilter(row: ProfilerGridRow, searchTerm: string): boolean {
+        const termLower = searchTerm.toLowerCase();
+        for (const key of Object.keys(row)) {
+            const value = row[key];
+            // eslint-disable-next-line eqeqeq
+            if (value != undefined) {
+                const strValue = String(value).toLowerCase();
+                if (strValue.includes(termLower)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -12,11 +12,13 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Text } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerFilterDialog } from "./profilerFilterDialog";
+import { ColumnFilterPopover } from "./components";
+import "../../media/table.css"; // For slick-header-filterbutton styling
 import {
     SessionState,
     ProfilerNotifications,
@@ -24,9 +26,13 @@ import {
     NewEventsAvailableParams,
     RowsRemovedParams,
     FilterClause,
+    DistinctValuesResponseParams,
+    ColumnFilterCriteria,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { locConstants } from "../../common/locConstants";
+import { resolveVscodeThemeType } from "../../common/utils";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 /** Number of rows to fetch per request */
@@ -113,7 +119,11 @@ export const Profiler: React.FC = () => {
         (s) => s.filterState ?? { enabled: false, clauses: [] },
     );
 
-    const isFilterActive = filterState.enabled && filterState.clauses.length > 0;
+    // Legacy filter active (filter dialog clauses)
+    const hasLegacyClauses = filterState.enabled && filterState.clauses.length > 0;
+
+    // Quick filter value from state
+    const quickFilterValue = filterState.quickFilter ?? "";
 
     const {
         pauseResume,
@@ -126,18 +136,43 @@ export const Profiler: React.FC = () => {
         toggleAutoScroll,
         fetchRows,
         applyFilter,
-        clearFilter,
+        setQuickFilter,
+        clearAllFilters,
+        applyColumnFilter,
+        clearColumnFilter,
+        getDistinctValues,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);
     const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+    const [isGridReady, setIsGridReady] = useState(false); // Track when grid is ready
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | null>(null);
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
+
+    // Column filter state - tracks which column's popover is open
+    const [openFilterColumn, setOpenFilterColumn] = useState<string | null>(null);
+    // Distinct values are populated by the DistinctValuesResponse notification handler
+    const [distinctValues, setDistinctValues] = useState<Record<string, string[]>>({});
+
+    // Get column filter criteria from state
+    const columnFilters = filterState.columnFilters ?? {};
+
+    // Check if any column filter is active
+    const hasColumnFilters = Object.keys(columnFilters).length > 0;
+
+    // Combined filter active check (any filter type)
+    const isFilterActive = hasLegacyClauses || quickFilterValue.length > 0 || hasColumnFilters;
+
+    // Refs for filter state access in event handlers
+    const filterStateRef = useRef(filterState);
+    useEffect(() => {
+        filterStateRef.current = filterState;
+    }, [filterState]);
 
     // Inject SlickGrid styles on mount
     useEffect(() => {
@@ -168,10 +203,182 @@ export const Profiler: React.FC = () => {
         }
     }, [clearGeneration]);
 
-    // Grid ready callback
+    /**
+     * Opens the filter dialog with the specified column pre-selected
+     * @param field The field name of the column to pre-select
+     */
+    const openFilterForColumn = useCallback((field: string) => {
+        setOpenFilterColumn(field);
+        // Request distinct values for the column
+        getDistinctValues(field);
+    }, [getDistinctValues]);
+
+    // Store the callback in a ref so we can access it from the grid event handler
+    const openFilterForColumnRef = useRef(openFilterForColumn);
+    useEffect(() => {
+        openFilterForColumnRef.current = openFilterForColumn;
+    }, [openFilterForColumn]);
+
+    // Mapping of column IDs to filter button elements
+    const columnFilterButtonMapping = useRef<Map<string, HTMLElement>>(new Map());
+
+    /**
+     * Gets the filter button element for a column by looking it up in the DOM.
+     * This is more reliable than using stored references which can become stale.
+     */
+    const getFilterButtonForColumn = useCallback((field: string): HTMLElement | null => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return null;
+        }
+        const gridContainer = grid.getContainerNode();
+        const headerCell = gridContainer?.querySelector(
+            `.slick-header-column[data-id="${field}"]`,
+        );
+        if (!headerCell) {
+            return null;
+        }
+        return headerCell.querySelector(".slick-header-filterbutton") as HTMLElement | null;
+    }, []);
+
+    // Grid ready callback - stores the grid reference and triggers setup
     function reactGridReady(reactGrid: SlickgridReactInstance) {
         reactGridRef.current = reactGrid;
+        setIsGridReady(true);
     }
+
+    // Set up header cell rendering after grid is initialized
+    useEffect(() => {
+        if (!isGridReady) {
+            return;
+        }
+
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return;
+        }
+
+        // Subscribe to header cell rendered event to add filter buttons
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handleHeaderCellRendered = (_e: any, args: { column: Column; node: HTMLElement }) => {
+            const column = args.column;
+            if (!column || column.filterable === false) {
+                return;
+            }
+
+            // Skip if filter button already added
+            if (args.node.classList.contains("slick-header-with-filter")) {
+                return;
+            }
+
+            // Add class to enable flexbox layout (same pattern as QueryResult)
+            args.node.classList.add("slick-header-with-filter");
+
+            // Add theme class for proper icon coloring
+            const theme = resolveVscodeThemeType(themeKind);
+            args.node.classList.add(theme);
+
+            // Add tooltip and aria-label to the column name element
+            const columnNameElement = args.node.querySelector(".slick-column-name");
+            if (columnNameElement) {
+                const columnName = column.name as string;
+                columnNameElement.setAttribute("title", columnName);
+                columnNameElement.setAttribute("aria-label", columnName);
+            }
+
+            // Check if this column has an active filter
+            const hasActiveFilter = filterStateRef.current.columnFilters?.[column.field as string] !== undefined;
+
+            // Create filter button (same class as QueryResult for consistent styling)
+            const filterButton = document.createElement("button");
+            filterButton.id = "filter-btn";
+            filterButton.className = `slick-header-filterbutton${hasActiveFilter ? " filtered" : ""}`;
+            filterButton.setAttribute("aria-label", locConstants.profiler.filterTooltip);
+            filterButton.setAttribute("title", locConstants.profiler.filterTooltip);
+            filterButton.tabIndex = -1;
+
+            // Store the field name on the button for the click handler
+            const fieldName = column.field as string;
+            filterButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                openFilterForColumnRef.current(fieldName);
+            });
+
+            // Append filter button to the header cell (same as QueryResult pattern)
+            args.node.appendChild(filterButton);
+
+            // Store reference for later updates
+            columnFilterButtonMapping.current.set(column.id as string, filterButton);
+        };
+
+        // Clean up filter buttons when header cell is destroyed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handleBeforeHeaderCellDestroy = (_e: any, args: { column: Column; node: HTMLElement }) => {
+            const filterButton = args.node.querySelector(".slick-header-filterbutton");
+            if (filterButton) {
+                filterButton.remove();
+            }
+            args.node.classList.remove("slick-header-with-filter");
+            const columnId = args.column?.id as string;
+            if (columnId) {
+                columnFilterButtonMapping.current.delete(columnId);
+            }
+        };
+
+        grid.onHeaderCellRendered.subscribe(handleHeaderCellRendered);
+        grid.onBeforeHeaderCellDestroy.subscribe(handleBeforeHeaderCellDestroy);
+
+        // Force re-render of headers after subscribing to the event
+        // This is needed because headers may have already been rendered before we subscribed
+        const currentColumns = grid.getColumns();
+        if (currentColumns.length > 0) {
+            grid.setColumns(currentColumns);
+        }
+
+        // Cleanup
+        return () => {
+            grid.onHeaderCellRendered.unsubscribe(handleHeaderCellRendered);
+            grid.onBeforeHeaderCellDestroy.unsubscribe(handleBeforeHeaderCellDestroy);
+        };
+    }, [isGridReady, themeKind]); // Re-run when grid is ready or theme changes
+
+    // Update filter button states when filter state changes
+    useEffect(() => {
+        const grid = reactGridRef.current?.slickGrid;
+        if (!grid) {
+            return;
+        }
+
+        const gridContainer = grid.getContainerNode();
+        const headerContainer = gridContainer?.querySelector(".slick-header-columns");
+        if (!headerContainer) {
+            return;
+        }
+
+        const gridColumns = grid.getColumns();
+        gridColumns.forEach((column) => {
+            const headerCell = headerContainer.querySelector(
+                `.slick-header-column[data-id="${column.id}"]`,
+            );
+            if (!headerCell) {
+                return;
+            }
+
+            const filterButton = headerCell.querySelector(".slick-header-filterbutton");
+            if (!filterButton) {
+                return;
+            }
+
+            const hasActiveFilter = filterState.columnFilters?.[column.field as string] !== undefined;
+
+            if (hasActiveFilter) {
+                filterButton.classList.add("filtered");
+            } else {
+                filterButton.classList.remove("filtered");
+            }
+        });
+    }, [filterState]);
 
     // Register notification handlers ONCE per webview lifecycle
     useEffect(() => {
@@ -287,6 +494,17 @@ export const Profiler: React.FC = () => {
                 setLocalRowCount(newCount);
             },
         );
+
+        // Handle distinct values response notification
+        extensionRpc.onNotification(
+            ProfilerNotifications.DistinctValuesResponse,
+            (params: DistinctValuesResponseParams) => {
+                setDistinctValues((prev) => ({
+                    ...prev,
+                    [params.field]: params.values,
+                }));
+            },
+        );
     }, []);
 
     // Handle scroll event for infinite scroll
@@ -327,8 +545,8 @@ export const Profiler: React.FC = () => {
                     id: "eventClass",
                     name: "Event",
                     field: "eventClass",
-                    sortable: true,
-                    filterable: false,
+                    sortable: false,
+                    filterable: true,
                     resizable: true,
                     minWidth: 200,
                     excludeFromColumnPicker: true,
@@ -341,15 +559,20 @@ export const Profiler: React.FC = () => {
         return [
             ...viewConfig.columns.map((col) => {
                 const formatterConfig = getFormatterConfig(col.field);
+                // Calculate minimum width based on header length + filter button width (24px)
+                // Approximate 7px per character for the header text
+                const headerMinWidth = Math.max(80, (col.header?.length ?? 0) * 7 + 28);
+                // Ensure width is at least headerMinWidth
+                const effectiveWidth = Math.max(col.width ?? headerMinWidth, headerMinWidth);
                 return {
                     id: col.field,
                     name: col.header,
                     field: col.field,
-                    width: col.width,
-                    sortable: col.sortable ?? true,
-                    filterable: col.filterable ?? false,
+                    width: effectiveWidth,
+                    sortable: col.sortable ?? false,
+                    filterable: col.filterable ?? true,
                     resizable: true,
-                    minWidth: 50,
+                    minWidth: headerMinWidth,
                     excludeFromColumnPicker: true,
                     excludeFromGridMenu: true,
                     excludeFromHeaderMenu: true,
@@ -426,11 +649,15 @@ export const Profiler: React.FC = () => {
     };
 
     /**
-     * Handles opening the filter dialog from the toolbar.
+     * Handles quick filter value changes from the toolbar.
+     * @param value The new quick filter value
      */
-    const handleFilter = useCallback(() => {
-        setIsFilterDialogOpen(true);
-    }, []);
+    const handleQuickFilterChange = useCallback(
+        (value: string) => {
+            setQuickFilter(value);
+        },
+        [setQuickFilter],
+    );
 
     /**
      * Handles applying filter clauses from the filter dialog.
@@ -445,13 +672,55 @@ export const Profiler: React.FC = () => {
     );
 
     /**
-     * Handles clearing the active filter from the toolbar.
-     * Removes all filter clauses and shows all events.
+     * Handles clearing all active filters from the toolbar.
+     * Removes quick filter, all column filters, and legacy filter clauses.
      */
     const handleClearFilter = useCallback(() => {
-        clearFilter();
+        clearAllFilters();
         setIsFilterDialogOpen(false);
-    }, [clearFilter]);
+    }, [clearAllFilters]);
+
+    /**
+     * Closes the column filter popover.
+     */
+    const handleCloseColumnFilter = useCallback(() => {
+        setOpenFilterColumn(null);
+    }, []);
+
+    /**
+     * Applies a column filter criteria.
+     * @param criteria The filter criteria to apply
+     */
+    const handleApplyColumnFilter = useCallback(
+        (criteria: ColumnFilterCriteria) => {
+            applyColumnFilter(criteria.field, criteria);
+            setOpenFilterColumn(null);
+        },
+        [applyColumnFilter],
+    );
+
+    /**
+     * Clears the filter for a specific column.
+     * @param field The field name of the column to clear
+     */
+    const handleClearColumnFilter = useCallback(
+        (field: string) => {
+            clearColumnFilter(field);
+            setOpenFilterColumn(null);
+        },
+        [clearColumnFilter],
+    );
+
+    // Get filtered row count from state
+    const filteredRowCount = useProfilerSelector((s) => s.filteredRowCount ?? s.totalRowCount ?? 0);
+
+    // Get the column definition for the currently open filter
+    const openFilterColumnDef = useMemo(() => {
+        if (!openFilterColumn || !viewConfig?.columns) {
+            return undefined;
+        }
+        return viewConfig.columns.find((col) => col.field === openFilterColumn);
+    }, [openFilterColumn, viewConfig?.columns]);
 
     return (
         <div className={classes.profilerContainer}>
@@ -465,6 +734,9 @@ export const Profiler: React.FC = () => {
                 autoScroll={autoScroll}
                 isCreatingSession={isCreatingSession}
                 isFilterActive={isFilterActive}
+                quickFilterValue={quickFilterValue}
+                totalRowCount={totalRowCount}
+                filteredRowCount={filteredRowCount}
                 onNewSession={handleNewSession}
                 onSelectSession={handleSelectSession}
                 onStart={handleStart}
@@ -473,13 +745,13 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
-                onFilter={handleFilter}
+                onQuickFilterChange={handleQuickFilterChange}
                 onClearFilter={handleClearFilter}
             />
             <ProfilerFilterDialog
                 columns={viewConfig?.columns ?? []}
                 currentClauses={filterState.clauses}
-                isFilterActive={isFilterActive}
+                isFilterActive={hasLegacyClauses}
                 isOpen={isFilterDialogOpen}
                 onOpenChange={setIsFilterDialogOpen}
                 onApplyFilter={handleApplyFilter}
@@ -494,6 +766,29 @@ export const Profiler: React.FC = () => {
                     onReactGridCreated={(e) => reactGridReady(e.detail)}
                     onScroll={handleScroll}
                 />
+                {/* Column filter popover - rendered when a filter button is clicked */}
+                {openFilterColumn && openFilterColumnDef && (
+                    <ColumnFilterPopover
+                        column={openFilterColumnDef}
+                        currentCriteria={columnFilters[openFilterColumn]}
+                        distinctValues={distinctValues[openFilterColumn] ?? []}
+                        isOpen={true}
+                        anchorElement={getFilterButtonForColumn(openFilterColumn)}
+                        onOpenChange={(open) => {
+                            if (!open) {
+                                handleCloseColumnFilter();
+                            }
+                        }}
+                        onApply={handleApplyColumnFilter}
+                        onClear={() => handleClearColumnFilter(openFilterColumn)}
+                    />
+                )}
+                {/* Empty state message when filters active but no results */}
+                {filteredRowCount === 0 && isFilterActive && (
+                    <div className={classes.emptyStateOverlay}>
+                        <Text>{locConstants.profiler.noFilterResults}</Text>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -564,6 +859,19 @@ const useStyles = makeStyles({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
+        position: "relative",
+    },
+    emptyStateOverlay: {
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        backgroundColor: "var(--vscode-editor-background)",
+        padding: "16px 24px",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-panel-border)",
+        zIndex: 10,
+        textAlign: "center",
     },
 });
 

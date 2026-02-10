@@ -1464,4 +1464,305 @@ suite("FilteredBuffer Tests", () => {
             expect(rows[0].name).to.equal("slow");
         });
     });
+
+    suite("Column Filters with raw field names", () => {
+        /**
+         * Simulates EventRow with additionalData containing xevent raw field names
+         */
+        interface EventLikeRow extends IndexedRow {
+            eventNumber: number;
+            eventClass: string;
+            textData?: string;
+            additionalData?: Record<string, unknown>;
+        }
+
+        test("categorical column filter works with raw field names in additionalData", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            // Add rows with xevent raw field names in additionalData
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "tempdb" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+
+            // Apply categorical filter using raw field name (as webview now sends it)
+            evFiltered.setColumnFilter("database_name", {
+                field: "database_name",
+                filterType: "categorical",
+                selectedValues: ["master"],
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(2);
+            expect(rows.every((r) => r.additionalData?.database_name === "master")).to.be.true;
+        });
+
+        test("categorical filter with OR logic across multiple selected values", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "tempdb" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "msdb" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 4,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+
+            // Select multiple values - should use OR logic
+            evFiltered.setColumnFilter("database_name", {
+                field: "database_name",
+                filterType: "categorical",
+                selectedValues: ["master", "tempdb"],
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(3);
+            expect(
+                rows.every(
+                    (r) =>
+                        r.additionalData?.database_name === "master" ||
+                        r.additionalData?.database_name === "tempdb",
+                ),
+            ).to.be.true;
+        });
+
+        test("text filter with contains operator on additionalData field", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { batch_text: "SELECT * FROM Users" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { batch_text: "INSERT INTO Orders VALUES (1)" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { batch_text: "SELECT COUNT(*) FROM Products" },
+            });
+
+            // Apply text filter with Contains operator using raw field name
+            evFiltered.setColumnFilter("batch_text", {
+                field: "batch_text",
+                filterType: "text",
+                operator: FilterOperator.Contains,
+                value: "SELECT",
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(2);
+        });
+
+        test("numeric filter on additionalData field", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { duration: 100 },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { duration: 5000 },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { duration: 500 },
+            });
+
+            // Apply numeric filter using raw field name
+            evFiltered.setColumnFilter("duration", {
+                field: "duration",
+                filterType: "numeric",
+                operator: FilterOperator.GreaterThan,
+                value: 1000,
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].additionalData?.duration).to.equal(5000);
+        });
+
+        test("column filter on direct EventRow property (not additionalData)", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                textData: "SELECT 1",
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "rpc_completed",
+                textData: "sp_help",
+            });
+
+            // Filter on eventClass which is a direct property
+            evFiltered.setColumnFilter("eventClass", {
+                field: "eventClass",
+                filterType: "categorical",
+                selectedValues: ["sql_batch_completed"],
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(1);
+            expect(rows[0].eventClass).to.equal("sql_batch_completed");
+        });
+
+        test("getDistinctValues works with raw field names", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "tempdb" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+
+            // Get distinct values using raw field name
+            const distinctValues = evFiltered.getDistinctValues(["database_name"]);
+            expect(distinctValues).to.have.length(2);
+            expect(distinctValues).to.include("master");
+            expect(distinctValues).to.include("tempdb");
+        });
+
+        test("filteredCount is accurate with column filters", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "tempdb" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 4,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "msdb" },
+            });
+
+            expect(evFiltered.totalCount).to.equal(4);
+            expect(evFiltered.filteredCount).to.equal(4); // No filter active
+
+            evFiltered.setColumnFilter("database_name", {
+                field: "database_name",
+                filterType: "categorical",
+                selectedValues: ["master"],
+            });
+
+            expect(evFiltered.totalCount).to.equal(4);
+            expect(evFiltered.filteredCount).to.equal(2);
+        });
+
+        test("case-insensitive categorical filter matching", () => {
+            const evBuffer = new RingBuffer<EventLikeRow>(10);
+            const evFiltered = new FilteredBuffer<EventLikeRow>(evBuffer);
+
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 1,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "MASTER" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 2,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "master" },
+            });
+            evBuffer.add({
+                id: uuidv4(),
+                eventNumber: 3,
+                eventClass: "sql_batch_completed",
+                additionalData: { database_name: "Master" },
+            });
+
+            // Filter with lowercase should match all case variants
+            evFiltered.setColumnFilter("database_name", {
+                field: "database_name",
+                filterType: "categorical",
+                selectedValues: ["master"],
+            });
+
+            const rows = evFiltered.getFilteredRows();
+            expect(rows).to.have.length(3);
+        });
+    });
 });

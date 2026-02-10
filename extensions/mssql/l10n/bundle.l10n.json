@@ -2599,5 +2599,45 @@
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases."
+    "Error loading Azure databases.": "Error loading Azure databases.",
+    "Quick filter all columns...": "Quick filter all columns...",
+    "Filter: {0}/{0} is the column name": {
+        "message": "Filter: {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Search values...": "Search values...",
+    "Select All": "Select All",
+    "Available filter values": "Available filter values",
+    "No matching values": "No matching values",
+    "Example: Find queries with {0} > 100/{0} is the column name": {
+        "message": "Example: Find queries with {0} > 100",
+        "comment": ["{0} is the column name"]
+    },
+    "Search within TextData text content": "Search within TextData text content",
+    "Enter text...": "Enter text...",
+    "Must be a valid number": "Must be a valid number",
+    "Must be a valid date": "Must be a valid date",
+    "No results match the current filters": "No results match the current filters",
+    "Clear All Filters": "Clear All Filters",
+    "Filter actions": "Filter actions",
+    "Apply filter for {0}/{0} is the column name": {
+        "message": "Apply filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Clear filter for {0}/{0} is the column name": {
+        "message": "Clear filter for {0}",
+        "comment": ["{0} is the column name"]
+    },
+    "Numeric filter options": "Numeric filter options",
+    "Text filter options": "Text filter options",
+    "Date filter options": "Date filter options",
+    "equals": "equals",
+    "not equals": "not equals",
+    "greater than": "greater than",
+    "greater or equal": "greater or equal",
+    "less than": "less than",
+    "less or equal": "less or equal",
+    "contains": "contains",
+    "starts with": "starts with",
+    "ends with": "ends with"
 }
