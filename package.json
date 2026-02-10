@@ -22,8 +22,6 @@
     "devDependencies": {
         "@eslint/compat": "^1.1.0",
         "@stylistic/eslint-plugin": "^2.8.0",
-        "@typescript-eslint/eslint-plugin": "^8.7.0",
-        "@typescript-eslint/parser": "^8.7.0",
         "@vscode/l10n-dev": "^0.0.35",
         "eslint": "^9.32.0",
         "eslint-config-prettier": "^9.1.0",
