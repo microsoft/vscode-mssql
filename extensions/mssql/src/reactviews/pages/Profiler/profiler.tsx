@@ -32,6 +32,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
+import "./profiler.css";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
@@ -87,17 +88,6 @@ function getFormatterConfig(
     return undefined;
 }
 
-// Inject SlickGrid styles once
-let stylesInjected = false;
-function injectSlickGridStyles() {
-    if (stylesInjected) {
-        return;
-    }
-    stylesInjected = true;
-    const styleElement = document.createElement("style");
-    styleElement.textContent = slickGridStyles;
-    document.head.appendChild(styleElement);
-}
 
 export const Profiler: React.FC = () => {
     const classes = useStyles();
@@ -150,11 +140,6 @@ export const Profiler: React.FC = () => {
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
-
-    // Inject SlickGrid styles on mount
-    useEffect(() => {
-        injectSlickGridStyles();
-    }, []);
 
     // Keep refs in sync with current values
     useEffect(() => {
@@ -216,6 +201,7 @@ export const Profiler: React.FC = () => {
 
         // Subscribe to header cell rendered event to add filter buttons
         const grid = reactGrid.slickGrid;
+
         if (grid) {
             grid.onHeaderCellRendered.subscribe((_e, args) => {
                 const column = args.column;
@@ -566,6 +552,7 @@ export const Profiler: React.FC = () => {
             headerRowHeight: 30,
             showHeaderRow: false,
             forceFitColumns: false,
+            alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
         }),
         [themeKind],
@@ -847,167 +834,5 @@ const useStyles = makeStyles({
         color: "var(--vscode-descriptionForeground)",
     },
 });
-
-// Global styles for SlickGrid that need to be injected as CSS
-// These use CSS custom properties with --slick- prefix which makeStyles doesn't support well
-const slickGridStyles = `
-#profilerGrid {
-    /* Main grid colors */
-    --slick-cell-even-background-color: var(--vscode-editor-background);
-    --slick-cell-odd-background-color: var(--vscode-editor-background);
-    --slick-row-mouse-hover-color: var(--vscode-list-hoverBackground);
-    --slick-cell-selected-color: var(--vscode-list-activeSelectionBackground);
-    --slick-cell-text-color: var(--vscode-foreground);
-    --slick-grid-header-background: var(--vscode-editor-background);
-    --slick-grid-header-text-color: var(--vscode-foreground);
-    --slick-grid-header-column-width: auto;
-    --slick-header-row-border-color: var(--vscode-panel-border);
-
-    /* Border colors */
-    --slick-border-color: var(--vscode-editorWidget-border);
-    --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-bottom: 1px solid var(--vscode-editorWidget-border);
-    --slick-cell-border-left: 0;
-
-    --slick-header-column-border-right: 1px solid var(--vscode-editorWidget-border);
-    --slick-header-column-border-top: 1px solid var(--vscode-editorWidget-border);
-    --slick-header-column-border-bottom: 1px solid var(--vscode-editorWidget-border);
-    --slick-header-column-border-left: 0;
-
-    /* Column picker colors */
-    --slick-column-picker-background-color: var(--vscode-menu-background);
-    --slick-column-picker-item-color: var(--vscode-menu-foreground);
-    --slick-column-picker-item-hover-color: var(--vscode-menu-selectionBackground);
-    --slick-column-picker-border-color: var(--vscode-menu-border);
-
-    /* Scrollbar colors */
-    --slick-scrollbar-background: var(--vscode-scrollbar-background);
-    --slick-scrollbar-thumb-background: var(--vscode-scrollbarSlider-background);
-    --slick-scrollbar-thumb-hover-background: var(--vscode-scrollbarSlider-hoverBackground);
-    --slick-scrollbar-thumb-active-background: var(--vscode-scrollbarSlider-activeBackground);
-
-    flex: 1;
-    width: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Hide any sort indicators since sorting is disabled */
-#profilerGrid .slick-sort-indicator,
-#profilerGrid .slick-sort-indicator-asc,
-#profilerGrid .slick-sort-indicator-desc {
-    display: none !important;
-}
-
-/* Header cell with filter - use flexbox layout (same pattern as QueryResult) */
-#profilerGrid .slick-header-column.slick-header-with-filter {
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-}
-
-/* Column name should use flex to allow filter button space */
-#profilerGrid .slick-header-with-filter .slick-column-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1 1 0;
-    min-width: 0;
-    margin-bottom: 0;
-}
-
-/* Filter button base styling */
-#profilerGrid .slick-header-filterbutton {
-    background-position: center center;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-size: 14px;
-    flex: 0 0 auto;
-    margin-left: 4px;
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-    opacity: 0.6;
-    transition: opacity 0.15s ease;
-}
-
-#profilerGrid .slick-header-filterbutton:hover {
-    opacity: 1;
-}
-
-/* Filter icon (funnel) - dark theme (default) */
-#profilerGrid .slick-header-filterbutton {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23C5C5C5' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
-}
-
-/* Filter icon (funnel) - light theme */
-.vscode-light #profilerGrid .slick-header-filterbutton {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23424242' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 30t-19 33q-16 35-16 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-29-19-29-53v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320zm1920-1q0-26-19-44t-45-19H192q-26 0-45 18t-19 45q0 29 20 47l649 618q47 45 73 106t26 126v478l256 170v-648q0-65 26-126t73-106l649-618q20-18 20-47z'/%3E%3C/svg%3E");
-}
-
-/* Filtered state - filled funnel icon for dark theme */
-#profilerGrid .slick-header-filterbutton.filtered {
-    opacity: 1;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%2375BEFF' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
-}
-
-/* Filtered state - filled funnel icon for light theme */
-.vscode-light #profilerGrid .slick-header-filterbutton.filtered {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2048 2048'%3E%3Cpath fill='%23007ACC' d='M0 320q0-40 15-75t41-61 61-41 75-15h1664q40 0 75 15t61 41 41 61 15 75q0 82-60 139l-648 618q-14 14-25 29t-20 34q-15 36-15 76v768q0 26-19 45t-45 19q-19 0-35-11l-384-256q-13-8-21-22t-8-31v-512q0-40-15-76-8-18-19-33t-26-30L60 459Q0 402 0 320z'/%3E%3C/svg%3E");
-}
-
-/* Column header with active filter - color the text to match funnel icon */
-#profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
-    color: #75BEFF;
-}
-.vscode-light #profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
-    color: #007ACC;
-}
-
-/* Auto-hide scrollbars when not needed */
-#profilerGrid .slick-viewport {
-    overflow: auto !important;
-}
-
-/* Ensure internal grid structure fills container */
-#profilerGrid .slick-pane {
-    flex: 1;
-}
-
-#profilerGrid .slick-canvas {
-    width: 100%;
-    height: 100%;
-}
-
-/* Hide scrollbars when content fits */
-#profilerGrid .slick-viewport::-webkit-scrollbar {
-    width: 14px;
-    height: 14px;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-track {
-    background-color: transparent;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb {
-    background-color: var(--vscode-scrollbarSlider-background);
-    border-radius: 7px;
-    border: 3px solid transparent;
-    background-clip: padding-box;
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:hover {
-    background-color: var(--vscode-scrollbarSlider-hoverBackground);
-}
-
-#profilerGrid .slick-viewport::-webkit-scrollbar-thumb:active {
-    background-color: var(--vscode-scrollbarSlider-activeBackground);
-}
-`;
 
 // #endregion
