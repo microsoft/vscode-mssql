@@ -40,6 +40,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
     onPushUndoState: () => void;
     onRequestScriptRefresh: () => void;
     onAiEditsApplied?: (result: AiLedgerApplyResult) => void;
+    onAiEditsApplyingStateChanged?: (isApplying: boolean) => void;
 }) {
     const {
         isInitialized,
@@ -58,6 +59,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
         onPushUndoState,
         onRequestScriptRefresh,
         onAiEditsApplied,
+        onAiEditsApplyingStateChanged,
     } = params;
 
     const normalizeIdentifier = (value: string | undefined): string => (value ?? "").toLowerCase();
@@ -363,6 +365,8 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 message: "Missing edits (non-empty array).",
             };
         }
+
+        onAiEditsApplyingStateChanged?.(true);
 
         let appliedEdits = 0;
         let needsScriptRefresh = false;
@@ -1162,6 +1166,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                 schema: workingSchema,
             };
         } finally {
+            onAiEditsApplyingStateChanged?.(false);
             if (needsScriptRefresh) {
                 onRequestScriptRefresh();
             }

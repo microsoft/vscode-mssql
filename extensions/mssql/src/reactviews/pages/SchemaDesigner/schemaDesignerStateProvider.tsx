@@ -58,6 +58,8 @@ import {
     buildForeignKeyEdgeId,
     removeEdgesForForeignKey,
 } from "./schemaDesignerEdgeUtils";
+
+const NULL_VALUE = JSON.parse("null") as null;
 import {
     normalizeColumn,
     normalizeTable,
@@ -206,10 +208,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const lastHasChangesRef = useRef<boolean | undefined>(undefined);
     // Ref to store pending flow state during undo/redo. This ensures diff calculation
     // uses the correct state immediately, without waiting for ReactFlow's async updates.
-    const pendingFlowStateRef = useRef<{
-        nodes: Node<SchemaDesigner.Table>[];
-        edges: Edge<SchemaDesigner.ForeignKey>[];
-    } | null>(null);
+    const pendingFlowStateRef = useRef<
+        | {
+              nodes: Node<SchemaDesigner.Table>[];
+              edges: Edge<SchemaDesigner.ForeignKey>[];
+          }
+        | undefined
+    >(undefined);
     const [schemaChangesCount, setSchemaChangesCount] = useState<number>(0);
     const [schemaChanges, setSchemaChanges] = useState<string[]>([]);
     const [schemaChangesSummary, setSchemaChangesSummary] = useState<
@@ -238,11 +243,74 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [deletedTableNodes, setDeletedTableNodes] = useState<Node<SchemaDesigner.Table>[]>([]);
 
     const [aiLedger, setAiLedger] = useState<PendingAiTableGroup[]>([]);
+    const aiLedgerRef = useRef<PendingAiTableGroup[]>([]);
+    const [aiLedgerHydrated, setAiLedgerHydrated] = useState(false);
+    const suppressAiLedgerAutoClearRef = useRef(0);
     const pendingAiAutoFocusChangeIdRef = useRef<string | undefined>(undefined);
     const pendingAiShouldAutoOpenPanelRef = useRef(false);
 
+    const dismissPendingAiForTableIds = useCallback((tableIds: string[]) => {
+        if (tableIds.length === 0) {
+            return;
+        }
+
+        // Only auto-dismiss for user edits. AI apply/undo paths suppress this.
+        if (suppressAiLedgerAutoClearRef.current !== 0) {
+            return;
+        }
+
+        const tableIdSet = new Set(tableIds);
+        setAiLedger((previousLedger) =>
+            previousLedger.filter((group) => !tableIdSet.has(group.tableId)),
+        );
+    }, []);
+
+    useEffect(() => {
+        aiLedgerRef.current = aiLedger;
+    }, [aiLedger]);
+
+    // Persist pending AI ledger across webview restore/reload.
+    useEffect(() => {
+        try {
+            const persisted = webviewContext.vscodeApi.getState() as
+                | {
+                      schemaDesignerAiLedger?: {
+                          version: number;
+                          groups: PendingAiTableGroup[];
+                      };
+                  }
+                | undefined;
+            const persistedGroups = persisted?.schemaDesignerAiLedger?.groups;
+            if (Array.isArray(persistedGroups)) {
+                setAiLedger(persistedGroups);
+            }
+        } catch {
+            // Ignore persistence errors.
+        } finally {
+            setAiLedgerHydrated(true);
+        }
+    }, [webviewContext.vscodeApi]);
+
+    useEffect(() => {
+        if (!aiLedgerHydrated) {
+            return;
+        }
+        try {
+            const current = (webviewContext.vscodeApi.getState() as Record<string, unknown>) ?? {};
+            webviewContext.vscodeApi.setState({
+                ...current,
+                schemaDesignerAiLedger: {
+                    version: 1,
+                    groups: aiLedger,
+                },
+            });
+        } catch {
+            // Ignore persistence errors.
+        }
+    }, [aiLedger, aiLedgerHydrated, webviewContext.vscodeApi]);
+
     // DAB state
-    const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(NULL_VALUE);
     const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
     const extractSchemaRef = useRef<() => SchemaDesigner.Schema>(() => ({ tables: [] }));
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
@@ -433,6 +501,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
             onAiEditsApplied,
+            onAiEditsApplyingStateChanged: (isApplying) => {
+                suppressAiLedgerAutoClearRef.current += isApplying ? 1 : -1;
+                suppressAiLedgerAutoClearRef.current = Math.max(
+                    0,
+                    suppressAiLedgerAutoClearRef.current,
+                );
+            },
         });
     }, [
         isInitialized,
@@ -492,7 +567,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                     pendingState?.edges ??
                     (reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[]);
                 // Clear the pending state after reading it
-                pendingFlowStateRef.current = null;
+                pendingFlowStateRef.current = undefined;
 
                 const currentSchema = flowUtils.extractSchemaModel(nodes, edges);
 
@@ -658,7 +733,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const initializeSchemaDesigner = async () => {
         try {
             setIsInitialized(false);
-            setAiLedger([]);
             isInitializedRef.current = false;
             setInitializationError(undefined);
             const model = await extensionRpc.sendRequest(
@@ -706,7 +780,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const triggerInitialization = () => {
         setInitializationError(undefined);
         setIsInitialized(false);
-        setAiLedger([]);
         isInitializedRef.current = false;
         setInitializationRequestId((id) => id + 1);
     };
@@ -763,6 +836,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
      * Adds a new table to the flow
      */
     const addTable = async (table: SchemaDesigner.Table) => {
+        dismissPendingAiForTableIds([table.id]);
         const existingNodes = filterDeletedNodes(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
         );
@@ -834,7 +908,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     /**
      * Updates a table in the flow
      */
-    const updateTable = async (updatedTable: SchemaDesigner.Table) => {
+    const updateTable = async (
+        updatedTable: SchemaDesigner.Table,
+        options?: { center?: boolean },
+    ) => {
+        dismissPendingAiForTableIds([updatedTable.id]);
         const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
 
@@ -929,13 +1007,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         reactFlow.setNodes(existingNodes);
         reactFlow.setEdges(existingEdges);
         eventBus.emit("refreshFlowState");
-        requestAnimationFrame(() => {
-            setCenter(updatedTable.id, true);
-        });
+        if (options?.center !== false) {
+            requestAnimationFrame(() => {
+                setCenter(updatedTable.id, true);
+            });
+        }
         return true;
     };
 
-    const deleteTable = async (table: SchemaDesigner.Table, skipConfirmation = false) => {
+    const deleteTable = async (
+        table: SchemaDesigner.Table,
+        skipConfirmation = false,
+        emitPushState = true,
+    ) => {
+        dismissPendingAiForTableIds([table.id]);
         const node = reactFlow.getNode(table.id);
         if (!node) {
             return false;
@@ -944,7 +1029,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             skipDeleteConfirmationRef.current = true;
         }
         await reactFlow.deleteElements({ nodes: [node] });
-        eventBus.emit("pushState");
+        if (emitPushState) {
+            eventBus.emit("pushState");
+        }
         return true;
     };
 
@@ -996,14 +1083,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         if (!table) {
                             return true;
                         }
-                        return deleteTable(table, true);
+                        return deleteTable(table, true, false);
                     }
                     if (item.action === ChangeAction.Delete) {
                         if (!baselineTable) {
                             return false;
                         }
                         if (table) {
-                            return updateTable({ ...baselineTable });
+                            return updateTable({ ...baselineTable }, { center: false });
                         }
                         return addTable({ ...baselineTable });
                     }
@@ -1011,7 +1098,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         return false;
                     }
                     if (table) {
-                        return updateTable({ ...baselineTable });
+                        return updateTable({ ...baselineTable }, { center: false });
                     }
                     return addTable({ ...baselineTable });
                 }
@@ -1045,10 +1132,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         );
                     }
 
-                    return updateTable({
-                        ...table,
-                        columns: nextColumns,
-                    });
+                    return updateTable(
+                        {
+                            ...table,
+                            columns: nextColumns,
+                        },
+                        {
+                            center: false,
+                        },
+                    );
                 }
                 case ChangeCategory.ForeignKey: {
                     if (!table) {
@@ -1083,10 +1175,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                         );
                     }
 
-                    return updateTable({
-                        ...table,
-                        foreignKeys: nextForeignKeys,
-                    });
+                    return updateTable(
+                        {
+                            ...table,
+                            foreignKeys: nextForeignKeys,
+                        },
+                        {
+                            center: false,
+                        },
+                    );
                 }
                 default:
                     return false;
@@ -1101,34 +1198,72 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
-            const pendingItems = [...items];
-            const maxAttempts = pendingItems.length * pendingItems.length;
-            let attempts = 0;
+            const snapshot = reactFlow.toObject() as ReactFlowJsonObject<
+                Node<SchemaDesigner.Table>,
+                Edge<SchemaDesigner.ForeignKey>
+            >;
 
-            while (pendingItems.length > 0 && attempts < maxAttempts) {
-                attempts++;
-                let progressed = false;
+            const applyStagedUndo = async (): Promise<boolean> => {
+                // Apply in dependency-aware stages to reduce failure risk:
+                // 1) tables, 2) columns, 3) foreign keys.
+                const tableItems = items.filter((item) => item.category === ChangeCategory.Table);
+                const columnItems = items.filter((item) => item.category === ChangeCategory.Column);
+                const foreignKeyItems = items.filter(
+                    (item) => item.category === ChangeCategory.ForeignKey,
+                );
 
-                for (let index = 0; index < pendingItems.length; index++) {
-                    const item = pendingItems[index];
+                const deletingTableIds = new Set(
+                    tableItems
+                        .filter((item) => item.action === ChangeAction.Add)
+                        .map((item) => item.tableId),
+                );
+
+                for (const item of tableItems) {
                     const success = await applyUndoForAiLedgerItem(item);
                     if (!success) {
-                        continue;
+                        return false;
                     }
-
-                    pendingItems.splice(index, 1);
-                    index--;
-                    progressed = true;
                 }
 
-                if (!progressed) {
-                    return false;
+                const filteredColumnItems = columnItems.filter(
+                    (item) => !deletingTableIds.has(item.tableId),
+                );
+                for (const item of filteredColumnItems) {
+                    const success = await applyUndoForAiLedgerItem(item);
+                    if (!success) {
+                        return false;
+                    }
                 }
+
+                const filteredForeignKeyItems = foreignKeyItems.filter(
+                    (item) => !deletingTableIds.has(item.tableId),
+                );
+                for (const item of filteredForeignKeyItems) {
+                    const success = await applyUndoForAiLedgerItem(item);
+                    if (!success) {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+
+            const success = await applyStagedUndo();
+            if (!success) {
+                // Roll back to the original flow state to avoid partial undos.
+                pendingFlowStateRef.current = {
+                    nodes: snapshot.nodes as Node<SchemaDesigner.Table>[],
+                    edges: snapshot.edges as Edge<SchemaDesigner.ForeignKey>[],
+                };
+                reactFlow.setNodes(snapshot.nodes);
+                reactFlow.setEdges(snapshot.edges);
+                eventBus.emit("refreshFlowState");
+                eventBus.emit("getScript");
             }
 
-            return pendingItems.length === 0;
+            return success;
         },
-        [applyUndoForAiLedgerItem],
+        [applyUndoForAiLedgerItem, reactFlow],
     );
 
     const collectCascadeUndoItems = useCallback(
@@ -1181,7 +1316,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 return false;
             }
 
-            const success = await applyUndoForAiLedgerItems([...group.items]);
+            suppressAiLedgerAutoClearRef.current += 1;
+            const success = await applyUndoForAiLedgerItems([...group.items]).finally(() => {
+                suppressAiLedgerAutoClearRef.current = Math.max(
+                    0,
+                    suppressAiLedgerAutoClearRef.current - 1,
+                );
+            });
             if (!success) {
                 return false;
             }
@@ -1213,7 +1354,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             const uniqueItems = [
                 ...new Map(cascadeItems.map((entry) => [entry.key, entry])).values(),
             ];
-            const success = await applyUndoForAiLedgerItems(uniqueItems);
+
+            suppressAiLedgerAutoClearRef.current += 1;
+            const success = await applyUndoForAiLedgerItems(uniqueItems).finally(() => {
+                suppressAiLedgerAutoClearRef.current = Math.max(
+                    0,
+                    suppressAiLedgerAutoClearRef.current - 1,
+                );
+            });
             if (!success) {
                 return false;
             }
@@ -1246,12 +1394,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     );
 
     const undoAllAiLedger = useCallback(async (): Promise<boolean> => {
-        const groups = [...aiLedger];
-        for (const group of groups) {
-            const success = await applyUndoForAiLedgerItems([...group.items]);
-            if (!success) {
-                return false;
+        suppressAiLedgerAutoClearRef.current += 1;
+        try {
+            const groups = [...aiLedger];
+            for (const group of groups) {
+                const success = await applyUndoForAiLedgerItems([...group.items]);
+                if (!success) {
+                    return false;
+                }
             }
+        } finally {
+            suppressAiLedgerAutoClearRef.current = Math.max(
+                0,
+                suppressAiLedgerAutoClearRef.current - 1,
+            );
         }
 
         setAiLedger([]);

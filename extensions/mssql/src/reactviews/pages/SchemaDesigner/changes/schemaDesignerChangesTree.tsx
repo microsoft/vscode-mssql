@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import {
     Button,
     FlatTree,
@@ -55,6 +55,8 @@ type SchemaDesignerChangesTreeProps = {
     getCanKeep?: (change: SchemaChange) => { canKeep: boolean; reason?: string };
     activeChangeId?: string;
 };
+
+const NULL_VALUE = JSON.parse("null") as null;
 
 const useStyles = makeStyles({
     treeContainer: {
@@ -295,6 +297,24 @@ export const SchemaDesignerChangesTree = ({
     activeChangeId,
 }: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
+    const treeContainerRef = useRef<HTMLDivElement | null>(NULL_VALUE);
+
+    useEffect(() => {
+        if (!activeChangeId) {
+            return;
+        }
+
+        const container = treeContainerRef.current;
+        if (!container) {
+            return;
+        }
+
+        // Ensure the selected change is visible (e.g. when navigating pending AI changes).
+        const target = container.querySelector<HTMLElement>(
+            `[data-schema-designer-change-id="${activeChangeId}"]`,
+        );
+        target?.scrollIntoView({ block: "nearest" });
+    }, [activeChangeId]);
 
     const renderChangeIcon = (category: ChangeCategory) => {
         switch (category) {
@@ -383,7 +403,7 @@ export const SchemaDesignerChangesTree = ({
     };
 
     return (
-        <div className={classes.treeContainer}>
+        <div className={classes.treeContainer} ref={treeContainerRef}>
             <FlatTree {...flatTree.getTreeProps()} aria-label={ariaLabel}>
                 {Array.from(flatTree.items(), (flatTreeItem) => {
                     const { content, ...treeItemProps } = flatTreeItem.getTreeItemProps();
@@ -445,6 +465,7 @@ export const SchemaDesignerChangesTree = ({
                                         change.id === activeChangeId &&
                                             classes.activeChangeItemLayout,
                                     )}
+                                    data-schema-designer-change-id={change.id}
                                     iconBefore={
                                         <span
                                             className={mergeClasses(

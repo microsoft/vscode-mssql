@@ -33,7 +33,6 @@ import {
     BranchCompare16Regular,
     BranchCompare16Filled,
     Checkmark16Regular,
-    Eye16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -68,6 +67,7 @@ import {
     ToastTitle,
     useId,
     useToastController,
+    Divider,
 } from "@fluentui/react-components";
 import eventBus from "../schemaDesignerEvents";
 import { v4 as uuidv4 } from "uuid";
@@ -78,6 +78,8 @@ import { ChangeAction, ChangeCategory, type SchemaChange } from "../diff/diffUti
 const NODE_TYPES: NodeTypes = {
     tableNode: SchemaDesignerTableNode,
 };
+
+const NULL_VALUE = JSON.parse("null") as null;
 
 /**
  * Schema Designer Flow Component
@@ -103,8 +105,8 @@ export const SchemaDesignerFlow = () => {
     const reactFlow = useReactFlow();
 
     const refreshRafId = useRef<number | undefined>(undefined);
-    const flowWrapperRef = useRef<HTMLDivElement | null>(null);
-    const edgeUndoWrapperRef = useRef<HTMLDivElement | null>(null);
+    const flowWrapperRef = useRef<HTMLDivElement | null>(NULL_VALUE);
+    const edgeUndoWrapperRef = useRef<HTMLDivElement | null>(NULL_VALUE);
 
     const deleteNodeConfirmationPromise = useRef<
         ((value: boolean | PromiseLike<boolean>) => void) | undefined
@@ -116,13 +118,15 @@ export const SchemaDesignerFlow = () => {
         canRevert: boolean;
         reason?: string;
         position: { x: number; y: number };
-    } | null>(null);
+    } | null>(NULL_VALUE);
     const [pendingAiEdgeToolbarState, setPendingAiEdgeToolbarState] = useState<{
         change: SchemaChange;
         position: { x: number; y: number };
-    } | null>(null);
+    } | null>(NULL_VALUE);
     const [edgeUndoDialogOpen, setEdgeUndoDialogOpen] = useState(false);
-    const [pendingEdgeUndoChange, setPendingEdgeUndoChange] = useState<SchemaChange | null>(null);
+    const [pendingEdgeUndoChange, setPendingEdgeUndoChange] = useState<SchemaChange | null>(
+        NULL_VALUE,
+    );
     const [activePendingAiChangeId, setActivePendingAiChangeId] = useState<string | undefined>(
         undefined,
     );
@@ -263,13 +267,13 @@ export const SchemaDesignerFlow = () => {
 
     useEffect(() => {
         if (!shouldShowBaselineHighlights) {
-            setEdgeUndoState(null);
+            setEdgeUndoState(NULL_VALUE);
         }
     }, [shouldShowBaselineHighlights]);
 
     useEffect(() => {
         if (!isPendingAiVisualMode) {
-            setPendingAiEdgeToolbarState(null);
+            setPendingAiEdgeToolbarState(NULL_VALUE);
         }
     }, [isPendingAiVisualMode]);
 
@@ -639,7 +643,7 @@ export const SchemaDesignerFlow = () => {
             return;
         }
         context.keepAiLedgerChange(pendingAiEdgeToolbarState.change);
-        setPendingAiEdgeToolbarState(null);
+        setPendingAiEdgeToolbarState(NULL_VALUE);
     };
 
     const handleUndoPendingAiEdgeChange = async () => {
@@ -649,7 +653,7 @@ export const SchemaDesignerFlow = () => {
         setIsApplyingPendingAiAction(true);
         try {
             await context.undoAiLedgerChange(pendingAiEdgeToolbarState.change);
-            setPendingAiEdgeToolbarState(null);
+            setPendingAiEdgeToolbarState(NULL_VALUE);
         } finally {
             setIsApplyingPendingAiAction(false);
         }
@@ -703,19 +707,19 @@ export const SchemaDesignerFlow = () => {
                     if (isPendingAiVisualMode && !context.isExporting) {
                         const foreignKeyId = edge.data?.id;
                         if (!foreignKeyId) {
-                            setPendingAiEdgeToolbarState(null);
+                            setPendingAiEdgeToolbarState(NULL_VALUE);
                             return;
                         }
 
                         const pendingAiFkChange = pendingAiForeignKeyChanges.get(foreignKeyId);
                         if (!pendingAiFkChange) {
-                            setPendingAiEdgeToolbarState(null);
+                            setPendingAiEdgeToolbarState(NULL_VALUE);
                             return;
                         }
 
                         const rect = flowWrapperRef.current?.getBoundingClientRect();
                         if (!rect) {
-                            setPendingAiEdgeToolbarState(null);
+                            setPendingAiEdgeToolbarState(NULL_VALUE);
                             return;
                         }
 
@@ -730,13 +734,13 @@ export const SchemaDesignerFlow = () => {
                     }
 
                     if (!shouldShowBaselineHighlights || context.isExporting) {
-                        setEdgeUndoState(null);
+                        setEdgeUndoState(NULL_VALUE);
                         return;
                     }
 
                     const foreignKeyId = edge.data?.id;
                     if (!foreignKeyId) {
-                        setEdgeUndoState(null);
+                        setEdgeUndoState(NULL_VALUE);
                         return;
                     }
 
@@ -752,7 +756,7 @@ export const SchemaDesignerFlow = () => {
                             : undefined;
 
                     if (!changeAction) {
-                        setEdgeUndoState(null);
+                        setEdgeUndoState(NULL_VALUE);
                         return;
                     }
 
@@ -760,7 +764,7 @@ export const SchemaDesignerFlow = () => {
                         displayNodes.find((node) => node.id === edge.source) ??
                         (reactFlow.getNode(edge.source) as Node<SchemaDesigner.Table> | undefined);
                     if (!sourceNode) {
-                        setEdgeUndoState(null);
+                        setEdgeUndoState(NULL_VALUE);
                         return;
                     }
 
@@ -782,7 +786,7 @@ export const SchemaDesignerFlow = () => {
 
                     const rect = flowWrapperRef.current?.getBoundingClientRect();
                     if (!rect) {
-                        setEdgeUndoState(null);
+                        setEdgeUndoState(NULL_VALUE);
                         return;
                     }
 
@@ -804,8 +808,8 @@ export const SchemaDesignerFlow = () => {
                     ) {
                         return;
                     }
-                    setEdgeUndoState(null);
-                    setPendingAiEdgeToolbarState(null);
+                    setEdgeUndoState(NULL_VALUE);
+                    setPendingAiEdgeToolbarState(NULL_VALUE);
                 }}
                 onDelete={() => {
                     eventBus.emit("getScript");
@@ -872,7 +876,6 @@ export const SchemaDesignerFlow = () => {
                     <Button
                         size="small"
                         appearance="primary"
-                        icon={<Checkmark16Regular />}
                         onClick={handleKeepActivePendingAiChange}
                         disabled={!activePendingAiChange || isApplyingPendingAiAction}>
                         Keep
@@ -880,7 +883,6 @@ export const SchemaDesignerFlow = () => {
                     <Button
                         size="small"
                         appearance="subtle"
-                        icon={<ArrowUndo16Regular />}
                         onClick={() => {
                             void handleUndoActivePendingAiChange();
                         }}
@@ -890,11 +892,11 @@ export const SchemaDesignerFlow = () => {
                     <Button
                         size="small"
                         appearance="subtle"
-                        icon={<Eye16Regular />}
                         onClick={handleRevealActivePendingAiChange}
                         disabled={!activePendingAiChange}>
                         Reveal
                     </Button>
+                    <Divider vertical />
                     <span
                         style={{
                             fontSize: "12px",
@@ -932,7 +934,7 @@ export const SchemaDesignerFlow = () => {
                         zIndex: 5,
                         padding: "10px",
                     }}
-                    onMouseLeave={() => setPendingAiEdgeToolbarState(null)}>
+                    onMouseLeave={() => setPendingAiEdgeToolbarState(NULL_VALUE)}>
                     <div
                         style={{
                             display: "inline-flex",
@@ -981,7 +983,7 @@ export const SchemaDesignerFlow = () => {
                         zIndex: 5,
                         padding: "10px",
                     }}
-                    onMouseLeave={() => setEdgeUndoState(null)}>
+                    onMouseLeave={() => setEdgeUndoState(NULL_VALUE)}>
                     <Tooltip
                         content={
                             edgeUndoState.canRevert
@@ -1052,7 +1054,7 @@ export const SchemaDesignerFlow = () => {
                 onOpenChange={(_event, data) => {
                     setEdgeUndoDialogOpen(data.open);
                     if (!data.open) {
-                        setPendingEdgeUndoChange(null);
+                        setPendingEdgeUndoChange(NULL_VALUE);
                     }
                 }}>
                 <DialogSurface>
@@ -1069,7 +1071,7 @@ export const SchemaDesignerFlow = () => {
                                         context.revertChange(pendingEdgeUndoChange);
                                     }
                                     setEdgeUndoDialogOpen(false);
-                                    setEdgeUndoState(null);
+                                    setEdgeUndoState(NULL_VALUE);
                                 }}>
                                 {locConstants.schemaDesigner.undo}
                             </Button>
