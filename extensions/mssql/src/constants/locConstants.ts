@@ -1394,7 +1394,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project (Preview)");
+    public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
@@ -2430,6 +2430,51 @@ export class DacpacDialog {
             comment: ["{0} is the file path"],
         });
     }
+}
+
+export class SearchDatabase {
+    public static title = (serverName: string) =>
+        l10n.t({
+            message: "Search Database Objects - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+
+    public static failedToEstablishConnection = l10n.t("Failed to establish connection");
+
+    public static typeTable = l10n.t("Table");
+    public static typeView = l10n.t("View");
+    public static typeStoredProcedure = l10n.t("Stored Procedure");
+    public static typeFunction = l10n.t("Function");
+    public static typeUnknown = l10n.t("Unknown");
+
+    public static copiedToClipboard = (objectName: string) =>
+        l10n.t({
+            message: 'Copied "{0}" to clipboard',
+            args: [objectName],
+            comment: ["{0} is the object name"],
+        });
+
+    public static failedToScriptObject = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to script object: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenEditData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Edit Data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenModifyTable = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Modify Table: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class TableExplorer {
