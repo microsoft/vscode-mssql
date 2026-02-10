@@ -31,7 +31,7 @@ export interface ProfilerRpcMethods {
     /** Fetch rows from the buffer (pull model for infinite scroll) */
     fetchRows: (startIndex: number, count: number) => void;
     /** Export events to CSV file */
-    exportToCsv: (csvContent: string, suggestedFileName: string) => void;
+    exportToCsv: (suggestedFileName: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -103,8 +103,8 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
     );
 
     const exportToCsv = useCallback(
-        (csvContent: string, suggestedFileName: string) => {
-            extensionRpc?.action("exportToCsv", { csvContent, suggestedFileName });
+        (suggestedFileName: string) => {
+            extensionRpc?.action("exportToCsv", { suggestedFileName });
         },
         [extensionRpc],
     );

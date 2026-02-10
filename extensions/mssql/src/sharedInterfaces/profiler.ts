@@ -150,7 +150,6 @@ export interface ProfilerReducers {
     };
     /** Export events to CSV file */
     exportToCsv: {
-        csvContent: string;
         suggestedFileName: string;
     };
 }
@@ -189,8 +188,6 @@ export interface RowsRemovedParams {
  * Payload for export to CSV request
  */
 export interface ExportToCsvParams {
-    /** The CSV content to export */
-    csvContent: string;
     /** Suggested file name */
     suggestedFileName: string;
 }

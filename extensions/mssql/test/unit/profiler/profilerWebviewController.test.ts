@@ -578,7 +578,7 @@ suite("ProfilerWebviewController Tests", () => {
             expect(mockWebview.postMessage).to.have.been.called;
         });
 
-        test("should enable close prompt when events remain after export", () => {
+        test("should disable close prompt and clear unexported flag after export", () => {
             const controller = createController();
 
             // Set up session with events
@@ -594,10 +594,12 @@ suite("ProfilerWebviewController Tests", () => {
             controller.setCurrentSession(session);
             controller.notifyNewEvents(2);
 
-            // Export complete should still show prompt if events remain
+            // After export, events remaining in the buffer are considered exported,
+            // so the close prompt is disabled until new events arrive.
             controller.setExportComplete();
 
-            expect(mockWebview.postMessage).to.have.been.called;
+            expect((controller as any).showRestorePromptAfterClose).to.be.false;
+            expect((controller as any).state.hasUnexportedEvents).to.be.false;
         });
     });
 

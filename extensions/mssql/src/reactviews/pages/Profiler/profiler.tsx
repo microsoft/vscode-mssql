@@ -24,7 +24,7 @@ import {
     RowsRemovedParams,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { formatCsvCell, generateExportTimestamp } from "../../../sharedInterfaces/csvUtils";
+import { generateExportTimestamp } from "../../../sharedInterfaces/csvUtils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
@@ -421,53 +421,19 @@ export const Profiler: React.FC = () => {
     /**
      * Handle export to CSV request.
      * Sends export request to extension with suggested filename.
-     * Note: The extension will generate CSV from the session's RingBuffer (source of truth)
+     * The extension generates CSV from the session's RingBuffer (source of truth)
      * to ensure ALL events are exported, not just those loaded in the grid.
-     * The CSV content generated here is a fallback for edge cases where buffer is unavailable.
      */
     const handleExportToCsv = useCallback(() => {
-        if (!reactGridRef.current?.dataView) {
-            return;
-        }
-
-        const dataView = reactGridRef.current.dataView;
-        const allItems = dataView.getItems();
-
-        if (allItems.length === 0) {
-            return;
-        }
-
-        // Get column definitions for export (used as fallback)
-        const exportColumns = columns.map((col) => ({
-            field: col.field,
-            header: typeof col.name === "string" ? col.name : col.field,
-        }));
-
-        // Build fallback CSV content using array for memory efficiency
-        // Note: Extension will regenerate from buffer, this is only for edge cases
-        const csvRows: string[] = [];
-
-        // Add header row using shared formatCsvCell
-        const headers = exportColumns.map((col) => formatCsvCell(col.header));
-        csvRows.push(headers.join(","));
-
-        // Add data rows
-        for (const item of allItems) {
-            const row = exportColumns.map((col) => formatCsvCell(item[col.field]));
-            csvRows.push(row.join(","));
-        }
-
-        const csvContent = csvRows.join("\n");
-
         // Generate suggested file name using shared utility
         const timestamp = generateExportTimestamp();
         const suggestedFileName = sessionName
             ? `${sessionName}_${timestamp}`
             : `profiler_events_${timestamp}`;
 
-        // Send to extension host - extension will generate CSV from buffer
-        exportToCsv(csvContent, suggestedFileName);
-    }, [columns, sessionName, exportToCsv]);
+        // Send to extension host - extension will generate CSV from ring buffer
+        exportToCsv(suggestedFileName);
+    }, [sessionName, exportToCsv]);
 
     return (
         <div className={classes.profilerContainer}>
@@ -488,7 +454,7 @@ export const Profiler: React.FC = () => {
                 onClear={handleClear}
                 onViewChange={handleViewChange}
                 onAutoScrollToggle={handleAutoScrollToggle}
-                totalEventCount={localRowCount}
+                totalEventCount={totalRowCount}
                 onExportToCsv={handleExportToCsv}
             />
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
