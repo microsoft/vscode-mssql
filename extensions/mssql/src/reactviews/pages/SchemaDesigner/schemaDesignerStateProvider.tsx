@@ -65,6 +65,7 @@ import {
 } from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
 export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
@@ -1240,7 +1241,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
-    const isDabEnabled = () => state?.enableDAB ?? false;
+    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const isDabEnabled = () => dabEnabled ?? false;
 
     return (
         <SchemaDesignerContext.Provider
