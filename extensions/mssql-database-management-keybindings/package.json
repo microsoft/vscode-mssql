@@ -26,6 +26,30 @@
         "package": "vsce package --no-yarn"
     },
     "contributes": {
-        "keybindings": []
+        "keybindings": [
+            {
+                "command": "mssql.runQuery",
+                "key": "f5",
+                "mac": "f5",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.objectExplorerNewQuery",
+                "key": "ctrl+n",
+                "mac": "cmd+n"
+            },
+            {
+                "command": "mssql.showEstimatedPlan",
+                "key": "ctrl+l",
+                "mac": "cmd+l",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.enableActualPlan",
+                "key": "ctrl+m",
+                "mac": "cmd+m",
+                "when": "editorTextFocus && editorLangId == 'sql'"
+            }
+        ]
     }
 }
