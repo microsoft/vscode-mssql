@@ -18,7 +18,7 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext, useState } from "react";
-import { FormField } from "../../../common/forms/form.component";
+import { FormFieldNoState } from "../../../common/forms/form.component";
 import { useAccordionStyles } from "../../../common/styles";
 import { BackupDatabaseContext, BackupDatabaseContextProps } from "./backupDatabaseStateProvider";
 import { BackupDatabaseViewModel, BackupType, MediaSet } from "../../../../sharedInterfaces/backup";
@@ -27,6 +27,7 @@ import {
     ObjectManagementFormState,
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
+import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -36,9 +37,11 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(BackupDatabaseContext);
-    const state = context?.state;
+    const viewModel = useBackupDatabaseSelector((s) => s.viewModel);
+    const formComponents = useBackupDatabaseSelector((s) => s.formComponents);
+    const formState = useBackupDatabaseSelector((s) => s.formState);
 
-    if (!context || !state) {
+    if (!context || !viewModel) {
         return;
     }
 
@@ -46,10 +49,10 @@ export const AdvancedOptionsDrawer = ({
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>([]);
     const accordionStyles = useAccordionStyles();
 
-    const backupViewModel = state.viewModel.model as BackupDatabaseViewModel;
+    const backupViewModel = viewModel.model as BackupDatabaseViewModel;
 
     const advancedOptionsByGroup: Record<string, ObjectManagementFormItemSpec[]> = Object.values(
-        state.formComponents,
+        formComponents,
     )
         .filter((component): component is ObjectManagementFormItemSpec =>
             Boolean(component && component.isAdvancedOption),
@@ -80,7 +83,7 @@ export const AdvancedOptionsDrawer = ({
     const shouldShowGroup = (groupName: string): boolean => {
         switch (groupName) {
             case locConstants.backupDatabase.transactionLog:
-                return state.formState.backupType === BackupType.TransactionLog;
+                return formState.backupType === BackupType.TransactionLog;
             case locConstants.backupDatabase.encryption:
                 return backupViewModel.backupEncryptors.length > 0;
             default:
@@ -92,10 +95,10 @@ export const AdvancedOptionsDrawer = ({
         switch (componentName) {
             case "mediaSetName":
             case "mediaSetDescription":
-                return state.formState.mediaSet == MediaSet.Create;
+                return formState.mediaSet == MediaSet.Create;
             case "encryptionAlgorithm":
             case "encryptorName":
-                return state.formState.encryptionEnabled;
+                return formState.encryptionEnabled;
             default:
                 return true;
         }
@@ -136,17 +139,12 @@ export const AdvancedOptionsDrawer = ({
                     collapsible
                     onToggle={(_e, data) => {
                         if (searchSettingsText) {
-                            // We don't support expanding/collapsing sections when searching
                             return;
                         } else {
                             setUserOpenedSections(data.openItems as string[]);
                         }
                     }}
                     openItems={
-                        /**
-                         * If the user is searching, we keep all sections open
-                         * If the user is not searching, we only open the sections that the user has opened
-                         */
                         searchSettingsText
                             ? Object.keys(advancedOptionsByGroup)
                             : userOpenedSections
@@ -171,7 +169,7 @@ export const AdvancedOptionsDrawer = ({
                                                         shouldShowComponent(
                                                             option.propertyName,
                                                         ) && (
-                                                            <FormField<
+                                                            <FormFieldNoState<
                                                                 ObjectManagementFormState,
                                                                 ObjectManagementWebviewState,
                                                                 ObjectManagementFormItemSpec,
@@ -179,6 +177,7 @@ export const AdvancedOptionsDrawer = ({
                                                             >
                                                                 key={idx}
                                                                 context={context}
+                                                                formState={formState}
                                                                 component={option}
                                                                 props={option.componentProps ?? {}}
                                                                 idx={idx}

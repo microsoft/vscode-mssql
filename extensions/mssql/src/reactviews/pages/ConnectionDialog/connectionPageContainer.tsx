@@ -22,11 +22,12 @@ import {
 } from "../../../sharedInterfaces/connectionGroup";
 import { Field, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
 import { AzureBrowsePage } from "./azureBrowsePage";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
@@ -43,8 +44,8 @@ import { AzureIcon20, FabricIcon20 } from "../../common/icons/fluentIcons";
 import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
 import { DialogMessage } from "../../common/dialogMessage";
 
-function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
-    switch (connectionDialogContext?.state.selectedInputMode) {
+function renderContent(selectedInputMode: ConnectionInputMode): ReactNode {
+    switch (selectedInputMode) {
         case ConnectionInputMode.Parameters:
             return <ConnectionFormPage />;
         case ConnectionInputMode.AzureBrowse:
@@ -63,13 +64,16 @@ const useStyles = makeStyles({
 
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
+    const dialog = useConnectionDialogSelector((s) => s.dialog);
+    const formMessage = useConnectionDialogSelector((s) => s.formMessage);
+    const formState = useConnectionDialogSelector((s) => s.formState);
+    const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const selectedInputMode = useConnectionDialogSelector((s) => s.selectedInputMode);
     const formStyles = useFormStyles();
     const styles = useStyles();
 
     const changePasswordDialogState =
-        context.state.dialog?.type === "changePassword"
-            ? (context.state.dialog as ChangePasswordDialogProps).props
-            : undefined;
+        dialog?.type === "changePassword" ? (dialog as ChangePasswordDialogProps).props : undefined;
 
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
@@ -81,28 +85,28 @@ export const ConnectionInfoFormContainer = () => {
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                {context.state.formMessage && (
+                {formMessage && (
                     <DialogMessage
-                        message={context.state.formMessage}
+                        message={formMessage}
                         onMessageButtonClicked={context.messageButtonClicked}
                         onCloseMessage={context.closeMessage}
                     />
                 )}
 
-                {context.state.dialog?.type === "trustServerCert" && (
+                {dialog?.type === "trustServerCert" && (
                     <TrustServerCertificateDialog
-                        dialogProps={context.state.dialog as TrustServerCertDialogProps}
+                        dialogProps={dialog as TrustServerCertDialogProps}
                     />
                 )}
-                {context.state.dialog?.type === "addFirewallRule" && (
+                {dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
-                        state={(context.state.dialog as AddFirewallRuleDialogProps).props}
+                        state={(dialog as AddFirewallRuleDialogProps).props}
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}
                         signIntoAzure={context.signIntoAzureForFirewallRule}
                     />
                 )}
-                {context.state.dialog?.type === "changePassword" && (
+                {dialog?.type === "changePassword" && (
                     <ChangePasswordDialog
                         serverName={changePasswordDialogState?.server}
                         userName={changePasswordDialogState?.userName}
@@ -110,43 +114,39 @@ export const ConnectionInfoFormContainer = () => {
                         onClose={context.closeDialog}
                     />
                 )}
-                {context.state.dialog?.type === "loadFromConnectionString" && (
-                    <ConnectionStringDialog
-                        dialogProps={context.state.dialog as ConnectionStringDialogProps}
-                    />
+                {dialog?.type === "loadFromConnectionString" && (
+                    <ConnectionStringDialog dialogProps={dialog as ConnectionStringDialogProps} />
                 )}
-                {context.state.dialog?.type === "createConnectionGroup" && (
+                {dialog?.type === "createConnectionGroup" && (
                     <ConnectionGroupDialog
-                        state={(context.state.dialog as CreateConnectionGroupDialogProps).props}
+                        state={(dialog as CreateConnectionGroupDialogProps).props}
                         saveConnectionGroup={context.createConnectionGroup}
                         closeDialog={context.closeDialog}
                     />
                 )}
 
-                <FormField<
+                <FormFieldNoState<
                     IConnectionDialogProfile,
                     ConnectionDialogWebviewState,
                     ConnectionDialogFormItemSpec,
                     ConnectionDialogContextProps
                 >
                     context={context}
-                    component={
-                        context.state.formComponents["profileName"] as ConnectionDialogFormItemSpec
-                    }
+                    formState={formState}
+                    component={formComponents["profileName"] as ConnectionDialogFormItemSpec}
                     idx={0}
                     props={{ orientation: "horizontal" }}
                 />
 
-                <FormField<
+                <FormFieldNoState<
                     IConnectionDialogProfile,
                     ConnectionDialogWebviewState,
                     ConnectionDialogFormItemSpec,
                     ConnectionDialogContextProps
                 >
                     context={context}
-                    component={
-                        context.state.formComponents["groupId"] as ConnectionDialogFormItemSpec
-                    }
+                    formState={formState}
+                    component={formComponents["groupId"] as ConnectionDialogFormItemSpec}
                     idx={0}
                     props={{ orientation: "horizontal" }}
                     componentProps={{
@@ -173,7 +173,7 @@ export const ConnectionInfoFormContainer = () => {
                             onChange={(_, data) => {
                                 context.setConnectionInputType(data.value as ConnectionInputMode);
                             }}
-                            value={context.state.selectedInputMode}>
+                            value={selectedInputMode}>
                             <Radio
                                 value={ConnectionInputMode.Parameters}
                                 label={
@@ -212,7 +212,7 @@ export const ConnectionInfoFormContainer = () => {
                         </RadioGroup>
                     </Field>
                 </div>
-                {renderContent(context)}
+                {renderContent(selectedInputMode)}
             </div>
         </form>
     );

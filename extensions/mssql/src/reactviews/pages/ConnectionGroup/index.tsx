@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ReactDOM from "react-dom/client";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 import { ConnectionGroupStateProvider } from "./connectionGroupStateProvider";
 import { ConnectionGroupPage } from "./connectionGroupPage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <ConnectionGroupStateProvider>
             <ConnectionGroupPage />
         </ConnectionGroupStateProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );
