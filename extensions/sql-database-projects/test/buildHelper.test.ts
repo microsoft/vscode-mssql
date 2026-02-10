@@ -8,7 +8,6 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import should = require('should/as-function');
 import { BuildHelper } from '../src/tools/buildHelper';
 import { TestContext, createContext } from './testContext';
 import { ProjectType } from 'mssql';
