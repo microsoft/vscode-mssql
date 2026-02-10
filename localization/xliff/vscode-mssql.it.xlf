@@ -1786,6 +1786,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
         <target state="translated">Il servizio DacFx non è disponibile. Non è possibile eseguire operazioni di pubblicazione e generazione script.</target>
       </trans-unit>
+      <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
+        <source xml:lang="en">Data API Builder</source>
+        <target state="new">Data API Builder</target>
+      </trans-unit>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
         <target state="translated">Configurazione del generatore di API dati</target>
@@ -2502,10 +2506,20 @@ Errore:
         <source xml:lang="en">Execute</source>
         <target state="translated">Esegui</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
+        <source xml:lang="en">Execute '{0}' operation on Data API Builder?</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Execute '{0}' operation on Data API Builder?</target>
+      </trans-unit>
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
         <note>{0} is the operation name</note>
         <target state="translated">Eseguire l'operazione '{0}' nella finestra di progettazione dello schema?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
+        <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
+        <note>{0} is the operation name</note>
+        <target state="new">Executing '{0}' operation on Data API Builder</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
