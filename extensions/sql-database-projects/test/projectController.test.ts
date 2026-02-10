@@ -26,7 +26,6 @@ import { ProjectsController } from '../src/controllers/projectController';
 import { promises as fs } from 'fs';
 import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from './testContext';
 import { Project } from '../src/models/project';
-import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
 import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
 import { FolderNode, FileNode } from '../src/models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../src/models/tree/baseTreeItem';
@@ -727,65 +726,10 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
-			test('Publish dialog should open from ProjectController', async function (): Promise<void> {
-				let opened = false;
+			const sandbox = sinon.createSandbox();
 
-				let publishDialog = TypeMoq.Mock.ofType(PublishDatabaseDialog);
-				publishDialog.setup(x => x.openDialog()).returns(() => { opened = true; });
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => publishDialog.object);
-				const proj = new Project('FakePath');
-				sinon.stub(proj, 'getProjectTargetVersion').returns('150');
-				await projController.object.publishProject(proj);
-				should(opened).equal(true);
-			});
-
-			test('Callbacks are hooked up and called from Publish dialog', async function (): Promise<void> {
-				const projectFile = await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline)
-				const projFolder = path.dirname(projectFile);
-				await testUtils.createTestDataSources(this.test, baselines.openDataSourcesBaseline, projFolder);
-				const proj = await Project.openProject(projectFile);
-
-				const publishHoller = 'hello from callback for publish()';
-				const generateHoller = 'hello from callback for generateScript()';
-
-				let holler = 'nothing';
-
-				const setupPublishDialog = (): PublishDatabaseDialog => {
-					const dialog = new PublishDatabaseDialog(proj);
-					sinon.stub(dialog, 'getConnectionUri').returns(Promise.resolve('fake|connection|uri'));
-					return dialog;
-				};
-
-				let publishDialog = setupPublishDialog();
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => {
-					return publishDialog;
-				});
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), true)).returns(() => {
-					holler = publishHoller;
-					return Promise.resolve(undefined);
-				});
-
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), false)).returns(() => {
-					holler = generateHoller;
-					return Promise.resolve(undefined);
-				});
-				publishDialog.publishToExistingServer = true;
-				void projController.object.publishProject(proj);
-				await publishDialog.publishClick();
-
-				should(holler).equal(publishHoller, 'executionCallback() is supposed to have been setup and called for Publish scenario');
-
-				publishDialog = setupPublishDialog();
-				void projController.object.publishProject(proj);
-				await publishDialog.generateScriptClick();
-
-				should(holler).equal(generateHoller, 'executionCallback() is supposed to have been setup and called for GenerateScript scenario');
+			teardown(function (): void {
+				sandbox.restore();
 			});
 
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
@@ -807,7 +751,7 @@ suite('ProjectsController', function (): void {
 					builtDacpacPath = await testUtils.createTestFile(this.test, fakeDacpacContents, 'output.dacpac');
 					return builtDacpacPath;
 				});
-				sinon.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
+				sandbox.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
 
 				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 
@@ -818,6 +762,20 @@ suite('ProjectsController', function (): void {
 				should(builtDacpacPath).not.equal(publishedDacpacPath, 'built and published dacpac paths should be different');
 				should(postCopyContents).equal(fakeDacpacContents, 'contents of built and published dacpacs should match');
 				await fs.rm(publishedDacpacPath);
+			});
+
+			test('publishProject should invoke mssql.publishDatabaseProject command with correct project path', async function (): Promise<void> {
+				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
+				const expectedProjectPath = proj.projectFilePath;
+
+				const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand').resolves();
+
+				const projController = new ProjectsController(testContext.outputChannel);
+				await projController.publishProject(proj);
+
+				expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
+				expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
+				expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
 			});
 		});
 	});

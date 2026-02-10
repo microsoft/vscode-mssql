@@ -603,6 +603,11 @@
                     "group": "2_MSSQL_serverDbActions@4"
                 },
                 {
+                    "command": "mssql.searchDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@5"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
@@ -864,6 +869,14 @@
                     "when": "false"
                 },
                 {
+                    "command": "mssql.searchDatabase",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.editConnection",
+                    "when": "false"
+                },
+                {
                     "command": "mssql.dacpacDialog.launch"
                 },
                 {
@@ -1015,6 +1028,11 @@
             {
                 "command": "mssql.tableExplorer",
                 "title": "%mssql.tableExplorer%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.searchDatabase",
+                "title": "%mssql.searchDatabase%",
                 "category": "MS SQL"
             },
             {
