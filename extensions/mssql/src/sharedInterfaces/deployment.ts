@@ -66,8 +66,7 @@ export interface DeploymentCommonReducers {
     dispose: {};
 }
 
-export interface DeploymentCommonContextProps
-    extends FormContextProps<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
+export interface DeploymentCommonContextProps extends FormContextProps<DeploymentFormState> {
     /**
      * Initializes the deployment context with specific deployment type details.
      * @param deploymentType The type of deployment to initialize.

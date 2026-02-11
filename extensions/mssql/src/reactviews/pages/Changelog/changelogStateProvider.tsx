@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 import { ChangelogWebviewState } from "../../../sharedInterfaces/changelog";
 
@@ -19,7 +19,7 @@ interface ChangelogProviderProps {
 }
 
 const ChangelogStateProvider: React.FC<ChangelogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ChangelogWebviewState, void>();
+    const { extensionRpc } = useVscodeWebview<ChangelogWebviewState, void>();
     return (
         <ChangelogContext.Provider value={{ extensionRpc }}>{children}</ChangelogContext.Provider>
     );

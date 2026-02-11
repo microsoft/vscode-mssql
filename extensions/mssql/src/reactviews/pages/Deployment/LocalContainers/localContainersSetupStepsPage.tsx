@@ -15,15 +15,19 @@ import {
     DockerStepOrder,
     LocalContainersState,
 } from "../../../../sharedInterfaces/localContainers";
+import { DeploymentWebviewState } from "../../../../sharedInterfaces/deployment";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 
 export const LocalContainersSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();
     const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState as LocalContainersState;
+    const localContainersState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as LocalContainersState;
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.connectToContainer;
@@ -35,10 +39,13 @@ export const LocalContainersSetupStepsPage: React.FC = () => {
     }
 
     useEffect(() => {
-        void runDockerStep(context, lastStep);
-        setStepsLoaded(isLastStepLoaded(context, lastStep));
-        setStepsErrored(checkStepErrored(context));
-    }, [context.state]);
+        const wrappedState = {
+            deploymentTypeState: localContainersState,
+        } as DeploymentWebviewState;
+        void runDockerStep(context, wrappedState, lastStep);
+        setStepsLoaded(isLastStepLoaded(wrappedState, lastStep));
+        setStepsErrored(checkStepErrored(wrappedState));
+    }, [localContainersState]);
 
     const handleRetry = async () => {
         // reset step states

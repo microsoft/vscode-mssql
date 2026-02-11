@@ -33,16 +33,19 @@ import {
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
-import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { KeyCode } from "../../../../common/keys";
+import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
 export const FabricWorkspacesList = ({
     workspaces,
     onSelectWorkspace,
     selectedWorkspace,
-    fabricWorkspacesLoadStatus,
 }: FabricWorkspacesListProps) => {
     const styles = useFabricExplorerStyles();
+    const fabricWorkspacesLoadStatus = useConnectionDialogSelector(
+        (s) => s.fabricWorkspacesLoadStatus,
+    );
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
@@ -288,7 +291,6 @@ interface FabricWorkspacesListProps {
     workspaces: FabricWorkspaceInfo[];
     onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
     selectedWorkspace?: FabricWorkspaceInfo;
-    fabricWorkspacesLoadStatus: Status;
 }
 
 interface FabricWorkspaceListItemProps {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode, useContext, useCallback } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 import {
     ProfilerWebviewState,
@@ -55,7 +55,7 @@ interface ProfilerProviderProps {
 }
 
 const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ProfilerWebviewState, ProfilerReducers>();
+    const { extensionRpc } = useVscodeWebview<ProfilerWebviewState, ProfilerReducers>();
 
     const pauseResume = useCallback(async () => {
         extensionRpc?.action("pauseResume", {});

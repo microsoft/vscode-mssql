@@ -43,7 +43,6 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
-import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -903,13 +902,6 @@ export default class ConnectionManager {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
             }
 
-            // Free any search metadata cached for this connection
-            try {
-                DatabaseObjectSearchService.clearCache(fileUri);
-            } catch {
-                // best-effort cleanup; ignore errors
-            }
-
             this.removeActiveConnection(fileUri);
             return result;
         } else if (this.isConnecting(fileUri)) {
@@ -1527,10 +1519,14 @@ export default class ConnectionManager {
             ),
         );
         sendActionEvent(
-            TelemetryViews.ConnectionPrompt,
+            TelemetryViews.ConnectionManager,
             TelemetryActions.CreateConnectionResult,
-            undefined,
-            undefined,
+            {
+                connectedEngineEditionId: String(result.serverInfo.engineEditionId),
+            },
+            {
+                connectedEngineEditionId: result.serverInfo.engineEditionId,
+            },
             newCredentials as IConnectionProfile,
             result.serverInfo,
         );

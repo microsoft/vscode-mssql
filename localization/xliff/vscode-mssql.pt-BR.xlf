@@ -117,6 +117,10 @@
         <source xml:lang="en">Action Type</source>
         <target state="translated">Tipo de Ação</target>
       </trans-unit>
+      <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
+        <source xml:lang="en">Actions</source>
+        <target state="new">Actions</target>
+      </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
         <target state="translated">Tempo Real de CPU Decorrido</target>
@@ -301,6 +305,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <note>{0} is the error message</note>
         <target state="translated">Erro ao copiar os resultados: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
+        <source xml:lang="en">An error occurred while loading data.</source>
+        <target state="new">An error occurred while loading data.</target>
+      </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
         <target state="translated">Ocorreu um erro ao processar a solicitação.</target>
@@ -314,15 +322,6 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Ocorreu um erro ao recuperar linhas: {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
-        <source xml:lang="en">An error occurred while searching database objects</source>
-        <target state="translated">Erro ao pesquisar objetos de banco de dados</target>
-      </trans-unit>
-      <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
-        <source xml:lang="en">An error occurred while searching database objects: {0}</source>
-        <note>{0} is the error detail returned from the search operation</note>
-        <target state="translated">Erro ao pesquisar objetos de banco de dados: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
@@ -1359,6 +1358,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <note>{0} is the connection display name</note>
         <target state="translated">Conectando a {0}...</target>
       </trans-unit>
+      <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
+        <source xml:lang="en">Connecting to {0}...</source>
+        <note>{0} is the server name</note>
+        <target state="new">Connecting to {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">Conectando-se a: </target>
@@ -1527,6 +1531,11 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Copied</source>
         <target state="translated">Copiado</target>
       </trans-unit>
+      <trans-unit id="++CODE++5729bfc2e8db943201613faaab43256239d22b9beff66b83b894a92fcf29264e">
+        <source xml:lang="en">Copied "{0}" to clipboard</source>
+        <note>{0} is the object name</note>
+        <target state="new">Copied "{0}" to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
         <target state="translated">Copiar</target>
@@ -1538,6 +1547,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">Copiar Cabeçalhos</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
+        <source xml:lang="en">Copy Object Name</source>
+        <target state="new">Copy Object Name</target>
       </trans-unit>
       <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
         <source xml:lang="en">Copy Script</source>
@@ -2172,6 +2185,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Edit Connection Profile</source>
         <target state="translated">Editar Perfil de Conexão</target>
       </trans-unit>
+      <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
+        <source xml:lang="en">Edit Data</source>
+        <target state="new">Edit Data</target>
+      </trans-unit>
       <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
         <source xml:lang="en">Edit Data (Preview)</source>
         <target state="translated">Editar Dados (Prévia)</target>
@@ -2297,10 +2314,6 @@ Selecione "{0}" para estabelecer uma conexão.</target>
         <source xml:lang="en">Enter new password</source>
         <target state="translated">Inserir a nova senha</target>
       </trans-unit>
-      <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
-        <source xml:lang="en">Enter part of an object name to search for</source>
-        <target state="translated">Insira parte de um nome de objeto a ser pesquisado</target>
-      </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
         <target state="translated">Inserir senha</target>
@@ -2408,6 +2421,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++a132cfddde2248d0fb1ee8faf8bf85c14bd878f0c814c9cdfdd4bc28092b37b0">
         <source xml:lang="en">Error loading Table Designer</source>
         <target state="translated">Erro ao carregar o Designer de Tabela</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46d21a3d00fbab9fc7b91fa6516b4f6e151557d29318ce4ec616e65825a754e6">
+        <source xml:lang="en">Error loading database objects</source>
+        <target state="new">Error loading database objects</target>
       </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
@@ -2778,6 +2795,10 @@ Erro:
 {1} is the error message</note>
         <target state="translated">Falha ao remover o banco de dados "{0}". {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++d84b3d155999e4fbb9375b2096b6b34a6799bc70319582c93eff74f3a69e1ebb">
+        <source xml:lang="en">Failed to establish connection</source>
+        <target state="new">Failed to establish connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
         <note>{0} is the connection ID</note>
@@ -2868,6 +2889,16 @@ Erro:
         <source xml:lang="en">Failed to load publish profile</source>
         <target state="translated">Falha ao carregar o perfil de publicação</target>
       </trans-unit>
+      <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
+        <source xml:lang="en">Failed to open Edit Data: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Edit Data: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
+        <source xml:lang="en">Failed to open Modify Table: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open Modify Table: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
@@ -2931,6 +2962,11 @@ Erro:
         <source xml:lang="en">Failed to save scmp file: '{0}'</source>
         <note>{0} is the error message returned from the save scmp operation</note>
         <target state="translated">Falha ao salvar o arquivo scmp: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
+        <source xml:lang="en">Failed to script object: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to script object: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
@@ -3050,6 +3086,14 @@ Erro:
         <source xml:lang="en">Filter by keyword</source>
         <target state="translated">Filtrar por palavra-chave</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e35e285106ad4a8ff905af2f619136cb2d19f6a588eec3ce15ea95afb506dcc">
+        <source xml:lang="en">Filter by name</source>
+        <target state="new">Filter by name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
+        <source xml:lang="en">Filter by schema</source>
+        <target state="new">Filter by schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
         <target state="translated">Filtrar por tipo</target>
@@ -3065,6 +3109,10 @@ Erro:
       <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
         <source xml:lang="en">Filter shortcuts</source>
         <target state="translated">Atalhos de filtro</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
+        <source xml:lang="en">Filter {0}</source>
+        <target state="new">Filter {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3203,6 +3251,14 @@ Erro:
       <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
         <source xml:lang="en">Full</source>
         <target state="translated">Completo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
+        <source xml:lang="en">Function</source>
+        <target state="new">Function</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
+        <source xml:lang="en">Functions</source>
+        <target state="new">Functions</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -3569,10 +3625,6 @@ Erro:
         <source xml:lang="en">Invalid connection URI provided.</source>
         <target state="translated">URI de conexão inválido fornecido.</target>
       </trans-unit>
-      <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
-        <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
-        <target state="translated">URI de conexão inválido. Certifique-se de ter uma conexão de banco de dados ativa.</target>
-      </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
         <target state="translated">Cadeia de conexão inválida: {0}</target>
@@ -3860,6 +3912,10 @@ Erro:
       <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
         <source xml:lang="en">Loading backup database...</source>
         <target state="translated">Carregando banco de dados de backup...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
+        <source xml:lang="en">Loading database objects</source>
+        <target state="new">Loading database objects</target>
       </trans-unit>
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
@@ -4149,6 +4205,10 @@ Erro:
 {1} is a list of property changes</note>
         <target state="translated">Tabela modificada {0}: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
+        <source xml:lang="en">Modify Table</source>
+        <target state="new">Modify Table</target>
+      </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
         <target state="translated">Mais Ações de Consulta</target>
@@ -4326,10 +4386,6 @@ Erro:
         <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
         <target state="translated">Nenhuma conexão de banco de dados ativa no editor atual. Estabeleça uma conexão para continuar.</target>
       </trans-unit>
-      <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
-        <source xml:lang="en">No active database connection. Please connect to a database first.</source>
-        <target state="translated">Nenhuma conexão de banco de dados ativa. Conecte-se a um banco de dados primeiro.</target>
-      </trans-unit>
       <trans-unit id="++CODE++34f7086b32ae8c82f8dc810492c87b0ead2d4622bb7a8652d78093116fb4a732">
         <source xml:lang="en">No active schema designer found. Please open a schema designer first using /showSchema or from the UI.</source>
         <target state="translated">Nenhum designer de esquema ativo encontrado. Abra um designer de esquema primeiro usando /showSchema ou da interface do usuário.</target>
@@ -4395,11 +4451,6 @@ Erro:
         <source xml:lang="en">No data available</source>
         <target state="translated">Nenhum dado disponível</target>
       </trans-unit>
-      <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
-        <source xml:lang="en">No database objects found matching '{0}'</source>
-        <note>{0} is the search term</note>
-        <target state="translated">Nenhum objeto de banco de dados correspondente a "{0}" encontrado</target>
-      </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
         <target state="translated">Nenhum banco de dados encontrado no workspace selecionado.</target>
@@ -4438,6 +4489,10 @@ Erro:
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">Não é necessário atualizar o token da conta do Microsoft Entra para a conexão {0} com o URI {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
+        <source xml:lang="en">No objects found</source>
+        <target state="new">No objects found</target>
       </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -4611,6 +4666,10 @@ Erro:
       <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
         <source xml:lang="en">Object Type</source>
         <target state="translated">Tipo de Objeto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
+        <source xml:lang="en">Object Types</source>
+        <target state="new">Object Types</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -5074,10 +5133,6 @@ Erro:
       <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
         <source xml:lang="en">Publish Project</source>
         <target state="translated">Publicar Projeto</target>
-      </trans-unit>
-      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
-        <source xml:lang="en">Publish Project (Preview)</source>
-        <target state="translated">Publicar Projeto (Versão Prévia)</target>
       </trans-unit>
       <trans-unit id="++CODE++71aa5c7a75828ce61b76e517dd10ea3c23ff9149be8b5fb6006ccb9f784bd38c">
         <source xml:lang="en">Publish Project - {0}</source>
@@ -5704,13 +5759,29 @@ Consulta: {2}</target>
         <source xml:lang="en">Schema/Object Type</source>
         <target state="translated">Esquema/Tipo de Objeto</target>
       </trans-unit>
+      <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
+        <source xml:lang="en">Schemas</source>
+        <target state="new">Schemas</target>
+      </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
         <target state="translated">Script</target>
       </trans-unit>
+      <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
+        <source xml:lang="en">Script as Alter</source>
+        <target state="new">Script as Alter</target>
+      </trans-unit>
       <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
         <source xml:lang="en">Script as Create</source>
         <target state="translated">Script como Criar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++322de6924dbe3c139348ee124dcc19e9ca0de352f0b03a3846d60ec82eb1f44d">
+        <source xml:lang="en">Script as Drop</source>
+        <target state="new">Script as Drop</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ff98ebd77a41e1bbbde627a6d59c75d1f0c638d766414f8a1d10734624710015">
+        <source xml:lang="en">Script as Execute</source>
+        <target state="new">Script as Execute</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -5720,9 +5791,22 @@ Consulta: {2}</target>
         <source xml:lang="en">Script copied to clipboard.</source>
         <target state="translated">Script copiado para a área de transferência.</target>
       </trans-unit>
+      <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
+        <source xml:lang="en">Search Database Objects - {0}</source>
+        <note>{0} is the server name</note>
+        <target state="new">Search Database Objects - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
         <target state="translated">Pesquisar Workspaces</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
+        <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>
+        <target state="new">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
         <source xml:lang="en">Search changes...</source>
@@ -5731,10 +5815,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Pesquisar grupos de conexões</target>
-      </trans-unit>
-      <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
-        <source xml:lang="en">Search for database objects...</source>
-        <target state="translated">Pesquisar objetos de banco de dados...</target>
       </trans-unit>
       <trans-unit id="++CODE++556a085010faa6476221cb3790fd4b9e00d6a9abacd60c19b398162ec9af1d53">
         <source xml:lang="en">Search options</source>
@@ -5752,10 +5832,6 @@ Consulta: {2}</target>
         <source xml:lang="en">Search tables...</source>
         <target state="translated">Pesquisar tabelas...</target>
       </trans-unit>
-      <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
-        <source xml:lang="en">Search term cannot be empty</source>
-        <target state="translated">O termo de pesquisa não pode ficar vazio</target>
-      </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
         <target state="translated">Pesquisar workspaces...</target>
@@ -5763,6 +5839,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
         <target state="translated">Pesquisar...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
+        <source xml:lang="en">Searching...</source>
+        <target state="new">Searching...</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
@@ -5803,6 +5883,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">Selecionar Esquema de Destino</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
+        <source xml:lang="en">Select Top 1000</source>
+        <target state="new">Select Top 1000</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -5897,11 +5981,6 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
         <target state="translated">Selecione uma extensão para gerenciar permissões de compartilhamento de conexão</target>
-      </trans-unit>
-      <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
-        <source xml:lang="en">Select an object to view its definition ({0} results)</source>
-        <note>{0} is the number of results</note>
-        <target state="translated">Selecione um objeto para exibir a sua definição ({0} resultados)</target>
       </trans-unit>
       <trans-unit id="++CODE++16900742d2f35c9ffb6cc72369893127a8357154e22d9c4b84f020e87dac0602">
         <source xml:lang="en">Select an operation</source>
@@ -6337,6 +6416,14 @@ Consulta: {2}</target>
         <source xml:lang="en">Storage Account is required</source>
         <target state="translated">A conta de armazenamento é obrigatória</target>
       </trans-unit>
+      <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
+        <source xml:lang="en">Stored Procedure</source>
+        <target state="new">Stored Procedure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
+        <source xml:lang="en">Stored Procedures</source>
+        <target state="new">Stored Procedures</target>
+      </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
         <target state="translated">Enviar</target>
@@ -6482,6 +6569,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++2a4636665e979855a0d6edfadba83b92919fc1fddb59c376f0455b35023dd399">
         <source xml:lang="en">Table updated in schema designer successfully.</source>
         <target state="translated">Tabela atualizada com sucesso no designer de esquema.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
+        <source xml:lang="en">Tables</source>
+        <target state="new">Tables</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6754,6 +6845,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Truncate the transaction log</source>
         <target state="translated">Truncar o log de transações</target>
       </trans-unit>
+      <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
+        <source xml:lang="en">Try adjusting your search or filters</source>
+        <target state="new">Try adjusting your search or filters</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
         <target state="translated">Experimente</target>
@@ -6801,6 +6896,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++1ebcd18ec5b7a5eccd5f9487c9802a107114658c58a9efdb016830f644d20f0d">
         <source xml:lang="en">Unfreeze columns/rows</source>
         <target state="translated">Descongelar colunas/linhas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
+        <source xml:lang="en">Unknown</source>
+        <target state="new">Unknown</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -6946,6 +7045,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">Muito Satisfeito</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
+        <source xml:lang="en">View</source>
+        <target state="new">View</target>
+      </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
         <target state="translated">Exibir mais</target>
@@ -6965,6 +7068,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
         <source xml:lang="en">View:</source>
         <target state="translated">Exibir:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69c404591e99d86fd11f5ae1b15ebd246d4836aaa88a29f75f3f3d61c028357a">
+        <source xml:lang="en">Views</source>
+        <target state="new">Views</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -7283,6 +7390,11 @@ Consulta: {2}</target>
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">Problemas {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
+        <source xml:lang="en">{0} objects found</source>
+        <note>{0} is the number of objects found</note>
+        <target state="new">{0} objects found</target>
       </trans-unit>
       <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
         <source xml:lang="en">{0} of {1}</source>
@@ -8058,6 +8170,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Script como Executar</target>
+      </trans-unit>
+      <trans-unit id="mssql.searchDatabase">
+        <source xml:lang="en">Search Database Objects</source>
+        <target state="new">Search Database Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
