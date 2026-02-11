@@ -12,8 +12,8 @@ import {
     ObjectTypeFilters,
     ScriptType,
 } from "../../../sharedInterfaces/searchDatabase";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 const SearchDatabaseContext = createContext<SearchDatabaseContextProps>(
     {} as SearchDatabaseContextProps,
@@ -22,14 +22,11 @@ const SearchDatabaseContext = createContext<SearchDatabaseContextProps>(
 export const SearchDatabaseStateProvider: React.FC<{
     children: React.ReactNode;
 }> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
-        SearchDatabaseWebViewState,
-        SearchDatabaseReducers
-    >();
+    const { extensionRpc } = useVscodeWebview<SearchDatabaseWebViewState, SearchDatabaseReducers>();
 
     const commands = useMemo<SearchDatabaseContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
 
             // Search
             search: (searchTerm: string): void => {

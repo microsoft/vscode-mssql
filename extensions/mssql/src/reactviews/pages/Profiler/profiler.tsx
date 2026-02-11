@@ -34,8 +34,7 @@ import {
     getNextSortState,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./profiler.css";
 
@@ -146,7 +145,7 @@ export const Profiler: React.FC = () => {
         setQuickFilter,
         getDistinctValues,
     } = useProfilerContext();
-    const { themeKind, extensionRpc } = useVscodeWebview2();
+    const { themeKind, extensionRpc } = useVscodeWebview();
 
     const reactGridRef = useRef<SlickgridReactInstance | undefined>(undefined);
     const [localRowCount, setLocalRowCount] = useState(0);
@@ -243,13 +242,10 @@ export const Profiler: React.FC = () => {
      * Handle sort button click — cycles through NONE → ASC → DESC → NONE.
      * Only one column can be sorted at a time.
      */
-    const handleSortClick = useCallback(
-        (field: string) => {
-            // The useEffect on sortState handles DataView sorting and header icon updates
-            setSortState((prevSort) => getNextSortState(prevSort, field));
-        },
-        [],
-    );
+    const handleSortClick = useCallback((field: string) => {
+        // The useEffect on sortState handles DataView sorting and header icon updates
+        setSortState((prevSort) => getNextSortState(prevSort, field));
+    }, []);
 
     // Store sort click handler in a ref for access in header cell renderer
     const handleSortClickRef = useRef(handleSortClick);
@@ -371,11 +367,7 @@ export const Profiler: React.FC = () => {
     }
 
     // Memoized callback for onReactGridCreated to prevent SlickgridReact re-renders
-    const handleReactGridCreated = useCallback(
-        (e: CustomEvent) => reactGridReady(e.detail),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+    const handleReactGridCreated = useCallback((e: CustomEvent) => reactGridReady(e.detail), []);
 
     // Update filter button states when filter state changes
     useEffect(() => {
@@ -751,7 +743,6 @@ export const Profiler: React.FC = () => {
         if (currentColumns.length > 0) {
             grid.setColumns(currentColumns);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewId]);
 
     // Grid options
@@ -1023,7 +1014,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
-
 });
 
 // #endregion

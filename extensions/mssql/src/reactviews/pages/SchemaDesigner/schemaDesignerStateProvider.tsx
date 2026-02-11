@@ -18,7 +18,7 @@ import {
     registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -66,9 +66,9 @@ import {
 } from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
-export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
@@ -158,11 +158,10 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { state, extensionRpc, themeKind, keyBindings } = webviewContext;
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -1273,16 +1272,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
-    const isDabEnabled = () => state?.enableDAB ?? false;
+    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const isDabEnabled = () => dabEnabled ?? false;
 
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewContext),
+                ...getCoreRPCs(extensionRpc),
                 extensionRpc,
-                state,
-                themeKind,
-                keyBindings,
                 schemaNames,
                 datatypes,
                 findTableText,
