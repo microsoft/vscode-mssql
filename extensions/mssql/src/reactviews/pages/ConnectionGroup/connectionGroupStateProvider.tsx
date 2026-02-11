@@ -11,8 +11,8 @@ import {
     ConnectionGroupSpec,
     ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
-import { getCoreRPCs2 } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { getCoreRPCs } from "../../common/utils";
 
 const ConnectionGroupContext = createContext<ConnectionGroupContextProps | undefined>(undefined);
 
@@ -22,11 +22,11 @@ interface ConnectionGroupProviderProps {
 
 // Connection Group State Provider component
 const ConnectionGroupStateProvider: React.FC<ConnectionGroupProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ConnectionGroupState, ConnectionGroupReducers>();
+    const { extensionRpc } = useVscodeWebview<ConnectionGroupState, ConnectionGroupReducers>();
 
     const commands = useMemo<ConnectionGroupContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             closeDialog: () => extensionRpc.action("closeDialog"),
             saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
                 extensionRpc.action("saveConnectionGroup", connectionGroupSpec),

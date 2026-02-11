@@ -34,7 +34,7 @@ import { useEffect, useState } from "react";
 
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -122,7 +122,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     setPropertiesClicked,
     inputRef,
 }) => {
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
     const classes = useStyles();
     const theme = themeKind;
     const [shownChildren, setShownChildren] = useState<number[]>([]);

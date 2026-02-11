@@ -21,7 +21,7 @@ import { BackupDatabaseViewModel } from "../../../../sharedInterfaces/backup";
 import { FileBrowserDialog } from "../../../common/FileBrowserDialog";
 import { FileBrowserProvider } from "../../../../sharedInterfaces/fileBrowser";
 import { AdvancedOptionsDrawer } from "./backupAdvancedOptions";
-import { FormFieldNoState, useFormStyles } from "../../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { AzureIcon20 } from "../../../common/icons/fluentIcons";
 import { Save20Regular } from "@fluentui/react-icons";
 import { url } from "../../../common/constants";
@@ -34,7 +34,7 @@ import {
     ObjectManagementWebviewState,
 } from "../../../../sharedInterfaces/objectManagement";
 import { useBackupDatabaseSelector } from "./backupDatabaseSelector";
-import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -131,7 +131,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
         (s) => s.defaultFileBrowserExpandPath,
     );
     const fileFilterOptions = useBackupDatabaseSelector((s) => s.fileFilterOptions);
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
 
     if (!context || !viewModel) {
         return null;
@@ -160,7 +160,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                               }
                             : {}
                     }>
-                    <FormFieldNoState<
+                    <FormField<
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,
@@ -198,7 +198,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                                   }
                                 : {}
                         }>
-                        <FormFieldNoState<
+                        <FormField<
                             ObjectManagementFormState,
                             ObjectManagementWebviewState,
                             ObjectManagementFormItemSpec,
@@ -254,7 +254,7 @@ export const BackupDatabaseForm: React.FC<BackupFormProps> = ({ fileErrors, setF
                               }
                             : {}
                     }>
-                    <FormFieldNoState<
+                    <FormField<
                         ObjectManagementFormState,
                         ObjectManagementWebviewState,
                         ObjectManagementFormItemSpec,

@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FormFieldNoState } from "../../../common/forms/form.component";
+import { FormField } from "../../../common/forms/form.component";
 import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
     LocalContainersContextProps,
@@ -103,7 +103,7 @@ export const LocalContainersInputForm: React.FC = () => {
                               }
                             : {}
                     }>
-                    <FormFieldNoState<
+                    <FormField<
                         DockerConnectionProfile,
                         LocalContainersState,
                         LocalContainersFormItemSpec,
@@ -146,7 +146,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         <ArmSql2025ErrorDialog closeDialog={context.closeArmSql2025ErrorDialog} />
                     )}
                     {renderFormFields(false)}
-                    <FormFieldNoState<
+                    <FormField<
                         DockerConnectionProfile,
                         LocalContainersState,
                         LocalContainersFormItemSpec,
@@ -205,7 +205,7 @@ export const LocalContainersInputForm: React.FC = () => {
                             }),
                             marginTop: "10px",
                         }}>
-                        <FormFieldNoState<
+                        <FormField<
                             DockerConnectionProfile,
                             LocalContainersState,
                             LocalContainersFormItemSpec,

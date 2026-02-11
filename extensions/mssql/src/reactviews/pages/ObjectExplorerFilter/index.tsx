@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { ObjectExplorerFilterStateProvider } from "./ObjectExplorerFilterStateProvider";
 import { ObjectExplorerFilterPage } from "./ObjectExplorerFilterPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
+    <VscodeWebviewProvider>
         <ObjectExplorerFilterStateProvider>
             <ObjectExplorerFilterPage />
         </ObjectExplorerFilterStateProvider>
-    </VscodeWebviewProvider2>,
+    </VscodeWebviewProvider>,
 );

@@ -22,7 +22,7 @@ import {
 } from "../../../sharedInterfaces/connectionGroup";
 import { Field, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
-import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
 import { AzureBrowsePage } from "./azureBrowsePage";
@@ -125,7 +125,7 @@ export const ConnectionInfoFormContainer = () => {
                     />
                 )}
 
-                <FormFieldNoState<
+                <FormField<
                     IConnectionDialogProfile,
                     ConnectionDialogWebviewState,
                     ConnectionDialogFormItemSpec,
@@ -138,7 +138,7 @@ export const ConnectionInfoFormContainer = () => {
                     props={{ orientation: "horizontal" }}
                 />
 
-                <FormFieldNoState<
+                <FormField<
                     IConnectionDialogProfile,
                     ConnectionDialogWebviewState,
                     ConnectionDialogFormItemSpec,

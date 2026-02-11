@@ -9,7 +9,7 @@ import { useConnectionDialogSelector } from "./connectionDialogSelector";
 import { ConnectButton } from "./components/connectButton.component";
 import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
-import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
@@ -459,7 +459,7 @@ export const AzureBrowsePage = () => {
 
                     {selectedServer && (
                         <>
-                            <FormFieldNoState<
+                            <FormField<
                                 IConnectionDialogProfile,
                                 ConnectionDialogWebviewState,
                                 ConnectionDialogFormItemSpec,
@@ -506,7 +506,7 @@ export const AzureBrowsePage = () => {
                                     }
 
                                     return (
-                                        <FormFieldNoState<
+                                        <FormField<
                                             IConnectionDialogProfile,
                                             ConnectionDialogWebviewState,
                                             ConnectionDialogFormItemSpec,

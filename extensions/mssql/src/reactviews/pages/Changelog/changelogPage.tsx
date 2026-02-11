@@ -27,7 +27,7 @@ import {
     ChangelogLinkRequest,
     CloseChangelogRequest,
 } from "../../../sharedInterfaces/changelog";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useChangelogSelector } from "./changelogSelector";
 import { locConstants } from "../../common/locConstants";
 import { getActionIcon } from "../../common/icons/iconUtils";
@@ -233,7 +233,7 @@ const changelogIcons: Record<string, string> = {
 
 export const ChangelogPage = () => {
     const classes = useStyles();
-    const { extensionRpc } = useVscodeWebview2();
+    const { extensionRpc } = useVscodeWebview();
     const mainContent = useChangelogSelector((s) => s?.mainContent) ?? {};
     const secondaryContent = useChangelogSelector((s) => s?.secondaryContent) ?? {};
     const sidebarContent = useChangelogSelector((s) => s?.sidebarContent) ?? [];

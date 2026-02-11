@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "./webview";
-import { FormContextPropsNoState, FormItemSpec, FormReducers, FormState } from "./form";
+import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
 import { ISqlDbArtifact, IWorkspace } from "./fabric";
 
@@ -71,7 +71,7 @@ export interface FabricProvisioningFormItemSpec
 }
 
 export interface FabricProvisioningContextProps
-    extends FormContextPropsNoState<FabricProvisioningFormState> {
+    extends FormContextProps<FabricProvisioningFormState> {
     /**
      * Reload fabric environment
      * Used when account/ tenant is changed

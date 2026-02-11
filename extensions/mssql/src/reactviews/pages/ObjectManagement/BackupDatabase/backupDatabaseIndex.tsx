@@ -7,15 +7,15 @@ import "../../../index.css";
 import { createRoot } from "react-dom/client";
 import { BackupDatabaseDialogPage } from "./backupDatabaseDialogPage";
 import { BackupDatabaseStateProvider } from "./backupDatabaseStateProvider";
-import { VscodeWebviewProvider2 } from "../../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider } from "../../../common/vscodeWebviewProvider";
 
 const App = () => {
     return (
-        <VscodeWebviewProvider2>
+        <VscodeWebviewProvider>
             <BackupDatabaseStateProvider>
                 <BackupDatabaseDialogPage />
             </BackupDatabaseStateProvider>
-        </VscodeWebviewProvider2>
+        </VscodeWebviewProvider>
     );
 };
 

@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FormFieldNoState } from "../../../common/forms/form.component";
+import { FormField } from "../../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormItemSpec,
@@ -104,7 +104,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                               }
                             : {}
                     }>
-                    <FormFieldNoState<
+                    <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
                         FabricProvisioningFormItemSpec,
@@ -143,7 +143,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
-                    <FormFieldNoState<
+                    <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
                         FabricProvisioningFormItemSpec,
@@ -172,7 +172,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         }}
                     />
                     {renderFormFields(false)}
-                    <FormFieldNoState<
+                    <FormField<
                         FabricProvisioningFormState,
                         FabricProvisioningState,
                         FabricProvisioningFormItemSpec,
@@ -204,7 +204,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         }}
                     />
                     {fabricProvisioningState.formState.accountId && (
-                        <FormFieldNoState<
+                        <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningState,
                             FabricProvisioningFormItemSpec,
@@ -235,7 +235,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                     )}
                     {fabricProvisioningState.formState.accountId &&
                         (fabricProvisioningState.workspaces.length > 0 ? (
-                            <FormFieldNoState<
+                            <FormField<
                                 FabricProvisioningFormState,
                                 FabricProvisioningState,
                                 FabricProvisioningFormItemSpec,

@@ -6,9 +6,9 @@
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import { DesignerDefinitionPaneRef } from "../../common/designerDefinitionPane";
-import { getCoreRPCs2 } from "../../common/utils";
+import { getCoreRPCs } from "../../common/utils";
 
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext, useMemo, useRef, useState } from "react";
 import { useTableDesignerSelector } from "./tableDesignerSelector";
 
@@ -137,7 +137,7 @@ interface TableDesignerProviderProps {
 }
 
 const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         designer.TableDesignerWebviewState,
         designer.TableDesignerReducers
     >();
@@ -172,7 +172,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
 
     const commands = useMemo<TableDesignerContextProps>(
         () => ({
-            ...getCoreRPCs2(extensionRpc),
+            ...getCoreRPCs(extensionRpc),
             processTableEdit: function (tableChangeInfo: designer.DesignerEdit): void {
                 extensionRpc.action("processTableEdit", {
                     table: stateRef.current?.tableInfo!,

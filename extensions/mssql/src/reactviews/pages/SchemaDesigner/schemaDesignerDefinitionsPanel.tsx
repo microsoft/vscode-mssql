@@ -11,12 +11,12 @@ import {
     DesignerDefinitionPaneRef,
     DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
-    const { themeKind } = useVscodeWebview2<
+    const { themeKind } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
