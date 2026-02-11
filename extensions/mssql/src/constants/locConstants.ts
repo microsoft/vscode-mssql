@@ -616,36 +616,6 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
-export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
-export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
-export function searchObjectsNoResultsMessage(term: string) {
-    return l10n.t({
-        message: "No database objects found matching '{0}'",
-        args: [term],
-        comment: ["{0} is the search term"],
-    });
-}
-export let searchObjectsError = l10n.t("An error occurred while searching database objects");
-export function searchObjectsErrorWithDetail(detail: string) {
-    return l10n.t({
-        message: "An error occurred while searching database objects: {0}",
-        args: [detail],
-        comment: ["{0} is the error detail returned from the search operation"],
-    });
-}
-export let searchObjectsNoConnection = l10n.t(
-    "No active database connection. Please connect to a database first.",
-);
-export function searchObjectsSelectPrompt(count: string | number) {
-    return l10n.t({
-        message: "Select an object to view its definition ({0} results)",
-        args: [count],
-        comment: ["{0} is the number of results"],
-    });
-}
-export let searchObjectsInvalidConnectionUri = l10n.t(
-    "Invalid connection URI. Please ensure you have an active database connection.",
-);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -1428,7 +1398,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project (Preview)");
+    public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
@@ -1945,6 +1915,21 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on Data API Builder?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on Data API Builder",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     );
@@ -2451,6 +2436,51 @@ export class DacpacDialog {
     }
 }
 
+export class SearchDatabase {
+    public static title = (serverName: string) =>
+        l10n.t({
+            message: "Search Database Objects - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+
+    public static failedToEstablishConnection = l10n.t("Failed to establish connection");
+
+    public static typeTable = l10n.t("Table");
+    public static typeView = l10n.t("View");
+    public static typeStoredProcedure = l10n.t("Stored Procedure");
+    public static typeFunction = l10n.t("Function");
+    public static typeUnknown = l10n.t("Unknown");
+
+    public static copiedToClipboard = (objectName: string) =>
+        l10n.t({
+            message: 'Copied "{0}" to clipboard',
+            args: [objectName],
+            comment: ["{0} is the object name"],
+        });
+
+    public static failedToScriptObject = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to script object: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenEditData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Edit Data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenModifyTable = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Modify Table: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
 export class TableExplorer {
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",
@@ -2765,6 +2795,12 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
     public static profilerReady = l10n.t(
         "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
     );
@@ -2788,6 +2824,17 @@ export class Profiler {
             args: [count],
             comment: ["{0} is the number of events"],
         });
+
+    // Database selection for Azure SQL
+    public static selectDatabaseForProfiler = l10n.t(
+        "Select a database for profiling (Azure SQL requires a specific database)",
+    );
+    public static noDatabasesFound = l10n.t(
+        "No databases found on the server. Please check your connection.",
+    );
+    public static profilerNotSupportedOnFabric = l10n.t(
+        "Profiler is not supported on Microsoft Fabric SQL databases.",
+    );
 }
 
 export class Proxy {

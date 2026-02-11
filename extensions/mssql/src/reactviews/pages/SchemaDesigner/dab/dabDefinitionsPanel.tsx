@@ -10,6 +10,8 @@ import {
     DesignerDefinitionPaneRef,
     DesignerDefinitionTabs,
 } from "../../../common/designerDefinitionPane";
+import { useVscodeWebview2 } from "../../../common/vscodeWebviewProvider2";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export interface DabDefinitionsPanelRef {
     togglePanel: () => void;
@@ -17,6 +19,10 @@ export interface DabDefinitionsPanelRef {
 
 export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, ref) => {
     const context = useContext(SchemaDesignerContext);
+    const { themeKind } = useVscodeWebview2<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
     const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
 
     useImperativeHandle(
@@ -41,7 +47,7 @@ export const DabDefinitionsPanel = forwardRef<DabDefinitionsPanelRef, {}>((_, re
             ref={definitionPaneRef}
             script={context.dabConfigContent}
             language="json"
-            themeKind={context.themeKind}
+            themeKind={themeKind}
             openInEditor={context.openDabConfigInEditor}
             copyToClipboard={context.copyToClipboard}
             activeTab={DesignerDefinitionTabs.Script}

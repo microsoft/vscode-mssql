@@ -31,6 +31,7 @@ import {
 } from "@fluentui/react-components";
 import { useContext, useEffect, useState } from "react";
 import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider";
+import { useObjectExplorerFilterSelector } from "./objectExplorerFilterSelector";
 import * as vscodeMssql from "vscode-mssql";
 import { EraserRegular } from "@fluentui/react-icons";
 import {
@@ -77,7 +78,10 @@ export const useStyles = makeStyles({
 
 export const ObjectExplorerFilterPage = () => {
     const classes = useStyles();
-    const provider = useContext(ObjectExplorerFilterContext);
+    const context = useContext(ObjectExplorerFilterContext);
+    const filterProperties = useObjectExplorerFilterSelector((s) => s?.filterProperties);
+    const existingFilters = useObjectExplorerFilterSelector((s) => s?.existingFilters);
+    const nodePath = useObjectExplorerFilterSelector((s) => s?.nodePath);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
@@ -195,10 +199,8 @@ export const ObjectExplorerFilterPage = () => {
 
         const loadUiFilters = () => {
             setUiFilters(
-                provider?.state?.filterProperties?.map((value, index) => {
-                    const filter = provider?.state?.existingFilters?.find(
-                        (f) => f.name === value.name,
-                    );
+                filterProperties?.map((value, index) => {
+                    const filter = existingFilters?.find((f) => f.name === value.name);
                     const operatorOptions = getFilterOperators(value);
                     const defaultOperator = operatorOptions[0] ?? NodeFilterOperator.Equals;
                     return {
@@ -220,7 +222,7 @@ export const ObjectExplorerFilterPage = () => {
         setIntialFocus();
         loadUiFilters();
         setErrorMessage(undefined);
-    }, [provider?.state?.filterProperties]);
+    }, [filterProperties]);
 
     function renderCell(columnId: TableColumnId, item: ObjectExplorerPageFilter) {
         switch (columnId) {
@@ -458,15 +460,13 @@ export const ObjectExplorerFilterPage = () => {
         [useTableColumnSizing_unstable({ columnSizingOptions })],
     );
     const rows = getRows();
-    if (!provider) {
+    if (!context || !filterProperties) {
         return undefined;
     }
     return (
         <div className={classes.root}>
             <Text size={400}>{l10n.t("Filter Settings")}</Text>
-            <Body1Strong>
-                {locConstants.objectExplorerFiltering.path(provider?.state?.nodePath!)}
-            </Body1Strong>
+            <Body1Strong>{locConstants.objectExplorerFiltering.path(nodePath!)}</Body1Strong>
             {errorMessage && errorMessage !== "" && (
                 <MessageBar intent={"error"}>
                     <MessageBarBody>
@@ -543,7 +543,7 @@ export const ObjectExplorerFilterPage = () => {
                 <Button
                     appearance="secondary"
                     onClick={() => {
-                        provider.cancel();
+                        context.cancel();
                     }}>
                     {locConstants.common.close}
                 </Button>
@@ -639,7 +639,7 @@ export const ObjectExplorerFilterPage = () => {
                             setErrorMessage(errorText);
                             return;
                         }
-                        provider.submit(filters);
+                        context.submit(filters);
                     }}>
                     {locConstants.objectExplorerFiltering.ok}
                 </Button>

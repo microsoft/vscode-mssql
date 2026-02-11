@@ -8,6 +8,7 @@ import { BranchCompare20Regular } from "@fluentui/react-icons";
 import { useContext } from "react";
 import eventBus from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { locConstants } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -29,7 +30,14 @@ const useStyles = makeStyles({
 
 export function ShowChangesButton() {
     const context = useContext(SchemaDesignerContext);
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
+    const isDabEnabled = enableDAB ?? false;
+
+    if (!isDabEnabled) {
+        return <></>;
+    }
+
     return (
         <Tooltip
             content={locConstants.schemaDesigner.showChangesButtonLabel(context.schemaChangesCount)}

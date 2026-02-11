@@ -6,8 +6,8 @@
 import { createContext, useEffect, useRef, useState, useCallback } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs, getErrorMessage } from "../../common/utils";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs2, getErrorMessage } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
@@ -15,9 +15,10 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { ApiStatus, WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { ApiStatus, CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -65,9 +66,9 @@ import {
 } from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
-export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
@@ -170,11 +171,10 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview2<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { state, extensionRpc, themeKind, keyBindings } = webviewContext;
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -229,6 +229,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const extractSchemaRef = useRef<() => SchemaDesigner.Schema>(() => ({ tables: [] }));
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
@@ -236,10 +238,26 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         Dab.createDefaultDeploymentState(),
     );
 
+    useEffect(() => {
+        dabConfigRef.current = dabConfig;
+    }, [dabConfig]);
+
     const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
         resetView,
     });
+
+    const extractSchema = useCallback(() => {
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        return schema;
+    }, [reactFlow]);
+
+    useEffect(() => {
+        extractSchemaRef.current = extractSchema;
+    }, [extractSchema]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -324,7 +342,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
         });
-    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+    }, [
+        isInitialized,
+        extensionRpc,
+        schemaNames,
+        datatypes,
+        reactFlow,
+        onPushUndoState,
+        extractSchema,
+    ]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -333,7 +359,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             extensionRpc,
             extractSchema,
         });
-    }, [isInitialized, extensionRpc]);
+    }, [isInitialized, extensionRpc, extractSchema]);
+
+    useEffect(() => {
+        registerSchemaDesignerDabToolHandlers({
+            extensionRpc,
+            isInitializedRef,
+            getCurrentDabConfig: () => dabConfigRef.current,
+            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            commitDabConfig: (config) => {
+                setDabConfig(config);
+            },
+        });
+    }, [extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -624,14 +662,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
         );
-    };
-
-    const extractSchema = () => {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-        return schema;
     };
 
     /**
@@ -1258,7 +1288,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
-    const isDabEnabled = () => state?.enableDAB ?? false;
+    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const isDabEnabled = () => dabEnabled ?? false;
 
     // DAB Deployment functions
     const openDabDeploymentDialog = useCallback(() => {
@@ -1412,11 +1443,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewContext),
+                ...getCoreRPCs2(extensionRpc),
                 extensionRpc,
-                state,
-                themeKind,
-                keyBindings,
                 schemaNames,
                 datatypes,
                 findTableText,

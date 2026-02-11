@@ -1692,6 +1692,78 @@ export class LocConstants {
         };
     }
 
+    public get searchDatabase() {
+        return {
+            // Page titles and headers
+            title: l10n.t("Search Database Objects"),
+            loading: l10n.t("Loading database objects"),
+            connectingTo: (serverName: string) =>
+                l10n.t({
+                    message: "Connecting to {0}...",
+                    args: [serverName],
+                    comment: ["{0} is the server name"],
+                }),
+            defaultError: l10n.t("An error occurred while loading data."),
+            errorLoadingDatabaseObjects: l10n.t("Error loading database objects"),
+            searching: l10n.t("Searching..."),
+            objectsFound: (count: number) =>
+                l10n.t({
+                    message: "{0} objects found",
+                    args: [count],
+                    comment: ["{0} is the number of objects found"],
+                }),
+
+            // Filter labels
+            database: l10n.t("Database"),
+            objectTypes: l10n.t("Object Types"),
+            tables: l10n.t("Tables"),
+            views: l10n.t("Views"),
+            storedProcedures: l10n.t("Stored Procedures"),
+            functions: l10n.t("Functions"),
+            schemas: l10n.t("Schemas"),
+            all: l10n.t("All"),
+            none: l10n.t("None"),
+
+            // Type names (singular, for display)
+            typeTable: l10n.t("Table"),
+            typeView: l10n.t("View"),
+            typeStoredProcedure: l10n.t("Stored Procedure"),
+            typeFunction: l10n.t("Function"),
+
+            // Toolbar
+            searchPlaceholder: l10n.t(
+                "Search by object name or type (e.g. t:<name>, v:, f:, or sp:)",
+            ),
+
+            // Results table headers
+            name: l10n.t("Name"),
+            schema: l10n.t("Schema"),
+            type: l10n.t("Type"),
+            actions: l10n.t("Actions"),
+
+            // Empty state
+            noObjectsFound: l10n.t("No objects found"),
+            tryAdjustingFilters: l10n.t("Try adjusting your search or filters"),
+
+            // Column header filters
+            filterByName: l10n.t("Filter by name"),
+            filterBySchema: l10n.t("Filter by schema"),
+            filterByType: l10n.t("Filter by type"),
+            filterColumnAriaLabel: (columnName: string) => l10n.t("Filter {0}", columnName),
+            selectAll: l10n.t("Select All"),
+
+            // Action menu items
+            selectTop1000: l10n.t("Select Top 1000"),
+            scriptAsCreate: l10n.t("Script as Create"),
+            scriptAsDrop: l10n.t("Script as Drop"),
+            scriptAsAlter: l10n.t("Script as Alter"),
+            scriptAsExecute: l10n.t("Script as Execute"),
+            editData: l10n.t("Edit Data"),
+            modifyTable: l10n.t("Modify Table"),
+            copyObjectName: l10n.t("Copy Object Name"),
+        };
+    }
+
     // SlickGrid-specific localization strings
     public get slickGrid() {
         return {

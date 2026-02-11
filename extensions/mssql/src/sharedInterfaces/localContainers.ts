@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "./webview";
-import { FormContextProps, FormItemSpec, FormState } from "./form";
+import { FormContextPropsNoState, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
 export class LocalContainersState
@@ -59,11 +59,7 @@ export interface LocalContainersFormItemSpec
 }
 
 export interface LocalContainersContextProps
-    extends FormContextProps<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
+    extends FormContextPropsNoState<DockerConnectionProfile> {
     /**
      * Checks the selected Docker profile's availability and configuration.
      */

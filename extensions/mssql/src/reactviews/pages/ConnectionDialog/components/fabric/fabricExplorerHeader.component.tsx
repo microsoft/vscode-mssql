@@ -16,9 +16,9 @@ import {
 import { DismissRegular, SearchRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants as Loc } from "../../../../common/locConstants";
-import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
 import { KeyCode } from "../../../../common/keys";
+import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 
 const FabricExplorerHeader = ({
     onSignIntoMicrosoftAccount,
@@ -27,13 +27,14 @@ const FabricExplorerHeader = ({
     onSearchValueChanged,
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
-    azureAccounts = [],
-    selectedAccountId = "",
-    azureTenants = [],
-    selectedTenantId = "",
-    azureTenantsLoadStatus = ApiStatus.NotStarted,
 }: FabricBrowserHeaderProps) => {
     const styles = useStyles();
+
+    const azureAccounts = useConnectionDialogSelector((s) => s.azureAccounts);
+    const azureTenants = useConnectionDialogSelector((s) => s.azureTenants);
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
+    const azureTenantsLoadStatus = useConnectionDialogSelector((s) => s.loadingAzureTenantsStatus);
 
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
     const [selectedTenantName, setSelectedTenantName] = useState<string>("");
@@ -182,11 +183,6 @@ interface FabricBrowserHeaderProps {
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSearchValueChanged: (searchValue: string) => void;
-    azureAccounts: IAzureAccount[];
-    azureTenants: IAzureTenant[];
-    selectedAccountId: string | undefined;
-    selectedTenantId: string | undefined;
-    azureTenantsLoadStatus: ApiStatus;
     searchValue?: string;
     selectedTypeFilters?: string[];
 }

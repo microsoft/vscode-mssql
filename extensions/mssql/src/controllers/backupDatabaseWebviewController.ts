@@ -327,7 +327,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("handleFileChange", async (state, payload) => {
             const backupViewModel = this.backupViewModel(state);
             const currentFilePath = backupViewModel.backupFiles[payload.index].filePath;
-            let newFilePath: string = "";
+            let newFilePath = "";
             if (payload.isFolderChange) {
                 newFilePath = `${payload.newValue}/${currentFilePath.substring(
                     currentFilePath.lastIndexOf("/") + 1,
