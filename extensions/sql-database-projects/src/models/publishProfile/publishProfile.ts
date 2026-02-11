@@ -50,7 +50,7 @@ export async function load(
     const profileXmlDoc: Document = new xmldom.DOMParser().parseFromString(profileText.toString());
 
     // read target database name
-    let targetDbName: string = "";
+    let targetDbName = "";
     let targetDatabaseNameCount = profileXmlDoc.documentElement.getElementsByTagName(
         constants.targetDatabaseName,
     ).length;
@@ -91,16 +91,16 @@ export async function load(
 async function readConnectionString(
     xmlDoc: any,
 ): Promise<{ connectionId: string; connection: string; server: string }> {
-    let targetConnection: string = "";
-    let connId: string = "";
-    let server: string = "";
+    let targetConnection = "";
+    let connId = "";
+    let server = "";
 
     if (xmlDoc.documentElement.getElementsByTagName(constants.targetConnectionString).length > 0) {
         const targetConnectionString = xmlDoc.documentElement.getElementsByTagName(
             constants.TargetConnectionString,
         )[0].textContent;
         const dataSource = new SqlConnectionDataSource("", targetConnectionString);
-        let username: string = "";
+        let username = "";
         const connectionProfile = dataSource.getConnectionProfile();
 
         try {
@@ -319,8 +319,8 @@ async function getConnectionString(
         | IPublishToDockerSettings
         | undefined,
 ): Promise<string> {
-    let connectionUri: string = "";
-    let connectionString: string = "";
+    let connectionUri = "";
+    let connectionString = "";
 
     if (settings) {
         if (isISqlProjectPublishSettings(settings)) {

@@ -105,7 +105,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
         let backupConfigInfo: BackupConfigInfo;
-        let backupConfigError: string = "";
+        let backupConfigError = "";
         try {
             backupConfigInfo = (
                 await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)

@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from '../common/constants';
-import * as mssql from 'mssql';
-import * as os from 'os';
-import * as path from 'path';
-import * as utils from '../common/utils';
-import * as UUID from 'vscode-languageclient/lib/utils/uuid';
-import * as templates from '../templates/templates';
-import * as vscode from 'vscode';
-import type * as azdataType from 'azdata';
-import * as dataworkspace from 'dataworkspace';
-import * as mssqlVscode from 'vscode-mssql';
+import * as constants from "../common/constants";
+import * as mssql from "mssql";
+import * as os from "os";
+import * as path from "path";
+import * as utils from "../common/utils";
+import * as UUID from "vscode-languageclient/lib/utils/uuid";
+import * as templates from "../templates/templates";
+import * as vscode from "vscode";
+import type * as azdataType from "azdata";
+import * as dataworkspace from "dataworkspace";
+import * as mssqlVscode from "vscode-mssql";
 
 import { promises as fs } from 'fs';
 import { Project } from '../models/project';
@@ -58,16 +58,20 @@ const maxTableLength = 10;
  * values imported as "import type" https://github.com/microsoft/TypeScript/issues/40344
  */
 export enum TaskExecutionMode {
-	execute = 0,
-	script = 1,
-	executeAndScript = 2
+    execute = 0,
+    script = 1,
+    executeAndScript = 2,
 }
 
-export type AddDatabaseReferenceSettings = ISystemDatabaseReferenceSettings | IDacpacReferenceSettings | IProjectReferenceSettings | INugetPackageReferenceSettings;
+export type AddDatabaseReferenceSettings =
+    | ISystemDatabaseReferenceSettings
+    | IDacpacReferenceSettings
+    | IProjectReferenceSettings
+    | INugetPackageReferenceSettings;
 
 interface FileWatcherStatus {
-	fileWatcher: vscode.FileSystemWatcher;
-	containsCreateTableStatement: boolean;
+    fileWatcher: vscode.FileSystemWatcher;
+    containsCreateTableStatement: boolean;
 }
 
 /**
@@ -2230,11 +2234,11 @@ export class ProjectsController {
 }
 
 export interface NewProjectParams {
-	newProjName: string;
-	folderUri: vscode.Uri;
-	projectTypeId: string;
-	sdkStyle: boolean;
-	projectGuid?: string;
-	targetPlatform?: SqlTargetPlatform;
-	configureDefaultBuild?: boolean;
+    newProjName: string;
+    folderUri: vscode.Uri;
+    projectTypeId: string;
+    sdkStyle: boolean;
+    projectGuid?: string;
+    targetPlatform?: SqlTargetPlatform;
+    configureDefaultBuild?: boolean;
 }

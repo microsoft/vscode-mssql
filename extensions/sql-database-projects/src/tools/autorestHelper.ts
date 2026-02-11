@@ -11,8 +11,8 @@ import { DBProjectConfigurationKey } from "./netcoreTool";
 import { ShellExecutionHelper } from "./shellExecutionHelper";
 
 const autorestPackageName = "autorest-sql-testing"; // name of AutoRest.Sql package on npm
-const nodejsDoNotAskAgainKey: string = "nodejsDoNotAsk";
-const autorestSqlVersionKey: string = "autorestSqlVersion";
+const nodejsDoNotAskAgainKey = "nodejsDoNotAsk";
+const autorestSqlVersionKey = "autorestSqlVersion";
 
 /**
  * Helper class for dealing with Autorest generation and detection
