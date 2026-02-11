@@ -118,6 +118,17 @@ div.react-flow__node.react-flow__node-tableNode .column:hover {
     pointer-events: visibleStroke;
 }
 
+/* Make selection always visible, even when edges are styled as add/modify/delete/pending-AI. */
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: var(--vscode-focusBorder);
+    stroke-width: 3;
+}
+
+.react-flow__edge.selected .react-flow__arrowhead path {
+    fill: var(--vscode-focusBorder);
+    stroke: var(--vscode-focusBorder);
+}
+
 .react-flow__node-tableNode .column .react-flow__handle {
     opacity: 0;
     width: 10px;

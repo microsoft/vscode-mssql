@@ -116,6 +116,9 @@ const useStyles = makeStyles({
     tableNodeDiffModified: {
         boxShadow: "0 0 0 2px var(--vscode-gitDecoration-modifiedResourceForeground)",
     },
+    tableNodeSelected: {
+        boxShadow: "0 0 0 2px var(--vscode-focusBorder)",
+    },
     tableHeader: {
         width: "100%",
         display: "flex",
@@ -993,8 +996,8 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
     ].filter((column): column is SchemaDesigner.Column => Boolean(column));
     const hasPendingAiChanges = (pendingAiGroup?.items.length ?? 0) > 0;
     const isPendingAiNewTable = pendingAiTableChange?.action === ChangeAction.Add;
-    const hasPendingAiNonTableChanges =
-        pendingAiGroup?.items.some((item) => item.category !== ChangeCategory.Table) ?? false;
+    const hasPendingAiColumnChanges =
+        pendingAiGroup?.items.some((item) => item.category === ChangeCategory.Column) ?? false;
 
     const handleToggleCollapse = () => {
         setIsCollapsed(!isCollapsed);
@@ -1030,7 +1033,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
         ? hasPendingAiChanges &&
           pendingAiTableChange?.action !== ChangeAction.Add &&
           pendingAiTableChange?.action !== ChangeAction.Delete &&
-          (pendingAiTableChange?.action === ChangeAction.Modify || hasPendingAiNonTableChanges)
+                    (pendingAiTableChange?.action === ChangeAction.Modify || hasPendingAiColumnChanges)
         : !isDeletedTable &&
           context.showChangesHighlight &&
           context.modifiedTableHighlights.has(table.id);
@@ -1080,6 +1083,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
                 showAddedDiff && styles.tableNodeDiffAdded,
                 showModifiedDiff && styles.tableNodeDiffModified,
                 isDeletedTable && styles.tableNodeDeleted,
+                props.selected && styles.tableNodeSelected,
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={(event) => {

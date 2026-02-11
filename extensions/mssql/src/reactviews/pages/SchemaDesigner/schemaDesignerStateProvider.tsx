@@ -492,9 +492,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             waitForNextFrame,
             extractSchema,
             onMaybeAutoArrange: maybeAutoArrangeForToolBatch,
-            addTable,
-            updateTable,
-            deleteTable,
+            addTable: addTableCore,
+            updateTable: updateTableCore,
+            deleteTable: deleteTableCore,
             normalizeColumn,
             normalizeTable,
             validateTable,
@@ -835,8 +835,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     /**
      * Adds a new table to the flow
      */
-    const addTable = async (table: SchemaDesigner.Table) => {
-        dismissPendingAiForTableIds([table.id]);
+    const addTableCore = async (table: SchemaDesigner.Table) => {
         const existingNodes = filterDeletedNodes(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
         );
@@ -905,14 +904,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return false;
     };
 
+    const addTable = async (table: SchemaDesigner.Table) => {
+        dismissPendingAiForTableIds([table.id]);
+        return addTableCore(table);
+    };
+
     /**
      * Updates a table in the flow
      */
-    const updateTable = async (
+    const updateTableCore = async (
         updatedTable: SchemaDesigner.Table,
         options?: { center?: boolean },
     ) => {
-        dismissPendingAiForTableIds([updatedTable.id]);
         const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
 
@@ -1015,12 +1018,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return true;
     };
 
-    const deleteTable = async (
+    const updateTable = async (
+        updatedTable: SchemaDesigner.Table,
+        options?: { center?: boolean },
+    ) => {
+        dismissPendingAiForTableIds([updatedTable.id]);
+        return updateTableCore(updatedTable, options);
+    };
+
+    const deleteTableCore = async (
         table: SchemaDesigner.Table,
         skipConfirmation = false,
         emitPushState = true,
     ) => {
-        dismissPendingAiForTableIds([table.id]);
         const node = reactFlow.getNode(table.id);
         if (!node) {
             return false;
@@ -1033,6 +1043,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             eventBus.emit("pushState");
         }
         return true;
+    };
+
+    const deleteTable = async (
+        table: SchemaDesigner.Table,
+        skipConfirmation = false,
+        emitPushState = true,
+    ) => {
+        dismissPendingAiForTableIds([table.id]);
+        return deleteTableCore(table, skipConfirmation, emitPushState);
     };
 
     const consumeSkipDeleteConfirmation = () => {
