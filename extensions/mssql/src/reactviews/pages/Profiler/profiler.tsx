@@ -12,7 +12,7 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles, Text } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
@@ -152,7 +152,7 @@ export const Profiler: React.FC = () => {
     const [localRowCount, setLocalRowCount] = useState(0);
 
     // Sort state — only one column can be sorted at a time
-    const [sortState, setSortState] = useState<SortState | null>(null);
+    const [sortState, setSortState] = useState<SortState | undefined>(undefined);
 
     // Popover state
     const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
@@ -202,7 +202,7 @@ export const Profiler: React.FC = () => {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
-            setSortState(null);
+            setSortState(undefined);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
             // Don't fetch here - NewEventsAvailable notification from extension will handle it
@@ -427,7 +427,7 @@ export const Profiler: React.FC = () => {
             return;
         }
 
-        // 1. Sort the DataView (natural order when sortState is null)
+        // 1. Sort the DataView (natural order when sortState is undefined)
         const sortFn = createDataViewSortFn(sortState);
         dataView.sort(sortFn, true);
 
@@ -564,7 +564,7 @@ export const Profiler: React.FC = () => {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
-            setSortState(null);
+            setSortState(undefined);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
         });
@@ -745,7 +745,7 @@ export const Profiler: React.FC = () => {
             return;
         }
         // Reset sort when view changes — sorted column may no longer exist
-        setSortState(null);
+        setSortState(undefined);
         // Force re-render of headers to add sort + filter buttons to new columns
         const currentColumns = grid.getColumns();
         if (currentColumns.length > 0) {
@@ -777,8 +777,13 @@ export const Profiler: React.FC = () => {
             forceFitColumns: false,
             alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
+            emptyDataWarning: {
+                message: isFilterActive
+                    ? locConstants.profiler.noResultsMatchFilter
+                    : locConstants.profiler.noDataToDisplay,
+            },
         }),
-        [themeKind],
+        [themeKind, isFilterActive],
     );
 
     // Toolbar handlers
@@ -937,11 +942,6 @@ export const Profiler: React.FC = () => {
                 />
             )}
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                {isFilterActive && localRowCount === 0 && (
-                    <Text className={classes.emptyFilterMessage} align="center" size={300}>
-                        {locConstants.profiler.noResultsMatchFilter}
-                    </Text>
-                )}
                 <SlickgridReact
                     gridId="profilerGrid"
                     columns={columns}
@@ -1023,12 +1023,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
-    emptyFilterMessage: {
-        display: "flex",
-        justifyContent: "center",
-        padding: "16px",
-        color: "var(--vscode-descriptionForeground)",
-    },
+
 });
 
 // #endregion

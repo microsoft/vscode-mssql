@@ -202,7 +202,7 @@ export interface ViewRow {
     /** Unique row identifier */
     id: string;
     /** Dynamic fields based on view columns */
-    [field: string]: string | number | null;
+    [field: string]: string | number | undefined;
 }
 
 /**
@@ -280,7 +280,7 @@ export interface FilterClause {
     /** The comparison operator */
     operator: FilterOperator;
     /** The value to compare against (not used for IsNull/IsNotNull) */
-    value?: string | number | boolean | null;
+    value?: string | number | boolean;
     /** Set of values for the In operator (OR logic within a single column) */
     values?: string[];
     /** Optional type hint for value parsing */

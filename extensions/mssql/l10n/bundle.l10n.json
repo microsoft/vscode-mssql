@@ -1359,6 +1359,7 @@
         "comment": ["{0} is the column name"]
     },
     "No results match the current filters": "No results match the current filters",
+    "No data to display.": "No data to display.",
     "Quick filter all columnsȂ": "Quick filter all columnsȂ",
     "Clear All Filters": "Clear All Filters",
     "Clear quick filter and all column filters": "Clear quick filter and all column filters",

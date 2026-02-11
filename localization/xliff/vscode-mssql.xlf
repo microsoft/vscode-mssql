@@ -3538,6 +3538,9 @@
     <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
       <source xml:lang="en">No data available</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b48d5864d528c861a4bb45d1bf3fddab2186bb2d09deb1bce1c4730b72bf1f1">
+      <source xml:lang="en">No data to display.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
       <source xml:lang="en">No database objects found matching &apos;{0}&apos;</source>
       <note>{0} is the search term</note>

@@ -199,7 +199,7 @@ export class ProfilerConfigService {
         // Check if it's a direct property of EventRow
         if (field in event && field !== FIELD_ADDITIONAL_DATA) {
             const value = (event as unknown as Record<string, unknown>)[field];
-            if (value === undefined || value === null) {
+            if (value === undefined) {
                 return undefined;
             }
             // Format specific fields
