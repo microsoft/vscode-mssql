@@ -18,18 +18,20 @@ import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
 import { ProfilerColumnFilterPopover, getFilterType } from "./profilerColumnFilterPopover";
 import { ProfilerActiveFiltersBar } from "./profilerActiveFiltersBar";
-import { createDataViewSortFn, getNextSortState } from "../../../profiler/profilerSortUtils";
 import {
     SessionState,
     ProfilerNotifications,
     FetchRowsResponse,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    DistinctValuesResponse,
     FilterClause,
     FilterType,
     ProfilerColumnDef,
     SortDirection,
     SortState,
+    createDataViewSortFn,
+    getNextSortState,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -73,6 +75,12 @@ const TIMESTAMP_DATE_FORMAT = "YYYY-MM-DD HH:mm:ss.SSS";
 const OPTIONAL_NUMBER_FIELDS = ["spid", "duration", "cpu", "reads", "writes"];
 
 /**
+ * Stable fallback for filterState selector to avoid creating a new object reference
+ * on every selector invocation when state.filterState is undefined.
+ */
+const EMPTY_FILTER_STATE = Object.freeze({ enabled: false, clauses: [] });
+
+/**
  * Gets the appropriate formatter configuration for a field
  * Returns an object with formatter and optional params
  */
@@ -97,7 +105,13 @@ export const Profiler: React.FC = () => {
     const totalRowCount = useProfilerSelector((s) => s.totalRowCount ?? 0);
     const clearGeneration = useProfilerSelector((s) => s.clearGeneration ?? 0);
     const sessionState = useProfilerSelector((s) => s.sessionState ?? SessionState.NotStarted);
-    const viewConfig = useProfilerSelector((s) => s.viewConfig);
+
+    // Deep-equality comparisons for object selectors to prevent referential instability
+    // caused by JSON serialization/deserialization on every state push from extension.
+    const viewConfig = useProfilerSelector(
+        (s) => s.viewConfig,
+        (a, b) => JSON.stringify(a) === JSON.stringify(b),
+    );
     const viewId = useProfilerSelector((s) => s.viewId);
     const availableViews = useProfilerSelector((s) => s.availableViews);
     const availableTemplates = useProfilerSelector((s) => s.availableTemplates);
@@ -108,7 +122,8 @@ export const Profiler: React.FC = () => {
     const isReadOnly = useProfilerSelector((s) => s.isReadOnly ?? false);
     const xelFileName = useProfilerSelector((s) => s.xelFileName);
     const filterState = useProfilerSelector(
-        (s) => s.filterState ?? { enabled: false, clauses: [] },
+        (s) => s.filterState ?? EMPTY_FILTER_STATE,
+        (a, b) => JSON.stringify(a) === JSON.stringify(b),
     );
 
     const isFilterActive =
@@ -129,6 +144,7 @@ export const Profiler: React.FC = () => {
         applyFilter,
         clearFilter,
         setQuickFilter,
+        getDistinctValues,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
@@ -143,12 +159,17 @@ export const Profiler: React.FC = () => {
     const [popoverAnchorRect, setPopoverAnchorRect] = useState<DOMRect | undefined>(undefined);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
+    // Distinct values for categorical filter — fetched from extension (unfiltered ring buffer)
+    const [popoverDistinctValues, setPopoverDistinctValues] = useState<string[]>([]);
+
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
     const autoScrollRef = useRef(autoScroll);
     const fetchRowsRef = useRef(fetchRows);
     const lastClearGenerationRef = useRef(clearGeneration);
     const sortStateRef = useRef(sortState);
+    const totalRowCountRef = useRef(totalRowCount);
+    const isPopoverOpenRef = useRef(isPopoverOpen);
 
     // Keep refs in sync with current values
     useEffect(() => {
@@ -163,6 +184,14 @@ export const Profiler: React.FC = () => {
     useEffect(() => {
         sortStateRef.current = sortState;
     }, [sortState]);
+
+    useEffect(() => {
+        totalRowCountRef.current = totalRowCount;
+    }, [totalRowCount]);
+
+    useEffect(() => {
+        isPopoverOpenRef.current = isPopoverOpen;
+    }, [isPopoverOpen]);
 
     // Handle clear when clearGeneration changes (ensures RingBuffer is cleared before we reset local index)
     useEffect(() => {
@@ -194,8 +223,14 @@ export const Profiler: React.FC = () => {
             setPopoverColumn(colDef);
             setPopoverAnchorRect(buttonElement.getBoundingClientRect());
             setIsPopoverOpen(true);
+
+            // Request distinct values from extension (scans unfiltered ring buffer)
+            const filterType = getFilterType(colDef);
+            if (filterType === FilterType.Categorical) {
+                getDistinctValues(field);
+            }
         },
-        [viewConfig],
+        [viewConfig, getDistinctValues],
     );
 
     // Store the callback in a ref so we can access it from the grid event handler
@@ -205,82 +240,15 @@ export const Profiler: React.FC = () => {
     }, [openFilterForColumn]);
 
     /**
-     * Apply the current sort to the DataView.
-     * Should be called whenever sort state changes or new rows are added.
-     */
-    const applySortToDataView = useCallback((sort: SortState | null) => {
-        const dataView = reactGridRef.current?.dataView;
-        if (!dataView) {
-            return;
-        }
-        const sortFn = createDataViewSortFn(sort);
-        dataView.sort(sortFn, true);
-
-        // Force the grid to repaint immediately after sorting
-        const grid = reactGridRef.current?.slickGrid;
-        if (grid) {
-            grid.invalidate();
-            grid.render();
-        }
-    }, []);
-
-    /**
-     * Updates the sort button icon CSS classes in the header for a given column.
-     */
-    const updateSortButtonIcon = useCallback(
-        (columnId: string, direction: SortDirection | null) => {
-            const grid = reactGridRef.current?.slickGrid;
-            if (!grid) {
-                return;
-            }
-            const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
-            if (!headerContainer) {
-                return;
-            }
-            const headerCell = headerContainer.querySelector(
-                `.slick-header-column[data-id="${columnId}"]`,
-            );
-            if (!headerCell) {
-                return;
-            }
-            const sortButton = headerCell.querySelector(".slick-header-sortbutton");
-            if (!sortButton) {
-                return;
-            }
-            sortButton.classList.remove("sorted-asc", "sorted-desc");
-            if (direction === SortDirection.ASC) {
-                sortButton.classList.add("sorted-asc");
-            } else if (direction === SortDirection.DESC) {
-                sortButton.classList.add("sorted-desc");
-            }
-        },
-        [],
-    );
-
-    /**
      * Handle sort button click — cycles through NONE → ASC → DESC → NONE.
      * Only one column can be sorted at a time.
      */
     const handleSortClick = useCallback(
         (field: string) => {
-            setSortState((prevSort) => {
-                const newSort = getNextSortState(prevSort, field);
-
-                // If switching to a different column, clear previous column's icon
-                if (prevSort && (!newSort || newSort.field !== prevSort.field)) {
-                    updateSortButtonIcon(prevSort.field, null);
-                }
-
-                // Update icon for current column
-                updateSortButtonIcon(field, newSort?.field === field ? newSort.direction : null);
-
-                // Apply sort to DataView
-                applySortToDataView(newSort);
-
-                return newSort;
-            });
+            // The useEffect on sortState handles DataView sorting and header icon updates
+            setSortState((prevSort) => getNextSortState(prevSort, field));
         },
-        [applySortToDataView, updateSortButtonIcon],
+        [],
     );
 
     // Store sort click handler in a ref for access in header cell renderer
@@ -402,6 +370,13 @@ export const Profiler: React.FC = () => {
         }
     }
 
+    // Memoized callback for onReactGridCreated to prevent SlickgridReact re-renders
+    const handleReactGridCreated = useCallback(
+        (e: CustomEvent) => reactGridReady(e.detail),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
+
     // Update filter button states when filter state changes
     useEffect(() => {
         const grid = reactGridRef.current?.slickGrid;
@@ -443,41 +418,50 @@ export const Profiler: React.FC = () => {
         });
     }, [filterState]);
 
-    // Update sort button icons when sort state changes
+    // Apply sort to DataView, invalidate the grid, and update header icons
+    // whenever sortState changes (click, filter reset, clear, view change).
     useEffect(() => {
         const grid = reactGridRef.current?.slickGrid;
-        if (!grid) {
+        const dataView = reactGridRef.current?.dataView;
+        if (!grid || !dataView) {
             return;
         }
 
+        // 1. Sort the DataView (natural order when sortState is null)
+        const sortFn = createDataViewSortFn(sortState);
+        dataView.sort(sortFn, true);
+
+        // 2. Force the grid to repaint all rows so the new order is visible
+        grid.invalidateAllRows();
+        grid.render();
+
+        // 3. Update sort-button CSS classes in every header cell
         const headerContainer = grid.getContainerNode()?.querySelector(".slick-header-columns");
-        if (!headerContainer) {
-            return;
-        }
-
-        const gridColumns = grid.getColumns();
-        gridColumns.forEach((column) => {
-            const headerCell = headerContainer.querySelector(
-                `.slick-header-column[data-id="${column.id}"]`,
-            );
-            if (!headerCell) {
-                return;
-            }
-
-            const sortButton = headerCell.querySelector(".slick-header-sortbutton");
-            if (!sortButton) {
-                return;
-            }
-
-            sortButton.classList.remove("sorted-asc", "sorted-desc");
-            if (sortState && sortState.field === column.field) {
-                if (sortState.direction === SortDirection.ASC) {
-                    sortButton.classList.add("sorted-asc");
-                } else if (sortState.direction === SortDirection.DESC) {
-                    sortButton.classList.add("sorted-desc");
+        if (headerContainer) {
+            const gridColumns = grid.getColumns();
+            gridColumns.forEach((column) => {
+                const headerCell = headerContainer.querySelector(
+                    `.slick-header-column[data-id="${column.id}"]`,
+                );
+                if (!headerCell) {
+                    return;
                 }
-            }
-        });
+
+                const sortButton = headerCell.querySelector(".slick-header-sortbutton");
+                if (!sortButton) {
+                    return;
+                }
+
+                sortButton.classList.remove("sorted-asc", "sorted-desc");
+                if (sortState && sortState.field === column.field) {
+                    if (sortState.direction === SortDirection.ASC) {
+                        sortButton.classList.add("sorted-asc");
+                    } else if (sortState.direction === SortDirection.DESC) {
+                        sortButton.classList.add("sorted-desc");
+                    }
+                }
+            });
+        }
     }, [sortState]);
 
     // Register notification handlers ONCE per webview lifecycle
@@ -516,6 +500,8 @@ export const Profiler: React.FC = () => {
                         const currentSort = sortStateRef.current;
                         if (currentSort) {
                             dataView.reSort();
+                            grid.invalidateAllRows();
+                            grid.render();
                         }
 
                         const newCount = dataView.getItemCount();
@@ -571,16 +557,16 @@ export const Profiler: React.FC = () => {
             },
         );
 
-        // Handle clear grid notification
+        // Handle clear grid notification (fires on filter apply/clear/quick-filter and explicit clear).
+        // Resets sort to default so the newly-filtered data appears in natural order.
         extensionRpc.onNotification(ProfilerNotifications.ClearGrid, () => {
             if (reactGridRef.current?.dataView) {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
+            setSortState(null);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
-            // Reset sort — the data is being reloaded
-            setSortState(null);
         });
 
         // Handle rows removed notification (ring buffer overflow)
@@ -601,6 +587,14 @@ export const Profiler: React.FC = () => {
                 // Update local row count
                 const newCount = dataView.getItemCount();
                 setLocalRowCount(newCount);
+            },
+        );
+
+        // Handle distinct values response from extension (for categorical filter popover)
+        extensionRpc.onNotification(
+            ProfilerNotifications.DistinctValuesAvailable,
+            (response: DistinctValuesResponse) => {
+                setPopoverDistinctValues(response.values);
             },
         );
     }, []);
@@ -655,12 +649,20 @@ export const Profiler: React.FC = () => {
         setPopoverAnchorRect(undefined);
     }, []);
 
+    // Store handlePopoverClose in a ref so handleScroll never needs to be recreated for it
+    const handlePopoverCloseRef = useRef(handlePopoverClose);
+    useEffect(() => {
+        handlePopoverCloseRef.current = handlePopoverClose;
+    }, [handlePopoverClose]);
+
     // Close popover when grid scrolls horizontally (FR-016)
+    // Uses refs for all values that change frequently (totalRowCount, isPopoverOpen, fetchRows)
+    // so that the callback identity remains stable and SlickgridReact doesn't re-render.
     const handleScroll = useCallback(
         (event: CustomEvent) => {
             // Close popover on any scroll
-            if (isPopoverOpen) {
-                handlePopoverClose();
+            if (isPopoverOpenRef.current) {
+                handlePopoverCloseRef.current();
             }
 
             const args = event.detail?.args;
@@ -680,13 +682,13 @@ export const Profiler: React.FC = () => {
             if (isAtBottom && !isFetchingRef.current) {
                 const currentCount = reactGridRef.current.dataView.getItemCount();
                 // Only fetch if there's more data available
-                if (currentCount < totalRowCount) {
-                    fetchRows(currentCount, FETCH_SIZE);
+                if (currentCount < totalRowCountRef.current) {
+                    fetchRowsRef.current(currentCount, FETCH_SIZE);
                     isFetchingRef.current = true;
                 }
             }
         },
-        [fetchRows, totalRowCount, isPopoverOpen, handlePopoverClose],
+        [], // Stable callback — all changing values are accessed via refs
     );
 
     // Convert view config columns to SlickGrid column definitions
@@ -733,20 +735,24 @@ export const Profiler: React.FC = () => {
         ];
     }, [viewConfig]);
 
-    // Re-render headers when columns change (e.g., when view changes)
+    // Re-render headers when view actually changes (different viewId).
+    // This must NOT depend on `columns` or `viewConfig` because those objects
+    // are recreated on every state push (JSON deserialization). Using the
+    // primitive `viewId` ensures this effect only runs when the user switches views.
     useEffect(() => {
         const grid = reactGridRef.current?.slickGrid;
         if (!grid) {
             return;
         }
-        // Reset sort when columns/view changes — sorted column may no longer exist
+        // Reset sort when view changes — sorted column may no longer exist
         setSortState(null);
         // Force re-render of headers to add sort + filter buttons to new columns
         const currentColumns = grid.getColumns();
         if (currentColumns.length > 0) {
             grid.setColumns(currentColumns);
         }
-    }, [columns]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewId]);
 
     // Grid options
     const gridOptions: GridOption = useMemo(
@@ -813,37 +819,6 @@ export const Profiler: React.FC = () => {
     };
 
     // ─── Popover handlers ─────────────────────────────────────────────────
-
-    /**
-     * Compute distinct values for the current popover column (categorical only).
-     */
-    const popoverDistinctValues = useMemo(() => {
-        if (!isPopoverOpen || !popoverColumn) {
-            return [];
-        }
-        const filterType = getFilterType(popoverColumn);
-        if (filterType !== FilterType.Categorical) {
-            return [];
-        }
-        const dataView = reactGridRef.current?.dataView;
-        if (!dataView) {
-            return [];
-        }
-
-        const field = popoverColumn.field;
-        const seen = new Set<string>();
-        const itemCount = dataView.getItemCount();
-        for (let i = 0; i < itemCount; i++) {
-            const item = dataView.getItemByIdx(i);
-            if (item) {
-                const val = String((item as Record<string, unknown>)[field] ?? "");
-                if (val !== "") {
-                    seen.add(val);
-                }
-            }
-        }
-        return Array.from(seen).sort((a, b) => a.localeCompare(b));
-    }, [isPopoverOpen, popoverColumn, localRowCount]); // localRowCount dependency ensures refresh when data changes
 
     /**
      * Current filter clause for the popover column (if any).
@@ -972,7 +947,7 @@ export const Profiler: React.FC = () => {
                     columns={columns}
                     options={gridOptions}
                     dataset={EMPTY_DATASET}
-                    onReactGridCreated={(e) => reactGridReady(e.detail)}
+                    onReactGridCreated={handleReactGridCreated}
                     onScroll={handleScroll}
                     onClick={handleRowClick}
                     onActiveCellChanged={handleActiveCellChanged}

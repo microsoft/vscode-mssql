@@ -151,3 +151,38 @@
 .vscode-light #profilerGrid .slick-header-column.slick-header-column-filtered .slick-column-name {
     color: #007ACC;
 }
+
+/* ─── Toolbar styles ──────────────────────────────────────────────────────── */
+
+/* Read-only file label: italic with reduced opacity */
+.profiler-toolbar-readonly-label {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Base select styling shared by session and view selectors */
+.profiler-toolbar-select {
+    min-width: 150px;
+    padding: 4px 8px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+}
+
+/* Session selector: wider + opacity/cursor when disabled */
+.profiler-toolbar-select-session {
+    min-width: 200px;
+}
+
+.profiler-toolbar-select-session:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Quick-filter input sizing */
+.profiler-toolbar-quick-filter {
+    min-width: 180px;
+    max-width: 300px;
+    margin-left: 4px;
+}

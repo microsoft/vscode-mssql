@@ -42,6 +42,8 @@ export interface ProfilerRpcMethods {
     clearFilter: () => void;
     /** Set quick filter term (cross-column search) */
     setQuickFilter: (term: string) => void;
+    /** Get distinct values for a column from unfiltered ring buffer */
+    getDistinctValues: (field: string) => void;
 }
 
 export interface ProfilerReactProvider extends ProfilerRpcMethods {
@@ -137,6 +139,13 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
         [extensionRpc],
     );
 
+    const getDistinctValues = useCallback(
+        (field: string) => {
+            extensionRpc?.action("getDistinctValues", { field });
+        },
+        [extensionRpc],
+    );
+
     return (
         <ProfilerContext.Provider
             value={{
@@ -154,6 +163,7 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
                 applyFilter,
                 clearFilter,
                 setQuickFilter,
+                getDistinctValues,
             }}>
             {children}
         </ProfilerContext.Provider>

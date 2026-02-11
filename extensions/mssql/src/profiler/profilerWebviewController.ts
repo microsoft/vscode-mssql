@@ -16,6 +16,7 @@ import {
     RowsRemovedParams,
     FilterClause,
     FilterStateChangedParams,
+    DistinctValuesResponse,
     ColumnType,
     FilterType,
 } from "../sharedInterfaces/profiler";
@@ -395,6 +396,20 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
                 this.updateStatusBar();
 
                 return this.state;
+            }
+            return state;
+        });
+
+        // Handle get distinct values request from webview (scans unfiltered ring buffer)
+        this.registerReducer("getDistinctValues", (state, payload: { field: string }) => {
+            if (this._filteredBuffer) {
+                this.updateFilteredBufferConverter();
+                const values = this._filteredBuffer.getDistinctValuesForField(payload.field);
+                const response: DistinctValuesResponse = {
+                    field: payload.field,
+                    values,
+                };
+                void this.sendNotification(ProfilerNotifications.DistinctValuesAvailable, response);
             }
             return state;
         });

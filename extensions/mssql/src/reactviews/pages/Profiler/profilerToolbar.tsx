@@ -149,9 +149,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                 {/* Read-only file indicator */}
                 {isReadOnly && xelFileName && (
                     <>
-                        <span
-                            className="profiler-toolbar-label"
-                            style={{ fontStyle: "italic", opacity: 0.8 }}>
+                        <span className="profiler-toolbar-label profiler-toolbar-readonly-label">
                             {loc.readOnlyFileLabel}: {xelFileName}
                         </span>
                         <ToolbarDivider />
@@ -198,16 +196,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                             value={selectedSessionId ?? ""}
                             onChange={(e) => onSelectSession(e.target.value)}
                             disabled={isReadOnly || isActive}
-                            style={{
-                                minWidth: "200px",
-                                padding: "4px 8px",
-                                backgroundColor: "var(--vscode-input-background)",
-                                color: "var(--vscode-input-foreground)",
-                                border: "1px solid var(--vscode-input-border)",
-                                borderRadius: "2px",
-                                opacity: isReadOnly || isActive ? 0.6 : 1,
-                                cursor: isReadOnly || isActive ? "not-allowed" : "pointer",
-                            }}>
+                            className="profiler-toolbar-select profiler-toolbar-select-session">
                             <option value="">{loc.selectASession}</option>
                             {availableSessions?.map((session) => (
                                 <option key={session.id} value={session.id}>
@@ -315,11 +304,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                     value={localQuickFilter}
                     onChange={(_e, data) => handleQuickFilterInput(data.value ?? "")}
                     aria-label={loc.quickFilterPlaceholder}
-                    style={{
-                        minWidth: "180px",
-                        maxWidth: "300px",
-                        marginLeft: "4px",
-                    }}
+                    className="profiler-toolbar-quick-filter"
                     size="small"
                 />
 
@@ -332,14 +317,7 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
                         aria-label={loc.viewLabel}
                         value={currentViewId ?? ""}
                         onChange={(e) => onViewChange(e.target.value)}
-                        style={{
-                            minWidth: "150px",
-                            padding: "4px 8px",
-                            backgroundColor: "var(--vscode-input-background)",
-                            color: "var(--vscode-input-foreground)",
-                            border: "1px solid var(--vscode-input-border)",
-                            borderRadius: "2px",
-                        }}>
+                        className="profiler-toolbar-select">
                         {availableViews?.map((view) => (
                             <option key={view.id} value={view.id}>
                                 {view.name}

@@ -239,9 +239,16 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
 
     // ── Auto-position ────────────────────────────────────────────────────────
 
-    const popoverStyle = useMemo((): React.CSSProperties => {
+    // Dynamically position the popover relative to the anchor element.
+    // Uses a ref-based approach to avoid inline styles (which violate lint rules).
+    useEffect(() => {
+        if (!isOpen || !popoverRef.current) {
+            return;
+        }
+        const el = popoverRef.current;
         if (!anchorRect) {
-            return { display: "none" };
+            el.style.display = "none";
+            return;
         }
         const popoverWidth = 280;
         const popoverMaxHeight = 400;
@@ -260,15 +267,14 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
             top = Math.max(0, anchorRect.top - popoverMaxHeight - margin);
         }
 
-        return {
-            position: "fixed",
-            left: `${left}px`,
-            top: `${top}px`,
-            width: `${popoverWidth}px`,
-            maxHeight: `${popoverMaxHeight}px`,
-            zIndex: 10000,
-        };
-    }, [anchorRect]);
+        el.style.position = "fixed";
+        el.style.left = `${left}px`;
+        el.style.top = `${top}px`;
+        el.style.width = `${popoverWidth}px`;
+        el.style.maxHeight = `${popoverMaxHeight}px`;
+        el.style.zIndex = "10000";
+        el.style.display = "";
+    }, [isOpen, anchorRect]);
 
     // ── Validation ───────────────────────────────────────────────────────────
 
@@ -329,16 +335,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
                 onClear();
                 return;
             }
-            if (selectedValues.size === 0) {
-                // No values selected — apply empty In filter (matches nothing)
-                onApply({
-                    field: column.field,
-                    operator: FilterOperator.In,
-                    values: [],
-                    typeHint: FilterTypeHint.String,
-                });
-                return;
-            }
+            // selectedValues.size === 0 is blocked by disabled button
             onApply({
                 field: column.field,
                 operator: FilterOperator.In,
@@ -444,7 +441,6 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
         <div
             ref={popoverRef}
             className={classes.popover}
-            style={popoverStyle}
             role="dialog"
             aria-label={loc.filterColumnHeader(column.header)}
             onKeyDown={(e) => {
@@ -501,7 +497,10 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
                             </Text>
                         </div>
                         <Divider className={classes.divider} />
-                        <div className={classes.checkboxList} role="listbox">
+                        <div
+                            className={classes.checkboxList}
+                            role="group"
+                            aria-label={loc.filterColumnHeader(column.header)}>
                             {/* Always show an empty category option */}
                             <Checkbox
                                 key="__empty__"
@@ -563,7 +562,13 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
             {/* Actions */}
             <Divider className={classes.divider} />
             <div className={classes.actions}>
-                <Button appearance="primary" size="small" onClick={handleApply}>
+                <Button
+                    appearance="primary"
+                    size="small"
+                    onClick={handleApply}
+                    disabled={
+                        filterType === FilterType.Categorical && selectedValues.size === 0
+                    }>
                     {loc.applyFilter}
                 </Button>
                 <Button appearance="subtle" size="small" onClick={onClear}>
