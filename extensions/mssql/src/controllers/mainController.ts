@@ -7,7 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -91,6 +92,7 @@ import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
+import { DabTool } from "../copilot/tools/dabTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -100,6 +102,9 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { ProfilerController } from "../profiler/profilerController";
+import { ProfilerService } from "../services/profilerService";
+import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
@@ -111,9 +116,9 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
-import { SqlOpsClient } from "../sqlOps/sqlOpsClient";
-import { FlatFileImportController } from "./flatFileImportController";
-import { ApiType, managerInstance } from "../sqlOps/serviceApiManager";
+import { FlatFileClient } from "../flatFile/flatFileClient";
+import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
@@ -154,7 +159,8 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
-    public sqlOpsClient: SqlOpsClient;
+    public profilerController: ProfilerController;
+    public flatFileClient: FlatFileClient;
     public flatFileProvider: FlatFileProvider;
 
     /**
@@ -632,6 +638,18 @@ export default class MainController implements vscode.Disposable {
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
+            // Initialize profiler service and session manager
+            const profilerService = new ProfilerService(this._connectionMgr.client);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+
+            // Initialize profiler controller
+            this.profilerController = new ProfilerController(
+                this._context,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                profilerSessionManager,
+            );
+
             this.connectionSharingService = new ConnectionSharingService(
                 this._context,
                 this._connectionMgr.client,
@@ -795,6 +813,11 @@ export default class MainController implements vscode.Disposable {
                 ),
             ),
         );
+
+        // Register mssql_dab tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
+        );
     }
 
     /**
@@ -851,18 +874,13 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
-        // Initialize SQL Data ops client
-        const sqlOpsClient = new SqlOpsClient(this._vscodeWrapper.outputChannel);
-
-        // Register SQL Ops client services here
-        // right now, we only have flat file
-        await sqlOpsClient.startFlatFileService(this._context);
+        // Initialize flat file client
+        this.flatFileClient = new FlatFileClient(this._vscodeWrapper);
+        await this.flatFileClient.startFlatFileService(this._context);
         managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
             this.flatFileProvider = provider;
             void Promise.resolve(true);
         });
-
-        this.sqlOpsClient = sqlOpsClient;
 
         /**
          * TODO: aaskhan
@@ -1687,14 +1705,14 @@ export default class MainController implements vscode.Disposable {
                         return;
                     }
 
-                    const flatFileImportDialog = new FlatFileImportController(
+                    const flatFileImportDialog = new FlatFileImportWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         SqlToolsServerClient.instance,
                         this.connectionManager,
                         this.flatFileProvider,
-                        node,
-                        databases,
+                        node.connectionProfile,
+                        node.sessionId
                     );
                     flatFileImportDialog.revealToForeground();
                 },
@@ -2939,7 +2957,9 @@ export default class MainController implements vscode.Disposable {
         targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.SchemaCompare,
+        );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2948,7 +2968,7 @@ export default class MainController implements vscode.Disposable {
             runComparison,
             this.schemaCompareService,
             this._connectionMgr,
-            result,
+            schemaCompareOptionsResult,
             SchemaCompare.Title,
         );
 
@@ -2974,7 +2994,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.Deployment,
+        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2984,7 +3006,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptions.defaultDeploymentOptions,
+            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();

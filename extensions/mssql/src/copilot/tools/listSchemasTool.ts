@@ -94,6 +94,11 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
     }
 }
 
+/**
+ * Helper function to extract schema names from the result of the list schemas query
+ * @param result The result returned from executing the list schemas query
+ * @returns An array of schema names, or an empty array if no schemas are found or if the result is invalid
+ */
 export function getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
     if (!result || !result.rows || result.rows.length === 0) {
         return [];

@@ -660,11 +660,14 @@
         "message": "Show Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
     },
+    "Highlight Changes": "Highlight Changes",
+    "Hide Changes Highlight": "Hide Changes Highlight",
     "Changes ({0})/{0} is the number of schema changes": {
         "message": "Changes ({0})",
         "comment": ["{0} is the number of schema changes"]
     },
     "No changes yet.": "No changes yet.",
+    "Edit your schema to see changes here.": "Edit your schema to see changes here.",
     "{0}: {1}/{0} is the qualified table name{1} is the change description": {
         "message": "{0}: {1}",
         "comment": ["{0} is the qualified table name", "{1} is the change description"]
@@ -731,9 +734,21 @@
     "Deleted": "Deleted",
     "All": "All",
     "Filter changes": "Filter changes",
+    "Filter Changes": "Filter Changes",
+    "Action Type": "Action Type",
+    "Object Type": "Object Type",
     "Action": "Action",
     "Category": "Category",
     "Clear all": "Clear all",
+    "Clear Filters": "Clear Filters",
+    "{0} changes/{0} is the number of property changes": {
+        "message": "{0} changes",
+        "comment": ["{0} is the number of property changes"]
+    },
+    "Before": "Before",
+    "After": "After",
+    "No property changes available.": "No property changes available.",
+    "(empty)": "(empty)",
     "Reveal": "Reveal",
     "Revert": "Revert",
     "Search changes...": "Search changes...",
@@ -792,7 +807,6 @@
     "Folder Structure": "Folder Structure",
     "File": "File",
     "Flat": "Flat",
-    "Object Type": "Object Type",
     "Schema/Object Type": "Schema/Object Type",
     "Settings": "Settings",
     "Compare": "Compare",
@@ -965,6 +979,7 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Create Database (Preview)": "Create Database (Preview)",
     "Create a new database on '{0}'./{0} is the name of the server": {
         "message": "Create a new database on '{0}'.",
         "comment": ["{0} is the name of the server"]
@@ -980,7 +995,8 @@
     "Containment Type": "Containment Type",
     "Is Ledger Database": "Is Ledger Database",
     "Help": "Help",
-    "Drop Database": "Drop Database",
+    "Creating database": "Creating database",
+    "Drop Database (Preview)": "Drop Database (Preview)",
     "Drop '{0}' from '{1}'. This action cannot be undone./{0} is the database name{1} is the server name": {
         "message": "Drop '{0}' from '{1}'. This action cannot be undone.",
         "comment": ["{0} is the database name", "{1} is the server name"]
@@ -992,6 +1008,7 @@
     "Drop active connections": "Drop active connections",
     "Delete backup and restore history": "Delete backup and restore history",
     "Drop": "Drop",
+    "Dropping database": "Dropping database",
     "Data-tier Application (Preview)": "Data-tier Application (Preview)",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
     "Operation": "Operation",
@@ -1214,6 +1231,39 @@
     "Transaction Log": "Transaction Log",
     "Encryption": "Encryption",
     "Media": "Media",
+    "New Session": "New Session",
+    "Creating...": "Creating...",
+    "Start": "Start",
+    "Pause": "Pause",
+    "Resume": "Resume",
+    "Clear Data": "Clear Data",
+    "Auto-scroll": "Auto-scroll",
+    "Select Session:": "Select Session:",
+    "View:": "View:",
+    "Select a session...": "Select a session...",
+    "Creating session...": "Creating session...",
+    "Create a new profiling session": "Create a new profiling session",
+    "No templates available": "No templates available",
+    "Select a session first": "Select a session first",
+    "Start profiling session": "Start profiling session",
+    "Stop session": "Stop session",
+    "Session not running": "Session not running",
+    "Pause event collection": "Pause event collection",
+    "Paused - click to resume": "Paused - click to resume",
+    "Not running": "Not running",
+    "Clear all events (keeps session running)": "Clear all events (keeps session running)",
+    "Auto-scroll enabled": "Auto-scroll enabled",
+    "Auto-scroll disabled": "Auto-scroll disabled",
+    "Running": "Running",
+    "Paused": "Paused",
+    "Stopped": "Stopped",
+    "Not Started": "Not Started",
+    "Profiler: No session": "Profiler: No session",
+    "Profiler Session Status": "Profiler Session Status",
+    "{0} events/{0} is the number of events": {
+        "message": "{0} events",
+        "comment": ["{0} is the number of events"]
+    },
     "Import File": "Import File",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
@@ -1252,7 +1302,8 @@
     "Accept": "Accept",
     "Public": "Public",
     "Private": "Private",
-    "Rename Database": "Rename Database",
+    "Drop Database": "Drop Database",
+    "Rename Database (Preview)": "Rename Database (Preview)",
     "Enter the new database name": "Enter the new database name",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
@@ -2209,6 +2260,15 @@
         "message": "Executing '{0}' operation on schema designer",
         "comment": ["{0} is the operation name"]
     },
+    "Data API Builder": "Data API Builder",
+    "Execute '{0}' operation on Data API Builder?/{0} is the operation name": {
+        "message": "Execute '{0}' operation on Data API Builder?",
+        "comment": ["{0} is the operation name"]
+    },
+    "Executing '{0}' operation on Data API Builder/{0} is the operation name": {
+        "message": "Executing '{0}' operation on Data API Builder",
+        "comment": ["{0} is the operation name"]
+    },
     "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.": "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     "Schema designer state changed. Fetch the latest schema and retry the operation.": "Schema designer state changed. Fetch the latest schema and retry the operation.",
     "Missing connectionId. Please provide a connectionId to open the schema designer.": "Missing connectionId. Please provide a connectionId to open the schema designer.",
@@ -2568,6 +2628,58 @@
     "New to the MSSQL extension? Check out our quick-start guide.": "New to the MSSQL extension? Check out our quick-start guide.",
     "MSSQL - VS Code walkthrough": "MSSQL - VS Code walkthrough",
     "GitHub Copilot - VS Code walkthrough": "GitHub Copilot - VS Code walkthrough",
+    "Failed to launch profiler: {0}/{0} is the error message": {
+        "message": "Failed to launch profiler: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to start profiler: {0}/{0} is the error message": {
+        "message": "Failed to start profiler: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to create profiler session: {0}/{0} is the error message": {
+        "message": "Failed to create profiler session: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Connection error: {0}/{0} is the error message": {
+        "message": "Connection error: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to connect to the selected server.": "Failed to connect to the selected server.",
+    "No profiler connection available": "No profiler connection available",
+    "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
+    "No profiler templates available": "No profiler templates available",
+    "Session creation timed out": "Session creation timed out",
+    "Session name cannot be empty": "Session name cannot be empty",
+    "Session name must be {0} characters or less/{0} is the maximum length": {
+        "message": "Session name must be {0} characters or less",
+        "comment": ["{0} is the maximum length"]
+    },
+    "Session name can only contain letters, numbers, underscores, and hyphens": "Session name can only contain letters, numbers, underscores, and hyphens",
+    "Select a profiler template": "Select a profiler template",
+    "New Profiler Session - Select Template": "New Profiler Session - Select Template",
+    "Enter a name for the new profiler session": "Enter a name for the new profiler session",
+    "MyProfilerSession": "MyProfilerSession",
+    "New Profiler Session - Enter Name": "New Profiler Session - Enter Name",
+    "Engine: {0}/{0} is the engine type": {
+        "message": "Engine: {0}",
+        "comment": ["{0} is the engine type"]
+    },
+    "Profiler session '{0}' created successfully. Starting profiling.../{0} is the session name": {
+        "message": "Profiler session '{0}' created successfully. Starting profiling...",
+        "comment": ["{0} is the session name"]
+    },
+    "Profiler session '{0}' started successfully./{0} is the session name": {
+        "message": "Profiler session '{0}' started successfully.",
+        "comment": ["{0} is the session name"]
+    },
+    "Profiler ready. Select a session from the dropdown and click Start to begin profiling.": "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
+    "Stopping profiler session \"{0}\".../{0} is the session name": {
+        "message": "Stopping profiler session \"{0}\"...",
+        "comment": ["{0} is the session name"]
+    },
+    "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
+    "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
+    "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
     "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
         "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'.  You may encounter connection issues while using the MSSQL extension.",
         "comment": ["{0} is the proxy URL"]
@@ -2634,6 +2746,7 @@
         "message": "Generating SAS key failed: {0}",
         "comment": ["{0} is the error message"]
     },
+    "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
     "Starting '{0}'.../{0} is the service name": {
         "message": "Starting '{0}'...",
         "comment": ["{0} is the service name"]
@@ -2645,34 +2758,6 @@
     "Failed to start '{0}': {1}/{0} is the service name{1} is the error message": {
         "message": "Failed to start '{0}': {1}",
         "comment": ["{0} is the service name", "{1} is the error message"]
-    },
-    "Installing '{0}' service/{0} is the service name": {
-        "message": "Installing '{0}' service",
-        "comment": ["{0} is the service name"]
-    },
-    "Installing '{0}' service to {1}/{0} is the service name{1} is the installation path": {
-        "message": "Installing '{0}' service to {1}",
-        "comment": ["{0} is the service name", "{1} is the installation path"]
-    },
-    "Installed '{0}'./{0} is the service name": {
-        "message": "Installed '{0}'.",
-        "comment": ["{0} is the service name"]
-    },
-    "Downloading '{0}'/{0} is the service name": {
-        "message": "Downloading '{0}'",
-        "comment": ["{0} is the service name"]
-    },
-    "Download size: {0} KB/{0} is the size in kilobytes": {
-        "message": "Download size: {0} KB",
-        "comment": ["{0} is the size in kilobytes"]
-    },
-    "Download '{0}' complete./{0} is the service name": {
-        "message": "Download '{0}' complete.",
-        "comment": ["{0} is the service name"]
-    },
-    "Extracted '{0}' ('{1}'/'{2}')./{0} is the entry name{1} is the entry folder{2} is the entry file": {
-        "message": "Extracted '{0}' ('{1}'/'{2}').",
-        "comment": ["{0} is the entry name", "{1} is the entry folder", "{2} is the entry file"]
     },
     "Import Flat File (Preview)": "Import Flat File (Preview)",
     "Database the table is created in": "Database the table is created in",

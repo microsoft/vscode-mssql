@@ -30,6 +30,10 @@ export interface ProseDiscoveryParams {
     fileType?: string;
 }
 
+/**
+ * ProseDiscoveryRequest
+ * Gets column information and data preview for a given file
+ */
 export interface ProseDiscoveryResponse {
     dataPreview: string[][];
     columnInfo: ColumnInfo[];
@@ -38,21 +42,6 @@ export interface ProseDiscoveryResponse {
 export namespace ProseDiscoveryRequest {
     export const type = new RequestType<ProseDiscoveryParams, ProseDiscoveryResponse, void, void>(
         "flatfile/proseDiscovery",
-    );
-}
-
-/**
- * GetColumnInfoRequest
- */
-export interface GetColumnInfoParams {}
-
-export interface GetColumnInfoResponse {
-    columnInfo: ColumnInfo[];
-}
-
-export namespace GetColumnInfoRequest {
-    export const type = new RequestType<GetColumnInfoParams, GetColumnInfoResponse, void, void>(
-        "flatfile/getColumnInfo",
     );
 }
 
@@ -107,7 +96,6 @@ export interface FlatFileProvider {
     providerId?: string;
 
     sendProseDiscoveryRequest(params: ProseDiscoveryParams): Thenable<ProseDiscoveryResponse>;
-    sendGetColumnInfoRequest(params: GetColumnInfoParams): Thenable<GetColumnInfoResponse>;
     sendChangeColumnSettingsRequest(
         params: ChangeColumnSettingsParams,
     ): Thenable<ChangeColumnSettingsResponse>;

@@ -6,7 +6,7 @@
 import * as path from "path";
 import { Runtime } from "../models/platform";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
-import { IConfigUtils, IStatusView } from "./interfaces";
+import { DownloadType, IConfigUtils, IStatusView } from "./interfaces";
 import * as fs from "fs/promises";
 
 /*
@@ -31,7 +31,13 @@ export default class ServerProvider {
 
         // Otherwise, search the specified folder.
         if (this._config !== undefined) {
-            let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
+            let executableFiles: string[];
+            if (this._downloadProvider.type() === DownloadType.SqlToolsService) {
+                executableFiles = this._config.getSqlToolsExecutableFiles();
+            } else {
+                executableFiles = this._config.getFlatFileExecutableFiles();
+            }
+
             for (const executableFile of executableFiles) {
                 const executablePath = path.join(filePath, executableFile);
                 try {
@@ -48,11 +54,11 @@ export default class ServerProvider {
     }
 
     /**
-     * Download the SQL tools service if doesn't exist and returns the file path.
+     * Download the service if doesn't exist and returns the file path.
      */
     public async getOrDownloadServer(runtime: Runtime): Promise<string> {
         // Attempt to find launch file path first from options, and then from the default install location.
-        // If SQL tools service can't be found, download it.
+        // If service can't be found, download it.
 
         const serverPath = await this.getServerPath(runtime);
         if (serverPath === undefined) {
@@ -76,7 +82,7 @@ export default class ServerProvider {
     public async downloadServerFiles(runtime: Runtime): Promise<string> {
         const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
         try {
-            await this._downloadProvider.installSQLToolsService(runtime);
+            await this._downloadProvider.installService(runtime);
             return this.findServerPath(installDirectory);
         } catch (err) {
             this._statusView.serviceInstallationFailed();

@@ -28,7 +28,9 @@ export class Common {
 
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
-export let renameDatabaseDialogTitle = l10n.t("Rename Database");
+export let renameDatabaseDialogTitle = l10n.t("Rename Database (Preview)");
+export let createDatabaseWebviewTitle = l10n.t("Create Database (Preview)");
+export let dropDatabaseWebviewTitle = l10n.t("Drop Database (Preview)");
 export let renameDatabaseInputPlaceholder = l10n.t("Enter the new database name");
 export let databaseNameRequired = l10n.t("Database name is required");
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
@@ -1909,6 +1911,21 @@ export class MssqlChatAgent {
             comment: ["{0} is the operation name"],
         });
     };
+    public static dabToolConfirmationTitle = l10n.t("Data API Builder");
+    public static dabToolConfirmationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Execute '{0}' operation on Data API Builder?",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
+    public static dabToolInvocationMessage = (operation: string) => {
+        return l10n.t({
+            message: "Executing '{0}' operation on Data API Builder",
+            args: [operation],
+            comment: ["{0} is the operation name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open a schema designer first using /showSchema or from the UI.",
     );
@@ -2663,6 +2680,114 @@ export class Changelog {
     public static copilotWalkthrough = l10n.t("GitHub Copilot - VS Code walkthrough");
 }
 
+export class Profiler {
+    // Error messages
+    public static failedToLaunchProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to launch profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToStartProfiler = (error: string) =>
+        l10n.t({
+            message: "Failed to start profiler: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToCreateSession = (error: string) =>
+        l10n.t({
+            message: "Failed to create profiler session: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static connectionError = (error: string) =>
+        l10n.t({
+            message: "Connection error: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static failedToConnect = l10n.t("Failed to connect to the selected server.");
+    public static noConnectionAvailable = l10n.t("No profiler connection available");
+    public static noSavedConnections = l10n.t(
+        "No saved connections found. Please create a connection first.",
+    );
+    public static noTemplatesAvailable = l10n.t("No profiler templates available");
+    public static sessionCreationTimedOut = l10n.t("Session creation timed out");
+
+    // Validation messages
+    public static sessionNameEmpty = l10n.t("Session name cannot be empty");
+    public static sessionNameTooLong = (maxLength: number) =>
+        l10n.t({
+            message: "Session name must be {0} characters or less",
+            args: [maxLength],
+            comment: ["{0} is the maximum length"],
+        });
+    public static sessionNameInvalidChars = l10n.t(
+        "Session name can only contain letters, numbers, underscores, and hyphens",
+    );
+
+    // Quick pick and input prompts
+    public static selectTemplate = l10n.t("Select a profiler template");
+    public static newSessionSelectTemplate = l10n.t("New Profiler Session - Select Template");
+    public static enterSessionName = l10n.t("Enter a name for the new profiler session");
+    public static sessionNamePlaceholder = l10n.t("MyProfilerSession");
+    public static newSessionEnterName = l10n.t("New Profiler Session - Enter Name");
+    public static engineLabel = (engineType: string) =>
+        l10n.t({
+            message: "Engine: {0}",
+            args: [engineType],
+            comment: ["{0} is the engine type"],
+        });
+
+    // Success messages
+    public static sessionCreatedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' created successfully. Starting profiling...",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static sessionStartedSuccessfully = (sessionName: string) =>
+        l10n.t({
+            message: "Profiler session '{0}' started successfully.",
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+    public static profilerReady = l10n.t(
+        "Profiler ready. Select a session from the dropdown and click Start to begin profiling.",
+    );
+    public static stoppingSession = (sessionName: string) =>
+        l10n.t({
+            message: 'Stopping profiler session "{0}"...',
+            args: [sessionName],
+            comment: ["{0} is the session name"],
+        });
+
+    // Status bar
+    public static statusBarNoSession = l10n.t("Profiler: No session");
+    public static statusBarTooltip = l10n.t("Profiler Session Status");
+    public static stateRunning = l10n.t("Running");
+    public static statePaused = l10n.t("Paused");
+    public static stateStopped = l10n.t("Stopped");
+    public static stateNotStarted = l10n.t("Not Started");
+    public static eventsCount = (count: number) =>
+        l10n.t({
+            message: "{0} events",
+            args: [count],
+            comment: ["{0} is the number of events"],
+        });
+
+    // Database selection for Azure SQL
+    public static selectDatabaseForProfiler = l10n.t(
+        "Select a database for profiling (Azure SQL requires a specific database)",
+    );
+    public static noDatabasesFound = l10n.t(
+        "No databases found on the server. Please check your connection.",
+    );
+    public static profilerNotSupportedOnFabric = l10n.t(
+        "Profiler is not supported on Microsoft Fabric SQL databases.",
+    );
+}
+
 export class Proxy {
     public static missingProtocolWarning = (proxy: string) =>
         l10n.t({
@@ -2755,9 +2880,12 @@ export class BackupDatabase {
             comment: ["{0} is the error message"],
         });
     };
+    public static unableToLoadBackupConfig = l10n.t(
+        "Unable to load backup configuration. Please try again.",
+    );
 }
 
-export class SqlOps {
+export class FlatFileImport {
     public static serviceStarting = (serviceName: string) =>
         l10n.t({
             message: "Starting '{0}'...",
@@ -2776,51 +2904,6 @@ export class SqlOps {
             args: [serviceName, errorMessage],
             comment: ["{0} is the service name", "{1} is the error message"],
         });
-    public static installingService = (serviceName: string) =>
-        l10n.t({
-            message: "Installing '{0}' service",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
-        });
-    public static installingServiceTo = (serviceName: string, installPath: string) =>
-        l10n.t({
-            message: "Installing '{0}' service to {1}",
-            args: [serviceName, installPath],
-            comment: ["{0} is the service name", "{1} is the installation path"],
-        });
-    public static serviceInstalled = (serviceName: string) =>
-        l10n.t({
-            message: "Installed '{0}'.",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
-        });
-    public static downloadingService = (serviceName: string) =>
-        l10n.t({
-            message: "Downloading '{0}'",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
-        });
-    public static downloadSize = (sizeInKB: string) =>
-        l10n.t({
-            message: "Download size: {0} KB",
-            args: [sizeInKB],
-            comment: ["{0} is the size in kilobytes"],
-        });
-    public static downloadComplete = (serviceName: string) =>
-        l10n.t({
-            message: "Download '{0}' complete.",
-            args: [serviceName],
-            comment: ["{0} is the service name"],
-        });
-    public static entryExtracted = (entryName: string, entryFolder: string, entryFile: string) =>
-        l10n.t({
-            message: "Extracted '{0}' ('{1}'/'{2}').",
-            args: [entryName, entryFolder, entryFile],
-            comment: ["{0} is the entry name", "{1} is the entry folder", "{2} is the entry file"],
-        });
-}
-
-export class FlatFileImport {
     public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
     public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
     public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");

@@ -13,13 +13,14 @@ import {
     PackageError,
     IHttpClient,
     IDecompressProvider,
+    DownloadType,
 } from "./interfaces";
 import { ILogger } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
 
 /*
- * Service Download Provider class which handles downloading the SQL Tools service.
+ * Service Download Provider class which handles downloading the SQL tools or Flat File service.
  */
 export default class ServiceDownloadProvider {
     constructor(
@@ -28,16 +29,27 @@ export default class ServiceDownloadProvider {
         private _statusView: IStatusView,
         private _httpClient: IHttpClient,
         private _decompressProvider: IDecompressProvider,
+        private _downloadType: DownloadType,
     ) {
         // Ensure our temp files get cleaned up in case of error.
         tmp.setGracefulCleanup();
+    }
+
+    public type(): DownloadType {
+        return this._downloadType;
     }
 
     /**
      * Returns the download url for given platform
      */
     public getDownloadFileName(platform: Runtime): string {
-        let fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames");
+        let fileNamesJson: any;
+        if (this._downloadType === DownloadType.SqlToolsService) {
+            fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames");
+        } else {
+            fileNamesJson = this._config.getFlatFileConfigValue("downloadFileNames");
+        }
+
         let fileName = fileNamesJson[platform.toString()];
 
         if (fileName === undefined) {
@@ -52,11 +64,18 @@ export default class ServiceDownloadProvider {
     }
 
     /**
-     * Returns SQL tools service installed folder, creating it if it doesn't exist.
+     * Returns SQL tools or Flat File service installed folder, creating it if it doesn't exist.
      */
     public async getOrMakeInstallDirectory(platform: Runtime): Promise<string> {
         let basePath = this.getInstallDirectoryRoot();
-        let versionFromConfig = this._config.getSqlToolsPackageVersion();
+
+        let versionFromConfig: string;
+        if (this._downloadType === DownloadType.SqlToolsService) {
+            versionFromConfig = this._config.getSqlToolsPackageVersion();
+        } else {
+            versionFromConfig = this._config.getFlatFilePackageVersion();
+        }
+
         basePath = basePath.replace("{#version#}", versionFromConfig);
         basePath = basePath.replace("{#platform#}", getRuntimeDisplayName(platform));
         try {
@@ -69,10 +88,16 @@ export default class ServiceDownloadProvider {
     }
 
     /**
-     * Returns SQL tools service installed folder root.
+     * Returns SQL tools or Flat File service installed folder root.
      */
     public getInstallDirectoryRoot(): string {
-        let installDirFromConfig = this._config.getSqlToolsInstallDirectory();
+        let installDirFromConfig: string;
+        if (this._downloadType === DownloadType.SqlToolsService) {
+            installDirFromConfig = this._config.getSqlToolsInstallDirectory();
+        } else {
+            installDirFromConfig = this._config.getFlatFileInstallDirectory();
+        }
+
         let basePath: string;
         if (path.isAbsolute(installDirFromConfig)) {
             basePath = installDirFromConfig;
@@ -84,17 +109,25 @@ export default class ServiceDownloadProvider {
     }
 
     private getGetDownloadUrl(fileName: string): string {
-        let baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
-        let version = this._config.getSqlToolsPackageVersion();
+        let baseDownloadUrl: string;
+        let version: string;
+        if (this._downloadType === DownloadType.SqlToolsService) {
+            baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
+            version = this._config.getSqlToolsPackageVersion();
+        } else {
+            baseDownloadUrl = this._config.getFlatFileServiceDownloadUrl();
+            version = this._config.getFlatFilePackageVersion();
+        }
+
         baseDownloadUrl = baseDownloadUrl.replace("{#version#}", version);
         baseDownloadUrl = baseDownloadUrl.replace("{#fileName#}", fileName);
         return baseDownloadUrl;
     }
 
     /**
-     * Downloads the SQL tools service and decompress it in the install folder.
+     * Downloads the SQL tools or Flat File service and decompress it in the install folder.
      */
-    public async installSQLToolsService(platform: Runtime): Promise<boolean> {
+    public async installService(platform: Runtime): Promise<boolean> {
         const fileName = this.getDownloadFileName(platform);
         const installDirectory = await this.getOrMakeInstallDirectory(platform);
 

@@ -42,7 +42,6 @@ export enum TelemetryViews {
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
     Backup = "Backup",
-    SQLOps = "SQLOps",
     FlatFile = "FlatFile",
 }
 
@@ -100,6 +99,8 @@ export enum TelemetryActions {
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
     PublishProjectConnectionError = "PublishProjectConnection",
+    PublishServerConnected = "PublishServerConnected",
+    SqlCmdVariablesModified = "SqlCmdVariablesModified",
     GenerateSqlPackageCommand = "GenerateSqlPackageCommand",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
@@ -163,6 +164,7 @@ export enum TelemetryActions {
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
     SchemaDesignerTool = "SchemaDesignerTool",
+    DabTool = "DabTool",
     SaveConnectionGroup = "SaveConnectionGroup",
     DragAndDrop = "DragAndDrop",
     ExportToImage = "ExportToImage",
@@ -212,7 +214,8 @@ export enum TelemetryActions {
     ScriptBackup = "ScriptBackup",
     FinishBackup = "FinishBackup",
     ServiceStarted = "ServiceStarted",
-    StartFlatFile = "StartFlatFile",
+    InitializeFlatFile = "InitializeFlatFile",
+    TablePreview = "TablePreview",
     ImportFile = "ImportFile",
 }
 

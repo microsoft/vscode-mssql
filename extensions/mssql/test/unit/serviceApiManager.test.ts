@@ -5,7 +5,7 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
-import { ApiType, managerInstance } from "../../src/sqlOps/serviceApiManager";
+import { ApiType, managerInstance } from "../../src/flatFile/serviceApiManager";
 
 suite("ServiceApiManager", () => {
     let sandbox: sinon.SinonSandbox;

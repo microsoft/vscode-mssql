@@ -9,6 +9,7 @@ export const extensionId = "ms-mssql.mssql";
 export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
+export const configProfilerEventBufferSize = "profiler.eventBufferSize";
 export const mssqlProviderName = "MSSQL";
 export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
@@ -225,6 +226,7 @@ export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 export const copilotSchemaDesignerToolName = "mssql_schema_designer";
+export const copilotDabToolName = "mssql_dab";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -297,15 +299,18 @@ export const serviceInstalled = "Sql Tools Service installed";
 export const serviceInstallationFailed = "Failed to install Sql Tools Service";
 export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
-export const serviceInitializingOutputChannelName = "SqlToolsService Initialization";
 export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
+export const flatFileServiceInitializing = "Initializing Flat File service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
     "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
+export const flatFileServiceLoadingFailed = "Failed to load Flat File Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
+export const invalidFlatFileServiceFilePath = "Invalid file path for Flat File Service";
 export const sqlToolsServiceName = "SQLToolsService";
-export const sqlOpsServiceName = "SQLOpsService";
+export const flatFileServiceName = "FlatFileService";
+export const flatFileProvider = "FlatFileProvider";
 export const resourceServiceName = "AzureResourceProvider";
 export const resourceProviderId = "azurePublicCloud";
 export const sqlToolsServiceConfigKey = "service";
@@ -328,10 +333,13 @@ export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
 
-// Deployment Constants
+// Backup+Restore Constants
 export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
 export const disk = "Disk";
 export const url = "URL";
+
+// Flat File Import Constants
+export const flatFileImportFileTypes = ["csv", "txt"];
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

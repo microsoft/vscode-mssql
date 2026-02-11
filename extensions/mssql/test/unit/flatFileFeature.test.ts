@@ -7,16 +7,16 @@ import * as chai from "chai";
 import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import { SqlOpsDataClient } from "../../src/sqlOps/clientInterfaces";
-import { FlatFileFeature } from "../../src/sqlOps/flatFileFeature";
-import { managerInstance, ApiType } from "../../src/sqlOps/serviceApiManager";
+import { FlatFileFeature } from "../../src/flatFile/flatFileFeature";
+import { managerInstance, ApiType } from "../../src/flatFile/serviceApiManager";
 import * as ff from "../../src/models/contracts/flatFile";
+import { LanguageClient } from "vscode-languageclient";
 
 chai.use(sinonChai);
 
 suite("FlatFileFeature", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockClient: sinon.SinonStubbedInstance<SqlOpsDataClient>;
+    let mockClient: sinon.SinonStubbedInstance<LanguageClient>;
     let registerApiStub: sinon.SinonStub;
 
     setup(() => {
@@ -26,7 +26,7 @@ suite("FlatFileFeature", () => {
             sendRequest: sandbox.stub(),
             logFailedRequest: sandbox.stub(),
             providerId: "testProvider",
-        } as unknown as sinon.SinonStubbedInstance<SqlOpsDataClient>;
+        } as unknown as sinon.SinonStubbedInstance<LanguageClient>;
 
         registerApiStub = sandbox
             .stub(managerInstance, "registerApi")
@@ -64,12 +64,10 @@ suite("FlatFileFeature", () => {
 
         expect(registerApiStub).to.have.been.calledOnceWith(
             ApiType.FlatFileProvider,
-            sinon.match.has("providerId", "testProvider"),
         );
 
         // Ensure returned provider has send*Request functions
         expect(provider.sendProseDiscoveryRequest).to.be.a("function");
-        expect(provider.sendGetColumnInfoRequest).to.be.a("function");
         expect(provider.sendChangeColumnSettingsRequest).to.be.a("function");
         expect(provider.sendInsertDataRequest).to.be.a("function");
     });
@@ -110,15 +108,12 @@ suite("FlatFileFeature", () => {
         }
     });
 
-    test("other send*Request functions forward correctly", async () => {
+    test("other sendRequest functions forward correctly", async () => {
         const feature = new FlatFileFeature(mockClient as any);
         const provider = (feature as any).registerProvider(undefined);
 
         const response = { success: true } as any;
         (mockClient.sendRequest as sinon.SinonStub).resolves(response);
-
-        const getColumnInfoResult = await provider.sendGetColumnInfoRequest({} as any);
-        expect(getColumnInfoResult).to.equal(response);
 
         const changeColResult = await provider.sendChangeColumnSettingsRequest({} as any);
         expect(changeColResult).to.equal(response);

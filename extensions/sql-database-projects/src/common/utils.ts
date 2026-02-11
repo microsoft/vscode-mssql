@@ -17,6 +17,7 @@ import * as which from 'which';
 import { promises as fs } from 'fs';
 import { ISqlProject, SqlTargetPlatform } from 'sqldbproj';
 import { SystemDatabase } from './typeHelper';
+import { DeploymentScenario } from './enums';
 
 export interface ValidationResult {
 	errorMessage: string;
@@ -364,8 +365,8 @@ export async function defaultAzureAccountServiceFactory(): Promise<vscodeMssql.I
  * Returns the default deployment options from DacFx, filtered to appropriate options for the given project.
  */
 export async function getDefaultPublishDeploymentOptions(project: ISqlProject): Promise<mssql.DeploymentOptions | vscodeMssql.DeploymentOptions> {
-	const schemaCompareService = await getSchemaCompareService();
-	const result = await schemaCompareService.schemaCompareGetDefaultOptions();
+	const dacFxService = await getDacFxService();
+	const result = await (dacFxService as vscodeMssql.IDacFxService).getDeploymentOptions(DeploymentScenario.Deployment as unknown as vscodeMssql.DeploymentScenario);
 	// this option needs to be true for same database references validation to work
 	if (project.databaseReferences.length > 0) {
 		result.defaultDeploymentOptions.booleanOptionsDictionary.includeCompositeObjects.value = true;
@@ -872,3 +873,42 @@ export function throwIfFailed(result: azdataType.ResultStatus | vscodeMssql.Resu
 		throw new Error(constants.errorPrefix(result.errorMessage));
 	}
 }
+
+//#region Build Task helpers
+
+export interface SqlProjectBuildTaskOptions {
+	projectName: string;
+	buildArgs: string[];
+	isDefault: boolean;
+}
+
+/**
+ * Creates a SQL project build task definition for tasks.json
+ */
+export function createSqlProjectBuildTask(options: SqlProjectBuildTaskOptions): object {
+	return {
+		label: constants.getSqlProjectBuildTaskLabel(options.projectName),
+		type: constants.processTaskType,
+		command: constants.dotnet,
+		args: options.buildArgs,
+		problemMatcher: constants.problemMatcher,
+		isBackground: true,
+		group: {
+			kind: constants.build,
+			isDefault: options.isDefault
+		},
+		detail: constants.getSqlProjectBuildTaskDetail(options.projectName)
+	};
+}
+
+/**
+ * Creates a new tasks.json structure with the given tasks
+ */
+export function createTasksJson(tasks: object[]): object {
+	return {
+		version: constants.tasksJsonVersion,
+		tasks: tasks
+	};
+}
+
+//#endregion

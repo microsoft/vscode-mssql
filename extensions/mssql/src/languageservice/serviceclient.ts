@@ -29,7 +29,7 @@ import { PlatformInformation } from "../models/platform";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { IConfigUtils } from "./interfaces";
+import { DownloadType, IConfigUtils } from "./interfaces";
 import { exists } from "../utils/utils";
 import { env } from "process";
 import {
@@ -176,6 +176,7 @@ export default class SqlToolsServiceClient {
                 serverStatusView,
                 httpClient,
                 decompressProvider,
+                DownloadType.SqlToolsService
             );
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);

@@ -948,6 +948,8 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            highlightChanges: l10n.t("Highlight Changes"),
+            hideChangesHighlight: l10n.t("Hide Changes Highlight"),
             changesPanelTitle: (changeCount: number) =>
                 l10n.t({
                     message: "Changes ({0})",
@@ -955,6 +957,7 @@ export class LocConstants {
                     comment: ["{0} is the number of schema changes"],
                 }),
             noChangesYet: l10n.t("No changes yet."),
+            noChangesYetSubtitle: l10n.t("Edit your schema to see changes here."),
             schemaChangeInTable: (qualifiedTableName: string, changeDescription: string) =>
                 l10n.t({
                     message: "{0}: {1}",
@@ -1074,9 +1077,25 @@ export class LocConstants {
                 filterModified: l10n.t("Modified"),
                 filterDeleted: l10n.t("Deleted"),
                 filterTooltip: l10n.t("Filter changes"),
+                filterPanelTitle: l10n.t("Filter Changes"),
+                actionTypeLabel: l10n.t("Action Type"),
+                objectTypeLabel: l10n.t("Object Type"),
                 actionFilterLabel: l10n.t("Action"),
                 categoryFilterLabel: l10n.t("Category"),
                 clearFilters: l10n.t("Clear all"),
+                clearFiltersButton: l10n.t("Clear Filters"),
+                applyFilters: l10n.t("Apply"),
+                changeCountLabel: (changeCount: number) =>
+                    l10n.t({
+                        message: "{0} changes",
+                        args: [changeCount],
+                        comment: ["{0} is the number of property changes"],
+                    }),
+                propertyHeader: l10n.t("Property"),
+                beforeHeader: l10n.t("Before"),
+                afterHeader: l10n.t("After"),
+                noPropertyChanges: l10n.t("No property changes available."),
+                emptyValue: l10n.t("(empty)"),
 
                 // Buttons
                 reveal: l10n.t("Reveal"),
@@ -1474,7 +1493,7 @@ export class LocConstants {
 
     public get createDatabase() {
         return {
-            title: l10n.t("Create Database"),
+            title: l10n.t("Create Database (Preview)"),
             description: (serverName: string) =>
                 l10n.t({
                     message: "Create a new database on '{0}'.",
@@ -1498,12 +1517,13 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             createButton: l10n.t("Create"),
             cancelButton: l10n.t("Cancel"),
+            creatingDatabase: l10n.t("Creating database"),
         };
     }
 
     public get dropDatabase() {
         return {
-            title: l10n.t("Drop Database"),
+            title: l10n.t("Drop Database (Preview)"),
             description: (databaseName: string, serverName: string) =>
                 l10n.t({
                     message: "Drop '{0}' from '{1}'. This action cannot be undone.",
@@ -1524,6 +1544,7 @@ export class LocConstants {
             scriptButton: l10n.t("Script"),
             dropButton: l10n.t("Drop"),
             cancelButton: l10n.t("Cancel"),
+            droppingDatabase: l10n.t("Dropping database"),
         };
     }
 
@@ -1853,6 +1874,56 @@ export class LocConstants {
             transactionLog: l10n.t("Transaction Log"),
             encryption: l10n.t("Encryption"),
             media: l10n.t("Media"),
+        };
+    }
+
+    public get profiler() {
+        return {
+            // Toolbar buttons
+            newSession: l10n.t("New Session"),
+            creatingSession: l10n.t("Creating..."),
+            start: l10n.t("Start"),
+            stop: l10n.t("Stop"),
+            pause: l10n.t("Pause"),
+            resume: l10n.t("Resume"),
+            clear: l10n.t("Clear Data"),
+            autoScroll: l10n.t("Auto-scroll"),
+
+            // Toolbar labels
+            selectSessionLabel: l10n.t("Select Session:"),
+            viewLabel: l10n.t("View:"),
+            selectASession: l10n.t("Select a session..."),
+
+            // Tooltips
+            creatingSessionTooltip: l10n.t("Creating session..."),
+            createNewSessionTooltip: l10n.t("Create a new profiling session"),
+            noTemplatesAvailableTooltip: l10n.t("No templates available"),
+            selectSessionFirstTooltip: l10n.t("Select a session first"),
+            startSessionTooltip: l10n.t("Start profiling session"),
+            stopSessionTooltip: l10n.t("Stop session"),
+            sessionNotRunningTooltip: l10n.t("Session not running"),
+            pauseEventCollectionTooltip: l10n.t("Pause event collection"),
+            pausedClickToResumeTooltip: l10n.t("Paused - click to resume"),
+            notRunningTooltip: l10n.t("Not running"),
+            clearEventsTooltip: l10n.t("Clear all events (keeps session running)"),
+            autoScrollEnabledTooltip: l10n.t("Auto-scroll enabled"),
+            autoScrollDisabledTooltip: l10n.t("Auto-scroll disabled"),
+
+            // Session states
+            stateRunning: l10n.t("Running"),
+            statePaused: l10n.t("Paused"),
+            stateStopped: l10n.t("Stopped"),
+            stateNotStarted: l10n.t("Not Started"),
+
+            // Status bar
+            noSession: l10n.t("Profiler: No session"),
+            sessionStatusTooltip: l10n.t("Profiler Session Status"),
+            eventsCount: (count: number) =>
+                l10n.t({
+                    message: "{0} events",
+                    args: [count],
+                    comment: ["{0} is the number of events"],
+                }),
         };
     }
 

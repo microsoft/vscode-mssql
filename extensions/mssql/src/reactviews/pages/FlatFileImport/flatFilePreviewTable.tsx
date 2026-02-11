@@ -245,6 +245,7 @@ export const FlatFilePreviewTable = () => {
             <div className={classes.tableDiv}>
                 <Table
                     className={classes.table}
+                    size="small"
                     ref={tableFeatures.tableRef}
                     {...tableFeatures.columnSizing_unstable.getTableProps()}>
                     <TableHeader className={classes.tableHeader}>

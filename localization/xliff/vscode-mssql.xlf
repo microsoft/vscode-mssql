@@ -23,6 +23,9 @@
     <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
       <source xml:lang="en">(1 row affected)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d29a0939bcb51176dd565a5e2d33214ce5204806b384bd80a72cb40861cdc7b9">
+      <source xml:lang="en">(empty)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
       <source xml:lang="en">({0} rows affected)</source>
       <note>{0} is the number of rows affected</note>
@@ -85,6 +88,9 @@
     </trans-unit>
     <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
       <source xml:lang="en">Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a7870205fd96778561ad4653fea7c80cc5fffbc97a43337c1d45f0493e4ee0e">
+      <source xml:lang="en">Action Type</source>
     </trans-unit>
     <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
       <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -170,6 +176,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
       <source xml:lang="en">Advanced Publish Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
+      <source xml:lang="en">After</source>
     </trans-unit>
     <trans-unit id="++CODE++d68cd3ac31f638a528ae24f963d817f9112ed35137574a948e1201a7f154a20e">
       <source xml:lang="en">Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with @mssql in Ask or Agent Mode.</source>
@@ -367,6 +376,15 @@
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
     </trans-unit>
+    <trans-unit id="++CODE++30fb5ec81b38c80bd2d85fce38abae5feb4cd8e3afcf2084fc37b76c8e2ae6a8">
+      <source xml:lang="en">Auto-scroll</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2dcc68490694632d6cbfafe090666d170ed7a4e66bc160ca4c4feef1cf974c8b">
+      <source xml:lang="en">Auto-scroll disabled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70d2e37ffe6556af0cba5c43fa55ab55f9235530987956b396745510a5d4d471">
+      <source xml:lang="en">Auto-scroll enabled</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
       <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
@@ -483,6 +501,9 @@
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9bb725005055412c75a8e8d1fb5a0780595174ac8bbe5a24f768647bd4e4debe">
+      <source xml:lang="en">Before</source>
     </trans-unit>
     <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
       <source xml:lang="en">Between</source>
@@ -749,6 +770,12 @@
     <trans-unit id="++CODE++ddceb7adfdb8816e4747bc48a2221702e830340e5596a701dc0993766eba5e60">
       <source xml:lang="en">Clear All</source>
     </trans-unit>
+    <trans-unit id="++CODE++b3f9fe4f22f94874a7277a4c1b461e0c9233ff480fde5a8c431d3841fe52acef">
+      <source xml:lang="en">Clear Data</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5776503c1a52f4fa028ff4c82b779bde7010023e3ae9f877c88156b673212e2e">
+      <source xml:lang="en">Clear Filters</source>
+    </trans-unit>
     <trans-unit id="++CODE++08e2c4e53c4b3b6008b7bc4d82eb29ab933d3b6c08b34eda0637fbf148fb1529">
       <source xml:lang="en">Clear Recent Connections List</source>
     </trans-unit>
@@ -760,6 +787,9 @@
     </trans-unit>
     <trans-unit id="++CODE++29a390f9237e3c84e5641785eca25199620e53f7b6f4b9d843b23dcb5c12904f">
       <source xml:lang="en">Clear all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6352ab85759b6f5b9cae594a4b92e97b81d85af640c575ba7d553d7a6833443">
+      <source xml:lang="en">Clear all events (keeps session running)</source>
     </trans-unit>
     <trans-unit id="++CODE++de22447d91bbb54edb718c661ff961ca832ff4260ec61ea538be1fed4e688cd8">
       <source xml:lang="en">Clear all filters</source>
@@ -1056,6 +1086,10 @@
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
+    <trans-unit id="++CODE++6bc9f61b6c77fbd2c69ef9bb0cbfb74f2f01ec0e9ba331938cb1b4a0d62e4f09">
+      <source xml:lang="en">Connection error: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++b6ab038b215e73e2ef60b1b4afc9ef7cd9d76c67a2e266eec2d806e53701ca2d">
       <source xml:lang="en">Connection failed: {0}</source>
       <note>{0} is the error message from the connection attempt</note>
@@ -1217,6 +1251,9 @@
     <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
       <source xml:lang="en">Create Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
+      <source xml:lang="en">Create Database (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
@@ -1245,6 +1282,9 @@
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>
     </trans-unit>
+    <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
+      <source xml:lang="en">Create a new profiling session</source>
+    </trans-unit>
     <trans-unit id="++CODE++6949d95c17351423dbbdb4d30d440bd9557c55fe734ab155cddeebdf86d86423">
       <source xml:lang="en">Create and manage local SQL Server containers directly from VS Code for fast, consistent local development.</source>
     </trans-unit>
@@ -1272,9 +1312,18 @@
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
     </trans-unit>
+    <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
+      <source xml:lang="en">Creating database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
+      <source xml:lang="en">Creating session...</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
       <source xml:lang="en">Creating workspace with capacity {0}</source>
       <note>{0} is the capacity ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++def70944c9bb9c3b77129e6fc48cfcd043031a86ae747060a3e97985d254c4f2">
+      <source xml:lang="en">Creating...</source>
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1319,6 +1368,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
       <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
+      <source xml:lang="en">Data API Builder</source>
     </trans-unit>
     <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
       <source xml:lang="en">Data API Builder Configuration</source>
@@ -1577,18 +1629,6 @@
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
-    <trans-unit id="++CODE++1e755318b106a8946de523a86dbfbfc2ccccd5dd338ca8ffcee9b2c8145148ea">
-      <source xml:lang="en">Download &apos;{0}&apos; complete.</source>
-      <note>{0} is the service name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++11ec033ddc030f7955e714613de6fa979321ed9fc444aa6bfb922b273e966fd5">
-      <source xml:lang="en">Download size: {0} KB</source>
-      <note>{0} is the size in kilobytes</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b7088b3d27556ce20e86d1e0789a8f10338e69b4f195d9e79af490d22d9d810e">
-      <source xml:lang="en">Downloading &apos;{0}&apos;</source>
-      <note>{0} is the service name</note>
-    </trans-unit>
     <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
       <source xml:lang="en">Drop</source>
     </trans-unit>
@@ -1600,11 +1640,17 @@
     <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
       <source xml:lang="en">Drop Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
+      <source xml:lang="en">Drop Database (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
       <source xml:lang="en">Drop Database Options</source>
     </trans-unit>
     <trans-unit id="++CODE++0301e63bd19eb739abb705445f40ef5338164e75b5ccdaed58dc76bbebeb4f06">
       <source xml:lang="en">Drop active connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
+      <source xml:lang="en">Dropping database</source>
     </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -1628,6 +1674,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
+      <source xml:lang="en">Edit your schema to see changes here.</source>
     </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -1674,11 +1723,18 @@
     <trans-unit id="++CODE++fc203569fa858e0ef3d2644e417247d162f933f5e91db77c913471844e2f3ced">
       <source xml:lang="en">Ends with</source>
     </trans-unit>
+    <trans-unit id="++CODE++37344542a7e5c1efe17609d8b0a03cfce9724b28b06beef14f1cdd17ef737245">
+      <source xml:lang="en">Engine: {0}</source>
+      <note>{0} is the engine type</note>
+    </trans-unit>
     <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
       <source xml:lang="en">Enter Database Description</source>
     </trans-unit>
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++257f4b44f86615c224d4cb6cc6a793ddeecb31c45f98b2ab57104d09a2b70171">
+      <source xml:lang="en">Enter a name for the new profiler session</source>
     </trans-unit>
     <trans-unit id="++CODE++db8916a9e121c88e488cc019e97f752538fe362701a492cbf905fa8e1cddf4d1">
       <source xml:lang="en">Enter application name</source>
@@ -1871,8 +1927,16 @@
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
+      <source xml:lang="en">Execute &apos;{0}&apos; operation on Data API Builder?</source>
+      <note>{0} is the operation name</note>
+    </trans-unit>
     <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
       <source xml:lang="en">Execute &apos;{0}&apos; operation on the schema designer?</source>
+      <note>{0} is the operation name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
+      <source xml:lang="en">Executing &apos;{0}&apos; operation on Data API Builder</source>
       <note>{0} is the operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
@@ -1963,12 +2027,6 @@
     <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
       <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
     </trans-unit>
-    <trans-unit id="++CODE++123d3903624eab92d425a26a2ee364ab0fa73dd793d0e7712eb9052c33f67b8c">
-      <source xml:lang="en">Extracted &apos;{0}&apos; (&apos;{1}&apos;/&apos;{2}&apos;).</source>
-      <note>{0} is the entry name
-{1} is the entry folder
-{2} is the entry file</note>
-    </trans-unit>
     <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
       <source xml:lang="en">Extracting DACPAC...</source>
     </trans-unit>
@@ -2035,6 +2093,9 @@
     <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
       <source xml:lang="en">Failed to connect to server.</source>
     </trans-unit>
+    <trans-unit id="++CODE++07a70d0f8dcd3b512fbe302a9052f2a7c309d8ef1a2d6279bb2fec89a8037514">
+      <source xml:lang="en">Failed to connect to the selected server.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
       <source xml:lang="en">Failed to connect: {0}</source>
       <note>{0} is the error message</note>
@@ -2051,6 +2112,10 @@
       <source xml:lang="en">Failed to create database &apos;{0}&apos;. {1}</source>
       <note>{0} is the database name
 {1} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e1610b299a2b8eaa35bfb68aba2bf7a2c49383d9a8f9046abd8ceb5cb7f640e1">
+      <source xml:lang="en">Failed to create profiler session: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
       <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
@@ -2129,6 +2194,10 @@
     <trans-unit id="++CODE++75a86f33876b52fd9ce7e4c568a7ca35b392f02f2523ec303a5764f9ea5e946a">
       <source xml:lang="en">Failed to import file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e3d920bce049a4644ce154bb0d5751edf90ddee5dbfd34ccc55ab53c065c6dfb">
+      <source xml:lang="en">Failed to launch profiler: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
       <source xml:lang="en">Failed to list databases</source>
     </trans-unit>
@@ -2200,6 +2269,10 @@
     </trans-unit>
     <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
       <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++15cd589c54029c6184391a850fda8a6d72923d92e0d4a43391a69cf2b18c3472">
+      <source xml:lang="en">Failed to start profiler: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
       <source xml:lang="en">Failed to start query.</source>
@@ -2277,6 +2350,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
       <source xml:lang="en">Filter Azure subscriptions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6912047d1e34810c689d86abbaaff16d03c52fddb02d0a438654cbfae32e926b">
+      <source xml:lang="en">Filter Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
       <source xml:lang="en">Filter Options</source>
@@ -2523,6 +2599,9 @@
     <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
       <source xml:lang="en">Help us improve by sharing your thoughts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++31607be2124d360704ce43023aec1d4d66fce97b4c8123412842e2e17521a11e">
+      <source xml:lang="en">Hide Changes Highlight</source>
+    </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
     </trans-unit>
@@ -2543,6 +2622,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
       <source xml:lang="en">Hide this panel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b2306b8a2c95daafdb1651bc3790ef251195b8eab916f792150b784f41aa81b9">
+      <source xml:lang="en">Highlight Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
       <source xml:lang="en">Highlight Expensive Operation</source>
@@ -2671,19 +2753,6 @@
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e6d0e918785702e9a5296d8732925451bb083298a83deb35a65b6d4bd922f6c5">
-      <source xml:lang="en">Installed &apos;{0}&apos;.</source>
-      <note>{0} is the service name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++508dfd2e59c052e99ee3f4f0ce70f8f6c7bf88100ca130f1daccabf9ebb04af9">
-      <source xml:lang="en">Installing &apos;{0}&apos; service</source>
-      <note>{0} is the service name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++0820b0f6fcb6a873e9c695fd4bbc7233a55096d371db860358ef0dc199f9a0c7">
-      <source xml:lang="en">Installing &apos;{0}&apos; service to {1}</source>
-      <note>{0} is the service name
-{1} is the installation path</note>
     </trans-unit>
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
@@ -3190,6 +3259,9 @@
     <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
       <source xml:lang="en">My Data</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f597d21c43ad4296c13690ad65aaff476273a489afc5e5d6f91073de96baf9b">
+      <source xml:lang="en">MyProfilerSession</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>
     </trans-unit>
@@ -3241,8 +3313,17 @@
     <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
       <source xml:lang="en">New Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b21dab2a1902b1d0a647b6802bda61180c1585f015a2163130c5d0afcebf746">
+      <source xml:lang="en">New Profiler Session - Enter Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e4f5aea75d94a199d16ad5967b6f49b63a566418bc6b31fade8dc27b30a913e">
+      <source xml:lang="en">New Profiler Session - Select Template</source>
+    </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc0bb85f3867f1df067d69d6446c6df5b8bdd4caf25718a67bdc68c9e079bd5f">
+      <source xml:lang="en">New Session</source>
     </trans-unit>
     <trans-unit id="++CODE++853562aba61600b2977f2c1e36ed27382069409f9497ac880dd6e8b39b87ca42">
       <source xml:lang="en">New Table Name</source>
@@ -3358,6 +3439,9 @@
       <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
       <note>{0} is the name of the workspace</note>
     </trans-unit>
+    <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
+      <source xml:lang="en">No databases found on the server. Please check your connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2101f688955200ee2139fc45f42f5c3412079f84a5f41efa95fa02b9f2ced48b">
       <source xml:lang="en">No databases found to import into.</source>
     </trans-unit>
@@ -3384,6 +3468,15 @@
     <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
       <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d2b6723246a1c9f0623c0c48a49e0303cd42b98acd1bc981582ca59a83b2ccc">
+      <source xml:lang="en">No profiler connection available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9d6298c8a19610c3253afad30305a202c182b8bffab325a89302b0d3420c7873">
+      <source xml:lang="en">No profiler templates available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++75c1acf6c3d31028f8a7be377fdfe2ac75dee6d75450a900a103a3007a83b1ef">
+      <source xml:lang="en">No property changes available.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
     </trans-unit>
@@ -3395,6 +3488,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86147502503bfa8f5f4b25b018362f8a6990334ff839907a0c3008e98d4d7125">
+      <source xml:lang="en">No saved connections found. Please create a connection first.</source>
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
@@ -3416,6 +3512,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2d7cb28a8d1ce5542ed3f5c73805f318fa5a52d02a6f03e4a008093d1ee3e538">
       <source xml:lang="en">No subscriptions found</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6150f2aa36fc0da88b93d47481d99a988bcafd046bd60d962401893399cd0995">
+      <source xml:lang="en">No templates available</source>
     </trans-unit>
     <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
       <source xml:lang="en">No tenant selected</source>
@@ -3453,6 +3552,9 @@
     <trans-unit id="++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530">
       <source xml:lang="en">Not Equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++6d54f9ecea632e075385f044d66bfd47b2f26322cec751084d0f45b0532cf7ba">
+      <source xml:lang="en">Not Started</source>
+    </trans-unit>
     <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
       <source xml:lang="en">Not Starts With</source>
     </trans-unit>
@@ -3464,6 +3566,9 @@
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
+      <source xml:lang="en">Not running</source>
     </trans-unit>
     <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
       <source xml:lang="en">Not signed in</source>
@@ -3650,6 +3755,18 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
+    <trans-unit id="++CODE++858e4ba7a29fd38b630ed73a79e2738333b3fc6778fafa90252f5556c1262fdc">
+      <source xml:lang="en">Pause</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44dc63c7515e01251e752be7c3d300729490f58acf29cd43308d33275d6754a8">
+      <source xml:lang="en">Pause event collection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e159b06187d369a0615f66ce577582b5c983d4ea59b3a62b702049f61753f0bf">
+      <source xml:lang="en">Paused</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
+      <source xml:lang="en">Paused - click to resume</source>
+    </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
@@ -3772,6 +3889,26 @@
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
+      <source xml:lang="en">Profiler Session Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
+      <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
+      <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++72f5a889e3b36e8962aaf7d969eedf93448ceff066decd1befc6fc437103897f">
+      <source xml:lang="en">Profiler session &apos;{0}&apos; created successfully. Starting profiling...</source>
+      <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
+      <source xml:lang="en">Profiler session &apos;{0}&apos; started successfully.</source>
+      <note>{0} is the session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
+      <source xml:lang="en">Profiler: No session</source>
     </trans-unit>
     <trans-unit id="++CODE++ae43692b2a310b8ed2443d2b7d2a3e4cf0b6d73115badd72831b3d22381f235f">
       <source xml:lang="en">Properties</source>
@@ -3953,8 +4090,8 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
-    <trans-unit id="++CODE++90d9ab3255a92db5b378418ece6b230df904cb32837a59f146c96966f659a683">
-      <source xml:lang="en">Rename Database</source>
+    <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
+      <source xml:lang="en">Rename Database (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
@@ -4023,6 +4160,9 @@
       <source xml:lang="en">Results exported successfully to {0}</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
+      <source xml:lang="en">Resume</source>
+    </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
     </trans-unit>
@@ -4088,6 +4228,9 @@
       <note>{0} is the connection display name
 {1} is the connection ID
 {2} is the SQL query</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
+      <source xml:lang="en">Running</source>
     </trans-unit>
     <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
       <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
@@ -4346,6 +4489,9 @@
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++cbd2958b1fe1b6ca98cbb77b80166a16187b9b2c5a0b7e7d8c8bb718b57b48f8">
+      <source xml:lang="en">Select Session:</source>
+    </trans-unit>
     <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
       <source xml:lang="en">Select Source</source>
     </trans-unit>
@@ -4373,11 +4519,23 @@
     <trans-unit id="++CODE++c9e8c706a0db2ef84dc8a610e30fe22cb5709a146a0e76955dbd1f1444e5a0e6">
       <source xml:lang="en">Select a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
+      <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
       <source xml:lang="en">Select a file</source>
     </trans-unit>
+    <trans-unit id="++CODE++a54be20a16dd8a5a2524e93c5127f2965bd47dc3ee2f00eed80390be902e3f74">
+      <source xml:lang="en">Select a profiler template</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++65abe5d6d2a9bdcd83c3acd37c760bca33782062560df379bb995b27056969af">
+      <source xml:lang="en">Select a session first</source>
+    </trans-unit>
+    <trans-unit id="++CODE++daec3468c00df36219c157514c5317f36caf6636f4d430d7b3209552c59b9a18">
+      <source xml:lang="en">Select a session...</source>
     </trans-unit>
     <trans-unit id="++CODE++f54fc9f7eb78f9523dea69c1d5f1115bb8e8acec088f8bea79aee0156f5e55cf">
       <source xml:lang="en">Select a storage account</source>
@@ -4495,6 +4653,22 @@
     <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
       <source xml:lang="en">Server {0} not found.</source>
       <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4bebad98ba216d42e88b8a86cb19d459eb5be5ce6b74251e2b94ca0da9722a6e">
+      <source xml:lang="en">Session creation timed out</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8cd78d11cdd7e9d0eb109913becdbf01449df1797ccb72604224b8a3ba943196">
+      <source xml:lang="en">Session name can only contain letters, numbers, underscores, and hyphens</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92">
+      <source xml:lang="en">Session name cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2c6d33a689f8b43a18f472efe28829ae3540f663dbed5479969b981f67887d13">
+      <source xml:lang="en">Session name must be {0} characters or less</source>
+      <note>{0} is the maximum length</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4b80d5f9dd620b5ac11a742d3d138e56e05b6b4ce0cd9575b1ca820590a7fce0">
+      <source xml:lang="en">Session not running</source>
     </trans-unit>
     <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
       <source xml:lang="en">Set Default</source>
@@ -4674,11 +4848,17 @@
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4bb9f1ece9af9264a3b9e3913bbdb2cf497457167b14ced5f85688bfde74644">
+      <source xml:lang="en">Start</source>
+    </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
     </trans-unit>
     <trans-unit id="++CODE++271189ae389a39d79c24cd43cee7e86f57b7543bd1aebe14817ea8981cfdfcde">
       <source xml:lang="en">Start Time</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44d2a0a2acc914c78aa0e8c8159f46438f59c7964dcde4aa05b490fb1d6d99c7">
+      <source xml:lang="en">Start profiling session</source>
     </trans-unit>
     <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
       <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
@@ -4731,8 +4911,18 @@
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4d1dad5c74ad296c45ca01ac7e9e7fedffc7478a3556f8962465760b98c5391">
+      <source xml:lang="en">Stop session</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1a4f630ac1b69fd00728fa8a672ded71d0eae8516cb23e78f94529113399b79b">
+      <source xml:lang="en">Stopped</source>
+    </trans-unit>
     <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
       <source xml:lang="en">Stopping Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ee872ecd1c6074e5ce040609b1ba3ec2a9d987d039fd9e913cafeeba666d1e7">
+      <source xml:lang="en">Stopping profiler session &quot;{0}&quot;...</source>
+      <note>{0} is the session name</note>
     </trans-unit>
     <trans-unit id="++CODE++1755a01ae9117c06e6710451545424a51fd152c0e0d4609bd9db3732ae4b24f7">
       <source xml:lang="en">Storage Account</source>
@@ -5080,6 +5270,9 @@
     <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
       <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
+      <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
     </trans-unit>
@@ -5222,6 +5415,9 @@
     </trans-unit>
     <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
       <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1d016dda38423ba271aea0d5c5ef331722775d34c6de6fe5471751f689268a6c">
+      <source xml:lang="en">View:</source>
     </trans-unit>
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -5427,6 +5623,10 @@
 {1} is the old value
 {2} is the new value</note>
     </trans-unit>
+    <trans-unit id="++CODE++3622690088dccaafa6adcd1ab8138466d048c4f4cf087aa51eaf4bf0af9e383b">
+      <source xml:lang="en">{0} changes</source>
+      <note>{0} is the number of property changes</note>
+    </trans-unit>
     <trans-unit id="++CODE++8887985831fb848ca521c8d789f91e3040f1528fbc97d1f20b199bf9dcd2d555">
       <source xml:lang="en">{0} color swatch ({1})</source>
       <note>{0} is the connection group name
@@ -5443,6 +5643,10 @@
     <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
       <source xml:lang="en">{0} errors</source>
       <note>{0} is the number of errors</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056">
+      <source xml:lang="en">{0} events</source>
+      <note>{0} is the number of events</note>
     </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
@@ -5672,7 +5876,7 @@
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
     <trans-unit id="mssql.createDatabase">
-      <source xml:lang="en">Create Database</source>
+      <source xml:lang="en">Create Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
@@ -5726,7 +5930,7 @@
       <source xml:lang="en">Do not show prompts to enable UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.dropDatabase">
-      <source xml:lang="en">Drop Database</source>
+      <source xml:lang="en">Drop Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
@@ -5872,11 +6076,14 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
-    <trans-unit id="mssql.flatFileImport">
-      <source xml:lang="en">Import (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
+    </trans-unit>
+    <trans-unit id="mssql.flatFileImport">
+      <source xml:lang="en">Import flat file (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.launchFromObjectExplorer">
+      <source xml:lang="en">Launch Profiler</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot</source>
@@ -5895,6 +6102,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.maxCharsToStore">
       <source xml:lang="en">Maximum number of characters/bytes to store for each value in character/binary columns after running a query. Default value: 65,535. Valid value range: 1 to 2,147,483,647.</source>
+    </trans-unit>
+    <trans-unit id="mssql.profiler.eventBufferSize">
+      <source xml:lang="en">Maximum number of events to keep in memory for the Profiler. When this limit is reached, older events are dropped. Increase this value if you need to retain more events during profiling sessions.</source>
     </trans-unit>
     <trans-unit id="mssql.logFilesRemovalLimit">
       <source xml:lang="en">Maximum number of old files to remove upon startup that have expired mssql.logRetentionMinutes. Files that do not get cleaned up due to this limitation get cleaned up next time Azure Data Studio starts up.</source>
@@ -5993,7 +6203,7 @@
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
     <trans-unit id="mssql.renameDatabase">
-      <source xml:lang="en">Rename Database</source>
+      <source xml:lang="en">Rename Database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
       <source xml:lang="en">Replication</source>
