@@ -3,41 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Migrate all tests from 'should' to 'chai expect' syntax.
+// New tests should use: import { expect } from 'chai'; with expect().to.equal() pattern.
+// Existing tests using should() will be migrated in a future PR.
+
 import { expect } from "chai";
-import * as chai from "chai";
-import sinonChai from "sinon-chai";
+import should = require("should/as-function");
 import * as path from "path";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import * as dataworkspace from "dataworkspace";
 import * as baselines from "./baselines/baselines";
 import * as templates from "../src/templates/templates";
 import * as testUtils from "./testUtils";
 import * as constants from "../src/common/constants";
-import * as mssql from "vscode-mssql";
+import * as mssql from "mssql";
 import * as utils from "../src/common/utils";
 
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
 import { ProjectsController } from "../src/controllers/projectController";
 import { promises as fs } from "fs";
-import {
-    createContext,
-    TestContext,
-    createSqlProjectsServiceStub,
-    restubServices,
-    clearProjectState,
-} from "./testContext";
+import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from "./testContext";
 import { Project } from "../src/models/project";
-
 import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { FolderNode, FileNode } from "../src/models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../src/models/tree/baseTreeItem";
-
+import { AddDatabaseReferenceDialog } from "../src/dialogs/addDatabaseReferenceDialog";
+import { IDacpacReferenceSettings } from "../src/models/IDatabaseReferenceSettings";
+import { CreateProjectFromDatabaseDialog } from "../src/dialogs/createProjectFromDatabaseDialog";
 import { ImportDataModel } from "../src/models/api/import";
 import { EntryType, ItemType, SqlTargetPlatform } from "sqldbproj";
 import { FileProjectEntry } from "../src/models/projectEntry";
-
-chai.use(sinonChai);
+import { SystemDatabase } from "mssql";
 
 let testContext: TestContext;
 const templatesPath = testUtils.getTemplatesRootPath();
@@ -50,9 +48,40 @@ suite("ProjectsController", function (): void {
 
     setup(function (): void {
         testContext = createContext();
-        clearProjectState();
-        sinon.stub(utils, "getSqlProjectsService").resolves(createSqlProjectsServiceStub());
-        sinon.stub(utils, "getDacFxService").resolves(testContext.dacFxService);
+
+        const emptyResultSet = { ...mockDacFxResult };
+        sinon.stub(utils, "getSqlProjectsService").resolves({
+            openProject: async () => undefined,
+            createProject: async () => mockDacFxResult,
+            getProjectProperties: async () => ({
+                ...mockDacFxResult,
+                projectGuid: "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575",
+                configuration: "Debug",
+                outputPath: "bin/Debug",
+                defaultCollation: "",
+                databaseSource: "",
+                databaseSchemaProvider:
+                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                projectStyle: mssql.ProjectType.SdkStyle,
+            }),
+            getCrossPlatformCompatibility: async () => ({
+                ...emptyResultSet,
+                isCrossPlatformCompatible: true,
+            }),
+            getSqlCmdVariables: async () => ({ ...emptyResultSet, sqlCmdVariables: [] }),
+            getDatabaseReferences: async () => ({
+                ...emptyResultSet,
+                dacpacReferences: [],
+                sqlProjectReferences: [],
+                systemDatabaseReferences: [],
+                nugetPackageReferences: [],
+            }),
+            getPreDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+            getPostDeploymentScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+            getNoneItems: async () => ({ ...emptyResultSet, scripts: [] }),
+            getSqlObjectScripts: async () => ({ ...emptyResultSet, scripts: [] }),
+            getFolders: async () => ({ ...emptyResultSet, folders: [] }),
+        } as unknown as mssql.ISqlProjectsService);
     });
 
     teardown(function (): void {
@@ -82,10 +111,9 @@ suite("ProjectsController", function (): void {
 
                 const project = await Project.openProject(projFilePath);
                 const projTargetVersion = project.getProjectTargetVersion();
-                expect(
-                    constants.getTargetPlatformFromVersion(projTargetVersion),
-                    "Target platform should match the specified platform",
-                ).to.equal(projTargetPlatform);
+                should(constants.getTargetPlatformFromVersion(projTargetVersion)).equal(
+                    projTargetPlatform,
+                );
             });
 
             test("Should create new edge project with expected template files", async function (): Promise<void> {
@@ -102,10 +130,10 @@ suite("ProjectsController", function (): void {
                 });
 
                 const project = await Project.openProject(projFilePath);
-                expect(
-                    project.sqlObjectScripts.length,
+                should(project.sqlObjectScripts.length).equal(
+                    7,
                     `The 7 template files for an edge project should be present. Actual: ${project.sqlObjectScripts.length}`,
-                ).to.equal(7);
+                );
             });
 
             test("Should return silently when no SQL object name provided in prompts", async function (): Promise<void> {
@@ -116,21 +144,18 @@ suite("ProjectsController", function (): void {
                     const projController = new ProjectsController(testContext.outputChannel);
                     const project = new Project("FakePath");
 
-                    expect(
-                        project.sqlObjectScripts.length,
-                        "Project should initially have no scripts",
-                    ).to.equal(0);
+                    should(project.sqlObjectScripts.length).equal(0);
                     await projController.addItemPrompt(new Project("FakePath"), "", {
                         itemType: ItemType.script,
                     });
-                    expect(
-                        project.sqlObjectScripts.length,
+                    should(project.sqlObjectScripts.length).equal(
+                        0,
                         "Expected to return without throwing an exception or adding a file when an empty/undefined name is provided.",
-                    ).to.equal(0);
-                    expect(showErrorMessageSpy, "showErrorMessage should not have been called").to
-                        .not.have.been.called;
+                    );
+                    should(showErrorMessageSpy.notCalled).be.true(
+                        "showErrorMessage should not have been called",
+                    );
                     sinon.restore();
-                    restubServices(utils, testContext.dacFxService);
                 }
             });
 
@@ -145,21 +170,21 @@ suite("ProjectsController", function (): void {
                     baselines.newProjectFileBaseline,
                 );
 
-                expect(project.sqlObjectScripts.length, "There should be no files").to.equal(0);
+                should(project.sqlObjectScripts.length).equal(0, "There should be no files");
                 await projController.addItemPrompt(project, "", { itemType: ItemType.script });
 
-                expect(
-                    project.sqlObjectScripts.length,
+                should(project.sqlObjectScripts.length).equal(
+                    1,
                     "File should be successfully added",
-                ).to.equal(1);
+                );
                 await projController.addItemPrompt(project, "", { itemType: ItemType.script });
                 const msg = constants.fileAlreadyExists(tableName);
-                expect(spy, "showErrorMessage should have been called exactly once").to.have.been
-                    .calledOnce;
-                expect(
-                    spy,
+                should(spy.calledOnce).be.true(
+                    "showErrorMessage should have been called exactly once",
+                );
+                should(spy.calledWith(msg)).be.true(
                     `showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'`,
-                ).to.have.been.calledWith(msg);
+                );
             });
 
             test("Should not create file if no itemTypeName is selected", async function (): Promise<void> {
@@ -171,15 +196,12 @@ suite("ProjectsController", function (): void {
                     baselines.newProjectFileBaseline,
                 );
 
-                expect(project.sqlObjectScripts.length, "There should be no files").to.equal(0);
+                should(project.sqlObjectScripts.length).equal(0, "There should be no files");
                 await projController.addItemPrompt(project, "");
-                expect(project.sqlObjectScripts.length, "File should not have been added").to.equal(
-                    0,
-                );
-                expect(
-                    spy,
+                should(project.sqlObjectScripts.length).equal(0, "File should not have been added");
+                should(spy.called).be.false(
                     `showErrorMessage should not have been called called. Actual '${spy.getCall(0)?.args[0]}'`,
-                ).to.not.have.been.called;
+                );
             });
 
             test("Should add existing item", async function (): Promise<void> {
@@ -193,12 +215,12 @@ suite("ProjectsController", function (): void {
                     baselines.newProjectFileBaseline,
                 );
 
-                expect(project.sqlObjectScripts.length, "There should be no files").to.equal(0);
+                should(project.sqlObjectScripts.length).equal(0, "There should be no files");
                 await projController.addItemPrompt(project, "", { itemType: ItemType.script });
-                expect(
-                    project.sqlObjectScripts.length,
+                should(project.sqlObjectScripts.length).equal(
+                    1,
                     "File should be successfully added",
-                ).to.equal(1);
+                );
 
                 // exclude item
                 const projTreeRoot = new ProjectRootTreeItem(project);
@@ -212,14 +234,13 @@ suite("ProjectsController", function (): void {
 
                 // reload project
                 project = await Project.openProject(project.projectFilePath);
-                expect(
-                    project.sqlObjectScripts.length,
+                should(project.sqlObjectScripts.length).equal(
+                    0,
                     "File should be successfully excluded",
-                ).to.equal(0);
-                expect(
-                    spy,
+                );
+                should(spy.called).be.false(
                     `showErrorMessage not called with expected message. Actual '${spy.getCall(0)?.args[0]}'`,
-                ).to.not.have.been.called;
+                );
 
                 // add item back
                 sinon
@@ -231,10 +252,10 @@ suite("ProjectsController", function (): void {
 
                 // reload project
                 project = await Project.openProject(project.projectFilePath);
-                expect(
-                    project.sqlObjectScripts.length,
+                should(project.sqlObjectScripts.length).equal(
+                    1,
                     "File should be successfully re-added",
-                ).to.equal(1);
+                );
             });
 
             test("Should show error if trying to add a folder that already exists", async function (): Promise<void> {
@@ -249,13 +270,13 @@ suite("ProjectsController", function (): void {
                 );
                 const projectRoot = new ProjectRootTreeItem(project);
 
-                expect(project.folders.length, "There should be no other folders").to.equal(0);
+                should(project.folders.length).equal(0, "There should be no other folders");
                 await projController.addFolderPrompt(createWorkspaceTreeItem(projectRoot));
 
                 // reload project
                 project = await Project.openProject(project.projectFilePath);
 
-                expect(project.folders.length, "Folder should be successfully added").to.equal(1);
+                should(project.folders.length).equal(1, "Folder should be successfully added");
                 stub.restore();
                 await verifyFolderNotAdded(folderName, projController, project, projectRoot);
 
@@ -285,7 +306,6 @@ suite("ProjectsController", function (): void {
                 // make sure it's ok to add these folders if they aren't where the reserved folders are at the root of the project
                 let node = projectRoot.children.find((c) => c.friendlyName === "Tables");
                 sinon.restore();
-                restubServices(utils, testContext.dacFxService);
                 for (let i in constants.reservedProjectFolders) {
                     // reload project
                     project = await Project.openProject(project.projectFilePath);
@@ -592,16 +612,15 @@ suite("ProjectsController", function (): void {
                     const tasksJsonContent = await fs.readFile(tasksJsonPath, "utf-8");
                     const tasksJson = JSON.parse(tasksJsonContent);
 
-                    expect(tasksJson.tasks, "tasks.json should contain exactly one task")
+                    expect(tasksJson.tasks, "tasks should be an array")
                         .to.be.an("array")
                         .with.lengthOf(1);
                     const task = tasksJson.tasks[0];
-                    expect(task.group, "Build task should have a group property").to.not.be
-                        .undefined;
+                    expect(task.group, "task group should be defined").to.not.be.undefined;
                     expect(
                         task.group.isDefault,
-                        "The build task should have isDefault: true",
-                    ).to.equal("true");
+                        "The build task should have isDefault: true (boolean)",
+                    ).to.equal(true);
                 }
             });
 
@@ -654,21 +673,21 @@ suite("ProjectsController", function (): void {
                 const tasksJsonContent = await fs.readFile(tasksJsonPath, "utf-8");
                 const tasksJson = JSON.parse(tasksJsonContent);
 
-                expect(tasksJson.tasks, "tasks.json should contain both existing and new tasks")
+                expect(tasksJson.tasks, "tasks should be an array")
                     .to.be.an("array")
                     .with.lengthOf(2);
                 expect(tasksJson.tasks[0].label, "Existing task should be preserved").to.equal(
                     "Existing Task",
                 );
                 expect(tasksJson.tasks[1].label, "SQL build task should be added").to.equal(
-                    "Build",
+                    constants.getSqlProjectBuildTaskLabel("TestProjectWithTasks"),
                 );
 
                 // Assert: notification was shown
                 expect(
-                    showInfoSpy,
+                    showInfoSpy.calledWith(constants.updatingExistingTasksJson),
                     "Should show notification when updating existing tasks.json",
-                ).to.have.been.calledWith(constants.updatingExistingTasksJson);
+                ).to.be.true;
             });
 
             async function verifyFolderAdded(
@@ -685,12 +704,11 @@ suite("ProjectsController", function (): void {
 
                 // reload project
                 project = await Project.openProject(project.projectFilePath);
-                expect(
-                    project.folders.length,
+                should(project.folders.length).equal(
+                    beforeFolderCount + 1,
                     `Folder count should be increased by one after adding the folder ${folderName}. before folders: ${JSON.stringify(beforeFolders)}/n after folders: ${JSON.stringify(project.sqlObjectScripts.map((f) => f.relativePath))}`,
-                ).to.equal(beforeFolderCount + 1);
+                );
                 sinon.restore();
-                restubServices(utils, testContext.dacFxService);
             }
 
             async function verifyFolderNotAdded(
@@ -705,17 +723,17 @@ suite("ProjectsController", function (): void {
                     .resolves(folderName);
                 const showErrorMessageSpy = sinon.spy(vscode.window, "showErrorMessage");
                 await projController.addFolderPrompt(createWorkspaceTreeItem(node));
-                expect(showErrorMessageSpy, "showErrorMessage should have been called exactly once")
-                    .to.have.been.calledOnce;
+                should(showErrorMessageSpy.calledOnce).be.true(
+                    "showErrorMessage should have been called exactly once",
+                );
                 const msg = constants.folderAlreadyExists(folderName);
-                expect(
-                    showErrorMessageSpy,
+                should(showErrorMessageSpy.calledWith(msg)).be.true(
                     `showErrorMessage not called with expected message '${msg}' Actual '${showErrorMessageSpy.getCall(0).args[0]}'`,
-                ).to.have.been.calledWith(msg);
-                expect(
-                    project.folders.length,
+                );
+                should(project.folders.length).equal(
+                    beforeFileCount,
                     "File count should be the same as before the folder was attempted to be added",
-                ).to.equal(beforeFileCount);
+                );
                 showInputBoxStub.restore();
                 showErrorMessageSpy.restore();
             }
@@ -772,39 +790,37 @@ suite("ProjectsController", function (): void {
                 proj = await Project.openProject(proj.projectFilePath); // reload edited sqlproj from disk
 
                 // confirm result
-                expect(proj.sqlObjectScripts.length, "number of file entries").to.equal(3); // lowerEntry and the contained scripts should be deleted
-                expect(proj.folders[0].relativePath, "First folder should be UpperFolder").to.equal(
-                    "UpperFolder",
-                );
-                expect(
-                    proj.preDeployScripts.length,
+                should(proj.sqlObjectScripts.length).equal(3, "number of file entries"); // lowerEntry and the contained scripts should be deleted
+                should(proj.folders[0].relativePath).equal("UpperFolder");
+                should(proj.preDeployScripts.length).equal(
+                    0,
                     "Pre Deployment scripts should have been deleted",
-                ).to.equal(0);
-                expect(
-                    proj.postDeployScripts.length,
+                );
+                should(proj.postDeployScripts.length).equal(
+                    0,
                     "Post Deployment scripts should have been deleted",
-                ).to.equal(0);
-                expect(
-                    proj.noneDeployScripts.length,
+                );
+                should(proj.noneDeployScripts.length).equal(
+                    0,
                     "None file should have been deleted",
-                ).to.equal(0);
+                );
 
-                expect(
-                    await utils.exists(scriptEntry.fsUri.fsPath),
+                should(await utils.exists(scriptEntry.fsUri.fsPath)).equal(
+                    false,
                     "script is supposed to be deleted",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(preDeployEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(preDeployEntry.fsUri.fsPath)).equal(
+                    false,
                     "pre-deployment script is supposed to be deleted",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(postDeployEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(postDeployEntry.fsUri.fsPath)).equal(
+                    false,
                     "post-deployment script is supposed to be deleted",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(noneEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(noneEntry.fsUri.fsPath)).equal(
+                    false,
                     "none entry pre-deployment script is supposed to be deleted",
-                ).to.equal(false);
+                );
             });
 
             test("Should delete database references", async function (): Promise<void> {
@@ -837,10 +853,10 @@ suite("ProjectsController", function (): void {
                 });
 
                 const projTreeRoot = new ProjectRootTreeItem(proj);
-                expect(
-                    proj.databaseReferences.length,
+                should(proj.databaseReferences.length).equal(
+                    3,
                     "Should start with 3 database references",
-                ).to.equal(3);
+                );
 
                 const databaseReferenceNodeChildren = projTreeRoot.children.find(
                     (x) => x.friendlyName === constants.databaseReferencesNodeName,
@@ -864,10 +880,10 @@ suite("ProjectsController", function (): void {
                 // confirm result
                 // reload project
                 proj = await Project.openProject(proj.projectFilePath);
-                expect(
-                    proj.databaseReferences.length,
+                should(proj.databaseReferences.length).equal(
+                    0,
                     "All database references should have been deleted",
-                ).to.equal(0);
+                );
             });
 
             test("Should exclude nested ProjectEntry from node", async function (): Promise<void> {
@@ -929,31 +945,31 @@ suite("ProjectsController", function (): void {
                 proj = await Project.openProject(proj.projectFilePath); // reload edited sqlproj from disk
 
                 // confirm result
-                expect(proj.sqlObjectScripts.length, "number of file entries").to.equal(0); // LowerFolder and the contained scripts should be excluded
-                expect(
-                    proj.folders.find((f) => f.relativePath === "UpperFolder"),
+                should(proj.sqlObjectScripts.length).equal(0, "number of file entries"); // LowerFolder and the contained scripts should be excluded
+                should(proj.folders.find((f) => f.relativePath === "UpperFolder")).not.equal(
+                    undefined,
                     "UpperFolder should still be there",
-                ).to.not.equal(undefined);
-                expect(proj.preDeployScripts.length, "Pre deployment scripts").to.equal(0);
-                expect(proj.postDeployScripts.length, "Post deployment scripts").to.equal(0);
-                expect(proj.noneDeployScripts.length, "None files").to.equal(0);
+                );
+                should(proj.preDeployScripts.length).equal(0, "Pre deployment scripts");
+                should(proj.postDeployScripts.length).equal(0, "Post deployment scripts");
+                should(proj.noneDeployScripts.length).equal(0, "None files");
 
-                expect(
-                    await utils.exists(scriptEntry.fsUri.fsPath),
+                should(await utils.exists(scriptEntry.fsUri.fsPath)).equal(
+                    true,
                     "script is supposed to still exist on disk",
-                ).to.equal(true);
-                expect(
-                    await utils.exists(preDeployEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(preDeployEntry.fsUri.fsPath)).equal(
+                    true,
                     "pre-deployment script is supposed to still exist on disk",
-                ).to.equal(true);
-                expect(
-                    await utils.exists(postDeployEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(postDeployEntry.fsUri.fsPath)).equal(
+                    true,
                     "post-deployment script is supposed to still exist on disk",
-                ).to.equal(true);
-                expect(
-                    await utils.exists(noneEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(noneEntry.fsUri.fsPath)).equal(
+                    true,
                     "none entry pre-deployment script is supposed to still exist on disk",
-                ).to.equal(true);
+                );
             });
 
             test("Should exclude a folder", async function (): Promise<void> {
@@ -963,12 +979,11 @@ suite("ProjectsController", function (): void {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const projTreeRoot = new ProjectRootTreeItem(proj);
 
-                expect(
+                should(
                     await utils.exists(path.join(proj.projectFolderPath, "SomeFolder/MyTable.sql")),
-                    "MyTable.sql should exist on disk before exclusion",
-                ).to.be.true;
-                expect(proj.sqlObjectScripts.length, "Starting number of scripts").to.equal(1);
-                expect(proj.folders.length, "Starting number of folders").to.equal(1);
+                ).be.true("File should exist in original location");
+                proj.sqlObjectScripts.length.should.equal(1, "Starting number of scripts");
+                proj.folders.length.should.equal(1, "Starting number of folders");
 
                 // exclude folder
                 const folderNode = projTreeRoot.children.find(
@@ -979,19 +994,16 @@ suite("ProjectsController", function (): void {
                 // reload project and verify files were renamed
                 proj = await Project.openProject(proj.projectFilePath);
 
-                expect(
+                should(
                     await utils.exists(
                         path.join(proj.projectFolderPath, "SomeFolder", "MyTable.sql"),
                     ),
-                    "MyTable.sql should still exist on disk after exclusion",
-                ).to.be.true;
-                expect(
-                    proj.sqlObjectScripts.length,
-                    "Number of scripts should not have changed",
-                ).to.equal(0);
-                expect(proj.folders.length, "Number of folders should not have changed").to.equal(
+                ).be.true("File should still exist on disk");
+                proj.sqlObjectScripts.length.should.equal(
                     0,
+                    "Number of scripts should not have changed",
                 );
+                proj.folders.length.should.equal(0, "Number of folders should not have changed");
             });
 
             // TODO: move test to DacFx and fix delete
@@ -1044,22 +1056,22 @@ suite("ProjectsController", function (): void {
                 proj = await Project.openProject(proj.projectFilePath);
 
                 // Confirm result
-                expect(
-                    proj.sqlObjectScripts.some((x) => x.relativePath === "UpperFolder"),
+                should(proj.sqlObjectScripts.some((x) => x.relativePath === "UpperFolder")).equal(
+                    false,
                     "UpperFolder should not be part of proj file any more",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(scriptEntry.fsUri.fsPath),
+                );
+                should(await utils.exists(scriptEntry.fsUri.fsPath)).equal(
+                    false,
                     "script is supposed to be deleted from disk",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(lowerFolder.relativeProjectUri.fsPath),
+                );
+                should(await utils.exists(lowerFolder.relativeProjectUri.fsPath)).equal(
+                    false,
                     "LowerFolder is supposed to be deleted from disk",
-                ).to.equal(false);
-                expect(
-                    await utils.exists(upperFolder.relativeProjectUri.fsPath),
+                );
+                should(await utils.exists(upperFolder.relativeProjectUri.fsPath)).equal(
+                    false,
                     "UpperFolder is supposed to be deleted from disk",
-                ).to.equal(false);
+                );
             });
 
             test("Should reload correctly after changing sqlproj file", async function (): Promise<void> {
@@ -1077,10 +1089,7 @@ suite("ProjectsController", function (): void {
 
                 // change the sql project file
                 await fs.writeFile(sqlProjPath, baselines.newProjectFileWithScriptBaseline);
-                expect(
-                    project.sqlObjectScripts.length,
-                    "Project should have no scripts before reload",
-                ).to.equal(0);
+                should(project.sqlObjectScripts.length).equal(0);
 
                 // call reload project
                 const projTreeRoot = new ProjectRootTreeItem(project);
@@ -1092,16 +1101,12 @@ suite("ProjectsController", function (): void {
                 treeProvider.load([project]);
 
                 // check that the new project is in the tree
-                expect(
-                    project.sqlObjectScripts.length,
-                    "Project should have one script after reload",
-                ).to.equal(1);
-                expect(
+                should(project.sqlObjectScripts.length).equal(1);
+                should(
                     treeProvider
                         .getChildren()[0]
                         .children.find((c) => c.friendlyName === "Script1.sql"),
-                    "Script1.sql should be present in the tree after reload",
-                ).to.not.equal(undefined);
+                ).not.equal(undefined);
             });
 
             test("Should be able to add pre deploy and post deploy script", async function (): Promise<void> {
@@ -1116,33 +1121,32 @@ suite("ProjectsController", function (): void {
 
                 sinon.stub(vscode.window, "showInputBox").resolves(preDeployScriptName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(preDeployScriptName);
-                expect(
-                    project.preDeployScripts.length,
+                should(project.preDeployScripts.length).equal(
+                    0,
                     "There should be no pre deploy scripts",
-                ).to.equal(0);
+                );
                 await projController.addItemPrompt(project, "", {
                     itemType: ItemType.preDeployScript,
                 });
-                expect(
-                    project.preDeployScripts.length,
+                should(project.preDeployScripts.length).equal(
+                    1,
                     `Pre deploy script should be successfully added. ${project.preDeployScripts.length}, ${project.sqlObjectScripts.length}`,
-                ).to.equal(1);
+                );
 
                 sinon.restore();
-                restubServices(utils, testContext.dacFxService);
                 sinon.stub(vscode.window, "showInputBox").resolves(postDeployScriptName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(postDeployScriptName);
-                expect(
-                    project.postDeployScripts.length,
+                should(project.postDeployScripts.length).equal(
+                    0,
                     "There should be no post deploy scripts",
-                ).to.equal(0);
+                );
                 await projController.addItemPrompt(project, "", {
                     itemType: ItemType.postDeployScript,
                 });
-                expect(
-                    project.postDeployScripts.length,
+                should(project.postDeployScripts.length).equal(
+                    1,
                     "Post deploy script should be successfully added",
-                ).to.equal(1);
+                );
             });
 
             test("Should be able to add publish profile", async function (): Promise<void> {
@@ -1156,17 +1160,17 @@ suite("ProjectsController", function (): void {
 
                 sinon.stub(vscode.window, "showInputBox").resolves(publishProfileName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(publishProfileName);
-                expect(
-                    project.publishProfiles.length,
+                should(project.publishProfiles.length).equal(
+                    0,
                     "There should be no publish profiles",
-                ).to.equal(0);
+                );
                 await projController.addItemPrompt(project, "", {
                     itemType: ItemType.publishProfile,
                 });
-                expect(
-                    project.publishProfiles.length,
+                should(project.publishProfiles.length).equal(
+                    1,
                     "Publish profile should be successfully added.",
-                ).to.equal(1);
+                );
             });
 
             test("Should change target platform", async function (): Promise<void> {
@@ -1180,20 +1184,116 @@ suite("ProjectsController", function (): void {
                     baselines.openProjectFileBaseline,
                 );
                 const project = await Project.openProject(sqlProjPath);
-                expect(
-                    project.getProjectTargetVersion(),
-                    "Initial target version should be SQL Server 2019",
-                ).to.equal(constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlServer2019));
-                expect(
-                    project.databaseReferences.length,
+                should(project.getProjectTargetVersion()).equal(
+                    constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlServer2019),
+                );
+                should(project.databaseReferences.length).equal(
+                    1,
                     "Project should have one database reference to master",
-                ).to.equal(1);
+                );
 
                 await projController.changeTargetPlatform(project);
+                should(project.getProjectTargetVersion()).equal(
+                    constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure),
+                );
+            });
+        });
+
+        suite("Publishing and script generation", function (): void {
+            const sandbox = sinon.createSandbox();
+
+            teardown(function (): void {
+                sandbox.restore();
+            });
+
+            test("Should copy dacpac to temp folder before publishing", async function (): Promise<void> {
+                const fakeDacpacContents = "SwiftFlewHiawathasArrow";
+                let postCopyContents = "";
+                let builtDacpacPath = "";
+                let publishedDacpacPath = "";
+
+                testContext.dacFxService
+                    .setup((x) =>
+                        x.generateDeployScript(
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                        ),
+                    )
+                    .returns(async (p) => {
+                        publishedDacpacPath = p;
+                        postCopyContents = (await fs.readFile(publishedDacpacPath)).toString();
+                        return Promise.resolve(mockDacFxResult);
+                    });
+
+                let projController = TypeMoq.Mock.ofType(ProjectsController);
+                projController.callBase = true;
+
+                projController
+                    .setup((x) => x.buildProject(TypeMoq.It.isAny()))
+                    .returns(async () => {
+                        builtDacpacPath = await testUtils.createTestFile(
+                            this.test,
+                            fakeDacpacContents,
+                            "output.dacpac",
+                        );
+                        return builtDacpacPath;
+                    });
+                sandbox.stub(utils, "getDacFxService").resolves(testContext.dacFxService.object);
+
+                const proj = await testUtils.createTestProject(
+                    this.test,
+                    baselines.openProjectFileBaseline,
+                );
+
+                await projController.object.publishOrScriptProject(
+                    proj,
+                    { connectionUri: "", databaseName: "", serverName: "" },
+                    false,
+                );
+
+                should(builtDacpacPath).not.equal("", "built dacpac path should be set");
+                should(publishedDacpacPath).not.equal("", "published dacpac path should be set");
+                should(builtDacpacPath).not.equal(
+                    publishedDacpacPath,
+                    "built and published dacpac paths should be different",
+                );
+                should(postCopyContents).equal(
+                    fakeDacpacContents,
+                    "contents of built and published dacpacs should match",
+                );
+                await fs.rm(publishedDacpacPath);
+            });
+
+            test("publishProject should invoke mssql.publishDatabaseProject command with correct project path", async function (): Promise<void> {
+                const proj = await testUtils.createTestProject(
+                    this.test,
+                    baselines.openProjectFileBaseline,
+                );
+                const expectedProjectPath = proj.projectFilePath;
+
+                const executeCommandStub = sandbox
+                    .stub(vscode.commands, "executeCommand")
+                    .resolves();
+
+                const projController = new ProjectsController(testContext.outputChannel);
+                await projController.publishProject(proj);
+
                 expect(
-                    project.getProjectTargetVersion(),
-                    "Target version should be updated to SQL Azure after change",
-                ).to.equal(constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure));
+                    executeCommandStub.calledOnce,
+                    "executeCommand should be called exactly once",
+                ).to.be.true;
+                expect(executeCommandStub.firstCall.args[0]).to.equal(
+                    constants.mssqlPublishProjectCommand,
+                    "should invoke the mssql publish project command",
+                );
+                expect(executeCommandStub.firstCall.args[1]).to.equal(
+                    expectedProjectPath,
+                    "should pass the correct project file path",
+                );
             });
         });
     });
@@ -1211,14 +1311,10 @@ suite("ProjectsController", function (): void {
             const fileList = await projController.generateScriptList(testFolderPath);
 
             // script list should only include the .sql files, no folders and not the .txt file
-            expect(fileList.length, "number of files returned by generateScriptList()").to.equal(
-                11,
-            );
-            expect(
-                fileList.filter((x) => path.extname(x.fsPath) !== constants.sqlFileExtension)
-                    .length,
-                "number of non-.sql files",
-            ).to.equal(0);
+            fileList.length.should.equal(11, "number of files returned by generateScriptList()");
+            fileList
+                .filter((x) => path.extname(x.fsPath) !== constants.sqlFileExtension)
+                .length.should.equal(0, "number of non-.sql files");
         });
 
         test("Should error out for inaccessible path", async function (): Promise<void> {
@@ -1230,12 +1326,91 @@ suite("ProjectsController", function (): void {
             const projController = new ProjectsController(testContext.outputChannel);
 
             await projController.generateScriptList(testFolderPath);
-            expect(spy, "showErrorMessage should have been called").to.have.been.calledOnce;
+            should(spy.calledOnce).be.true("showErrorMessage should have been called");
             const msg = constants.cannotResolvePath(testFolderPath);
-            expect(
-                spy,
+            should(spy.calledWith(msg)).be.true(
                 `showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'`,
-            ).to.have.been.calledWith(msg);
+            );
+        });
+
+        test("Create project from Database dialog should open from ProjectController", async function (): Promise<void> {
+            let opened = false;
+
+            let createProjectFromDatabaseDialog = TypeMoq.Mock.ofType(
+                CreateProjectFromDatabaseDialog,
+                undefined,
+                undefined,
+                mockConnectionProfile,
+            );
+            createProjectFromDatabaseDialog
+                .setup((x) => x.openDialog())
+                .returns(() => {
+                    opened = true;
+                    return Promise.resolve(undefined);
+                });
+
+            let projController = TypeMoq.Mock.ofType(ProjectsController);
+            projController.callBase = true;
+            projController
+                .setup((x) => x.getCreateProjectFromDatabaseDialog(TypeMoq.It.isAny()))
+                .returns(() => createProjectFromDatabaseDialog.object);
+
+            await projController.object.createProjectFromDatabase(mockConnectionProfile);
+            should(opened).equal(true);
+        });
+
+        test.skip("Callbacks are hooked up and called from create project from database dialog", async function (): Promise<void> {
+            const createProjectFromDbHoller = "hello from callback for createProjectFromDatabase()";
+
+            let holler = "nothing";
+
+            const createProjectFromDatabaseDialog = TypeMoq.Mock.ofType(
+                CreateProjectFromDatabaseDialog,
+                undefined,
+                undefined,
+                undefined,
+            );
+            createProjectFromDatabaseDialog.callBase = true;
+            createProjectFromDatabaseDialog
+                .setup((x) => x.handleCreateButtonClick())
+                .returns(async () => {
+                    await projController.object.createProjectFromDatabaseCallback(
+                        {
+                            connectionUri: "My Id",
+                            database: "My Database",
+                            projName: "testProject",
+                            filePath: "testLocation",
+                            version: "1.0.0.0",
+                            extractTarget: mssql.ExtractTarget["schemaObjectType"],
+                            sdkStyle: false,
+                        },
+                        undefined,
+                    );
+
+                    return Promise.resolve(undefined);
+                });
+
+            const projController = TypeMoq.Mock.ofType(ProjectsController);
+            projController.callBase = true;
+            projController
+                .setup((x) => x.getCreateProjectFromDatabaseDialog(TypeMoq.It.isAny()))
+                .returns(() => createProjectFromDatabaseDialog.object);
+            projController
+                .setup((x) =>
+                    x.createProjectFromDatabaseCallback(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                )
+                .returns(() => {
+                    holler = createProjectFromDbHoller;
+                    return Promise.resolve(undefined);
+                });
+
+            let dialog = await projController.object.createProjectFromDatabase(undefined);
+            await dialog!.handleCreateButtonClick();
+
+            should(holler).equal(
+                createProjectFromDbHoller,
+                "executionCallback() is supposed to have been setup and called for create project from database scenario",
+            );
         });
 
         test("Should set model filePath correctly for ExtractType = File", async function (): Promise<void> {
@@ -1256,11 +1431,9 @@ suite("ProjectsController", function (): void {
             projController.setFilePath(model);
             importPath = model.filePath;
 
-            expect(
-                importPath.toUpperCase(),
-                `model.filePath should be set to a specific file for ExtractTarget === file, but was ${importPath}`,
-            ).to.equal(
+            should(importPath.toUpperCase()).equal(
                 vscode.Uri.file(path.join(folderPath, projectName + ".sql")).fsPath.toUpperCase(),
+                `model.filePath should be set to a specific file for ExtractTarget === file, but was ${importPath}`,
             );
         });
 
@@ -1282,10 +1455,265 @@ suite("ProjectsController", function (): void {
             projController.setFilePath(model);
             importPath = model.filePath;
 
-            expect(
-                importPath.toUpperCase(),
+            should(importPath.toUpperCase()).equal(
+                vscode.Uri.file(path.join(folderPath)).fsPath.toUpperCase(),
                 `model.filePath should be set to a folder for ExtractTarget !== file, but was ${importPath}`,
-            ).to.equal(vscode.Uri.file(path.join(folderPath)).fsPath.toUpperCase());
+            );
+        });
+    });
+
+    suite("Add database reference", function (): void {
+        test("Add database reference dialog should open from ProjectController", async function (): Promise<void> {
+            let opened = false;
+
+            let addDbReferenceDialog = TypeMoq.Mock.ofType(AddDatabaseReferenceDialog);
+            addDbReferenceDialog
+                .setup((x) => x.openDialog())
+                .returns(() => {
+                    opened = true;
+                    return Promise.resolve(undefined);
+                });
+
+            let projController = TypeMoq.Mock.ofType(ProjectsController);
+            projController.callBase = true;
+            projController
+                .setup((x) => x.getAddDatabaseReferenceDialog(TypeMoq.It.isAny()))
+                .returns(() => addDbReferenceDialog.object);
+
+            await projController.object.addDatabaseReference(new Project("FakePath"));
+            should(opened).equal(true);
+        });
+
+        test("Callbacks are hooked up and called from Add database reference dialog", async function (): Promise<void> {
+            const projPath = path.dirname(
+                await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline),
+            );
+            const proj = new Project(projPath);
+
+            const addDbRefHoller = "hello from callback for addDatabaseReference()";
+
+            let holler = "nothing";
+
+            const addDbReferenceDialog = TypeMoq.Mock.ofType(
+                AddDatabaseReferenceDialog,
+                undefined,
+                undefined,
+                proj,
+            );
+            addDbReferenceDialog.callBase = true;
+            addDbReferenceDialog
+                .setup((x) => x.addReferenceClick())
+                .returns(() => {
+                    return projController.object.addDatabaseReferenceCallback(
+                        proj,
+                        {
+                            systemDb: SystemDatabase.Master,
+                            databaseName: "master",
+                            suppressMissingDependenciesErrors: false,
+                            systemDbReferenceType: mssql.SystemDbReferenceType.ArtifactReference,
+                        },
+                        {
+                            treeDataProvider: new SqlDatabaseProjectTreeViewProvider(),
+                            element: undefined,
+                        },
+                    );
+                });
+            addDbReferenceDialog.setup((x) => x.openDialog()).returns(() => Promise.resolve());
+
+            const projController = TypeMoq.Mock.ofType(ProjectsController);
+            projController.callBase = true;
+            projController
+                .setup((x) => x.getAddDatabaseReferenceDialog(TypeMoq.It.isAny()))
+                .returns(() => addDbReferenceDialog.object);
+            projController
+                .setup((x) =>
+                    x.addDatabaseReferenceCallback(
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.is((_): _ is IDacpacReferenceSettings => true),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => {
+                    holler = addDbRefHoller;
+                    return Promise.resolve(undefined);
+                });
+
+            let dialog = await projController.object.addDatabaseReference(proj);
+            await dialog!.addReferenceClick();
+
+            should(holler).equal(
+                addDbRefHoller,
+                "executionCallback() is supposed to have been setup and called for add database reference scenario",
+            );
+        });
+
+        test.skip("Should not allow adding circular project references", async function (): Promise<void> {
+            const projPath1 = await testUtils.createTestSqlProjFile(
+                this.test,
+                baselines.openProjectFileBaseline,
+            );
+            const projPath2 = await testUtils.createTestSqlProjFile(
+                this.test,
+                baselines.newProjectFileBaseline,
+            );
+            const projController = new ProjectsController(testContext.outputChannel);
+
+            const project1 = await Project.openProject(vscode.Uri.file(projPath1).fsPath);
+            const project2 = await Project.openProject(vscode.Uri.file(projPath2).fsPath);
+            const showErrorMessageSpy = sinon.spy(vscode.window, "showErrorMessage");
+            const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
+            dataWorkspaceMock
+                .setup((x) => x.getProjectsInWorkspace(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() =>
+                    Promise.resolve([
+                        vscode.Uri.file(project1.projectFilePath),
+                        vscode.Uri.file(project2.projectFilePath),
+                    ]),
+                );
+            sinon
+                .stub(vscode.extensions, "getExtension")
+                .returns(<any>{ exports: dataWorkspaceMock.object });
+            sinon.stub(utils, "getDacFxService").returns(<any>{
+                parseTSqlScript: (_: string, __: string) => {
+                    return Promise.resolve({ containsCreateTableStatement: true });
+                },
+            });
+
+            // add project reference from project1 to project2
+            await projController.addDatabaseReferenceCallback(
+                project1,
+                {
+                    projectGuid: "",
+                    projectName: "TestProject",
+                    projectRelativePath: undefined,
+                    suppressMissingDependenciesErrors: false,
+                },
+                { treeDataProvider: new SqlDatabaseProjectTreeViewProvider(), element: undefined },
+            );
+            should(showErrorMessageSpy.notCalled).be.true(
+                "showErrorMessage should not have been called",
+            );
+
+            // try to add circular reference
+            await projController.addDatabaseReferenceCallback(
+                project2,
+                {
+                    projectGuid: "",
+                    projectName: "TestProjectName",
+                    projectRelativePath: undefined,
+                    suppressMissingDependenciesErrors: false,
+                },
+                { treeDataProvider: new SqlDatabaseProjectTreeViewProvider(), element: undefined },
+            );
+            should(showErrorMessageSpy.called).be.true("showErrorMessage should have been called");
+        });
+
+        test.skip("Should add dacpac references as relative paths", async function (): Promise<void> {
+            const projFilePath = await testUtils.createTestSqlProjFile(
+                this.test,
+                baselines.newProjectFileBaseline,
+            );
+            const projController = new ProjectsController(testContext.outputChannel);
+
+            const project1 = await Project.openProject(vscode.Uri.file(projFilePath).fsPath);
+            const showErrorMessageSpy = sinon.spy(vscode.window, "showErrorMessage");
+            const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
+            sinon
+                .stub(vscode.extensions, "getExtension")
+                .returns(<any>{ exports: dataWorkspaceMock.object });
+            sinon.stub(utils, "getDacFxService").returns(<any>{
+                parseTSqlScript: (_: string, __: string) => {
+                    return Promise.resolve({ containsCreateTableStatement: true });
+                },
+            });
+            // add dacpac reference to something in the same folder
+            should(project1.databaseReferences.length).equal(
+                0,
+                "There should not be any database references to start with",
+            );
+
+            await projController.addDatabaseReferenceCallback(
+                project1,
+                {
+                    databaseName: <string>this.databaseNameTextbox?.value,
+                    dacpacFileLocation: vscode.Uri.file(
+                        path.join(path.dirname(projFilePath), "sameFolderTest.dacpac"),
+                    ),
+                    suppressMissingDependenciesErrors: false,
+                },
+                { treeDataProvider: new SqlDatabaseProjectTreeViewProvider(), element: undefined },
+            );
+            should(showErrorMessageSpy.notCalled).be.true(
+                "showErrorMessage should not have been called",
+            );
+            should(project1.databaseReferences.length).equal(
+                1,
+                "Dacpac reference should have been added",
+            );
+            should(project1.databaseReferences[0].referenceName).equal("sameFolderTest");
+            should(project1.databaseReferences[0].pathForSqlProj()).equal("sameFolderTest.dacpac");
+            // make sure reference to sameFolderTest.dacpac was added to project file
+            let projFileText = (await fs.readFile(projFilePath)).toString();
+            should(projFileText).containEql("sameFolderTest.dacpac");
+
+            // add dacpac reference to something in the a nested folder
+            await projController.addDatabaseReferenceCallback(
+                project1,
+                {
+                    databaseName: <string>this.databaseNameTextbox?.value,
+                    dacpacFileLocation: vscode.Uri.file(
+                        path.join(path.dirname(projFilePath), "refs", "nestedFolderTest.dacpac"),
+                    ),
+                    suppressMissingDependenciesErrors: false,
+                },
+                { treeDataProvider: new SqlDatabaseProjectTreeViewProvider(), element: undefined },
+            );
+            should(showErrorMessageSpy.notCalled).be.true(
+                "showErrorMessage should not have been called",
+            );
+            should(project1.databaseReferences.length).equal(
+                2,
+                "Another dacpac reference should have been added",
+            );
+            should(project1.databaseReferences[1].referenceName).equal("nestedFolderTest");
+            should(project1.databaseReferences[1].pathForSqlProj()).equal(
+                "refs\\nestedFolderTest.dacpac",
+            );
+            // make sure reference to nestedFolderTest.dacpac was added to project file
+            projFileText = (await fs.readFile(projFilePath)).toString();
+            should(projFileText).containEql("refs\\nestedFolderTest.dacpac");
+
+            // add dacpac reference to something in the a folder outside of the project
+            await projController.addDatabaseReferenceCallback(
+                project1,
+                {
+                    databaseName: <string>this.databaseNameTextbox?.value,
+                    dacpacFileLocation: vscode.Uri.file(
+                        path.join(
+                            path.dirname(projFilePath),
+                            "..",
+                            "someFolder",
+                            "outsideFolderTest.dacpac",
+                        ),
+                    ),
+                    suppressMissingDependenciesErrors: false,
+                },
+                { treeDataProvider: new SqlDatabaseProjectTreeViewProvider(), element: undefined },
+            );
+            should(showErrorMessageSpy.notCalled).be.true(
+                "showErrorMessage should not have been called",
+            );
+            should(project1.databaseReferences.length).equal(
+                3,
+                "Another dacpac reference should have been added",
+            );
+            should(project1.databaseReferences[2].referenceName).equal("outsideFolderTest");
+            should(project1.databaseReferences[2].pathForSqlProj()).equal(
+                "..\\someFolder\\outsideFolderTest.dacpac",
+            );
+            // make sure reference to outsideFolderTest.dacpac was added to project file
+            projFileText = (await fs.readFile(projFilePath)).toString();
+            should(projFileText).containEql("..\\someFolder\\outsideFolderTest.dacpac");
         });
     });
 
@@ -1299,69 +1727,78 @@ suite("ProjectsController", function (): void {
             const newProjFolder = path.join(parentFolder, renamedProjectName);
             let fileList: vscode.Uri[] = [];
 
-            const projController = sinon.createStubInstance(ProjectsController);
+            const projController = TypeMoq.Mock.ofType(ProjectsController);
+            projController.callBase = true;
 
-            projController.selectAutorestSpecFile.resolves(specName);
-            projController.selectAutorestProjectLocation.callsFake(async () => {
-                await fs.mkdir(newProjFolder);
+            projController.setup((x) => x.selectAutorestSpecFile()).returns(async () => specName);
+            projController
+                .setup((x) => x.selectAutorestProjectLocation(TypeMoq.It.isAny(), undefined))
+                .returns(async () => {
+                    await fs.mkdir(newProjFolder);
 
-                return {
-                    newProjectFolder: newProjFolder,
-                    outputFolder: parentFolder,
-                    projectName: renamedProjectName,
-                };
-            });
+                    return {
+                        newProjectFolder: newProjFolder,
+                        outputFolder: parentFolder,
+                        projectName: renamedProjectName,
+                    };
+                });
 
-            projController.generateAutorestFiles.callsFake(async () => {
-                await testUtils.createDummyFileStructure(this.test, true, fileList, newProjFolder);
-                await testUtils.createTestFile(
-                    this.test,
-                    "SELECT 'This is a post-deployment script'",
-                    constants.autorestPostDeploymentScriptName,
-                    newProjFolder,
-                );
-                return "some dummy console output";
-            });
+            projController
+                .setup((x) => x.generateAutorestFiles(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(async () => {
+                    await testUtils.createDummyFileStructure(
+                        this.test,
+                        true,
+                        fileList,
+                        newProjFolder,
+                    );
+                    await testUtils.createTestFile(
+                        this.test,
+                        "SELECT 'This is a post-deployment script'",
+                        constants.autorestPostDeploymentScriptName,
+                        newProjFolder,
+                    );
+                    return "some dummy console output";
+                });
 
-            projController.promptForAutorestProjectName.resolves(renamedProjectName);
-            projController.openProjectInWorkspace.resolves();
+            projController
+                .setup((x) => x.promptForAutorestProjectName(TypeMoq.It.isAny()))
+                .returns(async () => renamedProjectName);
+            projController
+                .setup((x) => x.openProjectInWorkspace(TypeMoq.It.isAny()))
+                .returns(async () => {});
 
-            const project = (await projController.generateProjectFromOpenApiSpec())!;
+            const project = (await projController.object.generateProjectFromOpenApiSpec())!;
 
-            expect(
-                project.projectFileName,
-                "Project file name should match the renamed project name",
-            ).to.equal(renamedProjectName);
-            expect(
-                project.projectFolderPath.endsWith(renamedProjectName),
+            should(project.projectFileName).equal(renamedProjectName);
+            should(project.projectFolderPath.endsWith(renamedProjectName)).is.true(
                 `Expected: '${project.projectFolderPath}' to include '${renamedProjectName}'`,
-            ).to.be.true;
+            );
 
-            expect(
-                project.postDeployScripts.length,
+            should(project.postDeployScripts.length).equal(
+                1,
                 `Expected 1 post-deployment script, got ${project?.postDeployScripts.length}`,
-            ).to.equal(1);
+            );
             const actual = path.basename(project.postDeployScripts[0].fsUri.fsPath);
-            expect(
-                actual,
+            should(actual).equal(
+                constants.autorestPostDeploymentScriptName,
                 `Unexpected post-deployment script name: ${actual}, expected ${constants.autorestPostDeploymentScriptName}`,
-            ).to.equal(constants.autorestPostDeploymentScriptName);
+            );
 
             const expectedScripts = fileList.filter((f) => path.extname(f.fsPath) === ".sql");
-            expect(
-                project.sqlObjectScripts.filter((f) => f.type === EntryType.File).length,
+            should(project.sqlObjectScripts.filter((f) => f.type === EntryType.File).length).equal(
+                expectedScripts.length,
                 "Unexpected number of scripts in project",
-            ).to.equal(expectedScripts.length);
+            );
 
             const expectedFolders = fileList.filter(
                 (f) =>
                     path.extname(f.fsPath) === "" &&
                     f.fsPath.toUpperCase() !== newProjFolder.toUpperCase(),
             );
-            expect(
+            should(
                 project.sqlObjectScripts.filter((f) => f.type === EntryType.Folder).length,
-                "Unexpected number of folders in project",
-            ).to.equal(expectedFolders.length);
+            ).equal(expectedFolders.length, "Unexpected number of folders in project");
         });
     });
 
@@ -1392,19 +1829,17 @@ suite("ProjectsController", function (): void {
                 folderWorkspaceTreeItem,
             );
 
-            expect(spy, "showErrorMessage should not have been called").to.not.have.been.called;
+            should(spy.notCalled).be.true("showErrorMessage should not have been called");
 
             // reload project and verify file was moved
             proj = await Project.openProject(proj.projectFilePath);
-            expect(
+            should(
                 proj.sqlObjectScripts.find((f) => f.relativePath === "UpperFolder\\script1.sql") !==
                     undefined,
-                "The file path should have been updated",
-            ).to.be.true;
-            expect(
+            ).be.true("The file path should have been updated");
+            should(
                 await utils.exists(path.join(proj.projectFolderPath, "UpperFolder", "script1.sql")),
-                "The moved file should exist",
-            ).to.be.true;
+            ).be.true("The moved file should exist");
         });
 
         test("Should move a folder to another folder", async function (): Promise<void> {
@@ -1433,14 +1868,13 @@ suite("ProjectsController", function (): void {
                 folderWorkspaceTreeItem,
             );
 
-            expect(spy, "showErrorMessage should not have been called").to.not.have.been.called;
+            should(spy.notCalled).be.true("showErrorMessage should not have been called");
 
             // reload project and verify file was moved
             proj = await Project.openProject(proj.projectFilePath);
-            expect(
+            should(
                 proj.folders.find((f) => f.relativePath === "UpperFolder\\folder1") !== undefined,
-                "The folder path should have been updated",
-            ).to.be.true;
+            ).be.true("The folder path should have been updated");
         });
 
         test("Should not allow moving a file to Database References or SQLCMD folder", async function (): Promise<void> {
@@ -1474,13 +1908,13 @@ suite("ProjectsController", function (): void {
 
                 // reload project and verify file was not moved
                 proj = await Project.openProject(proj.projectFilePath);
-                expect(
+                should(
                     proj.sqlObjectScripts.find((f) => f.relativePath === "script1.sql") !==
                         undefined,
+                ).be.true(
                     `The file path should not have been updated when trying to move script1.sql to ${folder}`,
-                ).to.be.true;
-                expect(spy, "showErrorMessage should not have been called.").to.not.have.been
-                    .called;
+                );
+                should(spy.notCalled).be.true("showErrorMessage should not have been called.");
                 spy.restore();
             }
         });
@@ -1505,14 +1939,12 @@ suite("ProjectsController", function (): void {
                 projectRootWorkspaceTreeItem,
             );
 
-            expect(
-                spy,
+            should(spy.calledOnce).be.true(
                 "showErrorMessage should have been called exactly once when trying to move a sqlcmd variable",
-            ).to.have.been.calledOnce;
-            expect(
-                spy,
+            );
+            should(spy.calledWith(constants.onlyMoveFilesFoldersSupported)).be.true(
                 `showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'`,
-            ).to.have.been.calledWith(constants.onlyMoveFilesFoldersSupported);
+            );
             spy.restore();
 
             // try moving a database reference
@@ -1525,14 +1957,12 @@ suite("ProjectsController", function (): void {
                 projectRootWorkspaceTreeItem,
             );
 
-            expect(
-                spy,
+            should(spy.calledOnce).be.true(
                 "showErrorMessage should have been called exactly once when trying to move a database reference",
-            ).to.have.been.calledOnce;
-            expect(
-                spy,
+            );
+            should(spy.calledWith(constants.onlyMoveFilesFoldersSupported)).be.true(
                 `showErrorMessage not called with expected message '${constants.onlyMoveFilesFoldersSupported}' Actual '${spy.getCall(0).args[0]}'`,
-            ).to.have.been.calledWith(constants.onlyMoveFilesFoldersSupported);
+            );
             spy.restore();
         });
 
@@ -1568,18 +1998,18 @@ suite("ProjectsController", function (): void {
                 proj2FolderWorkspaceTreeItem,
             );
 
-            expect(spy, "showErrorMessage should have been called").to.have.been.called;
-            expect(
-                spy,
+            should(spy.called).be.true("showErrorMessage should have been called");
+            should(spy.calledWith(constants.movingFilesBetweenProjectsNotSupported)).be.true(
                 `showErrorMessage not called with expected message '${constants.movingFilesBetweenProjectsNotSupported}' Actual '${spy.getCall(0).args[0]}'`,
-            ).to.have.been.calledWith(constants.movingFilesBetweenProjectsNotSupported);
+            );
 
             // verify script1.sql was not moved
             proj1 = await Project.openProject(proj1.projectFilePath);
-            expect(
+            should(
                 proj1.sqlObjectScripts.find((f) => f.relativePath === "script1.sql") !== undefined,
+            ).be.true(
                 `The file path should not have been updated when trying to move script1.sql to proj2`,
-            ).to.be.true;
+            );
         });
     });
 
@@ -1599,14 +2029,12 @@ suite("ProjectsController", function (): void {
 
             // reload project and verify file was not renamed
             proj = await Project.openProject(proj.projectFilePath);
-            expect(
+            should(
                 proj.sqlObjectScripts.find((f) => f.relativePath === "script1.sql") !== undefined,
-                "The file path should not have been updated",
-            ).to.be.true;
-            expect(
-                await utils.exists(path.join(proj.projectFolderPath, "script1.sql")),
+            ).be.true("The file path should not have been updated");
+            should(await utils.exists(path.join(proj.projectFolderPath, "script1.sql"))).be.true(
                 "The moved file should exist",
-            ).to.be.true;
+            );
         });
 
         test("Should rename a sql object file", async function (): Promise<void> {
@@ -1624,14 +2052,12 @@ suite("ProjectsController", function (): void {
 
             // reload project and verify file was renamed
             proj = await Project.openProject(proj.projectFilePath);
-            expect(
+            should(
                 proj.sqlObjectScripts.find((f) => f.relativePath === "newName.sql") !== undefined,
-                "The file path should have been updated",
-            ).to.be.true;
-            expect(
-                await utils.exists(path.join(proj.projectFolderPath, "newName.sql")),
+            ).be.true("The file path should have been updated");
+            should(await utils.exists(path.join(proj.projectFolderPath, "newName.sql"))).be.true(
                 "The moved file should exist",
-            ).to.be.true;
+            );
         });
 
         test("Should rename a pre and post deploy script", async function (): Promise<void> {
@@ -1661,7 +2087,6 @@ suite("ProjectsController", function (): void {
             await projController.rename(createWorkspaceTreeItem(preDeployScriptNode!));
 
             sinon.restore();
-            restubServices(utils, testContext.dacFxService);
             sinon.stub(vscode.window, "showInputBox").resolves("postdeployNewName.sql");
             const postDeployScriptNode = projTreeRoot.children.find(
                 (x) => x.friendlyName === "Script.PostDeployment1.sql",
@@ -1670,25 +2095,21 @@ suite("ProjectsController", function (): void {
 
             // reload project and verify files were renamed
             proj = await Project.openProject(proj.projectFilePath);
-            expect(
+            should(
                 proj.preDeployScripts.find((f) => f.relativePath === "predeployNewName.sql") !==
                     undefined,
-                "The pre deploy script file path should have been updated",
-            ).to.be.true;
-            expect(
+            ).be.true("The pre deploy script file path should have been updated");
+            should(
                 await utils.exists(path.join(proj.projectFolderPath, "predeployNewName.sql")),
-                "The moved pre deploy script file should exist",
-            ).to.be.true;
+            ).be.true("The moved pre deploy script file should exist");
 
-            expect(
+            should(
                 proj.postDeployScripts.find((f) => f.relativePath === "postdeployNewName.sql") !==
                     undefined,
-                "The post deploy script file path should have been updated",
-            ).to.be.true;
-            expect(
+            ).be.true("The post deploy script file path should have been updated");
+            should(
                 await utils.exists(path.join(proj.projectFolderPath, "postdeployNewName.sql")),
-                "The moved post deploy script file should exist",
-            ).to.be.true;
+            ).be.true("The moved post deploy script file should exist");
         });
 
         test("Should rename a folder", async function (): Promise<void> {
@@ -1699,12 +2120,11 @@ suite("ProjectsController", function (): void {
             const projTreeRoot = new ProjectRootTreeItem(proj);
 
             sinon.stub(vscode.window, "showInputBox").resolves("RenamedFolder");
-            expect(
+            should(
                 await utils.exists(path.join(proj.projectFolderPath, "SomeFolder", "MyTable.sql")),
-                "File should exist in original location",
-            ).to.be.true;
-            expect(proj.sqlObjectScripts.length, "Starting number of scripts").to.equal(1);
-            expect(proj.folders.length, "Starting number of folders").to.equal(1);
+            ).be.true("File should exist in original location");
+            proj.sqlObjectScripts.length.should.equal(1, "Starting number of scripts");
+            proj.folders.length.should.equal(1, "Starting number of folders");
 
             // rename folder
             const folderNode = projTreeRoot.children.find((f) => f.friendlyName === "SomeFolder");
@@ -1713,27 +2133,24 @@ suite("ProjectsController", function (): void {
             // reload project and verify files were renamed
             proj = await Project.openProject(proj.projectFilePath);
 
-            expect(
+            should(
                 await utils.exists(
                     path.join(proj.projectFolderPath, "RenamedFolder", "MyTable.sql"),
                 ),
-                "File should exist in new location",
-            ).to.be.true;
-            expect(
-                proj.sqlObjectScripts.length,
+            ).be.true("File should exist in new location");
+            proj.sqlObjectScripts.length.should.equal(
+                1,
                 "Number of scripts should not have changed",
-            ).to.equal(1);
-            expect(proj.folders.length, "Number of folders should not have changed").to.equal(1);
-            expect(
+            );
+            proj.folders.length.should.equal(1, "Number of folders should not have changed");
+            should(
                 proj.folders.find((f) => f.relativePath === "RenamedFolder") !== undefined,
-                "The folder path should have been updated",
-            ).to.be.true;
-            expect(
+            ).be.true("The folder path should have been updated");
+            should(
                 proj.sqlObjectScripts.find(
                     (f) => f.relativePath === "RenamedFolder\\MyTable.sql",
                 ) !== undefined,
-                "Path of the script in the folder should have been updated",
-            ).to.be.true;
+            ).be.true("Path of the script in the folder should have been updated");
         });
     });
 
@@ -1749,10 +2166,10 @@ suite("ProjectsController", function (): void {
             const projController = new ProjectsController(testContext.outputChannel);
             const projRoot = new ProjectRootTreeItem(project);
 
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should start with 2 sqlcmd variables",
-            ).to.equal(2);
+            );
 
             sinon.stub(vscode.window, "showWarningMessage").returns(<any>Promise.resolve("Cancel"));
             await projController.delete(
@@ -1765,13 +2182,12 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should still have 2 sqlcmd variables if no was selected",
-            ).to.equal(2);
+            );
 
             sinon.restore();
-            restubServices(utils, testContext.dacFxService);
             sinon.stub(vscode.window, "showWarningMessage").returns(<any>Promise.resolve("Yes"));
             await projController.delete(
                 createWorkspaceTreeItem(
@@ -1783,10 +2199,10 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                1,
                 "The project should only have 1 sqlcmd variable after deletion",
-            ).to.equal(1);
+            );
         });
 
         test("Should add sqlcmd variable", async function (): Promise<void> {
@@ -1800,10 +2216,10 @@ suite("ProjectsController", function (): void {
             const projController = new ProjectsController(testContext.outputChannel);
             const projRoot = new ProjectRootTreeItem(project);
 
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should start with 2 sqlcmd variables",
-            ).to.equal(2);
+            );
 
             const inputBoxStub = sinon.stub(vscode.window, "showInputBox");
             inputBoxStub.resolves("");
@@ -1817,10 +2233,10 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should still have 2 sqlcmd variables if no name was provided",
-            ).to.equal(2);
+            );
 
             inputBoxStub.reset();
             inputBoxStub.onFirstCall().resolves("newVariable");
@@ -1835,10 +2251,10 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                3,
                 "The project should have 3 sqlcmd variable after adding a new one",
-            ).to.equal(3);
+            );
         });
 
         test("Should add sqlcmd variable without DefaultValue", async function (): Promise<void> {
@@ -1852,10 +2268,10 @@ suite("ProjectsController", function (): void {
             const projController = new ProjectsController(testContext.outputChannel);
             const projRoot = new ProjectRootTreeItem(project);
 
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should start with 2 sqlcmd variables",
-            ).to.equal(2);
+            );
 
             const inputBoxStub = sinon.stub(vscode.window, "showInputBox");
             inputBoxStub.onFirstCall().resolves("newVariable");
@@ -1872,10 +2288,10 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should still have 2 sqlcmd variables if no was selected for adding sqlcmd variable without a DefaultValue",
-            ).to.equal(2);
+            );
 
             inputBoxStub.reset();
             inputBoxStub.onFirstCall().resolves("newVariable");
@@ -1891,14 +2307,14 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                3,
                 "The project should have 3 sqlcmd variable after adding a new one without a DefaultValue",
-            ).to.equal(3);
-            expect(
-                project.sqlCmdVariables.get("newVariable"),
+            );
+            should(project.sqlCmdVariables.get("newVariable")).equal(
+                "",
                 "The default value of newVariable should be an empty string",
-            ).to.equal("");
+            );
         });
 
         test("Should update sqlcmd variable", async function (): Promise<void> {
@@ -1912,10 +2328,10 @@ suite("ProjectsController", function (): void {
             const projController = new ProjectsController(testContext.outputChannel);
             const projRoot = new ProjectRootTreeItem(project);
 
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should start with 2 sqlcmd variables",
-            ).to.equal(2);
+            );
 
             const inputBoxStub = sinon.stub(vscode.window, "showInputBox");
             inputBoxStub.resolves("");
@@ -1927,14 +2343,14 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should still have 2 sqlcmd variables",
-            ).to.equal(2);
-            expect(
-                project.sqlCmdVariables.get(sqlcmdVarToUpdate.friendlyName),
+            );
+            should(project.sqlCmdVariables.get(sqlcmdVarToUpdate.friendlyName)).equal(
+                originalValue,
                 "The value of the sqlcmd variable should not have changed",
-            ).to.equal(originalValue);
+            );
 
             inputBoxStub.reset();
             const updatedValue = "newValue";
@@ -1943,14 +2359,14 @@ suite("ProjectsController", function (): void {
 
             // reload project
             project = await Project.openProject(project.projectFilePath);
-            expect(
-                project.sqlCmdVariables.size,
+            should(project.sqlCmdVariables.size).equal(
+                2,
                 "The project should still have 2 sqlcmd variables",
-            ).to.equal(2);
-            expect(
-                project.sqlCmdVariables.get(sqlcmdVarToUpdate.friendlyName),
+            );
+            should(project.sqlCmdVariables.get(sqlcmdVarToUpdate.friendlyName)).equal(
+                updatedValue,
                 "The value of the sqlcmd variable should have been updated",
-            ).to.equal(updatedValue);
+            );
         });
 
         test("Should remove file extensions from user input when creating files", async function (): Promise<void> {
@@ -2027,19 +2443,16 @@ suite("ProjectsController", function (): void {
                 );
 
                 // Assert the created file exists
-                expect(
-                    createdFile,
-                    `Created file ${expectedFileName} should exist in project for input ${testCase.input}`,
-                ).to.not.be.undefined;
-                expect(
+                should(createdFile).not.be.undefined();
+                should(
                     await utils.exists(path.join(project.projectFolderPath, expectedFileName)),
+                ).be.true(
                     `File ${expectedFileName} should exist on disk for input ${testCase.input}`,
-                ).to.be.true;
+                );
 
                 // Clean up for next iteration
                 await project.deleteSqlObjectScript(createdFile!.relativePath);
                 sinon.restore();
-                restubServices(utils, testContext.dacFxService);
             }
         });
     });
@@ -2083,19 +2496,13 @@ async function setupDeleteExcludeTest(
         .returns(<any>Promise.resolve(constants.yesString));
 
     // confirm setup
-    expect(proj.sqlObjectScripts.length, "number of file entries").to.equal(3);
-    expect(proj.folders.length, "number of folder entries").to.equal(2);
-    expect(proj.preDeployScripts.length, "number of pre-deployment script entries").to.equal(1);
-    expect(proj.postDeployScripts.length, "number of post-deployment script entries").to.equal(1);
-    expect(proj.noneDeployScripts.length, "number of none script entries").to.equal(1);
-    expect(
-        path.parse(scriptEntry.fsUri.fsPath).base,
-        "Script entry base name should be someScript.sql",
-    ).to.equal("someScript.sql");
-    expect(
-        (await fs.readFile(scriptEntry.fsUri.fsPath)).toString(),
-        "Script file content should match expected text",
-    ).to.equal("not a real script");
+    should(proj.sqlObjectScripts.length).equal(3, "number of file entries");
+    should(proj.folders.length).equal(2, "number of folder entries");
+    should(proj.preDeployScripts.length).equal(1, "number of pre-deployment script entries");
+    should(proj.postDeployScripts.length).equal(1, "number of post-deployment script entries");
+    should(proj.noneDeployScripts.length).equal(1, "number of none script entries");
+    should(path.parse(scriptEntry.fsUri.fsPath).base).equal("someScript.sql");
+    should((await fs.readFile(scriptEntry.fsUri.fsPath)).toString()).equal("not a real script");
 
     return [scriptEntry, projTreeRoot, preDeployEntry, postDeployEntry, noneEntry];
 }
