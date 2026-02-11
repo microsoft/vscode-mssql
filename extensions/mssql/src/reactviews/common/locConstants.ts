@@ -983,6 +983,7 @@ export class LocConstants {
                     args: [changeCount],
                     comment: ["{0} is the number of schema changes"],
                 }),
+            changesViewModeLabel: l10n.t("Changes view mode"),
             changesListView: l10n.t("Changes List"),
             codeChangesView: l10n.t("Code Changes"),
             noChangesYet: l10n.t("No changes yet."),

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToggleButton, makeStyles, mergeClasses, ButtonProps } from "@fluentui/react-components";
+import { Button, makeStyles, mergeClasses, ButtonProps } from "@fluentui/react-components";
 import { ReactNode } from "react";
 
 const useStyles = makeStyles({
@@ -23,6 +23,7 @@ export interface SegmentedControlOption<T extends string = string> {
     value: T;
     label: ReactNode;
     disabled?: boolean;
+    ariaLabel?: string;
 }
 
 interface SegmentedControlProps<T extends string = string> {
@@ -32,6 +33,8 @@ interface SegmentedControlProps<T extends string = string> {
     size?: ButtonProps["size"];
     className?: string;
     buttonClassName?: string;
+    ariaLabel?: string;
+    ariaLabelledBy?: string;
 }
 
 export function SegmentedControl<T extends string = string>({
@@ -41,22 +44,28 @@ export function SegmentedControl<T extends string = string>({
     size = "small",
     className,
     buttonClassName,
+    ariaLabel,
+    ariaLabelledBy,
 }: SegmentedControlProps<T>) {
     const classes = useStyles();
 
     return (
-        <div className={mergeClasses(classes.root, className)}>
+        <div
+            className={mergeClasses(classes.root, className)}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}>
             {options.map((option) => (
-                <ToggleButton
+                <Button
                     key={option.value}
                     size={size}
-                    checked={value === option.value}
                     disabled={option.disabled}
                     appearance={value === option.value ? "primary" : "subtle"}
                     className={mergeClasses(classes.button, buttonClassName)}
+                    aria-label={option.ariaLabel}
+                    aria-pressed={value === option.value}
                     onClick={() => onValueChange(option.value)}>
                     {option.label}
-                </ToggleButton>
+                </Button>
             ))}
         </div>
     );

@@ -22,10 +22,12 @@ import {
     Column20Regular,
     Eye16Regular,
     Key20Regular,
+    Sparkle16Regular,
     Table20Regular,
 } from "@fluentui/react-icons";
 import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
 import { SchemaDesignerChangeDetailsPopover } from "./schemaDesignerChangeDetailsPopover";
+import { locConstants } from "../../../common/locConstants";
 
 export interface FlatTreeItem extends HeadlessFlatTreeItemProps {
     nodeType: "table" | "change";
@@ -248,6 +250,14 @@ const useStyles = makeStyles({
     },
     searchHighlight: {
         backgroundColor: "var(--vscode-editor-findMatchBackground)",
+    },
+    pendingAiIndicator: {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "20px",
+        height: "20px",
+        color: "var(--vscode-textLink-foreground)",
     },
 });
 
@@ -487,6 +497,23 @@ export const SchemaDesignerChangesTree = ({
                                     }
                                     aside={
                                         <Toolbar size="small">
+                                            {isPendingAiTab && (
+                                                <Tooltip
+                                                    content={
+                                                        locConstants.schemaDesigner
+                                                            .pendingAiTabLabel
+                                                    }
+                                                    relationship="label">
+                                                    <span
+                                                        aria-label={
+                                                            locConstants.schemaDesigner
+                                                                .pendingAiTabLabel
+                                                        }
+                                                        className={classes.pendingAiIndicator}>
+                                                        <Sparkle16Regular />
+                                                    </span>
+                                                </Tooltip>
+                                            )}
                                             <Tooltip
                                                 content={loc.revealTooltip}
                                                 relationship="label">

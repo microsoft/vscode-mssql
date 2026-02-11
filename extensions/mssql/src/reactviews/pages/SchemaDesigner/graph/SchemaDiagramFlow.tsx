@@ -33,6 +33,7 @@ import {
     BranchCompare16Regular,
     BranchCompare16Filled,
     Checkmark16Regular,
+    Sparkle16Regular,
 } from "@fluentui/react-icons";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -873,6 +874,22 @@ export const SchemaDesignerFlow = () => {
                         backgroundColor: "var(--vscode-editorWidget-background)",
                         boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
                     }}>
+                    <Tooltip
+                        content={locConstants.schemaDesigner.pendingAiTabLabel}
+                        relationship="label">
+                        <span
+                            aria-label={locConstants.schemaDesigner.pendingAiTabLabel}
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "20px",
+                                height: "20px",
+                                color: "var(--vscode-textLink-foreground)",
+                            }}>
+                            <Sparkle16Regular />
+                        </span>
+                    </Tooltip>
                     <Button
                         size="small"
                         appearance="primary"

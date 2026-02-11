@@ -80,6 +80,13 @@ const useStyles = makeStyles({
         gap: "3px",
         flexShrink: 0,
     },
+    headerRight: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        minWidth: 0,
+        flexShrink: 0,
+    },
 });
 
 const DEFAULTPANEL_SIZE = 25;
@@ -96,6 +103,12 @@ export interface DesignerDefinitionCustomTab {
     id: string;
     label: string;
     content: ReactNode;
+    actions?: DesignerDefinitionTabActions;
+}
+
+export interface DesignerDefinitionTabActions {
+    inlineActions?: ReactNode;
+    toolbarActions?: ReactNode;
 }
 
 export interface DesignerDefinitionPaneRef {
@@ -115,7 +128,9 @@ interface DesignerDefinitionPaneProps {
     onClose?: () => void;
     language?: string;
     customTabs?: DesignerDefinitionCustomTab[];
+    tabActions?: Partial<Record<DesignerDefinitionTabValue, DesignerDefinitionTabActions>>;
     onPanelVisibilityChange?: (isVisible: boolean) => void;
+    headerInlineActions?: ReactNode;
     headerActions?: ReactNode;
 }
 
@@ -134,7 +149,9 @@ export const DesignerDefinitionPane = forwardRef<
             onClose,
             language = "sql",
             customTabs,
+            tabActions,
             onPanelVisibilityChange,
+            headerInlineActions,
             headerActions,
         },
         ref,
@@ -149,6 +166,16 @@ export const DesignerDefinitionPane = forwardRef<
         );
         const selectedTab = activeTab ?? DesignerDefinitionTabs.Script;
         const activeCustomTab = customTabs?.find((tab) => tab.id === selectedTab);
+        const selectedTabActions = tabActions?.[selectedTab];
+        const selectedCustomTabActions = activeCustomTab?.actions;
+        const resolvedHeaderInlineActions =
+            selectedCustomTabActions?.inlineActions ??
+            selectedTabActions?.inlineActions ??
+            headerInlineActions;
+        const resolvedHeaderActions =
+            selectedCustomTabActions?.toolbarActions ??
+            selectedTabActions?.toolbarActions ??
+            headerActions;
 
         useImperativeHandle(
             ref,
@@ -216,55 +243,58 @@ export const DesignerDefinitionPane = forwardRef<
                                 ))}
                             </TabList>
                         </div>
-                        <Toolbar className={classes.headerToolbar}>
-                            {selectedTab === DesignerDefinitionTabs.Script && (
-                                <>
-                                    <Button
-                                        size="small"
-                                        appearance="subtle"
-                                        title={locConstants.schemaDesigner.openInEditor}
-                                        icon={<FluentIcons.Open12Regular />}
-                                        onClick={() => openInEditor(script)}>
-                                        {locConstants.schemaDesigner.openInEditor}
-                                    </Button>
-                                    <Button
-                                        size="small"
-                                        appearance="subtle"
-                                        title={locConstants.schemaDesigner.copy}
-                                        icon={<FluentIcons.Copy16Regular />}
-                                        onClick={() => copyToClipboard(script)}
-                                    />
-                                </>
-                            )}
-                            {headerActions}
+                        <div className={classes.headerRight}>
+                            {resolvedHeaderInlineActions}
+                            <Toolbar className={classes.headerToolbar}>
+                                {selectedTab === DesignerDefinitionTabs.Script && (
+                                    <>
+                                        <Button
+                                            size="small"
+                                            appearance="subtle"
+                                            title={locConstants.schemaDesigner.openInEditor}
+                                            icon={<FluentIcons.Open12Regular />}
+                                            onClick={() => openInEditor(script)}>
+                                            {locConstants.schemaDesigner.openInEditor}
+                                        </Button>
+                                        <Button
+                                            size="small"
+                                            appearance="subtle"
+                                            title={locConstants.schemaDesigner.copy}
+                                            icon={<FluentIcons.Copy16Regular />}
+                                            onClick={() => copyToClipboard(script)}
+                                        />
+                                    </>
+                                )}
+                                {resolvedHeaderActions}
 
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                onClick={() => {
-                                    if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
-                                        panelRef.current?.resize(DEFAULTPANEL_SIZE);
-                                    } else {
-                                        panelRef.current?.resize(MAXIMUMPANEL_SIZE);
-                                    }
-                                }}
-                                title={expandCollapseButtonLabel}
-                                icon={expandCollapseButtonIcon}
-                            />
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                title={locConstants.schemaDesigner.close}
-                                icon={<FluentIcons.Dismiss12Regular />}
-                                onClick={() => {
-                                    if (panelRef.current) {
-                                        panelRef.current.collapse();
-                                    }
-                                    // Notify parent component that panel is closing
-                                    onClose?.();
-                                }}
-                            />
-                        </Toolbar>
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    onClick={() => {
+                                        if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
+                                            panelRef.current?.resize(DEFAULTPANEL_SIZE);
+                                        } else {
+                                            panelRef.current?.resize(MAXIMUMPANEL_SIZE);
+                                        }
+                                    }}
+                                    title={expandCollapseButtonLabel}
+                                    icon={expandCollapseButtonIcon}
+                                />
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    title={locConstants.schemaDesigner.close}
+                                    icon={<FluentIcons.Dismiss12Regular />}
+                                    onClick={() => {
+                                        if (panelRef.current) {
+                                            panelRef.current.collapse();
+                                        }
+                                        // Notify parent component that panel is closing
+                                        onClose?.();
+                                    }}
+                                />
+                            </Toolbar>
+                        </div>
                     </div>
 
                     <div className={classes.tabContent}>

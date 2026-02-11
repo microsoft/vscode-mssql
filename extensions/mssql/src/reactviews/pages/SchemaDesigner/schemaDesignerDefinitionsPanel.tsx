@@ -39,6 +39,60 @@ const useStyles = makeStyles({
     },
 });
 
+interface ChangesTabToolbarActionsProps {
+    changesViewMode: SchemaDesignerChangesViewMode;
+    setChangesViewMode: (mode: SchemaDesignerChangesViewMode) => void;
+    buttonClassName: string;
+}
+
+const ChangesTabToolbarActions = ({
+    changesViewMode,
+    setChangesViewMode,
+    buttonClassName,
+}: ChangesTabToolbarActionsProps) => {
+    return (
+        <SegmentedControl<SchemaDesignerChangesViewMode>
+            value={changesViewMode}
+            ariaLabel={locConstants.schemaDesigner.changesViewModeLabel}
+            options={[
+                {
+                    value: SchemaDesignerChangesViewMode.List,
+                    label: locConstants.schemaDesigner.changesListView,
+                },
+                {
+                    value: SchemaDesignerChangesViewMode.Code,
+                    label: locConstants.schemaDesigner.codeChangesView,
+                },
+            ]}
+            onValueChange={setChangesViewMode}
+            buttonClassName={buttonClassName}
+        />
+    );
+};
+
+interface PendingAiTabToolbarActionsProps {
+    onKeepAll: () => void;
+    onUndoAll: () => void;
+    disabled: boolean;
+}
+
+const PendingAiTabToolbarActions = ({
+    onKeepAll,
+    onUndoAll,
+    disabled,
+}: PendingAiTabToolbarActionsProps) => {
+    return (
+        <>
+            <Button size="small" appearance="primary" onClick={onKeepAll} disabled={disabled}>
+                {locConstants.schemaDesigner.keepAll}
+            </Button>
+            <Button size="small" appearance="subtle" onClick={onUndoAll} disabled={disabled}>
+                {locConstants.schemaDesigner.undoAll}
+            </Button>
+        </>
+    );
+};
+
 export const SchemaDesignerDefinitionsPanel = () => {
     const classes = useStyles();
     const {
@@ -251,7 +305,6 @@ export const SchemaDesignerDefinitionsPanel = () => {
         activeTab === SchemaDesignerDefinitionCustomTabs.Changes ||
         activeTab === SchemaDesignerDefinitionCustomTabs.PendingAiChanges;
     const isBaselineChangesTabActive = activeTab === SchemaDesignerDefinitionCustomTabs.Changes;
-    const isPendingAiTabActive = activeTab === SchemaDesignerDefinitionCustomTabs.PendingAiChanges;
 
     useEffect(() => {
         if (!isBaselineChangesTabActive || changesViewMode !== SchemaDesignerChangesViewMode.Code) {
@@ -327,48 +380,6 @@ export const SchemaDesignerDefinitionsPanel = () => {
             themeKind={themeKind}
             openInEditor={openInEditor}
             copyToClipboard={copyToClipboard}
-            headerActions={
-                isBaselineChangesTabActive ? (
-                    <SegmentedControl<SchemaDesignerChangesViewMode>
-                        value={changesViewMode}
-                        options={[
-                            {
-                                value: SchemaDesignerChangesViewMode.List,
-                                label: locConstants.schemaDesigner.changesListView,
-                            },
-                            {
-                                value: SchemaDesignerChangesViewMode.Code,
-                                label: locConstants.schemaDesigner.codeChangesView,
-                            },
-                        ]}
-                        onValueChange={setChangesViewMode}
-                        buttonClassName={classes.changesViewModeButton}
-                    />
-                ) : isPendingAiTabActive ? (
-                    <>
-                        <Button
-                            size="small"
-                            appearance="primary"
-                            onClick={handleKeepAllPendingAi}
-                            disabled={
-                                isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0
-                            }>
-                            {locConstants.schemaDesigner.keepAll}
-                        </Button>
-                        <Button
-                            size="small"
-                            appearance="subtle"
-                            onClick={() => {
-                                void handleUndoAllPendingAi();
-                            }}
-                            disabled={
-                                isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0
-                            }>
-                            {locConstants.schemaDesigner.undoAll}
-                        </Button>
-                    </>
-                ) : undefined
-            }
             activeTab={activeTab}
             setActiveTab={handleSetActiveTab}
             customTabs={[
@@ -376,11 +387,33 @@ export const SchemaDesignerDefinitionsPanel = () => {
                     id: SchemaDesignerDefinitionCustomTabs.Changes,
                     label: changesTabLabel,
                     content: changesTabContent,
+                    actions: {
+                        toolbarActions: (
+                            <ChangesTabToolbarActions
+                                changesViewMode={changesViewMode}
+                                setChangesViewMode={setChangesViewMode}
+                                buttonClassName={classes.changesViewModeButton}
+                            />
+                        ),
+                    },
                 },
                 {
                     id: SchemaDesignerDefinitionCustomTabs.PendingAiChanges,
                     label: pendingAiTabLabel,
                     content: pendingAiTabContent,
+                    actions: {
+                        toolbarActions: (
+                            <PendingAiTabToolbarActions
+                                onKeepAll={handleKeepAllPendingAi}
+                                onUndoAll={() => {
+                                    void handleUndoAllPendingAi();
+                                }}
+                                disabled={
+                                    isApplyingPendingAiHeaderAction || pendingAiChangesCount === 0
+                                }
+                            />
+                        ),
+                    },
                 },
             ]}
             onPanelVisibilityChange={(isVisible) => {
