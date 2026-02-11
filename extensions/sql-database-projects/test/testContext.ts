@@ -151,6 +151,14 @@ export class MockDacFxService implements vscodeMssql.IDacFxService {
             defaultDeploymentOptions: getDeploymentOptions(),
         });
     }
+    public parseTSqlScript(
+        _filePath: string,
+        _databaseSchemaProvider: string,
+    ): Thenable<vscodeMssql.ParseTSqlScriptResult> {
+        return Promise.resolve({
+            containsCreateTableStatement: false,
+        });
+    }
 }
 
 export function createContext(): TestContext {
