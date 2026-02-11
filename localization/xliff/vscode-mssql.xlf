@@ -3239,8 +3239,8 @@
       <source xml:lang="en">Multiple connection groups with ID &apos;{0}&apos; found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
       <note>{0} is the root id</note>
     </trans-unit>
-    <trans-unit id="++CODE++e88ed0ffac5234f4fab3c32466a7a1d9049411482180dc14341e28873652243e">
-      <source xml:lang="en">Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen</source>
+    <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
+      <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
     </trans-unit>
     <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
       <source xml:lang="en">My Data</source>

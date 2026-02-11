@@ -17,7 +17,7 @@ import {
     registerSchemaDesignerApplyEditsHandler,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { ApiStatus, WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -1309,8 +1309,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const updateDeploymentStepStatus = useCallback(
         (
             step: Dab.DabDeploymentStepOrder,
-            status: Dab.DabDeploymentStepStatus["status"],
-            errorMessage?: string,
+            status: ApiStatus,
+            message?: string,
             fullErrorText?: string,
             errorLink?: string,
             errorLinkText?: string,
@@ -1319,7 +1319,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 ...prev,
                 stepStatuses: prev.stepStatuses.map((s) =>
                     s.step === step
-                        ? { ...s, status, errorMessage, fullErrorText, errorLink, errorLinkText }
+                        ? { ...s, status, message, fullErrorText, errorLink, errorLinkText }
                         : s,
                 ),
             }));
@@ -1330,11 +1330,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const runDabDeploymentStep = useCallback(
         async (step: Dab.DabDeploymentStepOrder) => {
             // Mark step as running
-            updateDeploymentStepStatus(step, "running");
+            updateDeploymentStepStatus(step, ApiStatus.Loading);
 
             // For container start step, verify DAB config is available
             if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
-                updateDeploymentStepStatus(step, "error", "DAB configuration is not available.");
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    "DAB configuration is not available.",
+                );
                 return;
             }
 
@@ -1349,7 +1353,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 // Update step status to completed and advance to next step
                 setDabDeploymentState((prev) => {
                     const updatedStatuses = prev.stepStatuses.map((s) =>
-                        s.step === step ? { ...s, status: "completed" as const } : s,
+                        s.step === step ? { ...s, status: ApiStatus.Loaded } : s,
                     );
 
                     // If this was the last step, set completion state
@@ -1373,7 +1377,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             } else {
                 updateDeploymentStepStatus(
                     step,
-                    "error",
+                    ApiStatus.Error,
                     response.error,
                     response.fullErrorText,
                     response.errorLink,
@@ -1396,7 +1400,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
             stepStatuses: prev.stepStatuses.map((s) => {
                 if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
-                    return { ...s, status: "notStarted" as const, errorMessage: undefined };
+                    return { ...s, status: ApiStatus.NotStarted, message: undefined };
                 }
                 return s;
             }),

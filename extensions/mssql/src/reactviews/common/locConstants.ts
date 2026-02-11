@@ -1186,7 +1186,7 @@ export class LocConstants {
             containerName: l10n.t("Container Name"),
             containerNameRequired: l10n.t("Container name is required"),
             containerNameInvalid: l10n.t(
-                "Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen",
+                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
             ),
             containerNameHint: l10n.t("Name for the Docker container running DAB"),
             port: l10n.t("Port"),

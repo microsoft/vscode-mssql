@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../../common/locConstants";
 
 /**
@@ -73,12 +74,12 @@ export function getDeploySteps(
  * Checks if all steps in the list are completed
  */
 export function areStepsComplete(steps: Dab.DabDeploymentStepStatus[]): boolean {
-    return steps.every((s) => s.status === "completed");
+    return steps.every((s) => s.status === ApiStatus.Loaded);
 }
 
 /**
  * Checks if any step in the list has errored
  */
 export function hasStepErrored(steps: Dab.DabDeploymentStepStatus[]): boolean {
-    return steps.some((s) => s.status === "error");
+    return steps.some((s) => s.status === ApiStatus.Error);
 }

@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../../common/locConstants";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { getDabStepLabels } from "./dabDeploymentUtils";
 
 const useStyles = makeStyles({
@@ -61,8 +62,8 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     const [showFullErrorText, setShowFullErrorText] = useState(false);
 
     const labels = getDabStepLabels()[stepStatus.step];
-    const isError = stepStatus.status === "error";
-    const isCompleted = stepStatus.status === "completed";
+    const isError = stepStatus.status === ApiStatus.Error;
+    const isCompleted = stepStatus.status === ApiStatus.Loaded;
 
     // Auto-expand on error
     useEffect(() => {
@@ -72,13 +73,13 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
     }, [isError]);
 
     const getStatusIcon = () => {
-        if (stepStatus.status === "notStarted") {
+        if (stepStatus.status === ApiStatus.NotStarted) {
             return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
         }
-        if (stepStatus.status === "completed") {
+        if (stepStatus.status === ApiStatus.Loaded) {
             return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
         }
-        if (stepStatus.status === "error") {
+        if (stepStatus.status === ApiStatus.Error) {
             return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
         }
         // Running
@@ -103,7 +104,7 @@ export const DabStepCard = ({ stepStatus }: DabStepCardProps) => {
             </div>
             {expanded && !isCompleted && (
                 <div className={classes.bodyText}>
-                    {isError ? stepStatus.errorMessage : labels.body}
+                    {isError ? stepStatus.message : labels.body}
 
                     {isError && stepStatus.errorLink && (
                         <div className={classes.topSpace}>

@@ -627,27 +627,44 @@ export function constructVersionTag(version: string): string {
 }
 
 /**
- * Pulls the SQL Server container image for the specified version.
+ * Pulls a container image from the registry.
+ * @param imageName The full image name including tag
+ * @param errorMessage The localized error message to use on failure
  */
-export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
+async function pullContainerImage(
+    imageName: string,
+    errorMessage: string,
+): Promise<DockerCommandParams> {
     try {
+        dockerLogger.appendLine(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
-        const imageTag = constructVersionTag(version);
-        const imageName = getSqlServerImageName(imageTag);
         const pullStream = await dockerClient.pull(imageName);
         await new Promise<void>((resolve, reject) => {
             dockerClient.modem.followProgress(pullStream, (error) =>
                 error ? reject(error) : resolve(),
             );
         });
+        dockerLogger.appendLine(`Container image ${imageName} pulled successfully.`);
         return { success: true };
     } catch (e) {
+        dockerLogger.appendLine(
+            `Failed to pull container image ${imageName}: ${getErrorMessage(e)}`,
+        );
         return {
             success: false,
-            error: LocalContainers.pullSqlServerContainerImageError,
+            error: errorMessage,
             fullErrorText: getErrorMessage(e),
         };
     }
+}
+
+/**
+ * Pulls the SQL Server container image for the specified version.
+ */
+export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
+    const imageTag = constructVersionTag(version);
+    const imageName = getSqlServerImageName(imageTag);
+    return pullContainerImage(imageName, LocalContainers.pullSqlServerContainerImageError);
 }
 
 /**
@@ -1146,25 +1163,7 @@ export async function checkContainerExists(name: string): Promise<boolean> {
  * Pulls the DAB container image from MCR
  */
 export async function pullDabContainerImage(): Promise<DockerCommandParams> {
-    try {
-        dockerLogger.appendLine(`Pulling DAB container image: ${Dab.DAB_CONTAINER_IMAGE}`);
-        const dockerClient = getDockerodeClient();
-        const pullStream = await dockerClient.pull(Dab.DAB_CONTAINER_IMAGE);
-        await new Promise<void>((resolve, reject) => {
-            dockerClient.modem.followProgress(pullStream, (error) =>
-                error ? reject(error) : resolve(),
-            );
-        });
-        dockerLogger.appendLine("DAB container image pulled successfully.");
-        return { success: true };
-    } catch (e) {
-        dockerLogger.appendLine(`Failed to pull DAB container image: ${getErrorMessage(e)}`);
-        return {
-            success: false,
-            error: LocalContainers.dabPullImageError,
-            fullErrorText: getErrorMessage(e),
-        };
-    }
+    return pullContainerImage(Dab.DAB_CONTAINER_IMAGE, LocalContainers.dabPullImageError);
 }
 
 /**

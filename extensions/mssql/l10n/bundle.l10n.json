@@ -805,7 +805,7 @@
     "Container Settings": "Container Settings",
     "Container Name": "Container Name",
     "Container name is required": "Container name is required",
-    "Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen": "Must start with alphanumeric and contain only alphanumeric, underscore, period, or hyphen",
+    "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens": "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
     "Name for the Docker container running DAB": "Name for the Docker container running DAB",
     "Port": "Port",
     "Port must be between 1 and 65535": "Port must be between 1 and 65535",

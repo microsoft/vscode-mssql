@@ -5,6 +5,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { SchemaDesigner } from "./schemaDesigner";
+import { ApiStatus, Status } from "./webview";
 
 /**
  * Data API Builder (DAB) interfaces for webview-extension communication
@@ -378,21 +379,14 @@ export namespace Dab {
     }
 
     /**
-     * Status of an individual deployment step
+     * Status of an individual deployment step.
+     * Extends Status to use standard ApiStatus enum and message field.
      */
-    export interface DabDeploymentStepStatus {
+    export interface DabDeploymentStepStatus extends Status {
         /**
          * The step this status is for
          */
         step: DabDeploymentStepOrder;
-        /**
-         * Current status of the step
-         */
-        status: "notStarted" | "running" | "completed" | "error";
-        /**
-         * Error message if the step failed
-         */
-        errorMessage?: string;
         /**
          * Full error text for debugging
          */
@@ -420,12 +414,12 @@ export namespace Dab {
                 port: DAB_DEFAULT_PORT,
             },
             stepStatuses: [
-                { step: DabDeploymentStepOrder.dockerInstallation, status: "notStarted" },
-                { step: DabDeploymentStepOrder.startDockerDesktop, status: "notStarted" },
-                { step: DabDeploymentStepOrder.checkDockerEngine, status: "notStarted" },
-                { step: DabDeploymentStepOrder.pullImage, status: "notStarted" },
-                { step: DabDeploymentStepOrder.startContainer, status: "notStarted" },
-                { step: DabDeploymentStepOrder.checkContainer, status: "notStarted" },
+                { step: DabDeploymentStepOrder.dockerInstallation, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.startDockerDesktop, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.checkDockerEngine, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.pullImage, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.startContainer, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.checkContainer, status: ApiStatus.NotStarted },
             ],
             isDeploying: false,
         };

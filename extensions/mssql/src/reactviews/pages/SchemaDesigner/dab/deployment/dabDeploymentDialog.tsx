@@ -6,6 +6,7 @@
 import { Dialog, DialogBody, DialogSurface, makeStyles } from "@fluentui/react-components";
 import { useContext, useEffect } from "react";
 import { Dab } from "../../../../../sharedInterfaces/dab";
+import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { SchemaDesignerContext } from "../../schemaDesignerStateProvider";
 import { DabDeploymentConfirmation } from "./dabDeploymentConfirmation";
 import { DabDeploymentPrerequisites } from "./dabDeploymentPrerequisites";
@@ -58,7 +59,7 @@ export const DabDeploymentDialog = () => {
         }
 
         // If current step is already running, completed, or errored, don't start it again
-        if (currentStepStatus.status !== "notStarted") {
+        if (currentStepStatus.status !== ApiStatus.NotStarted) {
             return;
         }
 
