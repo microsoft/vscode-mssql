@@ -84,6 +84,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
             objectManagementService,
             ObjectManagementDialogType.BackupDatabase,
             dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
+            dialogTitle ?? LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),
             "backupDatabaseDialog",
             connectionUri,
             serverName,
@@ -104,7 +105,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
 
         // Get backup config info; Gets the recovery model, default backup folder, and encryptors
         let backupConfigInfo: BackupConfigInfo;
-        let backupConfigError: string = "";
+        let backupConfigError = "";
         try {
             backupConfigInfo = (
                 await this.objectManagementService.getBackupConfigInfo(this.state.ownerUri)
@@ -326,7 +327,7 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
         this.registerReducer("handleFileChange", async (state, payload) => {
             const backupViewModel = this.backupViewModel(state);
             const currentFilePath = backupViewModel.backupFiles[payload.index].filePath;
-            let newFilePath: string = "";
+            let newFilePath = "";
             if (payload.isFolderChange) {
                 newFilePath = `${payload.newValue}/${currentFilePath.substring(
                     currentFilePath.lastIndexOf("/") + 1,

@@ -15,9 +15,10 @@ import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import {
     registerSchemaDesignerApplyEditsHandler,
+    registerSchemaDesignerDabToolHandlers,
     registerSchemaDesignerGetSchemaStateHandler,
 } from "./schemaDesignerRpcHandlers";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { ApiStatus, CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     calculateSchemaDiff,
     ChangeAction,
@@ -65,9 +66,9 @@ import {
 } from "./schemaDesignerToolBatchUtils";
 import { useSchemaDesignerToolBatchHandlers } from "./schemaDesignerToolBatchHooks";
 import { stateStack } from "./schemaDesignerUndoState";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 
-export interface SchemaDesignerContextProps
-    extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
+export interface SchemaDesignerContextProps extends CoreRPCs {
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
@@ -132,6 +133,7 @@ export interface SchemaDesignerContextProps
 
     // DAB (Data API Builder) state
     dabConfig: Dab.DabConfig | null;
+    isDabEnabled: () => boolean;
     initializeDabConfig: () => void;
     syncDabConfigWithSchema: () => void;
     updateDabApiTypes: (apiTypes: Dab.ApiType[]) => void;
@@ -144,6 +146,19 @@ export interface SchemaDesignerContextProps
     dabConfigRequestId: number;
     generateDabConfig: () => Promise<void>;
     openDabConfigInEditor: (configContent: string) => void;
+    // DAB Deployment state
+    dabDeploymentState: Dab.DabDeploymentState;
+    openDabDeploymentDialog: () => void;
+    closeDabDeploymentDialog: () => void;
+    setDabDeploymentDialogStep: (step: Dab.DabDeploymentDialogStep) => void;
+    updateDabDeploymentParams: (params: Partial<Dab.DabDeploymentParams>) => void;
+    validateDabDeploymentParams: (
+        containerName: string,
+        port: number,
+    ) => Promise<Dab.ValidateDeploymentParamsResponse>;
+    runDabDeploymentStep: (step: Dab.DabDeploymentStepOrder) => Promise<void>;
+    resetDabDeploymentState: () => void;
+    retryDabDeploymentSteps: () => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -156,11 +171,10 @@ interface SchemaDesignerProviderProps {
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
-    const webviewContext = useVscodeWebview<
+    const { extensionRpc } = useVscodeWebview<
         SchemaDesigner.SchemaDesignerWebviewState,
         SchemaDesigner.SchemaDesignerReducers
     >();
-    const { state, extensionRpc, themeKind, keyBindings } = webviewContext;
 
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
@@ -215,14 +229,35 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // DAB state
     const [dabConfig, setDabConfig] = useState<Dab.DabConfig | null>(null);
+    const dabConfigRef = useRef<Dab.DabConfig | null>(dabConfig);
+    const extractSchemaRef = useRef<() => SchemaDesigner.Schema>(() => ({ tables: [] }));
     const [dabSchemaFilter, setDabSchemaFilter] = useState<string[]>([]);
     const [dabConfigContent, setDabConfigContent] = useState<string>("");
     const [dabConfigRequestId, setDabConfigRequestId] = useState<number>(0);
+    const [dabDeploymentState, setDabDeploymentState] = useState<Dab.DabDeploymentState>(
+        Dab.createDefaultDeploymentState(),
+    );
+
+    useEffect(() => {
+        dabConfigRef.current = dabConfig;
+    }, [dabConfig]);
 
     const { onPushUndoState, maybeAutoArrangeForToolBatch } = useSchemaDesignerToolBatchHandlers({
         reactFlow,
         resetView,
     });
+
+    const extractSchema = useCallback(() => {
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        return schema;
+    }, [reactFlow]);
+
+    useEffect(() => {
+        extractSchemaRef.current = extractSchema;
+    }, [extractSchema]);
 
     useEffect(() => {
         const handleScript = () => {
@@ -307,7 +342,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             onPushUndoState,
             onRequestScriptRefresh: () => eventBus.emit("getScript"),
         });
-    }, [isInitialized, extensionRpc, schemaNames, datatypes, reactFlow, onPushUndoState]);
+    }, [
+        isInitialized,
+        extensionRpc,
+        schemaNames,
+        datatypes,
+        reactFlow,
+        onPushUndoState,
+        extractSchema,
+    ]);
 
     // Respond with the current schema state
     useEffect(() => {
@@ -316,7 +359,19 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             extensionRpc,
             extractSchema,
         });
-    }, [isInitialized, extensionRpc]);
+    }, [isInitialized, extensionRpc, extractSchema]);
+
+    useEffect(() => {
+        registerSchemaDesignerDabToolHandlers({
+            extensionRpc,
+            isInitializedRef,
+            getCurrentDabConfig: () => dabConfigRef.current,
+            getCurrentSchemaTables: () => extractSchemaRef.current().tables,
+            commitDabConfig: (config) => {
+                setDabConfig(config);
+            },
+        });
+    }, [extensionRpc]);
     useEffect(() => {
         const updateSchemaChanges = async () => {
             // Use ref instead of state to avoid stale closure issues
@@ -607,14 +662,6 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
         );
-    };
-
-    const extractSchema = () => {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-        return schema;
     };
 
     /**
@@ -1241,14 +1288,163 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         [extensionRpc],
     );
 
+    const dabEnabled = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const isDabEnabled = () => dabEnabled ?? false;
+
+    // DAB Deployment functions
+    const openDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: true,
+            dialogStep: Dab.DabDeploymentDialogStep.Confirmation,
+        }));
+    }, []);
+
+    const closeDabDeploymentDialog = useCallback(() => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            isDialogOpen: false,
+        }));
+    }, []);
+
+    const setDabDeploymentDialogStep = useCallback((step: Dab.DabDeploymentDialogStep) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            dialogStep: step,
+        }));
+    }, []);
+
+    const updateDabDeploymentParams = useCallback((params: Partial<Dab.DabDeploymentParams>) => {
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            params: {
+                ...prev.params,
+                ...params,
+            },
+        }));
+    }, []);
+
+    const validateDabDeploymentParams = useCallback(
+        async (
+            containerName: string,
+            port: number,
+        ): Promise<Dab.ValidateDeploymentParamsResponse> => {
+            return extensionRpc.sendRequest(Dab.ValidateDeploymentParamsRequest.type, {
+                containerName,
+                port,
+            });
+        },
+        [extensionRpc],
+    );
+
+    const updateDeploymentStepStatus = useCallback(
+        (
+            step: Dab.DabDeploymentStepOrder,
+            status: ApiStatus,
+            message?: string,
+            fullErrorText?: string,
+            errorLink?: string,
+            errorLinkText?: string,
+        ) => {
+            setDabDeploymentState((prev) => ({
+                ...prev,
+                stepStatuses: prev.stepStatuses.map((s) =>
+                    s.step === step
+                        ? { ...s, status, message, fullErrorText, errorLink, errorLinkText }
+                        : s,
+                ),
+            }));
+        },
+        [],
+    );
+
+    const runDabDeploymentStep = useCallback(
+        async (step: Dab.DabDeploymentStepOrder) => {
+            // Mark step as running
+            updateDeploymentStepStatus(step, ApiStatus.Loading);
+
+            // For container start step, verify DAB config is available
+            if (step === Dab.DabDeploymentStepOrder.startContainer && !dabConfig) {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    "DAB configuration is not available.",
+                );
+                return;
+            }
+
+            // Run the step via extension (extension will generate config content as needed)
+            const response = await extensionRpc.sendRequest(Dab.RunDeploymentStepRequest.type, {
+                step,
+                params: dabDeploymentState.params,
+                config: dabConfig ?? undefined,
+            });
+
+            if (response.success) {
+                // Update step status to completed and advance to next step
+                setDabDeploymentState((prev) => {
+                    const updatedStatuses = prev.stepStatuses.map((s) =>
+                        s.step === step ? { ...s, status: ApiStatus.Loaded } : s,
+                    );
+
+                    // If this was the last step, set completion state
+                    if (step === Dab.DabDeploymentStepOrder.checkContainer) {
+                        return {
+                            ...prev,
+                            stepStatuses: updatedStatuses,
+                            currentDeploymentStep: step + 1,
+                            isDeploying: false,
+                            apiUrl: response.apiUrl,
+                            dialogStep: Dab.DabDeploymentDialogStep.Complete,
+                        };
+                    }
+
+                    return {
+                        ...prev,
+                        stepStatuses: updatedStatuses,
+                        currentDeploymentStep: step + 1,
+                    };
+                });
+            } else {
+                updateDeploymentStepStatus(
+                    step,
+                    ApiStatus.Error,
+                    response.error,
+                    response.fullErrorText,
+                    response.errorLink,
+                    response.errorLinkText,
+                );
+            }
+        },
+        [dabConfig, dabDeploymentState.params, extensionRpc, updateDeploymentStepStatus],
+    );
+
+    const resetDabDeploymentState = useCallback(() => {
+        setDabDeploymentState(Dab.createDefaultDeploymentState());
+    }, []);
+
+    const retryDabDeploymentSteps = useCallback(() => {
+        // Reset only deployment steps (pullImage, startContainer, checkContainer)
+        // while keeping prerequisite steps as completed
+        setDabDeploymentState((prev) => ({
+            ...prev,
+            currentDeploymentStep: Dab.DabDeploymentStepOrder.pullImage,
+            stepStatuses: prev.stepStatuses.map((s) => {
+                if (s.step >= Dab.DabDeploymentStepOrder.pullImage) {
+                    return { ...s, status: ApiStatus.NotStarted, message: undefined };
+                }
+                return s;
+            }),
+            error: undefined,
+            apiUrl: undefined,
+        }));
+    }, []);
+
     return (
         <SchemaDesignerContext.Provider
             value={{
-                ...getCoreRPCs(webviewContext),
+                ...getCoreRPCs(extensionRpc),
                 extensionRpc,
-                state,
-                themeKind,
-                keyBindings,
                 schemaNames,
                 datatypes,
                 findTableText,
@@ -1303,6 +1499,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 canRevertChange,
                 // DAB state
                 dabConfig,
+                isDabEnabled,
                 initializeDabConfig,
                 syncDabConfigWithSchema,
                 updateDabApiTypes,
@@ -1315,6 +1512,16 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 dabConfigRequestId,
                 generateDabConfig,
                 openDabConfigInEditor,
+                // DAB Deployment state
+                dabDeploymentState,
+                openDabDeploymentDialog,
+                closeDabDeploymentDialog,
+                setDabDeploymentDialogStep,
+                updateDabDeploymentParams,
+                validateDabDeploymentParams,
+                runDabDeploymentStep,
+                resetDabDeploymentState,
+                retryDabDeploymentSteps,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

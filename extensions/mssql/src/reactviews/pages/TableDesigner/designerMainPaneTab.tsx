@@ -5,9 +5,12 @@
 
 import { makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
+import { useTableDesignerSelector } from "./tableDesignerSelector";
 import { useContext } from "react";
 import {
     CheckBoxProperties,
+    DesignerDataPropertyInfo,
+    DesignerTab,
     DesignerTableProperties,
     DropDownProperties,
     InputBoxProperties,
@@ -34,23 +37,24 @@ const useStyles = makeStyles({
 export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
-    const state = context?.state;
-    if (!state) {
+    const view = useTableDesignerSelector((s) => s?.view);
+    const model = useTableDesignerSelector((s) => s?.model);
+    if (!context) {
         return null;
     }
-    const components = state.view?.tabs.find((tab) => tab.id === tabId)?.components;
+    const components = view?.tabs.find((tab: DesignerTab) => tab.id === tabId)?.components;
     return (
         <div className={classes.root}>
             {components
                 ?.filter(
-                    (component) =>
+                    (component: DesignerDataPropertyInfo) =>
                         component.componentProperties.enabled === undefined ||
                         component.componentProperties.enabled,
                 )
-                .map((component) => {
+                .map((component: DesignerDataPropertyInfo) => {
                     switch (component.componentType) {
                         case "input": {
-                            const modelInputProps = state.model![
+                            const modelInputProps = model![
                                 component.propertyName
                             ]! as InputBoxProperties;
                             return (
@@ -64,7 +68,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "textarea": {
-                            const modelTextAreaProps = state.model![
+                            const modelTextAreaProps = model![
                                 component.propertyName
                             ] as InputBoxProperties;
                             return (
@@ -80,9 +84,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "dropdown": {
-                            const modelProps = state.model![
-                                component.propertyName
-                            ] as DropDownProperties;
+                            const modelProps = model![component.propertyName] as DropDownProperties;
                             return (
                                 <DesignerDropdown
                                     component={component}
@@ -94,7 +96,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "checkbox": {
-                            const modelCheckboxProps = state.model![
+                            const modelCheckboxProps = model![
                                 component.propertyName
                             ] as CheckBoxProperties;
                             return (
@@ -108,7 +110,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
                             );
                         }
                         case "table": {
-                            const modelTableProps = state.model![
+                            const modelTableProps = model![
                                 component.propertyName
                             ] as DesignerTableProperties;
                             return (

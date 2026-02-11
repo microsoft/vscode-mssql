@@ -401,6 +401,24 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.env.clipboard.writeText(payload.configContent);
             await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
         });
+
+        // DAB deployment request handlers
+        this.onRequest(Dab.RunDeploymentStepRequest.type, async (payload) => {
+            return this._dabService.runDeploymentStep(
+                payload.step,
+                payload.params,
+                payload.config,
+                this.connectionString,
+            );
+        });
+
+        this.onRequest(Dab.ValidateDeploymentParamsRequest.type, async (payload) => {
+            return this._dabService.validateDeploymentParams(payload.containerName, payload.port);
+        });
+
+        this.onRequest(Dab.StopDeploymentRequest.type, async (payload) => {
+            return this._dabService.stopDeployment(payload.containerName);
+        });
     }
 
     private setupConfigurationListener() {
@@ -463,6 +481,25 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     ): Promise<SchemaDesigner.ApplyEditsWebviewResponse> {
         await this.whenWebviewReady();
         return this.sendRequest(SchemaDesigner.ApplyEditsWebviewRequest.type, params);
+    }
+
+    public async getDabToolState(): Promise<Dab.GetDabToolStateResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.GetDabToolStateRequest.type, undefined);
+    }
+
+    public async applyDabToolChanges(
+        params: Dab.ApplyDabToolChangesParams,
+    ): Promise<Dab.ApplyDabToolChangesResponse> {
+        await this.whenWebviewReady();
+        return this.sendRequest(Dab.ApplyDabToolChangesRequest.type, params);
+    }
+
+    public showDabView(): void {
+        this.updateState({
+            ...this.state,
+            activeView: SchemaDesigner.SchemaDesignerActiveView.Dab,
+        });
     }
 
     public get designerKey(): string {

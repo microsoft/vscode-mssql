@@ -27,6 +27,7 @@ import {
 } from "../../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { useDeploymentSelector } from "../deploymentSelector";
 import { ArmSql2025ErrorDialog } from "./armSql2025ErrorDialog";
 
 const useStyles = makeStyles({
@@ -66,12 +67,14 @@ const useStyles = makeStyles({
 export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
+    const dialog = useDeploymentSelector((s) => s.dialog);
+    const localContainersState = useDeploymentSelector(
+        (s) => s.deploymentTypeState,
+    ) as LocalContainersState;
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const deploymentState = context?.state;
-    const localContainersState = deploymentState?.deploymentTypeState as LocalContainersState;
 
-    if (!context || !deploymentState || !localContainersState) return undefined;
+    if (!context || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
@@ -107,6 +110,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         LocalContainersContextProps
                     >
                         context={context}
+                        formState={localContainersState.formState}
                         component={component}
                         idx={index}
                     />
@@ -131,16 +135,14 @@ export const LocalContainersInputForm: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
-                    {deploymentState.dialog?.type === "createConnectionGroup" && (
+                    {dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
-                            state={
-                                (deploymentState.dialog as CreateConnectionGroupDialogProps).props
-                            }
+                            state={(dialog as CreateConnectionGroupDialogProps).props}
                             saveConnectionGroup={context.createConnectionGroup}
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
-                    {deploymentState.dialog?.type === "armSql2025Error" && (
+                    {dialog?.type === "armSql2025Error" && (
                         <ArmSql2025ErrorDialog closeDialog={context.closeArmSql2025ErrorDialog} />
                     )}
                     {renderFormFields(false)}
@@ -151,6 +153,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         LocalContainersContextProps
                     >
                         context={context}
+                        formState={localContainersState.formState}
                         component={
                             localContainersState.formComponents[
                                 "groupId"
@@ -210,6 +213,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         >
                             key={eulaComponent.propertyName}
                             context={context}
+                            formState={localContainersState.formState}
                             component={eulaComponent}
                             idx={0}
                         />

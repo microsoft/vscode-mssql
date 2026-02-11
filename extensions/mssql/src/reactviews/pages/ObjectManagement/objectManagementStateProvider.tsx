@@ -8,7 +8,7 @@ import {
     ObjectManagementReducers,
     ObjectManagementWebviewState,
 } from "../../../sharedInterfaces/objectManagement";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
 
 export interface ObjectManagementReactProvider {
@@ -24,7 +24,7 @@ interface ObjectManagementProviderProps {
 }
 
 const ObjectManagementStateProvider: React.FC<ObjectManagementProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         ObjectManagementWebviewState,
         ObjectManagementReducers
     >();

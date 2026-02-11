@@ -14,14 +14,10 @@ import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
+import { matchesStrictTargetHint, ToolTargetContext, ToolTargetHint } from "./toolsUtils";
 
 type IncludeOverviewColumns = "none" | "names" | "namesAndTypes";
 type IncludeTableColumns = IncludeOverviewColumns | "full";
-
-interface TargetHint {
-    server: string;
-    database: string;
-}
 
 export type SchemaDesignerToolParams =
     | { operation: "show"; connectionId: string }
@@ -35,7 +31,7 @@ export type SchemaDesignerToolParams =
           operation: "apply_edits";
           payload: {
               expectedVersion: string;
-              targetHint?: TargetHint;
+              targetHint?: ToolTargetHint;
               edits: SchemaDesigner.SchemaDesignerEdit[];
           };
       };
@@ -49,11 +45,6 @@ type ToolErrorReason =
     | "validation_error"
     | "invalid_request"
     | "internal_error";
-
-interface ToolTarget {
-    server?: string;
-    database?: string;
-}
 
 interface OverviewColumnView {
     name: string;
@@ -118,8 +109,8 @@ interface SchemaDesignerToolError {
     message: string;
     server?: string;
     database?: string;
-    activeTarget?: ToolTarget;
-    targetHint?: TargetHint;
+    activeTarget?: ToolTargetContext;
+    targetHint?: ToolTargetHint;
     currentVersion?: string;
     currentOverview?: SchemaDesignerOverview;
     suggestedNextCall?: {
@@ -413,7 +404,13 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
                 }
 
                 const targetHint = options.input.payload?.targetHint;
-                if (targetHint && !this.matchesTarget(activeDesigner, targetHint)) {
+                if (
+                    targetHint &&
+                    !matchesStrictTargetHint(
+                        { server: activeDesigner.server, database: activeDesigner.database },
+                        targetHint,
+                    )
+                ) {
                     const err: SchemaDesignerToolError = {
                         success: false,
                         reason: "target_mismatch",
@@ -786,16 +783,6 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
         return view;
     }
-
-    private matchesTarget(designer: SchemaDesignerWebviewController, hint: TargetHint): boolean {
-        const activeServer = (designer.server ?? "").toLowerCase();
-        const activeDb = (designer.database ?? "").toLowerCase();
-        return (
-            activeServer === (hint.server ?? "").toLowerCase() &&
-            activeDb === (hint.database ?? "").toLowerCase()
-        );
-    }
-
     private summarizeEdits(edits: SchemaDesigner.SchemaDesignerEdit[]): Record<string, unknown> {
         const changes: Record<string, unknown> = {};
         const push = <T>(key: string, value: T) => {
