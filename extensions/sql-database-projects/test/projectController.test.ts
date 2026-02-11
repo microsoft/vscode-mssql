@@ -55,6 +55,7 @@ suite("ProjectsController", function (): void {
                 ...mockDacFxResult,
                 projectGuid: "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575",
                 configuration: "Debug",
+                platform: "AnyCPU",
                 outputPath: "bin/Debug",
                 defaultCollation: "",
                 databaseSource: "",
