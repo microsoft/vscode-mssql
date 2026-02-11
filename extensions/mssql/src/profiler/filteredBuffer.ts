@@ -249,6 +249,28 @@ export class FilteredBuffer<T extends IndexedRow> {
     }
 
     /**
+     * Gets distinct non-empty string values for a given field across ALL rows
+     * in the underlying buffer (ignoring any active filters).
+     * When a row converter is set, the converted row is used.
+     * @param field - The column/field name to collect distinct values for
+     * @returns Sorted array of unique non-empty string values
+     */
+    getDistinctValuesForField(field: string): string[] {
+        const allRows = this._buffer.getAllRows();
+        const seen = new Set<string>();
+        for (const row of allRows) {
+            const target = this._rowConverter
+                ? this._rowConverter(row)
+                : (row as unknown as Record<string, unknown>);
+            const val = String(target[field] ?? "");
+            if (val !== "") {
+                seen.add(val);
+            }
+        }
+        return Array.from(seen).sort((a, b) => a.localeCompare(b));
+    }
+
+    /**
      * Gets a range of filtered rows for pagination.
      * @param startIndex - The starting index in the filtered result set
      * @param count - Maximum number of rows to return

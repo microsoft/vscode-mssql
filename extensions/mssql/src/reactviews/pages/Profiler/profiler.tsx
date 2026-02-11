@@ -24,6 +24,7 @@ import {
     FetchRowsResponse,
     NewEventsAvailableParams,
     RowsRemovedParams,
+    DistinctValuesResponse,
     FilterClause,
     FilterType,
     ProfilerColumnDef,
@@ -140,6 +141,7 @@ export const Profiler: React.FC = () => {
         applyFilter,
         clearFilter,
         setQuickFilter,
+        getDistinctValues,
     } = useProfilerContext();
     const { themeKind, extensionRpc } = useVscodeWebview2();
 
@@ -153,6 +155,9 @@ export const Profiler: React.FC = () => {
     const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
     const [popoverAnchorRect, setPopoverAnchorRect] = useState<DOMRect | undefined>(undefined);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    // Distinct values for categorical filter — fetched from extension (unfiltered ring buffer)
+    const [popoverDistinctValues, setPopoverDistinctValues] = useState<string[]>([]);
 
     const isFetchingRef = useRef(false);
     const pendingFetchRef = useRef<{ startIndex: number; count: number } | undefined>(undefined);
@@ -215,8 +220,14 @@ export const Profiler: React.FC = () => {
             setPopoverColumn(colDef);
             setPopoverAnchorRect(buttonElement.getBoundingClientRect());
             setIsPopoverOpen(true);
+
+            // Request distinct values from extension (scans unfiltered ring buffer)
+            const filterType = getFilterType(colDef);
+            if (filterType === FilterType.Categorical) {
+                getDistinctValues(field);
+            }
         },
-        [viewConfig],
+        [viewConfig, getDistinctValues],
     );
 
     // Store the callback in a ref so we can access it from the grid event handler
@@ -574,6 +585,14 @@ export const Profiler: React.FC = () => {
                 setLocalRowCount(newCount);
             },
         );
+
+        // Handle distinct values response from extension (for categorical filter popover)
+        extensionRpc.onNotification(
+            ProfilerNotifications.DistinctValuesAvailable,
+            (response: DistinctValuesResponse) => {
+                setPopoverDistinctValues(response.values);
+            },
+        );
     }, []);
 
     /**
@@ -755,37 +774,6 @@ export const Profiler: React.FC = () => {
     };
 
     // ─── Popover handlers ─────────────────────────────────────────────────
-
-    /**
-     * Compute distinct values for the current popover column (categorical only).
-     */
-    const popoverDistinctValues = useMemo(() => {
-        if (!isPopoverOpen || !popoverColumn) {
-            return [];
-        }
-        const filterType = getFilterType(popoverColumn);
-        if (filterType !== FilterType.Categorical) {
-            return [];
-        }
-        const dataView = reactGridRef.current?.dataView;
-        if (!dataView) {
-            return [];
-        }
-
-        const field = popoverColumn.field;
-        const seen = new Set<string>();
-        const itemCount = dataView.getItemCount();
-        for (let i = 0; i < itemCount; i++) {
-            const item = dataView.getItemByIdx(i);
-            if (item) {
-                const val = String((item as Record<string, unknown>)[field] ?? "");
-                if (val !== "") {
-                    seen.add(val);
-                }
-            }
-        }
-        return Array.from(seen).sort((a, b) => a.localeCompare(b));
-    }, [isPopoverOpen, popoverColumn, localRowCount]); // localRowCount dependency ensures refresh when data changes
 
     /**
      * Current filter clause for the popover column (if any).

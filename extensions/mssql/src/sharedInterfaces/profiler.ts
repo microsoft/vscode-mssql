@@ -186,6 +186,10 @@ export interface ProfilerReducers {
     setQuickFilter: {
         term: string;
     };
+    /** Get distinct values for a column from the unfiltered ring buffer */
+    getDistinctValues: {
+        field: string;
+    };
 }
 
 /**
@@ -240,6 +244,21 @@ export namespace ProfilerNotifications {
     export const FilterStateChanged = new NotificationType<FilterStateChangedParams>(
         "filterStateChanged",
     );
+
+    /** Notification sent with distinct values for a column (from unfiltered buffer) */
+    export const DistinctValuesAvailable = new NotificationType<DistinctValuesResponse>(
+        "distinctValuesAvailable",
+    );
+}
+
+/**
+ * Response payload for getDistinctValues request
+ */
+export interface DistinctValuesResponse {
+    /** The field for which distinct values were requested */
+    field: string;
+    /** Sorted array of distinct string values from the unfiltered buffer */
+    values: string[];
 }
 
 /**

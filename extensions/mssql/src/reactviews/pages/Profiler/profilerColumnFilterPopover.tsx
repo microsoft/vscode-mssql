@@ -329,16 +329,7 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
                 onClear();
                 return;
             }
-            if (selectedValues.size === 0) {
-                // No values selected — apply empty In filter (matches nothing)
-                onApply({
-                    field: column.field,
-                    operator: FilterOperator.In,
-                    values: [],
-                    typeHint: FilterTypeHint.String,
-                });
-                return;
-            }
+            // selectedValues.size === 0 is blocked by disabled button
             onApply({
                 field: column.field,
                 operator: FilterOperator.In,
@@ -563,7 +554,13 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
             {/* Actions */}
             <Divider className={classes.divider} />
             <div className={classes.actions}>
-                <Button appearance="primary" size="small" onClick={handleApply}>
+                <Button
+                    appearance="primary"
+                    size="small"
+                    onClick={handleApply}
+                    disabled={
+                        filterType === FilterType.Categorical && selectedValues.size === 0
+                    }>
                     {loc.applyFilter}
                 </Button>
                 <Button appearance="subtle" size="small" onClick={onClear}>
