@@ -11,6 +11,7 @@ import {
     InfoLabel,
     Input,
     Image,
+    Link,
     Subtitle2,
     Table,
     TableBody,
@@ -39,6 +40,7 @@ import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
+    AdsMigrationSetting,
     AzureDataStudioMigrationBrowseForConfigRequest,
     AzureDataStudioMigrationReducers,
     AzureDataStudioMigrationWebviewState,
@@ -54,6 +56,7 @@ import { locConstants as Loc } from "../../common/locConstants";
 import { EntraSignInDialog } from "./components/entraSignInDialog";
 import { ImportWarningDialog } from "./components/importWarningDialog";
 import { ImportProgressDialog } from "./components/importProgressDialog";
+import { ViewSettingsDialog } from "./components/viewSettingsDialog";
 
 const azureDataStudioIcon = require("../../media/azureDataStudio.svg");
 
@@ -69,6 +72,10 @@ export const AzureDataStudioMigrationPage = () => {
     const stateConnectionGroups = useAzureDataStudioMigrationSelector((s) => s?.connectionGroups);
     const stateConnections = useAzureDataStudioMigrationSelector((s) => s?.connections);
     const stateDialog = useAzureDataStudioMigrationSelector((s) => s?.dialog);
+    const stateImportSettings = useAzureDataStudioMigrationSelector((s) => s?.importSettings);
+    const stateSettings = useAzureDataStudioMigrationSelector((s) => s?.settings) as
+        | AdsMigrationSetting[]
+        | undefined;
 
     const [configPath, setConfigPath] = useState(adsConfigPath ?? "");
     const [connectionGroups, setConnectionGroups] = useState<AdsMigrationConnectionGroup[]>(
@@ -79,7 +86,10 @@ export const AzureDataStudioMigrationPage = () => {
     );
     const [groupsCollapsed, setGroupsCollapsed] = useState(false);
     const [connectionsCollapsed, setConnectionsCollapsed] = useState(false);
+    const [settingsCollapsed, setSettingsCollapsed] = useState(false);
     const [dialog, setDialog] = useState(stateDialog);
+    const [importSettings, setImportSettings] = useState(stateImportSettings ?? true);
+    const [settings, setSettings] = useState<AdsMigrationSetting[]>(stateSettings ?? []);
     const [passwordVisibility, setPasswordVisibility] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
@@ -98,6 +108,14 @@ export const AzureDataStudioMigrationPage = () => {
     useEffect(() => {
         setDialog(stateDialog);
     }, [stateDialog]);
+
+    useEffect(() => {
+        setImportSettings(stateImportSettings ?? true);
+    }, [stateImportSettings]);
+
+    useEffect(() => {
+        setSettings(stateSettings ?? []);
+    }, [stateSettings]);
 
     const groupSelection = useMemo(() => {
         const total = connectionGroups.filter(
@@ -360,6 +378,8 @@ export const AzureDataStudioMigrationPage = () => {
                 dialog={dialog as ImportProgressDialogProps}
                 onDismiss={handleCloseWindow}
             />
+        ) : dialog?.type === "viewSettings" ? (
+            <ViewSettingsDialog settings={settings} onClose={handleCloseDialog} />
         ) : undefined;
 
     return (
@@ -414,7 +434,9 @@ export const AzureDataStudioMigrationPage = () => {
                             className={classes.importButton}
                             appearance="primary"
                             disabled={
-                                groupSelection.selected === 0 && connectionSelection.selected === 0
+                                groupSelection.selected === 0 &&
+                                connectionSelection.selected === 0 &&
+                                !(importSettings && settings.length > 0)
                             }
                             onClick={() => extensionRpc.action("import")}>
                             {LocMigration.importButtonLabel}
@@ -422,6 +444,63 @@ export const AzureDataStudioMigrationPage = () => {
                     </div>
                 </div>
                 <div className={classes.tablesStack}>
+                    <section className={classes.tableSection}>
+                        <div className={classes.sectionHeader}>
+                            <div className={classes.sectionHeaderRow}>
+                                <Subtitle2>{LocMigration.settingsHeader}</Subtitle2>
+                                <Button
+                                    appearance="subtle"
+                                    className={classes.collapseButton}
+                                    icon={
+                                        settingsCollapsed ? (
+                                            <ChevronRightRegular />
+                                        ) : (
+                                            <ChevronDownRegular />
+                                        )
+                                    }
+                                    title={
+                                        settingsCollapsed
+                                            ? LocMigration.settingsExpand
+                                            : LocMigration.settingsCollapse
+                                    }
+                                    onClick={() => setSettingsCollapsed((prev) => !prev)}
+                                />
+                            </div>
+                        </div>
+                        {!settingsCollapsed && (
+                            <>
+                                <div className={classes.settingsRow}>
+                                    <Checkbox
+                                        checked={importSettings}
+                                        onChange={(_, data) => {
+                                            setImportSettings(data.checked === true);
+                                            extensionRpc.action("setImportSettings", {
+                                                importSettings: data.checked === true,
+                                            });
+                                        }}
+                                        label={LocMigration.importSettingsCheckboxLabel}
+                                    />
+                                    <Button
+                                        appearance="secondary"
+                                        disabled={!importSettings || settings.length === 0}
+                                        onClick={() =>
+                                            extensionRpc.action("openViewSettingsDialog")
+                                        }>
+                                        {LocMigration.viewSettingsButton}
+                                    </Button>
+                                </div>
+                                <Body1 className={classes.summaryText}>
+                                    {LocMigration.keymapCallout}{" "}
+                                    <Link
+                                        href="https://aka.ms/vscode-mssql-keymap"
+                                        target="_blank"
+                                        inline>
+                                        {LocMigration.keymapCalloutLink}
+                                    </Link>
+                                </Body1>
+                            </>
+                        )}
+                    </section>
                     <section className={classes.tableSection}>
                         <div className={classes.sectionHeader}>
                             <div className={classes.sectionHeaderRow}>
@@ -976,5 +1055,10 @@ const useStyles = makeStyles({
         color: "var(--vscode-notificationsWarningIcon-foreground, var(--vscode-terminal-ansiYellow))",
         textAlign: "right",
         maxWidth: "420px",
+    },
+    settingsRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
     },
 });

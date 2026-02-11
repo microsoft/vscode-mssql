@@ -1886,6 +1886,18 @@ export class LocConstants {
             entraSignInDialogMessage: l10n.t(
                 "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
             ),
+            settingsHeader: l10n.t("Settings and Keybindings"),
+            settingsCollapse: l10n.t("Collapse settings"),
+            settingsExpand: l10n.t("Expand settings"),
+            importSettingsCheckboxLabel: l10n.t(
+                "Import connection settings from Azure Data Studio",
+            ),
+            viewSettingsButton: l10n.t("View settings"),
+            viewSettingsDialogTitle: l10n.t("Settings to Import"),
+            settingsKeyColumn: l10n.t("Setting"),
+            settingsValueColumn: l10n.t("Value"),
+            keymapCallout: l10n.t("Looking for Azure Data Studio key bindings?"),
+            keymapCalloutLink: l10n.t("Install the Data Keymap extension"),
         };
     }
 

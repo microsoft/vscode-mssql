@@ -69,6 +69,7 @@ suite("AzureDataStudioMigrationWebviewController", () => {
         });
         sandbox.stub(vscode.workspace, "getConfiguration").returns({
             get: sandbox.stub().returns({}),
+            update: sandbox.stub().resolves(),
         } as unknown as vscode.WorkspaceConfiguration);
 
         const rpc = stubWebviewConnectionRpc(sandbox);
@@ -143,6 +144,9 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     options: {},
                 },
             ],
+            "mssql.resultsFontSize": 14,
+            "mssql.logDebugInfo": true,
+            "other.setting": "ignored",
         });
 
         sandbox.stub(fs, "readFile").resolves(adsSettings);
@@ -194,6 +198,22 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             secondConnection.statusMessage,
             "Status message should mention the duplicate connection id",
         ).to.include("existing-conn");
+
+        expect(
+            controller.state.importSettings,
+            "importSettings should default to true after loading",
+        ).to.be.true;
+        expect(
+            controller.state.settings,
+            "Settings should contain mssql.* keys from config",
+        ).to.have.lengthOf(2);
+        expect(controller.state.settings.map((s) => s.key)).to.include.members([
+            "mssql.resultsFontSize",
+            "mssql.logDebugInfo",
+        ]);
+        expect(
+            controller.state.settings.find((s) => s.key === "mssql.resultsFontSize")?.value,
+        ).to.equal(14);
     });
 
     test("loadSettingsFromFile preserves additional connection options", async () => {
@@ -314,6 +334,11 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     selected: false,
                 },
             ],
+            importSettings: true,
+            settings: [
+                { key: "mssql.resultsFontSize", value: 14 },
+                { key: "mssql.logDebugInfo", value: true },
+            ],
             dialog: undefined,
         };
 
@@ -364,6 +389,20 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             dialog.status.message,
             "Success dialog should use localized success message",
         ).to.equal(AzureDataStudioMigration.importProgressSuccessMessage);
+
+        const config = vscode.workspace.getConfiguration();
+        expect(config.update, "Settings should be written via configuration update").to.have.been
+            .calledTwice;
+        expect(config.update).to.have.been.calledWith(
+            "mssql.resultsFontSize",
+            14,
+            vscode.ConfigurationTarget.Global,
+        );
+        expect(config.update).to.have.been.calledWith(
+            "mssql.logDebugInfo",
+            true,
+            vscode.ConfigurationTarget.Global,
+        );
     });
 
     test("updateConnectionStatus reflects sql password and Entra account requirements", () => {
@@ -514,6 +553,8 @@ suite("AzureDataStudioMigrationWebviewController", () => {
                     selected: false,
                 },
             ],
+            importSettings: true,
+            settings: [],
             dialog: undefined,
         };
 
@@ -580,5 +621,83 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             ["conn-already-imported", "conn-root-group"],
             "already-imported and ROOT connections should remain unselected",
         );
+    });
+
+    test("parseSettings filters mssql.* keys and skips non-mssql keys", () => {
+        const config: Record<string, unknown> = {
+            "mssql.resultsFontSize": 14,
+            "mssql.logDebugInfo": true,
+            "mssql.messagesDefaultOpen": false,
+            "datasource.connections": [],
+            "editor.fontSize": 12,
+            "other.setting": "value",
+        };
+
+        const settings = controller["parseSettings"](config);
+
+        expect(settings).to.have.lengthOf(3);
+        expect(settings.map((s) => s.key)).to.deep.equal([
+            "mssql.resultsFontSize",
+            "mssql.logDebugInfo",
+            "mssql.messagesDefaultOpen",
+        ]);
+        expect(settings[0].value).to.equal(14);
+        expect(settings[1].value).to.equal(true);
+        expect(settings[2].value).to.equal(false);
+    });
+
+    test("setImportSettings reducer toggles importSettings state", async () => {
+        const state: AzureDataStudioMigrationWebviewState = {
+            adsConfigPath: "",
+            connectionGroups: [],
+            connections: [],
+            importSettings: true,
+            settings: [],
+            dialog: undefined,
+        };
+
+        await controller["_reducerHandlers"].get("setImportSettings")!(state, {
+            importSettings: false,
+        });
+        expect(state.importSettings, "importSettings should be toggled to false").to.be.false;
+
+        await controller["_reducerHandlers"].get("setImportSettings")!(state, {
+            importSettings: true,
+        });
+        expect(state.importSettings, "importSettings should be toggled to true").to.be.true;
+    });
+
+    test("openViewSettingsDialog reducer sets dialog type", async () => {
+        const state: AzureDataStudioMigrationWebviewState = {
+            adsConfigPath: "",
+            connectionGroups: [],
+            connections: [],
+            importSettings: true,
+            settings: [],
+            dialog: undefined,
+        };
+
+        await controller["_reducerHandlers"].get("openViewSettingsDialog")!(state, {});
+        expect(state.dialog?.type, "Dialog type should be viewSettings").to.equal("viewSettings");
+    });
+
+    test("importHelper skips settings when importSettings is false", async () => {
+        const state: AzureDataStudioMigrationWebviewState = {
+            adsConfigPath: "settings.json",
+            connectionGroups: [],
+            connections: [],
+            importSettings: false,
+            settings: [{ key: "mssql.resultsFontSize", value: 14 }],
+            dialog: undefined,
+        };
+
+        await controller["importHelper"](state);
+
+        const config = vscode.workspace.getConfiguration();
+        expect(config.update, "Settings should not be written when importSettings is false").to.not
+            .have.been.called;
+
+        const dialog = controller.state.dialog as ImportProgressDialogProps;
+        expect(dialog.status.status).to.equal(ApiStatus.Loaded);
     });
 });

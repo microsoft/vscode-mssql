@@ -40,8 +40,13 @@ export interface EntraAccountOption {
     tenants: EntraAccountTenantOption[];
 }
 
+export interface AdsMigrationSetting {
+    key: string;
+    value: unknown;
+}
+
 export interface IDialogProps {
-    type: "entraSignIn" | "importWarning" | "importProgress";
+    type: "entraSignIn" | "importWarning" | "importProgress" | "viewSettings";
 }
 
 export interface EntraSignInDialogProps extends IDialogProps {
@@ -62,10 +67,16 @@ export interface ImportProgressDialogProps extends IDialogProps {
     status: Status;
 }
 
+export interface ViewSettingsDialogProps extends IDialogProps {
+    type: "viewSettings";
+}
+
 export interface AzureDataStudioMigrationWebviewState {
     adsConfigPath: string;
     connectionGroups: AdsMigrationConnectionGroup[];
     connections: AdsMigrationConnection[];
+    importSettings: boolean;
+    settings: AdsMigrationSetting[];
     dialog?: IDialogProps;
 }
 
@@ -95,6 +106,10 @@ export interface AzureDataStudioMigrationReducers {
         connectionId?: string;
         selected: boolean;
     };
+    setImportSettings: {
+        importSettings: boolean;
+    };
+    openViewSettingsDialog: {};
     import: {};
     confirmImport: {};
 }
