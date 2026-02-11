@@ -131,7 +131,7 @@ jobs:
       - name: Keybindings - Package extension
         continue-on-error: true
         run: |
-          cd extensions/mssql-database-management-keybindings
+          cd extensions/database-management-keymap
           vsce package
 
       - name: MSSQL - Upload VSIX files
@@ -156,7 +156,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: keybindings-vsix
-          path: ./extensions/mssql-database-management-keybindings/*.vsix
+          path: ./extensions/database-management-keymap/*.vsix
 
       - name: Setting up change icons
         if: env.should_compare_baseline == 'true'
