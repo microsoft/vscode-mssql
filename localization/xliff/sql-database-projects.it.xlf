@@ -1681,6 +1681,10 @@
         <source xml:lang="en">Publish</source>
         <target state="translated">Pubblica</target>
       </trans-unit>
+      <trans-unit id="sqlDatabaseProjects.publishDialog">
+        <source xml:lang="en">Publish...</source>
+        <target state="new">Publish...</target>
+      </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
         <target state="translated">Rinomina</target>
