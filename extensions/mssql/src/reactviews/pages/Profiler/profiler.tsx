@@ -12,7 +12,7 @@ import {
     Formatters,
     Formatter,
 } from "slickgrid-react";
-import { makeStyles, Text } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { useProfilerSelector } from "./profilerSelector";
 import { useProfilerContext } from "./profilerStateProvider";
 import { ProfilerToolbar } from "./profilerToolbar";
@@ -732,8 +732,13 @@ export const Profiler: React.FC = () => {
             forceFitColumns: false,
             alwaysShowVerticalScroll: true, // Always show vertical scrollbar to keep header/row alignment
             darkMode: themeKind === ColorThemeKind.Dark,
+            emptyDataWarning: {
+                message: isFilterActive
+                    ? locConstants.profiler.noResultsMatchFilter
+                    : locConstants.profiler.noDataToDisplay,
+            },
         }),
-        [themeKind],
+        [themeKind, isFilterActive],
     );
 
     // Toolbar handlers
@@ -890,11 +895,6 @@ export const Profiler: React.FC = () => {
                 />
             )}
             <div id="profilerGridContainer" className={classes.profilerGridContainer}>
-                {isFilterActive && localRowCount === 0 && (
-                    <Text className={classes.emptyFilterMessage} align="center" size={300}>
-                        {locConstants.profiler.noResultsMatchFilter}
-                    </Text>
-                )}
                 <SlickgridReact
                     gridId="profilerGrid"
                     columns={columns}
@@ -974,12 +974,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
-    emptyFilterMessage: {
-        display: "flex",
-        justifyContent: "center",
-        padding: "16px",
-        color: "var(--vscode-descriptionForeground)",
-    },
+
 });
 
 // #endregion

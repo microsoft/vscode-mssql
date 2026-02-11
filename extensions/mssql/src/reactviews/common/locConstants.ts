@@ -2056,6 +2056,7 @@ export class LocConstants {
                     comment: ["{0} is the column name"],
                 }),
             noResultsMatchFilter: l10n.t("No results match the current filters"),
+            noDataToDisplay: l10n.t("No data to display."),
 
             // Quick filter
             quickFilterPlaceholder: l10n.t("Quick filter all columns\u2026"),
