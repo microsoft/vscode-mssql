@@ -668,6 +668,9 @@
       <source xml:lang="en">Changes ({0})</source>
       <note>{0} is the number of schema changes</note>
     </trans-unit>
+    <trans-unit id="++CODE++e08912b75cbc6c4a38d7e7394650bef8a26258cc8b7ad7ad4deff132308e8ab0">
+      <source xml:lang="en">Changes List</source>
+    </trans-unit>
     <trans-unit id="++CODE++cf51bd8ae1e56e8e81b07f1e7f35e10d580788d9e0892a8a4896c2378227f4f0">
       <source xml:lang="en">Changes published successfully</source>
     </trans-unit>
@@ -843,6 +846,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
       <source xml:lang="en">Cloud</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7e61a2d282cd0eaee5d0daa7637081deb3c79e96971fdab94a1772a19380fbcf">
+      <source xml:lang="en">Code Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
