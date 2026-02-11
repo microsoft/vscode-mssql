@@ -7,7 +7,7 @@ import { useContext, useState } from "react";
 import { Button } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { useConnectionDialogSelector } from "./connectionDialogSelector";
-import { FormFieldNoState, useFormStyles } from "../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
@@ -39,7 +39,7 @@ export const ConnectionFormPage = () => {
                 }
 
                 return (
-                    <FormFieldNoState<
+                    <FormField<
                         IConnectionDialogProfile,
                         ConnectionDialogWebviewState,
                         ConnectionDialogFormItemSpec,
