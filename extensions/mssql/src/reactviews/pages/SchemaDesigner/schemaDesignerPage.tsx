@@ -9,7 +9,6 @@ import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
 import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
-import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
 import { makeStyles, Spinner } from "@fluentui/react-components";
@@ -22,16 +21,10 @@ const useStyles = makeStyles({
         height: "2px",
         backgroundColor: "var(--vscode-editorWidget-border)",
     },
-    resizeHandleVertical: {
-        width: "2px",
-        backgroundColor: "var(--vscode-editorWidget-border)",
-    },
 });
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-
-    const isDabEnabled = context?.state?.enableDAB ?? false;
 
     if (!context) {
         return undefined;
@@ -41,25 +34,15 @@ export const SchemaDesignerPage = () => {
         <>
             <SchemaDesignerEditorDrawer />
             <MainLayout>
-                <PanelGroup direction="horizontal">
-                    <Panel defaultSize={isDabEnabled ? 75 : 100} minSize={30}>
-                        <PanelGroup direction="vertical">
-                            <Panel defaultSize={100}>
-                                <GraphContainer>
-                                    <SchemaDesignerToolbar />
-                                    <SchemaDesignerFlow />
-                                </GraphContainer>
-                            </Panel>
-                            <PanelResizeHandle className={classes.resizeHandle} />
-                            <SchemaDesignerDefinitionsPanel />
-                        </PanelGroup>
+                <PanelGroup direction="vertical">
+                    <Panel defaultSize={100} minSize={30}>
+                        <GraphContainer>
+                            <SchemaDesignerToolbar />
+                            <SchemaDesignerFlow />
+                        </GraphContainer>
                     </Panel>
-                    {isDabEnabled && (
-                        <>
-                            <PanelResizeHandle className={classes.resizeHandleVertical} />
-                            <SchemaDesignerChangesPanel />
-                        </>
-                    )}
+                    <PanelResizeHandle className={classes.resizeHandle} />
+                    <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
                 {!context.isInitialized && !context.initializationError && <LoadingOverlay />}
                 {context?.initializationError && (

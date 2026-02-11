@@ -3,28 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
-    Button,
     makeStyles,
     TreeItemValue,
     useHeadlessFlatTree_unstable,
 } from "@fluentui/react-components";
 import { Checkmark24Regular, Search16Regular } from "@fluentui/react-icons";
-import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 import eventBus, { SchemaDesignerChangesPanelTab } from "../schemaDesignerEvents";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { ChangeAction, ChangeCategory, SchemaChange, TableChangeGroup } from "../diff/diffUtils";
 import { describeChange } from "../diff/schemaDiff";
 import { SchemaDesignerChangesEmptyState } from "./schemaDesignerChangesEmptyState";
-import { SchemaDesignerChangesHeader } from "./schemaDesignerChangesHeader";
 import { SchemaDesignerChangesFilters } from "./schemaDesignerChangesFilters";
 import { SchemaDesignerChangesTree, FlatTreeItem } from "./schemaDesignerChangesTree";
 import { getVisiblePendingAiSchemaChanges } from "../aiLedger/ledgerUtils";
-
-const DEFAULT_PANEL_SIZE = 25;
-const MIN_PANEL_SIZE = 10;
 
 const useStyles = makeStyles({
     container: {
@@ -36,29 +30,23 @@ const useStyles = makeStyles({
         minHeight: 0,
         overflow: "hidden",
     },
-    aiFooter: {
-        display: "flex",
-        justifyContent: "flex-end",
-        gap: "8px",
-        padding: "8px",
-        borderTop: "1px solid var(--vscode-editorWidget-border)",
-        backgroundColor:
-            "color-mix(in srgb, var(--vscode-editorWidget-background) 65%, transparent)",
-        flexShrink: 0,
-    },
 });
 
-export const SchemaDesignerChangesPanel = () => {
+interface SchemaDesignerChangesPanelProps {
+    tab: SchemaDesignerChangesPanelTab;
+}
+
+export const SchemaDesignerChangesPanel = ({ tab }: SchemaDesignerChangesPanelProps) => {
     const context = useContext(SchemaDesignerContext);
     const classes = useStyles();
-    const panelRef = useRef<ImperativePanelHandle | undefined>(undefined);
-    const changesPanelTabRef = useRef<SchemaDesignerChangesPanelTab>(context.changesPanelTab);
-    const { setIsChangesPanelVisible, setShowChangesHighlight, setChangesPanelTab } = context;
 
     const [searchText, setSearchText] = useState("");
     const [baselineOpenItems, setBaselineOpenItems] = useState<Set<TreeItemValue>>(new Set());
     const [actionFilters, setActionFilters] = useState<ChangeAction[]>([]);
     const [categoryFilters, setCategoryFilters] = useState<ChangeCategory[]>([]);
+    const [pendingAiSearchText, setPendingAiSearchText] = useState("");
+    const [pendingAiActionFilters, setPendingAiActionFilters] = useState<ChangeAction[]>([]);
+    const [pendingAiCategoryFilters, setPendingAiCategoryFilters] = useState<ChangeCategory[]>([]);
     const [isApplyingAiAction, setIsApplyingAiAction] = useState(false);
     const [activePendingAiChangeId, setActivePendingAiChangeId] = useState<string | undefined>(
         undefined,
@@ -68,58 +56,6 @@ export const SchemaDesignerChangesPanel = () => {
     const pendingAiTabLabel = locConstants.schemaDesigner.pendingAiTabLabel;
     const pendingAiEmptyTitle = locConstants.schemaDesigner.pendingAiEmptyTitle;
     const pendingAiEmptySubtitle = locConstants.schemaDesigner.pendingAiEmptySubtitle;
-
-    useEffect(() => {
-        changesPanelTabRef.current = context.changesPanelTab;
-    }, [context.changesPanelTab]);
-
-    useEffect(() => {
-        // Ensure panel starts collapsed
-        panelRef.current?.collapse();
-        setIsChangesPanelVisible(false);
-
-        const toggle = () => {
-            if (!panelRef.current) {
-                return;
-            }
-
-            if (panelRef.current.isCollapsed()) {
-                setChangesPanelTab("baseline");
-                panelRef.current.expand(DEFAULT_PANEL_SIZE);
-                setIsChangesPanelVisible(true);
-                setShowChangesHighlight(true);
-            } else if (changesPanelTabRef.current !== "baseline") {
-                setChangesPanelTab("baseline");
-            } else {
-                panelRef.current.collapse();
-                setIsChangesPanelVisible(false);
-                setShowChangesHighlight(false);
-            }
-        };
-
-        const openPanel = (tab?: SchemaDesignerChangesPanelTab) => {
-            if (!panelRef.current) {
-                return;
-            }
-
-            if (tab) {
-                setChangesPanelTab(tab);
-            }
-            if (panelRef.current.isCollapsed()) {
-                panelRef.current.expand(DEFAULT_PANEL_SIZE);
-            }
-            setIsChangesPanelVisible(true);
-            setShowChangesHighlight(true);
-        };
-
-        eventBus.on("toggleChangesPanel", toggle);
-        eventBus.on("openChangesPanel", openPanel);
-        return () => {
-            eventBus.off("toggleChangesPanel", toggle);
-            eventBus.off("openChangesPanel", openPanel);
-            setIsChangesPanelVisible(false);
-        };
-    }, [setChangesPanelTab, setIsChangesPanelVisible, setShowChangesHighlight]);
 
     const baselineFilteredGroups = useMemo(() => {
         if (!context.schemaChangesSummary?.groups) {
@@ -223,7 +159,69 @@ export const SchemaDesignerChangesPanel = () => {
         () => getVisiblePendingAiSchemaChanges(context.aiLedger),
         [context.aiLedger],
     );
-    const aiLedgerChangesCount = pendingAiChanges.length;
+    const pendingAiFilteredChanges = useMemo(() => {
+        const lowerSearch = pendingAiSearchText.toLowerCase().trim();
+        const hasSearchText = lowerSearch.length > 0;
+        const hasActionFilter = pendingAiActionFilters.length > 0;
+        const hasCategoryFilter = pendingAiCategoryFilters.length > 0;
+
+        if (!hasSearchText && !hasActionFilter && !hasCategoryFilter) {
+            return pendingAiChanges;
+        }
+
+        return pendingAiChanges.filter((change) => {
+            if (hasActionFilter && !pendingAiActionFilters.includes(change.action)) {
+                return false;
+            }
+
+            if (hasCategoryFilter && !pendingAiCategoryFilters.includes(change.category)) {
+                return false;
+            }
+
+            if (!hasSearchText) {
+                return true;
+            }
+
+            if (change.objectName?.toLowerCase().includes(lowerSearch)) {
+                return true;
+            }
+
+            if (change.tableName.toLowerCase().includes(lowerSearch)) {
+                return true;
+            }
+
+            if (change.tableSchema.toLowerCase().includes(lowerSearch)) {
+                return true;
+            }
+
+            const description = getChangeDescription(change);
+            if (description.toLowerCase().includes(lowerSearch)) {
+                return true;
+            }
+
+            if (change.propertyChanges) {
+                for (const pc of change.propertyChanges) {
+                    if (pc.displayName.toLowerCase().includes(lowerSearch)) {
+                        return true;
+                    }
+                    if (String(pc.oldValue).toLowerCase().includes(lowerSearch)) {
+                        return true;
+                    }
+                    if (String(pc.newValue).toLowerCase().includes(lowerSearch)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
+    }, [
+        getChangeDescription,
+        pendingAiActionFilters,
+        pendingAiCategoryFilters,
+        pendingAiChanges,
+        pendingAiSearchText,
+    ]);
 
     const toFlatTreeItems = useCallback(
         (groups: TableChangeGroup[], prefix: "baseline" | "ai"): FlatTreeItem[] => {
@@ -260,14 +258,14 @@ export const SchemaDesignerChangesPanel = () => {
 
     const pendingAiFlatTreeItems = useMemo(
         () =>
-            pendingAiChanges.map((change) => ({
+            pendingAiFilteredChanges.map((change) => ({
                 value: `ai-change-${change.id}`,
                 nodeType: "change" as const,
                 change,
                 tableId: change.tableId,
                 content: getChangeDescription(change),
             })),
-        [getChangeDescription, pendingAiChanges],
+        [getChangeDescription, pendingAiFilteredChanges],
     );
 
     useEffect(() => {
@@ -297,22 +295,22 @@ export const SchemaDesignerChangesPanel = () => {
     }, []);
 
     useEffect(() => {
-        if (pendingAiChanges.length === 0) {
+        if (pendingAiFilteredChanges.length === 0) {
             setActivePendingAiChangeId(undefined);
             return;
         }
 
         if (
             !activePendingAiChangeId ||
-            !pendingAiChanges.some((change) => change.id === activePendingAiChangeId)
+            !pendingAiFilteredChanges.some((change) => change.id === activePendingAiChangeId)
         ) {
-            setActivePendingAiChangeId(pendingAiChanges[0].id);
+            setActivePendingAiChangeId(pendingAiFilteredChanges[0].id);
         }
-    }, [activePendingAiChangeId, pendingAiChanges]);
+    }, [activePendingAiChangeId, pendingAiFilteredChanges]);
 
     const handleReveal = useCallback(
         (change: SchemaChange) => {
-            if (context.changesPanelTab === "pendingAi") {
+            if (tab === "pendingAi") {
                 setActivePendingAiChangeId(change.id);
                 eventBus.emit("setActivePendingAiChange", change.id);
             }
@@ -329,7 +327,7 @@ export const SchemaDesignerChangesPanel = () => {
                 context.setCenter(change.tableId, true);
             }
         },
-        [context],
+        [context, tab],
     );
 
     const handleRevert = useCallback(
@@ -368,22 +366,6 @@ export const SchemaDesignerChangesPanel = () => {
         [context, isApplyingAiAction],
     );
 
-    const handleKeepAllAi = useCallback(() => {
-        context.keepAllAiLedger();
-    }, [context]);
-
-    const handleUndoAllAi = useCallback(async () => {
-        if (isApplyingAiAction) {
-            return;
-        }
-        setIsApplyingAiAction(true);
-        try {
-            await context.undoAllAiLedger();
-        } finally {
-            setIsApplyingAiAction(false);
-        }
-    }, [context, isApplyingAiAction]);
-
     const getCanKeepAiChange = useCallback(
         (_change: SchemaChange) => ({
             canKeep: !isApplyingAiAction,
@@ -403,25 +385,14 @@ export const SchemaDesignerChangesPanel = () => {
     const hasActiveFiltersOrSearch =
         searchText.trim() !== "" || actionFilters.length > 0 || categoryFilters.length > 0;
     const hasNoResults = baselineFilteredGroups.length === 0 && !hasNoChanges;
-    const hasNoPendingAiResults = pendingAiChanges.length === 0;
-    const hasAiLedgerChanges = aiLedgerChangesCount > 0;
-
-    useEffect(() => {
-        if (context.changesPanelTab !== "pendingAi" || hasAiLedgerChanges) {
-            return;
-        }
-
-        panelRef.current?.collapse();
-        setIsChangesPanelVisible(false);
-        setShowChangesHighlight(false);
-        setChangesPanelTab("baseline");
-    }, [
-        context.changesPanelTab,
-        hasAiLedgerChanges,
-        setChangesPanelTab,
-        setIsChangesPanelVisible,
-        setShowChangesHighlight,
-    ]);
+    const hasPendingAiChanges = pendingAiChanges.length > 0;
+    const hasPendingAiFilters =
+        pendingAiActionFilters.length > 0 || pendingAiCategoryFilters.length > 0;
+    const hasPendingAiFiltersOrSearch =
+        pendingAiSearchText.trim() !== "" ||
+        pendingAiActionFilters.length > 0 ||
+        pendingAiCategoryFilters.length > 0;
+    const hasNoPendingAiResults = pendingAiFilteredChanges.length === 0 && hasPendingAiChanges;
 
     const toggleActionFilter = useCallback((action: ChangeAction) => {
         setActionFilters((prev) =>
@@ -436,144 +407,130 @@ export const SchemaDesignerChangesPanel = () => {
                 : [...prev, category],
         );
     }, []);
+    const togglePendingAiActionFilter = useCallback((action: ChangeAction) => {
+        setPendingAiActionFilters((prev) =>
+            prev.includes(action) ? prev.filter((value) => value !== action) : [...prev, action],
+        );
+    }, []);
+
+    const togglePendingAiCategoryFilter = useCallback((category: ChangeCategory) => {
+        setPendingAiCategoryFilters((prev) =>
+            prev.includes(category)
+                ? prev.filter((value) => value !== category)
+                : [...prev, category],
+        );
+    }, []);
 
     return (
-        <Panel
-            collapsible
-            defaultSize={DEFAULT_PANEL_SIZE}
-            minSize={MIN_PANEL_SIZE}
-            onResize={(size) => {
-                setIsChangesPanelVisible(size > 0);
-            }}
-            ref={(ref) => {
-                panelRef.current = ref ?? undefined;
-            }}>
-            <div className={classes.container}>
-                <SchemaDesignerChangesHeader
-                    title={
-                        context.changesPanelTab === "baseline"
-                            ? locConstants.schemaDesigner.changesPanelTitle(
-                                  context.schemaChangesCount,
-                              )
-                            : locConstants.schemaDesigner.pendingAiChangesPanelTitle(
-                                  aiLedgerChangesCount,
-                              )
-                    }
-                    onClose={() => {
-                        panelRef.current?.collapse();
-                        setIsChangesPanelVisible(false);
-                        setShowChangesHighlight(false);
-                    }}
-                />
+        <div className={classes.container}>
+            {tab === "baseline" ? (
+                <>
+                    {!hasNoChanges && (
+                        <SchemaDesignerChangesFilters
+                            searchText={searchText}
+                            onSearchTextChange={setSearchText}
+                            selectedActions={actionFilters}
+                            onToggleAction={toggleActionFilter}
+                            selectedCategories={categoryFilters}
+                            onToggleCategory={toggleCategoryFilter}
+                            hasActiveFilters={hasActiveFilters}
+                            onClearFilters={() => {
+                                setActionFilters([]);
+                                setCategoryFilters([]);
+                            }}
+                        />
+                    )}
 
-                {context.changesPanelTab === "baseline" ? (
-                    <>
-                        {!hasNoChanges && (
-                            <SchemaDesignerChangesFilters
-                                searchText={searchText}
-                                onSearchTextChange={setSearchText}
-                                selectedActions={actionFilters}
-                                onToggleAction={toggleActionFilter}
-                                selectedCategories={categoryFilters}
-                                onToggleCategory={toggleCategoryFilter}
-                                hasActiveFilters={hasActiveFilters}
-                                onClearFilters={() => {
-                                    setActionFilters([]);
-                                    setCategoryFilters([]);
-                                }}
-                            />
-                        )}
+                    {hasNoChanges ? (
+                        <SchemaDesignerChangesEmptyState
+                            icon={<Checkmark24Regular />}
+                            title={locConstants.schemaDesigner.noChangesYet}
+                            subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
+                        />
+                    ) : hasNoResults ? (
+                        <SchemaDesignerChangesEmptyState
+                            icon={<Search16Regular />}
+                            title={
+                                hasActiveFiltersOrSearch
+                                    ? loc.noSearchResults
+                                    : locConstants.schemaDesigner.noChangesYet
+                            }
+                        />
+                    ) : (
+                        <SchemaDesignerChangesTree
+                            flatTree={baselineFlatTree}
+                            flatTreeItems={baselineFlatTreeItems}
+                            searchText={searchText}
+                            ariaLabel={locConstants.schemaDesigner.changesPanelTitle(
+                                context.schemaChangesCount,
+                            )}
+                            loc={loc}
+                            onReveal={handleReveal}
+                            onRevert={handleRevert}
+                            getCanRevert={getCanRevert}
+                            isPendingAiTab={false}
+                        />
+                    )}
+                </>
+            ) : (
+                <>
+                    {hasPendingAiChanges && (
+                        <SchemaDesignerChangesFilters
+                            searchText={pendingAiSearchText}
+                            onSearchTextChange={setPendingAiSearchText}
+                            selectedActions={pendingAiActionFilters}
+                            onToggleAction={togglePendingAiActionFilter}
+                            selectedCategories={pendingAiCategoryFilters}
+                            onToggleCategory={togglePendingAiCategoryFilter}
+                            hasActiveFilters={hasPendingAiFilters}
+                            onClearFilters={() => {
+                                setPendingAiActionFilters([]);
+                                setPendingAiCategoryFilters([]);
+                            }}
+                        />
+                    )}
 
-                        {hasNoChanges ? (
-                            <SchemaDesignerChangesEmptyState
-                                icon={<Checkmark24Regular />}
-                                title={locConstants.schemaDesigner.noChangesYet}
-                                subtitle={locConstants.schemaDesigner.noChangesYetSubtitle}
-                            />
-                        ) : hasNoResults ? (
-                            <SchemaDesignerChangesEmptyState
-                                icon={<Search16Regular />}
-                                title={
-                                    hasActiveFiltersOrSearch
-                                        ? loc.noSearchResults
-                                        : locConstants.schemaDesigner.noChangesYet
-                                }
-                            />
-                        ) : (
-                            <SchemaDesignerChangesTree
-                                flatTree={baselineFlatTree}
-                                flatTreeItems={baselineFlatTreeItems}
-                                searchText={searchText}
-                                ariaLabel={locConstants.schemaDesigner.changesPanelTitle(
-                                    context.schemaChangesCount,
-                                )}
-                                loc={loc}
-                                onReveal={handleReveal}
-                                onRevert={handleRevert}
-                                getCanRevert={getCanRevert}
-                            />
-                        )}
-                    </>
-                ) : hasAiLedgerChanges ? (
-                    <>
-                        {hasNoPendingAiResults ? (
-                            <SchemaDesignerChangesEmptyState
-                                icon={<Checkmark24Regular />}
-                                title={pendingAiEmptyTitle}
-                                subtitle={pendingAiEmptySubtitle}
-                            />
-                        ) : (
-                            <SchemaDesignerChangesTree
-                                flatTree={pendingAiFlatTree}
-                                flatTreeItems={pendingAiFlatTreeItems}
-                                searchText=""
-                                ariaLabel={pendingAiTabLabel}
-                                activeChangeId={activePendingAiChangeId}
-                                loc={{
-                                    ...loc,
-                                    keep: locConstants.schemaDesigner.keep,
-                                    keepTooltip:
-                                        locConstants.schemaDesigner.keepAiChangeTooltip,
-                                    revert: locConstants.schemaDesigner.undo,
-                                    revertTooltip:
-                                        locConstants.schemaDesigner.undoAiChangeTooltip,
-                                }}
-                                onReveal={handleReveal}
-                                onKeep={handleKeepAiChange}
-                                getCanKeep={getCanKeepAiChange}
-                                onRevert={(change) => {
-                                    void handleUndoAiChange(change);
-                                }}
-                                getCanRevert={getCanUndoAiChange}
-                            />
-                        )}
-                        <div className={classes.aiFooter}>
-                            <Button
-                                size="small"
-                                appearance="primary"
-                                onClick={handleKeepAllAi}
-                                disabled={isApplyingAiAction}>
-                                {locConstants.schemaDesigner.keepAll}
-                            </Button>
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                onClick={() => {
-                                    void handleUndoAllAi();
-                                }}
-                                disabled={isApplyingAiAction}>
-                                {locConstants.schemaDesigner.undoAll}
-                            </Button>
-                        </div>
-                    </>
-                ) : (
-                    <SchemaDesignerChangesEmptyState
-                        icon={<Checkmark24Regular />}
-                        title={pendingAiEmptyTitle}
-                        subtitle={pendingAiEmptySubtitle}
-                    />
-                )}
-            </div>
-        </Panel>
+                    {!hasPendingAiChanges ? (
+                        <SchemaDesignerChangesEmptyState
+                            icon={<Checkmark24Regular />}
+                            title={pendingAiEmptyTitle}
+                            subtitle={pendingAiEmptySubtitle}
+                        />
+                    ) : hasNoPendingAiResults ? (
+                        <SchemaDesignerChangesEmptyState
+                            icon={<Search16Regular />}
+                            title={
+                                hasPendingAiFiltersOrSearch
+                                    ? loc.noSearchResults
+                                    : pendingAiEmptyTitle
+                            }
+                        />
+                    ) : (
+                        <SchemaDesignerChangesTree
+                            flatTree={pendingAiFlatTree}
+                            flatTreeItems={pendingAiFlatTreeItems}
+                            searchText={pendingAiSearchText}
+                            ariaLabel={pendingAiTabLabel}
+                            activeChangeId={activePendingAiChangeId}
+                            isPendingAiTab={true}
+                            loc={{
+                                ...loc,
+                                keep: locConstants.schemaDesigner.keep,
+                                keepTooltip: locConstants.schemaDesigner.keepAiChangeTooltip,
+                                revert: locConstants.schemaDesigner.undo,
+                                revertTooltip: locConstants.schemaDesigner.undoAiChangeTooltip,
+                            }}
+                            onReveal={handleReveal}
+                            onKeep={handleKeepAiChange}
+                            getCanKeep={getCanKeepAiChange}
+                            onRevert={(change) => {
+                                void handleUndoAiChange(change);
+                            }}
+                            getCanRevert={getCanUndoAiChange}
+                        />
+                    )}
+                </>
+            )}
+        </div>
     );
 };

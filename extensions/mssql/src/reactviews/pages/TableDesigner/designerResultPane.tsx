@@ -14,8 +14,13 @@ import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext, useEffect, useState } from "react";
 import {
     DesignerDefinitionPane,
+    DesignerDefinitionTabValue,
     DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
+import { locConstants } from "../../common/locConstants";
+import { DesignerIssuesTab } from "./designerIssuesTab";
+
+const TABLE_DESIGNER_ISSUES_TAB = "tableDesignerIssues";
 
 export const DesignerResultPane = () => {
     const context = useContext(TableDesignerContext);
@@ -115,17 +120,25 @@ export const DesignerResultPane = () => {
         }
     };
 
-    const [definitionTab, setDefinitionTab] = useState<DesignerDefinitionTabs>(
+    const [definitionTab, setDefinitionTab] = useState<DesignerDefinitionTabValue>(
         DesignerDefinitionTabs.Script,
     );
+    const issuesCount = state?.issues?.length ?? 0;
+    const hasIssues = issuesCount > 0;
 
     useEffect(() => {
         setDefinitionTab(
             state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script
                 ? DesignerDefinitionTabs.Script
-                : DesignerDefinitionTabs.Issues,
+                : TABLE_DESIGNER_ISSUES_TAB,
         );
     }, [state.tabStates!.resultPaneTab]);
+
+    useEffect(() => {
+        if (!hasIssues && definitionTab === TABLE_DESIGNER_ISSUES_TAB) {
+            setDefinitionTab(DesignerDefinitionTabs.Script);
+        }
+    }, [definitionTab, hasIssues]);
 
     return (
         <DesignerDefinitionPane
@@ -134,10 +147,24 @@ export const DesignerResultPane = () => {
             themeKind={context?.themeKind}
             openInEditor={context?.scriptAsCreate}
             script={(state?.model!["script"] as InputBoxProperties).value ?? ""}
-            issues={state?.issues}
             activeTab={definitionTab}
             setActiveTab={setDefinitionTab}
-            onIssueClick={openAndFocusIssueComponent}
+            customTabs={
+                hasIssues
+                    ? [
+                          {
+                              id: TABLE_DESIGNER_ISSUES_TAB,
+                              label: locConstants.tableDesigner.issuesTabHeader(issuesCount),
+                              content: (
+                                  <DesignerIssuesTab
+                                      issues={state.issues!}
+                                      onIssueAction={openAndFocusIssueComponent}
+                                  />
+                              ),
+                          },
+                      ]
+                    : []
+            }
         />
     );
 };

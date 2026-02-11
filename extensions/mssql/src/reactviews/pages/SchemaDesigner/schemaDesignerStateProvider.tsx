@@ -88,6 +88,7 @@ export interface SchemaDesignerContextProps
     findTableText: string;
     setFindTableText: (text: string) => void;
     getDefinition: () => Promise<string>;
+    getBaselineDefinition: () => Promise<string>;
     initializeSchemaDesigner: () => Promise<{
         nodes: Node<SchemaDesigner.Table>[];
         edges: Edge<SchemaDesigner.ForeignKey>[];
@@ -792,6 +793,29 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         );
         const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
             updatedSchema: schema,
+        });
+        return result.script;
+    };
+
+    const getBaselineDefinition = async () => {
+        let baselineSchema = baselineSchemaRef.current;
+
+        if (!baselineSchema) {
+            try {
+                baselineSchema = await extensionRpc.sendRequest(
+                    SchemaDesigner.GetBaselineSchemaRequest.type,
+                );
+                baselineSchemaRef.current = baselineSchema;
+            } catch {
+                baselineSchema = flowUtils.extractSchemaModel(
+                    reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+                    reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+                );
+            }
+        }
+
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
+            updatedSchema: baselineSchema,
         });
         return result.script;
     };
@@ -1880,6 +1904,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 findTableText,
                 setFindTableText,
                 getDefinition,
+                getBaselineDefinition,
                 initializeSchemaDesigner,
                 initializationError,
                 initializationRequestId,

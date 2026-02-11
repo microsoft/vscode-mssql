@@ -54,6 +54,7 @@ type SchemaDesignerChangesTreeProps = {
     onKeep?: (change: SchemaChange) => void;
     getCanKeep?: (change: SchemaChange) => { canKeep: boolean; reason?: string };
     activeChangeId?: string;
+    isPendingAiTab?: boolean;
 };
 
 const NULL_VALUE = JSON.parse("null") as null;
@@ -94,6 +95,10 @@ const useStyles = makeStyles({
     changeItemLayout: {
         // Default Fluent tree indentation is wide for child rows; use a tighter step for change items.
         paddingLeft: "calc((var(--fluent-TreeItem--level, 1) - 1) * 25px)",
+    },
+    pendingAiChangeItemLayout: {
+        // Pending AI rows are top-level items; add left inset so they align visually with grouped changes.
+        paddingLeft: "16px",
     },
     activeChangeItemLayout: {
         backgroundColor:
@@ -295,6 +300,7 @@ export const SchemaDesignerChangesTree = ({
     onKeep,
     getCanKeep,
     activeChangeId,
+    isPendingAiTab = false,
 }: SchemaDesignerChangesTreeProps) => {
     const classes = useStyles();
     const treeContainerRef = useRef<HTMLDivElement | null>(NULL_VALUE);
@@ -462,10 +468,14 @@ export const SchemaDesignerChangesTree = ({
                                     className={mergeClasses(
                                         classes.treeItemLayout,
                                         classes.changeItemLayout,
+                                        isPendingAiTab && classes.pendingAiChangeItemLayout,
                                         change.id === activeChangeId &&
                                             classes.activeChangeItemLayout,
                                     )}
                                     data-schema-designer-change-id={change.id}
+                                    onClick={() => {
+                                        onReveal(change);
+                                    }}
                                     iconBefore={
                                         <span
                                             className={mergeClasses(
