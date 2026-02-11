@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { createContext } from "react";
+import React, { createContext, useMemo } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     UserSurveyContextProps,
@@ -19,29 +19,27 @@ interface UserSurveyProviderProps {
 }
 
 const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }) => {
-    const vscodeWebviewProvider = useVscodeWebview<UserSurveyState, UserSurveyReducers>();
-    return (
-        <UserSurveyContext.Provider
-            value={{
-                state: vscodeWebviewProvider.state,
-                ...getCoreRPCs(vscodeWebviewProvider),
-                submit: async (answers: Record<string, string>) => {
-                    await vscodeWebviewProvider.extensionRpc.action("submit", {
-                        answers: answers,
-                    });
-                },
-                cancel: async () => {
-                    await vscodeWebviewProvider.extensionRpc.action("cancel");
-                },
-                openPrivacyStatement: async () => {
-                    await vscodeWebviewProvider.extensionRpc.action("openPrivacyStatement");
-                },
-                themeKind: vscodeWebviewProvider.themeKind,
-                keyBindings: vscodeWebviewProvider.keyBindings,
-            }}>
-            {children}
-        </UserSurveyContext.Provider>
+    const { extensionRpc } = useVscodeWebview<UserSurveyState, UserSurveyReducers>();
+
+    const commands = useMemo<UserSurveyContextProps>(
+        () => ({
+            ...getCoreRPCs(extensionRpc),
+            submit: async (answers: Record<string, string>) => {
+                await extensionRpc.action("submit", {
+                    answers: answers,
+                });
+            },
+            cancel: async () => {
+                await extensionRpc.action("cancel");
+            },
+            openPrivacyStatement: async () => {
+                await extensionRpc.action("openPrivacyStatement");
+            },
+        }),
+        [extensionRpc],
     );
+
+    return <UserSurveyContext.Provider value={commands}>{children}</UserSurveyContext.Provider>;
 };
 
 export { UserSurveyContext, UserSurveyStateProvider };

@@ -3,16 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
-import * as azdata from "azdata";
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import * as TypeMoq from "typemoq";
 import * as baselines from "./baselines/baselines";
 import * as testUtils from "./testUtils";
-import * as constants from "../src/common/constants";
+import * as utils from "../src/common/utils";
 import { TestContext, createContext, mockDacFxOptionsResult } from "./testContext";
 import { load, readPublishProfile } from "../src/models/publishProfile/publishProfile";
+
+chai.use(sinonChai);
 
 let testContext: TestContext;
 
@@ -40,26 +42,20 @@ suite("Publish profile tests", function (): void {
             baselines.publishProfileIntegratedSecurityBaseline,
             "publishProfile.publish.xml",
         );
-        const connectionResult = {
-            connected: true,
-            connectionId: "connId",
-            errorMessage: "",
-            errorCode: 0,
-        };
-        testContext.dacFxService
-            .setup((x) => x.getOptionsFromProfile(TypeMoq.It.isAny()))
-            .returns(async () => {
-                return Promise.resolve(mockDacFxOptionsResult);
-            });
-        sinon.stub(azdata.connection, "connect").resolves(connectionResult);
 
-        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService.object);
-        should(result.databaseName).equal("targetDb");
-        should(result.sqlCmdVariables.size).equal(1);
-        should(result.sqlCmdVariables.get("ProdDatabaseName")).equal("MyProdDatabase");
-        should(result.connectionId).equal("connId");
-        should(result.connection).equal("testserver (default)");
-        should(result.options).equal(mockDacFxOptionsResult.deploymentOptions);
+        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService);
+        expect(result.databaseName, "Database name should be targetDb").to.equal("targetDb");
+        expect(result.sqlCmdVariables.size, "Should have 1 SQLCMD variable").to.equal(1);
+        expect(
+            result.sqlCmdVariables.get("ProdDatabaseName"),
+            "ProdDatabaseName should be MyProdDatabase",
+        ).to.equal("MyProdDatabase");
+        expect(result.connection, "Connection should contain server and default user").to.equal(
+            "testserver (default)",
+        );
+        expect(result.options, "Options should match deployment options").to.deep.equal(
+            mockDacFxOptionsResult.deploymentOptions,
+        );
     });
 
     test("Should read database name, SQL login connection string, and SQLCMD variables from publish profile", async function (): Promise<void> {
@@ -69,28 +65,17 @@ suite("Publish profile tests", function (): void {
             baselines.publishProfileSqlLoginBaseline,
             "publishProfile.publish.xml",
         );
-        const connectionResult = {
-            providerName: "MSSQL",
-            connectionId: "connId",
-            options: {
-                server: "testserver",
-                user: "testUser",
-            },
-        };
-        testContext.dacFxService
-            .setup((x) => x.getOptionsFromProfile(TypeMoq.It.isAny()))
-            .returns(async () => {
-                return Promise.resolve(mockDacFxOptionsResult);
-            });
-        sinon.stub(azdata.connection, "openConnectionDialog").resolves(connectionResult);
 
-        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService.object);
-        should(result.databaseName).equal("targetDb");
-        should(result.sqlCmdVariables.size).equal(1);
-        should(result.sqlCmdVariables.get("ProdDatabaseName")).equal("MyProdDatabase");
-        should(result.connectionId).equal("connId");
-        should(result.connection).equal("testserver (testUser)");
-        should(result.options).equal(mockDacFxOptionsResult.deploymentOptions);
+        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService);
+        expect(result.databaseName, "Database name should be targetDb").to.equal("targetDb");
+        expect(result.sqlCmdVariables.size, "Should have 1 SQLCMD variable").to.equal(1);
+        expect(
+            result.sqlCmdVariables.get("ProdDatabaseName"),
+            "ProdDatabaseName should be MyProdDatabase",
+        ).to.equal("MyProdDatabase");
+        expect(result.options, "Options should match deployment options").to.deep.equal(
+            mockDacFxOptionsResult.deploymentOptions,
+        );
     });
 
     test("Should read SQLCMD variables correctly from publish profile even if DefaultValue is used", async function (): Promise<void> {
@@ -100,20 +85,18 @@ suite("Publish profile tests", function (): void {
             baselines.publishProfileDefaultValueBaseline,
             "publishProfile.publish.xml",
         );
-        testContext.dacFxService
-            .setup((x) => x.getOptionsFromProfile(TypeMoq.It.isAny()))
-            .returns(async () => {
-                return Promise.resolve(mockDacFxOptionsResult);
-            });
 
-        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService.object);
-        should(result.sqlCmdVariables.size).equal(1);
+        const result = await load(vscode.Uri.file(profilePath), testContext.dacFxService);
+        expect(result.sqlCmdVariables.size, "Should have 1 SQLCMD variable").to.equal(1);
 
         // the profile has both Value and DefaultValue, but Value should be the one used
-        should(result.sqlCmdVariables.get("ProdDatabaseName")).equal("MyProdDatabase");
+        expect(
+            result.sqlCmdVariables.get("ProdDatabaseName"),
+            "ProdDatabaseName should use Value, not DefaultValue",
+        ).to.equal("MyProdDatabase");
     });
 
-    test("Should throw error when connecting does not work", async function (): Promise<void> {
+    test("Should throw error when getDacFxService fails", async function (): Promise<void> {
         await baselines.loadBaselines();
         const profilePath = await testUtils.createTestFile(
             this.test,
@@ -121,11 +104,18 @@ suite("Publish profile tests", function (): void {
             "publishProfile.publish.xml",
         );
 
-        sinon.stub(azdata.connection, "connect").throws(new Error("Could not connect"));
+        // Stub getDacFxService to throw an error simulating service unavailability
+        sinon.stub(utils, "getDacFxService").rejects(new Error("Service unavailable"));
 
-        await testUtils.shouldThrowSpecificError(
-            async () => await readPublishProfile(vscode.Uri.file(profilePath)),
-            constants.unableToCreatePublishConnection("Could not connect"),
-        );
+        let threwError = false;
+        try {
+            await readPublishProfile(vscode.Uri.file(profilePath));
+        } catch (err) {
+            threwError = true;
+            expect(err.message, "Error message should indicate service failure").to.equal(
+                "Service unavailable",
+            );
+        }
+        expect(threwError, "readPublishProfile should have thrown an error").to.be.true;
     });
 });

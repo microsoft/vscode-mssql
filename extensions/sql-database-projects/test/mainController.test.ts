@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as sinon from "sinon";
 import * as baselines from "./baselines/baselines";
 import * as templates from "../src/templates/templates";
@@ -26,17 +26,19 @@ suite("MainController: main controller operations", function (): void {
     });
 
     test("Should create new instance without error", async function (): Promise<void> {
-        should.doesNotThrow(
+        expect(
             () => new MainController(testContext.context),
             "Creating controller should not throw an error",
-        );
+        ).to.not.throw();
     });
 
     test("Should activate and deactivate without error", async function (): Promise<void> {
         let controller = new MainController(testContext.context);
-        should.notEqual(controller.extensionContext, undefined);
+        expect(controller.extensionContext, "Extension context should be defined").to.not.equal(
+            undefined,
+        );
 
-        should.doesNotThrow(() => controller.activate(), "activate() should not throw an error");
-        should.doesNotThrow(() => controller.dispose(), "dispose() should not throw an error");
+        expect(() => controller.activate(), "activate() should not throw an error").to.not.throw();
+        expect(() => controller.dispose(), "dispose() should not throw an error").to.not.throw();
     });
 });

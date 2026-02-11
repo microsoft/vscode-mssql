@@ -3,19 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as vscodeMssql from 'vscode-mssql';
-import * as templates from '../templates/templates';
-import * as path from 'path';
+import * as vscode from "vscode";
+import * as vscodeMssql from "vscode-mssql";
+import * as templates from "../templates/templates";
+import * as path from "path";
 
-import { ProjectsController } from './projectController';
-import { DBProjectConfigurationKey, DotnetInstallLocationKey, NetCoreInstallLocationKey, NetCoreTool } from '../tools/netcoreTool';
-import { IconPathHelper } from '../common/iconHelper';
-import { WorkspaceTreeItem } from 'dataworkspace';
-import * as constants from '../common/constants';
-import { SqlDatabaseProjectProvider } from '../projectProvider/projectProvider';
-import { GenerateProjectFromOpenApiSpecOptions, ItemType } from 'sqldbproj';
-import { FileNode } from '../models/tree/fileFolderTreeItem';
+import { ProjectsController } from "./projectController";
+import {
+    DBProjectConfigurationKey,
+    DotnetInstallLocationKey,
+    NetCoreInstallLocationKey,
+    NetCoreTool,
+} from "../tools/netcoreTool";
+import { IconPathHelper } from "../common/iconHelper";
+import { WorkspaceTreeItem } from "dataworkspace";
+import * as constants from "../common/constants";
+import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
+import { GenerateProjectFromOpenApiSpecOptions, ItemType } from "sqldbproj";
+import { FileNode } from "../models/tree/fileFolderTreeItem";
 
 /**
  * The main controller class that initializes the extension
@@ -111,8 +116,8 @@ export default class MainController implements vscode.Disposable {
                 async (
                     operationId: string,
                     projectFilePath: string,
-                    folderStructure: mssql.ExtractTarget,
-                ): Promise<mssql.SchemaComparePublishProjectResult> => {
+                    folderStructure: vscodeMssql.ExtractTarget,
+                ): Promise<vscodeMssql.SchemaComparePublishProjectResult> => {
                     return await this.projectsController.schemaComparePublishProjectChanges(
                         operationId,
                         projectFilePath,
@@ -124,12 +129,7 @@ export default class MainController implements vscode.Disposable {
         this.context.subscriptions.push(
             vscode.commands.registerCommand(
                 "sqlDatabaseProjects.updateProjectFromDatabase",
-                async (
-                    node:
-                        | azdataType.IConnectionProfile
-                        | vscodeMssql.ITreeNodeInfo
-                        | WorkspaceTreeItem,
-                ) => {
+                async (node: vscodeMssql.ITreeNodeInfo | WorkspaceTreeItem) => {
                     await this.projectsController.updateProjectFromDatabase(node);
                 },
             ),
@@ -137,9 +137,7 @@ export default class MainController implements vscode.Disposable {
         this.context.subscriptions.push(
             vscode.commands.registerCommand(
                 "sqlDatabaseProjects.createProjectFromDatabase",
-                async (
-                    context: azdataType.IConnectionProfile | vscodeMssql.ITreeNodeInfo | undefined,
-                ) => {
+                async (context: vscodeMssql.ITreeNodeInfo | undefined) => {
                     return this.projectsController.createProjectFromDatabase(context);
                 },
             ),
@@ -339,45 +337,6 @@ export default class MainController implements vscode.Disposable {
                 "sqlDatabaseProjects.openFileWithWatcher",
                 async (fileSystemUri: vscode.Uri, node: FileNode) => {
                     return this.projectsController.openFileWithWatcher(fileSystemUri, node);
-                },
-            ),
-        );
-        this.context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "sqlDatabaseProjects.openInDesigner",
-                async (node: WorkspaceTreeItem) => {
-                    if (node?.element instanceof TableFileNode) {
-                        const tableFileNode = node.element as TableFileNode;
-
-                        const projectPath = tableFileNode.projectFileUri.fsPath;
-                        const project = await Project.openProject(projectPath);
-                        const targetVersion = project.getProjectTargetVersion();
-                        const filePath = tableFileNode.fileSystemUri.fsPath;
-
-                        await getAzdataApi()!.designers.openTableDesigner(
-                            "MSSQL",
-                            {
-                                title: tableFileNode.friendlyName,
-                                tooltip: `${projectPath} - ${tableFileNode.friendlyName}`,
-                                id: filePath,
-                                isNewTable: false,
-                                tableScriptPath: filePath,
-                                projectFilePath: projectPath,
-                                allScripts: project.sqlObjectScripts
-                                    .filter(
-                                        (entry) =>
-                                            entry.type === EntryType.File &&
-                                            path.extname(entry.fsUri.fsPath).toLowerCase() ===
-                                                constants.sqlFileExtension,
-                                    )
-                                    .map((entry) => entry.fsUri.fsPath),
-                                targetVersion: targetVersion,
-                            },
-                            {
-                                ProjectTargetVersion: targetVersion,
-                            },
-                        );
-                    }
                 },
             ),
         );

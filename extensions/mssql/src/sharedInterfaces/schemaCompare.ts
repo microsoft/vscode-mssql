@@ -15,7 +15,7 @@ import {
     SchemaCompareObjectId,
     SchemaCompareOpenScmpResult,
 } from "vscode-mssql";
-import { ColorThemeKind } from "./webview";
+import { CoreRPCs } from "./webview";
 
 export const enum SchemaUpdateAction {
     Delete = 0,
@@ -173,10 +173,7 @@ export interface SchemaCompareReducers {
     cancel: {};
 }
 
-export interface SchemaCompareContextProps {
-    state: SchemaCompareWebViewState;
-    themeKind: ColorThemeKind;
-
+export interface SchemaCompareContextProps extends CoreRPCs {
     isSqlProjectExtensionInstalled: () => void;
 
     listActiveServers: () => void;

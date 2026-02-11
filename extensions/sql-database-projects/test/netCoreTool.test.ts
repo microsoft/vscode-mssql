@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
@@ -41,8 +41,14 @@ suite("NetCoreTool: Net core tests", function (): void {
                 .update(DotnetInstallLocationKey, "test value path", true);
             const netcoreTool = new NetCoreTool(testContext.outputChannel);
             sinon.stub(netcoreTool, "showInstallDialog").returns(Promise.resolve());
-            should(netcoreTool.netcoreInstallLocation).equal("test value path"); // the path in settings should be taken
-            should(await netcoreTool.findOrInstallNetCore()).equal(false); // dotnet can not be present at dummy path in settings
+            expect(
+                netcoreTool.netcoreInstallLocation,
+                "Install location should match settings value",
+            ).to.equal("test value path"); // the path in settings should be taken
+            expect(
+                await netcoreTool.findOrInstallNetCore(),
+                "findOrInstallNetCore should return false for dummy path",
+            ).to.equal(false); // dotnet can not be present at dummy path in settings
         } finally {
             // clean again
             await vscode.workspace
@@ -61,7 +67,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase().startsWith("c:\\program files");
-            should(result).true("dotnet not present in programfiles by default");
+            expect(result, "dotnet not present in programfiles by default").to.be.true;
         }
 
         if (os.platform() === "linux") {
@@ -69,7 +75,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase() === "/usr/share/dotnet";
-            should(result).true("dotnet not present in /usr/share");
+            expect(result, "dotnet not present in /usr/share").to.be.true;
         }
 
         if (os.platform() === "darwin") {
@@ -77,7 +83,7 @@ suite("NetCoreTool: Net core tests", function (): void {
             let result =
                 !netcoreTool.netcoreInstallLocation ||
                 netcoreTool.netcoreInstallLocation.toLowerCase() === "/usr/local/share/dotnet";
-            should(result).true("dotnet not present in /usr/local/share");
+            expect(result, "dotnet not present in /usr/local/share").to.be.true;
         }
     });
 
@@ -91,7 +97,9 @@ suite("NetCoreTool: Net core tests", function (): void {
                 undefined,
             );
             const text = await fs.promises.readFile(dummyFile);
-            should(text.toString().trim()).equal("test");
+            expect(text.toString().trim(), "Command output should match expected text").to.equal(
+                "test",
+            );
         } finally {
             try {
                 await fs.promises.unlink(dummyFile);

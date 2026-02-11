@@ -43,7 +43,7 @@ export async function createNewProjectFromDatabaseWithQuickpick(
         // User cancelled
         return undefined;
     }
-    let connectionUri: string = "";
+    let connectionUri = "";
     let dbs: string[] | undefined = undefined;
 
     let isValidProfile = connectionProfile?.server !== undefined; // undefined when createProjectFromDatabase is launched without context (via command palette)

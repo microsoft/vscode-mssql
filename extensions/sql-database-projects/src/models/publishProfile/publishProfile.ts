@@ -3,26 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as xmldom from '@xmldom/xmldom';
-import * as constants from '../../common/constants';
-import * as utils from '../../common/utils';
-import * as vscodeMssql from 'vscode-mssql';
-import * as vscode from 'vscode';
-import * as path from 'path';
+import * as xmldom from "@xmldom/xmldom";
+import * as constants from "../../common/constants";
+import * as utils from "../../common/utils";
+import * as vscodeMssql from "vscode-mssql";
+import * as vscode from "vscode";
+import * as path from "path";
 
-import { promises as fs } from 'fs';
-import { SqlConnectionDataSource } from '../dataSources/sqlConnectionStringSource';
-import { TelemetryActions, TelemetryReporter, TelemetryViews } from '../../common/telemetry';
-import { Project } from '../project';
+import { promises as fs } from "fs";
+import { SqlConnectionDataSource } from "../dataSources/sqlConnectionStringSource";
+import { TelemetryActions, TelemetryReporter, TelemetryViews } from "../../common/telemetry";
+import { Project } from "../project";
 
 // only reading db name, connection string, and SQLCMD vars from profile for now
 export interface PublishProfile {
-	databaseName: string;
-	serverName: string;
-	connectionId: string;
-	connection: string;
-	sqlCmdVariables: Map<string, string>;
-	options?: vscodeMssql.DeploymentOptions;
+    databaseName: string;
+    serverName: string;
+    connectionId: string;
+    connection: string;
+    sqlCmdVariables: Map<string, string>;
+    options?: vscodeMssql.DeploymentOptions;
 }
 
 export async function readPublishProfile(profileUri: vscode.Uri): Promise<PublishProfile> {
@@ -47,7 +47,7 @@ export async function load(
     const profileXmlDoc: Document = new xmldom.DOMParser().parseFromString(profileText.toString());
 
     // read target database name
-    let targetDbName: string = "";
+    let targetDbName = "";
     let targetDatabaseNameCount = profileXmlDoc.documentElement.getElementsByTagName(
         constants.targetDatabaseName,
     ).length;
@@ -88,24 +88,25 @@ export async function load(
 async function readConnectionString(
     xmlDoc: any,
 ): Promise<{ connectionId: string; connection: string; server: string }> {
-    let targetConnection: string = "";
-    let connId: string = "";
-    let server: string = "";
+    let targetConnection = "";
+    let connId = "";
+    let server = "";
 
-	if (xmlDoc.documentElement.getElementsByTagName(constants.targetConnectionString).length > 0) {
-		const targetConnectionString = xmlDoc.documentElement.getElementsByTagName(constants.TargetConnectionString)[0].textContent;
-		const dataSource = new SqlConnectionDataSource('', targetConnectionString);
-		let username: string = '';
+    if (xmlDoc.documentElement.getElementsByTagName(constants.targetConnectionString).length > 0) {
+        const targetConnectionString = xmlDoc.documentElement.getElementsByTagName(
+            constants.TargetConnectionString,
+        )[0].textContent;
+        const dataSource = new SqlConnectionDataSource("", targetConnectionString);
+        let username: string = "";
 
-		try {
-			if (dataSource.integratedSecurity) {
-				// TODO@chgagnon - hook up VS Code MSSQL
-				server = dataSource.server;
-				username = constants.defaultUser;
-			}
-			else {
-				// TODO@chgagnon - hook up VS Code MSSQL
-			}
+        try {
+            if (dataSource.integratedSecurity) {
+                // TODO@chgagnon - hook up VS Code MSSQL
+                server = dataSource.server;
+                username = constants.defaultUser;
+            } else {
+                // TODO@chgagnon - hook up VS Code MSSQL
+            }
 
             targetConnection = `${server} (${username})`;
         } catch (err) {
@@ -123,9 +124,21 @@ async function readConnectionString(
 /**
  * saves publish settings to the specified profile file
  */
-export async function savePublishProfile(profilePath: string, databaseName: string, connectionString: string, sqlCommandVariableValues?: Map<string, string>, deploymentOptions?: vscodeMssql.DeploymentOptions): Promise<void> {
-	const dacFxService = await utils.getDacFxService();
-	await (dacFxService as vscodeMssql.IDacFxService).savePublishProfile(profilePath, databaseName, connectionString, sqlCommandVariableValues, deploymentOptions as vscodeMssql.DeploymentOptions);
+export async function savePublishProfile(
+    profilePath: string,
+    databaseName: string,
+    connectionString: string,
+    sqlCommandVariableValues?: Map<string, string>,
+    deploymentOptions?: vscodeMssql.DeploymentOptions,
+): Promise<void> {
+    const dacFxService = await utils.getDacFxService();
+    await (dacFxService as vscodeMssql.IDacFxService).savePublishProfile(
+        profilePath,
+        databaseName,
+        connectionString,
+        sqlCommandVariableValues,
+        deploymentOptions as vscodeMssql.DeploymentOptions,
+    );
 }
 
 export function promptToSaveProfile(project: Project, publishProfileUri?: vscode.Uri) {

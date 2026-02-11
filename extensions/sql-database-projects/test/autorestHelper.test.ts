@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as testUtils from "./testUtils";
 import * as utils from "../src/common/utils";
@@ -13,6 +15,8 @@ import { AutorestHelper } from "../src/tools/autorestHelper";
 import { promises as fs } from "fs";
 import { window } from "vscode";
 import { runViaNpx } from "../src/common/constants";
+
+chai.use(sinonChai);
 
 let testContext: TestContext;
 
@@ -34,10 +38,10 @@ suite("Autorest tests", function (): void {
 
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         const executable = await autorestHelper.detectInstallation();
-        should(executable === "autorest" || executable === "npx autorest").equal(
-            true,
+        expect(
+            executable === "autorest" || executable === "npx autorest",
             "autorest command should be found in default path during unit tests",
-        );
+        ).to.equal(true);
     });
 
     test.skip("Should run an autorest command successfully", async function (): Promise<void> {
@@ -56,10 +60,10 @@ suite("Autorest tests", function (): void {
             await autorestHelper.generateAutorestFiles("fakespec.yaml", "fakePath");
             const text = (await fs.readFile(dummyFile)).toString().trim();
             const expected = "AutoRest code generation utility";
-            should(text.includes(expected)).equal(
-                true,
+            expect(
+                text.includes(expected),
                 `Substring not found.  Expected "${expected}" in "${text}"`,
-            );
+            ).to.equal(true);
         } finally {
             if (await utils.exists(dummyFile)) {
                 await fs.unlink(dummyFile);
@@ -82,10 +86,10 @@ suite("Autorest tests", function (): void {
         );
 
         // depending on whether the machine running the test has autorest installed or just node, the expected output may differ by just the prefix, hence matching against two options
-        should(constructedCommand === expectedOutput).equal(
-            true,
+        expect(
+            constructedCommand === expectedOutput,
             `Constructed autorest command not formatting as expected:\nActual:\n\t${constructedCommand}\nExpected:\n\t${expectedOutput}`,
-        );
+        ).to.equal(true);
     });
 
     test("Should prompt user for action when autorest not found", async function (): Promise<void> {
@@ -99,8 +103,9 @@ suite("Autorest tests", function (): void {
         const autorestHelper = new AutorestHelper(testContext.outputChannel);
         await autorestHelper.detectInstallation();
 
-        should(promptStub.calledOnce).be.true(
+        expect(
+            promptStub,
             "User should have been prompted for how to run autorest because it wasn't found.",
-        );
+        ).to.have.been.calledOnce;
     });
 });

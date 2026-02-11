@@ -1682,8 +1682,8 @@
         <target state="translated">게시</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publishDialog">
-        <source xml:lang="en">Publish (Preview)</source>
-        <target state="translated">게시 (미리 보기)</target>
+        <source xml:lang="en">Publish...</source>
+        <target state="new">Publish...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>

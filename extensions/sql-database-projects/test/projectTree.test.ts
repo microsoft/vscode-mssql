@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import should = require("should/as-function");
+import { expect } from "chai";
 import * as vscode from "vscode";
 import * as os from "os";
 import * as path from "path";
@@ -49,9 +49,10 @@ suite("Project Tree tests", function (): void {
             new SqlObjectFileNode(vscode.Uri.file(`${root}D`), sqlprojUri, "D"),
         ];
 
-        should(inputNodes.map((n) => n.relativeProjectUri.path)).deepEqual(
-            expectedNodes.map((n) => n.relativeProjectUri.path),
-        );
+        expect(
+            inputNodes.map((n) => n.relativeProjectUri.path),
+            "Sorted nodes should have folders first then files, both in alphabetical order",
+        ).to.deep.equal(expectedNodes.map((n) => n.relativeProjectUri.path));
     });
 
     test("Should build tree from Project file correctly", function (): void {
@@ -83,7 +84,10 @@ suite("Project Tree tests", function (): void {
         proj.folders.push(proj.createFileProjectEntry("duplicateFolder", EntryType.Folder));
 
         const tree = new ProjectRootTreeItem(proj);
-        should(tree.children.map((x) => x.relativeProjectUri.path)).deepEqual([
+        expect(
+            tree.children.map((x) => x.relativeProjectUri.path),
+            "Root tree children paths should match expected order with deduplication",
+        ).to.deep.equal([
             "/TestProj/Database References",
             "/TestProj/SQLCMD Variables",
             "/TestProj/duplicateFolder",
@@ -91,18 +95,22 @@ suite("Project Tree tests", function (): void {
             "/TestProj/duplicate.sql",
         ]);
 
-        should(
+        expect(
             tree.children
                 .find((x) => x.relativeProjectUri.path === "/TestProj/someFolder")
                 ?.children.map((y) => y.relativeProjectUri.path),
-        ).deepEqual([
+            "someFolder nested children paths should match expected order",
+        ).to.deep.equal([
             "/TestProj/someFolder/aNestedFolder",
             "/TestProj/someFolder/bNestedFolder",
             "/TestProj/someFolder/aNestedTest.sql",
             "/TestProj/someFolder/bNestedTest.sql",
         ]);
 
-        should(tree.children.map((x) => x.treeItem.contextValue)).deepEqual([
+        expect(
+            tree.children.map((x) => x.treeItem.contextValue),
+            "Root tree children context values should match expected types",
+        ).to.deep.equal([
             DatabaseProjectItemType.referencesRoot,
             DatabaseProjectItemType.sqlcmdVariablesRoot,
             DatabaseProjectItemType.folder,
@@ -110,11 +118,12 @@ suite("Project Tree tests", function (): void {
             DatabaseProjectItemType.sqlObjectScript,
         ]);
 
-        should(
+        expect(
             tree.children
                 .find((x) => x.relativeProjectUri.path === "/TestProj/someFolder")
                 ?.children.map((y) => y.treeItem.contextValue),
-        ).deepEqual([
+            "someFolder nested children context values should match expected types",
+        ).to.deep.equal([
             DatabaseProjectItemType.folder,
             DatabaseProjectItemType.folder,
             DatabaseProjectItemType.sqlObjectScript,
@@ -146,17 +155,21 @@ suite("Project Tree tests", function (): void {
         );
 
         const tree = new ProjectRootTreeItem(proj);
-        should(tree.children.map((x) => x.relativeProjectUri.path)).deepEqual([
+        expect(
+            tree.children.map((x) => x.relativeProjectUri.path),
+            "Root tree children should include parsed windows-style paths",
+        ).to.deep.equal([
             "/TestProj/Database References",
             "/TestProj/SQLCMD Variables",
             "/TestProj/someFolder1",
         ]);
 
-        should(
+        expect(
             tree.children
                 .find((x) => x.relativeProjectUri.path === "/TestProj/someFolder1")
                 ?.children.map((y) => y.relativeProjectUri.path),
-        ).deepEqual([
+            "someFolder1 nested children should match expected platform-safe paths",
+        ).to.deep.equal([
             "/TestProj/someFolder1/MyNestedFolder1",
             "/TestProj/someFolder1/MyNestedFolder2",
             "/TestProj/someFolder1/MyFile2.sql",
@@ -183,7 +196,10 @@ suite("Project Tree tests", function (): void {
         ); // folder should not be counted (same as SSDT)
 
         const tree = new ProjectRootTreeItem(proj);
-        should(tree.children.map((x) => x.relativeProjectUri.path)).deepEqual([
+        expect(
+            tree.children.map((x) => x.relativeProjectUri.path),
+            "Tree should include files from relative paths outside project folder without external folders",
+        ).to.deep.equal([
             "/TestProj/Database References",
             "/TestProj/SQLCMD Variables",
             "/TestProj/MyFile1.sql",

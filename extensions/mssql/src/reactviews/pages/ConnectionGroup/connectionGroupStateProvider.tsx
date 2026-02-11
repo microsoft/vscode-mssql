@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
-import { createContext } from "react";
+import { createContext, useMemo } from "react";
 import {
     ConnectionGroupContextProps,
     ConnectionGroupReducers,
@@ -22,19 +22,20 @@ interface ConnectionGroupProviderProps {
 
 // Connection Group State Provider component
 const ConnectionGroupStateProvider: React.FC<ConnectionGroupProviderProps> = ({ children }) => {
-    const webviewContext = useVscodeWebview<ConnectionGroupState, ConnectionGroupReducers>();
+    const { extensionRpc } = useVscodeWebview<ConnectionGroupState, ConnectionGroupReducers>();
+
+    const commands = useMemo<ConnectionGroupContextProps>(
+        () => ({
+            ...getCoreRPCs(extensionRpc),
+            closeDialog: () => extensionRpc.action("closeDialog"),
+            saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
+                extensionRpc.action("saveConnectionGroup", connectionGroupSpec),
+        }),
+        [extensionRpc],
+    );
 
     return (
-        <ConnectionGroupContext.Provider
-            value={{
-                state: webviewContext.state,
-                themeKind: webviewContext.themeKind,
-                keyBindings: webviewContext.keyBindings,
-                ...getCoreRPCs(webviewContext),
-                closeDialog: () => webviewContext?.extensionRpc.action("closeDialog"),
-                saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
-                    webviewContext?.extensionRpc.action("saveConnectionGroup", connectionGroupSpec),
-            }}>
+        <ConnectionGroupContext.Provider value={commands}>
             {children}
         </ConnectionGroupContext.Provider>
     );

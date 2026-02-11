@@ -9,7 +9,7 @@ import {
     ObjectExplorerReducers,
 } from "../../../sharedInterfaces/objectExplorerFilter";
 
-import { createContext } from "react";
+import { createContext, useMemo } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 
@@ -24,27 +24,26 @@ interface ObjectExplorerFilterStateProviderProps {
 const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProviderProps> = ({
     children,
 }) => {
-    const webviewState = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
-    const objectExplorerFilterState = webviewState?.state;
+    const { extensionRpc } = useVscodeWebview<ObjectExplorerFilterState, ObjectExplorerReducers>();
+
+    const commands = useMemo<ObjectExplorerFilterContextProps>(
+        () => ({
+            ...getCoreRPCs(extensionRpc),
+            submit: function (filters): void {
+                extensionRpc.action("submit", {
+                    filters: filters,
+                });
+            },
+            clearAllFilters: function (): void {},
+            cancel: function (): void {
+                extensionRpc.action("cancel", {});
+            },
+        }),
+        [extensionRpc],
+    );
 
     return (
-        <ObjectExplorerFilterContext.Provider
-            value={{
-                ...getCoreRPCs(webviewState),
-                //isLocalizationLoaded: webviewState?.localization,
-                state: objectExplorerFilterState,
-                themeKind: webviewState?.themeKind,
-                keyBindings: webviewState?.keyBindings,
-                submit: function (filters): void {
-                    webviewState?.extensionRpc.action("submit", {
-                        filters: filters,
-                    });
-                },
-                clearAllFilters: function (): void {},
-                cancel: function (): void {
-                    webviewState?.extensionRpc.action("cancel", {});
-                },
-            }}>
+        <ObjectExplorerFilterContext.Provider value={commands}>
             {children}
         </ObjectExplorerFilterContext.Provider>
     );

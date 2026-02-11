@@ -25,6 +25,7 @@ import {
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
@@ -90,6 +91,7 @@ interface Props {
 const SchemaOptionsDrawer = (props: Props) => {
     const classes = useStyles();
     const context = useContext(schemaCompareContext);
+    const intermediaryOptionsResult = useSchemaCompareSelector((s) => s.intermediaryOptionsResult);
     const [optionsChanged, setOptionsChanged] = useState(false);
     const [selectedValue, setSelectedValue] = useState<TabValue>("generalOptions");
     const [searchQuery, setSearchQuery] = useState("");
@@ -98,7 +100,7 @@ const SchemaOptionsDrawer = (props: Props) => {
         context.setIntermediarySchemaOptions();
     }, []);
 
-    const deploymentOptions = context.state.intermediaryOptionsResult?.defaultDeploymentOptions;
+    const deploymentOptions = intermediaryOptionsResult?.defaultDeploymentOptions;
 
     const optionsToValueNameLookup = deploymentOptions?.booleanOptionsDictionary;
     let generalOptionEntries: Array<[string, DacDeployOptionPropertyBoolean]> = [];
