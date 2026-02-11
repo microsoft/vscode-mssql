@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { createContext, ReactNode, useContext, useCallback, useMemo } from "react";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     ProfilerDetailsPanelState,
     ProfilerDetailsPanelReducers,
@@ -35,7 +35,7 @@ interface ProfilerDetailsPanelProviderProps {
 const ProfilerDetailsPanelStateProvider: React.FC<ProfilerDetailsPanelProviderProps> = ({
     children,
 }) => {
-    const { extensionRpc } = useVscodeWebview2<
+    const { extensionRpc } = useVscodeWebview<
         ProfilerDetailsPanelState,
         ProfilerDetailsPanelReducers
     >();

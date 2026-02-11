@@ -5,7 +5,7 @@
 
 import React from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { VscodeWebviewProvider2, useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { VscodeWebviewProvider, useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     ProfilerDetailsPanelState,
     ProfilerDetailsPanelReducers,
@@ -23,11 +23,11 @@ import { useProfilerDetailsPanelSelector } from "./profilerDetailsPanelSelector"
  */
 export const ProfilerDetailsPanelPage: React.FC = () => {
     return (
-        <VscodeWebviewProvider2<ProfilerDetailsPanelState, ProfilerDetailsPanelReducers>>
+        <VscodeWebviewProvider<ProfilerDetailsPanelState, ProfilerDetailsPanelReducers>>
             <ProfilerDetailsPanelStateProvider>
                 <ProfilerDetailsPanelContent />
             </ProfilerDetailsPanelStateProvider>
-        </VscodeWebviewProvider2>
+        </VscodeWebviewProvider>
     );
 };
 
@@ -36,7 +36,7 @@ export const ProfilerDetailsPanelPage: React.FC = () => {
  */
 const ProfilerDetailsPanelContent: React.FC = () => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview2<
+    const { themeKind } = useVscodeWebview<
         ProfilerDetailsPanelState,
         ProfilerDetailsPanelReducers
     >();

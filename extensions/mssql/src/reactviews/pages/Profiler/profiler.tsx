@@ -37,6 +37,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./profiler.css";
+import { locConstants } from "../../common/locConstants";
 
 /** Number of rows to fetch per request */
 const FETCH_SIZE = 100;
