@@ -539,11 +539,19 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     status: ApiStatus.Loaded,
                     message: AzureDataStudioMigration.importProgressSuccessMessage,
                 },
+                importedCounts: {
+                    connectionGroups: selectedGroups.size,
+                    connections: selectedConnections.length,
+                    settings:
+                        state.importSettings && state.settings.length > 0
+                            ? state.settings.length
+                            : 0,
+                },
             } as ImportProgressDialogProps;
 
             activity.end(ActivityStatus.Succeeded);
         } catch (err) {
-            this.state.dialog = {
+            state.dialog = {
                 status: {
                     status: ApiStatus.Error,
                     message: AzureDataStudioMigration.importProgressErrorMessage(

@@ -65,6 +65,11 @@ export interface ImportWarningDialogProps extends IDialogProps {
 export interface ImportProgressDialogProps extends IDialogProps {
     type: "importProgress";
     status: Status;
+    importedCounts?: {
+        connectionGroups: number;
+        connections: number;
+        settings: number;
+    };
 }
 
 export interface ViewSettingsDialogProps extends IDialogProps {

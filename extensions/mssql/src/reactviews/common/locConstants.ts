@@ -1900,6 +1900,42 @@ export class LocConstants {
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),
             keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
+            importedConnectionGroups: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection group imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connection groups imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (plural)"],
+                      }),
+            importedConnections: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connections imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (plural)"],
+                      }),
+            importedSettings: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} setting imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} settings imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (plural)"],
+                      }),
         };
     }
 

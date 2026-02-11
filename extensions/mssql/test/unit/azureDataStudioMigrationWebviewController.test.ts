@@ -390,6 +390,15 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             "Success dialog should use localized success message",
         ).to.equal(AzureDataStudioMigration.importProgressSuccessMessage);
 
+        expect(
+            dialog.importedCounts,
+            "Success dialog should include imported counts",
+        ).to.deep.equal({
+            connectionGroups: 1,
+            connections: 2,
+            settings: 2,
+        });
+
         const config = vscode.workspace.getConfiguration();
         expect(config.update, "Settings should be written via configuration update").to.have.been
             .calledTwice;
@@ -699,5 +708,13 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
         const dialog = controller.state.dialog as ImportProgressDialogProps;
         expect(dialog.status.status).to.equal(ApiStatus.Loaded);
+        expect(
+            dialog.importedCounts,
+            "Counts should reflect zero settings when importSettings is false",
+        ).to.deep.equal({
+            connectionGroups: 0,
+            connections: 0,
+            settings: 0,
+        });
     });
 });
