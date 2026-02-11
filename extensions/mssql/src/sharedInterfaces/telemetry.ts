@@ -222,9 +222,9 @@ export enum TelemetryActions {
     RefreshResults = "RefreshResults",
     Search = "Search",
     ServiceStarted = "ServiceStarted",
-    InitializeFlatFile = "InitializeFlatFile",
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
+    ResetState = "ResetState",
 }
 
 /**

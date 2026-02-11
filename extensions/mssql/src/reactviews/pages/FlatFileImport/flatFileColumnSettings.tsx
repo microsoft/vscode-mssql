@@ -189,9 +189,10 @@ type FlatFileTableCell = {
 export const FlatFileColumnSettings = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return;
+    if (!context) return null;
+
+    const tablePreview = useFlatFileSelector((s) => s.tablePreview);
 
     const [columnChanges, setColumnChanges] = useState<Record<number, ColumnChanges>>({});
 
@@ -247,8 +248,8 @@ export const FlatFileColumnSettings = () => {
     // Indices 2 and 3 correspond to the checkbox columns,
     // which require special handling for the "Select All" functionality.
     const [checkedStates, setCheckedStates] = useState<Record<number, boolean[]>>({
-        [NEW_PRIMARY_KEY_COL_INDEX]: state.tablePreview?.columnInfo.map(() => false) || [],
-        [NEW_NULLABLE_COL_INDEX]: state.tablePreview?.columnInfo.map(() => false) || [],
+        [NEW_PRIMARY_KEY_COL_INDEX]: tablePreview?.columnInfo.map(() => false) || [],
+        [NEW_NULLABLE_COL_INDEX]: tablePreview?.columnInfo.map(() => false) || [],
     });
 
     const columns: TableColumnDefinition<FlatFileTableItem>[] = useMemo(
@@ -296,7 +297,7 @@ export const FlatFileColumnSettings = () => {
 
     const items: FlatFileTableItem[] = useMemo(() => {
         return (
-            state.tablePreview?.columnInfo.map((row, rowIndex) => {
+            tablePreview?.columnInfo.map((row, rowIndex) => {
                 const cells = [
                     { columnId: columns[0]?.columnId ?? "", value: row.name, type: INPUT_TYPE },
                     {
@@ -318,7 +319,7 @@ export const FlatFileColumnSettings = () => {
                 return { rowId: `row-${rowIndex}`, cells };
             }) || []
         );
-    }, [state.tablePreview?.columnInfo, columns]);
+    }, [tablePreview?.columnInfo, columns]);
 
     const columnSizingOptions: TableColumnSizingOptions = useMemo(() => {
         return {
@@ -421,7 +422,7 @@ export const FlatFileColumnSettings = () => {
         colCheckboxIndex?: number,
     ) => {
         if (!columnChanges[updatedItemIndex]) {
-            const originalColumn = state.tablePreview?.columnInfo[updatedItemIndex];
+            const originalColumn = tablePreview?.columnInfo[updatedItemIndex];
             columnChanges[updatedItemIndex] = {
                 index: updatedItemIndex,
                 newName: originalColumn?.name,
@@ -452,7 +453,7 @@ export const FlatFileColumnSettings = () => {
         setColumnChanges((prev) => {
             const updated = { ...prev };
 
-            state.tablePreview?.columnInfo.forEach((col, rowIndex) => {
+            tablePreview?.columnInfo.forEach((col, rowIndex) => {
                 if (!updated[rowIndex]) {
                     updated[rowIndex] = {
                         index: rowIndex,

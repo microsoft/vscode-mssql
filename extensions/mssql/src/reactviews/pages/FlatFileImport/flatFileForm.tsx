@@ -62,29 +62,28 @@ const useStyles = makeStyles({
 export const FlatFileForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return;
+    if (!context) return null;
 
-    const formComponents = state.formComponents;
+    const formState = useFlatFileSelector((s) => s.formState);
+    const formErrors = useFlatFileSelector((s) => s.formErrors);
+    const formComponents = useFlatFileSelector((s) => s.formComponents);
+    const schemaLoadStatus = useFlatFileSelector((s) => s.schemaLoadStatus);
+
     const schemaFormComponent = formComponents["tableSchema"] as FlatFileImportFormItemSpec;
 
     const handleSubmit = async () => {
-        context.getTablePreview(
-            state.formState.flatFilePath,
-            state.formState.tableName,
-            state.formState.tableSchema,
-        );
+        context.getTablePreview(formState.flatFilePath, formState.tableName, formState.tableSchema);
         context.setStep(FlatFileStepType.TablePreview);
     };
 
     const shouldDisableNext = (): boolean => {
         return (
-            state.formErrors.length > 0 ||
-            !state.formState.databaseName.trim() ||
-            !state.formState.flatFilePath.trim() ||
-            !state.formState.tableName.trim() ||
-            !state.formState.tableSchema.trim()
+            formErrors.length > 0 ||
+            !formState.databaseName.trim() ||
+            !formState.flatFilePath.trim() ||
+            !formState.tableName.trim() ||
+            !formState.tableSchema.trim()
         );
     };
 
@@ -103,7 +102,7 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileContextProps
                     >
                         context={context}
-                        formState={state.formState}
+                        formState={formState}
                         component={formComponents["databaseName"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
@@ -115,7 +114,7 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileContextProps
                     >
                         context={context}
-                        formState={state.formState}
+                        formState={formState}
                         component={formComponents["flatFilePath"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
@@ -139,11 +138,11 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileContextProps
                     >
                         context={context}
-                        formState={state.formState}
+                        formState={formState}
                         component={formComponents["tableName"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
-                    {state.schemaLoadStatus === ApiStatus.Loading ? (
+                    {schemaLoadStatus === ApiStatus.Loading ? (
                         <div style={{ marginLeft: "6px", marginBottom: "2px" }}>
                             <Field
                                 label={
@@ -174,7 +173,7 @@ export const FlatFileForm: React.FC = () => {
                             FlatFileContextProps
                         >
                             context={context}
-                            formState={state.formState}
+                            formState={formState}
                             component={schemaFormComponent}
                             idx={0}
                         />

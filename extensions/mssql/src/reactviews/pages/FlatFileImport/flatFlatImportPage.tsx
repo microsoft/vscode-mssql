@@ -42,11 +42,12 @@ const useStyles = makeStyles({
 export const FlatFileImportPage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return;
+    if (!context) return null;
 
-    const loadState = state?.loadState ?? ApiStatus.Loading;
+    const loadState = useFlatFileSelector((s) => s.loadState) ?? ApiStatus.Loading;
+    const currentStep = useFlatFileSelector((s) => s.currentStep);
+    const errorMessage = useFlatFileSelector((s) => s.errorMessage);
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -60,7 +61,7 @@ export const FlatFileImportPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                switch (state.currentStep) {
+                switch (currentStep) {
                     case FlatFileStepType.TablePreview:
                         return <FlatFilePreviewTablePage />;
                     case FlatFileStepType.ColumnChanges:
@@ -75,7 +76,7 @@ export const FlatFileImportPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{state?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }

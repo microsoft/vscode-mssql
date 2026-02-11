@@ -46,8 +46,12 @@ export default class ServiceDownloadProvider {
         let fileNamesJson: any;
         if (this._downloadType === DownloadType.SqlToolsService) {
             fileNamesJson = this._config.getSqlToolsConfigValue("downloadFileNames");
-        } else {
+        } else if (this._downloadType === DownloadType.FlatFileService) {
             fileNamesJson = this._config.getFlatFileConfigValue("downloadFileNames");
+        } else {
+            const errorMessage = `Unsupported download type: ${this._downloadType}`;
+            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            throw new Error(errorMessage);
         }
 
         let fileName = fileNamesJson[platform.toString()];
@@ -72,8 +76,12 @@ export default class ServiceDownloadProvider {
         let versionFromConfig: string;
         if (this._downloadType === DownloadType.SqlToolsService) {
             versionFromConfig = this._config.getSqlToolsPackageVersion();
-        } else {
+        } else if (this._downloadType === DownloadType.FlatFileService) {
             versionFromConfig = this._config.getFlatFilePackageVersion();
+        } else {
+            const errorMessage = `Unsupported download type: ${this._downloadType}`;
+            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            throw new Error(errorMessage);
         }
 
         basePath = basePath.replace("{#version#}", versionFromConfig);
@@ -94,8 +102,12 @@ export default class ServiceDownloadProvider {
         let installDirFromConfig: string;
         if (this._downloadType === DownloadType.SqlToolsService) {
             installDirFromConfig = this._config.getSqlToolsInstallDirectory();
-        } else {
+        } else if (this._downloadType === DownloadType.FlatFileService) {
             installDirFromConfig = this._config.getFlatFileInstallDirectory();
+        } else {
+            const errorMessage = `Unsupported download type: ${this._downloadType}`;
+            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            throw new Error(errorMessage);
         }
 
         let basePath: string;
@@ -114,9 +126,13 @@ export default class ServiceDownloadProvider {
         if (this._downloadType === DownloadType.SqlToolsService) {
             baseDownloadUrl = this._config.getSqlToolsServiceDownloadUrl();
             version = this._config.getSqlToolsPackageVersion();
-        } else {
+        } else if (this._downloadType === DownloadType.FlatFileService) {
             baseDownloadUrl = this._config.getFlatFileServiceDownloadUrl();
             version = this._config.getFlatFilePackageVersion();
+        } else {
+            const errorMessage = `Unsupported download type: ${this._downloadType}`;
+            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            throw new Error(errorMessage);
         }
 
         baseDownloadUrl = baseDownloadUrl.replace("{#version#}", version);

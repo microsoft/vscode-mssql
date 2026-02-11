@@ -116,23 +116,28 @@ const useStyles = makeStyles({
 export const FlatFileSummary = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return;
+    if (!context) return null;
+
+    const serverName = useFlatFileSelector((s) => s.serverName);
+    const formState = useFlatFileSelector((s) => s.formState);
+    const importDataStatus = useFlatFileSelector((s) => s.importDataStatus);
+    const errorMessage = useFlatFileSelector((s) => s.errorMessage);
+    const fullErrorMessage = useFlatFileSelector((s) => s.fullErrorMessage);
 
     const [showFullErrorMessage, setShowFullErrorMessage] = useState(false);
 
     const columns = [locConstants.flatFileImport.objectType, locConstants.flatFileImport.name];
     const data = [
-        [locConstants.flatFileImport.serverName, state.serverName],
-        [locConstants.flatFileImport.databaseName, state.formState.databaseName],
-        [locConstants.flatFileImport.tableName, state.formState.tableName],
-        [locConstants.flatFileImport.tableSchema, state.formState.tableSchema],
-        [locConstants.flatFileImport.fileToBeImported, state.formState.flatFilePath],
+        [locConstants.flatFileImport.serverName, serverName],
+        [locConstants.flatFileImport.databaseName, formState.databaseName],
+        [locConstants.flatFileImport.tableName, formState.tableName],
+        [locConstants.flatFileImport.tableSchema, formState.tableSchema],
+        [locConstants.flatFileImport.fileToBeImported, formState.flatFilePath],
     ];
 
     useEffect(() => {
-        if (state.importDataStatus === ApiStatus.NotStarted) {
+        if (importDataStatus === ApiStatus.NotStarted) {
             context.importData();
         }
     }, []);
@@ -179,7 +184,7 @@ export const FlatFileSummary = () => {
 
             <div className={classes.statusDiv}>
                 {(() => {
-                    switch (state.importDataStatus) {
+                    switch (importDataStatus) {
                         case ApiStatus.NotStarted:
                         case ApiStatus.Loading:
                             return <Spinner label={locConstants.flatFileImport.importingData} />;
@@ -201,7 +206,7 @@ export const FlatFileSummary = () => {
                                         <Dismiss20Regular
                                             style={{ color: tokens.colorStatusDangerBackground3 }}
                                         />
-                                        <Text>{state.errorMessage}</Text>
+                                        <Text>{errorMessage}</Text>
                                     </div>
                                     <div className={classes.linkDiv}>
                                         <Link
@@ -212,9 +217,7 @@ export const FlatFileSummary = () => {
                                                 ? locConstants.flatFileImport.hideFullErrorMessage
                                                 : locConstants.flatFileImport.showFullErrorMessage}
                                         </Link>
-                                        {showFullErrorMessage && (
-                                            <Text>{state.fullErrorMessage}</Text>
-                                        )}
+                                        {showFullErrorMessage && <Text>{fullErrorMessage}</Text>}
                                     </div>
                                 </div>
                             );
@@ -249,10 +252,8 @@ export const FlatFileSummary = () => {
                     className={classes.button}
                     type="submit"
                     onClick={() => context.dispose()}
-                    appearance={
-                        state.importDataStatus === ApiStatus.Loaded ? "primary" : "secondary"
-                    }>
-                    {state.importDataStatus === ApiStatus.Loaded
+                    appearance={importDataStatus === ApiStatus.Loaded ? "primary" : "secondary"}>
+                    {importDataStatus === ApiStatus.Loaded
                         ? locConstants.common.finish
                         : locConstants.common.cancel}
                 </Button>

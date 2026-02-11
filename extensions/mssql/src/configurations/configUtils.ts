@@ -109,6 +109,8 @@ export default class ConfigUtils implements IConfigUtils {
             json = this.configJsonContent;
         } else if (type === DownloadType.FlatFileService) {
             json = this.configJsonFlatFileContent;
+        } else {
+            return undefined;
         }
 
         let extensionConfig = json[Constants.extensionConfigSectionName];
@@ -125,6 +127,8 @@ export default class ConfigUtils implements IConfigUtils {
             json = this.configJsonContent;
         } else if (type === DownloadType.FlatFileService) {
             json = this.configJsonFlatFileContent;
+        } else {
+            return undefined;
         }
 
         let configValue = json[key];

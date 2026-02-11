@@ -118,7 +118,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
 
-        sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.InitializeFlatFile);
+        sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.Initialize);
     }
 
     /**
@@ -277,6 +277,17 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                     };
                     state.formErrors = [];
                     state.currentStep = FlatFileStepType.Form;
+                    break;
+                default:
+                    const errorMessage = `Unknown reset type: ${payload.resetType}`;
+                    this.logger.error(errorMessage);
+                    state.loadState = ApiStatus.Error;
+                    sendErrorEvent(
+                        TelemetryViews.FlatFile,
+                        TelemetryActions.ResetState,
+                        new Error(errorMessage),
+                        false,
+                    );
                     break;
             }
 

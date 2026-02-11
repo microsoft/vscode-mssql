@@ -7,7 +7,6 @@ import { useContext } from "react";
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { DocumentArrowDown20Regular } from "@fluentui/react-icons";
-import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -52,9 +51,8 @@ interface HeaderProps {
 export const FlatFileHeader: React.FC<HeaderProps> = ({ headerText, stepText }) => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return;
+    if (!context) return null;
 
     return (
         <div className={classes.outerDiv}>

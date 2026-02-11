@@ -102,7 +102,7 @@ suite("FlatFileImportWebviewController", () => {
 
         expect(sendActionEvent).to.have.been.calledWith(
             TelemetryViews.FlatFile,
-            TelemetryActions.InitializeFlatFile,
+            TelemetryActions.Initialize,
         );
     });
 

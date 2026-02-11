@@ -146,9 +146,9 @@ export const FlatFilePreviewTablePage = () => {
     const context = useContext(FlatFileContext);
     const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return null;
+    if (!context) return null;
 
-    const loadState = state.tablePreviewStatus;
+    const loadState = useFlatFileSelector((s) => s.tablePreviewStatus);
 
     const renderMainContent = () => {
         switch (loadState) {
@@ -179,13 +179,14 @@ export const FlatFilePreviewTablePage = () => {
 export const FlatFilePreviewTable = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = useFlatFileSelector((s) => s);
 
-    if (!context || !state) return null;
+    if (!context) return null;
+
+    const tablePreview = useFlatFileSelector((s) => s.tablePreview);
 
     const columns: TableColumnDefinition<FlatFileTableItem>[] = useMemo(() => {
         return (
-            state.tablePreview?.columnInfo.map((column) =>
+            tablePreview?.columnInfo.map((column) =>
                 createTableColumn<FlatFileTableItem>({
                     columnId: column.name,
                     renderHeaderCell: () => (
@@ -194,11 +195,11 @@ export const FlatFilePreviewTable = () => {
                 }),
             ) || []
         );
-    }, [state.tablePreview?.columnInfo]);
+    }, [tablePreview?.columnInfo]);
 
     const items: FlatFileTableItem[] = useMemo(() => {
         return (
-            state.tablePreview?.dataPreview.map((row, rowIndex) => {
+            tablePreview?.dataPreview.map((row, rowIndex) => {
                 const cells = row.map((cell, cellIndex) => ({
                     columnId: columns[cellIndex]?.columnId ?? "",
                     value: cell,
@@ -206,7 +207,7 @@ export const FlatFilePreviewTable = () => {
                 return { rowId: `row-${rowIndex}`, cells };
             }) || []
         );
-    }, [state.tablePreview?.dataPreview, columns]);
+    }, [tablePreview?.dataPreview, columns]);
 
     const columnSizingOptions: TableColumnSizingOptions = useMemo(() => {
         const sizes: TableColumnSizingOptions = {};
@@ -217,7 +218,7 @@ export const FlatFilePreviewTable = () => {
             };
         });
         return sizes;
-    }, [state.tablePreview?.dataPreview, columns]);
+    }, [tablePreview?.dataPreview, columns]);
 
     const tableFeatures = useTableFeatures<FlatFileTableItem>(
         {
