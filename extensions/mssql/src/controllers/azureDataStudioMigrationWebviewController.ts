@@ -51,11 +51,32 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
 
 const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "azureDataStudioMigration";
 
-// TODO: fill in excluded settings
-const EXCLUDED_SETTINGS = new Set<string>([]);
+const EXCLUDED_SETTINGS = new Set<string>([
+    // Exclude logging-related settings
+    "mssql.logDebugInfo",
+    "mssql.piiLogging",
+    "mssql.tracingLevel",
+    "mssql.trace.server",
+    "mssql.logRetentionMinutes",
+    "mssql.logFilesRemovalLimit",
 
-// TODO: fill in remapped settings (ADS config key → VS Code extension config key)
-const SETTINGS_KEY_REMAP: Record<string, string> = {};
+    // Exclude connection pooling because we've intentionally changed the default for MSSQL
+    // due to it keeping serverless Azure/Fabric databases awake.
+    "mssql.enableConnectionPooling",
+
+    // Exclude intelliSense lower case suggestions because it was intentionally removed from MSSQL
+    // due to being redundant with mssql.format.kewordCasing and therefore confusing.
+    "mssql.intelliSense.lowerCaseSuggestions",
+
+    // Exclude settings that aren't supported in MSSQL
+    // due to not being implemented in MSSQL or for ADS-specific features.
+    // Note: VS Code will throw an error if we try to set a setting that isn't registered in package.json.
+    "mssql.executionPlan.expensiveOperationMetric",
+    "mssql.parallelMessageProcessing",
+    "mssql.parallelMessageProcessingLimit",
+    "mssql.tableDesigner.allowDisableAndReenableDdlTriggers",
+    "mssql.tableDesigner.preloadDatabaseModel",
+]);
 
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
     AzureDataStudioMigrationWebviewState,
@@ -490,9 +511,25 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 activity.update({ step: "3_importingSettings" });
 
                 for (const setting of state.settings) {
-                    await vscode.workspace
-                        .getConfiguration()
-                        .update(setting.key, setting.value, vscode.ConfigurationTarget.Global);
+                    try {
+                        await vscode.workspace
+                            .getConfiguration()
+                            .update(setting.key, setting.value, vscode.ConfigurationTarget.Global);
+                    } catch (err) {
+                        this.logger.error(
+                            `Error updating setting ${setting.key}: ${getErrorMessage(err)}`,
+                        );
+
+                        sendErrorEvent(
+                            TelemetryViews.AzureDataStudioMigration,
+                            TelemetryActions.ImportConfig,
+                            err,
+                            true, // includeErrorMessage
+                            undefined, // errorCode
+                            "updateSettingError", // errorType
+                            { settingKey: setting.key },
+                        );
+                    }
                 }
             }
 
@@ -835,8 +872,7 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 continue;
             }
 
-            const targetKey = SETTINGS_KEY_REMAP[key] ?? key;
-            settings.push({ key: targetKey, value: config[key] });
+            settings.push({ key: key, value: config[key] });
         }
 
         return settings;

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useMemo } from "react";
 import {
     Button,
     Dialog,
@@ -18,11 +19,14 @@ import {
     TableHeaderCell,
     TableRow,
     Text,
+    Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
 
 import { AdsMigrationSetting } from "../../../../sharedInterfaces/azureDataStudioMigration";
 import { locConstants as Loc } from "../../../common/locConstants";
+
+const MSSQL_PREFIX = "mssql.";
 
 const useStyles = makeStyles({
     tableScrollArea: {
@@ -33,13 +37,21 @@ const useStyles = makeStyles({
         width: "100%",
         tableLayout: "fixed",
     },
+    stickyHeader: {
+        position: "sticky",
+        top: "0",
+        zIndex: 1,
+        backgroundColor: "var(--vscode-editorWidget-background)",
+    },
     settingKeyColumn: {
         width: "50%",
     },
     settingValueColumn: {
         width: "50%",
     },
-    valueCell: {
+    truncatedCell: {
+        display: "block",
+        width: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -61,9 +73,18 @@ const formatValue = (value: unknown): string => {
     return JSON.stringify(value);
 };
 
+const stripPrefix = (key: string): string => {
+    return key.startsWith(MSSQL_PREFIX) ? key.slice(MSSQL_PREFIX.length) : key;
+};
+
 export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComponentProps) => {
     const styles = useStyles();
     const loc = Loc.azureDataStudioMigration;
+
+    const sortedSettings = useMemo(
+        () => [...settings].sort((a, b) => a.key.localeCompare(b.key)),
+        [settings],
+    );
 
     return (
         <Dialog open>
@@ -71,12 +92,12 @@ export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComp
                 <DialogBody>
                     <DialogTitle>{loc.viewSettingsDialogTitle}</DialogTitle>
                     <DialogContent>
-                        {settings.length === 0 ? (
+                        {sortedSettings.length === 0 ? (
                             <Text>No settings found.</Text>
                         ) : (
                             <div className={styles.tableScrollArea}>
                                 <Table role="grid" className={styles.dataTable}>
-                                    <TableHeader>
+                                    <TableHeader className={styles.stickyHeader}>
                                         <TableRow>
                                             <TableHeaderCell className={styles.settingKeyColumn}>
                                                 {loc.settingsKeyColumn}
@@ -87,16 +108,33 @@ export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComp
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {settings.map((setting) => (
-                                            <TableRow key={setting.key}>
-                                                <TableCell className={styles.settingKeyColumn}>
-                                                    {setting.key}
-                                                </TableCell>
-                                                <TableCell className={styles.valueCell}>
-                                                    {formatValue(setting.value)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                        {sortedSettings.map((setting) => {
+                                            const displayKey = stripPrefix(setting.key);
+                                            const displayValue = formatValue(setting.value);
+                                            return (
+                                                <TableRow key={setting.key}>
+                                                    <TableCell className={styles.settingKeyColumn}>
+                                                        <Tooltip
+                                                            content={setting.key}
+                                                            relationship="description">
+                                                            <span className={styles.truncatedCell}>
+                                                                {displayKey}
+                                                            </span>
+                                                        </Tooltip>
+                                                    </TableCell>
+                                                    <TableCell
+                                                        className={styles.settingValueColumn}>
+                                                        <Tooltip
+                                                            content={displayValue}
+                                                            relationship="description">
+                                                            <span className={styles.truncatedCell}>
+                                                                {displayValue}
+                                                            </span>
+                                                        </Tooltip>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
                                     </TableBody>
                                 </Table>
                             </div>
