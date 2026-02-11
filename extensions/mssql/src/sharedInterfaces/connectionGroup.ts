@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDialogProps } from "./connectionDialog";
-import { WebviewContextProps } from "./webview";
+import { CoreRPCs } from "./webview";
 
 /**
  * Identifier for creating a new connection group
@@ -59,7 +59,7 @@ export interface ConnectionGroupReducers {
 /**
  * Context props for the Connection Group webview
  */
-export interface ConnectionGroupContextProps extends WebviewContextProps<ConnectionGroupState> {
+export interface ConnectionGroupContextProps extends CoreRPCs {
     closeDialog: () => void;
     saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
 }

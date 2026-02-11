@@ -8,14 +8,11 @@ import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form"
 import { IDialogProps } from "./connectionDialog";
 import { ISqlDbArtifact, IWorkspace } from "./fabric";
 
-export class FabricProvisioningState
-    implements
-        FormState<
-            FabricProvisioningFormState,
-            FabricProvisioningState,
-            FabricProvisioningFormItemSpec
-        >
-{
+export class FabricProvisioningState implements FormState<
+    FabricProvisioningFormState,
+    FabricProvisioningState,
+    FabricProvisioningFormItemSpec
+> {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     // @ts-ignore
@@ -61,21 +58,15 @@ export interface FabricProvisioningFormState {
     groupId: string;
 }
 
-export interface FabricProvisioningFormItemSpec
-    extends FormItemSpec<
-        FabricProvisioningFormState,
-        FabricProvisioningState,
-        FabricProvisioningFormItemSpec
-    > {
+export interface FabricProvisioningFormItemSpec extends FormItemSpec<
+    FabricProvisioningFormState,
+    FabricProvisioningState,
+    FabricProvisioningFormItemSpec
+> {
     componentWidth: string;
 }
 
-export interface FabricProvisioningContextProps
-    extends FormContextProps<
-        FabricProvisioningFormState,
-        FabricProvisioningState,
-        FabricProvisioningFormItemSpec
-    > {
+export interface FabricProvisioningContextProps extends FormContextProps<FabricProvisioningFormState> {
     /**
      * Reload fabric environment
      * Used when account/ tenant is changed

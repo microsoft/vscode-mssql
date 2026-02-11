@@ -14,14 +14,11 @@ import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 import { DialogMessageSpec } from "./dialogMessage";
 
-export class ConnectionDialogWebviewState
-    implements
-        FormState<
-            IConnectionDialogProfile,
-            ConnectionDialogWebviewState,
-            ConnectionDialogFormItemSpec
-        >
-{
+export class ConnectionDialogWebviewState implements FormState<
+    IConnectionDialogProfile,
+    ConnectionDialogWebviewState,
+    ConnectionDialogFormItemSpec
+> {
     /** the underlying connection profile for the form target; same as `connectionProfile` */
     formState: IConnectionDialogProfile = {} as IConnectionDialogProfile;
     /** The underlying connection profile for the form target; a more intuitively-named alias for `formState` */
@@ -163,12 +160,11 @@ export interface ConnectionComponentGroup {
     options: (keyof IConnectionDialogProfile)[];
 }
 
-export interface ConnectionDialogFormItemSpec
-    extends FormItemSpec<
-        IConnectionDialogProfile,
-        ConnectionDialogWebviewState,
-        ConnectionDialogFormItemSpec
-    > {
+export interface ConnectionDialogFormItemSpec extends FormItemSpec<
+    IConnectionDialogProfile,
+    ConnectionDialogWebviewState,
+    ConnectionDialogFormItemSpec
+> {
     optionCategory?: string;
     optionCategoryLabel?: string;
 }
@@ -217,12 +213,7 @@ export enum AuthenticationType {
     None = "None",
 }
 
-export interface ConnectionDialogContextProps
-    extends FormContextProps<
-        IConnectionDialogProfile,
-        ConnectionDialogWebviewState,
-        ConnectionDialogFormItemSpec
-    > {
+export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
     // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;

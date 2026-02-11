@@ -5,6 +5,7 @@
 
 import { useContext } from "react";
 import { DeploymentContext } from "./deploymentStateProvider";
+import { useDeploymentSelector } from "./deploymentSelector";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
@@ -37,9 +38,10 @@ const useStyles = makeStyles({
 export const DeploymentStartPage = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
-    const deploymentState = context?.state;
+    const loadState = useDeploymentSelector((s) => s.loadState);
+    const errorMessage = useDeploymentSelector((s) => s.errorMessage);
     const renderMainContent = () => {
-        switch (deploymentState?.loadState) {
+        switch (loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -55,11 +57,15 @@ export const DeploymentStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{deploymentState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{errorMessage ?? ""}</Text>
                     </div>
                 );
         }
     };
+
+    if (!context || !loadState) {
+        return undefined;
+    }
 
     return <div className={classes.outerDiv}>{renderMainContent()}</div>;
 };

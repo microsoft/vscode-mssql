@@ -3,29 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo, useState } from "react";
-import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
+import { useMemo, useState } from "react";
+import { useConnectionDialogSelector } from "../../connectionDialogSelector";
 import FabricExplorerHeader from "./fabricExplorerHeader.component";
 import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
 import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
-import { Status } from "../../../../../sharedInterfaces/webview";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 
 export const FabricExplorer = ({
-    fabricWorkspaces,
-    fabricWorkspacesLoadStatus,
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
     onSelectWorkspace,
     onSelectDatabase,
 }: FabricExplorerProps) => {
-    const context = useContext(ConnectionDialogContext);
-
-    if (context === undefined) {
-        return undefined;
-    }
+    const fabricWorkspaces = useConnectionDialogSelector((s) => s.fabricWorkspaces);
 
     const fabricStyles = useFabricExplorerStyles();
 
@@ -69,11 +62,6 @@ export const FabricExplorer = ({
         <>
             <FabricExplorerHeader
                 searchValue={searchFilter}
-                azureAccounts={context.state.azureAccounts}
-                azureTenants={context.state.azureTenants}
-                selectedAccountId={context.state.selectedAccountId}
-                selectedTenantId={context.state.selectedTenantId}
-                azureTenantsLoadStatus={context.state.loadingAzureTenantsStatus}
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
@@ -83,15 +71,12 @@ export const FabricExplorer = ({
                 <FabricWorkspacesList
                     workspaces={fabricWorkspaces}
                     selectedWorkspace={selectedWorkspace}
-                    fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
                     onSelectWorkspace={handleWorkspaceSelected}
                 />
                 <FabricWorkspaceContentsList
-                    fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
-                    theme={context.themeKind}
                 />
             </div>
         </>
@@ -99,8 +84,6 @@ export const FabricExplorer = ({
 };
 
 export interface FabricExplorerProps {
-    fabricWorkspaces: FabricWorkspaceInfo[];
-    fabricWorkspacesLoadStatus: Status;
     onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;

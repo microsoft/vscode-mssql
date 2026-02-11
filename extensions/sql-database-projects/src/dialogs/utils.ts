@@ -64,7 +64,7 @@ export async function getImageTags(
         const imageTagsFromUrl = await HttpClient.getRequest(imageInfo?.tagsUrl, true);
         if (imageTagsFromUrl?.tags) {
             // Create a map for version and tags and find the max version in the list
-            let defaultVersion: number = 0;
+            let defaultVersion = 0;
             let maxVersionNumber: number = defaultVersion;
             (imageTagsFromUrl.tags as string[]).forEach((imageTag) => {
                 const version = utils.findSqlVersionInImageName(imageTag) || defaultVersion;

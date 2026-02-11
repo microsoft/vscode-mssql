@@ -13,7 +13,7 @@ import { useContext, useState } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -66,7 +66,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     xml,
 }) => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind } = useVscodeWebview();
     const context = useContext(ExecutionPlanContext);
 
     if (!context) {

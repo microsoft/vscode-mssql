@@ -53,4 +53,5 @@ src/constants/localizedConstants.ts
 # Cache and tooling
 .eslintcache
 .nyc_output
+*.tsbuildinfo
 samples/connection-sharing-sample/dist

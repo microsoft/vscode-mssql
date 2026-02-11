@@ -1,0 +1,93 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { makeStyles, shorthands, SearchBox, Button } from "@fluentui/react-components";
+import { ArrowSyncRegular } from "@fluentui/react-icons";
+import { useSearchDatabaseContext } from "./SearchDatabaseStateProvider";
+import { useSearchDatabaseSelector } from "./searchDatabaseSelector";
+import { locConstants as loc } from "../../common/locConstants";
+
+const useStyles = makeStyles({
+    toolbar: {
+        display: "flex",
+        alignItems: "center",
+        ...shorthands.gap("8px"),
+    },
+    searchBox: {
+        flexGrow: 1,
+        minWidth: "200px",
+        maxWidth: "400px",
+    },
+});
+
+export const SearchDatabaseToolbar: React.FC = () => {
+    const classes = useStyles();
+    const context = useSearchDatabaseContext();
+
+    // Watch global searchTerm to sync when it's cleared (e.g., by refresh)
+    const globalSearchTerm = useSearchDatabaseSelector((s) => s.searchTerm);
+
+    // Keep search input state local to this component to avoid parent re-renders
+    const [localSearchValue, setLocalSearchValue] = useState("");
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Store context.search in a ref so we don't need it in useEffect dependencies
+    const searchFnRef = useRef(context.search);
+    searchFnRef.current = context.search;
+
+    // Store localSearchValue in a ref so we can access it without triggering the sync effect
+    const localSearchValueRef = useRef(localSearchValue);
+    localSearchValueRef.current = localSearchValue;
+
+    // Sync local state when global searchTerm is cleared (e.g., by refresh button)
+    // Only depends on globalSearchTerm - we use a ref for localSearchValue to avoid
+    // triggering this effect when the user is typing (which would clear their input)
+    useEffect(() => {
+        if (globalSearchTerm === "" && localSearchValueRef.current !== "") {
+            setLocalSearchValue("");
+        }
+    }, [globalSearchTerm]);
+
+    // Debounce search - trigger backend search after 300ms of no typing
+    useEffect(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        debounceTimerRef.current = setTimeout(() => {
+            searchFnRef.current(localSearchValue);
+        }, 300);
+
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [localSearchValue]);
+
+    const handleSearchChange = useCallback((_event: unknown, data: { value: string }) => {
+        setLocalSearchValue(data.value);
+    }, []);
+
+    const handleRefresh = useCallback(() => {
+        context.refreshResults();
+    }, [context]);
+
+    return (
+        <div className={classes.toolbar}>
+            <SearchBox
+                className={classes.searchBox}
+                placeholder={loc.searchDatabase.searchPlaceholder}
+                value={localSearchValue}
+                onChange={handleSearchChange}
+                size="medium"
+            />
+            <Button appearance="subtle" icon={<ArrowSyncRegular />} onClick={handleRefresh}>
+                {loc.common.refresh}
+            </Button>
+        </div>
+    );
+};

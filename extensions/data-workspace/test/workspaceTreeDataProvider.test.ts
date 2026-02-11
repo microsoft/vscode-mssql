@@ -17,144 +17,146 @@ import { MockTreeDataProvider } from "./projectProviderRegistry.test";
 chai.use(sinonChai);
 
 suite("workspaceTreeDataProvider Tests", function (): void {
-  let sandbox: sinon.SinonSandbox;
-  const workspaceService = new WorkspaceService();
-  const treeProvider = new WorkspaceTreeDataProvider(workspaceService);
+    let sandbox: sinon.SinonSandbox;
+    const workspaceService = new WorkspaceService();
+    const treeProvider = new WorkspaceTreeDataProvider(workspaceService);
 
-  setup(() => {
-    sandbox = sinon.createSandbox();
-  });
-
-  teardown(() => {
-    sandbox.restore();
-  });
-
-  test("test refresh()", async () => {
-    const treeDataChangeHandler = sandbox.stub();
-    treeProvider.onDidChangeTreeData!((e) => {
-      treeDataChangeHandler(e);
+    setup(() => {
+        sandbox = sinon.createSandbox();
     });
-    await treeProvider.refresh();
-    expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have.been
-      .calledOnce;
-  });
 
-  test("test getTreeItem()", async function (): Promise<void> {
-    const getTreeItemStub = sandbox.stub();
-    await treeProvider.getTreeItem({
-      treeDataProvider: {
-        getTreeItem: (arg: WorkspaceTreeItem) => {
-          return getTreeItemStub(arg);
-        },
-      } as vscode.TreeDataProvider<any>,
-    } as WorkspaceTreeItem);
-    expect(getTreeItemStub, "getTreeItem should have been called once").to.have.been.calledOnce;
-  });
+    teardown(() => {
+        sandbox.restore();
+    });
 
-  test("test getChildren() for non-root element", async () => {
-    const getChildrenStub = sandbox.stub().resolves([]);
-    const element = {
-      treeDataProvider: {
-        getChildren: (arg: any) => {
-          return getChildrenStub(arg);
-        },
-      } as vscode.TreeDataProvider<any>,
-      element: "obj1",
-    };
-    const children = await treeProvider.getChildren(element);
-    expect(children.length, "children count should be 0").to.equal(0);
-    expect(
-      getChildrenStub,
-      "getChildren should have been called with obj1",
-    ).to.have.been.calledWithExactly("obj1");
-  });
+    test("test refresh()", async () => {
+        const treeDataChangeHandler = sandbox.stub();
+        treeProvider.onDidChangeTreeData!((e) => {
+            treeDataChangeHandler(e);
+        });
+        await treeProvider.refresh();
+        expect(treeDataChangeHandler, "treeDataChangeHandler should have been called once").to.have
+            .been.calledOnce;
+    });
 
-  test("test getChildren() for root element", async () => {
-    const getProjectsInWorkspaceStub = sandbox
-      .stub(workspaceService, "getProjectsInWorkspace")
-      .resolves([
-        vscode.Uri.file("test/proj1/proj1.sqlproj"),
-        vscode.Uri.file("test/proj2/proj2.csproj"),
-      ]);
-    const treeDataProvider = new MockTreeDataProvider();
-    const projectProvider: IProjectProvider = {
-      supportedProjectTypes: [
-        {
-          id: "sp1",
-          projectFileExtension: "sqlproj",
-          icon: "",
-          displayName: "sql project",
-          description: "",
-        },
-      ],
-      getProjectTreeDataProvider: (
-        projectFile: vscode.Uri,
-      ): Promise<vscode.TreeDataProvider<any>> => {
-        return Promise.resolve(treeDataProvider);
-      },
-      createProject: (name: string, location: vscode.Uri): Promise<vscode.Uri> => {
-        return Promise.resolve(location);
-      },
-      projectToolbarActions: [
-        {
-          id: "Add",
-          run: async (): Promise<any> => {
-            return Promise.resolve();
-          },
-        },
-        {
-          id: "Schema Compare",
-          run: async (): Promise<any> => {
-            return Promise.resolve();
-          },
-        },
-        {
-          id: "Build",
-          run: async (): Promise<any> => {
-            return Promise.resolve();
-          },
-        },
-        {
-          id: "Publish",
-          run: async (): Promise<any> => {
-            return Promise.resolve();
-          },
-        },
-        {
-          id: "Target Version",
-          run: async (): Promise<any> => {
-            return Promise.resolve();
-          },
-        },
-      ],
-      getDashboardComponents: (projectFile: string): IDashboardTable[] => {
-        return [
-          {
-            name: "Deployments",
-            columns: [{ displayName: "c1", width: 75, type: "string" }],
-            data: [["d1"]],
-          },
-          {
-            name: "Builds",
-            columns: [{ displayName: "c1", width: 75, type: "string" }],
-            data: [["d1"]],
-          },
-        ];
-      },
-    };
-    const getProjectProviderStub = sandbox.stub(workspaceService, "getProjectProvider");
-    getProjectProviderStub.onFirstCall().resolves(undefined);
-    getProjectProviderStub.onSecondCall().resolves(projectProvider);
-    sandbox.stub(treeDataProvider, "getChildren").resolves(["treeitem1"]);
-    const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
-    const children = await treeProvider.getChildren(undefined);
-    expect(children.length, "there should be 1 tree item returned").to.equal(1);
-    expect(children[0].element, "first child element should be treeitem1").to.equal("treeitem1");
-    expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to
-      .have.been.calledOnce;
-    expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have.been
-      .calledTwice;
-    expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been
-      .calledOnce;
-  });
+    test("test getTreeItem()", async function (): Promise<void> {
+        const getTreeItemStub = sandbox.stub();
+        await treeProvider.getTreeItem({
+            treeDataProvider: {
+                getTreeItem: (arg: WorkspaceTreeItem) => {
+                    return getTreeItemStub(arg);
+                },
+            } as vscode.TreeDataProvider<any>,
+        } as WorkspaceTreeItem);
+        expect(getTreeItemStub, "getTreeItem should have been called once").to.have.been.calledOnce;
+    });
+
+    test("test getChildren() for non-root element", async () => {
+        const getChildrenStub = sandbox.stub().resolves([]);
+        const element = {
+            treeDataProvider: {
+                getChildren: (arg: any) => {
+                    return getChildrenStub(arg);
+                },
+            } as vscode.TreeDataProvider<any>,
+            element: "obj1",
+        };
+        const children = await treeProvider.getChildren(element);
+        expect(children.length, "children count should be 0").to.equal(0);
+        expect(
+            getChildrenStub,
+            "getChildren should have been called with obj1",
+        ).to.have.been.calledWithExactly("obj1");
+    });
+
+    test("test getChildren() for root element", async () => {
+        const getProjectsInWorkspaceStub = sandbox
+            .stub(workspaceService, "getProjectsInWorkspace")
+            .resolves([
+                vscode.Uri.file("test/proj1/proj1.sqlproj"),
+                vscode.Uri.file("test/proj2/proj2.csproj"),
+            ]);
+        const treeDataProvider = new MockTreeDataProvider();
+        const projectProvider: IProjectProvider = {
+            supportedProjectTypes: [
+                {
+                    id: "sp1",
+                    projectFileExtension: "sqlproj",
+                    icon: "",
+                    displayName: "sql project",
+                    description: "",
+                },
+            ],
+            getProjectTreeDataProvider: (
+                projectFile: vscode.Uri,
+            ): Promise<vscode.TreeDataProvider<any>> => {
+                return Promise.resolve(treeDataProvider);
+            },
+            createProject: (name: string, location: vscode.Uri): Promise<vscode.Uri> => {
+                return Promise.resolve(location);
+            },
+            projectToolbarActions: [
+                {
+                    id: "Add",
+                    run: async (): Promise<any> => {
+                        return Promise.resolve();
+                    },
+                },
+                {
+                    id: "Schema Compare",
+                    run: async (): Promise<any> => {
+                        return Promise.resolve();
+                    },
+                },
+                {
+                    id: "Build",
+                    run: async (): Promise<any> => {
+                        return Promise.resolve();
+                    },
+                },
+                {
+                    id: "Publish",
+                    run: async (): Promise<any> => {
+                        return Promise.resolve();
+                    },
+                },
+                {
+                    id: "Target Version",
+                    run: async (): Promise<any> => {
+                        return Promise.resolve();
+                    },
+                },
+            ],
+            getDashboardComponents: (projectFile: string): IDashboardTable[] => {
+                return [
+                    {
+                        name: "Deployments",
+                        columns: [{ displayName: "c1", width: 75, type: "string" }],
+                        data: [["d1"]],
+                    },
+                    {
+                        name: "Builds",
+                        columns: [{ displayName: "c1", width: 75, type: "string" }],
+                        data: [["d1"]],
+                    },
+                ];
+            },
+        };
+        const getProjectProviderStub = sandbox.stub(workspaceService, "getProjectProvider");
+        getProjectProviderStub.onFirstCall().resolves(undefined);
+        getProjectProviderStub.onSecondCall().resolves(projectProvider);
+        sandbox.stub(treeDataProvider, "getChildren").resolves(["treeitem1"]);
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+        const children = await treeProvider.getChildren(undefined);
+        expect(children.length, "there should be 1 tree item returned").to.equal(1);
+        expect(children[0].element, "first child element should be treeitem1").to.equal(
+            "treeitem1",
+        );
+        expect(getProjectsInWorkspaceStub, "getProjectsInWorkspace should have been called once").to
+            .have.been.calledOnce;
+        expect(getProjectProviderStub, "getProjectProvider should have been called twice").to.have
+            .been.calledTwice;
+        expect(showErrorMessageStub, "showErrorMessage should have been called once").to.have.been
+            .calledOnce;
+    });
 });

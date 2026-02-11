@@ -7,10 +7,11 @@ import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
-export class LocalContainersState
-    implements
-        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
-{
+export class LocalContainersState implements FormState<
+    DockerConnectionProfile,
+    LocalContainersState,
+    LocalContainersFormItemSpec
+> {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     public dockerSteps: DockerStep[] = [];
@@ -49,21 +50,15 @@ export interface DockerConnectionProfile extends IConnectionDialogProfile {
     acceptEula: boolean;
 }
 
-export interface LocalContainersFormItemSpec
-    extends FormItemSpec<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
+export interface LocalContainersFormItemSpec extends FormItemSpec<
+    DockerConnectionProfile,
+    LocalContainersState,
+    LocalContainersFormItemSpec
+> {
     componentWidth: string;
 }
 
-export interface LocalContainersContextProps
-    extends FormContextProps<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
+export interface LocalContainersContextProps extends FormContextProps<DockerConnectionProfile> {
     /**
      * Checks the selected Docker profile's availability and configuration.
      */

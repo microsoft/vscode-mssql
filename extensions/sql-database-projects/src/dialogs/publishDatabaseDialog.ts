@@ -1135,8 +1135,8 @@ export class PublishDatabaseDialog {
 
     // only enable "Generate Script" and "Publish" buttons if all fields are filled
     private tryEnableGenerateScriptAndPublishButtons(): void {
-        let publishEnabled: boolean = false;
-        let generateScriptEnabled: boolean = false;
+        let publishEnabled = false;
+        let generateScriptEnabled = false;
 
         if (this.existingServerRadioButton?.checked) {
             if (

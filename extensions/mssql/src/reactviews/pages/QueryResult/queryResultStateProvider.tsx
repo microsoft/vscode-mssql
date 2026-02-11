@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactNode, createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { getCoreRPCs2 } from "../../common/utils";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { getCoreRPCs } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
@@ -49,8 +49,7 @@ type ResizeColumnDialogState = {
 };
 
 export interface QueryResultReactProvider
-    extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
-        CoreRPCs {
+    extends Omit<ExecutionPlanProvider, "getExecutionPlan">, CoreRPCs {
     extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
@@ -99,7 +98,7 @@ interface QueryResultProviderProps {
 }
 
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<QueryResultWebviewState, QueryResultReducers>();
+    const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
     // Grid context menu state
     const [menuState, setMenuState] = useState<{
         open: boolean;
@@ -149,7 +148,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
             extensionRpc,
-            ...getCoreRPCs2<QueryResultReducers>(extensionRpc),
+            ...getCoreRPCs<QueryResultReducers>(extensionRpc),
             setResultTab: (tabId: QueryResultPaneTabs) => {
                 extensionRpc.action("setResultTab", { tabId });
             },

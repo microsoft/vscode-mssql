@@ -5,6 +5,7 @@
 
 import { useContext, useState } from "react";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "../connectionDialogSelector";
 import { Copy24Regular, ClipboardPaste24Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { ConnectionStringDialogProps } from "../../../../sharedInterfaces/connectionDialog";
@@ -16,9 +17,10 @@ export const ConnectionStringDialog = ({
     dialogProps: ConnectionStringDialogProps;
 }) => {
     const context = useContext(ConnectionDialogContext)!;
+    const dialog = useConnectionDialogSelector((s) => s.dialog);
     const [connectionString, setConnectionString] = useState(dialogProps.connectionString || "");
 
-    if (context.state.dialog?.type !== "loadFromConnectionString") {
+    if (dialog?.type !== "loadFromConnectionString") {
         return undefined;
     }
 
