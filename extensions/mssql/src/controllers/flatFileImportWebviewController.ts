@@ -286,7 +286,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                         TelemetryViews.FlatFile,
                         TelemetryActions.ResetState,
                         new Error(errorMessage),
-                        false,
+                        true,
                     );
                     break;
             }
