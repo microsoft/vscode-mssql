@@ -5,7 +5,7 @@
 
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Button, ToggleButton, makeStyles } from "@fluentui/react-components";
+import { Button, makeStyles } from "@fluentui/react-components";
 import eventBus, { SchemaDesignerChangesPanelTab } from "./schemaDesignerEvents";
 import {
     DesignerDefinitionPane,
@@ -14,6 +14,7 @@ import {
     DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
 import { locConstants } from "../../common/locConstants";
+import { SegmentedControl } from "../../common/segmentedControl";
 import { SchemaDesignerChangesPanel } from "./changes/schemaDesignerChangesPanel";
 import { SchemaDesignerChangesCodeDiff } from "./changes/schemaDesignerChangesCodeDiff";
 import { getVisiblePendingAiSchemaChanges } from "./aiLedger/ledgerUtils";
@@ -33,15 +34,7 @@ type SchemaDesignerDefinitionTab = DesignerDefinitionTabs | SchemaDesignerDefini
 const DEFAULT_PANEL_SIZE = 25;
 
 const useStyles = makeStyles({
-    changesViewModeGroup: {
-        display: "inline-flex",
-        alignItems: "center",
-        border: "1px solid var(--vscode-toolbar-hoverBackground)",
-        borderRadius: "4px",
-        overflow: "hidden",
-    },
     changesViewModeButton: {
-        borderRadius: 0,
         minWidth: "92px",
     },
 });
@@ -336,38 +329,21 @@ export const SchemaDesignerDefinitionsPanel = () => {
             copyToClipboard={copyToClipboard}
             headerActions={
                 isBaselineChangesTabActive ? (
-                    <>
-                        <div className={classes.changesViewModeGroup}>
-                            <ToggleButton
-                                size="small"
-                                className={classes.changesViewModeButton}
-                                checked={changesViewMode === SchemaDesignerChangesViewMode.List}
-                                appearance={
-                                    changesViewMode === SchemaDesignerChangesViewMode.List
-                                        ? "primary"
-                                        : "subtle"
-                                }
-                                onClick={() =>
-                                    setChangesViewMode(SchemaDesignerChangesViewMode.List)
-                                }>
-                                {locConstants.schemaDesigner.changesListView}
-                            </ToggleButton>
-                            <ToggleButton
-                                size="small"
-                                className={classes.changesViewModeButton}
-                                checked={changesViewMode === SchemaDesignerChangesViewMode.Code}
-                                appearance={
-                                    changesViewMode === SchemaDesignerChangesViewMode.Code
-                                        ? "primary"
-                                        : "subtle"
-                                }
-                                onClick={() =>
-                                    setChangesViewMode(SchemaDesignerChangesViewMode.Code)
-                                }>
-                                {locConstants.schemaDesigner.codeChangesView}
-                            </ToggleButton>
-                        </div>
-                    </>
+                    <SegmentedControl<SchemaDesignerChangesViewMode>
+                        value={changesViewMode}
+                        options={[
+                            {
+                                value: SchemaDesignerChangesViewMode.List,
+                                label: locConstants.schemaDesigner.changesListView,
+                            },
+                            {
+                                value: SchemaDesignerChangesViewMode.Code,
+                                label: locConstants.schemaDesigner.codeChangesView,
+                            },
+                        ]}
+                        onValueChange={setChangesViewMode}
+                        buttonClassName={classes.changesViewModeButton}
+                    />
                 ) : isPendingAiTabActive ? (
                     <>
                         <Button
