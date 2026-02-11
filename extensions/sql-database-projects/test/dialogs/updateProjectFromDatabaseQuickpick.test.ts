@@ -4,30 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { expect } from "chai";
-import * as chai from "chai";
-import sinonChai from "sinon-chai";
+import should = require("should/as-function");
 import * as sinon from "sinon";
 import * as mssqlVscode from "vscode-mssql";
 import * as baselines from "../baselines/baselines";
 import * as testUtils from "../testUtils";
 import * as utils from "../../src/common/utils";
 import * as constants from "../../src/common/constants";
-import { createSqlProjectsServiceStub, createDacFxServiceStub } from "../testContext";
 
 import { UpdateProjectFromDatabaseWithQuickpick } from "../../src/dialogs/updateProjectFromDatabaseQuickpick";
 import { UpdateProjectAction } from "../../src/models/api/updateProject";
 
-chai.use(sinonChai);
-
 suite("Update Project From Database Quickpicks", () => {
     suiteSetup(async function (): Promise<void> {
         await baselines.loadBaselines();
-    });
-
-    setup(function (): void {
-        sinon.stub(utils, "getSqlProjectsService").resolves(createSqlProjectsServiceStub());
-        sinon.stub(utils, "getDacFxService").resolves(createDacFxServiceStub());
     });
 
     teardown(function (): void {
@@ -82,22 +72,23 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, cb);
 
         // Assert
-        expect(capturedModel, "Captured model should not be undefined").to.not.be.undefined;
-        expect(
+        should(capturedModel).not.be.undefined();
+        should.equal(
             capturedModel.sourceEndpointInfo.databaseName,
+            connectionProfile.database,
             "Source database should match selected database",
-        ).to.equal(connectionProfile.database);
-        expect(
-            capturedModel.sourceEndpointInfo.serverDisplayName,
-            "Source server display name should match connection profile server",
-        ).to.equal(connectionProfile.server);
-        expect(
-            capturedModel.targetEndpointInfo.projectFilePath,
-            "Target project file path should be the selected workspace project",
-        ).to.equal(projectFilePath);
-        expect(capturedModel.action, "Action should be Update").to.equal(
-            UpdateProjectAction.Update,
         );
+        should.equal(
+            capturedModel.sourceEndpointInfo.serverDisplayName,
+            connectionProfile.server,
+            "Source server display name should match connection profile server",
+        );
+        should.equal(
+            capturedModel.targetEndpointInfo.projectFilePath,
+            projectFilePath,
+            "Target project file path should be the selected workspace project",
+        );
+        should.equal(capturedModel.action, UpdateProjectAction.Update, "Action should be Update");
     });
 
     test("Should not invoke callback when user cancels project selection", async function (): Promise<void> {
@@ -130,7 +121,7 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, spyCb as any);
 
         // Assert - callback should not be called
-        expect(spyCb, "Callback should not be called when user cancels").to.not.have.been.called;
+        should(spyCb.notCalled).be.true();
     });
 
     test("Should use provided project file path without prompting when passed as parameter", async function (): Promise<void> {
@@ -174,24 +165,23 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, providedProjectPath, cb);
 
         // Assert
-        expect(capturedModel, "Captured model should not be undefined").to.not.be.undefined;
-        expect(
+        should(capturedModel).not.be.undefined();
+        should.equal(
             capturedModel.targetEndpointInfo.projectFilePath,
+            providedProjectPath,
             "Target project file path should be the provided project path, not prompted",
-        ).to.equal(providedProjectPath);
-        expect(capturedModel.action, "Action should be Compare").to.equal(
-            UpdateProjectAction.Compare,
         );
+        should.equal(capturedModel.action, UpdateProjectAction.Compare, "Action should be Compare");
 
         // Verify that project selection was skipped
-        expect(
-            getProjectsSpy,
+        should(getProjectsSpy.notCalled).be.true(
             "getSqlProjectsInWorkspace should not be called when project path is provided",
-        ).to.not.have.been.called;
-        expect(
+        );
+        should.equal(
             showQP.callCount,
+            1,
             "QuickPick should only be shown once (for action), not for project selection",
-        ).to.equal(1);
+        );
     });
 
     test("Should prompt for project when no project file path is provided as parameter", async function (): Promise<void> {
@@ -238,17 +228,17 @@ suite("Update Project From Database Quickpicks", () => {
         await UpdateProjectFromDatabaseWithQuickpick(undefined, undefined, cb);
 
         // Assert
-        expect(capturedModel, "Captured model should not be undefined").to.not.be.undefined;
-        expect(
+        should(capturedModel).not.be.undefined();
+        should.equal(
             capturedModel.targetEndpointInfo.projectFilePath,
+            workspaceProjectPath,
             "Target project file path should be the selected workspace project",
-        ).to.equal(workspaceProjectPath);
-        expect(capturedModel.action, "Action should be Update").to.equal(
-            UpdateProjectAction.Update,
         );
-        expect(
+        should.equal(capturedModel.action, UpdateProjectAction.Update, "Action should be Update");
+        should.equal(
             showQP.callCount,
+            2,
             "QuickPick should be shown twice (project and action selection)",
-        ).to.equal(2);
+        );
     });
 });

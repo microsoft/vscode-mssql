@@ -31,7 +31,7 @@ suite("Templates", function (): void {
     test("Should load all templates from files", async function (): Promise<void> {
         // check expected counts
 
-        const numScriptObjectTypes = 17;
+        const numScriptObjectTypes = 16;
 
         expect(templates.projectScriptTypes().length).to.equal(
             numScriptObjectTypes,
@@ -44,12 +44,10 @@ suite("Templates", function (): void {
 
         // check everything has a value
 
-        expect(templates.newSqlProjectTemplate, "New SQL project template should be defined").to.not
-            .be.undefined;
+        expect(templates.newSqlProjectTemplate).to.not.be.undefined;
 
         for (const obj of templates.projectScriptTypes()) {
-            expect(obj.templateScript, "Template script should be defined for each script type").to
-                .not.be.undefined;
+            expect(obj.templateScript).to.not.be.undefined;
         }
     });
 

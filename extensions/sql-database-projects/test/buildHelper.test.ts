@@ -10,7 +10,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper } from "../src/tools/buildHelper";
 import { TestContext, createContext } from "./testContext";
-import { ProjectType } from "vscode-mssql";
+import { ProjectType } from "mssql";
 import * as sqldbproj from "sqldbproj";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
@@ -25,29 +25,18 @@ suite("BuildHelper: Build Helper tests", function (): void {
         );
 
         // Check that it returns an array
-        expect(resultArgs, "Build arguments should be an array").to.be.an("array");
-        expect(resultArgs.length, "Should have 3 build arguments for legacy projects").to.equal(3);
+        expect(resultArgs).to.be.an("array");
+        expect(resultArgs.length).to.equal(3); // 3 arguments for legacy projects
 
         // Check individual arguments
-        expect(resultArgs[0], "First argument should enable NetCoreBuild").to.equal(
-            "/p:NetCoreBuild=true",
-        );
+        expect(resultArgs[0]).to.equal("/p:NetCoreBuild=true");
 
         if (os.platform() === "win32") {
-            expect(
-                resultArgs[1],
-                "SystemDacpacsLocation should use Windows path separators",
-            ).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
-            expect(resultArgs[2], "NETCoreTargetsPath should use Windows path separators").to.equal(
-                '/p:NETCoreTargetsPath="dummy\\\\dll path"',
-            );
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
+            expect(resultArgs[2]).to.equal('/p:NETCoreTargetsPath="dummy\\\\dll path"');
         } else {
-            expect(resultArgs[1], "SystemDacpacsLocation should use Unix path separators").to.equal(
-                '/p:SystemDacpacsLocation="dummy/dll path"',
-            );
-            expect(resultArgs[2], "NETCoreTargetsPath should use Unix path separators").to.equal(
-                '/p:NETCoreTargetsPath="dummy/dll path"',
-            );
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy/dll path"');
+            expect(resultArgs[2]).to.equal('/p:NETCoreTargetsPath="dummy/dll path"');
         }
     });
 
@@ -60,23 +49,16 @@ suite("BuildHelper: Build Helper tests", function (): void {
         );
 
         // Check that it returns an array
-        expect(resultArgs, "Build arguments should be an array").to.be.an("array");
-        expect(resultArgs.length, "Should have 2 build arguments for SDK projects").to.equal(2);
+        expect(resultArgs).to.be.an("array");
+        expect(resultArgs.length).to.equal(2); // 2 arguments for SDK projects (no NETCoreTargetsPath)
 
         // Check individual arguments
-        expect(resultArgs[0], "First argument should enable NetCoreBuild").to.equal(
-            "/p:NetCoreBuild=true",
-        );
+        expect(resultArgs[0]).to.equal("/p:NetCoreBuild=true");
 
         if (os.platform() === "win32") {
-            expect(
-                resultArgs[1],
-                "SystemDacpacsLocation should use Windows path separators",
-            ).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy\\\\dll path"');
         } else {
-            expect(resultArgs[1], "SystemDacpacsLocation should use Unix path separators").to.equal(
-                '/p:SystemDacpacsLocation="dummy/dll path"',
-            );
+            expect(resultArgs[1]).to.equal('/p:SystemDacpacsLocation="dummy/dll path"');
         }
     });
 
@@ -88,10 +70,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
         // get expected path for build
         const extensionPath =
             vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
-        expect(
-            buildHelper.extensionBuildDirPath,
-            "Extension build dir path should match expected BuildDirectory path",
-        ).to.equal(path.join(extensionPath, "BuildDirectory"));
+        expect(buildHelper.extensionBuildDirPath).to.equal(
+            path.join(extensionPath, "BuildDirectory"),
+        );
     });
 
     test("Should have all required SystemDacpacs files for supported target platforms", async function (): Promise<void> {
@@ -138,7 +119,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
         // Verify that the build directory was created successfully
-        expect(success, "Build directory creation should succeed").to.equal(true);
+        expect(success, "Build directory creation should succeed").to.be.true;
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
@@ -171,7 +152,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
             expect(
                 exists,
                 `Required file '${fileName}' should exist in build directory at ${filePath}`,
-            ).to.equal(true);
+            ).to.be.true;
         }
     });
 });

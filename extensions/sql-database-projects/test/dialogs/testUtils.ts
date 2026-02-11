@@ -3,74 +3,66 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as sinon from "sinon";
+import * as TypeMoq from "typemoq";
 import * as vscodeMssql from "vscode-mssql";
+import { RequestType } from "vscode-languageclient";
 
 export interface TestUtils {
-    vscodeMssqlIExtension: sinon.SinonStubbedInstance<vscodeMssql.IExtension>;
+    vscodeMssqlIExtension: TypeMoq.IMock<vscodeMssql.IExtension>;
 }
 
-/**
- * Creates a sinon-stubbed instance of vscodeMssql.IExtension.
- * Accepts an optional sandbox; falls back to bare sinon if none provided.
- */
-export function createTestUtils(sandbox?: sinon.SinonSandbox): TestUtils {
-    const s = sandbox ?? sinon;
+export class MockVscodeMssqlIExtension implements vscodeMssql.IExtension {
+    sqlToolsServicePath: string = "";
+    dacFx: vscodeMssql.IDacFxService;
+    sqlProjects: vscodeMssql.ISqlProjectsService;
+    schemaCompare: vscodeMssql.ISchemaCompareService;
+    azureAccountService: vscodeMssql.IAzureAccountService;
+    azureResourceService: vscodeMssql.IAzureResourceService;
 
-    const dacFxStub = {
-        exportBacpac: s.stub(),
-        importBacpac: s.stub(),
-        extractDacpac: s.stub(),
-        createProjectFromDatabase: s.stub(),
-        deployDacpac: s.stub(),
-        generateDeployScript: s.stub(),
-        generateDeployPlan: s.stub(),
-        getOptionsFromProfile: s.stub(),
-        validateStreamingJob: s.stub(),
-        savePublishProfile: s.stub(),
-        getDeploymentOptions: s.stub(),
-    } as unknown as sinon.SinonStubbedInstance<vscodeMssql.IDacFxService>;
+    constructor() {
+        this.dacFx = TypeMoq.Mock.ofType<vscodeMssql.IDacFxService>().object;
+        this.sqlProjects = TypeMoq.Mock.ofType<vscodeMssql.ISqlProjectsService>().object;
+        this.schemaCompare = TypeMoq.Mock.ofType<vscodeMssql.ISchemaCompareService>().object;
+        this.azureAccountService = TypeMoq.Mock.ofType<vscodeMssql.IAzureAccountService>().object;
+        this.azureResourceService = TypeMoq.Mock.ofType<vscodeMssql.IAzureResourceService>().object;
+    }
 
-    const sqlProjectsStub = {
-        openProject: s.stub(),
-    } as unknown as sinon.SinonStubbedInstance<vscodeMssql.ISqlProjectsService>;
+    promptForFirewallRule(_: string, __: vscodeMssql.IConnectionInfo): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+    sendRequest<P, R, E, R0>(_: RequestType<P, R, E, R0>, __?: P): Promise<R> {
+        throw new Error("Method not implemented.");
+    }
+    promptForConnection(_?: boolean): Promise<vscodeMssql.IConnectionInfo | undefined> {
+        throw new Error("Method not implemented.");
+    }
+    connect(_: vscodeMssql.IConnectionInfo, __?: boolean): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+    listDatabases(_: string): Promise<string[]> {
+        throw new Error("Method not implemented.");
+    }
+    getDatabaseNameFromTreeNode(_: vscodeMssql.ITreeNodeInfo): string {
+        throw new Error("Method not implemented.");
+    }
+    getConnectionString(
+        _: string | vscodeMssql.ConnectionDetails,
+        ___?: boolean,
+        _____?: boolean,
+    ): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+    createConnectionDetails(_: vscodeMssql.IConnectionInfo): vscodeMssql.ConnectionDetails {
+        throw new Error("Method not implemented.");
+    }
+    getServerInfo(_: vscodeMssql.IConnectionInfo): vscodeMssql.IServerInfo {
+        throw new Error("Method not implemented.");
+    }
+}
 
-    const schemaCompareStub =
-        {} as unknown as sinon.SinonStubbedInstance<vscodeMssql.ISchemaCompareService>;
-
-    const azureAccountServiceStub = {
-        addAccount: s.stub(),
-        getAccounts: s.stub(),
-        getAccountSecurityToken: s.stub(),
-        getAccountSessions: s.stub(),
-    } as unknown as sinon.SinonStubbedInstance<vscodeMssql.IAzureAccountService>;
-
-    const azureResourceServiceStub = {
-        getLocations: s.stub(),
-        getResourceGroups: s.stub(),
-        createOrUpdateServer: s.stub(),
-    } as unknown as sinon.SinonStubbedInstance<vscodeMssql.IAzureResourceService>;
-
-    const vscodeMssqlStub = {
-        sqlToolsServicePath: "",
-        dacFx: dacFxStub,
-        sqlProjects: sqlProjectsStub,
-        schemaCompare: schemaCompareStub,
-        azureAccountService: azureAccountServiceStub,
-        azureResourceService: azureResourceServiceStub,
-        promptForFirewallRule: s.stub(),
-        sendRequest: s.stub(),
-        promptForConnection: s.stub(),
-        connect: s.stub(),
-        listDatabases: s.stub(),
-        getDatabaseNameFromTreeNode: s.stub(),
-        getConnectionString: s.stub(),
-        createConnectionDetails: s.stub(),
-        getServerInfo: s.stub(),
-    } as unknown as sinon.SinonStubbedInstance<vscodeMssql.IExtension>;
-
+export function createTestUtils(): TestUtils {
     return {
-        vscodeMssqlIExtension: vscodeMssqlStub,
+        vscodeMssqlIExtension: TypeMoq.Mock.ofType(MockVscodeMssqlIExtension),
     };
 }
 
