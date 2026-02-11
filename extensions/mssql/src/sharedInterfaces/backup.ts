@@ -199,7 +199,8 @@ export interface BackupDatabaseParams {
 }
 
 export interface BackupDatabaseReducers
-    extends FormReducers<ObjectManagementFormState>, FileBrowserReducers {
+    extends FormReducers<ObjectManagementFormState>,
+        FileBrowserReducers {
     /**
      * Gets the database information associated with the backup operation
      */
@@ -245,7 +246,8 @@ export interface BackupDatabaseReducers
 }
 
 export interface BackupDatabaseProvider
-    extends FormContextProps<ObjectManagementFormState>, FileBrowserProvider {
+    extends FormContextProps<ObjectManagementFormState>,
+        FileBrowserProvider {
     /**
      * Gets the database information associated with the backup operation
      */

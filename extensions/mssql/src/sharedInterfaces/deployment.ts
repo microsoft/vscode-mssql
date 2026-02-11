@@ -20,11 +20,9 @@ import {
     FabricProvisioningState,
 } from "./fabricProvisioning";
 
-export class DeploymentWebviewState implements FormState<
-    DeploymentFormState,
-    DeploymentWebviewState,
-    DeploymentFormItemSpec
-> {
+export class DeploymentWebviewState
+    implements FormState<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec>
+{
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
@@ -108,11 +106,8 @@ export enum DeploymentType {
     DevContainer = 3,
 }
 
-export interface DeploymentFormItemSpec extends FormItemSpec<
-    DeploymentFormState,
-    DeploymentWebviewState,
-    DeploymentFormItemSpec
-> {
+export interface DeploymentFormItemSpec
+    extends FormItemSpec<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
     componentWidth: string;
 }
 

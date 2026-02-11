@@ -49,7 +49,8 @@ type ResizeColumnDialogState = {
 };
 
 export interface QueryResultReactProvider
-    extends Omit<ExecutionPlanProvider, "getExecutionPlan">, CoreRPCs {
+    extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
+        CoreRPCs {
     extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
