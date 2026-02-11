@@ -4,34 +4,39 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as azdata from "azdata";
 import * as path from "path";
 import * as TypeMoq from "typemoq";
-import * as mssql from "mssql";
+import * as vscodeMssql from "vscode-mssql";
 
 export interface TestContext {
     context: vscode.ExtensionContext;
-    dacFxService: TypeMoq.IMock<mssql.IDacFxService>;
+    dacFxService: TypeMoq.IMock<vscodeMssql.IDacFxService>;
     outputChannel: vscode.OutputChannel;
 }
 
-export const mockDacFxResult = {
+export const mockDacFxResult: vscodeMssql.DacFxResult = {
+    operationId: "",
+    success: true,
+    errorMessage: "",
+};
+
+export const mockGenerateDeployPlanResult: vscodeMssql.GenerateDeployPlanResult = {
     operationId: "",
     success: true,
     errorMessage: "",
     report: "",
 };
 
-export const mockSavePublishResult = {
+export const mockSavePublishResult: vscodeMssql.ResultStatus = {
     success: true,
     errorMessage: "",
 };
 
 /* Get the deployment options sample model */
-export function getDeploymentOptions(): mssql.DeploymentOptions {
+export function getDeploymentOptions(): vscodeMssql.DeploymentOptions {
     const sampleDesc = "Sample Description text";
     const sampleName = "Sample Display Name";
-    const defaultOptions: mssql.DeploymentOptions = {
+    const defaultOptions: vscodeMssql.DeploymentOptions = {
         excludeObjectTypes: { value: [], description: sampleDesc, displayName: sampleName },
         booleanOptionsDictionary: {
             SampleProperty1: { value: false, description: sampleDesc, displayName: sampleName },
@@ -45,27 +50,27 @@ export function getDeploymentOptions(): mssql.DeploymentOptions {
     return defaultOptions;
 }
 
-export const mockDacFxOptionsResult: mssql.DacFxOptionsResult = {
+export const mockDacFxOptionsResult: vscodeMssql.DacFxOptionsResult = {
     success: true,
     errorMessage: "",
     deploymentOptions: getDeploymentOptions(),
 };
 
-export class MockDacFxService implements mssql.IDacFxService {
+export class MockDacFxService implements vscodeMssql.IDacFxService {
     public exportBacpac(
         _databaseName: string,
         _packageFilePath: string,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
-    ): Thenable<mssql.DacFxResult> {
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public importBacpac(
         _packageFilePath: string,
         _databaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
-    ): Thenable<mssql.DacFxResult> {
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public extractDacpac(
@@ -74,8 +79,8 @@ export class MockDacFxService implements mssql.IDacFxService {
         _applicationName: string,
         _applicationVersion: string,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
-    ): Thenable<mssql.DacFxResult> {
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public createProjectFromDatabase(
@@ -84,10 +89,10 @@ export class MockDacFxService implements mssql.IDacFxService {
         _applicationName: string,
         _applicationVersion: string,
         _ownerUri: string,
-        _extractTarget: mssql.ExtractTarget,
-        _taskExecutionMode: azdata.TaskExecutionMode,
+        _extractTarget: vscodeMssql.ExtractTarget,
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
         _includePermissions?: boolean,
-    ): Thenable<mssql.DacFxResult> {
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public deployDacpac(
@@ -95,53 +100,56 @@ export class MockDacFxService implements mssql.IDacFxService {
         _targetDatabaseName: string,
         _upgradeExisting: boolean,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
         _sqlCommandVariableValues?: Map<string, string>,
-        _deploymentOptions?: mssql.DeploymentOptions,
-    ): Thenable<mssql.DacFxResult> {
+        _deploymentOptions?: vscodeMssql.DeploymentOptions,
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public generateDeployScript(
         _packageFilePath: string,
         _targetDatabaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
         _sqlCommandVariableValues?: Map<string, string>,
-        _deploymentOptions?: mssql.DeploymentOptions,
-    ): Thenable<mssql.DacFxResult> {
+        _deploymentOptions?: vscodeMssql.DeploymentOptions,
+    ): Thenable<vscodeMssql.DacFxResult> {
         return Promise.resolve(mockDacFxResult);
     }
     public generateDeployPlan(
         _packageFilePath: string,
         _targetDatabaseName: string,
         _ownerUri: string,
-        _taskExecutionMode: azdata.TaskExecutionMode,
-    ): Thenable<mssql.GenerateDeployPlanResult> {
-        return Promise.resolve(mockDacFxResult);
+        _taskExecutionMode: vscodeMssql.TaskExecutionMode,
+    ): Thenable<vscodeMssql.GenerateDeployPlanResult> {
+        return Promise.resolve(mockGenerateDeployPlanResult);
     }
-    public getOptionsFromProfile(_profilePath: string): Thenable<mssql.DacFxOptionsResult> {
+    public getOptionsFromProfile(_profilePath: string): Thenable<vscodeMssql.DacFxOptionsResult> {
         return Promise.resolve(mockDacFxOptionsResult);
     }
     public validateStreamingJob(
         _packageFilePath: string,
         _createStreamingJobTsql: string,
-    ): Thenable<mssql.ValidateStreamingJobResult> {
+    ): Thenable<vscodeMssql.ValidateStreamingJobResult> {
         return Promise.resolve(mockDacFxResult);
-    }
-    public parseTSqlScript(
-        _filePath: string,
-        _databaseSchemaProvider: string,
-    ): Thenable<mssql.ParseTSqlScriptResult> {
-        return Promise.resolve({ containsCreateTableStatement: true });
     }
     public savePublishProfile(
         _profilePath: string,
         _databaseName: string,
         _connectionString: string,
         _sqlCommandVariableValues?: Map<string, string>,
-        _deploymentOptions?: mssql.DeploymentOptions,
-    ): Thenable<azdata.ResultStatus> {
+        _deploymentOptions?: vscodeMssql.DeploymentOptions,
+    ): Thenable<vscodeMssql.ResultStatus> {
         return Promise.resolve(mockSavePublishResult);
+    }
+    public getDeploymentOptions(
+        _scenario: vscodeMssql.DeploymentScenario,
+    ): Thenable<vscodeMssql.GetDeploymentOptionsResult> {
+        return Promise.resolve({
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: getDeploymentOptions(),
+        });
     }
 }
 
@@ -202,13 +210,13 @@ export function createContext(): TestContext {
 }
 
 // Mock test data
-export const mockConnectionProfile: azdata.IConnectionProfile = {
+export const mockConnectionProfile = {
     connectionName: "My Connection",
     serverName: "My Server",
     databaseName: "My Database",
     userName: "My User",
     password: "My Pwd",
-    authenticationType: azdata.connection.AuthenticationType.SqlLogin,
+    authenticationType: "SqlLogin",
     savePassword: false,
     groupFullName: "My groupName",
     groupId: "My GroupId",
@@ -220,7 +228,7 @@ export const mockConnectionProfile: azdata.IConnectionProfile = {
         database: "My Database",
         user: "My User",
         password: "My Pwd",
-        authenticationType: azdata.connection.AuthenticationType.SqlLogin,
+        authenticationType: "SqlLogin",
         connectionName: "My Connection Name",
     },
 };
@@ -241,7 +249,7 @@ export const mockConnectionInfo = {
     providerName: undefined,
     groupId: "My GroupId",
     groupFullName: "My groupName",
-    authenticationType: azdata.connection.AuthenticationType.SqlLogin,
+    authenticationType: "SqlLogin",
     savePassword: false,
     saveProfile: true,
     options: {
@@ -254,10 +262,10 @@ export const mockConnectionInfo = {
     },
 };
 
-export const mockProjectEndpointInfo: mssql.SchemaCompareEndpointInfo = {
-    endpointType: mssql.SchemaCompareEndpointType.Project,
+export const mockProjectEndpointInfo: vscodeMssql.SchemaCompareEndpointInfo = {
+    endpointType: vscodeMssql.SchemaCompareEndpointType.Project,
     projectFilePath: "",
-    extractTarget: mssql.ExtractTarget.schemaObjectType,
+    extractTarget: vscodeMssql.ExtractTarget.schemaObjectType,
     targetScripts: [],
     dataSchemaProvider: "150",
     connectionDetails: mockConnectionInfo,
@@ -268,15 +276,15 @@ export const mockProjectEndpointInfo: mssql.SchemaCompareEndpointInfo = {
     packageFilePath: "",
 };
 
-export const mockDatabaseEndpointInfo: mssql.SchemaCompareEndpointInfo = {
-    endpointType: mssql.SchemaCompareEndpointType.Database,
+export const mockDatabaseEndpointInfo: vscodeMssql.SchemaCompareEndpointInfo = {
+    endpointType: vscodeMssql.SchemaCompareEndpointType.Database,
     databaseName: "My Database",
     serverDisplayName: "My Connection Name",
     serverName: "My Server",
     connectionDetails: mockConnectionInfo,
     ownerUri: "MockUri",
     projectFilePath: "",
-    extractTarget: mssql.ExtractTarget.schemaObjectType,
+    extractTarget: vscodeMssql.ExtractTarget.schemaObjectType,
     targetScripts: [],
     dataSchemaProvider: "",
     packageFilePath: "",
