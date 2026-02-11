@@ -237,7 +237,7 @@ export class SearchDatabaseWebViewController extends ReactWebviewPanelController
 
         // If already connected, verify that the connection is using the currently selected database.
         if (this._connectionManager.isConnected(connectionUri)) {
-            const connectionInfo = await this._connectionManager.getConnectionInfo(connectionUri);
+            const connectionInfo = this._connectionManager.getConnectionInfo(connectionUri);
             const currentDatabase = connectionInfo?.credentials?.database;
 
             if (currentDatabase === targetDatabase) {
