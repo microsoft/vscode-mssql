@@ -151,6 +151,9 @@
     <trans-unit id="++CODE++9905a59b62bd9e50dfbe9cd5f2e9e6bd7da1a01a26938bf680f1944475558e0f">
       <source xml:lang="en">Change Target Platform</source>
     </trans-unit>
+    <trans-unit id="++CODE++c4152381e591eb56f29211e9e1041f2db298ba2a28040a4bff7894f1602bb4ca">
+      <source xml:lang="en">Check output pane for more details</source>
+    </trans-unit>
     <trans-unit id="++CODE++d4b455dc8237ce7460f9bde4850dc92b735297b2b498b06b350dca028b33a936">
       <source xml:lang="en">Choose SQLCMD variables to modify</source>
     </trans-unit>
