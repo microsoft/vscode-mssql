@@ -65,7 +65,7 @@ let downloadProvider = new ServiceDownloadProvider(
     statusView,
     httpClient,
     decompressProvider,
-    DownloadType.SqlToolsService
+    DownloadType.SqlToolsService,
 );
 let serverProvider = new ServerProvider(downloadProvider, config, statusView);
 

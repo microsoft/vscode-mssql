@@ -62,9 +62,7 @@ suite("FlatFileFeature", () => {
 
         const provider = (feature as any).registerProvider(undefined);
 
-        expect(registerApiStub).to.have.been.calledOnceWith(
-            ApiType.FlatFileProvider,
-        );
+        expect(registerApiStub).to.have.been.calledOnceWith(ApiType.FlatFileProvider);
 
         // Ensure returned provider has send*Request functions
         expect(provider.sendProseDiscoveryRequest).to.be.a("function");

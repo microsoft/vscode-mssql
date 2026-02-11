@@ -108,9 +108,7 @@ suite("Server tests", () => {
         const server = createServer(fixture);
         const result = await server.getOrDownloadServer(fixture.runtime);
         expect(result).to.equal(fixture.executableFileName);
-        expect(downloadProvider.installService).to.have.been.calledOnceWithExactly(
-            fixture.runtime,
-        );
+        expect(downloadProvider.installService).to.have.been.calledOnceWithExactly(fixture.runtime);
     });
 
     test("getOrDownloadServer should not download the service if already exist", async () => {

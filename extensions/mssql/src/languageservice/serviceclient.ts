@@ -176,7 +176,7 @@ export default class SqlToolsServiceClient {
                 serverStatusView,
                 httpClient,
                 decompressProvider,
-                DownloadType.SqlToolsService
+                DownloadType.SqlToolsService,
             );
             let serviceProvider = new ServerProvider(downloadProvider, config, serverStatusView);
             let statusView = new StatusView(vscodeWrapper);
