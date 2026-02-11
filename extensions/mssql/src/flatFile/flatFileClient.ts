@@ -61,7 +61,9 @@ export class FlatFileClient {
      * @param context The vscode extension context, used for storage and other extension related functionality.
      * @returns The flat file client
      */
-    public async startFlatFileService(context: vscode.ExtensionContext): Promise<LanguageClient> {
+    public async startFlatFileService(
+        context: vscode.ExtensionContext,
+    ): Promise<LanguageClient | undefined> {
         let clientOptions: FlatFileClientOptions = this.createClientOptions();
         try {
             const installationStart = Date.now();

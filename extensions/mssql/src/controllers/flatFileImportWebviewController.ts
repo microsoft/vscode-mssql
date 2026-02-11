@@ -431,9 +431,12 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 displayName: schema,
                 value: schema,
             }));
-            this.state.formState.tableSchema = schemas.includes(defaultSchema)
-                ? defaultSchema
-                : schemas[0];
+            this.state.formState.tableSchema =
+                schemas.length === 0
+                    ? ""
+                    : schemas.includes(defaultSchema)
+                      ? defaultSchema
+                      : schemas[0];
 
             this.state.schemaLoadStatus = ApiStatus.Loaded;
         } catch (error) {

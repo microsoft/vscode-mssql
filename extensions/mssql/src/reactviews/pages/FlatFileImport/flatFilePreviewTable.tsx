@@ -29,6 +29,7 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
+import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -143,7 +144,7 @@ type FlatFileTableCell = {
 export const FlatFilePreviewTablePage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return null;
 
@@ -178,7 +179,7 @@ export const FlatFilePreviewTablePage = () => {
 export const FlatFilePreviewTable = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return null;
 

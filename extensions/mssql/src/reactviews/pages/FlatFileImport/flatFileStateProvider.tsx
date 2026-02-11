@@ -15,24 +15,26 @@ import {
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { FormEvent } from "../../../sharedInterfaces/form";
+import { WebviewRpc } from "../../common/rpc";
 
-export const FlatFileContext = createContext<FlatFileImportProvider | undefined>(undefined);
+export interface FlatFileContextProps extends FlatFileImportProvider {
+    extensionRpc: WebviewRpc<FlatFileImportReducers>;
+}
+
+export const FlatFileContext = createContext<FlatFileContextProps | undefined>(undefined);
 
 export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const webviewContext = useVscodeWebview<FlatFileImportState, FlatFileImportReducers>();
-    const state = webviewContext?.state;
+    const { extensionRpc } = useVscodeWebview<FlatFileImportState, FlatFileImportReducers>();
 
     return (
         <FlatFileContext.Provider
             value={{
-                state: state,
-                themeKind: webviewContext?.themeKind,
-                keyBindings: webviewContext?.keyBindings,
-                ...getCoreRPCs(webviewContext),
+                extensionRpc,
+                ...getCoreRPCs(extensionRpc),
                 formAction: function (event: FormEvent<FlatFileImportFormState>): void {
-                    webviewContext?.extensionRpc.action("formAction", {
+                    extensionRpc.action("formAction", {
                         event: event,
                     });
                 },
@@ -41,35 +43,35 @@ export const FlatFileImportStateProvider: React.FC<{ children: React.ReactNode }
                     tableName: string,
                     schemaName?: string,
                 ): void {
-                    webviewContext?.extensionRpc.action("getTablePreview", {
+                    extensionRpc.action("getTablePreview", {
                         filePath: filePath,
                         tableName: tableName,
                         schemaName: schemaName,
                     });
                 },
                 setColumnChanges: function (columnChanges: ColumnChanges[]): void {
-                    webviewContext?.extensionRpc.action("setColumnChanges", {
+                    extensionRpc.action("setColumnChanges", {
                         columnChanges: columnChanges,
                     });
                 },
                 importData: function (): void {
-                    webviewContext?.extensionRpc.action("importData", {});
+                    extensionRpc.action("importData", {});
                 },
                 openVSCodeFileBrowser: function (): void {
-                    webviewContext?.extensionRpc.action("openVSCodeFileBrowser", {});
+                    extensionRpc.action("openVSCodeFileBrowser", {});
                 },
                 resetState: function (resetType: FlatFileStepType): void {
-                    webviewContext?.extensionRpc.action("resetState", {
+                    extensionRpc.action("resetState", {
                         resetType: resetType,
                     });
                 },
                 setStep: function (step: FlatFileStepType): void {
-                    webviewContext?.extensionRpc.action("setStep", {
+                    extensionRpc.action("setStep", {
                         step: step,
                     });
                 },
                 dispose: function (): void {
-                    webviewContext?.extensionRpc.action("dispose", {});
+                    extensionRpc.action("dispose", {});
                 },
             }}>
             {children}

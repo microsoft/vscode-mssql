@@ -2408,8 +2408,8 @@
     <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
       <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
     </trans-unit>
-    <trans-unit id="++CODE++c7f37e71ae70d1ba7b6862794b0c85995680c3b5e335556d12e97a805ce3953a">
-      <source xml:lang="en">File imported successfully.</source>
+    <trans-unit id="++CODE++995935b22cda9b6dfbbd92c71e406c7bd23c9ed98b4548ad67a6214fe9e38c34">
+      <source xml:lang="en">File imported successfully</source>
     </trans-unit>
     <trans-unit id="++CODE++6f68fab010563e4334d34ad75407ae64b42cb41c2516e861be7100f3b0ef36a2">
       <source xml:lang="en">File name is required</source>

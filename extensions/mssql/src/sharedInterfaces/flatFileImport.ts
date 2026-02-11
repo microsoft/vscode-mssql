@@ -7,9 +7,11 @@ import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ChangeColumnSettingsParams, ProseDiscoveryResponse } from "../models/contracts/flatFile";
 
-export class FlatFileImportState
-    implements FormState<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec>
-{
+export class FlatFileImportState implements FormState<
+    FlatFileImportFormState,
+    FlatFileImportState,
+    FlatFileImportFormItemSpec
+> {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage: string = "";
     fullErrorMessage: string = "";
@@ -37,17 +39,15 @@ export interface FlatFileImportFormState {
     tableSchema: string;
 }
 
-export interface FlatFileImportFormItemSpec
-    extends FormItemSpec<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec> {
+export interface FlatFileImportFormItemSpec extends FormItemSpec<
+    FlatFileImportFormState,
+    FlatFileImportState,
+    FlatFileImportFormItemSpec
+> {
     componentWidth: string;
 }
 
-export interface FlatFileImportProvider
-    extends FormContextProps<
-        FlatFileImportFormState,
-        FlatFileImportState,
-        FlatFileImportFormItemSpec
-    > {
+export interface FlatFileImportProvider extends FormContextProps<FlatFileImportFormState> {
     getTablePreview: (filePath: string, tableName: string, schemaName?: string) => void;
 
     setColumnChanges: (columnChanges: ChangeColumnSettingsParams[]) => void;

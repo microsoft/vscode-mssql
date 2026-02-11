@@ -6,17 +6,17 @@
 import { useContext } from "react";
 import { Button, Dropdown, Field, makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
-import { FlatFileContext } from "./flatFileStateProvider";
+import { FlatFileContext, FlatFileContextProps } from "./flatFileStateProvider";
 import {
     FlatFileImportFormItemSpec,
     FlatFileImportFormState,
-    FlatFileImportProvider,
     FlatFileImportState,
     FlatFileStepType,
 } from "../../../sharedInterfaces/flatFileImport";
 import { locConstants } from "../../common/locConstants";
 import { FlatFileHeader } from "./flatFileHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -62,11 +62,11 @@ const useStyles = makeStyles({
 export const FlatFileForm: React.FC = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return;
 
-    const { formComponents } = context.state;
+    const formComponents = state.formComponents;
     const schemaFormComponent = formComponents["tableSchema"] as FlatFileImportFormItemSpec;
 
     const handleSubmit = async () => {
@@ -100,9 +100,10 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileImportFormState,
                         FlatFileImportState,
                         FlatFileImportFormItemSpec,
-                        FlatFileImportProvider
+                        FlatFileContextProps
                     >
                         context={context}
+                        formState={state.formState}
                         component={formComponents["databaseName"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
@@ -111,9 +112,10 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileImportFormState,
                         FlatFileImportState,
                         FlatFileImportFormItemSpec,
-                        FlatFileImportProvider
+                        FlatFileContextProps
                     >
                         context={context}
+                        formState={state.formState}
                         component={formComponents["flatFilePath"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
@@ -134,9 +136,10 @@ export const FlatFileForm: React.FC = () => {
                         FlatFileImportFormState,
                         FlatFileImportState,
                         FlatFileImportFormItemSpec,
-                        FlatFileImportProvider
+                        FlatFileContextProps
                     >
                         context={context}
+                        formState={state.formState}
                         component={formComponents["tableName"] as FlatFileImportFormItemSpec}
                         idx={0}
                     />
@@ -168,9 +171,10 @@ export const FlatFileForm: React.FC = () => {
                             FlatFileImportFormState,
                             FlatFileImportState,
                             FlatFileImportFormItemSpec,
-                            FlatFileImportProvider
+                            FlatFileContextProps
                         >
                             context={context}
+                            formState={state.formState}
                             component={schemaFormComponent}
                             idx={0}
                         />

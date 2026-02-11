@@ -24,6 +24,7 @@ import { FlatFileHeader } from "./flatFileHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
+import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -115,7 +116,7 @@ const useStyles = makeStyles({
 export const FlatFileSummary = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return;
 

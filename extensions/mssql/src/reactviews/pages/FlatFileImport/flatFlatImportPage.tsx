@@ -14,6 +14,7 @@ import { FlatFileStepType } from "../../../sharedInterfaces/flatFileImport";
 import { FlatFileColumnSettings } from "./flatFileColumnSettings";
 import { FlatFilePreviewTablePage } from "./flatFilePreviewTable";
 import { FlatFileSummary } from "./flatFileSummary";
+import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -41,7 +42,7 @@ const useStyles = makeStyles({
 export const FlatFileImportPage = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return;
 

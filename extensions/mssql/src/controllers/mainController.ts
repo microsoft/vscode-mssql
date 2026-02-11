@@ -874,12 +874,12 @@ export default class MainController implements vscode.Disposable {
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
         // Initialize flat file client
-        this.flatFileClient = new FlatFileClient(this._vscodeWrapper);
-        await this.flatFileClient.startFlatFileService(this._context);
         managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
             this.flatFileProvider = provider;
             void Promise.resolve(true);
         });
+        this.flatFileClient = new FlatFileClient(this._vscodeWrapper);
+        await this.flatFileClient.startFlatFileService(this._context);
 
         /**
          * TODO: aaskhan

@@ -1344,7 +1344,7 @@
     "Table Schema": "Table Schema",
     "File to be imported": "File to be imported",
     "Importing data...": "Importing data...",
-    "File imported successfully.": "File imported successfully.",
+    "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",

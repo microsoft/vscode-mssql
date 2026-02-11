@@ -30,6 +30,7 @@ import { locConstants } from "../../common/locConstants";
 import { FlatFileContext } from "./flatFileStateProvider";
 import { FlatFileHeader } from "./flatFileHeader";
 import { FlatFileStepType, ColumnChanges } from "../../../sharedInterfaces/flatFileImport";
+import { useFlatFileSelector } from "./flatFileSelector";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -188,7 +189,7 @@ type FlatFileTableCell = {
 export const FlatFileColumnSettings = () => {
     const classes = useStyles();
     const context = useContext(FlatFileContext);
-    const state = context?.state;
+    const state = useFlatFileSelector((s) => s);
 
     if (!context || !state) return;
 
