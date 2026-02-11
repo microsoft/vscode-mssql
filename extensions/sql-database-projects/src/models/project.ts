@@ -135,7 +135,9 @@ export class Project implements ISqlProject {
     }
 
     public get sqlProjStyleName(): string {
-        return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? "SdkStyle" : "LegacyStyle";
+        return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
+            ? constants.sdkStyleProjectStyleName
+            : constants.legacyStyleProjectStyleName;
     }
 
     public get isCrossPlatformCompatible(): boolean {
@@ -353,7 +355,10 @@ export class Project implements ISqlProject {
         // create a FileProjectEntry for each file
         const sqlObjectScriptEntries: FileProjectEntry[] = [];
         for (let f of Array.from(filesSet.values())) {
-            // TODO: Check for CREATE TABLE statements when dacFxService.parseTSqlScript is available in VS Code (was ADS-only)
+            // Note: containsCreateTableStatement is always false because table detection required
+            // dacFxService.parseTSqlScript which was only available in ADS (gated by getAzdataApi()).
+            // VS Code never had this functionality - tables always showed as regular SQL object scripts.
+            // TODO: Implement table detection when parseTSqlScript becomes available in VS Code.
             sqlObjectScriptEntries.push(
                 this.createFileProjectEntry(
                     f,
