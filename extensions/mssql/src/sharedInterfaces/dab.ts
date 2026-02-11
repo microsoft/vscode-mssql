@@ -5,6 +5,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { SchemaDesigner } from "./schemaDesigner";
+import { ApiStatus, Status } from "./webview";
 
 /**
  * Data API Builder (DAB) interfaces for webview-extension communication
@@ -344,6 +345,311 @@ export namespace Dab {
     }
 
     // ============================================
+    // Local Container Deployment
+    // ============================================
+
+    /**
+     * DAB container image from Microsoft Container Registry.
+     * Uses :latest tag intentionally so users always get the newest Data API Builder
+     * features and bug fixes without manual version management.
+     */
+    export const DAB_CONTAINER_IMAGE = "mcr.microsoft.com/azure-databases/data-api-builder:latest";
+
+    /**
+     * Default port for DAB container
+     */
+    export const DAB_DEFAULT_PORT = 5000;
+
+    /**
+     * Default container name prefix for DAB
+     */
+    export const DAB_DEFAULT_CONTAINER_NAME = "dab-container";
+
+    /**
+     * Enumeration representing the order of steps in the DAB deployment process
+     */
+    export enum DabDeploymentStepOrder {
+        /** Check if Docker is installed */
+        dockerInstallation = 0,
+        /** Start Docker Desktop if not running */
+        startDockerDesktop = 1,
+        /** Check Docker engine is ready */
+        checkDockerEngine = 2,
+        /** Pull DAB container image */
+        pullImage = 3,
+        /** Start DAB Docker container */
+        startContainer = 4,
+        /** Check if DAB container is ready */
+        checkContainer = 5,
+    }
+
+    /**
+     * Enumeration representing the current view/step in the deployment dialog
+     */
+    export enum DabDeploymentDialogStep {
+        /** Initial confirmation dialog */
+        Confirmation = 0,
+        /** Docker prerequisites check */
+        Prerequisites = 1,
+        /** Parameter input form (container name, port) */
+        ParameterInput = 2,
+        /** Deployment progress steps */
+        Deployment = 3,
+        /** Completion or error state */
+        Complete = 4,
+    }
+
+    /**
+     * Parameters for DAB container deployment
+     */
+    export interface DabDeploymentParams {
+        /**
+         * Name for the Docker container
+         */
+        containerName: string;
+        /**
+         * Port to expose the DAB API on
+         */
+        port: number;
+    }
+
+    /**
+     * Result of a DAB deployment step
+     */
+    export interface DabDeploymentStepResult {
+        /**
+         * Whether the step completed successfully
+         */
+        success: boolean;
+        /**
+         * Error message if the step failed
+         */
+        error?: string;
+        /**
+         * Full error text for debugging
+         */
+        fullErrorText?: string;
+    }
+
+    /**
+     * State tracking for the DAB deployment process
+     */
+    export interface DabDeploymentState {
+        /**
+         * Whether the deployment dialog is open
+         */
+        isDialogOpen: boolean;
+        /**
+         * Current dialog step
+         */
+        dialogStep: DabDeploymentDialogStep;
+        /**
+         * Current deployment step (when in Deployment dialog step)
+         */
+        currentDeploymentStep: DabDeploymentStepOrder;
+        /**
+         * Deployment parameters from user input
+         */
+        params: DabDeploymentParams;
+        /**
+         * Status of each deployment step
+         */
+        stepStatuses: DabDeploymentStepStatus[];
+        /**
+         * Whether deployment is in progress
+         */
+        isDeploying: boolean;
+        /**
+         * URL where the API is accessible after successful deployment
+         */
+        apiUrl?: string;
+        /**
+         * Error message if deployment failed
+         */
+        error?: string;
+    }
+
+    /**
+     * Status of an individual deployment step.
+     * Extends Status to use standard ApiStatus enum and message field.
+     */
+    export interface DabDeploymentStepStatus extends Status {
+        /**
+         * The step this status is for
+         */
+        step: DabDeploymentStepOrder;
+        /**
+         * Full error text for debugging
+         */
+        fullErrorText?: string;
+        /**
+         * Link to documentation for fixing the error
+         */
+        errorLink?: string;
+        /**
+         * Text for the error link
+         */
+        errorLinkText?: string;
+    }
+
+    /**
+     * Creates a default deployment state
+     */
+    export function createDefaultDeploymentState(): DabDeploymentState {
+        return {
+            isDialogOpen: false,
+            dialogStep: DabDeploymentDialogStep.Confirmation,
+            currentDeploymentStep: DabDeploymentStepOrder.dockerInstallation,
+            params: {
+                containerName: DAB_DEFAULT_CONTAINER_NAME,
+                port: DAB_DEFAULT_PORT,
+            },
+            stepStatuses: [
+                { step: DabDeploymentStepOrder.dockerInstallation, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.startDockerDesktop, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.checkDockerEngine, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.pullImage, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.startContainer, status: ApiStatus.NotStarted },
+                { step: DabDeploymentStepOrder.checkContainer, status: ApiStatus.NotStarted },
+            ],
+            isDeploying: false,
+        };
+    }
+
+    // ============================================
+    // Deployment Requests (Webview -> Extension)
+    // ============================================
+
+    /**
+     * Request to run a specific deployment step
+     */
+    export interface RunDeploymentStepParams {
+        /**
+         * The step to run
+         */
+        step: DabDeploymentStepOrder;
+        /**
+         * Deployment parameters (needed for some steps)
+         */
+        params?: DabDeploymentParams;
+        /**
+         * DAB config (needed for starting the container)
+         */
+        config?: DabConfig;
+    }
+
+    export interface RunDeploymentStepResponse {
+        /**
+         * Whether the step completed successfully
+         */
+        success: boolean;
+        /**
+         * Error message if the step failed
+         */
+        error?: string;
+        /**
+         * Full error text for debugging
+         */
+        fullErrorText?: string;
+        /**
+         * Link to documentation for fixing the error
+         */
+        errorLink?: string;
+        /**
+         * Text for the error link
+         */
+        errorLinkText?: string;
+        /**
+         * API URL (returned after successful container start)
+         */
+        apiUrl?: string;
+    }
+
+    export namespace RunDeploymentStepRequest {
+        export const type = new RequestType<
+            RunDeploymentStepParams,
+            RunDeploymentStepResponse,
+            void
+        >("dab/runDeploymentStep");
+    }
+
+    /**
+     * Request to validate deployment parameters
+     */
+    export interface ValidateDeploymentParamsParams {
+        /**
+         * Container name to validate
+         */
+        containerName: string;
+        /**
+         * Port to validate
+         */
+        port: number;
+    }
+
+    export interface ValidateDeploymentParamsResponse {
+        /**
+         * Whether the container name is valid and unique
+         */
+        isContainerNameValid: boolean;
+        /**
+         * Validated/suggested container name (may be auto-generated if input was empty)
+         */
+        validatedContainerName: string;
+        /**
+         * Error message for container name if invalid
+         */
+        containerNameError?: string;
+        /**
+         * Whether the port is valid and available
+         */
+        isPortValid: boolean;
+        /**
+         * Suggested available port (may differ from input if port was in use)
+         */
+        suggestedPort: number;
+        /**
+         * Error message for port if invalid
+         */
+        portError?: string;
+    }
+
+    export namespace ValidateDeploymentParamsRequest {
+        export const type = new RequestType<
+            ValidateDeploymentParamsParams,
+            ValidateDeploymentParamsResponse,
+            void
+        >("dab/validateDeploymentParams");
+    }
+
+    /**
+     * Request to stop and clean up a DAB container
+     */
+    export interface StopDeploymentParams {
+        /**
+         * Name of the container to stop
+         */
+        containerName: string;
+    }
+
+    export interface StopDeploymentResponse {
+        /**
+         * Whether the container was stopped successfully
+         */
+        success: boolean;
+        /**
+         * Error message if stopping failed
+         */
+        error?: string;
+    }
+
+    export namespace StopDeploymentRequest {
+        export const type = new RequestType<StopDeploymentParams, StopDeploymentResponse, void>(
+            "dab/stopDeployment",
+        );
+    }
+
+    // ============================================
     // Service interface
     // ============================================
 
@@ -365,6 +671,36 @@ export namespace Dab {
             config: DabConfig,
             connectionInfo: DabConnectionInfo,
         ): GenerateConfigResponse;
+
+        /**
+         * Runs a specific DAB deployment step
+         * @param step The deployment step to run
+         * @param params Optional deployment parameters (container name, port)
+         * @param config Optional DAB config (needed for startContainer step)
+         * @param connectionString Optional connection string for generating config
+         */
+        runDeploymentStep(
+            step: DabDeploymentStepOrder,
+            params?: DabDeploymentParams,
+            config?: DabConfig,
+            connectionString?: string,
+        ): Promise<RunDeploymentStepResponse>;
+
+        /**
+         * Validates deployment parameters (container name and port)
+         * @param containerName The container name to validate
+         * @param port The port to validate
+         */
+        validateDeploymentParams(
+            containerName: string,
+            port: number,
+        ): Promise<ValidateDeploymentParamsResponse>;
+
+        /**
+         * Stops and removes a DAB container
+         * @param containerName Name of the container to stop
+         */
+        stopDeployment(containerName: string): Promise<StopDeploymentResponse>;
     }
 
     // ============================================
