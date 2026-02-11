@@ -5626,6 +5626,22 @@
       <source xml:lang="en">{0} column data</source>
       <note>{0} is the number of columns</note>
     </trans-unit>
+    <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">
+      <source xml:lang="en">{0} connection group imported</source>
+      <note>{0} is the number of connection groups imported (singular)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f12c66806d4a524f59f2d92f0f60c743727758060a54d3d4404abc8c09a3e766">
+      <source xml:lang="en">{0} connection groups imported</source>
+      <note>{0} is the number of connection groups imported (plural)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f">
+      <source xml:lang="en">{0} connection imported</source>
+      <note>{0} is the number of connections imported (singular)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
+      <source xml:lang="en">{0} connections imported</source>
+      <note>{0} is the number of connections imported (plural)</note>
+    </trans-unit>
     <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
       <source xml:lang="en">{0} deleted successfully.</source>
       <note>{0} deleted successfully.</note>
@@ -5697,6 +5713,14 @@
     <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected rows</note>
+    </trans-unit>
+    <trans-unit id="++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481">
+      <source xml:lang="en">{0} setting imported</source>
+      <note>{0} is the number of settings imported (singular)</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
+      <source xml:lang="en">{0} settings imported</source>
+      <note>{0} is the number of settings imported (plural)</note>
     </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>

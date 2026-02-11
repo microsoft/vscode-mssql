@@ -1241,6 +1241,30 @@
     "Setting": "Setting",
     "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
     "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
+    "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
+        "message": "{0} connection group imported",
+        "comment": ["{0} is the number of connection groups imported (singular)"]
+    },
+    "{0} connection groups imported/{0} is the number of connection groups imported (plural)": {
+        "message": "{0} connection groups imported",
+        "comment": ["{0} is the number of connection groups imported (plural)"]
+    },
+    "{0} connection imported/{0} is the number of connections imported (singular)": {
+        "message": "{0} connection imported",
+        "comment": ["{0} is the number of connections imported (singular)"]
+    },
+    "{0} connections imported/{0} is the number of connections imported (plural)": {
+        "message": "{0} connections imported",
+        "comment": ["{0} is the number of connections imported (plural)"]
+    },
+    "{0} setting imported/{0} is the number of settings imported (singular)": {
+        "message": "{0} setting imported",
+        "comment": ["{0} is the number of settings imported (singular)"]
+    },
+    "{0} settings imported/{0} is the number of settings imported (plural)": {
+        "message": "{0} settings imported",
+        "comment": ["{0} is the number of settings imported (plural)"]
+    },
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
