@@ -1700,11 +1700,6 @@
     "Always show in new tab": "Always show in new tab",
     "Keep in query pane": "Keep in query pane",
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
-    "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})/{0} is a url to learn more about the new features": {
-        "message": "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
-        "comment": ["{0} is a url to learn more about the new features"]
-    },
-    "Enable Experiences & Reload": "Enable Experiences & Reload",
     "New Deployment": "New Deployment",
     "Error loading; refresh to try again": "Error loading; refresh to try again",
     "No items": "No items",

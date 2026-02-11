@@ -131,7 +131,7 @@ suite("UserSurvey Tests", () => {
                 surveyId: "nps",
                 q1: "answer1",
                 q2: "answer2",
-                modernFeaturesEnabled: true,
+                experimentalFeaturesEnabled: false,
                 surveySource: "testSource",
             },
             {

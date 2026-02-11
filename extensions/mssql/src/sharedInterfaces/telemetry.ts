@@ -106,7 +106,6 @@ export enum TelemetryActions {
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
     CopyHeaders = "CopyHeaders",
-    EnableRichExperiencesPrompt = "EnableRichExperiencesPrompt",
     OpenQueryResultsInTabByDefaultPrompt = "OpenQueryResultsInTabByDefaultPrompt",
     OpenQueryResult = "OpenQueryResult",
     Restore = "Restore",
