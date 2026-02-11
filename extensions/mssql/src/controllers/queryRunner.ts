@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
@@ -1012,7 +1013,7 @@ export default class QueryRunner {
         };
 
         // create a new request and cancel any in-flight run
-        this._requestID = Utils.generateGuid();
+        this._requestID = crypto.randomUUID();
         const requestId = this._requestID;
         this._cancelConfirmation?.resolve();
         this._cancelConfirmation = undefined;

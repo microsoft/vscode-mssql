@@ -6,6 +6,7 @@
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
+import * as crypto from "crypto";
 
 import * as vscode from "vscode";
 
@@ -22,7 +23,6 @@ import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
 import { AuthenticationTypes } from "../../src/models/interfaces";
-import * as Utils from "../../src/models/utils";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
 import { stubExtensionContext, stubPrompter, stubVscodeWrapper } from "./utils";
@@ -390,7 +390,7 @@ suite("Per File Connection Tests", () => {
         if (!dbName) {
             dbName = connectionCreds.database;
         }
-        myResult.connectionId = Utils.generateGuid();
+        myResult.connectionId = crypto.randomUUID();
         myResult.messages = "";
         myResult.connectionSummary = {
             serverName: connectionCreds.server,
@@ -536,7 +536,7 @@ function createTestConnectionResult(
     ownerUri?: string,
 ): ConnectionContracts.ConnectionCompleteParams {
     let result = new ConnectionContracts.ConnectionCompleteParams();
-    result.connectionId = Utils.generateGuid();
+    result.connectionId = crypto.randomUUID();
     result.messages = "";
     result.ownerUri = ownerUri;
     return result;

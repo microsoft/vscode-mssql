@@ -7,9 +7,8 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
 import { Connection, ConnectionLineType, Edge, MarkerType, Node } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
-import { v4 as uuidv4 } from "uuid";
 
-const isDeleted = (value: { isDeleted?: boolean } | undefined): boolean =>
+const isDeleted= (value: { isDeleted?: boolean } | undefined): boolean =>
     value?.isDeleted === true;
 
 export const namingUtils = {
@@ -101,7 +100,7 @@ export const tableUtils = {
                     scale: 0,
                     isNullable: false,
                     isPrimaryKey: true,
-                    id: uuidv4(),
+                    id: crypto.randomUUID(),
                     isIdentity: true,
                     identitySeed: 1,
                     identityIncrement: 1,
@@ -112,7 +111,7 @@ export const tableUtils = {
                 },
             ],
             foreignKeys: [],
-            id: uuidv4(),
+            id: crypto.randomUUID(),
         };
     },
 };
@@ -643,7 +642,7 @@ export const foreignKeyUtils = {
         existingFkName?: string,
     ): SchemaDesigner.ForeignKey => {
         return {
-            id: existingFkId || uuidv4(),
+            id: existingFkId || crypto.randomUUID(),
             name: existingFkName || `FK_${sourceNode.data.name}_${targetNode.data.name}`,
             columns: [sourceColumnName],
             referencedSchemaName: targetNode.data.schema,

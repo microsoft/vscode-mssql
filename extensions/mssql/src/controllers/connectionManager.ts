@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
@@ -1224,7 +1225,7 @@ export default class ConnectionManager {
         );
 
         if (!fileUri) {
-            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
+            fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${crypto.randomUUID()}`;
         }
 
         credentials = await this.prepareConnectionInfo(credentials, connectionActivity);

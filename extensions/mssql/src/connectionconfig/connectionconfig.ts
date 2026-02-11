@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as Constants from "../constants/constants";
+import * as crypto from "crypto";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
@@ -201,7 +202,7 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public addGroup(group: IConnectionGroup): Promise<void> {
         if (!group.id) {
-            group.id = Utils.generateGuid();
+            group.id = crypto.randomUUID();
         }
 
         if (!group.parentId) {
@@ -474,7 +475,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
             // ensure each group has an ID
             if (!group.id) {
-                group.id = Utils.generateGuid();
+                group.id = crypto.randomUUID();
                 madeGroupChanges = true;
                 this._logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
             }

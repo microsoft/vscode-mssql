@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import {
     ObjectManagementActionParams,
     ObjectManagementActionResult,
@@ -19,7 +20,6 @@ import {
 } from "../sharedInterfaces/objectManagement";
 import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementService } from "../services/objectManagementService";
-import { generateGuid } from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -32,7 +32,7 @@ export abstract class ObjectManagementWebviewController extends FormWebviewContr
     ObjectManagementReducers,
     string
 > {
-    protected readonly contextId = generateGuid();
+    protected readonly contextId = crypto.randomUUID();
     protected readonly objectManagementService: ObjectManagementService;
     protected readonly dialogType: ObjectManagementDialogType;
     protected readonly connectionUri: string;

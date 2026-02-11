@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import ConnectionManager from "../controllers/connectionManager";
 import {
@@ -33,7 +34,6 @@ import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
-import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -711,7 +711,7 @@ export class ObjectExplorerService {
         }
 
         if (!connectionProfile.id) {
-            connectionProfile.id = Utils.generateGuid();
+            connectionProfile.id = crypto.randomUUID();
         }
 
         // Local container, ensure it is started

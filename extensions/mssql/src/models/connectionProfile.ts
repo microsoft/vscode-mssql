@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from "../constants/locConstants";
+import * as crypto from "crypto";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionCredentials } from "./connectionCredentials";
 import { INameValueChoice } from "../prompts/question";
@@ -49,7 +50,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
 
     public static addIdIfMissing(profile: IConnectionProfile): boolean {
         if (profile && profile.id === undefined) {
-            profile.id = utils.generateGuid();
+            profile.id = crypto.randomUUID();
             return true;
         }
 

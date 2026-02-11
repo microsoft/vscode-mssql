@@ -14,7 +14,7 @@ import {
 } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import * as Utils from "../../src/models/utils";
+import * as crypto from "crypto";
 import * as telemetry from "../../src/telemetry/telemetry";
 import {
     GetNextMessageResponse,
@@ -80,8 +80,7 @@ suite("Chat Agent Request Handler Tests", () => {
         // Stub telemetry functions
         startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivityObject);
         sandbox.stub(telemetry, "sendActionEvent");
-        // Stub the generateGuid function using sinon
-        sandbox.stub(Utils, "generateGuid").returns(sampleCorrelationId);
+        sandbox.stub(crypto, "randomUUID").returns(sampleCorrelationId);
 
         // Mock CopilotService
         mockCopilotService = sandbox.createStubInstance(CopilotService);

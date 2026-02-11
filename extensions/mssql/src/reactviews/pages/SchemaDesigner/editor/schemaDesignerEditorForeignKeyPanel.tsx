@@ -30,7 +30,6 @@ import {
     useTableFeatures,
 } from "@fluentui/react-components";
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
-import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
@@ -551,7 +550,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
 
         const firstTable = availableTables[0];
         const newForeignKey: SchemaDesigner.ForeignKey = {
-            id: uuidv4(),
+            id: crypto.randomUUID(),
             name: namingUtils.getNextForeignKeyName(
                 context.table.foreignKeys,
                 context.schema.tables,

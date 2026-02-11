@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
+import * as crypto from "crypto";
 import ConnectionManager from "../controllers/connectionManager";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
-import { generateGuid } from "../models/utils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -414,7 +414,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const connectionUri = generateGuid();
+        const connectionUri = crypto.randomUUID();
         if (databaseName) {
             targetConnection.database = databaseName; // Set the database if provided
         }

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
     TableExplorerWebViewState,
@@ -22,7 +23,6 @@ import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { generateGuid } from "../models/utils";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
@@ -88,7 +88,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        this.operationId = generateGuid();
+        this.operationId = crypto.randomUUID();
         this.logger.info(
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
@@ -110,7 +110,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.TableExplorer,
             TelemetryActions.Initialize,
-            generateGuid(),
+            crypto.randomUUID(),
             {
                 startTime: startTime.toString(),
                 operationId: this.operationId,
@@ -257,7 +257,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CommitChanges,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -319,7 +319,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.LoadSubset,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -399,7 +399,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.CreateRow,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -474,7 +474,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.DeleteRow,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -596,7 +596,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.UpdateCell,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -740,7 +740,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertCell,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -867,7 +867,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.RevertRow,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1000,7 +1000,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.GenerateScript,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1164,7 +1164,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
                 TelemetryActions.SaveResults,
-                generateGuid(),
+                crypto.randomUUID(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,

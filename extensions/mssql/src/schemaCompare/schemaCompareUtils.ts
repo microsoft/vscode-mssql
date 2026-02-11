@@ -8,12 +8,12 @@ import * as mssql from "vscode-mssql";
 import * as os from "os";
 import * as path from "path";
 import { promises as fs } from "fs";
+import * as crypto from "crypto";
 import {
     SchemaCompareEndpointType,
     SchemaCompareReducers,
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
-import { generateGuid } from "../models/utils";
 import * as locConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
 /**
@@ -32,7 +32,7 @@ export const sqlDatabaseProjectsPublishChanges =
  * @returns {string} A new GUID representing the operation ID.
  */
 export function generateOperationId(): string {
-    return generateGuid();
+    return crypto.randomUUID();
 }
 
 /**

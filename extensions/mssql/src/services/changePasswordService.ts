@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -11,7 +12,6 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ChangePasswordWebviewController } from "../controllers/changePasswordWebviewController";
 import { ChangePasswordRequest } from "../models/contracts/changePassword";
 import { ChangePasswordResult } from "../sharedInterfaces/changePassword";
-import { generateGuid } from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 
 export class ChangePasswordService {
@@ -54,7 +54,7 @@ export class ChangePasswordService {
         const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
         try {
             return await this._client.sendRequest(ChangePasswordRequest.type, {
-                ownerUri: `changePassword:${generateGuid()}`,
+                ownerUri: `changePassword:${crypto.randomUUID()}`,
                 connection: connectionDetails,
                 newPassword: newPassword,
             });

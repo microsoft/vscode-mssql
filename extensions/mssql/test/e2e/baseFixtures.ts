@@ -13,7 +13,7 @@ import { test as baseTest, BrowserContext } from "@playwright/test";
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
 export function generateUUID(): string {
-    return crypto.randomBytes(16).toString("hex");
+    return crypto.randomUUID();
 }
 
 export const test = baseTest.extend<{

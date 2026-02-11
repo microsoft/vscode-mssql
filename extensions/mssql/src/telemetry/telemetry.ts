@@ -18,7 +18,7 @@ import AdsTelemetryReporter, {
 } from "@microsoft/ads-extension-telemetry";
 
 import { IConnectionProfile } from "../models/interfaces";
-import { v4 as uuidv4 } from "uuid";
+import * as crypto from "crypto";
 import { extensionId } from "../constants/constants";
 
 const packageJson = vscode.extensions.getExtension(extensionId).packageJSON;
@@ -185,7 +185,7 @@ export function startActivity(
 ): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
-        correlationId = uuidv4();
+        correlationId = crypto.randomUUID();
     }
 
     // Capture call stack if requested

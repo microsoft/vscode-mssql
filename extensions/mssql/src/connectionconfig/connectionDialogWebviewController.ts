@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as os from "os";
+import * as crypto from "crypto";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
@@ -1067,7 +1068,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                const tempConnectionUri = Utils.generateGuid();
+                const tempConnectionUri = crypto.randomUUID();
                 const result = await this._mainController.connectionManager.connect(
                     tempConnectionUri,
                     cleanedConnection,

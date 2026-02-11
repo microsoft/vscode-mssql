@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import ConnectionManager from "../controllers/connectionManager";
-import * as Utils from "../models/utils";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { SessionType, SessionState, EngineType } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
@@ -91,7 +91,7 @@ export class ProfilerController {
             }
 
             // Generate a unique URI for this profiler connection
-            const profilerUri = `profiler://${Utils.generateGuid()}`;
+            const profilerUri = `profiler://${crypto.randomUUID()}`;
             this._logger.verbose(`Connecting to ${profileToUse.server} with URI: ${profilerUri}`);
 
             // Connect using the connection manager with the provided profile
@@ -156,7 +156,7 @@ export class ProfilerController {
         );
 
         // Need to connect temporarily to get the list of databases
-        const tempUri = `profiler-temp://${Utils.generateGuid()}`;
+        const tempUri = `profiler-temp://${crypto.randomUUID()}`;
         try {
             const connected = await this._connectionManager.connect(tempUri, connectionProfile);
             if (!connected) {
@@ -250,7 +250,7 @@ export class ProfilerController {
             this._logger.verbose("Cleared existing events from grid");
 
             // Create a ProfilerSession for the selected session
-            const sessionId = Utils.generateGuid();
+            const sessionId = crypto.randomUUID();
             const bufferCapacity = vscode.workspace
                 .getConfiguration(Constants.extensionConfigSectionName)
                 .get<number>(Constants.configProfilerEventBufferSize);
@@ -551,7 +551,7 @@ export class ProfilerController {
         );
 
         // Track this webview controller along with its profiler URI for cleanup
-        const webviewId = Utils.generateGuid();
+        const webviewId = crypto.randomUUID();
         const webviewProfilerUri = profilerUri; // Capture for cleanup
         this._webviewControllers.set(webviewId, webviewController);
 

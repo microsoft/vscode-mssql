@@ -8,7 +8,7 @@ import * as chai from "chai";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
-import { v4 as uuidv4 } from "uuid";
+import * as crypto from "crypto";
 import { ProfilerWebviewController } from "../../../src/profiler/profilerWebviewController";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import {
@@ -77,7 +77,7 @@ suite("ProfilerWebviewController Tests", () => {
     let nextEventNumber = 1;
     function createTestEvent(overrides: Partial<EventRow> = {}): EventRow {
         return {
-            id: uuidv4(),
+            id: crypto.randomUUID(),
             eventNumber: nextEventNumber++,
             timestamp: new Date(),
             eventClass: "SQL:BatchCompleted",

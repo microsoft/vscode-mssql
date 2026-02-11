@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { v4 as uuidv4 } from "uuid";
+import * as crypto from "crypto";
 import { RingBuffer } from "../../../src/profiler/ringBuffer";
 import { IndexedRow } from "../../../src/profiler/profilerTypes";
 
@@ -21,7 +21,7 @@ interface TestRow extends IndexedRow {
 let nextEventNumber = 1;
 function createTestRow(name: string, value: number, timestamp: number): TestRow {
     return {
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         eventNumber: nextEventNumber++,
         name,
         value,

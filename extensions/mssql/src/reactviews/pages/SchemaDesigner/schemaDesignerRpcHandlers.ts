@@ -7,7 +7,6 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { Dab } from "../../../sharedInterfaces/dab";
 import { WebviewRpc } from "../../common/rpc";
 import { locConstants } from "../../common/locConstants";
-import { v4 as uuidv4 } from "uuid";
 import { tableUtils } from "./schemaDesignerUtils";
 
 export function registerSchemaDesignerApplyEditsHandler(params: {
@@ -745,7 +744,7 @@ export function registerSchemaDesignerApplyEditsHandler(params: {
                         }
 
                         const newForeignKey: SchemaDesigner.ForeignKey = {
-                            id: uuidv4(),
+                            id: crypto.randomUUID(),
                             name: edit.foreignKey.name,
                             columns: mappingsResult.columns,
                             referencedSchemaName: referenced.table.schema,

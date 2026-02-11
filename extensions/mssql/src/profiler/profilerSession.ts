@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { v4 as uuidv4 } from "uuid";
+import * as crypto from "crypto";
 import { RingBuffer } from "./ringBuffer";
 import { EventRow, Filter, SessionType, SessionState, ViewTemplate } from "./profilerTypes";
 import { ProfilerService } from "../services/profilerService";
@@ -559,7 +559,7 @@ export class ProfilerSession {
     }): EventRow {
         // Generate id and eventNumber if not provided by SQL Tools Service
         // Try to get event_number from values field first, then use counter as fallback
-        const id = event.id || uuidv4();
+        const id = event.id || crypto.randomUUID();
         const eventNumberFromValues = event.values["event_sequence"]
             ? parseInt(event.values["event_sequence"], 10)
             : undefined;

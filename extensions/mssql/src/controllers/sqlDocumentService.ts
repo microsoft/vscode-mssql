@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as crypto from "crypto";
 import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
@@ -354,7 +355,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * @returns The newly created text editor
      */
     public async newQuery(options: NewQueryOptions = {}): Promise<vscode.TextEditor> {
-        const operationKey = Utils.generateGuid();
+        const operationKey = crypto.randomUUID();
 
         try {
             const newQueryPromise = this.createNewQueryDocument(options);

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as Utils from "../models/utils";
+import * as crypto from "crypto";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
@@ -70,7 +70,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
-        const correlationId = Utils.generateGuid();
+        const correlationId = crypto.randomUUID();
         const logger = getLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
