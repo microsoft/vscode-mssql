@@ -354,22 +354,50 @@ export class Project implements ISqlProject {
 
         // create a FileProjectEntry for each file
         const sqlObjectScriptEntries: FileProjectEntry[] = [];
+
         for (let f of Array.from(filesSet.values())) {
-            // Note: containsCreateTableStatement is always false because table detection required
-            // dacFxService.parseTSqlScript which was only available in ADS (gated by getAzdataApi()).
-            // VS Code never had this functionality - tables always showed as regular SQL object scripts.
-            // TODO: Implement table detection when parseTSqlScript becomes available in VS Code.
+            const containsCreateTableStatement = await this.checkForCreateTableStatement(f);
+
             sqlObjectScriptEntries.push(
                 this.createFileProjectEntry(
                     f,
                     EntryType.File,
                     undefined,
-                    /* containsCreateTableStatement */ false,
+                    containsCreateTableStatement,
                 ),
             );
         }
 
         this._sqlObjectScripts = sqlObjectScriptEntries;
+    }
+
+    /**
+     * Checks if a SQL script file contains a CREATE TABLE statement
+     * @param relativePath Relative path to the script file
+     * @returns true if the file contains a CREATE TABLE statement, false otherwise
+     */
+    private async checkForCreateTableStatement(relativePath: string): Promise<boolean> {
+        const fullPath = path.join(
+            utils.getPlatformSafeFileEntryPath(this.projectFolderPath),
+            utils.getPlatformSafeFileEntryPath(relativePath),
+        );
+
+        if (!(await utils.exists(fullPath))) {
+            return false;
+        }
+
+        try {
+            const dacFxService = await utils.getDacFxService();
+            const parseResult = await dacFxService.parseTSqlScript(
+                fullPath,
+                this._databaseSchemaProvider,
+            );
+            return parseResult.containsCreateTableStatement;
+        } catch (e) {
+            // If parsing fails, default to false
+            console.error(utils.getErrorMessage(e));
+            return false;
+        }
     }
 
     private async readFolders(): Promise<void> {
