@@ -2017,6 +2017,14 @@ export class LocConstants {
                 editorAriaLabel: l10n.t("Read-only SQL text editor"),
                 propertiesListAriaLabel: l10n.t("Event properties list"),
                 copiedToClipboard: l10n.t("Copied to clipboard"),
+                detailsPanelTabsAriaLabel: l10n.t("Details panel tabs"),
+                detailsPanelActionsAriaLabel: l10n.t("Details panel actions"),
+                eventDetailsAriaLabel: (eventName: string) =>
+                    l10n.t({
+                        message: "Event details for {0}",
+                        args: [eventName],
+                        comment: ["{0} is the name of the profiler event"],
+                    }),
             },
         };
     }

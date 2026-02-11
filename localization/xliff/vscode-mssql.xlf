@@ -1561,6 +1561,12 @@
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
     </trans-unit>
+    <trans-unit id="++CODE++1afc642a5d662904513b79d29425d71c74aecd4fd5b0b4446b048f174dd56eb4">
+      <source xml:lang="en">Details panel actions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9c4d0829a683ee613c0189343791967620efc401efb10c1d3e22549b980ea881">
+      <source xml:lang="en">Details panel tabs</source>
+    </trans-unit>
     <trans-unit id="++CODE++b77717c5f83b6e956ddee4a19420a4f7c0bed4934cd5d6cec4c61ac92420743e">
       <source xml:lang="en">Details tab - displays all event properties</source>
     </trans-unit>
@@ -1933,6 +1939,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9d8c40f184be0169233d713fa64128ca200db300743a2adbb700912c74b5620d">
       <source xml:lang="en">Error: Unable to connect using the connection information provided. Retry profile creation?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78a29ce83e3977fe87ff0803011049b4b74865dbd3eb76a25129d66b0b44512e">
+      <source xml:lang="en">Event details for {0}</source>
+      <note>{0} is the name of the profiler event</note>
     </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>

@@ -220,7 +220,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
         <div
             className={classes.panelContainer}
             role="region"
-            aria-label={`Event details for ${selectedEvent.eventName}`}>
+            aria-label={loc.eventDetailsAriaLabel(selectedEvent.eventName)}>
             {/* Header with tabs and action buttons */}
             <div className={classes.header}>
                 <TabList
@@ -228,7 +228,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                     selectedValue={activeTab}
                     onTabSelect={handleTabSelect}
                     size="small"
-                    aria-label="Details panel tabs">
+                    aria-label={loc.detailsPanelTabsAriaLabel}>
                     <Tab
                         value={DetailsPanelTab.Text}
                         aria-label={loc.textTabAriaLabel}
@@ -243,7 +243,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
                     </Tab>
                 </TabList>
 
-                <Toolbar className={classes.toolbar} aria-label="Details panel actions">
+                <Toolbar className={classes.toolbar} aria-label={loc.detailsPanelActionsAriaLabel}>
                     {/* Text tab specific actions */}
                     {activeTab === DetailsPanelTab.Text && (
                         <>
