@@ -149,7 +149,7 @@ export const Profiler: React.FC = () => {
     const [localRowCount, setLocalRowCount] = useState(0);
 
     // Sort state — only one column can be sorted at a time
-    const [sortState, setSortState] = useState<SortState | null>(null);
+    const [sortState, setSortState] = useState<SortState | undefined>(undefined);
 
     // Popover state
     const [popoverColumn, setPopoverColumn] = useState<ProfilerColumnDef | undefined>(undefined);
@@ -199,7 +199,7 @@ export const Profiler: React.FC = () => {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
-            setSortState(null);
+            setSortState(undefined);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
             // Don't fetch here - NewEventsAvailable notification from extension will handle it
@@ -423,7 +423,7 @@ export const Profiler: React.FC = () => {
             return;
         }
 
-        // 1. Sort the DataView (natural order when sortState is null)
+        // 1. Sort the DataView (natural order when sortState is undefined)
         const sortFn = createDataViewSortFn(sortState);
         dataView.sort(sortFn, true);
 
@@ -560,7 +560,7 @@ export const Profiler: React.FC = () => {
                 reactGridRef.current.dataView.setItems([]);
             }
             setLocalRowCount(0);
-            setSortState(null);
+            setSortState(undefined);
             isFetchingRef.current = false;
             pendingFetchRef.current = undefined;
         });
@@ -700,7 +700,7 @@ export const Profiler: React.FC = () => {
             return;
         }
         // Reset sort when view changes — sorted column may no longer exist
-        setSortState(null);
+        setSortState(undefined);
         // Force re-render of headers to add sort + filter buttons to new columns
         const currentColumns = grid.getColumns();
         if (currentColumns.length > 0) {

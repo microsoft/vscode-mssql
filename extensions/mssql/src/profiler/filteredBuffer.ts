@@ -439,7 +439,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     private evaluateEquals(
         fieldValue: unknown,
-        filterValue: string | number | boolean | null | undefined,
+        filterValue: string | number | boolean | undefined,
         typeHint?: FilterTypeHint,
     ): boolean {
         if (this.isNullOrUndefined(fieldValue) && this.isNullOrUndefined(filterValue)) {
@@ -492,7 +492,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     private evaluateComparison(
         fieldValue: unknown,
-        filterValue: string | number | boolean | null | undefined,
+        filterValue: string | number | boolean | undefined,
         typeHint?: FilterTypeHint,
     ): number {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
@@ -533,7 +533,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     private evaluateContains(
         fieldValue: unknown,
-        filterValue: string | number | boolean | null | undefined,
+        filterValue: string | number | boolean | undefined,
     ): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;
@@ -548,7 +548,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     private evaluateStartsWith(
         fieldValue: unknown,
-        filterValue: string | number | boolean | null | undefined,
+        filterValue: string | number | boolean | undefined,
     ): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;
@@ -563,7 +563,7 @@ export class FilteredBuffer<T extends IndexedRow> {
      */
     private evaluateEndsWith(
         fieldValue: unknown,
-        filterValue: string | number | boolean | null | undefined,
+        filterValue: string | number | boolean | undefined,
     ): boolean {
         if (this.isNullOrUndefined(fieldValue) || this.isNullOrUndefined(filterValue)) {
             return false;

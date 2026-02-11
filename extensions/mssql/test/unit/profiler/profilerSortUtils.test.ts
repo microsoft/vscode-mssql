@@ -50,18 +50,18 @@ suite("profilerSortUtils", () => {
             expect(result).to.be.greaterThan(0);
         });
 
-        test("should push null values to the end regardless of sort direction (ASC)", () => {
-            const a = { duration: null };
+        test("should push undefined values to the end regardless of sort direction (ASC)", () => {
+            const a = { duration: undefined };
             const b = { duration: 100 };
             const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
-            expect(result).to.be.greaterThan(0); // null pushed after 100
+            expect(result).to.be.greaterThan(0); // undefined pushed after 100
         });
 
-        test("should push null values to the end regardless of sort direction (DESC)", () => {
-            const a = { duration: null };
+        test("should push undefined values to the end regardless of sort direction (DESC)", () => {
+            const a = { duration: undefined };
             const b = { duration: 100 };
             const result = profilerSortComparator(a, b, "duration", SortDirection.DESC);
-            expect(result).to.be.greaterThan(0); // null still pushed after 100
+            expect(result).to.be.greaterThan(0); // undefined still pushed after 100
         });
 
         test("should push undefined values to the end", () => {
@@ -76,13 +76,6 @@ suite("profilerSortUtils", () => {
             const b = { eventClass: "test" };
             const result = profilerSortComparator(a, b, "eventClass", SortDirection.ASC);
             expect(result).to.be.greaterThan(0);
-        });
-
-        test("should return 0 when both values are null", () => {
-            const a = { duration: null };
-            const b = { duration: null };
-            const result = profilerSortComparator(a, b, "duration", SortDirection.ASC);
-            expect(result).to.equal(0);
         });
 
         test("should return 0 when both values are undefined", () => {
@@ -110,7 +103,7 @@ suite("profilerSortUtils", () => {
             const rows = [
                 { id: "1", duration: 300 },
                 { id: "2", duration: 100 },
-                { id: "3", duration: null },
+                { id: "3", duration: undefined },
                 { id: "4", duration: 200 },
             ];
             rows.sort((a, b) => profilerSortComparator(a, b, "duration", SortDirection.ASC));
@@ -121,7 +114,7 @@ suite("profilerSortUtils", () => {
             const rows = [
                 { id: "1", duration: 300 },
                 { id: "2", duration: 100 },
-                { id: "3", duration: null },
+                { id: "3", duration: undefined },
                 { id: "4", duration: 200 },
             ];
             rows.sort((a, b) => profilerSortComparator(a, b, "duration", SortDirection.DESC));
@@ -139,22 +132,22 @@ suite("profilerSortUtils", () => {
             expect(rows.map((r) => r.id)).to.deep.equal(["2", "4", "1", "3"]);
         });
 
-        test("should handle value on one side being a non-empty string and other being null", () => {
+        test("should handle value on one side being a non-empty string and other being undefined", () => {
             const a = { eventClass: "test" };
-            const b = { eventClass: null };
+            const b = { eventClass: undefined };
             const resultAsc = profilerSortComparator(a, b, "eventClass", SortDirection.ASC);
-            expect(resultAsc).to.be.lessThan(0); // "test" comes before null
+            expect(resultAsc).to.be.lessThan(0); // "test" comes before undefined
 
             const resultDesc = profilerSortComparator(a, b, "eventClass", SortDirection.DESC);
-            expect(resultDesc).to.be.lessThan(0); // "test" still comes before null
+            expect(resultDesc).to.be.lessThan(0); // "test" still comes before undefined
         });
     });
 
     // ─── createDataViewSortFn ─────────────────────────────────────────
 
     suite("createDataViewSortFn", () => {
-        test("should restore natural order by eventNumber when sort is null", () => {
-            const sortFn = createDataViewSortFn(null);
+        test("should restore natural order by eventNumber when sort is undefined", () => {
+            const sortFn = createDataViewSortFn(undefined);
             const rows = [
                 { eventNumber: 3, eventClass: "C" },
                 { eventNumber: 1, eventClass: "A" },
@@ -211,7 +204,7 @@ suite("profilerSortUtils", () => {
 
     suite("getNextSortState", () => {
         test("should start ascending when no sort is active", () => {
-            const result = getNextSortState(null, "eventClass");
+            const result = getNextSortState(undefined, "eventClass");
             expect(result).to.deep.equal({
                 field: "eventClass",
                 direction: SortDirection.ASC,
@@ -248,11 +241,11 @@ suite("profilerSortUtils", () => {
                 direction: SortDirection.DESC,
             };
             const result = getNextSortState(currentSort, "eventClass");
-            expect(result).to.be.null;
+            expect(result).to.be.undefined;
         });
 
-        test("should cycle correctly: null → ASC → DESC → null", () => {
-            let state = getNextSortState(null, "col");
+        test("should cycle correctly: undefined → ASC → DESC → undefined", () => {
+            let state = getNextSortState(undefined, "col");
             expect(state).to.deep.equal({
                 field: "col",
                 direction: SortDirection.ASC,
@@ -265,7 +258,7 @@ suite("profilerSortUtils", () => {
             });
 
             state = getNextSortState(state, "col");
-            expect(state).to.be.null;
+            expect(state).to.be.undefined;
         });
 
         test("should reset to ascending when switching between columns after DESC", () => {
