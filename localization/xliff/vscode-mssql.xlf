@@ -852,6 +852,9 @@
     <trans-unit id="++CODE++3c9c88307ac2637ebf206d18b530363f5b9a09fb9d44a6817d8da20da0b4f7d1">
       <source xml:lang="en">Collapse connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
+      <source xml:lang="en">Collapse settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
       <source xml:lang="en">Collation</source>
     </trans-unit>
@@ -1973,6 +1976,9 @@
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
+      <source xml:lang="en">Expand settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
     </trans-unit>
@@ -2685,6 +2691,9 @@
     <trans-unit id="++CODE++2e8e2a40f8096590ad749613dff43e0ffb3a0dae652f82c93d12d1248b1e28b8">
       <source xml:lang="en">Import complete. You can close this dialog.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1f155779faae2ddf66560418c7b3d662b0affcdf276bd5edbd1ac96cd7fab57">
+      <source xml:lang="en">Import connection settings from Azure Data Studio</source>
+    </trans-unit>
     <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
       <source xml:lang="en">Import failed: {0}</source>
       <note>{0} is the error message returned from the import helper.</note>
@@ -2739,6 +2748,9 @@
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3031ad260583151294a3a2a36296e79d5f605317b126c3f236407cc0e9ed515b">
+      <source xml:lang="en">Install the Data Keymap extension</source>
     </trans-unit>
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
@@ -3052,6 +3064,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
       <source xml:lang="en">Location (Workspace)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0fb6c65a1cec3cb97e0d9efd29b4499f070a38276aa798d6a540c5213ef4090f">
+      <source xml:lang="en">Looking for Azure Data Studio key bindings?</source>
     </trans-unit>
     <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
       <source xml:lang="en">MCP</source>
@@ -4658,6 +4673,9 @@
     <trans-unit id="++CODE++4b2be143e0119f38be0df3cde1479ccef0505331124cd5f5584fa1bc6a34e581">
       <source xml:lang="en">Set backup retain days</source>
     </trans-unit>
+    <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
+      <source xml:lang="en">Setting</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
       <source xml:lang="en">Setting up</source>
     </trans-unit>
@@ -4666,6 +4684,12 @@
     </trans-unit>
     <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
       <source xml:lang="en">Settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
+      <source xml:lang="en">Settings and Keybindings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0edcf6f86dc33d8835f06b42aba38be3130c2b75312b339e4d034850669bc025">
+      <source xml:lang="en">Settings to Import</source>
     </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
@@ -5375,6 +5399,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
       <source xml:lang="en">View roadmap</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
+      <source xml:lang="en">View settings</source>
     </trans-unit>
     <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
       <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
