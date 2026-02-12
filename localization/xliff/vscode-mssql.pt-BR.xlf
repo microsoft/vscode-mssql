@@ -100,6 +100,10 @@
         <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
         <target state="translated">Acesso negado. Verifique se você tem as permissões necessárias para usar essa ferramenta ou modelo.</target>
       </trans-unit>
+      <trans-unit id="++CODE++52ae6aab4cdc82d0d33bc1d81946e10fb184e12e0d7e77149aa6b5d7dc60bd3b">
+        <source xml:lang="en">Access to the XEL file was denied.</source>
+        <target state="new">Access to the XEL file was denied.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
         <note>{0} is the connection id
@@ -782,6 +786,10 @@ Selecione "{0}" para estabelecer uma conexão.</target>
       <trans-unit id="++CODE++6a091418a02336bbb67e1aefe9453dc51828139a059a7f3cae6044273c277a54">
         <source xml:lang="en">Cannot cancel query as no query is running.</source>
         <target state="translated">Não é possível cancelar a consulta, pois não há consulta em execução.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dfa72354bcd12e5cf7c9f4bf75d9136658d8614d8372e2191526fd10e855efd">
+        <source xml:lang="en">Cannot change session while active</source>
+        <target state="new">Cannot change session while active</target>
       </trans-unit>
       <trans-unit id="++CODE++78caadaa3d12c39131d70d9b85b2aa5b4fdc874138c7fa884349a843312e02c7">
         <source xml:lang="en">Cannot connect due to expired tokens. Please re-authenticate and try again.</source>
@@ -2756,6 +2764,10 @@ Erro:
         <source xml:lang="en">Expression</source>
         <target state="translated">Expressão</target>
       </trans-unit>
+      <trans-unit id="++CODE++312cd31b86c8f1e8bfe2bee53392337f74d6268be0bfcef0e28a57b2ef861473">
+        <source xml:lang="en">Extended Events Log Files</source>
+        <target state="new">Extended Events Log Files</target>
+      </trans-unit>
       <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
         <source xml:lang="en">Extract DACPAC</source>
         <target state="translated">Extrair DACPAC</target>
@@ -3017,6 +3029,11 @@ Erro:
         <note>{0} is the error message</note>
         <target state="translated">Falha ao abrir Modificar Tabela: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++e249d9808118e3588a2777e95bb9eb4945723d9bf2c20de048ab52e7228f43e6">
+        <source xml:lang="en">Failed to open XEL file: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open XEL file: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
@@ -3169,6 +3186,10 @@ Erro:
         <source xml:lang="en">File</source>
         <target state="translated">Arquivo</target>
       </trans-unit>
+      <trans-unit id="++CODE++31931e62a8801e325b804a8294c1fe6b3fbdc62f18681f8f026f141510e20b91">
+        <source xml:lang="en">File (Read-Only)</source>
+        <target state="new">File (Read-Only)</target>
+      </trans-unit>
       <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
         <source xml:lang="en">File Name</source>
         <target state="translated">Nome do Arquivo</target>
@@ -3196,6 +3217,11 @@ Erro:
       <trans-unit id="++CODE++de4c053ce93fdab8261214c50e808306b000f07b8f37d19f843d0462e59f035e">
         <source xml:lang="en">File to be imported</source>
         <target state="new">File to be imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++292821207be79b58287b4b662fae199f02125b60c143fa64266353a60de54bf8">
+        <source xml:lang="en">File: {0}</source>
+        <note>{0} is the file name</note>
+        <target state="new">File: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++abc7e9892806b047b4d4786b3685285543f76ca314c4c76246d5f6544c7856c9">
         <source xml:lang="en">Files</source>
@@ -4097,6 +4123,11 @@ Erro:
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">Carregando Designer de Tabela</target>
       </trans-unit>
+      <trans-unit id="++CODE++1e57b1efd93fb21b1f6b28af4b5a85b873f5145021fba55cec9dccd8298b6c74">
+        <source xml:lang="en">Loading XEL file: {0}</source>
+        <note>{0} is the file name</note>
+        <target state="new">Loading XEL file: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6880273ecc41baec6f34c9193fcbb8e2a6b7497d5ba44b0e7b683351954f6f51">
         <source xml:lang="en">Loading backup database...</source>
         <target state="translated">Carregando banco de dados de backup...</target>
@@ -4854,6 +4885,10 @@ Erro:
         <source xml:lang="en">Not Starts With</source>
         <target state="translated">Não Começa Com</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b63db09b404fbb32d9a1c00b76e17be0b11b81dac474a8aa6dc39fb0304cee6">
+        <source xml:lang="en">Not available for read-only file sessions</source>
+        <target state="new">Not available for read-only file sessions</target>
+      </trans-unit>
       <trans-unit id="++CODE++c823d53ecfb4b96ba917d2a3edff1316f73db7ddcead1f0cc26aed3c36053741">
         <source xml:lang="en">Not contains</source>
         <target state="translated">Não contém</target>
@@ -5322,6 +5357,16 @@ Erro:
         <note>{0} is the file path</note>
         <target state="new">Profiler events exported successfully to {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a9b119953ead192b4e7b7566d7d84fd0ce1077b116269a1b10c5116270196ba">
+        <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection</source>
+        <note>{0} is the file name</note>
+        <target state="new">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++60742f4dd435c44f26e028ce8aa7d1566518d55d1df0daf788d744ccf87c3394">
+        <source xml:lang="en">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.</source>
+        <note>{0} is the file name</note>
+        <target state="new">Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
         <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
         <target state="translated">Não há suporte para o Profiler em bancos de dados SQL do Microsoft Fabric.</target>
@@ -5480,6 +5525,15 @@ Erro:
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
         <target state="translated">Leia mais</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd523668f3222a1544fd470a1900656f4fe1a89dbb518262cd6f9bb2460019d4">
+        <source xml:lang="en">Read-Only</source>
+        <target state="new">Read-Only</target>
+      </trans-unit>
+      <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
+        <source xml:lang="en">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</source>
+        <note>{0} is the XEL file name</note>
+        <target state="new">Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
         <source xml:lang="en">Ready for import</source>
@@ -6161,6 +6215,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Selecione Top 1000</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c45112cd31fb7a7714eec60cbd1753f5b6f99943a8161954bd8bebade74f489">
+        <source xml:lang="en">Select XEL File</source>
+        <target state="new">Select XEL File</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -6962,6 +7020,10 @@ Consulta: {2}</target>
         <note>{0} is a url to learn more about the new features</note>
         <target state="translated">A extensão MSSQL para VS Code está introduzindo novos recursos modernos de desenvolvimento de dados! Deseja habilitá-los? [Saiba mais]({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
+        <source xml:lang="en">The XEL file was not found.</source>
+        <target state="new">The XEL file was not found.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">O comportamento quando um usuário tenta excluir uma linha com dados que estão envolvidos em um relacionamento de chave estrangeira.</target>
@@ -7074,6 +7136,10 @@ Consulta: {2}</target>
         <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
         <target state="translated">O segundo valor deve ser definido para o operador {0} no filtro {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
+        <source xml:lang="en">The selected file is not a valid XEL file.</source>
+        <target state="new">The selected file is not a valid XEL file.</target>
       </trans-unit>
       <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
@@ -7640,6 +7706,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
         <source xml:lang="en">of</source>
         <target state="translated">de</target>
+      </trans-unit>
+      <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
+        <source xml:lang="en">profiler_events</source>
+        <target state="new">profiler_events</target>
       </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
@@ -8453,6 +8523,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <source xml:lang="en">Open New Query and Connect</source>
         <target state="translated">Abrir Nova Consulta e Conectar</target>
       </trans-unit>
+      <trans-unit id="mssql.profiler.openXelFile">
+        <source xml:lang="en">Open Profiler XEL File</source>
+        <target state="new">Open Profiler XEL File</target>
+      </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
         <target state="translated">Abrir Consulta</target>
@@ -8548,6 +8622,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">SQL Scripts</source>
         <target state="translated">Scripts SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.profiler.xelEditorDisplayName">
+        <source xml:lang="en">SQL Server Extended Events Log</source>
+        <target state="new">SQL Server Extended Events Log</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
