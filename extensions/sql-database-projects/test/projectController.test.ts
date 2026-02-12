@@ -24,7 +24,7 @@ import * as utils from "../src/common/utils";
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
 import { ProjectsController } from "../src/controllers/projectController";
 import { promises as fs } from "fs";
-import { createContext, TestContext, mockDacFxResult } from "./testContext";
+import { createContext, TestContext } from "./testContext";
 import { Project } from "../src/models/project";
 import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { FolderNode, FileNode } from "../src/models/tree/fileFolderTreeItem";
@@ -44,49 +44,6 @@ suite("ProjectsController", function (): void {
 
     setup(function (): void {
         testContext = createContext();
-
-        // TODO: SAI - Minimal mock for getSqlProjectsService, tests that need real service are skipped
-        sinon.stub(utils, "getSqlProjectsService").resolves({
-            openProject: async () => mockDacFxResult,
-            closeProject: async () => mockDacFxResult,
-            createProject: async () => mockDacFxResult,
-            getProjectProperties: async () => ({
-                ...mockDacFxResult,
-                projectGuid: "BA5EBA11-C0DE-5EA7-ACED-BABB1E70A575",
-                configuration: "Debug",
-                platform: "AnyCPU",
-                outputPath: "bin/Debug",
-                defaultCollation: "",
-                databaseSource: "",
-                databaseSchemaProvider:
-                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-                projectStyle: mssql.ProjectType.SdkStyle,
-            }),
-            getCrossPlatformCompatibility: async () => ({
-                ...mockDacFxResult,
-                isCrossPlatformCompatible: true,
-            }),
-            getSqlCmdVariables: async () => ({ ...mockDacFxResult, sqlCmdVariables: [] }),
-            getDatabaseReferences: async () => ({
-                ...mockDacFxResult,
-                dacpacReferences: [],
-                sqlProjectReferences: [],
-                systemDatabaseReferences: [],
-                nugetPackageReferences: [],
-            }),
-            getPreDeploymentScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-            getPostDeploymentScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-            getNoneItems: async () => ({ ...mockDacFxResult, scripts: [] }),
-            getSqlObjectScripts: async () => ({ ...mockDacFxResult, scripts: [] }),
-            getFolders: async () => ({ ...mockDacFxResult, folders: [] }),
-            addFolder: async () => mockDacFxResult,
-            addSqlObjectScript: async () => mockDacFxResult,
-            addPreDeploymentScript: async () => mockDacFxResult,
-            addPostDeploymentScript: async () => mockDacFxResult,
-            addNoneItem: async () => mockDacFxResult,
-            excludeFolder: async () => mockDacFxResult,
-            excludeSqlObjectScript: async () => mockDacFxResult,
-        } as unknown as mssql.ISqlProjectsService);
     });
 
     teardown(function (): void {
@@ -121,8 +78,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should create new edge project with expected template files", async function (): Promise<void> {
+            test("Should create new edge project with expected template files", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const projFileDir = await testUtils.generateTestFolderPath(this.test);
 
@@ -165,8 +121,7 @@ suite("ProjectsController", function (): void {
                 }
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should show error if trying to add a file that already exists", async function (): Promise<void> {
+            test("Should show error if trying to add a file that already exists", async function (): Promise<void> {
                 const tableName = "table1";
                 sinon.stub(vscode.window, "showInputBox").resolves(tableName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(tableName);
@@ -211,8 +166,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should add existing item", async function (): Promise<void> {
+            test("Should add existing item", async function (): Promise<void> {
                 const tableName = "table1";
                 sinon.stub(vscode.window, "showInputBox").resolves(tableName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(tableName);
@@ -266,8 +220,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should show error if trying to add a folder that already exists", async function (): Promise<void> {
+            test("Should show error if trying to add a folder that already exists", async function (): Promise<void> {
                 const folderName = "folder1";
                 const stub = sinon.stub(vscode.window, "showInputBox").resolves(folderName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(folderName);
@@ -300,8 +253,7 @@ suite("ProjectsController", function (): void {
                 }
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should be able to add folder with reserved name as long as not at project root", async function (): Promise<void> {
+            test("Should be able to add folder with reserved name as long as not at project root", async function (): Promise<void> {
                 const folderName = "folder1";
                 sinon.stub(vscode.window, "showInputBox").resolves(folderName);
                 sinon.stub(utils, "sanitizeStringForFilename").returns(folderName);
@@ -328,8 +280,7 @@ suite("ProjectsController", function (): void {
                 }
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return default folder for item type only when folder exists", async function (): Promise<void> {
+            test("Should return default folder for item type only when folder exists", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -360,8 +311,7 @@ suite("ProjectsController", function (): void {
                 ).to.equal(constants.securityFolderName);
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return empty when no schema folder exists", async function (): Promise<void> {
+            test("Should return empty when no schema folder exists", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -392,8 +342,7 @@ suite("ProjectsController", function (): void {
                 ).to.equal("dbo");
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return nested schema/object-type folder when it exists", async function (): Promise<void> {
+            test("Should return nested schema/object-type folder when it exists", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -460,8 +409,7 @@ suite("ProjectsController", function (): void {
                 ).to.equal("dbo");
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return DatabaseTriggers folder for database trigger regardless of schema", async function (): Promise<void> {
+            test("Should return DatabaseTriggers folder for database trigger regardless of schema", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -492,8 +440,7 @@ suite("ProjectsController", function (): void {
                 ).to.equal("DatabaseTriggers");
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return Sequences folder for sequence with root-first priority", async function (): Promise<void> {
+            test("Should return Sequences folder for sequence with root-first priority", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -534,8 +481,7 @@ suite("ProjectsController", function (): void {
                 ).to.equal("Sequences");
             });
 
-            // TODO: SAI - Mock returns empty folders, needs service integration
-            test.skip("Should return schema/Sequences folder when only nested folder exists", async function (): Promise<void> {
+            test("Should return schema/Sequences folder when only nested folder exists", async function (): Promise<void> {
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -755,7 +701,7 @@ suite("ProjectsController", function (): void {
             }
 
             // TODO: move test to DacFx and fix delete
-            test.skip("Should delete nested ProjectEntry from node", async function (): Promise<void> {
+            test("Should delete nested ProjectEntry from node", async function (): Promise<void> {
                 let proj = await testUtils.createTestProject(
                     this.test,
                     templates.newSqlProjectTemplate,
@@ -839,8 +785,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty database references, needs service integration
-            test.skip("Should delete database references", async function (): Promise<void> {
+            test("Should delete database references", async function (): Promise<void> {
                 // setup - openProject baseline has a system db reference to master
                 let proj = await testUtils.createTestProject(
                     this.test,
@@ -903,8 +848,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should exclude nested ProjectEntry from node", async function (): Promise<void> {
+            test("Should exclude nested ProjectEntry from node", async function (): Promise<void> {
                 let proj = await testUtils.createTestSqlProject(this.test);
                 const setupResult = await setupDeleteExcludeTest(proj);
                 const scriptEntry = setupResult[0],
@@ -990,8 +934,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should exclude a folder", async function (): Promise<void> {
+            test("Should exclude a folder", async function (): Promise<void> {
                 let proj = await testUtils.createTestSqlProject(this.test);
                 await proj.addScriptItem("SomeFolder/MyTable.sql", "CREATE TABLE [NotARealTable]");
 
@@ -1026,7 +969,7 @@ suite("ProjectsController", function (): void {
             });
 
             // TODO: move test to DacFx and fix delete
-            test.skip("Should delete folders with excluded items", async function (): Promise<void> {
+            test("Should delete folders with excluded items", async function (): Promise<void> {
                 let proj = await testUtils.createTestProject(
                     this.test,
                     templates.newSqlProjectTemplate,
@@ -1093,8 +1036,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should reload correctly after changing sqlproj file", async function (): Promise<void> {
+            test("Should reload correctly after changing sqlproj file", async function (): Promise<void> {
                 // create project
                 const folderPath = await testUtils.generateTestFolderPath(this.test);
                 const sqlProjPath = await testUtils.createTestSqlProjFile(
@@ -1129,8 +1071,7 @@ suite("ProjectsController", function (): void {
                 ).not.equal(undefined);
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should be able to add pre deploy and post deploy script", async function (): Promise<void> {
+            test("Should be able to add pre deploy and post deploy script", async function (): Promise<void> {
                 const preDeployScriptName = "PreDeployScript1.sql";
                 const postDeployScriptName = "PostDeployScript1.sql";
 
@@ -1170,8 +1111,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns empty data, needs service integration
-            test.skip("Should be able to add publish profile", async function (): Promise<void> {
+            test("Should be able to add publish profile", async function (): Promise<void> {
                 const publishProfileName = "profile.publish.xml";
 
                 const projController = new ProjectsController(testContext.outputChannel);
@@ -1195,8 +1135,7 @@ suite("ProjectsController", function (): void {
                 );
             });
 
-            // TODO: SAI - Mock returns wrong platform data, needs service integration
-            test.skip("Should change target platform", async function (): Promise<void> {
+            test("Should change target platform", async function (): Promise<void> {
                 sinon
                     .stub(vscode.window, "showQuickPick")
                     .resolves({ label: SqlTargetPlatform.sqlAzure });
@@ -1264,8 +1203,7 @@ suite("ProjectsController", function (): void {
             sinon.restore();
         });
 
-        // TODO: SAI - Test expects specific file structure, needs review
-        test.skip("Should create list of all files and folders correctly", async function (): Promise<void> {
+        test("Should create list of all files and folders correctly", async function (): Promise<void> {
             // dummy structure is 2 files (one .sql, one .txt) under parent folder + 2 directories with 5 .sql scripts each
             const testFolderPath = await testUtils.createDummyFileStructure(this.test);
 
@@ -1345,7 +1283,7 @@ suite("ProjectsController", function (): void {
     });
 
     suite("Add database reference", function (): void {
-        test.skip("Should not allow adding circular project references", async function (): Promise<void> {
+        test("Should not allow adding circular project references", async function (): Promise<void> {
             const projPath1 = await testUtils.createTestSqlProjFile(
                 this.test,
                 baselines.openProjectFileBaseline,
@@ -1406,7 +1344,7 @@ suite("ProjectsController", function (): void {
             should(showErrorMessageSpy.called).be.true("showErrorMessage should have been called");
         });
 
-        test.skip("Should add dacpac references as relative paths", async function (): Promise<void> {
+        test("Should add dacpac references as relative paths", async function (): Promise<void> {
             const projFilePath = await testUtils.createTestSqlProjFile(
                 this.test,
                 baselines.newProjectFileBaseline,
@@ -1517,7 +1455,7 @@ suite("ProjectsController", function (): void {
 
     suite("AutoRest generation", function (): void {
         // skipping for now because this feature is hidden under preview flag
-        test.skip("Should create project from autorest-generated files", async function (): Promise<void> {
+        test("Should create project from autorest-generated files", async function (): Promise<void> {
             const parentFolder = await testUtils.generateTestFolderPath(this.test);
             await testUtils.createDummyFileStructure(this.test);
             const specName = "DummySpec.yaml";
@@ -1601,8 +1539,7 @@ suite("ProjectsController", function (): void {
     });
 
     suite("Move file", function (): void {
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should move a file to another folder", async function (): Promise<void> {
+        test("Should move a file to another folder", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             sinon
                 .stub(vscode.window, "showWarningMessage")
@@ -1641,8 +1578,7 @@ suite("ProjectsController", function (): void {
             ).be.true("The moved file should exist");
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should move a folder to another folder", async function (): Promise<void> {
+        test("Should move a folder to another folder", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             sinon
                 .stub(vscode.window, "showWarningMessage")
@@ -1677,8 +1613,7 @@ suite("ProjectsController", function (): void {
             ).be.true("The folder path should have been updated");
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should not allow moving a file to Database References or SQLCMD folder", async function (): Promise<void> {
+        test("Should not allow moving a file to Database References or SQLCMD folder", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             sinon
                 .stub(vscode.window, "showWarningMessage")
@@ -1720,8 +1655,7 @@ suite("ProjectsController", function (): void {
             }
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should only allow moving files and folders", async function (): Promise<void> {
+        test("Should only allow moving files and folders", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1768,8 +1702,7 @@ suite("ProjectsController", function (): void {
             spy.restore();
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should not allow moving files between projects", async function (): Promise<void> {
+        test("Should not allow moving files between projects", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             sinon
                 .stub(vscode.window, "showWarningMessage")
@@ -1881,8 +1814,7 @@ suite("ProjectsController", function (): void {
     });
 
     suite("Rename file", function (): void {
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should not do anything if no new name is provided", async function (): Promise<void> {
+        test("Should not do anything if no new name is provided", async function (): Promise<void> {
             sinon.stub(vscode.window, "showInputBox").resolves("");
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1905,8 +1837,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should rename a sql object file", async function (): Promise<void> {
+        test("Should rename a sql object file", async function (): Promise<void> {
             sinon.stub(vscode.window, "showInputBox").resolves("newName.sql");
             let proj = await testUtils.createTestProject(
                 this.test,
@@ -1929,8 +1860,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - getProjectFromContext fails, needs service integration
-        test.skip("Should rename a pre and post deploy script", async function (): Promise<void> {
+        test("Should rename a pre and post deploy script", async function (): Promise<void> {
             let proj = await testUtils.createTestProject(
                 this.test,
                 baselines.newSdkStyleProjectSdkNodeBaseline,
@@ -1982,8 +1912,7 @@ suite("ProjectsController", function (): void {
             ).be.true("The moved post deploy script file should exist");
         });
 
-        // TODO: SAI - Mock returns empty data, needs service integration
-        test.skip("Should rename a folder", async function (): Promise<void> {
+        test("Should rename a folder", async function (): Promise<void> {
             let proj = await testUtils.createTestSqlProject(this.test);
             await proj.addScriptItem("SomeFolder/MyTable.sql", "CREATE TABLE [NotARealTable]");
 
@@ -2026,8 +1955,7 @@ suite("ProjectsController", function (): void {
     });
 
     suite("SqlCmd Variables", function (): void {
-        // TODO: SAI - Mock returns empty sqlcmd variables, needs service integration
-        test.skip("Should delete sqlcmd variable", async function (): Promise<void> {
+        test("Should delete sqlcmd variable", async function (): Promise<void> {
             let project = await testUtils.createTestProject(
                 this.test,
                 baselines.openSdkStyleSqlProjectBaseline,
@@ -2077,8 +2005,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - Mock returns empty sqlcmd variables, needs service integration
-        test.skip("Should add sqlcmd variable", async function (): Promise<void> {
+        test("Should add sqlcmd variable", async function (): Promise<void> {
             let project = await testUtils.createTestProject(
                 this.test,
                 baselines.openSdkStyleSqlProjectBaseline,
@@ -2130,8 +2057,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - Mock returns empty sqlcmd variables, needs service integration
-        test.skip("Should add sqlcmd variable without DefaultValue", async function (): Promise<void> {
+        test("Should add sqlcmd variable without DefaultValue", async function (): Promise<void> {
             let project = await testUtils.createTestProject(
                 this.test,
                 baselines.openSdkStyleSqlProjectBaseline,
@@ -2191,8 +2117,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - Mock returns empty sqlcmd variables, needs service integration
-        test.skip("Should update sqlcmd variable", async function (): Promise<void> {
+        test("Should update sqlcmd variable", async function (): Promise<void> {
             let project = await testUtils.createTestProject(
                 this.test,
                 baselines.openSdkStyleSqlProjectBaseline,
@@ -2244,8 +2169,7 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: SAI - Mock returns empty data, needs service integration
-        test.skip("Should remove file extensions from user input when creating files", async function (): Promise<void> {
+        test("Should remove file extensions from user input when creating files", async function (): Promise<void> {
             const projController = new ProjectsController(testContext.outputChannel);
             let project = await testUtils.createTestProject(
                 this.test,

@@ -4,44 +4,64 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
+
 import { runTests } from "@vscode/test-electron";
 
 function parsePatternArg(argv: string[]): string | undefined {
+    // Supports: --testPattern "<regex>", --pattern "<regex>", --grep "<regex>"
     const keys = new Set(["--testPattern", "--pattern", "--grep"]);
-
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (keys.has(arg)) {
-            return argv[i + 1];
+            return argv[i + 1]; // next token as value
         }
-
-        const [key, value] = arg.split("=", 2);
-        if (keys.has(key) && value) {
-            return value;
+        // also allow --testPattern=foo
+        const [k, v] = arg.split("=", 2);
+        if (keys.has(k) && v) {
+            return v;
         }
     }
-
     return undefined;
 }
 
-async function main(): Promise<void> {
+async function main() {
     try {
-        const extensionDevelopmentPath = path.resolve(__dirname, "../..");
+        // The folders containing the Extension Manifest package.json
+        // Passed to `--extensionDevelopmentPath`
+        // Load both sql-database-projects and mssql extensions so tests can use the real ISqlProjectsService
+        const extensionDevelopmentPath = [
+            path.resolve(__dirname, "../.."), // sql-database-projects extension
+            path.resolve(__dirname, "../../../mssql"), // mssql extension (provides ISqlProjectsService)
+        ];
+
+        // The path to test runner
+        // Passed to --extensionTestsPath
         const extensionTestsPath = path.resolve(__dirname, "./index");
+
+        // Set test mode environment variable
         process.env.SQLPROJ_TEST_MODE = "1";
 
-        const cliPattern = parsePatternArg(process.argv.slice(2));
-        const envPattern = process.env.TEST_PATTERN;
-        const testPattern = cliPattern ?? envPattern ?? "";
+        // Parse optional test pattern
+        const patternFromArgs = parsePatternArg(process.argv.slice(2));
+        // Allow env override too
+        const testPattern = patternFromArgs ?? process.env.TEST_PATTERN;
 
+        if (testPattern) {
+            console.log(`Using test pattern (grep): ${testPattern}`);
+        } else {
+            console.log("No test pattern provided; running full test suite.");
+        }
+
+        // Download VS Code, unzip it and run the integration test
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
-            launchArgs: ["--disable-gpu"],
+            launchArgs: [],
             extensionTestsEnv: {
                 ...process.env,
-                TEST_PATTERN: testPattern,
-                MOCHA_GREP: testPattern,
+                TEST_PATTERN: testPattern ?? "",
+                // Some runners read MOCHA_GREP; set it too for convenience
+                MOCHA_GREP: testPattern ?? "",
             },
         });
     } catch (err) {
