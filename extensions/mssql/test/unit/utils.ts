@@ -11,6 +11,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as jsonRpc from "vscode-jsonrpc/node";
+import { ProfilerService } from "../../src/services/profilerService";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
@@ -278,6 +279,30 @@ export function stubWithProgress(
     ) => Thenable<unknown>,
 ): sinon.SinonStub {
     return sandbox.stub(vscode.window, "withProgress").callsFake(onInvoke);
+}
+
+/**
+ * Creates a stubbed ProfilerService instance using sandbox.createStubInstance.
+ * @param sandbox The sinon sandbox to use
+ * @returns A stubbed ProfilerService with default return values configured
+ */
+export function stubProfilerService(
+    sandbox: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<ProfilerService> {
+    const profilerService = sandbox.createStubInstance(ProfilerService);
+    profilerService.startProfiling.resolves({
+        uniqueSessionId: "test-unique-id",
+        canPause: false,
+    });
+    profilerService.stopProfiling.resolves({});
+    profilerService.pauseProfiling.resolves({ isPaused: false });
+    profilerService.disconnectSession.resolves({});
+    profilerService.getXEventSessions.resolves({ sessions: [] });
+    profilerService.createXEventSession.resolves({});
+    profilerService.onEventsAvailable.returns(new vscode.Disposable(() => {}));
+    profilerService.onSessionStopped.returns(new vscode.Disposable(() => {}));
+    profilerService.onSessionCreated.returns(new vscode.Disposable(() => {}));
+    return profilerService;
 }
 
 export function stubPathAsPlatform(sandbox: sinon.SinonSandbox, platform: path.PlatformPath): void {
