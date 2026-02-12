@@ -89,6 +89,7 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
 import { DabTool } from "../copilot/tools/dabTool";
+import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -789,26 +790,27 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        // Register mssql_show_schema tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotShowSchemaToolName,
+                new ShowSchemaTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        await this.openSchemaDesigner(connectionUri, database);
+                    },
+                ),
+            ),
+        );
+
         // Register mssql_schema_designer tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotSchemaDesignerToolName,
                 new SchemaDesignerTool(
                     this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        const designer =
-                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
-                                this._context,
-                                this._vscodeWrapper,
-                                this,
-                                this.schemaDesignerService,
-                                database,
-                                undefined,
-                                connectionUri,
-                            );
-                        designer.revealToForeground();
-                        return designer;
-                    },
+                    async (connectionUri: string, database: string) =>
+                        this.openSchemaDesigner(connectionUri, database),
                 ),
             ),
         );
@@ -817,6 +819,20 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
         );
+    }
+
+    private async openSchemaDesigner(connectionUri: string, database: string) {
+        const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+            this._context,
+            this._vscodeWrapper,
+            this,
+            this.schemaDesignerService,
+            database,
+            undefined,
+            connectionUri,
+        );
+        designer.revealToForeground();
+        return designer;
     }
 
     /**
