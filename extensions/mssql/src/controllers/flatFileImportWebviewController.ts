@@ -147,7 +147,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 state.tablePreviewStatus = ApiStatus.Loaded;
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.fetchTablePreviewError;
-                state.fullErrorMessage = error.message;
+                state.fullErrorMessage = getErrorMessage(error);
                 state.tablePreviewStatus = ApiStatus.Error;
                 sendErrorEvent(
                     TelemetryViews.FlatFile,
@@ -212,7 +212,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                 sendActionEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile);
             } catch (error) {
                 state.errorMessage = Loc.FlatFileImport.importFailed;
-                state.fullErrorMessage = error.message;
+                state.fullErrorMessage = getErrorMessage(error);
                 state.importDataStatus = ApiStatus.Error;
 
                 sendErrorEvent(TelemetryViews.FlatFile, TelemetryActions.ImportFile, error, false);
