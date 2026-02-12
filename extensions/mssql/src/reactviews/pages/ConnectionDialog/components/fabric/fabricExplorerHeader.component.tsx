@@ -135,8 +135,11 @@ const FabricExplorerHeader = ({
                         disabled={azureTenantsLoadStatus === ApiStatus.Loading}
                         size="small">
                         {azureTenants.map((tenant) => (
-                            <Option key={tenant.id} value={tenant.id} text={tenant.name}>
-                                {tenant.name}
+                            <Option
+                                key={tenant.id}
+                                value={tenant.id}
+                                text={`${tenant.name} (${tenant.id})`}>
+                                {`${tenant.name} (${tenant.id})`}
                             </Option>
                         ))}
                     </Dropdown>
