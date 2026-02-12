@@ -26,9 +26,10 @@ export interface ActiveFiltersBarProps {
  * Returns a short human-readable description of the filter clause.
  */
 function describeClause(clause: FilterClause): string {
+    const loc = locConstants.profiler;
     if (clause.operator === FilterOperator.In && clause.values) {
         const count = clause.values.length;
-        return count === 0 ? "none selected" : `${count} selected`;
+        return count === 0 ? loc.filterNoneSelected : loc.filterCountSelected(count);
     }
     const opLabel = getShortOperatorLabel(clause.operator);
     const val = clause.value !== undefined ? String(clause.value) : "";

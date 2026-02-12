@@ -1401,7 +1401,7 @@
     },
     "No results match the current filters": "No results match the current filters",
     "No data to display.": "No data to display.",
-    "Quick filter all columnsȂ": "Quick filter all columnsȂ",
+    "Quick filter all columns...": "Quick filter all columns...",
     "Clear All Filters": "Clear All Filters",
     "Clear quick filter and all column filters": "Clear quick filter and all column filters",
     "{0}/{1}/{0} is selected count{1} is total count": {
@@ -1412,6 +1412,13 @@
     "Use format: YYYY-MM-DD HH:mm:ss[.SSS]": "Use format: YYYY-MM-DD HH:mm:ss[.SSS]",
     "Filter value": "Filter value",
     "Filter operator": "Filter operator",
+    "Value is required": "Value is required",
+    "Must be a valid number": "Must be a valid number",
+    "none selected": "none selected",
+    "{0} selected/{0} is the number of selected filter values": {
+        "message": "{0} selected",
+        "comment": ["{0} is the number of selected filter values"]
+    },
     "Active filters:": "Active filters:",
     "{0}: {1}/{0} is the column name{1} is the filter description": {
         "message": "{0}: {1}",

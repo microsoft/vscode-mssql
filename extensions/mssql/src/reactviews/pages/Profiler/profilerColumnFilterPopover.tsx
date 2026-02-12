@@ -299,17 +299,17 @@ export const ProfilerColumnFilterPopover: React.FC<ColumnFilterPopoverProps> = (
     const validate = useCallback((): boolean => {
         if (filterType === FilterType.Numeric) {
             if (inputValue.trim() === "") {
-                setValidationError("Value is required");
+                setValidationError(loc.validationValueRequired);
                 return false;
             }
             if (isNaN(Number(inputValue.trim()))) {
-                setValidationError("Must be a valid number");
+                setValidationError(loc.validationMustBeNumber);
                 return false;
             }
         }
         if (filterType === FilterType.Date) {
             if (inputValue.trim() === "") {
-                setValidationError("Value is required");
+                setValidationError(loc.validationValueRequired);
                 return false;
             }
             if (!validateDateTimeFormat(inputValue.trim())) {

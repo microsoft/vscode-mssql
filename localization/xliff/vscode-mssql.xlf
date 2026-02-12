@@ -7,6 +7,10 @@
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
+      <source xml:lang="en">&apos;{0}&apos; started.</source>
+      <note>{0} is the service name</note>
+    </trans-unit>
     <trans-unit id="++CODE++77d57e39b407cbca2770fb31b55c148c757f4f84d1e2ce824c7d5cf9412a6298">
       <source xml:lang="en">&gt;</source>
     </trans-unit>
@@ -21,10 +25,6 @@
     </trans-unit>
     <trans-unit id="++CODE++53047fb5d5fdae95544c86b244ac7919f3bcb3fed509de00e7fd91c093698974">
       <source xml:lang="en">&lt;=</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e59b9e59be153f480e2e2f5836749b5d33fe1776d037625761e5a957462aadd8">
-      <source xml:lang="en">&apos;{0}&apos; started.</source>
-      <note>{0} is the service name</note>
     </trans-unit>
     <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
       <source xml:lang="en">&lt;Default&gt;</source>
@@ -3457,6 +3457,9 @@
       <source xml:lang="en">Multiple connection groups with ID &apos;{0}&apos; found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
       <note>{0} is the root id</note>
     </trans-unit>
+    <trans-unit id="++CODE++654353d5a85351a651cabf15d7954747c4278a7d68cb7dca62777d2ccb11a730">
+      <source xml:lang="en">Must be a valid number</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
       <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
     </trans-unit>
@@ -4228,8 +4231,8 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
-    <trans-unit id="++CODE++3d4e273abc06c9c813509cdd979ca01705ae3c105fdb5e9b20476a6f4948c30a">
-      <source xml:lang="en">Quick filter all columnsȂ</source>
+    <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
+      <source xml:lang="en">Quick filter all columns...</source>
     </trans-unit>
     <trans-unit id="++CODE++41a52587276c392bfdf0c5086b78662e089895fe2bf22e3d413af8e75f98bc3d">
       <source xml:lang="en">REST API</source>
@@ -5702,6 +5705,9 @@
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
     </trans-unit>
+    <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
+      <source xml:lang="en">Value is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++cfe6ccd3cadc45db712e2b8e0c06ec209cb988570e74b89253baac39c9d6fab6">
       <source xml:lang="en">Verify backup when finished</source>
     </trans-unit>
@@ -5899,6 +5905,9 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
+      <source xml:lang="en">none selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
     </trans-unit>
@@ -6050,6 +6059,10 @@
     <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
       <source xml:lang="en">{0} rows selected, click to load summary</source>
       <note>{0} is the number of rows to fetch summary statistics for</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
+      <source xml:lang="en">{0} selected</source>
+      <note>{0} is the number of selected filter values</note>
     </trans-unit>
     <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
       <source xml:lang="en">{0} selected</source>

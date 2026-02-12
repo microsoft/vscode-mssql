@@ -2150,7 +2150,7 @@ export class LocConstants {
             noDataToDisplay: l10n.t("No data to display."),
 
             // Quick filter
-            quickFilterPlaceholder: l10n.t("Quick filter all columns\u2026"),
+            quickFilterPlaceholder: l10n.t("Quick filter all columns..."),
             clearAllFilters: l10n.t("Clear All Filters"),
             clearAllFiltersTooltip: l10n.t("Clear quick filter and all column filters"),
 
@@ -2168,7 +2168,18 @@ export class LocConstants {
             filterValue: l10n.t("Filter value"),
             filterOperator: l10n.t("Filter operator"),
 
+            // Validation
+            validationValueRequired: l10n.t("Value is required"),
+            validationMustBeNumber: l10n.t("Must be a valid number"),
+
             // Active filters bar
+            filterNoneSelected: l10n.t("none selected"),
+            filterCountSelected: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected filter values"],
+                }),
             activeFiltersLabel: l10n.t("Active filters:"),
             filterBadge: (columnName: string, desc: string) =>
                 l10n.t({

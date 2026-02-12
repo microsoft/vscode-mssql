@@ -35,6 +35,7 @@ import {
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { locConstants } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 import "./profiler.css";
 
