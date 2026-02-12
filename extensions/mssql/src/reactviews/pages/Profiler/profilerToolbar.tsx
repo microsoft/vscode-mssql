@@ -122,10 +122,10 @@ export const ProfilerToolbar: React.FC<ProfilerToolbarProps> = ({
 
     // Sync local quick filter when external state clears it
     React.useEffect(() => {
-        if (quickFilterTerm === "" && localQuickFilter !== "") {
+        if (quickFilterTerm === "") {
             setLocalQuickFilter("");
         }
-    }, [quickFilterTerm]); // intentionally only react to external quickFilterTerm changes
+    }, [quickFilterTerm]);
 
     // Determine pause/resume button state - use Next icon (line before play) for Resume
     const pauseResumeIcon = isRunning ? <Pause24Regular /> : <Next24Regular />;
