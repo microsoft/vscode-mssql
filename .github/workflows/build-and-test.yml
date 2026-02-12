@@ -128,7 +128,7 @@ jobs:
           cd extensions/data-workspace
           vsce package
 
-      - name: Keybindings - Package extension
+      - name: Keymap - Package extension
         continue-on-error: true
         run: |
           cd extensions/database-management-keymap
@@ -152,10 +152,10 @@ jobs:
           name: data-workspace-vsix
           path: ./extensions/data-workspace/*.vsix
 
-      - name: Keybindings - Upload VSIX files
+      - name: Keymap - Upload VSIX files
         uses: actions/upload-artifact@v6
         with:
-          name: keybindings-vsix
+          name: keymap-vsix
           path: ./extensions/database-management-keymap/*.vsix
 
       - name: Setting up change icons

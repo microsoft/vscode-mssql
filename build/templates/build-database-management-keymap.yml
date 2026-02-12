@@ -7,17 +7,17 @@ steps:
   - pwsh: |
       Write-Host "Installing VSCE"
       npm install --global vsce@2.9.2
-    displayName: Keybindings - Install toolchain
+    displayName: Keymap - Install toolchain
 
   - pwsh: |
       vsce package --no-yarn
-    displayName: Keybindings - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql-database-management-keybindings"
+    displayName: Keymap - Package extension
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/database-management-keymap"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
-    displayName: Keybindings - Copy VSIXs to clean folder
+    displayName: Keymap - Copy VSIXs to clean folder
     inputs:
-      SourceFolder: "$(Build.SourcesDirectory)/extensions/mssql-database-management-keybindings"
+      SourceFolder: "$(Build.SourcesDirectory)/extensions/database-management-keymap"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
