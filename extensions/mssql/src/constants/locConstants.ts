@@ -2865,6 +2865,29 @@ export class Profiler {
             comment: ["{0} is the file name"],
         });
 
+    // Export messages
+    public static defaultExportFileName = l10n.t("profiler_events");
+    public static exportToCsv = l10n.t("Export to CSV");
+    public static exportSuccess = (filePath: string) =>
+        l10n.t({
+            message: "Profiler events exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    public static openFile = l10n.t("Open File");
+    public static exportFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to export profiler events: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    // Close prompt messages
+    public static unexportedEventsMessage = l10n.t(
+        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    );
+    public static exportAndClose = l10n.t("Export & Close");
+    public static closeWithoutExport = l10n.t("Close Without Export");
     // Database selection for Azure SQL
     public static selectDatabaseForProfiler = l10n.t(
         "Select a database for profiling (Azure SQL requires a specific database)",

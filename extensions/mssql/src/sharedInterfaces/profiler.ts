@@ -112,6 +112,10 @@ export interface ProfilerWebviewState {
     xelFilePath?: string;
     /** File name for display if this is a file-based session */
     xelFileName?: string;
+    /** Whether there are unexported events since last export */
+    hasUnexportedEvents?: boolean;
+    /** Timestamp of last export (for dirty tracking) */
+    lastExportTimestamp?: number;
 }
 
 /**
@@ -150,6 +154,10 @@ export interface ProfilerReducers {
         startIndex: number;
         count: number;
     };
+    /** Export events to CSV file */
+    exportToCsv: {
+        suggestedFileName: string;
+    };
 }
 
 /**
@@ -183,6 +191,26 @@ export interface RowsRemovedParams {
 }
 
 /**
+ * Payload for export to CSV request
+ */
+export interface ExportToCsvParams {
+    /** Suggested file name */
+    suggestedFileName: string;
+}
+
+/**
+ * Payload for export result notification
+ */
+export interface ExportResultParams {
+    /** Whether the export was successful */
+    success: boolean;
+    /** Error message if export failed */
+    errorMessage?: string;
+    /** File path if export succeeded */
+    filePath?: string;
+}
+
+/**
  * Notification types for profiler webview communication
  */
 export namespace ProfilerNotifications {
@@ -199,4 +227,7 @@ export namespace ProfilerNotifications {
 
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
+
+    /** Notification sent when export result is available */
+    export const ExportResult = new NotificationType<ExportResultParams>("exportResult");
 }
