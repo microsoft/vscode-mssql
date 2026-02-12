@@ -1362,6 +1362,8 @@
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
     },
+    "Export all captured events to a CSV file": "Export all captured events to a CSV file",
+    "No events to export": "No events to export",
     "Import File": "Import File",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
@@ -2791,6 +2793,18 @@
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
     },
+    "Profiler events exported successfully to {0}/{0} is the file path": {
+        "message": "Profiler events exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Open File": "Open File",
+    "Failed to export profiler events: {0}/{0} is the error message": {
+        "message": "Failed to export profiler events: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    "Export & Close": "Export & Close",
+    "Close Without Export": "Close Without Export",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",

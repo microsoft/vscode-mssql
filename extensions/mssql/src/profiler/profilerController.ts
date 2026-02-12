@@ -3,6 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
+import * as fs from "fs";
+import { Writable } from "stream";
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import * as Utils from "../models/utils";
@@ -632,6 +635,9 @@ export class ProfilerController {
             onViewChange: (viewId: string) => {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
+            onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
+                return await this.getStreamForWriting(webviewController, suggestedFileName);
+            },
         });
 
         // Step 3: Create the XEvent session on the server (if it doesn't exist) and auto-start
@@ -716,6 +722,77 @@ export class ProfilerController {
             this._logger.error(`Error creating/starting session: ${e}`);
             vscode.window.showErrorMessage(LocProfiler.failedToCreateSession(String(e)));
             webviewController.dispose();
+        }
+    }
+
+    /**
+     * Handles exporting profiler events to a CSV file.
+     * Shows save dialog and returns a write stream for CSV content.
+     * @returns A writable stream to write CSV content to, or undefined if user cancelled
+     */
+    private async getStreamForWriting(
+        webviewController: ProfilerWebviewController,
+        suggestedFileName: string,
+    ): Promise<Writable | undefined> {
+        try {
+            // Get a default folder - use user's home directory or workspace folder
+            const defaultFolder =
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(os.homedir());
+
+            // Show save dialog
+            const saveUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.joinPath(defaultFolder, `${suggestedFileName}.csv`),
+                filters: {
+                    CSV: ["csv"],
+                },
+                title: LocProfiler.exportToCsv,
+            });
+
+            if (!saveUri) {
+                // User cancelled
+                this._logger.verbose("Export to CSV cancelled by user");
+                return undefined;
+            }
+
+            // Create a write stream to the file
+            const filePath = saveUri.fsPath;
+            const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
+
+            // Handle stream completion
+            writeStream.on("finish", () => {
+                // Mark export as successful in state
+                webviewController.setExportComplete();
+
+                // Show success message with Open File button
+                void vscode.window
+                    .showInformationMessage(
+                        LocProfiler.exportSuccess(filePath),
+                        LocProfiler.openFile,
+                    )
+                    .then(async (openFile) => {
+                        if (openFile === LocProfiler.openFile) {
+                            // Open the exported file in VS Code
+                            const doc = await vscode.workspace.openTextDocument(saveUri);
+                            await vscode.window.showTextDocument(doc);
+                        }
+                    });
+
+                this._logger.verbose(`Profiler events exported to ${filePath}`);
+            });
+
+            // Handle stream errors
+            writeStream.on("error", (error) => {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+                this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            });
+
+            return writeStream;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            void vscode.window.showErrorMessage(LocProfiler.exportFailed(errorMessage));
+            this._logger.error(`Failed to export profiler events: ${errorMessage}`);
+            return undefined;
         }
     }
 }

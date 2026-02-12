@@ -838,6 +838,9 @@
     <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
       <source xml:lang="en">Close Script Pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f60d43fe743cd7aa4af117f641730b9e28e8aab2e3334b2c12bfd0c25e610d6">
+      <source xml:lang="en">Close Without Export</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
     </trans-unit>
@@ -2061,8 +2064,14 @@
     <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
       <source xml:lang="en">Export</source>
     </trans-unit>
+    <trans-unit id="++CODE++6832602b10532fa027a10d02a440c8197c4257d1ffbface9da25585ffa7bc19a">
+      <source xml:lang="en">Export &amp; Close</source>
+    </trans-unit>
     <trans-unit id="++CODE++59be81f2f62e6ced348ccc806b1a50d9370c0f19a8bb5f7fbf8a801d4c93bdca">
       <source xml:lang="en">Export BACPAC</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
+      <source xml:lang="en">Export all captured events to a CSV file</source>
     </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
@@ -2210,6 +2219,10 @@
     <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3d684643f87e0c69e5874b8f73f9d077a608623cbe90234d6bca8030d79b5e96">
+      <source xml:lang="en">Failed to export profiler events: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++ea0dea0bb9eee10d354e63ec17ca218936102772ba4574d9f43fa980fd570b95">
       <source xml:lang="en">Failed to export results: {0}</source>
@@ -3577,6 +3590,9 @@
     <trans-unit id="++CODE++8074b19c0365b61c3a88fe5cbd2d5c6193b9a601b425c22c0acea8273b880251">
       <source xml:lang="en">No entities found</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
+      <source xml:lang="en">No events to export</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
@@ -3761,6 +3777,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
       <source xml:lang="en">Open Containing Folder</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1e8d18f62f2d2a2fcb2027969e109cad13bcf2a861737f80eabd6774406c8a10">
+      <source xml:lang="en">Open File</source>
     </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
@@ -4034,6 +4053,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6b98ec18ed75d6df5603a0465d9b55ca61ccf6100a4a2921b1f94848752f4126">
       <source xml:lang="en">Profiler Session Status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c6cc4989ddd41450987b1ab74541e5e588d5ee488fdb86e530ed935e1dd630a">
+      <source xml:lang="en">Profiler events exported successfully to {0}</source>
+      <note>{0} is the file path</note>
     </trans-unit>
     <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
       <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
@@ -5691,6 +5714,9 @@
     <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
       <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
       <note>{0} is the version number of the MSSQL extension</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ee6604b8608c95bcd41d746470a4afd5a0254262421599e83cf70c4ebe40255c">
+      <source xml:lang="en">You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?</source>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
