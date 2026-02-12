@@ -307,14 +307,10 @@
                 {
                     "id": "415ccfc3-f8cf-4a23-89ee-9a59f9f02d75",
                     "name": "FK_returns_order_item",
-                    "columns": [
-                        "order_item_id"
-                    ],
+                    "columns": ["order_item_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "order_items",
-                    "referencedColumns": [
-                        "order_item_id"
-                    ],
+                    "referencedColumns": ["order_item_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -449,14 +445,10 @@
                 {
                     "id": "de9fbc99-05e2-401e-8e47-83b8d6829e32",
                     "name": "FK_shipments_order",
-                    "columns": [
-                        "order_id"
-                    ],
+                    "columns": ["order_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "orders",
-                    "referencedColumns": [
-                        "order_id"
-                    ],
+                    "referencedColumns": ["order_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -608,14 +600,10 @@
                 {
                     "id": "0f41ec44-a14b-46d8-8f58-6db98e34519f",
                     "name": "FK_inventory_product",
-                    "columns": [
-                        "product_id"
-                    ],
+                    "columns": ["product_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "products",
-                    "referencedColumns": [
-                        "product_id"
-                    ],
+                    "referencedColumns": ["product_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -716,14 +704,10 @@
                 {
                     "id": "0f19835a-2fcb-4778-b2b5-d7636cceaeeb",
                     "name": "FK_categories_parent",
-                    "columns": [
-                        "parent_id"
-                    ],
+                    "columns": ["parent_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "categories",
-                    "referencedColumns": [
-                        "category_id"
-                    ],
+                    "referencedColumns": ["category_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -858,14 +842,10 @@
                 {
                     "id": "84c5ae7f-8247-42e6-bb66-61bbbc038539",
                     "name": "FK_payments_order",
-                    "columns": [
-                        "order_id"
-                    ],
+                    "columns": ["order_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "orders",
-                    "referencedColumns": [
-                        "order_id"
-                    ],
+                    "referencedColumns": ["order_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -1000,28 +980,20 @@
                 {
                     "id": "e847a4c8-809d-4413-b9f3-b35a520012f0",
                     "name": "FK_order_items_order",
-                    "columns": [
-                        "order_id"
-                    ],
+                    "columns": ["order_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "orders",
-                    "referencedColumns": [
-                        "order_id"
-                    ],
+                    "referencedColumns": ["order_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 },
                 {
                     "id": "2bb16580-c838-42fc-9d45-f0dfad62b0b7",
                     "name": "FK_order_items_product",
-                    "columns": [
-                        "product_id"
-                    ],
+                    "columns": ["product_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "products",
-                    "referencedColumns": [
-                        "product_id"
-                    ],
+                    "referencedColumns": ["product_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -1241,28 +1213,20 @@
                 {
                     "id": "c0e41293-8780-4ab2-aa78-92b1e05d1c96",
                     "name": "FK_products_supplier",
-                    "columns": [
-                        "supplier_id"
-                    ],
+                    "columns": ["supplier_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "suppliers",
-                    "referencedColumns": [
-                        "supplier_id"
-                    ],
+                    "referencedColumns": ["supplier_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 },
                 {
                     "id": "9ed9be15-4ea3-4d8b-827d-2c450e9fbb3c",
                     "name": "FK_products_category",
-                    "columns": [
-                        "category_id"
-                    ],
+                    "columns": ["category_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "categories",
-                    "referencedColumns": [
-                        "category_id"
-                    ],
+                    "referencedColumns": ["category_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -1448,14 +1412,10 @@
                 {
                     "id": "ba31cd4e-9ab8-49b0-bcf1-6eea37215582",
                     "name": "FK_addresses_users",
-                    "columns": [
-                        "user_id"
-                    ],
+                    "columns": ["user_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "users",
-                    "referencedColumns": [
-                        "user_id"
-                    ],
+                    "referencedColumns": ["user_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -1726,42 +1686,30 @@
                 {
                     "id": "74bcd28a-2055-45ba-81fb-2bc63ae9bde8",
                     "name": "FK_orders_promo",
-                    "columns": [
-                        "promotion_id"
-                    ],
+                    "columns": ["promotion_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "promotions",
-                    "referencedColumns": [
-                        "promotion_id"
-                    ],
+                    "referencedColumns": ["promotion_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 },
                 {
                     "id": "3d3c03af-e2b7-4373-adb4-b490cbf39aba",
                     "name": "FK_orders_address",
-                    "columns": [
-                        "shipping_address_id"
-                    ],
+                    "columns": ["shipping_address_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "addresses",
-                    "referencedColumns": [
-                        "address_id"
-                    ],
+                    "referencedColumns": ["address_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 },
                 {
                     "id": "9812db92-d817-4750-98c2-2f157307d92c",
                     "name": "FK_orders_user",
-                    "columns": [
-                        "user_id"
-                    ],
+                    "columns": ["user_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "users",
-                    "referencedColumns": [
-                        "user_id"
-                    ],
+                    "referencedColumns": ["user_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
@@ -2082,28 +2030,20 @@
                 {
                     "id": "cfbf95ad-16ff-420e-9d57-917298eaa1c6",
                     "name": "FK_reviews_product",
-                    "columns": [
-                        "product_id"
-                    ],
+                    "columns": ["product_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "products",
-                    "referencedColumns": [
-                        "product_id"
-                    ],
+                    "referencedColumns": ["product_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 },
                 {
                     "id": "56953c36-6545-47da-8898-2f4a60571ac2",
                     "name": "FK_reviews_user",
-                    "columns": [
-                        "user_id"
-                    ],
+                    "columns": ["user_id"],
                     "referencedSchemaName": "dbo",
                     "referencedTableName": "users",
-                    "referencedColumns": [
-                        "user_id"
-                    ],
+                    "referencedColumns": ["user_id"],
                     "onDeleteAction": 1,
                     "onUpdateAction": 1
                 }
