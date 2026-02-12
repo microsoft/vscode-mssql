@@ -14,19 +14,17 @@ runs:
         sudo update-rc.d xvfb defaults
         sudo service xvfb start
 
-    - name: MSSQL - Install tools
-      shell: bash
-      run: |
-        echo "Installing Yarn"
-        npm install --global yarn@1.22.19
-        echo "Installing VSCE"
-        npm install --global vsce@2.9.2
-
     - name: MSSQL - Install extension dependencies
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         yarn --frozen-lockfile
+
+    - name: MSSQL - Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ hashFiles('extensions/mssql/yarn.lock') }}
 
     - name: MSSQL - Install playwright dependencies
       shell: bash

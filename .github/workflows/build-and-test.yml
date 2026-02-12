@@ -1,9 +1,12 @@
 name: Build and Test (Unit + E2E)
 # Trigger the workflow on PRs to the main branch.
 # It performs the following checks:
-# 1. Calculate the size difference between the webview bundles of the main branch and the PR branch.
-# 2. Calculate the size difference between the VSIX files of the main branch and the PR branch.
-# 3. Does a check if the PR has properly localized strings.
+# 1. Calculate the size difference between the VSIX files of the main branch and the PR branch.
+# 2. Does a check if the PR has properly localized strings.
+# 3. Runs unit tests and E2E smoke tests.
+#
+# The pipeline is split into parallel jobs for each extension:
+#   mssql, sqlproj, dataworkspace → report (aggregates results)
 
 on:
   schedule:
@@ -19,45 +22,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  # ---------------------------------------------------------------------------
+  # MSSQL Extension — build, lint, package, unit tests, smoke tests, coverage
+  # ---------------------------------------------------------------------------
+  mssql:
+    name: MSSQL
     runs-on: ubuntu-latest
     permissions:
       contents: read
       checks: write
       actions: read
-      issues: write
-      pull-requests: write
+
+    # SQL Server runs as a Docker sidecar — ready before smoke tests start
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: "MSSQLStr0ngPWD-123"
+        ports:
+          - 1433:1433
+
+    outputs:
+      unit_exit_code: ${{ steps.unit-tests.outputs.exit_code }}
+      smoke_exit_code: ${{ steps.smoke-tests.outputs.exit_code }}
 
     steps:
-      - name: Checkout PR branch
+      - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Check if baseline comparison needed
-        if: github.event_name == 'pull_request'
-        run: |
-          if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]] || [[ "${{ github.event.pull_request.base.ref }}" == release/* ]]; then
-            echo "should_compare_baseline=true" >> $GITHUB_ENV
-          else
-            echo "should_compare_baseline=false" >> $GITHUB_ENV
-          fi
-
-      - name: Download baseline sizes
-        if: env.should_compare_baseline == 'true'
-        continue-on-error: true
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: publish-baseline.yml
-          branch: ${{ github.event.pull_request.base.ref }}
-          name: baseline-sizes
-          path: ./baseline
-          if_no_artifact_found: warn
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "22"
+          cache: "yarn"
 
       - name: Setup .NET Core # Required to execute ReportGenerator
         uses: actions/setup-dotnet@v5
@@ -81,51 +81,17 @@ jobs:
         with:
           source-dir: "./extensions/mssql"
 
-      - name: SqlProj - Install dependencies and build
-        uses: ./.github/actions/build-sqlproj
-        with:
-          source-dir: "./extensions/sql-database-projects"
-
-      - name: DataWorkspace - Install dependencies and build
-        uses: ./.github/actions/build-data-workspace
-        with:
-          source-dir: "./extensions/data-workspace"
-
       - name: MSSQL - Run lint
         run: |
           cd ./extensions/mssql
           yarn lint src/ test/
 
-      - name: SqlProj - Run lint
-        continue-on-error: true
-        run: |
-          cd ./extensions/sql-database-projects
-          yarn lint src/ test/
-
-      - name: DataWorkspace - Run lint
-        run: |
-          cd ./extensions/data-workspace
-          yarn lint
-
-      # Calculate sizes and package before testing;
-      # Testing generates sourcemaps and instrumented code
-      # that increase size
+      # Package before testing — testing generates sourcemaps and instrumented
+      # code that increase size
       - name: MSSQL - Package extension
         continue-on-error: true
         run: |
           cd extensions/mssql
-          vsce package
-
-      - name: SqlProj - Package extension
-        continue-on-error: true
-        run: |
-          cd extensions/sql-database-projects
-          vsce package
-
-      - name: DataWorkspace - Package extension
-        continue-on-error: true
-        run: |
-          cd extensions/data-workspace
           vsce package
 
       - name: MSSQL - Upload VSIX files
@@ -134,153 +100,15 @@ jobs:
           name: mssql-vsix
           path: ./extensions/mssql/*.vsix
 
-      - name: SqlProj - Upload VSIX files
-        uses: actions/upload-artifact@v6
-        with:
-          name: sql-database-projects-vsix
-          path: ./extensions/sql-database-projects/*.vsix
-
-      - name: DataWorkspace - Upload VSIX files
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-workspace-vsix
-          path: ./extensions/data-workspace/*.vsix
-
-      - name: Setting up change icons
-        if: env.should_compare_baseline == 'true'
-        run: |
-          echo "better_change_icon=🟢" >> $GITHUB_ENV
-          echo "worse_change_icon=🔴" >> $GITHUB_ENV
-          echo "no_change_icon=⚪" >> $GITHUB_ENV
-
-      - name: Calculate vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.mssql.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/mssql -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline VSIX size: $target_size KB"
-          echo "PR branch VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "mssql_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "mssql_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "mssql_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "mssql_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "mssql_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "mssql_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "mssql_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
-      - name: Calculate sql-database-projects vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.sql_database_projects.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/sql-database-projects -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline sql-database-projects VSIX size: $target_size KB"
-          echo "PR branch sql-database-projects VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "sqlproj_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "sqlproj_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "sqlproj_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "sqlproj_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "sqlproj_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "sqlproj_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "sqlproj_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
-      - name: Calculate data-workspace vsix file sizes
-        if: env.should_compare_baseline == 'true'
-        run: |
-          # Get baseline size from downloaded artifact or default to 0
-          if [ -f ./baseline/baseline-sizes.json ]; then
-            target_size=$(jq -r '.data_workspace.vsix_kb' ./baseline/baseline-sizes.json)
-          else
-            echo "⚠️ No baseline found, using 0 for comparison"
-            target_size=0
-          fi
-
-          pr_vsix=$(find ./extensions/data-workspace -name "*.vsix")
-          pr_size=$(stat -c%s "$pr_vsix")
-          pr_size=$((pr_size / 1024))
-
-          size_diff=$((pr_size - target_size))
-
-          if [ "$target_size" -gt 0 ]; then
-            percentage_change=$((100 * size_diff / target_size))
-          else
-            percentage_change=0
-          fi
-
-          echo "Baseline data-workspace VSIX size: $target_size KB"
-          echo "PR branch data-workspace VSIX size: $pr_size KB"
-          echo "Size difference: $size_diff KB"
-          echo "Percentage change: $percentage_change%"
-          echo "dataworkspace_target_vsix_size=$target_size" >> $GITHUB_ENV
-          echo "dataworkspace_pr_vsix_size=$pr_size" >> $GITHUB_ENV
-          echo "dataworkspace_vsix_size_diff=$size_diff" >> $GITHUB_ENV
-          echo "dataworkspace_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-
-          if [ "$percentage_change" -gt 0 ]; then
-            echo "dataworkspace_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-          elif [ "$percentage_change" -lt 0 ]; then
-            echo "dataworkspace_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-          else
-            echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-          fi
-
       - name: MSSQL - Run unit tests
+        id: unit-tests
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
           cd extensions/mssql
           DISPLAY=:10 yarn test
-          UNIT_EXIT_CODE=$?
-          echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
 
       - name: MSSQL - Unit Test Report
         uses: dorny/test-reporter@v2
@@ -299,31 +127,28 @@ jobs:
           cd ./extensions/mssql
           yarn build:webviews-bundle
 
-      - name: Setup environment for smoke tests
+      - name: Setup smoke test dependencies
         run: |
-          wget http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
+          wget -q http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
           sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
-          echo "Setting up environment for smoke tests"
-          PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
-          echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
-          sudo cp build/mssql.init /etc/init.d/mssql-server
-          sudo chmod +x /etc/init.d/mssql-server
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
-          sudo apt-get update
-          sudo apt-get install -y mssql-server
-          # Set the language choice variable (1 for English)
-          LANGUAGE_CHOICE="1"
-          echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
-          sudo service mssql-server start
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          sudo apt-get update
-          sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
-        working-directory: ./extensions/mssql
+
+      - name: Wait for SQL Server
+        run: |
+          echo "Waiting for SQL Server to accept connections..."
+          for i in $(seq 1 30); do
+            if bash -c "echo > /dev/tcp/localhost/1433" 2>/dev/null; then
+              echo "SQL Server is ready!"
+              sleep 5  # Give a few extra seconds for full initialization
+              exit 0
+            fi
+            echo "  Attempt $i/30..."
+            sleep 2
+          done
+          echo "SQL Server did not start in time"
+          exit 1
 
       - name: Run smoke tests
+        id: smoke-tests
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
@@ -331,14 +156,14 @@ jobs:
           export SERVER_NAME=localhost
           export AUTHENTICATION_TYPE="SQL Login"
           export USER_NAME=sa
-          export PASSWORD=${{ env.PASSWORD }}
+          export PASSWORD=MSSQLStr0ngPWD-123
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
           cd extensions/mssql
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
-          SMOKE_EXIT_CODE=$?
-          echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v6
@@ -387,6 +212,387 @@ jobs:
           directory: "./extensions/mssql/coverage"
           exclude: "coverage-e2e"
 
+  # ---------------------------------------------------------------------------
+  # SQL Database Projects Extension — build, lint, package, unit tests
+  # ---------------------------------------------------------------------------
+  sqlproj:
+    name: SQL Database Projects
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    outputs:
+      unit_exit_code: ${{ steps.unit-tests.outputs.exit_code }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install tools
+        run: |
+          echo "Installing Yarn"
+          npm install --global yarn@1.22.19
+          echo "Installing VSCE"
+          npm install --global vsce@2.9.2
+
+      - name: Install root dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Setup display server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+          sudo cp build/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+
+      - name: SqlProj - Install dependencies and build
+        uses: ./.github/actions/build-sqlproj
+        with:
+          source-dir: "./extensions/sql-database-projects"
+
+      - name: SqlProj - Run lint
+        continue-on-error: true
+        run: |
+          cd ./extensions/sql-database-projects
+          yarn lint src/ test/
+
+      - name: SqlProj - Package extension
+        continue-on-error: true
+        run: |
+          cd extensions/sql-database-projects
+          vsce package
+
+      - name: SqlProj - Upload VSIX files
+        uses: actions/upload-artifact@v6
+        with:
+          name: sql-database-projects-vsix
+          path: ./extensions/sql-database-projects/*.vsix
+
+      - name: SqlProj - Run unit tests
+        id: unit-tests
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          cd extensions/sql-database-projects
+          DISPLAY=:10 yarn test
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+  # ---------------------------------------------------------------------------
+  # Data Workspace Extension — build, lint, package, unit tests
+  # ---------------------------------------------------------------------------
+  dataworkspace:
+    name: Data Workspace
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    outputs:
+      unit_exit_code: ${{ steps.unit-tests.outputs.exit_code }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install tools
+        run: |
+          echo "Installing Yarn"
+          npm install --global yarn@1.22.19
+          echo "Installing VSCE"
+          npm install --global vsce@2.9.2
+
+      - name: Install root dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Setup display server
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
+          sudo cp build/xvfb.init /etc/init.d/xvfb
+          sudo chmod +x /etc/init.d/xvfb
+          sudo update-rc.d xvfb defaults
+          sudo service xvfb start
+
+      - name: DataWorkspace - Install dependencies and build
+        uses: ./.github/actions/build-data-workspace
+        with:
+          source-dir: "./extensions/data-workspace"
+
+      - name: DataWorkspace - Run lint
+        run: |
+          cd ./extensions/data-workspace
+          yarn lint
+
+      - name: DataWorkspace - Package extension
+        continue-on-error: true
+        run: |
+          cd extensions/data-workspace
+          vsce package
+
+      - name: DataWorkspace - Upload VSIX files
+        uses: actions/upload-artifact@v6
+        with:
+          name: data-workspace-vsix
+          path: ./extensions/data-workspace/*.vsix
+
+      - name: DataWorkspace - Run unit tests
+        id: unit-tests
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          cd extensions/data-workspace
+          DISPLAY=:10 yarn test
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+
+  # ---------------------------------------------------------------------------
+  # Report & Validate — VSIX sizes, localization, aggregate pass/fail
+  # ---------------------------------------------------------------------------
+  report:
+    name: Report & Validate
+    needs: [mssql, sqlproj, dataworkspace]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install tools
+        run: |
+          echo "Installing Yarn"
+          npm install --global yarn@1.22.19
+
+      - name: Install root dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      # --- Baseline comparison setup ---
+
+      - name: Check if baseline comparison needed
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]] || [[ "${{ github.event.pull_request.base.ref }}" == release/* ]]; then
+            echo "should_compare_baseline=true" >> $GITHUB_ENV
+          else
+            echo "should_compare_baseline=false" >> $GITHUB_ENV
+          fi
+
+      - name: Download baseline sizes
+        if: env.should_compare_baseline == 'true'
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: publish-baseline.yml
+          branch: ${{ github.event.pull_request.base.ref }}
+          name: baseline-sizes
+          path: ./baseline
+          if_no_artifact_found: warn
+
+      # --- Download VSIX artifacts from parallel jobs ---
+
+      - name: Download MSSQL VSIX
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: mssql-vsix
+          path: ./artifacts/mssql
+
+      - name: Download SqlProj VSIX
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: sql-database-projects-vsix
+          path: ./artifacts/sqlproj
+
+      - name: Download DataWorkspace VSIX
+        uses: actions/download-artifact@v6
+        continue-on-error: true
+        with:
+          name: data-workspace-vsix
+          path: ./artifacts/dataworkspace
+
+      # --- VSIX size comparison ---
+
+      - name: Setting up change icons
+        if: env.should_compare_baseline == 'true'
+        run: |
+          echo "better_change_icon=🟢" >> $GITHUB_ENV
+          echo "worse_change_icon=🔴" >> $GITHUB_ENV
+          echo "no_change_icon=⚪" >> $GITHUB_ENV
+
+      - name: Calculate vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.mssql.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./artifacts/mssql -name "*.vsix" 2>/dev/null || true)
+          if [ -z "$pr_vsix" ]; then
+            echo "⚠️ No MSSQL VSIX found"
+            pr_size=0
+          else
+            pr_size=$(stat -c%s "$pr_vsix")
+            pr_size=$((pr_size / 1024))
+          fi
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline VSIX size: $target_size KB"
+          echo "PR branch VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "mssql_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "mssql_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "mssql_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "mssql_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "mssql_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "mssql_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "mssql_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
+      - name: Calculate sql-database-projects vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.sql_database_projects.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./artifacts/sqlproj -name "*.vsix" 2>/dev/null || true)
+          if [ -z "$pr_vsix" ]; then
+            echo "⚠️ No SqlProj VSIX found"
+            pr_size=0
+          else
+            pr_size=$(stat -c%s "$pr_vsix")
+            pr_size=$((pr_size / 1024))
+          fi
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline sql-database-projects VSIX size: $target_size KB"
+          echo "PR branch sql-database-projects VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "sqlproj_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "sqlproj_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "sqlproj_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "sqlproj_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "sqlproj_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "sqlproj_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "sqlproj_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
+      - name: Calculate data-workspace vsix file sizes
+        if: env.should_compare_baseline == 'true'
+        run: |
+          # Get baseline size from downloaded artifact or default to 0
+          if [ -f ./baseline/baseline-sizes.json ]; then
+            target_size=$(jq -r '.data_workspace.vsix_kb' ./baseline/baseline-sizes.json)
+          else
+            echo "⚠️ No baseline found, using 0 for comparison"
+            target_size=0
+          fi
+
+          pr_vsix=$(find ./artifacts/dataworkspace -name "*.vsix" 2>/dev/null || true)
+          if [ -z "$pr_vsix" ]; then
+            echo "⚠️ No DataWorkspace VSIX found"
+            pr_size=0
+          else
+            pr_size=$(stat -c%s "$pr_vsix")
+            pr_size=$((pr_size / 1024))
+          fi
+
+          size_diff=$((pr_size - target_size))
+
+          if [ "$target_size" -gt 0 ]; then
+            percentage_change=$((100 * size_diff / target_size))
+          else
+            percentage_change=0
+          fi
+
+          echo "Baseline data-workspace VSIX size: $target_size KB"
+          echo "PR branch data-workspace VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "dataworkspace_target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "dataworkspace_pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "dataworkspace_vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "dataworkspace_vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "dataworkspace_vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "dataworkspace_vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "dataworkspace_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
+
+      # --- PR size comment ---
+
       - name: Write PR results to markdown
         if: env.should_compare_baseline == 'true'
         run: |
@@ -417,23 +623,7 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
 
-      - name: SqlProj - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          cd extensions/sql-database-projects
-          DISPLAY=:10 yarn test
-          UNIT_EXIT_CODE=$?
-          echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
-
-      - name: DataWorkspace - Run unit tests
-        continue-on-error: true
-        run: |
-          set +e  # Don't exit on errors
-          cd extensions/data-workspace
-          DISPLAY=:10 yarn test
-          UNIT_EXIT_CODE=$?
-          echo "dataworkspace_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+      # --- Localization check ---
 
       - name: Generate xliff files
         run: |
@@ -481,7 +671,7 @@ jobs:
             echo "loc_update_required=false" >> $GITHUB_ENV
           fi
 
-      - name: Find comment
+      - name: Find localization comment
         uses: peter-evans/find-comment@v3
         if: github.event_name == 'pull_request'
         id: loc-comment
@@ -491,7 +681,7 @@ jobs:
           body-includes: |
             # Updates to localized strings required
 
-      - name: Create or update comment
+      - name: Create or update localization comment
         if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
@@ -509,13 +699,15 @@ jobs:
               The localization system extracts strings from both extensions to a centralized location.
           edit-mode: replace
 
-      - name: Delete comment
+      - name: Delete localization comment
         if: ${{ github.event_name == 'pull_request' && env.loc_update_required == 'false' && steps.loc-comment.outputs.comment-id != '' }}
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
+
+      # --- Aggregate results and fail if anything is broken ---
 
       - name: Fail pipeline if any checks failed
         if: always()
@@ -526,26 +718,26 @@ jobs:
           echo "Checking pipeline results..."
 
           # Check MSSQL unit tests
-          if [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ MSSQL unit tests failed with exit code ${{ env.mssql_unit_tests_pr_exit_code }}"
+          if [ "${{ needs.mssql.outputs.unit_exit_code }}" != "0" ] && [ "${{ needs.mssql.outputs.unit_exit_code }}" != "" ]; then
+            echo "  ❌ MSSQL unit tests failed with exit code ${{ needs.mssql.outputs.unit_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
           # Check SqlProj unit tests
-          if [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ⚠️ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
+          if [ "${{ needs.sqlproj.outputs.unit_exit_code }}" != "0" ] && [ "${{ needs.sqlproj.outputs.unit_exit_code }}" != "" ]; then
+            echo "  ⚠️ SqlProj unit tests failed with exit code ${{ needs.sqlproj.outputs.unit_exit_code }} (warning because tests not yet stablized)"
             # PIPELINE_FAILED=true # Don't fail for sqlproj unit tests yet; they aren't stable
           fi
 
           # Check DataWorkspace unit tests
-          if [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.dataworkspace_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ⚠️ DataWorkspace unit tests failed with exit code ${{ env.dataworkspace_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
+          if [ "${{ needs.dataworkspace.outputs.unit_exit_code }}" != "0" ] && [ "${{ needs.dataworkspace.outputs.unit_exit_code }}" != "" ]; then
+            echo "  ⚠️ DataWorkspace unit tests failed with exit code ${{ needs.dataworkspace.outputs.unit_exit_code }} (warning because tests not yet stablized)"
             # PIPELINE_FAILED=true # Don't fail for dataworkspace unit tests yet; they aren't stable
           fi
 
           # Check MSSQL smoke tests
-          if [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ MSSQL smoke tests failed with exit code ${{ env.mssql_smoke_tests_pr_exit_code }}"
+          if [ "${{ needs.mssql.outputs.smoke_exit_code }}" != "0" ] && [ "${{ needs.mssql.outputs.smoke_exit_code }}" != "" ]; then
+            echo "  ❌ MSSQL smoke tests failed with exit code ${{ needs.mssql.outputs.smoke_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
