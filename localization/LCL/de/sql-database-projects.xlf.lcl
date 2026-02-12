@@ -3789,12 +3789,12 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.publishDialog" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Publish (Preview)]]></Val>
+          <Val><![CDATA[Publish...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Veröffentlichen (Vorschau)]]></Val>
+            <Val><![CDATA[Veröffentlichen...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Publish]]></Val>
+            <Val><![CDATA[Publish (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />

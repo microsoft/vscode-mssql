@@ -114,6 +114,7 @@
     "Sign In": "Sign In",
     "Loading": "Loading",
     "General": "General",
+    "Previous": "Previous",
     "Clear All": "Clear All",
     "OK": "OK",
     "And": "And",
@@ -349,7 +350,6 @@
     "Expand All": "Expand All",
     "Collapse All": "Collapse All",
     "Filter for any field...": "Filter for any field...",
-    "Previous": "Previous",
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
     "Very Satisfied": "Very Satisfied",
@@ -1196,8 +1196,8 @@
     "Unfreeze columns": "Unfreeze columns",
     "x of y selected": "x of y selected",
     "Equal to": "Equal to",
-    "Azure Data Studio Migration - Connections": "Azure Data Studio Migration - Connections",
-    "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+    "Azure Data Studio Migration": "Azure Data Studio Migration",
+    "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.": "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
     "Azure Data Studio settings file": "Azure Data Studio settings file",
     "Select the Azure Data Studio settings.json file to scan for connection groups and connections.": "Select the Azure Data Studio settings.json file to scan for connection groups and connections.",
     "Browse to Azure Data Studio settings.json": "Browse to Azure Data Studio settings.json",
@@ -1260,6 +1260,40 @@
     "Select account": "Select account",
     "Select an account for authentication": "Select an account for authentication",
     "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.": "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
+    "Settings and Keybindings": "Settings and Keybindings",
+    "Collapse settings": "Collapse settings",
+    "Expand settings": "Expand settings",
+    "Import connection configuration settings from Azure Data Studio": "Import connection configuration settings from Azure Data Studio",
+    "View settings": "View settings",
+    "Configuration to Import": "Configuration to Import",
+    "Setting": "Setting",
+    "No customized settings found": "No customized settings found",
+    "Looking for Azure Data Studio key bindings, like F5 to execute queries?": "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+    "Install the MSSQL Database Management Keymap extension": "Install the MSSQL Database Management Keymap extension",
+    "{0} connection group imported/{0} is the number of connection groups imported (singular)": {
+        "message": "{0} connection group imported",
+        "comment": ["{0} is the number of connection groups imported (singular)"]
+    },
+    "{0} connection groups imported/{0} is the number of connection groups imported (plural)": {
+        "message": "{0} connection groups imported",
+        "comment": ["{0} is the number of connection groups imported (plural)"]
+    },
+    "{0} connection imported/{0} is the number of connections imported (singular)": {
+        "message": "{0} connection imported",
+        "comment": ["{0} is the number of connections imported (singular)"]
+    },
+    "{0} connections imported/{0} is the number of connections imported (plural)": {
+        "message": "{0} connections imported",
+        "comment": ["{0} is the number of connections imported (plural)"]
+    },
+    "{0} setting imported/{0} is the number of settings imported (singular)": {
+        "message": "{0} setting imported",
+        "comment": ["{0} is the number of settings imported (singular)"]
+    },
+    "{0} settings imported/{0} is the number of settings imported (plural)": {
+        "message": "{0} settings imported",
+        "comment": ["{0} is the number of settings imported (plural)"]
+    },
     "Highlights": "Highlights",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
@@ -1305,6 +1339,7 @@
     "Select Session:": "Select Session:",
     "View:": "View:",
     "Select a session...": "Select a session...",
+    "File (Read-Only)": "File (Read-Only)",
     "Creating session...": "Creating session...",
     "Create a new profiling session": "Create a new profiling session",
     "No templates available": "No templates available",
@@ -1318,16 +1353,44 @@
     "Clear all events (keeps session running)": "Clear all events (keeps session running)",
     "Auto-scroll enabled": "Auto-scroll enabled",
     "Auto-scroll disabled": "Auto-scroll disabled",
+    "Not available for read-only file sessions": "Not available for read-only file sessions",
+    "Cannot change session while active": "Cannot change session while active",
+    "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection./{0} is the XEL file name": {
+        "message": "Read-only disconnected mode for '{0}'. Cannot create or start live sessions without a database connection.",
+        "comment": ["{0} is the XEL file name"]
+    },
     "Running": "Running",
     "Paused": "Paused",
     "Stopped": "Stopped",
     "Not Started": "Not Started",
+    "Read-Only": "Read-Only",
     "Profiler: No session": "Profiler: No session",
     "Profiler Session Status": "Profiler Session Status",
     "{0} events/{0} is the number of events": {
         "message": "{0} events",
         "comment": ["{0} is the number of events"]
     },
+    "Export all captured events to a CSV file": "Export all captured events to a CSV file",
+    "No events to export": "No events to export",
+    "profiler_events": "profiler_events",
+    "Import File": "Import File",
+    "Step 1: Specify Input File": "Step 1: Specify Input File",
+    "Loading flat file import...": "Loading flat file import...",
+    "Loading table preview...": "Loading table preview...",
+    "Step 2: Preview Data": "Step 2: Preview Data",
+    "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.": "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+    "Step 3: Modify Columns": "Step 3: Modify Columns",
+    "Import Data": "Import Data",
+    "Step 4: Summary": "Step 4: Summary",
+    "Import Information": "Import Information",
+    "Import Status": "Import Status",
+    "Server Name": "Server Name",
+    "Table Name": "Table Name",
+    "Table Schema": "Table Schema",
+    "File to be imported": "File to be imported",
+    "Importing data...": "Importing data...",
+    "File imported successfully": "File imported successfully",
+    "Import New File": "Import New File",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -2628,7 +2691,6 @@
         "message": "Failed to export results: {0}",
         "comment": ["{0} is the error message"]
     },
-    "Azure Data Studio Migration": "Azure Data Studio Migration",
     "Locate an Azure Data Studio settings.json file to import": "Locate an Azure Data Studio settings.json file to import",
     "Ready for import": "Ready for import",
     "Needs attention": "Needs attention",
@@ -2712,6 +2774,13 @@
     "No saved connections found. Please create a connection first.": "No saved connections found. Please create a connection first.",
     "No profiler templates available": "No profiler templates available",
     "Session creation timed out": "Session creation timed out",
+    "Failed to open XEL file: {0}/{0} is the error message": {
+        "message": "Failed to open XEL file: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "The selected file is not a valid XEL file.": "The selected file is not a valid XEL file.",
+    "The XEL file was not found.": "The XEL file was not found.",
+    "Access to the XEL file was denied.": "Access to the XEL file was denied.",
     "Session name cannot be empty": "Session name cannot be empty",
     "Session name must be {0} characters or less/{0} is the maximum length": {
         "message": "Session name must be {0} characters or less",
@@ -2727,6 +2796,8 @@
         "message": "Engine: {0}",
         "comment": ["{0} is the engine type"]
     },
+    "Select XEL File": "Select XEL File",
+    "Extended Events Log Files": "Extended Events Log Files",
     "Profiler session '{0}' created successfully. Starting profiling.../{0} is the session name": {
         "message": "Profiler session '{0}' created successfully. Starting profiling...",
         "comment": ["{0} is the session name"]
@@ -2740,6 +2811,34 @@
         "message": "Stopping profiler session \"{0}\"...",
         "comment": ["{0} is the session name"]
     },
+    "Loading XEL file: {0}/{0} is the file name": {
+        "message": "Loading XEL file: {0}",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection./{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection/{0} is the file name": {
+        "message": "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
+        "comment": ["{0} is the file name"]
+    },
+    "File: {0}/{0} is the file name": {
+        "message": "File: {0}",
+        "comment": ["{0} is the file name"]
+    },
+    "Profiler events exported successfully to {0}/{0} is the file path": {
+        "message": "Profiler events exported successfully to {0}",
+        "comment": ["{0} is the file path"]
+    },
+    "Open File": "Open File",
+    "Failed to export profiler events: {0}/{0} is the error message": {
+        "message": "Failed to export profiler events: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?": "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    "Export & Close": "Export & Close",
+    "Close Without Export": "Close Without Export",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
     "Profiler is not supported on Microsoft Fabric SQL databases.": "Profiler is not supported on Microsoft Fabric SQL databases.",
@@ -2810,6 +2909,34 @@
         "comment": ["{0} is the error message"]
     },
     "Unable to load backup configuration. Please try again.": "Unable to load backup configuration. Please try again.",
+    "Starting '{0}'.../{0} is the service name": {
+        "message": "Starting '{0}'...",
+        "comment": ["{0} is the service name"]
+    },
+    "'{0}' started./{0} is the service name": {
+        "message": "'{0}' started.",
+        "comment": ["{0} is the service name"]
+    },
+    "Failed to start '{0}': {1}/{0} is the service name{1} is the error message": {
+        "message": "Failed to start '{0}': {1}",
+        "comment": ["{0} is the service name", "{1} is the error message"]
+    },
+    "Import Flat File (Preview)": "Import Flat File (Preview)",
+    "Database the table is created in": "Database the table is created in",
+    "Location of the file to be imported": "Location of the file to be imported",
+    "New Table Name": "New Table Name",
+    "CSV/TXT Files (*.csv;*.txt)": "CSV/TXT Files (*.csv;*.txt)",
+    "No databases found to import into.": "No databases found to import into.",
+    "Select file to import": "Select file to import",
+    "Database is required": "Database is required",
+    "Import file is required": "Import file is required",
+    "Table name is required": "Table name is required",
+    "Schema is required": "Schema is required",
+    "Error fetching the table preview.": "Error fetching the table preview.",
+    "Error fetching schemas for the selected database.": "Error fetching schemas for the selected database.",
+    "Loading schemas...": "Loading schemas...",
+    "No schemas found": "No schemas found",
+    "Failed to import file.": "Failed to import file.",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
