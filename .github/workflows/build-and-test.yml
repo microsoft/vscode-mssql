@@ -15,7 +15,7 @@ on:
     branches:
       - main
       - "release/**"
-      - sai/feb/Fix_sqlproj_PendingTests # TEMPORARY: Remove before merge once tests pass
+      - sai/feb/Cleanup_sqlproj_Tests # TEMPORARY: Remove before merge once tests pass
   workflow_dispatch:
 
 jobs:
