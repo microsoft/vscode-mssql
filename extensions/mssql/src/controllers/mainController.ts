@@ -113,6 +113,10 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
+import { FlatFileClient } from "../flatFile/flatFileClient";
+import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
  * The main controller class that initializes the extension
@@ -154,6 +158,8 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
+    public flatFileClient: FlatFileClient;
+    public flatFileProvider: FlatFileProvider;
 
     /**
      * The main controller constructor
@@ -659,6 +665,15 @@ export default class MainController implements vscode.Disposable {
             );
             vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
+            // Register XEL file custom editor provider
+            const xelProviderInstance = new this.ProfilerXelCustomEditorProvider(
+                this.profilerController,
+            );
+            vscode.window.registerCustomEditorProvider(
+                "mssql.profilerXelView",
+                xelProviderInstance,
+            );
+
             const self = this;
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
@@ -866,6 +881,11 @@ export default class MainController implements vscode.Disposable {
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
+
+        // Initialize flat file client
+        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
+            this.flatFileProvider = provider;
+        });
 
         /**
          * TODO: aaskhan
@@ -1407,6 +1427,38 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdFlatFileImport,
+                async (node: ConnectionNode) => {
+                    const connectionUri = this.connectionManager.getUriForConnection(
+                        node.connectionProfile,
+                    );
+
+                    const databases = await this.connectionManager.listDatabases(connectionUri);
+
+                    // If no databases found, show error message and return early
+                    if (databases.length === 0) {
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+                        );
+                        return;
+                    }
+
+                    const flatFileImportDialog = new FlatFileImportWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        SqlToolsServerClient.instance,
+                        this.connectionManager,
+                        this.flatFileProvider,
+                        node.connectionProfile,
+                        node.sessionId,
+                    );
+                    flatFileImportDialog.revealToForeground();
                 },
             ),
         );
@@ -3010,6 +3062,40 @@ export default class MainController implements vscode.Disposable {
                 planContents,
                 docName,
             );
+        }
+    };
+
+    /**
+     * Custom editor provider for XEL files.
+     * Opens XEL files in the SQL Profiler UI in read-only mode.
+     * Uses CustomReadonlyEditorProvider since XEL files are binary.
+     */
+    private ProfilerXelCustomEditorProvider = class
+        implements vscode.CustomReadonlyEditorProvider<vscode.CustomDocument>
+    {
+        constructor(public profilerController: ProfilerController) {}
+
+        public async openCustomDocument(uri: vscode.Uri): Promise<vscode.CustomDocument> {
+            // Return a simple custom document - the actual file reading is done by the backend
+            return {
+                uri,
+                dispose: () => {
+                    // No cleanup needed
+                },
+            };
+        }
+
+        public async resolveCustomEditor(
+            document: vscode.CustomDocument,
+            webviewPanel: vscode.WebviewPanel,
+        ): Promise<void> {
+            const filePath = document.uri.fsPath;
+
+            // Dispose the webview panel since we'll use our own profiler UI
+            webviewPanel.dispose();
+
+            // Open the XEL file in the Profiler UI
+            await this.profilerController.openXelFile(filePath);
         }
     };
 }

@@ -4,13 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
+import * as tar from "tar";
 import { spawn } from "child_process";
 import { arch, platform } from "os";
 import { PassThrough } from "stream";
+import fixPath from "fix-path";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
-    defaultContainerName,
+    defaultSqlServerContainerName,
     defaultPortNumber,
     docker,
     dockerDeploymentLoggerChannelName,
@@ -30,13 +33,12 @@ import {
 } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
-import fixPath from "fix-path";
+import { Dab } from "../sharedInterfaces/dab";
 import type Dockerode from "dockerode";
 import { getDockerodeClient } from "../docker/dockerodeClient";
 
@@ -58,7 +60,7 @@ export const dockerLogger = Logger.create(
     vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
 );
 
-const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
+export const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
 // Exported for testing purposes
 export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
@@ -555,8 +557,13 @@ export async function checkEngine(): Promise<DockerCommandParams> {
 /**
  * Checks that the provided container name is valid and unique.
  * If the name is empty, it generates a unique name based on the default container name.
+ * @param containerName The requested container name (can be empty for auto-generation)
+ * @param defaultName The default name to use when containerName is empty (defaults to SQL Server container name)
  */
-export async function validateContainerName(containerName: string): Promise<string> {
+export async function validateContainerName(
+    containerName: string,
+    defaultName: string = defaultSqlServerContainerName,
+): Promise<string> {
     try {
         const dockerClient = getDockerodeClient();
         const containerInfos = await dockerClient.listContainers({ all: true });
@@ -566,11 +573,11 @@ export async function validateContainerName(containerName: string): Promise<stri
         let newContainerName = "";
 
         if (containerName.trim() === "") {
-            newContainerName = defaultContainerName;
+            newContainerName = defaultName;
             let counter = 1;
 
             while (existingContainers.includes(newContainerName)) {
-                newContainerName = `${defaultContainerName}_${++counter}`;
+                newContainerName = `${defaultName}_${++counter}`;
             }
         } else if (
             !existingContainers.includes(containerName) &&
@@ -620,27 +627,44 @@ export function constructVersionTag(version: string): string {
 }
 
 /**
- * Pulls the SQL Server container image for the specified version.
+ * Pulls a container image from the registry.
+ * @param imageName The full image name including tag
+ * @param errorMessage The localized error message to use on failure
  */
-export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
+async function pullContainerImage(
+    imageName: string,
+    errorMessage: string,
+): Promise<DockerCommandParams> {
     try {
+        dockerLogger.appendLine(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
-        const imageTag = constructVersionTag(version);
-        const imageName = getSqlServerImageName(imageTag);
         const pullStream = await dockerClient.pull(imageName);
         await new Promise<void>((resolve, reject) => {
             dockerClient.modem.followProgress(pullStream, (error) =>
                 error ? reject(error) : resolve(),
             );
         });
+        dockerLogger.appendLine(`Container image ${imageName} pulled successfully.`);
         return { success: true };
     } catch (e) {
+        dockerLogger.appendLine(
+            `Failed to pull container image ${imageName}: ${getErrorMessage(e)}`,
+        );
         return {
             success: false,
-            error: LocalContainers.pullSqlServerContainerImageError,
+            error: errorMessage,
             fullErrorText: getErrorMessage(e),
         };
     }
+}
+
+/**
+ * Pulls the SQL Server container image for the specified version.
+ */
+export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
+    const imageTag = constructVersionTag(version);
+    const imageName = getSqlServerImageName(imageTag);
+    return pullContainerImage(imageName, LocalContainers.pullSqlServerContainerImageError);
 }
 
 /**
@@ -1129,6 +1153,212 @@ export async function checkContainerExists(name: string): Promise<boolean> {
         dockerLogger.appendLine(`Error checking if container exists: ${getErrorMessage(e)}`);
         return false;
     }
+}
+
+//#endregion
+
+//#region DAB (Data API Builder) Docker Functions
+
+/**
+ * Pulls the DAB container image from MCR
+ */
+export async function pullDabContainerImage(): Promise<DockerCommandParams> {
+    return pullContainerImage(Dab.DAB_CONTAINER_IMAGE, LocalContainers.dabPullImageError);
+}
+
+/**
+ * Starts a DAB Docker container with the specified parameters.
+ * The config file is copied into the container (not bind-mounted) so the
+ * temp file on the host can be deleted immediately after container creation.
+ * @param containerName Name for the container
+ * @param port Port to expose the DAB API on
+ * @param configFilePath Path to the DAB config file
+ */
+export async function startDabDockerContainer(
+    containerName: string,
+    port: number,
+    configFilePath: string,
+): Promise<DockerCommandParams> {
+    try {
+        dockerLogger.appendLine(
+            `Starting DAB container: ${containerName} on port ${port} with config ${configFilePath}`,
+        );
+
+        const dockerClient = getDockerodeClient();
+        const safeContainerName = sanitizeContainerInput(containerName);
+        const dabContainerPort = `${Dab.DAB_DEFAULT_PORT}/tcp`;
+        const hostPort = `${port}`;
+
+        const createContainerOptions: Dockerode.ContainerCreateOptions = {
+            Image: Dab.DAB_CONTAINER_IMAGE,
+            name: safeContainerName,
+            Cmd: ["--ConfigFileName", "/App/dab-config.json"],
+            ExposedPorts: {
+                [dabContainerPort]: {},
+            },
+            HostConfig: {
+                PortBindings: {
+                    [dabContainerPort]: [{ HostPort: hostPort }],
+                },
+            },
+        };
+
+        const container = await dockerClient.createContainer(createContainerOptions);
+
+        // Copy config file into the container instead of bind-mounting
+        // This allows the temp file to be deleted after container creation
+        // The file must be named 'dab-config.json' for proper extraction
+        const configDir = path.dirname(configFilePath);
+        const tarStream = tar.create(
+            {
+                gzip: false,
+                cwd: configDir,
+                portable: true,
+            },
+            ["dab-config.json"],
+        ) as unknown as NodeJS.ReadableStream;
+
+        await container.putArchive(tarStream, {
+            path: "/App",
+        });
+
+        await container.start();
+
+        dockerLogger.appendLine(`DAB container ${containerName} started successfully.`);
+        return {
+            success: true,
+            port,
+        };
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to start DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: LocalContainers.dabStartContainerError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Checks if the DAB container is ready to accept connections
+ * Polls the health endpoint until it responds or times out.
+ * Uses setTimeout loop to avoid overlapping requests (fetch timeout is 5s, poll interval is 1s).
+ * @param containerName Name of the container (for logging)
+ * @param port Port the DAB API is exposed on
+ */
+export async function checkIfDabContainerIsReady(
+    containerName: string,
+    port: number,
+): Promise<DockerCommandParams> {
+    const timeoutMs = 60_000; // 1 minute timeout for DAB
+    const intervalMs = 1000;
+    const start = Date.now();
+
+    dockerLogger.appendLine(
+        `Checking if DAB container ${containerName} is ready on port ${port}...`,
+    );
+
+    const poll = async (): Promise<DockerCommandParams> => {
+        // Check timeout before polling
+        if (Date.now() - start > timeoutMs) {
+            // Try to get container logs for debugging
+            try {
+                const container = await getContainerByName(containerName);
+                if (container) {
+                    const logs = await container.logs({
+                        stdout: true,
+                        stderr: true,
+                        tail: 50,
+                    });
+                    dockerLogger.appendLine(`DAB container logs:\n${logs.toString()}`);
+                }
+            } catch {
+                // Ignore log retrieval errors
+            }
+            return {
+                success: false,
+                error: LocalContainers.dabContainerReadyTimeout,
+            };
+        }
+
+        try {
+            // Use native fetch to check health endpoint
+            const response = await fetch(`http://localhost:${port}/`, {
+                method: "GET",
+                signal: AbortSignal.timeout(5000),
+            });
+
+            // DAB returns various status codes, but any response means it's running
+            if (response.status >= 200 && response.status < 500) {
+                dockerLogger.appendLine(
+                    `DAB container ${containerName} is ready! (HTTP ${response.status})`,
+                );
+                return { success: true, port };
+            }
+        } catch {
+            // Ignore errors and retry - container may not be ready yet
+        }
+
+        // Schedule next poll after current attempt finishes
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+        return poll();
+    };
+
+    return poll();
+}
+
+/**
+ * Stops and removes a DAB container
+ * @param containerName Name of the container to stop and remove
+ */
+export async function stopAndRemoveDabContainer(
+    containerName: string,
+): Promise<DockerCommandParams> {
+    try {
+        const container = await getContainerByName(containerName);
+        if (!container) {
+            dockerLogger.appendLine(`DAB container ${containerName} does not exist.`);
+            return { success: true }; // Container doesn't exist, consider it removed
+        }
+
+        dockerLogger.appendLine(`Stopping DAB container: ${containerName}`);
+        try {
+            await container.stop();
+        } catch {
+            // Container might already be stopped
+        }
+
+        dockerLogger.appendLine(`Removing DAB container: ${containerName}`);
+        await container.remove();
+
+        dockerLogger.appendLine(`DAB container ${containerName} stopped and removed.`);
+        return { success: true };
+    } catch (e) {
+        dockerLogger.appendLine(`Failed to stop/remove DAB container: ${getErrorMessage(e)}`);
+        return {
+            success: false,
+            error: LocalContainers.dabStopContainerError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
+}
+
+/**
+ * Validates and returns a unique container name for DAB
+ * @param containerName The requested container name (can be empty for auto-generation)
+ */
+export async function validateDabContainerName(containerName: string): Promise<string> {
+    return validateContainerName(containerName, Dab.DAB_DEFAULT_CONTAINER_NAME);
+}
+
+/**
+ * Finds an available port for the DAB container
+ * @param preferredPort The preferred port to use if available
+ */
+export async function findAvailableDabPort(
+    preferredPort: number = Dab.DAB_DEFAULT_PORT,
+): Promise<number> {
+    return findAvailablePort(preferredPort);
 }
 
 //#endregion

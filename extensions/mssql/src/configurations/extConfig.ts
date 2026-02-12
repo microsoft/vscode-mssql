@@ -46,6 +46,22 @@ export default class ExtConfig implements IConfigUtils {
         return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
+    public getFlatFileServiceDownloadUrl(): string {
+        return this.getFlatFileConfigValue(Constants.sqlToolsServiceDownloadUrlConfigKey);
+    }
+
+    public getFlatFileInstallDirectory(): string {
+        return this.getFlatFileConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
+    }
+
+    public getFlatFileExecutableFiles(): string[] {
+        return this.getFlatFileConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
+    }
+
+    public getFlatFilePackageVersion(): string {
+        return this.getFlatFileConfigValue(Constants.sqlToolsServiceVersionConfigKey);
+    }
+
     public useServiceVersion(version: number): void {
         return this._config.useServiceVersion(version);
     }
@@ -60,6 +76,16 @@ export default class ExtConfig implements IConfigUtils {
         );
         if (!configValue) {
             configValue = this._config.getSqlToolsConfigValue(configKey);
+        }
+        return configValue;
+    }
+
+    public getFlatFileConfigValue(configKey: string): any {
+        let configValue: string = <string>(
+            this.getExtensionConfig(`${Constants.sqlToolsServiceConfigKey}.${configKey}`)
+        );
+        if (!configValue) {
+            configValue = this._config.getFlatFileConfigValue(configKey);
         }
         return configValue;
     }

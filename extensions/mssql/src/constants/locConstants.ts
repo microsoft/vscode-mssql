@@ -1310,6 +1310,40 @@ export class LocalContainers {
     public static sqlServer2025ArmErrorTooltip = l10n.t(
         "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
     );
+
+    // DAB (Data API Builder) deployment strings
+    public static dabContainerNameInvalidOrInUse = l10n.t(
+        "Container name is invalid or already in use",
+    );
+    public static dabPortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabStartContainerMissingParams = l10n.t(
+        "Container name, port, and config content are required to start the container.",
+    );
+    public static dabFailedToStartContainer = l10n.t("Failed to start DAB container.");
+    public static dabCheckContainerMissingParams = l10n.t(
+        "Container name and port are required to check container readiness.",
+    );
+    public static dabUnknownDeploymentStep = (step: number) =>
+        l10n.t({
+            message: "Unknown deployment step: {0}",
+            args: [step],
+            comment: ["{0} is the deployment step number"],
+        });
+    public static dabPullImageError = l10n.t(
+        "Failed to pull DAB container image. Please check your network connection.",
+    );
+    public static dabStartContainerError = l10n.t(
+        "Failed to start DAB container. Please check the Docker logs for details.",
+    );
+    public static dabContainerReadyTimeout = l10n.t(
+        "DAB container failed to become ready within the timeout period.",
+    );
+    public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
 }
 
 export class UserSurvey {
@@ -2729,6 +2763,17 @@ export class Profiler {
     public static noTemplatesAvailable = l10n.t("No profiler templates available");
     public static sessionCreationTimedOut = l10n.t("Session creation timed out");
 
+    // XEL file error messages
+    public static failedToOpenXelFile = (error: string) =>
+        l10n.t({
+            message: "Failed to open XEL file: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static invalidXelFile = l10n.t("The selected file is not a valid XEL file.");
+    public static xelFileNotFound = l10n.t("The XEL file was not found.");
+    public static xelFileAccessDenied = l10n.t("Access to the XEL file was denied.");
+
     // Validation messages
     public static sessionNameEmpty = l10n.t("Session name cannot be empty");
     public static sessionNameTooLong = (maxLength: number) =>
@@ -2753,6 +2798,8 @@ export class Profiler {
             args: [engineType],
             comment: ["{0} is the engine type"],
         });
+    public static selectXelFile = l10n.t("Select XEL File");
+    public static xelFileFilter = l10n.t("Extended Events Log Files");
 
     // Success messages
     public static sessionCreatedSuccessfully = (sessionName: string) =>
@@ -2776,6 +2823,26 @@ export class Profiler {
             args: [sessionName],
             comment: ["{0} is the session name"],
         });
+    public static loadingXelFile = (fileName: string) =>
+        l10n.t({
+            message: "Loading XEL file: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedNotification = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection.",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
+    public static xelFileReadOnlyDisconnectedTooltip = (fileName: string) =>
+        l10n.t({
+            message:
+                "Profiler is in read-only and disconnected mode for XEL file '{0}' and cannot start or create live sessions without a database connection",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
 
     // Status bar
     public static statusBarNoSession = l10n.t("Profiler: No session");
@@ -2784,13 +2851,43 @@ export class Profiler {
     public static statePaused = l10n.t("Paused");
     public static stateStopped = l10n.t("Stopped");
     public static stateNotStarted = l10n.t("Not Started");
+    public static stateReadOnly = l10n.t("Read-Only");
     public static eventsCount = (count: number) =>
         l10n.t({
             message: "{0} events",
             args: [count],
             comment: ["{0} is the number of events"],
         });
+    public static fileSessionLabel = (fileName: string) =>
+        l10n.t({
+            message: "File: {0}",
+            args: [fileName],
+            comment: ["{0} is the file name"],
+        });
 
+    // Export messages
+    public static defaultExportFileName = l10n.t("profiler_events");
+    public static exportToCsv = l10n.t("Export to CSV");
+    public static exportSuccess = (filePath: string) =>
+        l10n.t({
+            message: "Profiler events exported successfully to {0}",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    public static openFile = l10n.t("Open File");
+    public static exportFailed = (error: string) =>
+        l10n.t({
+            message: "Failed to export profiler events: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+
+    // Close prompt messages
+    public static unexportedEventsMessage = l10n.t(
+        "You have captured Profiler events that have not been exported. If you close now, you will lose all captured events. Do you want to export them to a CSV file?",
+    );
+    public static exportAndClose = l10n.t("Export & Close");
+    public static closeWithoutExport = l10n.t("Close Without Export");
     // Database selection for Azure SQL
     public static selectDatabaseForProfiler = l10n.t(
         "Select a database for profiling (Azure SQL requires a specific database)",
@@ -2898,4 +2995,42 @@ export class BackupDatabase {
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
     );
+}
+
+export class FlatFileImport {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
+    public static loadingSchemas = l10n.t("Loading schemas...");
+    public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
 }

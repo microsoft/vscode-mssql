@@ -12,13 +12,14 @@ import * as os from "os";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import { LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
-import { defaultContainerName, Platform } from "../../src/constants/constants";
+import { defaultSqlServerContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
 import { stubTelemetry } from "./utils";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 import * as dockerodeClient from "../../src/docker/dockerodeClient";
 import { PassThrough } from "stream";
+import * as fs from "fs";
 
 chai.use(sinonChai);
 
@@ -59,6 +60,77 @@ suite("Docker Utilities", () => {
                     ),
         },
     });
+
+    type SpawnProcessOptions = {
+        stdoutOutput?: string;
+        stderrOutput?: string;
+        closeCode?: number;
+        emitError?: Error;
+        includePipe?: boolean;
+        includeStdin?: boolean;
+        dataDelayMs?: number;
+        closeDelayMs?: number;
+    };
+
+    const createSpawnProcess = (options: SpawnProcessOptions = {}) => {
+        const {
+            stdoutOutput = "",
+            stderrOutput = "",
+            closeCode,
+            emitError,
+            includePipe = false,
+            includeStdin = false,
+            dataDelayMs = 0,
+            closeDelayMs = 5,
+        } = options;
+
+        const stdout = {
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "data") {
+                    setTimeout(() => callback(stdoutOutput), dataDelayMs);
+                }
+            }),
+            ...(includePipe ? { pipe: sinon.stub() } : {}),
+        };
+
+        const stderr = {
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "data") {
+                    setTimeout(() => callback(stderrOutput), dataDelayMs);
+                }
+            }),
+        };
+
+        return {
+            stdout,
+            stderr,
+            ...(includeStdin ? { stdin: { end: sinon.stub() } } : {}),
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "close" && closeCode !== undefined) {
+                    setTimeout(() => callback(closeCode), closeDelayMs);
+                }
+                if (event === "error" && emitError) {
+                    setTimeout(() => callback(emitError), dataDelayMs);
+                }
+            }),
+        } as any;
+    };
+
+    const createSpawnSuccessProcess = (
+        stdoutOutput: string = "",
+        options: Omit<SpawnProcessOptions, "stdoutOutput" | "closeCode" | "emitError"> = {},
+    ) => createSpawnProcess({ stdoutOutput, closeCode: 0, ...options });
+
+    const createSpawnFailureByExitProcess = (
+        stderrOutput: string,
+        closeCode: number = 1,
+        options: Omit<SpawnProcessOptions, "stderrOutput" | "closeCode" | "emitError"> = {},
+    ) => createSpawnProcess({ stderrOutput, closeCode, ...options });
+
+    const createSpawnFailureByErrorProcess = (
+        error: Error,
+        options: Omit<SpawnProcessOptions, "emitError" | "closeCode"> = {},
+    ) => createSpawnProcess({ emitError: error, ...options });
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -247,31 +319,9 @@ suite("Docker Utilities", () => {
         const archStub = sandbox.stub(os, "arch");
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
-        // Helper to create mock process that succeeds
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-                pipe: sinon.stub(), // For piped commands
-            },
-            stderr: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(""), 0);
-                }),
-            },
-            stdin: { end: sinon.stub() }, // For piped commands
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-                if (event === "error") {
-                    /* no-op for success case */
-                }
-            }),
-        });
-
         platformStub.returns(Platform.Linux);
         archStub.returns("x64");
-        spawnStub.returns(createSuccessProcess("") as any);
+        spawnStub.returns(createSpawnSuccessProcess(""));
 
         const result = await dockerUtils.checkEngine();
         expect(result.error).to.equal(undefined);
@@ -284,45 +334,33 @@ suite("Docker Utilities", () => {
         const spawnStub = sandbox.stub(childProcess, "spawn");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
 
-        // Helper to create mock process that succeeds
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-                pipe: sinon.stub(),
-            },
-            stderr: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(""), 0);
-                }),
-            },
-            stdin: { end: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-                if (event === "error") {
-                    /* no-op for success case */
-                }
-            }),
-        });
-
         platformStub.returns(Platform.Windows);
         archStub.returns("x64");
         messageStub.resolves("Yes" as any);
 
-        spawnStub
-            .onFirstCall()
-            .returns(
-                createSuccessProcess(
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "powershell.exe") {
+                return createSpawnSuccessProcess(
                     "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
-                ) as any,
-            );
-        spawnStub.onSecondCall().returns(createSuccessProcess(Platform.Windows) as any);
-        spawnStub.onThirdCall().returns(createSuccessProcess("") as any);
+                );
+            }
+
+            if (
+                command === "docker" &&
+                args?.[0] === "info" &&
+                args?.[1] === "--format" &&
+                args?.[2] === "{{.OSType}}"
+            ) {
+                // Force switch path.
+                return createSpawnSuccessProcess(Platform.Windows);
+            }
+
+            return createSpawnSuccessProcess("");
+        });
 
         const result = await dockerUtils.checkEngine();
         expect(result.success).to.be.true;
-        expect(spawnStub).to.have.been.calledThrice;
+        expect(spawnStub.callCount).to.be.greaterThanOrEqual(3);
     });
 
     test("checkEngine: should fail when Windows user cancels engine switch", async () => {
@@ -331,40 +369,29 @@ suite("Docker Utilities", () => {
         const spawnStub = sandbox.stub(childProcess, "spawn");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
 
-        // Helper to create mock process that succeeds
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-                pipe: sinon.stub(),
-            },
-            stderr: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(""), 0);
-                }),
-            },
-            stdin: { end: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-                if (event === "error") {
-                    /* no-op for success case */
-                }
-            }),
-        });
-
         platformStub.returns(Platform.Windows);
         archStub.returns("x64");
         messageStub.resolves(undefined); // User cancels
 
-        spawnStub
-            .onFirstCall()
-            .returns(
-                createSuccessProcess(
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "powershell.exe") {
+                return createSpawnSuccessProcess(
                     "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
-                ) as any,
-            );
-        spawnStub.onSecondCall().returns(createSuccessProcess(Platform.Windows) as any);
+                );
+            }
+
+            if (
+                command === "docker" &&
+                args?.[0] === "info" &&
+                args?.[1] === "--format" &&
+                args?.[2] === "{{.OSType}}"
+            ) {
+                // Force switch prompt, then cancel.
+                return createSpawnSuccessProcess(Platform.Windows);
+            }
+
+            return createSpawnSuccessProcess("");
+        });
 
         const result = await dockerUtils.checkEngine();
         expect(!result.success).to.be.true;
@@ -402,29 +429,15 @@ suite("Docker Utilities", () => {
         const archStub = sandbox.stub(os, "arch");
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
-        // Helper to create mock process that fails
-        const createFailureProcess = (errorMsg: string) => ({
-            stdout: {
-                on: sinon.stub(),
-                pipe: sinon.stub(),
-            },
-            stderr: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") callback(errorMsg);
-                }),
-            },
-            stdin: { end: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(1), 10);
-                if (event === "error") {
-                    /* no-op for controlled failure */
-                }
-            }),
-        });
-
         platformStub.returns(Platform.Linux);
         archStub.returns("x64");
-        spawnStub.returns(createFailureProcess("Permission denied") as any);
+        spawnStub.returns(
+            createSpawnFailureByExitProcess("Permission denied", 1, {
+                includePipe: true,
+                includeStdin: true,
+                closeDelayMs: 10,
+            }),
+        );
 
         const result = await dockerUtils.checkEngine();
         expect(!result.success).to.be.true;
@@ -437,32 +450,19 @@ suite("Docker Utilities", () => {
         const archStub = sandbox.stub(os, "arch");
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
-        // Helper to create mock process that fails with error event
-        const createFailureProcess = (errorMsg: string) => ({
-            stdout: {
-                on: sinon.stub(),
-                pipe: sinon.stub(),
-            },
-            stderr: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") callback(errorMsg);
-                }),
-            },
-            stdin: { end: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(new Error(errorMsg)), 0);
-                if (event === "close") {
-                    /* won't be reached if error is triggered first */
-                }
-            }),
-        });
-
         platformStub.returns(Platform.Mac);
         archStub.returns("arm");
 
         // For Mac ARM Rosetta error, the cat command fails (file doesn't exist or permission denied)
-        const dockerProcess = createFailureProcess("Rosetta not Enabled");
-        const grepProcess = createFailureProcess(""); // This won't be reached if dockerProcess fails
+        const dockerProcess = createSpawnFailureByErrorProcess(new Error("Rosetta not Enabled"), {
+            stderrOutput: "Rosetta not Enabled",
+            includePipe: true,
+            includeStdin: true,
+        });
+        const grepProcess = createSpawnFailureByErrorProcess(new Error(""), {
+            includePipe: true,
+            includeStdin: true,
+        }); // This won't be reached if dockerProcess fails
         spawnStub.onFirstCall().returns(dockerProcess as any); // cat settings file fails
         spawnStub.onSecondCall().returns(grepProcess as any); // grep command
 
@@ -492,11 +492,11 @@ suite("Docker Utilities", () => {
 
         // 1. Empty name => generate defaultContainerName_2
         listContainersStub.resolves([
-            { Names: [`/${defaultContainerName}`] },
-            { Names: [`/${defaultContainerName}_1`] },
+            { Names: [`/${defaultSqlServerContainerName}`] },
+            { Names: [`/${defaultSqlServerContainerName}_1`] },
         ]);
         let result = await dockerUtils.validateContainerName("");
-        expect(result).to.equal(`${defaultContainerName}_2`);
+        expect(result).to.equal(`${defaultSqlServerContainerName}_2`);
 
         // 2. Valid name, not taken => return as-is
         listContainersStub.resolves([{ Names: ["/existing_one"] }, { Names: ["/used"] }]);
@@ -522,28 +522,7 @@ suite("Docker Utilities", () => {
     test("getDockerPath: handles success, invalid path, and failure cases", async () => {
         const executable = "DockerCli.exe";
         const spawnStub = sandbox.stub(childProcess, "spawn");
-
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
-        });
-
-        // Helper to create mock process that fails
-        const createFailureProcess = (error: Error) => ({
-            stdout: { on: sinon.stub() },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(error), 0);
-            }),
-        });
+        let getDockerPathCalls = 0;
 
         // Case 1: Valid Docker path
         const validPath = path.join(
@@ -555,7 +534,23 @@ suite("Docker Utilities", () => {
             "bin",
             "docker.exe",
         );
-        spawnStub.onCall(0).returns(createSuccessProcess(validPath) as any);
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (
+                command === "powershell.exe" &&
+                args?.[0] === "-Command" &&
+                args?.[1] === "(Get-Command docker).Source"
+            ) {
+                if (getDockerPathCalls++ === 0) {
+                    return createSpawnSuccessProcess(validPath);
+                }
+                if (getDockerPathCalls === 2) {
+                    return createSpawnSuccessProcess(invalidPath);
+                }
+                return createSpawnFailureByErrorProcess(new Error("Command failed"));
+            }
+
+            return createSpawnSuccessProcess("");
+        });
 
         const expectedValidResult = path.join(
             "C:",
@@ -569,18 +564,13 @@ suite("Docker Utilities", () => {
 
         // Case 2: Invalid Docker path structure
         const invalidPath = path.join("C:", "No", "Docker", "Here", "docker.exe");
-        spawnStub.onCall(1).returns(createSuccessProcess(invalidPath) as any);
-
         const result2 = await dockerUtils.getDockerPath(executable);
         expect(result2, "Should return empty string for invalid path structure").to.equal("");
 
         // Case 3: execCommand throws error
-        spawnStub.onCall(2).returns(createFailureProcess(new Error("Command failed")) as any);
-
         const result3 = await dockerUtils.getDockerPath(executable);
         expect(result3, "Should return empty string when command fails").to.equal("");
-
-        expect(spawnStub).to.have.been.calledThrice;
+        expect(getDockerPathCalls).to.equal(3);
     });
 
     test("startSqlServerDockerContainer: success and failure cases", async () => {
@@ -660,21 +650,7 @@ suite("Docker Utilities", () => {
 
     test("startDocker: should return success when Docker is already running", async () => {
         const spawnStub = sandbox.stub(childProcess, "spawn");
-
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
-        });
-
-        spawnStub.returns(createSuccessProcess("Docker is running") as any);
+        spawnStub.returns(createSpawnSuccessProcess("Docker is running"));
 
         const result = await dockerUtils.startDocker();
         expect(result.success, "Docker is already running, should be successful").to.be.true;
@@ -684,6 +660,7 @@ suite("Docker Utilities", () => {
     test("startDocker: should start Docker successfully on Windows when not running", async () => {
         sandbox.stub(os, "platform").returns(Platform.Windows);
         const spawnStub = sandbox.stub(childProcess, "spawn");
+        let dockerInfoChecks = 0;
 
         const dockerPath = path.join(
             "C:",
@@ -694,96 +671,72 @@ suite("Docker Utilities", () => {
             "bin",
             "docker.exe",
         );
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
-        });
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                if (dockerInfoChecks++ === 0) {
+                    return createSpawnFailureByErrorProcess(new Error("Docker not running"));
+                }
+                return createSpawnSuccessProcess("Docker Running");
+            }
 
-        // Helper to create mock process that fails
-        const createFailureProcess = (error: Error) => ({
-            stdout: { on: sinon.stub() },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(error), 0);
-            }),
-        });
+            if (
+                command === "powershell.exe" &&
+                args?.[0] === "-Command" &&
+                args?.[1] === "(Get-Command docker).Source"
+            ) {
+                return createSpawnSuccessProcess(dockerPath);
+            }
 
-        spawnStub
-            .onFirstCall()
-            .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING (initial check)
-        spawnStub.onSecondCall().returns(createSuccessProcess(dockerPath) as any); // GET_DOCKER_PATH
-        spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
-        // For the polling loop that checks if Docker started - make it succeed immediately
-        spawnStub.onCall(3).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
+            if (command === "cmd.exe" && args?.[0] === "/c" && args?.[1] === "start") {
+                return createSpawnSuccessProcess("Started Docker");
+            }
+
+            return createSpawnSuccessProcess("");
+        });
 
         const result = await dockerUtils.startDocker();
         expect(result.error).to.equal(undefined);
         expect(result.success, "Docker should start successfully on Windows").to.be.true;
-        expect(spawnStub.callCount).to.equal(4);
+        expect(spawnStub.callCount).to.be.greaterThanOrEqual(4);
     });
 
     test("startDocker: should start Docker successfully on Linux when not running", async () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const spawnStub = sandbox.stub(childProcess, "spawn");
+        let dockerInfoChecks = 0;
 
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                if (dockerInfoChecks++ === 0) {
+                    return createSpawnFailureByErrorProcess(new Error("Docker not running"));
+                }
+                return createSpawnSuccessProcess("Docker Running");
+            }
+
+            if (command === "systemctl" && args?.[0] === "start" && args?.[1] === "docker") {
+                return createSpawnSuccessProcess("Started Docker");
+            }
+
+            // Allow auxiliary process calls (for example from PATH normalization) to succeed.
+            return createSpawnSuccessProcess("");
         });
-
-        // Helper to create mock process that fails
-        const createFailureProcess = (error: Error) => ({
-            stdout: { on: sinon.stub() },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(error), 0);
-            }),
-        });
-
-        spawnStub
-            .onFirstCall()
-            .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING (initial check)
-        spawnStub.onSecondCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
-        // For the polling loop that checks if Docker started - make it succeed immediately
-        spawnStub.onCall(2).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
 
         const result = await dockerUtils.startDocker();
         expect(result.success, "Docker should start successfully on Linux").to.be.true;
-        expect(spawnStub.callCount).to.equal(3);
+        expect(spawnStub.callCount).to.be.greaterThanOrEqual(3);
     });
 
     test("startDocker: should fail on unsupported platform", async () => {
         sandbox.stub(os, "platform").returns("fakePlatform" as Platform);
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
-        // Helper to create mock process that fails
-        const createFailureProcess = (error: Error) => ({
-            stdout: { on: sinon.stub() },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(error), 0);
-            }),
-        });
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                return createSpawnFailureByErrorProcess(new Error("Docker not running"));
+            }
 
-        spawnStub
-            .onFirstCall()
-            .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING
+            return createSpawnFailureByErrorProcess(new Error("Unsupported platform"));
+        });
 
         const result = await dockerUtils.startDocker();
         expect(!result.success, "Should not succeed on unsupported platform").to.be.true;
@@ -795,22 +748,26 @@ suite("Docker Utilities", () => {
     test("startDocker: should fail on Windows when Docker is not installed", async () => {
         sandbox.stub(os, "platform").returns(Platform.Windows);
         const spawnStub = sandbox.stub(childProcess, "spawn");
+        let dockerInfoChecks = 0;
 
-        // Helper to create mock process that fails
-        const createFailureProcess = (error: Error) => ({
-            stdout: { on: sinon.stub() },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "error") setTimeout(() => callback(error), 0);
-            }),
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                if (dockerInfoChecks++ === 0) {
+                    return createSpawnFailureByErrorProcess(new Error("Docker not running"));
+                }
+                return createSpawnFailureByErrorProcess(new Error("Docker still not running"));
+            }
+
+            if (
+                command === "powershell.exe" &&
+                args?.[0] === "-Command" &&
+                args?.[1] === "(Get-Command docker).Source"
+            ) {
+                return createSpawnFailureByErrorProcess(new Error("Docker not installed"));
+            }
+
+            return createSpawnFailureByErrorProcess(new Error("Docker command failed"));
         });
-
-        spawnStub
-            .onFirstCall()
-            .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING
-        spawnStub
-            .onSecondCall()
-            .returns(createFailureProcess(new Error("Docker not installed")) as any); // GET_DOCKER_PATH
 
         const result = await dockerUtils.startDocker();
         expect(!result.success, "Should fail if Docker is not installed").to.be.true;
@@ -862,21 +819,15 @@ suite("Docker Utilities", () => {
         });
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                return createSpawnSuccessProcess("Docker is running");
+            }
+
+            return createSpawnSuccessProcess("");
         });
 
         // Case 1: Container is already running, should return success
-        spawnStub.onFirstCall().returns(createSuccessProcess("Docker is running") as any); // START_DOCKER
         listContainersStub
             .onCall(0)
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // checkContainerExists
@@ -891,12 +842,10 @@ suite("Docker Utilities", () => {
             mockObjectExplorerService,
         );
         expect(result, "Should return success when container is already running").to.be.true;
-        spawnStub.resetHistory();
         listContainersStub.resetHistory();
         inspectStub.resetHistory();
 
         // Case 2: Container is not running, should restart, send telemetry, and return success
-        spawnStub.onFirstCall().returns(createSuccessProcess("Docker is running") as any); // START_DOCKER
         listContainersStub
             .onCall(0)
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]); // checkContainerExists
@@ -1090,21 +1039,15 @@ suite("Docker Utilities", () => {
         });
         sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
 
-        // Helper to create mock process that succeeds with output
-        const createSuccessProcess = (output: string) => ({
-            stdout: {
-                on: sinon.stub().callsFake((event, callback) => {
-                    if (event === "data") setTimeout(() => callback(output), 0);
-                }),
-            },
-            stderr: { on: sinon.stub() },
-            on: sinon.stub().callsFake((event, callback) => {
-                if (event === "close") setTimeout(() => callback(0), 5);
-            }),
+        spawnStub.callsFake((command: string, args?: ReadonlyArray<string>) => {
+            if (command === "docker" && args?.[0] === "info") {
+                return createSpawnSuccessProcess("Docker is running");
+            }
+
+            return createSpawnSuccessProcess("");
         });
 
         // Docker is running, and container exists
-        spawnStub.onFirstCall().returns(createSuccessProcess("Docker is running") as any); // START_DOCKER
         listContainersStub
             .onFirstCall()
             .resolves([{ Id: "container-id", Names: [`/${containerName}`] }]);
@@ -1117,8 +1060,6 @@ suite("Docker Utilities", () => {
         expect(result.success, "Should return true if container exists").to.be.true;
 
         // Docker is running, container does not exist
-        spawnStub.resetHistory();
-        spawnStub.onFirstCall().returns(createSuccessProcess("Docker is running") as any); // START_DOCKER
         listContainersStub.onSecondCall().resolves([]);
 
         result = await dockerUtils.prepareForDockerContainerCommand(
@@ -1132,8 +1073,6 @@ suite("Docker Utilities", () => {
             .to.have.been.calledOnce;
 
         // finding container returns an error
-        spawnStub.resetHistory();
-        spawnStub.onFirstCall().returns(createSuccessProcess("Docker is running") as any); // START_DOCKER
         listContainersStub.onThirdCall().rejects(new Error("Something went wrong"));
 
         result = await dockerUtils.prepareForDockerContainerCommand(
@@ -1259,4 +1198,316 @@ suite("Docker Utilities", () => {
         errorLinkText = dockerUtils.getEngineErrorLinkText();
         platformStub.resetBehavior();
     });
+
+    // ============================================
+    // DAB (Data API Builder) Docker Function Tests
+    // ============================================
+
+    test("pullDabContainerImage: should pull the DAB container image from the docker registry", async () => {
+        const followProgressStub = sandbox
+            .stub()
+            .callsFake(
+                (
+                    _stream: NodeJS.ReadableStream,
+                    callback: (error: Error | null, result: unknown[]) => void,
+                ) => callback(null, []),
+            );
+        const pullStub = sandbox.stub().resolves(new PassThrough());
+        const dockerClientMock = createDockerClientMock({
+            pull: pullStub,
+            followProgress: followProgressStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.pullDabContainerImage();
+        expect(pullStub).to.have.been.calledOnce;
+        expect(result.success).to.be.true;
+    });
+
+    test("pullDabContainerImage: should return error when pull fails", async () => {
+        const pullStub = sandbox.stub().rejects(new Error("Network error"));
+        const dockerClientMock = createDockerClientMock({
+            pull: pullStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.pullDabContainerImage();
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("Failed to pull DAB container image");
+        expect(result.fullErrorText).to.include("Network error");
+    });
+
+    test("startDabDockerContainer: should start a DAB container successfully", async () => {
+        const startStub = sandbox.stub().resolves();
+        // putArchive must consume the stream before resolving to avoid ENOENT errors
+        // when the temp file is cleaned up before tar finishes reading
+        const putArchiveStub = sandbox.stub().callsFake((stream: NodeJS.ReadableStream) => {
+            return new Promise<void>((resolve) => {
+                stream.on("end", resolve);
+                stream.on("error", resolve);
+                stream.resume(); // Consume the stream
+            });
+        });
+        const createContainerStub = sandbox.stub().resolves({
+            start: startStub,
+            putArchive: putArchiveStub,
+        });
+        const dockerClientMock = createDockerClientMock({
+            createContainer: createContainerStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        // Create a real temp file since tar.create is non-configurable and can't be stubbed
+        const { configFilePath, tempDir } = createTempFile();
+
+        try {
+            const result = await dockerUtils.startDabDockerContainer(
+                "test-dab-container",
+                5000,
+                configFilePath,
+            );
+
+            expect(createContainerStub).to.have.been.calledOnce;
+            expect(putArchiveStub).to.have.been.calledOnce;
+            expect(startStub).to.have.been.calledOnce;
+            expect(result.success).to.be.true;
+            expect(result.port).to.equal(5000);
+
+            // Verify the container creation options
+            const createOptions = createContainerStub.firstCall.args[0];
+            expect(createOptions.name).to.equal("test-dab-container");
+            expect(createOptions.Cmd).to.deep.equal(["--ConfigFileName", "/App/dab-config.json"]);
+        } finally {
+            // Cleanup temp files
+            fs.unlinkSync(configFilePath);
+            fs.rmdirSync(tempDir);
+        }
+    });
+
+    test("startDabDockerContainer: should return error when container creation fails", async () => {
+        const createContainerStub = sandbox.stub().rejects(new Error("Container creation failed"));
+        const dockerClientMock = createDockerClientMock({
+            createContainer: createContainerStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        // Create a real temp file since tar.create is non-configurable and can't be stubbed
+        const { configFilePath, tempDir } = createTempFile();
+
+        try {
+            const result = await dockerUtils.startDabDockerContainer(
+                "test-dab-container",
+                5000,
+                configFilePath,
+            );
+
+            expect(result.success).to.be.false;
+            expect(result.error).to.include("Failed to start DAB container");
+            expect(result.fullErrorText).to.include("Container creation failed");
+        } finally {
+            // Cleanup temp files
+            fs.unlinkSync(configFilePath);
+            fs.rmdirSync(tempDir);
+        }
+    });
+
+    test("checkIfDabContainerIsReady: should return success when container responds", async () => {
+        // Mock fetch to return successful response
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().resolves({
+            status: 200,
+        } as Response);
+
+        const result = await dockerUtils.checkIfDabContainerIsReady("test-dab-container", 5000);
+
+        expect(result.success).to.be.true;
+        expect(result.port).to.equal(5000);
+
+        // Restore original fetch
+        global.fetch = originalFetch;
+    });
+
+    test("checkIfDabContainerIsReady: should handle various HTTP status codes", async () => {
+        // Mock fetch to return 404 (which is still considered "running")
+        const originalFetch = global.fetch;
+        global.fetch = sandbox.stub().resolves({
+            status: 404,
+        } as Response);
+
+        const result = await dockerUtils.checkIfDabContainerIsReady("test-dab-container", 5000);
+
+        expect(result.success).to.be.true;
+
+        // Restore original fetch
+        global.fetch = originalFetch;
+    });
+
+    test("stopAndRemoveDabContainer: should stop and remove a DAB container successfully", async () => {
+        const stopStub = sandbox.stub().resolves();
+        const removeStub = sandbox.stub().resolves();
+        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({
+                stop: stopStub,
+                remove: removeStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.stopAndRemoveDabContainer("test-dab-container");
+
+        expect(stopStub).to.have.been.calledOnce;
+        expect(removeStub).to.have.been.calledOnce;
+        expect(result.success).to.be.true;
+    });
+
+    test("stopAndRemoveDabContainer: should return success if container does not exist", async () => {
+        const listContainersStub = sandbox.stub().resolves([]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.stopAndRemoveDabContainer("nonexistent-container");
+
+        expect(result.success).to.be.true;
+    });
+
+    test("stopAndRemoveDabContainer: should handle already stopped container", async () => {
+        const stopStub = sandbox.stub().rejects(new Error("Container already stopped"));
+        const removeStub = sandbox.stub().resolves();
+        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({
+                stop: stopStub,
+                remove: removeStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.stopAndRemoveDabContainer("test-dab-container");
+
+        // Should succeed even if stop fails (container already stopped)
+        expect(removeStub).to.have.been.calledOnce;
+        expect(result.success).to.be.true;
+    });
+
+    test("stopAndRemoveDabContainer: should return error when remove fails", async () => {
+        const stopStub = sandbox.stub().resolves();
+        const removeStub = sandbox.stub().rejects(new Error("Remove failed"));
+        const listContainersStub = sandbox.stub().resolves([{ Id: "container-id" }]);
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({
+                stop: stopStub,
+                remove: removeStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        const result = await dockerUtils.stopAndRemoveDabContainer("test-dab-container");
+
+        expect(result.success).to.be.false;
+        expect(result.error).to.include("Failed to stop and remove DAB container");
+    });
+
+    test("validateDabContainerName: should use DAB default container name", async () => {
+        const listContainersStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        // When dab-container already exists, should generate dab-container_2
+        listContainersStub.resolves([{ Names: ["/dab-container"] }]);
+        const result = await dockerUtils.validateDabContainerName("");
+        expect(result).to.equal("dab-container_2");
+    });
+
+    test("validateDabContainerName: should return valid name when not taken", async () => {
+        const listContainersStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        listContainersStub.resolves([]);
+        const result = await dockerUtils.validateDabContainerName("my-dab-api");
+        expect(result).to.equal("my-dab-api");
+    });
+
+    test("validateDabContainerName: should return empty string for invalid name", async () => {
+        const listContainersStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        listContainersStub.resolves([]);
+        const result = await dockerUtils.validateDabContainerName("!invalid@name");
+        expect(result).to.equal("");
+    });
+
+    test("findAvailableDabPort: should return default DAB port when available", async () => {
+        const listContainersStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        listContainersStub.resolves([]);
+        const result = await dockerUtils.findAvailableDabPort();
+        expect(result).to.equal(5000); // Dab.DAB_DEFAULT_PORT
+    });
+
+    test("findAvailableDabPort: should find next available port when default is taken", async () => {
+        const listContainersStub = sandbox.stub();
+        const inspectStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+            getContainer: sandbox.stub().returns({
+                inspect: inspectStub,
+            }),
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        listContainersStub.resolves([{ Id: "container-id" }]);
+        inspectStub.resolves({
+            NetworkSettings: {
+                Ports: {
+                    "5000/tcp": null,
+                },
+            },
+            HostConfig: {
+                PortBindings: {
+                    "5000/tcp": [{ HostPort: "5000" }],
+                },
+            },
+        });
+
+        const result = await dockerUtils.findAvailableDabPort();
+        expect(result).to.equal(5001);
+    });
+
+    test("findAvailableDabPort: should accept custom preferred port", async () => {
+        const listContainersStub = sandbox.stub();
+        const dockerClientMock = createDockerClientMock({
+            listContainers: listContainersStub,
+        });
+        sandbox.stub(dockerodeClient, "getDockerodeClient").returns(dockerClientMock as any);
+
+        listContainersStub.resolves([]);
+        const result = await dockerUtils.findAvailableDabPort(8080);
+        expect(result).to.equal(8080);
+    });
 });
+
+function createTempFile() {
+    const tempDir = path.join(os.tmpdir(), `dab-test-${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+    const configFilePath = path.join(tempDir, "dab-config.json");
+    fs.writeFileSync(configFilePath, JSON.stringify({ test: true }));
+    return { configFilePath, tempDir };
+}
