@@ -3921,7 +3921,7 @@
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
     </trans-unit>
-    <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
+    <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
@@ -5800,6 +5800,9 @@
     <trans-unit id="++CODE++28391d3bc64ec15cbb090426b04aa6b7649c3cc85f11230bb0105e02d15e3624">
       <source xml:lang="en">of</source>
     </trans-unit>
+    <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
+      <source xml:lang="en">profiler_events</source>
+    </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>
     </trans-unit>
@@ -5811,9 +5814,6 @@
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>
-    </trans-unit>
-    <trans-unit id="++CODE++0c98b4c52b0d7946a1b33eda22dea80446afbd3e387a03295bb55f9f0424dc73">
-      <source xml:lang="en">the documentation </source>
     </trans-unit>
     <trans-unit id="++CODE++eb045d78d273107348b0300c01d29b7552d622abbc6faf81b3ec55359aa9950c">
       <source xml:lang="en">undefined</source>
