@@ -7641,6 +7641,10 @@ Requête : {2}</target>
         <source xml:lang="en">of</source>
         <target state="translated">sur</target>
       </trans-unit>
+      <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
+        <source xml:lang="en">profiler_events</source>
+        <target state="new">profiler_events</target>
+      </trans-unit>
       <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
         <source xml:lang="en">resource group</source>
         <target state="translated">groupe de ressources</target>
