@@ -2011,6 +2011,57 @@ suite("ProjectsController", function (): void {
                 `The file path should not have been updated when trying to move script1.sql to proj2`,
             );
         });
+
+        test.skip("Should move a file to project root when project folder name differs from project name", async function (): Promise<void> {
+            const sandbox = sinon.createSandbox();
+            const spy = sandbox.spy(vscode.window, "showErrorMessage");
+            sandbox
+                .stub(vscode.window, "showWarningMessage")
+                .returns(<any>Promise.resolve(constants.move));
+
+            // Create a project where the folder name differs from the project name
+            // The project name comes from the .sqlproj filename, not the containing folder
+            let proj = await testUtils.createTestProject(
+                this.test,
+                baselines.openSdkStyleSqlProjectBaseline,
+            );
+
+            const projTreeRoot = await setupMoveTest(proj);
+
+            const projController = new ProjectsController(testContext.outputChannel);
+
+            // Get a file from UpperFolder/LowerFolder to move to project root
+            const upperFolder = projTreeRoot.children.find(
+                (x) => x.friendlyName === "UpperFolder",
+            )!;
+            const lowerFolder = upperFolder.children.find((x) => x.friendlyName === "LowerFolder")!;
+            const sqlFileNode = lowerFolder.children.find(
+                (x) => x.friendlyName === "someScript.sql",
+            );
+
+            // Create workspace tree item for the project root (the .sqlproj node itself)
+            const projectRootWorkspaceTreeItem = createWorkspaceTreeItem(projTreeRoot);
+
+            await projController.moveFile(
+                vscode.Uri.file(proj.projectFilePath),
+                sqlFileNode,
+                projectRootWorkspaceTreeItem,
+            );
+
+            expect(spy.notCalled, "showErrorMessage should not have been called").to.be.true;
+
+            // reload project and verify file was moved to project root
+            proj = await Project.openProject(proj.projectFilePath);
+            expect(
+                proj.sqlObjectScripts.find((f) => f.relativePath === "someScript.sql") !==
+                    undefined,
+                "The file should have been moved to the project root",
+            ).to.be.true;
+            expect(
+                await utils.exists(path.join(proj.projectFolderPath, "someScript.sql")),
+                "The moved file should exist at the project root",
+            ).to.be.true;
+        });
     });
 
     suite("Rename file", function (): void {
