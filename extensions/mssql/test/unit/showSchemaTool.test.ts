@@ -11,6 +11,7 @@ import sinonChai from "sinon-chai";
 import { ShowSchemaTool, ShowSchemaToolParams } from "../../src/copilot/tools/showSchemaTool";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { IConnectionProfile } from "../../src/models/interfaces";
+import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
 
@@ -21,6 +22,7 @@ suite("ShowSchemaTool Tests", () => {
     let mockToken: vscode.CancellationToken;
     let sandbox: sinon.SinonSandbox;
     let showSchemaTool: ShowSchemaTool;
+    let mockShowSchemaFunction: sinon.SinonStub;
 
     const sampleConnectionId = "connection-123";
 
@@ -28,7 +30,7 @@ suite("ShowSchemaTool Tests", () => {
         sandbox = sinon.createSandbox();
 
         // Mock credentials
-        mockCredentials = {} as IConnectionProfile;
+        mockCredentials = { database: "SampleDB" } as IConnectionProfile;
 
         // Mock ConnectionInfo
         mockConnectionInfo = {
@@ -44,7 +46,7 @@ suite("ShowSchemaTool Tests", () => {
         mockToken = {} as vscode.CancellationToken;
 
         // Create the tool instance
-        const mockShowSchemaFunction = sandbox.stub().resolves();
+        mockShowSchemaFunction = sandbox.stub().resolves();
         showSchemaTool = new ShowSchemaTool(mockConnectionManager, mockShowSchemaFunction);
     });
 
@@ -160,6 +162,57 @@ suite("ShowSchemaTool Tests", () => {
             expect(result.invocationMessage).to.include("My Production Server");
             // Verify connection ID is still present for debugging
             expect(result.invocationMessage).to.include(sampleConnectionId);
+        });
+    });
+
+    suite("call", () => {
+        test("should return success response when schema visualization opens successfully", async () => {
+            const options = {
+                input: {
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<ShowSchemaToolParams>;
+
+            const result = await showSchemaTool.call(options, mockToken);
+            const parsed = JSON.parse(result) as { success: boolean; message: string };
+
+            expect(parsed.success).to.be.true;
+            expect(parsed.message).to.equal(loc.showSchemaToolSuccessMessage);
+            expect(mockShowSchemaFunction).to.have.been.calledOnceWithExactly(
+                sampleConnectionId,
+                "SampleDB",
+            );
+        });
+
+        test("should return error response when connection credentials are missing", async () => {
+            mockConnectionManager.getConnectionInfo.returns(undefined as unknown as ConnectionInfo);
+            const options = {
+                input: {
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<ShowSchemaToolParams>;
+
+            const result = await showSchemaTool.call(options, mockToken);
+            const parsed = JSON.parse(result) as { success: boolean; message: string };
+
+            expect(parsed.success).to.be.false;
+            expect(parsed.message).to.equal(loc.noConnectionError(sampleConnectionId));
+            expect(mockShowSchemaFunction).to.not.have.been.called;
+        });
+
+        test("should return error response when show schema throws", async () => {
+            mockShowSchemaFunction.rejects(new Error("open failed"));
+            const options = {
+                input: {
+                    connectionId: sampleConnectionId,
+                },
+            } as vscode.LanguageModelToolInvocationOptions<ShowSchemaToolParams>;
+
+            const result = await showSchemaTool.call(options, mockToken);
+            const parsed = JSON.parse(result) as { success: boolean; message: string };
+
+            expect(parsed.success).to.be.false;
+            expect(parsed.message).to.equal("open failed");
         });
     });
 });
