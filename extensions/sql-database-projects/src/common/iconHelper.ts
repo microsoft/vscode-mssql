@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { IconPath } from 'vscode';
+import * as vscode from "vscode";
+import { IconPath } from "vscode";
 
 // export interface IconPath {
 // 	dark: string;
@@ -40,9 +40,9 @@ export class IconPathHelper {
     public static schemaCompare: IconPath;
     public static targetPlatform: IconPath;
 
-	public static success: IconPath;
-	public static error: IconPath;
-	public static inProgress: IconPath;
+    public static success: IconPath;
+    public static error: IconPath;
+    public static inProgress: IconPath;
 
     public static setExtensionContext(extensionContext: vscode.ExtensionContext) {
         IconPathHelper.extensionContext = extensionContext;
@@ -74,10 +74,10 @@ export class IconPathHelper {
         IconPathHelper.schemaCompare = IconPathHelper.makeIcon("schemaCompare", true);
         IconPathHelper.targetPlatform = IconPathHelper.makeIcon("targetPlatform", true);
 
-		IconPathHelper.success = IconPathHelper.makeIcon('success', true);
-		IconPathHelper.error = IconPathHelper.makeIcon('error', true);
-		IconPathHelper.inProgress = IconPathHelper.makeIcon('inProgress', true);
-	}
+        IconPathHelper.success = IconPathHelper.makeIcon("success", true);
+        IconPathHelper.error = IconPathHelper.makeIcon("error", true);
+        IconPathHelper.inProgress = IconPathHelper.makeIcon("inProgress", true);
+    }
 
     private static makeIcon(name: string, sameIcon: boolean = false) {
         const folder = "images";

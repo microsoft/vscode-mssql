@@ -3,20 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { BaseProjectTreeItem } from './baseTreeItem';
-import * as fileTree from './fileFolderTreeItem';
-import { Project } from '../project';
-import * as utils from '../../common/utils';
-import * as vscodeMssql from 'vscode-mssql';
-import { DatabaseReferencesTreeItem } from './databaseReferencesTreeItem';
-import { DatabaseProjectItemType, RelativeOuterPath, ExternalStreamingJob, sqlprojExtension, CollapseProjectNodesKey, errorPrefix } from '../../common/constants';
-import { IconPathHelper } from '../../common/iconHelper';
-import { FileProjectEntry } from '../projectEntry';
-import { EntryType } from 'sqldbproj';
-import { DBProjectConfigurationKey } from '../../tools/netcoreTool';
-import { SqlCmdVariablesTreeItem } from './sqlcmdVariableTreeItem';
+import * as vscode from "vscode";
+import * as path from "path";
+import { BaseProjectTreeItem } from "./baseTreeItem";
+import * as fileTree from "./fileFolderTreeItem";
+import { Project } from "../project";
+import * as utils from "../../common/utils";
+import * as vscodeMssql from "vscode-mssql";
+import { DatabaseReferencesTreeItem } from "./databaseReferencesTreeItem";
+import {
+    DatabaseProjectItemType,
+    RelativeOuterPath,
+    ExternalStreamingJob,
+    sqlprojExtension,
+    CollapseProjectNodesKey,
+    errorPrefix,
+} from "../../common/constants";
+import { IconPathHelper } from "../../common/iconHelper";
+import { FileProjectEntry } from "../projectEntry";
+import { EntryType } from "sqldbproj";
+import { DBProjectConfigurationKey } from "../../tools/netcoreTool";
+import { SqlCmdVariablesTreeItem } from "./sqlcmdVariableTreeItem";
 
 /**
  * TreeNode root that represents an entire project
@@ -74,10 +81,13 @@ export class ProjectRootTreeItem extends BaseProjectTreeItem {
         return projectItem;
     }
 
-	public get type(): DatabaseProjectItemType {
-		const projectType = this.project.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle ? DatabaseProjectItemType.project : DatabaseProjectItemType.legacyProject;
-		return projectType;
-	}
+    public get type(): DatabaseProjectItemType {
+        const projectType =
+            this.project.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
+                ? DatabaseProjectItemType.project
+                : DatabaseProjectItemType.legacyProject;
+        return projectType;
+    }
 
     /**
      * Processes the list of files in a project file to constructs the tree

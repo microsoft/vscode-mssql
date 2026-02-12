@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssqlVscode from 'vscode-mssql';
+import * as mssqlVscode from "vscode-mssql";
 
 export interface UpdateProjectDataModel {
-	sourceEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
-	targetEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
-	action: UpdateProjectAction;
+    sourceEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
+    targetEndpointInfo: mssqlVscode.SchemaCompareEndpointInfo;
+    action: UpdateProjectAction;
 }
 
 export const enum UpdateProjectAction {

@@ -393,9 +393,8 @@ export class Project implements ISqlProject {
                 this._databaseSchemaProvider,
             );
             return parseResult.containsCreateTableStatement;
-        } catch (e) {
-            // If parsing fails, default to false
-            console.error(utils.getErrorMessage(e));
+        } catch {
+            // If parsing fails, silently default to false
             return false;
         }
     }

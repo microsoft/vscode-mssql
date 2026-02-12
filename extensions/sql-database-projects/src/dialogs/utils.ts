@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from '../common/constants';
-import * as vscodeMssql from 'vscode-mssql';
-import { IUserDatabaseReferenceSettings } from '../models/IDatabaseReferenceSettings';
-import { removeSqlCmdVariableFormatting } from '../common/utils';
+import * as constants from "../common/constants";
+import * as vscodeMssql from "vscode-mssql";
+import { IUserDatabaseReferenceSettings } from "../models/IDatabaseReferenceSettings";
+import { removeSqlCmdVariableFormatting } from "../common/utils";
 
 /**
  * Function to map folder structure string to enum
@@ -14,18 +14,24 @@ import { removeSqlCmdVariableFormatting } from '../common/utils';
  * @returns folder structure in enum format
  */
 export function mapExtractTargetEnum(inputTarget: string): vscodeMssql.ExtractTarget {
-	if (inputTarget) {
-		switch (inputTarget) {
-			case constants.file: return vscodeMssql.ExtractTarget.file;
-			case constants.flat: return vscodeMssql.ExtractTarget.flat;
-			case constants.objectType: return vscodeMssql.ExtractTarget.objectType;
-			case constants.schema: return vscodeMssql.ExtractTarget.schema;
-			case constants.schemaObjectType: return vscodeMssql.ExtractTarget.schemaObjectType;
-			default: throw new Error(constants.invalidInput(inputTarget));
-		}
-	} else {
-		throw new Error(constants.extractTargetRequired);
-	}
+    if (inputTarget) {
+        switch (inputTarget) {
+            case constants.file:
+                return vscodeMssql.ExtractTarget.file;
+            case constants.flat:
+                return vscodeMssql.ExtractTarget.flat;
+            case constants.objectType:
+                return vscodeMssql.ExtractTarget.objectType;
+            case constants.schema:
+                return vscodeMssql.ExtractTarget.schema;
+            case constants.schemaObjectType:
+                return vscodeMssql.ExtractTarget.schemaObjectType;
+            default:
+                throw new Error(constants.invalidInput(inputTarget));
+        }
+    } else {
+        throw new Error(constants.extractTargetRequired);
+    }
 }
 
 export interface DbServerValues {

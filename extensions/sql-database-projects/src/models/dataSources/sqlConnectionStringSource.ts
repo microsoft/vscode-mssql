@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscodeMssql from 'vscode-mssql';
-import { DataSource } from './dataSources';
-import { DataSourceJson } from './dataSourceJson';
-import * as constants from '../../common/constants';
+import * as vscodeMssql from "vscode-mssql";
+import { DataSource } from "./dataSources";
+import { DataSourceJson } from "./dataSourceJson";
+import * as constants from "../../common/constants";
 
 /**
  * Contains information about a SQL connection string data source`
@@ -98,9 +98,12 @@ export class SqlConnectionDataSource extends DataSource {
         return this.connectionStringComponents[settingName.toLocaleLowerCase()];
     }
 
-	public static fromJson(json: DataSourceJson): SqlConnectionDataSource {
-		return new SqlConnectionDataSource(json.name, (json.data as unknown as SqlConnectionDataSourceJson).connectionString);
-	}
+    public static fromJson(json: DataSourceJson): SqlConnectionDataSource {
+        return new SqlConnectionDataSource(
+            json.name,
+            (json.data as unknown as SqlConnectionDataSourceJson).connectionString,
+        );
+    }
 }
 
 /**
