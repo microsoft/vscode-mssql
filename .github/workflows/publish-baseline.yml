@@ -64,9 +64,9 @@ jobs:
           cd extensions/data-workspace
           vsce package
 
-      - name: Keybindings - Package extension
+      - name: Keymap - Package extension
         run: |
-          cd extensions/mssql-database-management-keybindings
+          cd extensions/database-management-keymap
           vsce package
 
       - name: Calculate and save sizes
@@ -86,10 +86,10 @@ jobs:
           dataworkspace_vsix_size=$(stat -c%s "$dataworkspace_vsix")
           dataworkspace_vsix_size=$((dataworkspace_vsix_size / 1024))
 
-          # Calculate Keybindings sizes
-          keybindings_vsix=$(find ./extensions/mssql-database-management-keybindings -name "*.vsix")
-          keybindings_vsix_size=$(stat -c%s "$keybindings_vsix")
-          keybindings_vsix_size=$((keybindings_vsix_size / 1024))
+          # Calculate Keymap sizes
+          keymap_vsix=$(find ./extensions/database-management-keymap -name "*.vsix")
+          keymap_vsix_size=$(stat -c%s "$keymap_vsix")
+          keymap_vsix_size=$((keymap_vsix_size / 1024))
 
           # Create baseline metadata file
           cat > baseline-sizes.json <<EOF
@@ -103,8 +103,8 @@ jobs:
             "data_workspace": {
               "vsix_kb": $dataworkspace_vsix_size
             },
-            "keybindings": {
-              "vsix_kb": $keybindings_vsix_size
+            "keymap": {
+              "vsix_kb": $keymap_vsix_size
             },
             "commit": "${{ github.sha }}",
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
