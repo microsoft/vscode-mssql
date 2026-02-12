@@ -301,8 +301,8 @@ jobs:
 
       - name: Setup environment for smoke tests
         run: |
-          wget https://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
-          sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
+          sudo apt-get update
+          sudo apt-get install -y libldap-2.5-0
           echo "Setting up environment for smoke tests"
           PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
           echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
@@ -310,7 +310,6 @@ jobs:
           sudo chmod +x /etc/init.d/mssql-server
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
           sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
-          sudo apt-get update
           sudo apt-get install -y mssql-server
           # Set the language choice variable (1 for English)
           LANGUAGE_CHOICE="1"
