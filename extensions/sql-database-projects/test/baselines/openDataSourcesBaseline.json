@@ -1,6 +1,6 @@
 {
     "version": "0.0.0",
-    "datasources" : [
+    "datasources": [
         {
             "name": "Test Data Source 1",
             "type": "sql_connection_string",
