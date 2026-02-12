@@ -21,6 +21,7 @@ import * as Constants from "../constants/constants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
+import { getErrorMessage } from "../utils/utils";
 
 /** System databases that cannot be used for Azure SQL profiling */
 const SYSTEM_DATABASES = ["master", "tempdb", "model", "msdb"];
@@ -245,8 +246,10 @@ export class ProfilerController {
                 try {
                     await this.openXelFileCommand();
                 } catch (e) {
-                    this._logger.error(`Command error: ${e}`);
-                    vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+                    this._logger.error(`Command error: ${getErrorMessage(e)}`);
+                    vscode.window.showErrorMessage(
+                        LocProfiler.failedToOpenXelFile(getErrorMessage(e)),
+                    );
                 }
             }),
         );
@@ -848,8 +851,8 @@ export class ProfilerController {
             }
             this._xelWebviewControllers.delete(filePath);
 
-            this._logger.error(`Error opening XEL file: ${e}`);
-            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+            this._logger.error(`Error opening XEL file: ${getErrorMessage(e)}`);
+            vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(getErrorMessage(e)));
         }
     }
 
@@ -891,8 +894,8 @@ export class ProfilerController {
                 this._logger.error(`Access denied to XEL file: ${filePath}`);
                 vscode.window.showErrorMessage(LocProfiler.xelFileAccessDenied);
             } else {
-                this._logger.error(`Error accessing XEL file: ${e}`);
-                vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(String(e)));
+                this._logger.error(`Error accessing XEL file: ${getErrorMessage(e)}`);
+                vscode.window.showErrorMessage(LocProfiler.failedToOpenXelFile(getErrorMessage(e)));
             }
             return undefined;
         }
@@ -1008,7 +1011,7 @@ export class ProfilerController {
                 `XEL file ${fileInfo.fileName} loaded successfully in read-only mode`,
             );
         } catch (e) {
-            this._logger.error(`Failed to load XEL file: ${e}`);
+            this._logger.error(`Failed to load XEL file: ${getErrorMessage(e)}`);
             webviewController.setSessionState(SessionState.Failed);
 
             // Clean up the session that failed to load

@@ -5,40 +5,20 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
-import * as vscode from "vscode";
 import * as path from "path";
 import { ProfilerSessionManager } from "../../../src/profiler/profilerSessionManager";
 import { ProfilerService } from "../../../src/services/profilerService";
 import { XelFileInfo, SessionType, SessionState } from "../../../src/profiler/profilerTypes";
-
-/**
- * Creates a mock ProfilerService for testing.
- */
-function createMockProfilerService(): ProfilerService {
-    return {
-        startProfiling: sinon
-            .stub()
-            .resolves({ uniqueSessionId: "test-unique-id", canPause: false }),
-        stopProfiling: sinon.stub().resolves({}),
-        pauseProfiling: sinon.stub().resolves({ isPaused: false }),
-        disconnectSession: sinon.stub().resolves({}),
-        getXEventSessions: sinon.stub().resolves({ sessions: [] }),
-        createXEventSession: sinon.stub().resolves({}),
-        onEventsAvailable: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionStopped: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionCreated: sinon.stub().returns(new vscode.Disposable(() => {})),
-        cleanupHandlers: sinon.stub(),
-    } as unknown as ProfilerService;
-}
+import { stubProfilerService } from "../utils";
 
 suite("ProfilerController XEL File Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockProfilerService: ProfilerService;
+    let mockProfilerService: sinon.SinonStubbedInstance<ProfilerService>;
     let sessionManager: ProfilerSessionManager;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockProfilerService = createMockProfilerService();
+        mockProfilerService = stubProfilerService(sandbox);
         sessionManager = new ProfilerSessionManager(mockProfilerService);
     });
 
