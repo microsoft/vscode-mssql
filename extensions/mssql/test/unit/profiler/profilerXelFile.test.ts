@@ -5,32 +5,12 @@
 
 import { expect } from "chai";
 import * as sinon from "sinon";
-import * as vscode from "vscode";
 import * as path from "path";
 import { ProfilerSession, ProfilerSessionOptions } from "../../../src/profiler/profilerSession";
 import { SessionType, SessionState, XelFileInfo } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
 import { ProfilingSessionType } from "../../../src/models/contracts/profiler";
-
-/**
- * Creates a mock ProfilerService for testing.
- */
-function createMockProfilerService(): ProfilerService {
-    return {
-        startProfiling: sinon
-            .stub()
-            .resolves({ uniqueSessionId: "test-unique-id", canPause: false }),
-        stopProfiling: sinon.stub().resolves({}),
-        pauseProfiling: sinon.stub().resolves({ isPaused: false }),
-        disconnectSession: sinon.stub().resolves({}),
-        getXEventSessions: sinon.stub().resolves({ sessions: [] }),
-        createXEventSession: sinon.stub().resolves({}),
-        onEventsAvailable: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionStopped: sinon.stub().returns(new vscode.Disposable(() => {})),
-        onSessionCreated: sinon.stub().returns(new vscode.Disposable(() => {})),
-        cleanupHandlers: sinon.stub(),
-    } as unknown as ProfilerService;
-}
+import { stubProfilerService } from "../utils";
 
 suite("ProfilerSession XEL File Tests", () => {
     const xelFilePath = path.join("test", "events", "trace.xel");
@@ -44,14 +24,16 @@ suite("ProfilerSession XEL File Tests", () => {
         readOnly: true,
     };
 
-    let mockProfilerService: ProfilerService;
+    let sandbox: sinon.SinonSandbox;
+    let mockProfilerService: sinon.SinonStubbedInstance<ProfilerService>;
 
     setup(() => {
-        mockProfilerService = createMockProfilerService();
+        sandbox = sinon.createSandbox();
+        mockProfilerService = stubProfilerService(sandbox);
     });
 
     teardown(() => {
-        sinon.restore();
+        sandbox.restore();
     });
 
     function createFileSession(overrides: Partial<ProfilerSessionOptions> = {}): ProfilerSession {
