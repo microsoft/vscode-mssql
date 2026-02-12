@@ -24,7 +24,7 @@ import {
     RowsRemovedParams,
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { generateExportTimestamp } from "../../../sharedInterfaces/csvUtils";
+import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
@@ -425,11 +425,11 @@ export const Profiler: React.FC = () => {
      * to ensure ALL events are exported, not just those loaded in the grid.
      */
     const handleExportToCsv = useCallback(() => {
-        // Generate suggested file name using shared utility
-        const timestamp = generateExportTimestamp();
+        // Generate suggested file name with timestamp (YYYY-MM-DD-HH-mm-ss)
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
         const suggestedFileName = sessionName
             ? `${sessionName}_${timestamp}`
-            : `profiler_events_${timestamp}`;
+            : `${locConstants.profiler.defaultExportFileName}_${timestamp}`;
 
         // Send to extension host - extension will generate CSV from ring buffer
         exportToCsv(suggestedFileName);

@@ -598,7 +598,7 @@ suite("ProfilerWebviewController Tests", () => {
             // so the close prompt is disabled until new events arrive.
             controller.setExportComplete();
 
-            expect((controller as any).showRestorePromptAfterClose).to.be.false;
+            expect((controller as any)._options.showRestorePromptAfterClose).to.be.false;
             expect((controller as any).state.hasUnexportedEvents).to.be.false;
         });
     });

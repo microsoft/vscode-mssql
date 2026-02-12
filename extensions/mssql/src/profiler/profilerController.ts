@@ -636,7 +636,7 @@ export class ProfilerController {
                 this._logger.verbose(`View changed to: ${viewId}`);
             },
             onExportToCsv: async (suggestedFileName: string): Promise<Writable | undefined> => {
-                return await this.handleExportToCsv(webviewController, suggestedFileName);
+                return await this.getStreamForWriting(webviewController, suggestedFileName);
             },
         });
 
@@ -730,7 +730,7 @@ export class ProfilerController {
      * Shows save dialog and returns a write stream for CSV content.
      * @returns A writable stream to write CSV content to, or undefined if user cancelled
      */
-    private async handleExportToCsv(
+    private async getStreamForWriting(
         webviewController: ProfilerWebviewController,
         suggestedFileName: string,
     ): Promise<Writable | undefined> {

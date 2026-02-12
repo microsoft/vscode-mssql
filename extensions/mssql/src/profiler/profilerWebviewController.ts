@@ -22,7 +22,7 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
 import { EventRow, SessionState, TEMPLATE_ID_STANDARD_ONPREM } from "./profilerTypes";
 import { Profiler as LocProfiler } from "../constants/locConstants";
-import { generateCsvContent, generateExportTimestamp } from "../sharedInterfaces/csvUtils";
+import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
 
 /**
  * Events emitted by the profiler webview controller
@@ -233,7 +233,7 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
         }
 
         // Generate suggested file name
-        const sessionName = this._currentSession.sessionName || "profiler_events";
+        const sessionName = this._currentSession.sessionName || LocProfiler.defaultExportFileName;
         const timestamp = generateExportTimestamp();
         const suggestedFileName = `${sessionName}_${timestamp}`;
 
@@ -274,39 +274,29 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
      * Returns undefined for missing values so CSV formatter can handle them properly.
      */
     private getEventFieldValue(event: EventRow, field: string): string | number | Date | undefined {
-        // Map field names to EventRow properties
-        // Support both PascalCase (from view config like "EventClass") and
-        // camelCase (like "eventClass") for flexibility
-        switch (field) {
-            case "eventNumber":
+        // Map field names to EventRow properties (case-insensitive)
+        switch (field.toLowerCase()) {
+            case "eventnumber":
                 return event.eventNumber;
             case "timestamp":
-            case "StartTime":
+            case "starttime":
                 // Return Date object for timestamp - formatCsvCell will handle conversion
                 return event.timestamp;
-            case "eventClass":
-            case "EventClass":
+            case "eventclass":
                 return event.eventClass;
-            case "textData":
-            case "TextData":
+            case "textdata":
                 return event.textData;
-            case "databaseName":
-            case "DatabaseName":
+            case "databasename":
                 return event.databaseName;
             case "spid":
-            case "SPID":
                 return event.spid;
             case "duration":
-            case "Duration":
                 return event.duration;
             case "cpu":
-            case "CPU":
                 return event.cpu;
             case "reads":
-            case "Reads":
                 return event.reads;
             case "writes":
-            case "Writes":
                 return event.writes;
             default:
                 // Check additionalData for other fields (e.g., ApplicationName, LoginName, etc.)

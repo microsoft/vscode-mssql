@@ -6,9 +6,16 @@
 import { Writable } from "stream";
 
 /**
- * Shared CSV utilities for profiler export functionality.
- * Used by both the React webview (profiler.tsx) and extension (profilerWebviewController.ts).
+ * CSV utilities for profiler export functionality (controller-side only).
  */
+
+/**
+ * Generates a timestamp string suitable for file names.
+ * Format: YYYY-MM-DD-HH-mm-ss
+ */
+export function generateExportTimestamp(): string {
+    return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+}
 
 /**
  * Sanitizes a value for CSV export to prevent formula injection.
@@ -60,14 +67,6 @@ export function formatCsvCell(value: unknown): string {
     stringValue = stringValue.replace(/"/g, '""');
 
     return `"${stringValue}"`;
-}
-
-/**
- * Generates a timestamp string suitable for file names.
- * Format: YYYY-MM-DD-HH-mm-ss
- */
-export function generateExportTimestamp(): string {
-    return new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 }
 
 /**

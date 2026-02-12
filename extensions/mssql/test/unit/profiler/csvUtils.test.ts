@@ -8,9 +8,9 @@ import { PassThrough } from "stream";
 import {
     sanitizeCsvValue,
     formatCsvCell,
-    generateExportTimestamp,
     generateCsvContent,
-} from "../../../src/sharedInterfaces/csvUtils";
+    generateExportTimestamp,
+} from "../../../src/profiler/csvUtils";
 
 // Helper to create null value without direct literal
 function getNullValue(): unknown {
@@ -35,7 +35,21 @@ async function collectStreamOutput(
     });
 }
 
-suite("CSV Utils Tests", () => {
+suite("Profiler CSV Utils Tests", () => {
+    suite("generateExportTimestamp", () => {
+        test("should return timestamp in expected format", () => {
+            const timestamp = generateExportTimestamp();
+            // Format: YYYY-MM-DD-HH-mm-ss
+            expect(timestamp).to.match(/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}$/);
+        });
+
+        test("should not contain colons or T character", () => {
+            const timestamp = generateExportTimestamp();
+            expect(timestamp).to.not.include(":");
+            expect(timestamp).to.not.include("T");
+        });
+    });
+
     suite("sanitizeCsvValue", () => {
         test("should prefix values starting with = with single quote", () => {
             expect(sanitizeCsvValue("=cmd|'/C calc'!A0")).to.equal("'=cmd|'/C calc'!A0");
@@ -108,20 +122,6 @@ suite("CSV Utils Tests", () => {
 
         test("should handle empty string", () => {
             expect(formatCsvCell("")).to.equal('""');
-        });
-    });
-
-    suite("generateExportTimestamp", () => {
-        test("should return timestamp in expected format", () => {
-            const timestamp = generateExportTimestamp();
-            // Format: YYYY-MM-DD-HH-mm-ss
-            expect(timestamp).to.match(/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}$/);
-        });
-
-        test("should not contain colons or T character", () => {
-            const timestamp = generateExportTimestamp();
-            expect(timestamp).to.not.include(":");
-            expect(timestamp).to.not.include("T");
         });
     });
 

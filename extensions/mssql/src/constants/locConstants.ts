@@ -2777,6 +2777,7 @@ export class Profiler {
         });
 
     // Export messages
+    public static defaultExportFileName = l10n.t("profiler_events");
     public static exportToCsv = l10n.t("Export to CSV");
     public static exportSuccess = (filePath: string) =>
         l10n.t({
