@@ -6477,6 +6477,9 @@
     <trans-unit id="mssql.legacySetting.deprecationMessage">
       <source xml:lang="en">This setting will be removed in a future release.</source>
     </trans-unit>
+    <trans-unit id="mssql.toggleActualPlan">
+      <source xml:lang="en">Toggle Actual Plan</source>
+    </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
     </trans-unit>
