@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
         <source xml:lang="en">Actions</source>
-        <target state="new">Actions</target>
+        <target state="translated">Acciones</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -307,7 +307,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
         <source xml:lang="en">An error occurred while loading data.</source>
-        <target state="new">An error occurred while loading data.</target>
+        <target state="translated">Error al cargar los datos.</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -553,10 +553,6 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Migración de Azure Data Studio</target>
       </trans-unit>
-      <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
-        <source xml:lang="en">Azure Data Studio Migration - Connections</source>
-        <target state="translated">Migración de Azure Data Studio: conexiones</target>
-      </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
         <target state="translated">Archivo de configuración de Azure Data Studio</target>
@@ -685,9 +681,9 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Brightness</source>
         <target state="translated">Luminosidad</target>
       </trans-unit>
-      <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
-        <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
-        <target state="translated">Importe las conexiones guardadas de Azure Data Studio en la extensión MSSQL y descubra experiencias familiares.</target>
+      <trans-unit id="++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3">
+        <source xml:lang="en">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+        <target state="new">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</target>
       </trans-unit>
       <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
         <source xml:lang="en">Browse</source>
@@ -903,9 +899,21 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Checking Docker Engine Configuration</source>
         <target state="translated">Comprobando la configuración del motor de Docker</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4d0dafd128387fb1c4553a2fe77c141f1fffdf1f10f4d605e40b8517d80c56d">
+        <source xml:lang="en">Checking Docker engine</source>
+        <target state="new">Checking Docker engine</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a50cb68f78c39490b180c6145c6ed95e4a691961e5aa7b8253ce9567281c73ba">
+        <source xml:lang="en">Checking Docker installation</source>
+        <target state="new">Checking Docker installation</target>
+      </trans-unit>
       <trans-unit id="++CODE++75fa3318f66944d01336b10cbb1e3c08afc6e230d849ee6fff4f4dba7f19489c">
         <source xml:lang="en">Checking Docker prerequisites...</source>
         <target state="translated">Comprobando los requisitos previos de Docker...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a03fe5c6bd995e5dd1d1f1972329ecc85747bd329900c6fbd46344bd110d9a7d">
+        <source xml:lang="en">Checking container readiness</source>
+        <target state="new">Checking container readiness</target>
       </trans-unit>
       <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
         <source xml:lang="en">Checking if Docker is installed</source>
@@ -1121,6 +1129,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Collapse connections</source>
         <target state="translated">Contraer conexiones</target>
       </trans-unit>
+      <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
+        <source xml:lang="en">Collapse settings</source>
+        <target state="new">Collapse settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
         <source xml:lang="en">Collation</source>
         <target state="translated">Intercalación</target>
@@ -1227,6 +1239,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
         <source xml:lang="en">Compression</source>
         <target state="translated">Compresión</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
+        <source xml:lang="en">Configuration to Import</source>
+        <target state="new">Configuration to Import</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -1361,7 +1377,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++fff46800eb59ecbf7114c9c219c3ab0ec39731c5cdf8012a4afbdd334e965254">
         <source xml:lang="en">Connecting to {0}...</source>
         <note>{0} is the server name</note>
-        <target state="new">Connecting to {0}...</target>
+        <target state="translated">Conectando con {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
@@ -1503,6 +1519,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Container Name</source>
         <target state="translated">Nombre del contenedor</target>
       </trans-unit>
+      <trans-unit id="++CODE++69f2cb7dd2107d62b752a7de5d918a0b657147558a767c02175920d2b510a997">
+        <source xml:lang="en">Container Settings</source>
+        <target state="new">Container Settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
         <target state="translated">El contenedor no existe. ¿Desea quitar la conexión?</target>
@@ -1510,6 +1530,22 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
         <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
         <target state="translated">El contenedor no se pudo iniciar dentro del período de tiempo de expiración. Espere unos minutos e inténtelo de nuevo.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fdd898230cf29f2d5ce8c27b5bb0dc9aae7bd8873a2c1e0eb33007528e343c18">
+        <source xml:lang="en">Container name and port are required to check container readiness.</source>
+        <target state="new">Container name and port are required to check container readiness.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c988a04c68ad84375f618514201df662f5e213301f897d4f937005ded7b3b6ac">
+        <source xml:lang="en">Container name is invalid or already in use</source>
+        <target state="new">Container name is invalid or already in use</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ee060d909ac8f92d5b43012fb61218d44b303601dca7b271908151aa6ae86b17">
+        <source xml:lang="en">Container name is required</source>
+        <target state="new">Container name is required</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bbcce2214819b0c2d1ab53dff1f116b6071d1223a513c97750b73e775ac8ca49">
+        <source xml:lang="en">Container name, port, and config content are required to start the container.</source>
+        <target state="new">Container name, port, and config content are required to start the container.</target>
       </trans-unit>
       <trans-unit id="++CODE++e846628c8d11bbf73a6ca39eb691f5f7802ba88cf1fb0c482997d928b1504fcb">
         <source xml:lang="en">Containment Type</source>
@@ -1534,7 +1570,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++5729bfc2e8db943201613faaab43256239d22b9beff66b83b894a92fcf29264e">
         <source xml:lang="en">Copied "{0}" to clipboard</source>
         <note>{0} is the object name</note>
-        <target state="new">Copied "{0}" to clipboard</target>
+        <target state="translated">Copiado "{0}" en el portapapeles</target>
       </trans-unit>
       <trans-unit id="++CODE++e21f935f11d7e966dbbae78da9daa378fe8142a14e7c0cd7434183005faa6c5c">
         <source xml:lang="en">Copy</source>
@@ -1550,7 +1586,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++26c6883b4e9eb25526ec19d94646a3c9fd552c11c259e57b199d396504ada712">
         <source xml:lang="en">Copy Object Name</source>
-        <target state="new">Copy Object Name</target>
+        <target state="translated">Copiar nombre de objeto</target>
       </trans-unit>
       <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
         <source xml:lang="en">Copy Script</source>
@@ -1646,7 +1682,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++1ebdd648faad7c5d26109ee99549e6b76bd6749e84bec6250599a2e31029a400">
         <source xml:lang="en">Create Database (Preview)</source>
-        <target state="new">Create Database (Preview)</target>
+        <target state="translated">Crear base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
@@ -1720,13 +1756,17 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Creating SQL Server container...</source>
         <target state="translated">Creando contenedor de SQL Server...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9365b2c6708531c8df9ee555c58dcb675690a166106fe78638a3cd5c8472ff57">
+        <source xml:lang="en">Creating and starting the container</source>
+        <target state="new">Creating and starting the container</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
         <target state="translated">Creación e inicio del contenedor de SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++725716b6df2a2ce3060b1681ae49712313e3156ab2af1b2ee7585b72b69dc7d5">
         <source xml:lang="en">Creating database</source>
-        <target state="new">Creating database</target>
+        <target state="translated">Creando base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++aafbad1d95b40db9d90a7665175501a1a2717b2b4ce3ab2e91b9d58ef5c4bb5b">
         <source xml:lang="en">Creating session...</source>
@@ -1769,6 +1809,14 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">DAB</source>
         <target state="translated">DAB</target>
       </trans-unit>
+      <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
+        <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
+        <target state="new">DAB container failed to become ready within the timeout period.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e639b73088f5575d27eeb76cc69d222f4587c494af6bebace73a891c65491a3">
+        <source xml:lang="en">DAB container is running!</source>
+        <target state="new">DAB container is running!</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">DACPAC implementado correctamente</target>
@@ -1801,7 +1849,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++2d127345d6650ed5e100c9e26b92bd7b88796b692ed78bde3352b9b328dcc8b4">
         <source xml:lang="en">Data API Builder</source>
-        <target state="new">Data API Builder</target>
+        <target state="translated">Generador de API de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++54470469ac121dc0733beade1c15c864cc818522a03a555ce485481734f7bd16">
         <source xml:lang="en">Data API Builder Configuration</source>
@@ -1975,6 +2023,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Deploy</source>
         <target state="translated">Implementar</target>
       </trans-unit>
+      <trans-unit id="++CODE++242bc6248a8996f225d777aea89e819b3a97184f0b646a727fc7ee6f4698a2d0">
+        <source xml:lang="en">Deploy DAB Container</source>
+        <target state="new">Deploy DAB Container</target>
+      </trans-unit>
       <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
         <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
         <target state="translated">Implementar un archivo .dacpac en una base de datos SQL nueva o existente</target>
@@ -1998,6 +2050,10 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++77073cfc37f467e01ede7dd225bc91824e5fcb320f5723a633d43bd93b8a070b">
         <source xml:lang="en">Deploying DACPAC...</source>
         <target state="translated">Implementando DACPAC...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a6587d759edaef774b88015d9298a0965eeec92561af3c20bc4171eecdf27f5b">
+        <source xml:lang="en">Deployment Complete</source>
+        <target state="new">Deployment Complete</target>
       </trans-unit>
       <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
         <source xml:lang="en">Deployment Failed</source>
@@ -2113,6 +2169,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">¿Desea mostrar siempre los resultados de la consulta en una nueva pestaña en lugar del panel de consulta?</target>
       </trans-unit>
+      <trans-unit id="++CODE++f1286712850b10aee8607a93c2120e10316b5962b73c377860cd5cded5b98184">
+        <source xml:lang="en">Docker Desktop must be installed and running on your machine.</source>
+        <target state="new">Docker Desktop must be installed and running on your machine.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9">
         <source xml:lang="en">Docker failed to start within the timeout period. Please manually start Docker and try again.</source>
         <target state="translated">Docker no se pudo iniciar dentro del período de tiempo de expiración. Inicie Docker manualmente e inténtelo de nuevo.</target>
@@ -2133,6 +2193,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">No volver a mostrar</target>
       </trans-unit>
+      <trans-unit id="++CODE++ee63712617071ca7ce50c71160db6d021704d06fafc9307c6bc9a3ee11730cac">
+        <source xml:lang="en">Downloading the Data API Builder container image</source>
+        <target state="new">Downloading the Data API Builder container image</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8af9ae37a48273f981bc82af63517e3a2195c4076360e73546c306a044dd38b">
         <source xml:lang="en">Drop</source>
         <target state="translated">Anular</target>
@@ -2149,7 +2213,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++a9c46777591fc96ccc6c8317280d36c4b68bc04298439cc0e6837ec2ae4bf49c">
         <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="new">Drop Database (Preview)</target>
+        <target state="translated">Quitar base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="++CODE++9efa6488b1453597a16946eec3bec93d89632493aae8e137b09ed9ffcaf70e7b">
         <source xml:lang="en">Drop Database Options</source>
@@ -2161,7 +2225,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++b5fb1a311c627a052d69179f4fb37cc4d9b0d9aa8b4db5a16458c97563420413">
         <source xml:lang="en">Dropping database</source>
-        <target state="new">Dropping database</target>
+        <target state="translated">Quitando base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -2187,7 +2251,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++33af457e73d308571a2f037b123ac71c8d3c4f8cb3702e44fab75c685cee3cf2">
         <source xml:lang="en">Edit Data</source>
-        <target state="new">Edit Data</target>
+        <target state="translated">Editar datos</target>
       </trans-unit>
       <trans-unit id="++CODE++7b51f205866ab54cdf42089699d4b8d617c5a18ac8d82ee5bdfbe10533028f99">
         <source xml:lang="en">Edit Data (Preview)</source>
@@ -2265,6 +2329,10 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Engine: {0}</source>
         <note>{0} is the engine type</note>
         <target state="translated">Motor: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11c21b54b49bcb3c27b1f9371f18ba2da2f6c80cf2cb66a608ff8396ade41518">
+        <source xml:lang="en">Ensuring Docker Desktop is running</source>
+        <target state="new">Ensuring Docker Desktop is running</target>
       </trans-unit>
       <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
         <source xml:lang="en">Enter Database Description</source>
@@ -2424,7 +2492,7 @@ Seleccione "{0}" para establecer una conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++46d21a3d00fbab9fc7b91fa6516b4f6e151557d29318ce4ec616e65825a754e6">
         <source xml:lang="en">Error loading database objects</source>
-        <target state="new">Error loading database objects</target>
+        <target state="translated">Error al cargar objetos de base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
@@ -2526,7 +2594,7 @@ Error:
       <trans-unit id="++CODE++dcbcf1e4e2432f1df51bd665002579bd5932a1bad0f61ce86b1c6aa3fe1242a4">
         <source xml:lang="en">Execute '{0}' operation on Data API Builder?</source>
         <note>{0} is the operation name</note>
-        <target state="new">Execute '{0}' operation on Data API Builder?</target>
+        <target state="translated">¿Quiere ejecutar la operación ''{0}'' en API de datos Builder?</target>
       </trans-unit>
       <trans-unit id="++CODE++8ccc22224dc5f211167f88142552a721403a1fa2eb070723f4f2c31afe7a7808">
         <source xml:lang="en">Execute '{0}' operation on the schema designer?</source>
@@ -2536,7 +2604,7 @@ Error:
       <trans-unit id="++CODE++5c11ff5d17a4e2be1e830dd3e657ded3a07963a5a7da4437684a11deea43f551">
         <source xml:lang="en">Executing '{0}' operation on Data API Builder</source>
         <note>{0} is the operation name</note>
-        <target state="new">Executing '{0}' operation on Data API Builder</target>
+        <target state="translated">Ejecutando la operación ''{0}'' en Data API Builder</target>
       </trans-unit>
       <trans-unit id="++CODE++6e58cff6cb0b10c87a30f2abf0db8152d50daa962376f4b4943767b0f540945e">
         <source xml:lang="en">Executing '{0}' operation on schema designer</source>
@@ -2590,6 +2658,10 @@ Error:
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Expandir panel de propiedades</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
+        <source xml:lang="en">Expand settings</source>
+        <target state="new">Expand settings</target>
       </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
@@ -2797,7 +2869,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d84b3d155999e4fbb9375b2096b6b34a6799bc70319582c93eff74f3a69e1ebb">
         <source xml:lang="en">Failed to establish connection</source>
-        <target state="new">Failed to establish connection</target>
+        <target state="translated">Error al establecer la conexión</target>
       </trans-unit>
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
@@ -2892,12 +2964,12 @@ Error:
       <trans-unit id="++CODE++4db0773908394c4885d3ed204ecdc683dc1443576fcb13c279e6ad16e134b006">
         <source xml:lang="en">Failed to open Edit Data: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Edit Data: {0}</target>
+        <target state="translated">Error al abrir Editar datos: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5e48fe09a77f9c6eaf15d210eb7a4d05f676e38b8999adc6e782ef2b35b4ccbe">
         <source xml:lang="en">Failed to open Modify Table: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open Modify Table: {0}</target>
+        <target state="translated">Error al abrir Modificar tabla: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -2912,6 +2984,10 @@ Error:
         <source xml:lang="en">Failed to open script: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">No se pudo abrir el script: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
+        <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
+        <target state="new">Failed to pull DAB container image. Please check your network connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
@@ -2966,7 +3042,15 @@ Error:
       <trans-unit id="++CODE++2309e149b41332c6c6b1dbd7f42722f08fc63b0ac9a12cf7b6b3d94ce5d6d252">
         <source xml:lang="en">Failed to script object: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to script object: {0}</target>
+        <target state="translated">Error al crear el script del objeto: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++69844cf3a734ae7ea156a613f4d02d35df0d04fcda909d938898102ee51f61af">
+        <source xml:lang="en">Failed to start DAB container.</source>
+        <target state="new">Failed to start DAB container.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4b3b2ad10c0a631a51cd924996fff46c30bbf9c35362f3aaa9f61b6006c660f1">
+        <source xml:lang="en">Failed to start DAB container. Please check the Docker logs for details.</source>
+        <target state="new">Failed to start DAB container. Please check the Docker logs for details.</target>
       </trans-unit>
       <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
@@ -2985,6 +3069,10 @@ Error:
         <source xml:lang="en">Failed to start {0}.</source>
         <note>Failed to start {0}.</note>
         <target state="translated">Error al iniciar {0}.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ddbc5bf2f979708863241a3af69d9f9122e3b1180b3942e5ef94b4500188000b">
+        <source xml:lang="en">Failed to stop and remove DAB container.</source>
+        <target state="new">Failed to stop and remove DAB container.</target>
       </trans-unit>
       <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
         <source xml:lang="en">Failed to stop {0}.</source>
@@ -3088,11 +3176,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6e35e285106ad4a8ff905af2f619136cb2d19f6a588eec3ce15ea95afb506dcc">
         <source xml:lang="en">Filter by name</source>
-        <target state="new">Filter by name</target>
+        <target state="translated">Filtrar por nombre</target>
       </trans-unit>
       <trans-unit id="++CODE++583ec1c39a7df1aaeb8422a5b756a61c47e63626fe2f637f4c27dd5e79f1dfaf">
         <source xml:lang="en">Filter by schema</source>
-        <target state="new">Filter by schema</target>
+        <target state="translated">Filtrar por esquema</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
@@ -3112,7 +3200,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++50ee55cd30fcbff4593b799f78f7ee159d3eb0ad52bcf7b43f6fea7ea5cf5050">
         <source xml:lang="en">Filter {0}</source>
-        <target state="new">Filter {0}</target>
+        <target state="translated">Filtro {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
@@ -3254,11 +3342,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
         <source xml:lang="en">Function</source>
-        <target state="new">Function</target>
+        <target state="translated">Función</target>
       </trans-unit>
       <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
         <source xml:lang="en">Functions</source>
-        <target state="new">Functions</target>
+        <target state="translated">Funciones</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -3516,6 +3604,10 @@ Error:
         <source xml:lang="en">Import complete. You can close this dialog.</source>
         <target state="translated">Importación completada. Puede cerrar este diálogo.</target>
       </trans-unit>
+      <trans-unit id="++CODE++12c9bd2df1fb0a4bd74d299e36eaeec5884e1497a0292853a8ac0ec456b9031c">
+        <source xml:lang="en">Import connection configuration settings from Azure Data Studio</source>
+        <target state="new">Import connection configuration settings from Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
         <source xml:lang="en">Import failed: {0}</source>
         <note>{0} is the error message returned from the import helper.</note>
@@ -3588,6 +3680,10 @@ Error:
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
         <target state="translated">Instalar Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
+        <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
+        <target state="new">Install the MSSQL Database Management Keymap extension</target>
       </trans-unit>
       <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
         <source xml:lang="en">Instant Container Setup</source>
@@ -3915,7 +4011,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
         <source xml:lang="en">Loading database objects</source>
-        <target state="new">Loading database objects</target>
+        <target state="translated">Cargando objetos de base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
@@ -3975,6 +4071,10 @@ Error:
         <source xml:lang="en">Loading...</source>
         <target state="translated">Cargando...</target>
       </trans-unit>
+      <trans-unit id="++CODE++67b84cd4159ae33eb03a5cc9398bc77383d9ab5e73a5faf7189b775384dc09a1">
+        <source xml:lang="en">Local Container Deployment</source>
+        <target state="new">Local Container Deployment</target>
+      </trans-unit>
       <trans-unit id="++CODE++8b40b52b182ad6e53db8c7a2b46b81c4daa05a4737719ec9e7290f3407d9b20d">
         <source xml:lang="en">Local SQL Server Container</source>
         <target state="translated">Contenedor de SQL Server local</target>
@@ -3994,6 +4094,10 @@ Error:
       <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
         <source xml:lang="en">Location (Workspace)</source>
         <target state="translated">Ubicación (área de trabajo)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
+        <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
+        <target state="new">Looking for Azure Data Studio key bindings, like F5 to execute queries?</target>
       </trans-unit>
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
@@ -4207,7 +4311,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
-        <target state="new">Modify Table</target>
+        <target state="translated">Modificar tabla</target>
       </trans-unit>
       <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
         <source xml:lang="en">More Query Actions</source>
@@ -4230,6 +4334,10 @@ Error:
         <note>{0} is the root id</note>
         <target state="translated">Se encontraron varios grupos de conexiones con el identificador '{0}'.  Elimínelas o cámbielas de nombre, excepto una en el settings.json usuario o global, y reinicie la extensión.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7534870b07fc697bc330ff6a95d96ff85e93fe2b0c7db580d8508a0d08552cc">
+        <source xml:lang="en">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</source>
+        <target state="new">Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens</target>
+      </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
         <target state="translated">Mis datos</target>
@@ -4245,6 +4353,10 @@ Error:
       <trans-unit id="++CODE++dcd1d5223f73b3a965c07e3ff5dbee3eedcfedb806686a05b9b3868a2c3d6d50">
         <source xml:lang="en">Name</source>
         <target state="translated">Nombre</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b82c5cef7aaff3d8d682ade902e1ed86c30c2206d3291b70c464bca8b9632e1e">
+        <source xml:lang="en">Name for the Docker container running DAB</source>
+        <target state="new">Name for the Docker container running DAB</target>
       </trans-unit>
       <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
         <source xml:lang="en">Name of the primary key.</source>
@@ -4447,6 +4559,10 @@ Error:
         <source xml:lang="en">No connections were found in the file.</source>
         <target state="translated">No se encontraron conexiones en el archivo.</target>
       </trans-unit>
+      <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
+        <source xml:lang="en">No customized settings found</source>
+        <target state="new">No customized settings found</target>
+      </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
         <target state="translated">No hay datos disponibles</target>
@@ -4462,7 +4578,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
         <source xml:lang="en">No databases found on the server. Please check your connection.</source>
-        <target state="new">No databases found on the server. Please check your connection.</target>
+        <target state="translated">No se encontraron bases de datos en el servidor. Compruebe su conexión.</target>
       </trans-unit>
       <trans-unit id="++CODE++9a5ffa9a03deee764163c794a73832d859a2df314715bb7c281f4eaac7919f3f">
         <source xml:lang="en">No elements found</source>
@@ -4492,7 +4608,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
         <source xml:lang="en">No objects found</source>
-        <target state="new">No objects found</target>
+        <target state="translated">No se encontraron objetos</target>
       </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
@@ -4669,7 +4785,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++15bcefe28749fc12d60214a94c60d8a46127c922357c31e718e1cd3d28262678">
         <source xml:lang="en">Object Types</source>
-        <target state="new">Object Types</target>
+        <target state="translated">Tipos de objeto</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -4966,6 +5082,19 @@ Error:
         <source xml:lang="en">Port must be a number between 1 and 65535</source>
         <target state="translated">El puerto debe ser un número entre 1 y 65535.</target>
       </trans-unit>
+      <trans-unit id="++CODE++186d06201f857df30733b51de403c7e7199e855dbf359eefe8c35389ba8440aa">
+        <source xml:lang="en">Port must be between 1 and 65535</source>
+        <target state="new">Port must be between 1 and 65535</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de9d0069c353909a19960efae7bb5fd1e1462dfa95644ed05a3b1f9609c63f38">
+        <source xml:lang="en">Port to expose the API on (default: 5000)</source>
+        <target state="new">Port to expose the API on (default: 5000)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3a58feb1e22248ce4bb3611c187647b0c0f63250987596ac368c0191403c6367">
+        <source xml:lang="en">Port {0} is already in use</source>
+        <note>{0} is the port number</note>
+        <target state="new">Port {0} is already in use</target>
+      </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
         <target state="translated">Posible pérdida de datos detectada. Revise los cambios.</target>
@@ -5062,7 +5191,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++99180d1db25b74c9fdb6b87930e0c07170897aed8469df7142ba113b841e4031">
         <source xml:lang="en">Profiler is not supported on Microsoft Fabric SQL databases.</source>
-        <target state="new">Profiler is not supported on Microsoft Fabric SQL databases.</target>
+        <target state="translated">Profiler no se admite en bases de datos SQL de Microsoft Fabric.</target>
       </trans-unit>
       <trans-unit id="++CODE++60e0b5173c6313a2190dd539cf39d00c4ccf23c17cfa78f4e55d394f5d0af2a0">
         <source xml:lang="en">Profiler ready. Select a session from the dropdown and click Start to begin profiling.</source>
@@ -5076,7 +5205,7 @@ Error:
       <trans-unit id="++CODE++c4708835c8dc2ca58a9b14c478db0d1773a0506682e9fcff28622e7a06bbbe98">
         <source xml:lang="en">Profiler session '{0}' started successfully.</source>
         <note>{0} is the session name</note>
-        <target state="new">Profiler session '{0}' started successfully.</target>
+        <target state="translated">La sesión del generador de perfiles ''{0}'' se inició correctamente.</target>
       </trans-unit>
       <trans-unit id="++CODE++a08aa9258978e1c4eeedb7e53c742dc718f4349e6a0ec6b5abadd9bec9c6d410">
         <source xml:lang="en">Profiler: No session</source>
@@ -5154,6 +5283,10 @@ Error:
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Publicando cambios</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dac6f3f6dc8268df14288406b10ad3eb311b7488bb2932e5d97baf42c0409f46">
+        <source xml:lang="en">Pulling DAB container image</source>
+        <target state="new">Pulling DAB container image</target>
       </trans-unit>
       <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
         <source xml:lang="en">Pulling SQL Server Image</source>
@@ -5316,7 +5449,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9f7b45b322d217b0cee6325963502b5a13eb8aa00e3b6330b7099f868f73782f">
         <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="new">Rename Database (Preview)</target>
+        <target state="translated">Cambiar nombre de base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
@@ -5329,6 +5462,10 @@ Error:
       <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
         <source xml:lang="en">Required</source>
         <target state="translated">Obligatorio</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98fe17bca293f3dccd1fbe14ff7b0f12d73ba72e6a3e47310982e8de208f560f">
+        <source xml:lang="en">Requirements:</source>
+        <target state="new">Requirements:</target>
       </trans-unit>
       <trans-unit id="++CODE++7e069f05fe75d06f806f4772b8ab6ad6ab63626da27cd0d7f215913e529b1d43">
         <source xml:lang="en">Requires user authentication</source>
@@ -5761,7 +5898,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++bdae3cfc11ace2d49f363c2a0603b5d7467a534bc981769ae9f3a4dd4f594059">
         <source xml:lang="en">Schemas</source>
-        <target state="new">Schemas</target>
+        <target state="translated">Esquemas</target>
       </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
@@ -5769,7 +5906,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++da92ada9f62a3c48d32510f433e324d463eb9c983b33fe778f0517dcbae55755">
         <source xml:lang="en">Script as Alter</source>
-        <target state="new">Script as Alter</target>
+        <target state="translated">Script de Alter</target>
       </trans-unit>
       <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
         <source xml:lang="en">Script as Create</source>
@@ -5777,11 +5914,11 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++322de6924dbe3c139348ee124dcc19e9ca0de352f0b03a3846d60ec82eb1f44d">
         <source xml:lang="en">Script as Drop</source>
-        <target state="new">Script as Drop</target>
+        <target state="translated">Script de anular</target>
       </trans-unit>
       <trans-unit id="++CODE++ff98ebd77a41e1bbbde627a6d59c75d1f0c638d766414f8a1d10734624710015">
         <source xml:lang="en">Script as Execute</source>
-        <target state="new">Script as Execute</target>
+        <target state="translated">Script de ejecutar</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -5793,12 +5930,12 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++615cb1c6b249984eb02967310fe49221a73cd895ddbadfe3bd81c45690941e57">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="new">Search Database Objects</target>
+        <target state="translated">Buscar objetos de base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++e84f366d30c8a2b085d32e67f0405aa88e6fd559c71641f8a86306bf18a9fb70">
         <source xml:lang="en">Search Database Objects - {0}</source>
         <note>{0} is the server name</note>
-        <target state="new">Search Database Objects - {0}</target>
+        <target state="translated">Buscar objetos de base de datos - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -5806,7 +5943,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++00ab6658a4f12b6a8c605e0b8f0f7c9f1a29294670b38a100a26715170b4fc71">
         <source xml:lang="en">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</source>
-        <target state="new">Search by object name or type (e.g. t:&lt;name&gt;, v:, f:, or sp:)</target>
+        <target state="translated">Buscar por nombre o tipo de objeto (por ejemplo, t:&lt;name&gt;, v:, f:o sp:)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaa485833bc1126532a77262f7adc4878fb96ef300e673630f1c0f3670199d4">
         <source xml:lang="en">Search changes...</source>
@@ -5842,7 +5979,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
         <source xml:lang="en">Searching...</source>
-        <target state="new">Searching...</target>
+        <target state="translated">Buscando...</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
@@ -5886,7 +6023,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++37f95b8055347aebdc95a41564e27c63db0902208c38f9dcfe404b186aa34199">
         <source xml:lang="en">Select Top 1000</source>
-        <target state="new">Select Top 1000</target>
+        <target state="translated">Seleccionar los primeros 1000</target>
       </trans-unit>
       <trans-unit id="++CODE++dc5dab3f76a3546eddc86074dd625184201ce48a51cb1eeee7a05c3efa98f940">
         <source xml:lang="en">Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.</source>
@@ -5910,7 +6047,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b7e789f7e9607ec14fce47c70aa688cd870e8a299d73eecf40e06d4d4af58162">
         <source xml:lang="en">Select a database for profiling (Azure SQL requires a specific database)</source>
-        <target state="new">Select a database for profiling (Azure SQL requires a specific database)</target>
+        <target state="translated">Seleccionar una base de datos para la generación de perfiles (Azure SQL requiere una base de datos específica)</target>
       </trans-unit>
       <trans-unit id="++CODE++7b75dbfbfa94648cb2dc0bdd07902822febebcb1410a01746d0cf1ee01d33e71">
         <source xml:lang="en">Select a file</source>
@@ -6114,6 +6251,10 @@ Consulta: {2}</target>
         <source xml:lang="en">Set backup retain days</source>
         <target state="translated">Configure los días de conservación de la copia de seguridad</target>
       </trans-unit>
+      <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
+        <source xml:lang="en">Setting</source>
+        <target state="new">Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
         <source xml:lang="en">Setting up</source>
         <target state="translated">Configurando</target>
@@ -6125,6 +6266,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
         <target state="translated">Configuración</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
+        <source xml:lang="en">Settings and Keybindings</source>
+        <target state="new">Settings and Keybindings</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -6366,6 +6511,14 @@ Consulta: {2}</target>
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">Iniciando contenedor...</target>
       </trans-unit>
+      <trans-unit id="++CODE++d1b24d5bbf5df0c21eb556a585b4c43387f0582dc39fffcdac7fe563361e7366">
+        <source xml:lang="en">Starting DAB container</source>
+        <target state="new">Starting DAB container</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e8463e680c32abe75224a03ee5b03d4781e812c3180fb6e0a9c992730879574f">
+        <source xml:lang="en">Starting Docker Desktop</source>
+        <target state="new">Starting Docker Desktop</target>
+      </trans-unit>
       <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
         <source xml:lang="en">Starting Docker...</source>
         <target state="translated">Iniciando Docker...</target>
@@ -6418,11 +6571,11 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
         <source xml:lang="en">Stored Procedure</source>
-        <target state="new">Stored Procedure</target>
+        <target state="translated">Procedimiento almacenado</target>
       </trans-unit>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
-        <target state="new">Stored Procedures</target>
+        <target state="translated">Procedimientos almacenados</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -6572,7 +6725,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
         <source xml:lang="en">Tables</source>
-        <target state="new">Tables</target>
+        <target state="translated">Tablas</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -6772,6 +6925,10 @@ Consulta: {2}</target>
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
         <target state="translated">Este valor no se proporcionó en el archivo de configuración de Azure Data Studio.</target>
       </trans-unit>
+      <trans-unit id="++CODE++87d32860bff1a584879119afb4ad415a19634091876f5280a1965d0844bdb889">
+        <source xml:lang="en">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</source>
+        <target state="new">This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Marca de tiempo</target>
@@ -6847,7 +7004,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++54f7b4c24a0e08663b5d9d1cf65cdbb9e6e5e94413398f2480b1f2b717ab8ec4">
         <source xml:lang="en">Try adjusting your search or filters</source>
-        <target state="new">Try adjusting your search or filters</target>
+        <target state="translated">Pruebe a ajustar la búsqueda o los filtros</target>
       </trans-unit>
       <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
         <source xml:lang="en">Try it</source>
@@ -6867,7 +7024,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4355e7352a614a58a8051157468baaf1102b9be2bdc6334597a8298aefbfbed6">
         <source xml:lang="en">Unable to load backup configuration. Please try again.</source>
-        <target state="new">Unable to load backup configuration. Please try again.</target>
+        <target state="translated">No se puede cargar la configuración de copia de seguridad. Inténtelo de nuevo.</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
@@ -6899,7 +7056,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
         <source xml:lang="en">Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Desconocido</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -6908,6 +7065,11 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++0ac22ebf2e4c548e6b1f01b79672929184e0626822b651ceba6766f880cc2d27">
         <source xml:lang="en">Unknown account</source>
         <target state="translated">Cuenta desconocida</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cd50aadb6084f5609d08480385c3e9bc12846606183a1654310b4cdbeb953855">
+        <source xml:lang="en">Unknown deployment step: {0}</source>
+        <note>{0} is the deployment step number</note>
+        <target state="new">Unknown deployment step: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
@@ -7037,6 +7199,18 @@ Consulta: {2}</target>
         <source xml:lang="en">Verify backup when finished</source>
         <target state="translated">Comprobar copia de seguridad cuando haya terminado</target>
       </trans-unit>
+      <trans-unit id="++CODE++c3c67860a7ed33d60abb06ff29ebf03be5f1db11b3ed71566467dc8a55add424">
+        <source xml:lang="en">Verifying Docker engine is ready</source>
+        <target state="new">Verifying Docker engine is ready</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bba88aa8201682fe4d61d60b4a68cce37fef65f62111ab2d3ef125630e2b9c57">
+        <source xml:lang="en">Verifying Docker is installed on your system</source>
+        <target state="new">Verifying Docker is installed on your system</target>
+      </trans-unit>
+      <trans-unit id="++CODE++231f6c3aeb3c4c3fccb71154ec11eea4e310360cd379f33c6530bef5fa2c7efd">
+        <source xml:lang="en">Verifying the API is ready to accept requests</source>
+        <target state="new">Verifying the API is ready to accept requests</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ef8939f723e18dae31afe6a66699cdd093848ce10e84fcb5d34e15950cc2a06">
         <source xml:lang="en">Very Dissatisfied</source>
         <target state="translated">Muy insatisfecho</target>
@@ -7047,7 +7221,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
         <source xml:lang="en">View</source>
-        <target state="new">View</target>
+        <target state="translated">Vista</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -7061,6 +7235,10 @@ Consulta: {2}</target>
         <source xml:lang="en">View roadmap</source>
         <target state="translated">Ver plan de desarrollo</target>
       </trans-unit>
+      <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
+        <source xml:lang="en">View settings</source>
+        <target state="new">View settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
         <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
         <target state="translated">Ver, editar, agregar y eliminar filas de tabla en una cuadrícula interactiva con validación en tiempo real y vistas previas de scripts DML dinámicas.</target>
@@ -7071,7 +7249,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++69c404591e99d86fd11f5ae1b15ebd246d4836aaa88a29f75f3f3d61c028357a">
         <source xml:lang="en">Views</source>
-        <target state="new">Views</target>
+        <target state="translated">Vistas</target>
       </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
@@ -7165,6 +7343,10 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
         <target state="translated">Debe revisar y aceptar los términos para continuar.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f86597d07cc9ee182bac4dce2a2850eb6cc8509b3199ec6ab9d6e3e89fff8aae">
+        <source xml:lang="en">Your API is available at:</source>
+        <target state="new">Your API is available at:</target>
       </trans-unit>
       <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
         <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
@@ -7356,6 +7538,26 @@ Consulta: {2}</target>
         <note>{0} is the number of columns</note>
         <target state="translated">Datos de {0} columna</target>
       </trans-unit>
+      <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">
+        <source xml:lang="en">{0} connection group imported</source>
+        <note>{0} is the number of connection groups imported (singular)</note>
+        <target state="new">{0} connection group imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f12c66806d4a524f59f2d92f0f60c743727758060a54d3d4404abc8c09a3e766">
+        <source xml:lang="en">{0} connection groups imported</source>
+        <note>{0} is the number of connection groups imported (plural)</note>
+        <target state="new">{0} connection groups imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f">
+        <source xml:lang="en">{0} connection imported</source>
+        <note>{0} is the number of connections imported (singular)</note>
+        <target state="new">{0} connection imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
+        <source xml:lang="en">{0} connections imported</source>
+        <note>{0} is the number of connections imported (plural)</note>
+        <target state="new">{0} connections imported</target>
+      </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
@@ -7394,7 +7596,7 @@ Consulta: {2}</target>
       <trans-unit id="++CODE++88406d92ef64a09f40811dd2f77a5e2476fae20846f1d89e5f48fee94761d0d2">
         <source xml:lang="en">{0} objects found</source>
         <note>{0} is the number of objects found</note>
-        <target state="new">{0} objects found</target>
+        <target state="translated">{0} objetos encontrados</target>
       </trans-unit>
       <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
         <source xml:lang="en">{0} of {1}</source>
@@ -7444,6 +7646,16 @@ Consulta: {2}</target>
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected rows</note>
         <target state="translated">{0} seleccionados</target>
+      </trans-unit>
+      <trans-unit id="++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481">
+        <source xml:lang="en">{0} setting imported</source>
+        <note>{0} is the number of settings imported (singular)</note>
+        <target state="new">{0} setting imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
+        <source xml:lang="en">{0} settings imported</source>
+        <note>{0} is the number of settings imported (plural)</note>
+        <target state="new">{0} settings imported</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -7671,7 +7883,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="mssql.createDatabase">
         <source xml:lang="en">Create Database (Preview)</source>
-        <target state="new">Create Database (Preview)</target>
+        <target state="translated">Crear base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
         <source xml:lang="en">Create a Table with Table Designer</source>
@@ -7745,7 +7957,7 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
       </trans-unit>
       <trans-unit id="mssql.dropDatabase">
         <source xml:lang="en">Drop Database (Preview)</source>
-        <target state="new">Drop Database (Preview)</target>
+        <target state="translated">Quitar base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
@@ -8113,7 +8325,7 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       </trans-unit>
       <trans-unit id="mssql.renameDatabase">
         <source xml:lang="en">Rename Database (Preview)</source>
-        <target state="new">Rename Database (Preview)</target>
+        <target state="translated">Cambiar nombre de base de datos (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
@@ -8173,7 +8385,7 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       </trans-unit>
       <trans-unit id="mssql.searchDatabase">
         <source xml:lang="en">Search Database Objects</source>
-        <target state="new">Search Database Objects</target>
+        <target state="translated">Buscar objetos de base de datos</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>

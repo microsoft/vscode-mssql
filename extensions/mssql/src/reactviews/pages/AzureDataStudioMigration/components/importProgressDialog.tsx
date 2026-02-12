@@ -27,6 +27,11 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "12px",
     },
+    resultSection: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+    },
     resultRow: {
         display: "flex",
         alignItems: "center",
@@ -49,12 +54,58 @@ export const ImportProgressDialog = ({ dialog, onDismiss }: ImportProgressDialog
     const styles = useStyles();
     const loc = Loc.azureDataStudioMigration;
 
-    const statusIcon =
-        dialog.status.status === ApiStatus.Error ? (
-            <Warning16Regular className={styles.errorIcon} />
-        ) : (
-            <CheckmarkCircle16Filled className={styles.successIcon} />
+    const renderSuccessContent = () => {
+        const counts = dialog.importedCounts;
+        if (!counts) {
+            return (
+                <div className={styles.resultRow}>
+                    <CheckmarkCircle16Filled className={styles.successIcon} />
+                    <Text>{dialog.status.message}</Text>
+                </div>
+            );
+        }
+
+        const lines: { label: string }[] = [];
+
+        if (counts.connectionGroups > 0) {
+            lines.push({
+                label: loc.importedConnectionGroups(counts.connectionGroups),
+            });
+        }
+
+        if (counts.connections > 0) {
+            lines.push({
+                label: loc.importedConnections(counts.connections),
+            });
+        }
+
+        if (counts.settings > 0) {
+            lines.push({
+                label: loc.importedSettings(counts.settings),
+            });
+        }
+
+        if (lines.length === 0) {
+            return (
+                <div className={styles.resultRow}>
+                    <CheckmarkCircle16Filled className={styles.successIcon} />
+                    <Text>{dialog.status.message}</Text>
+                </div>
+            );
+        }
+
+        return (
+            <div className={styles.resultSection}>
+                <Text style={{ paddingBottom: "6px" }}>{dialog.status.message}</Text>
+                {lines.map((line) => (
+                    <div className={styles.resultRow} key={line.label}>
+                        <CheckmarkCircle16Filled className={styles.successIcon} />
+                        <Text>{line.label}</Text>
+                    </div>
+                ))}
+            </div>
         );
+    };
 
     return (
         <Dialog
@@ -74,11 +125,13 @@ export const ImportProgressDialog = ({ dialog, onDismiss }: ImportProgressDialog
                                 <Text>{dialog.status.message}</Text>
                                 <Spinner />
                             </div>
-                        ) : (
+                        ) : dialog.status.status === ApiStatus.Error ? (
                             <div className={styles.resultRow}>
-                                {statusIcon}
+                                <Warning16Regular className={styles.errorIcon} />
                                 <Text>{dialog.status.message}</Text>
                             </div>
+                        ) : (
+                            renderSuccessContent()
                         )}
                     </DialogContent>
                     <DialogActions>

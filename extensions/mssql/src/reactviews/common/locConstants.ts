@@ -65,6 +65,7 @@ export class LocConstants {
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
+            previous: l10n.t("Previous"),
         };
     }
 
@@ -1171,6 +1172,45 @@ export class LocConstants {
             loading: l10n.t("Loading..."),
             initializingDabConfig: l10n.t("Initializing DAB configuration..."),
             noEntitiesFound: l10n.t("No entities found"),
+
+            // DAB Deployment Dialog
+            deployDabContainer: l10n.t("Deploy DAB Container"),
+            localContainerDeployment: l10n.t("Local Container Deployment"),
+            deployDabContainerDescription: l10n.t(
+                "This will deploy a Data API Builder container locally using Docker. The container will expose REST and GraphQL APIs based on your configuration.",
+            ),
+            requirements: l10n.t("Requirements:"),
+            dockerDesktopRequirement: l10n.t(
+                "Docker Desktop must be installed and running on your machine.",
+            ),
+            containerSettings: l10n.t("Container Settings"),
+            containerName: l10n.t("Container Name"),
+            containerNameRequired: l10n.t("Container name is required"),
+            containerNameInvalid: l10n.t(
+                "Must start with an alphanumeric character and contain only alphanumeric characters, underscores, periods, or hyphens",
+            ),
+            containerNameHint: l10n.t("Name for the Docker container running DAB"),
+            port: l10n.t("Port"),
+            portInvalid: l10n.t("Port must be between 1 and 65535"),
+            portHint: l10n.t("Port to expose the API on (default: 5000)"),
+            deploymentComplete: l10n.t("Deployment Complete"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            dabContainerRunning: l10n.t("DAB container is running!"),
+            apiAvailableAt: l10n.t("Your API is available at:"),
+
+            // DAB Deployment Steps
+            checkingDockerInstallation: l10n.t("Checking Docker installation"),
+            verifyingDockerInstalled: l10n.t("Verifying Docker is installed on your system"),
+            startingDockerDesktop: l10n.t("Starting Docker Desktop"),
+            ensuringDockerDesktopRunning: l10n.t("Ensuring Docker Desktop is running"),
+            checkingDockerEngine: l10n.t("Checking Docker engine"),
+            verifyingDockerEngineReady: l10n.t("Verifying Docker engine is ready"),
+            pullingDabImage: l10n.t("Pulling DAB container image"),
+            downloadingDabImage: l10n.t("Downloading the Data API Builder container image"),
+            startingDabContainer: l10n.t("Starting DAB container"),
+            creatingAndStartingContainer: l10n.t("Creating and starting the container"),
+            checkingContainerReadiness: l10n.t("Checking container readiness"),
+            verifyingApiReady: l10n.t("Verifying the API is ready to accept requests"),
         };
     }
 
@@ -1791,9 +1831,9 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration - Connections"),
+            title: l10n.t("Azure Data Studio Migration"),
             subtitle: l10n.t(
-                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+                "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
             configInputLabel: l10n.t("Azure Data Studio settings file"),
             configInputDescription: l10n.t(
@@ -1886,6 +1926,57 @@ export class LocConstants {
             entraSignInDialogMessage: l10n.t(
                 "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
             ),
+            settingsHeader: l10n.t("Settings and Keybindings"),
+            settingsCollapse: l10n.t("Collapse settings"),
+            settingsExpand: l10n.t("Expand settings"),
+            importSettingsCheckboxLabel: l10n.t(
+                "Import connection configuration settings from Azure Data Studio",
+            ),
+            viewSettingsButton: l10n.t("View settings"),
+            viewSettingsDialogTitle: l10n.t("Configuration to Import"),
+            settingsKeyColumn: l10n.t("Setting"),
+            settingsValueColumn: l10n.t("Value"),
+            noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            keymapCallout: l10n.t(
+                "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+            ),
+            keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
+            importedConnectionGroups: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection group imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connection groups imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (plural)"],
+                      }),
+            importedConnections: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connections imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (plural)"],
+                      }),
+            importedSettings: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} setting imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} settings imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (plural)"],
+                      }),
         };
     }
 
@@ -2091,6 +2182,41 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
+        };
+    }
+
+    public get flatFileImport() {
+        return {
+            importFile: l10n.t("Import File"),
+            stepOne: l10n.t("Step 1: Specify Input File"),
+            loadingFlatFileImport: l10n.t("Loading flat file import..."),
+            loadingTablePreview: l10n.t("Loading table preview..."),
+            browse: l10n.t("Browse"),
+            stepTwo: l10n.t("Step 2: Preview Data"),
+            operationPreviewText: l10n.t(
+                "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+            ),
+            stepThree: l10n.t("Step 3: Modify Columns"),
+            columnName: l10n.t("Column Name"),
+            dataType: l10n.t("Data Type"),
+            allowNulls: l10n.t("Allow Nulls"),
+            primaryKey: l10n.t("Primary Key"),
+            importData: l10n.t("Import Data"),
+            stepFour: l10n.t("Step 4: Summary"),
+            importInformation: l10n.t("Import Information"),
+            importStatus: l10n.t("Import Status"),
+            objectType: l10n.t("Object Type"),
+            name: l10n.t("Name"),
+            serverName: l10n.t("Server Name"),
+            databaseName: l10n.t("Database Name"),
+            tableName: l10n.t("Table Name"),
+            tableSchema: l10n.t("Table Schema"),
+            fileToBeImported: l10n.t("File to be imported"),
+            importingData: l10n.t("Importing data..."),
+            importSuccessful: l10n.t("File imported successfully"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            importNewFile: l10n.t("Import New File"),
         };
     }
 }

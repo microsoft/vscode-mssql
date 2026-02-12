@@ -1310,6 +1310,40 @@ export class LocalContainers {
     public static sqlServer2025ArmErrorTooltip = l10n.t(
         "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
     );
+
+    // DAB (Data API Builder) deployment strings
+    public static dabContainerNameInvalidOrInUse = l10n.t(
+        "Container name is invalid or already in use",
+    );
+    public static dabPortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabStartContainerMissingParams = l10n.t(
+        "Container name, port, and config content are required to start the container.",
+    );
+    public static dabFailedToStartContainer = l10n.t("Failed to start DAB container.");
+    public static dabCheckContainerMissingParams = l10n.t(
+        "Container name and port are required to check container readiness.",
+    );
+    public static dabUnknownDeploymentStep = (step: number) =>
+        l10n.t({
+            message: "Unknown deployment step: {0}",
+            args: [step],
+            comment: ["{0} is the deployment step number"],
+        });
+    public static dabPullImageError = l10n.t(
+        "Failed to pull DAB container image. Please check your network connection.",
+    );
+    public static dabStartContainerError = l10n.t(
+        "Failed to start DAB container. Please check the Docker logs for details.",
+    );
+    public static dabContainerReadyTimeout = l10n.t(
+        "DAB container failed to become ready within the timeout period.",
+    );
+    public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
 }
 
 export class UserSurvey {
@@ -2904,4 +2938,42 @@ export class BackupDatabase {
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
     );
+}
+
+export class FlatFileImport {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
+    public static loadingSchemas = l10n.t("Loading schemas...");
+    public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
 }
