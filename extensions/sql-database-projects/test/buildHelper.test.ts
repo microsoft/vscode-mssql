@@ -118,8 +118,8 @@ suite("BuildHelper: Build Helper tests", function (): void {
         const buildHelper = new BuildHelper();
         const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
-        // Verify that the build directory was created successfully
-        expect(success, "Build directory creation should succeed").to.be.true;
+		// Verify that the build directory was created successfully
+		expect(success, 'Build directory creation should succeed').to.be.true;
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
@@ -145,14 +145,11 @@ suite("BuildHelper: Build Helper tests", function (): void {
         // Combine all required files
         const allRequiredFiles = [...requiredDacFxFiles, ...requiredScriptDomFiles];
 
-        // Verify each required file exists in the build directory
-        for (const fileName of allRequiredFiles) {
-            const filePath = path.join(buildDirPath, fileName);
-            const exists = await utils.exists(filePath);
-            expect(
-                exists,
-                `Required file '${fileName}' should exist in build directory at ${filePath}`,
-            ).to.be.true;
-        }
-    });
+		// Verify each required file exists in the build directory
+		for (const fileName of allRequiredFiles) {
+			const filePath = path.join(buildDirPath, fileName);
+			const exists = await utils.exists(filePath);
+			expect(exists, `Required file '${fileName}' should exist in build directory at ${filePath}`).to.be.true;
+		}
+	});
 });
