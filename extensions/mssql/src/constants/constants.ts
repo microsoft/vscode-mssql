@@ -120,6 +120,7 @@ export const vscodeWorkbenchChatOpenAgentLegacy = "workbench.action.chat.openAge
 export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
+export const cmdToggleActualPlan = "mssql.toggleActualPlan";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
