@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f">
         <source xml:lang="en">A SQL Projects build task has been added to the existing tasks.json file.</source>
-        <target state="new">A SQL Projects build task has been added to the existing tasks.json file.</target>
+        <target state="translated">Un'attività di compilazione di progetti SQL è stata aggiunta al file tasks.json esistente.</target>
       </trans-unit>
       <trans-unit id="++CODE++4e2d59c066568f43ffe7a751eee191d989fc7704e637847e5e502382ade01dfb">
         <source xml:lang="en">A SQLCMD Variable with the same name already exists in this project</source>
@@ -200,7 +200,7 @@
       </trans-unit>
       <trans-unit id="++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0">
         <source xml:lang="en">Builds the {0} SQL project</source>
-        <target state="new">Builds the {0} SQL project</target>
+        <target state="translated">Compilare il progetto SQL {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
@@ -560,7 +560,7 @@
       </trans-unit>
       <trans-unit id="++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928">
         <source xml:lang="en">Error updating existing tasks.json: {0}</source>
-        <target state="new">Error updating existing tasks.json: {0}</target>
+        <target state="translated">Errore durante l'aggiornamento del file tasks.json esistente: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++169717657881b0e97115c2aae940a802fe1189d93441b13296718be44f617882">
         <source xml:lang="en">Error when moving file from {0} to {1}. Error: {2}</source>
@@ -733,7 +733,7 @@
       </trans-unit>
       <trans-unit id="++CODE++930304a5516931a4bdbd2e5b2b4b255765a068c8a01653f2736f7e81a66129ac">
         <source xml:lang="en">Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.</source>
-        <target state="new">Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.</target>
+        <target state="translated">Formato non valido in tasks.json: è previsto che 'tasks' sia una matrice. Correggere il file tasks.json e riprovare.</target>
       </trans-unit>
       <trans-unit id="++CODE++de5c107673bc91c5c4e4e372cb8ba05666c30c9f83b8087ffbaac76cecce6432">
         <source xml:lang="en">Invalid input: {0}</source>
@@ -1683,7 +1683,7 @@
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.publishDialog">
         <source xml:lang="en">Publish...</source>
-        <target state="new">Publish...</target>
+        <target state="translated">Pubblica...</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.rename">
         <source xml:lang="en">Rename</source>
