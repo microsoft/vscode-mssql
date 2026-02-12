@@ -36,7 +36,8 @@
             {
                 "command": "mssql.runCurrentStatement",
                 "key": "ctrl+f5",
-                "mac": "cmd+f5"
+                "mac": "cmd+f5",
+                "when": "editorTextFocus && editorLangId == 'sql'"
             },
             {
                 "command": "mssql.cancelQuery",
