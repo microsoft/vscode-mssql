@@ -40,6 +40,7 @@ test/resources/launchDir
 *BROWSE.VC*
 examples
 sqltoolsservice
+flatfileservice
 webviews-metafile.json
 
 # Generated localization files (keep source bundle.l10n.json files)

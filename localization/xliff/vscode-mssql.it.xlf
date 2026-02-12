@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
         <source xml:lang="en">Actions</source>
-        <target state="new">Actions</target>
+        <target state="translated">Azioni</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -307,7 +307,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
         <source xml:lang="en">An error occurred while loading data.</source>
-        <target state="new">An error occurred while loading data.</target>
+        <target state="translated">Errore durante il caricamento dei dati.</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -553,10 +553,6 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Azure Data Studio Migration</source>
         <target state="translated">Migrazione di Azure Data Studio</target>
       </trans-unit>
-      <trans-unit id="++CODE++c7263257490ce016e7b8fc8e7bedffe87c0f9317fa4760b8f6d265bc5de8bce2">
-        <source xml:lang="en">Azure Data Studio Migration - Connections</source>
-        <target state="translated">Migrazione di Azure Data Studio - Connessioni</target>
-      </trans-unit>
       <trans-unit id="++CODE++386d70c1c775d30bdadd4cb0db6b7e6d55f6fce325963f190afcdf24cf67f7b7">
         <source xml:lang="en">Azure Data Studio settings file</source>
         <target state="translated">File di impostazioni di Azure Data Studio</target>
@@ -685,9 +681,9 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Brightness</source>
         <target state="translated">Luminosità</target>
       </trans-unit>
-      <trans-unit id="++CODE++1de7cc215a806b6a7f80087b52123f4ec362c12f3eff680663047c72d2c01bdb">
-        <source xml:lang="en">Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
-        <target state="translated">Importare le connessioni salvate da Azure Data Studio nell'estensione MSSQL e scoprire esperienze familiari.</target>
+      <trans-unit id="++CODE++ecc77aec6ef08eda8ac83e4a4062c7509261b6fadd0f7939f483aed310bea9e3">
+        <source xml:lang="en">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</source>
+        <target state="new">Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.</target>
       </trans-unit>
       <trans-unit id="++CODE++3227aa9666253f7a736509074fb83bc4d47b19582faaa0233f228746de29217a">
         <source xml:lang="en">Browse</source>
@@ -1133,6 +1129,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
         <source xml:lang="en">Collapse connections</source>
         <target state="translated">Comprimere connessioni</target>
       </trans-unit>
+      <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
+        <source xml:lang="en">Collapse settings</source>
+        <target state="new">Collapse settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
         <source xml:lang="en">Collation</source>
         <target state="translated">Regole di confronto</target>
@@ -1239,6 +1239,10 @@ Seleziona "{0}" per stabilire una connessione.</target>
       <trans-unit id="++CODE++278b1b2a9c84730f37f6d36630281494544a27e37168b4c6e45859667777f609">
         <source xml:lang="en">Compression</source>
         <target state="translated">Compressione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
+        <source xml:lang="en">Configuration to Import</source>
+        <target state="new">Configuration to Import</target>
       </trans-unit>
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
@@ -2655,6 +2659,10 @@ Errore:
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">Espandere riquadro proprietà</target>
       </trans-unit>
+      <trans-unit id="++CODE++20d05307976810a29eedcdd82a29eb034086a79de4932ea3bab85093679f6580">
+        <source xml:lang="en">Expand settings</source>
+        <target state="new">Expand settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
         <source xml:lang="en">Expiration</source>
         <target state="translated">Scadenza</target>
@@ -3334,7 +3342,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++c803710302d5769d8fcd51958c516ff27f2a3c5ad9373c348d1d180c04a74624">
         <source xml:lang="en">Function</source>
-        <target state="new">Function</target>
+        <target state="translated">Funzione</target>
       </trans-unit>
       <trans-unit id="++CODE++75e942e5b366227eccb9def7fcea18422c7c5e164812c112c921461b2c587727">
         <source xml:lang="en">Functions</source>
@@ -3596,6 +3604,10 @@ Errore:
         <source xml:lang="en">Import complete. You can close this dialog.</source>
         <target state="translated">Importazione completata. È possibile chiudere questa finestra di dialogo.</target>
       </trans-unit>
+      <trans-unit id="++CODE++12c9bd2df1fb0a4bd74d299e36eaeec5884e1497a0292853a8ac0ec456b9031c">
+        <source xml:lang="en">Import connection configuration settings from Azure Data Studio</source>
+        <target state="new">Import connection configuration settings from Azure Data Studio</target>
+      </trans-unit>
       <trans-unit id="++CODE++21ab0ed2ec6f107c8269eeca5ca446ab5d4d5908753a18676d09c362e478fdc3">
         <source xml:lang="en">Import failed: {0}</source>
         <note>{0} is the error message returned from the import helper.</note>
@@ -3668,6 +3680,10 @@ Errore:
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
         <target state="translated">Installa Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
+        <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
+        <target state="new">Install the MSSQL Database Management Keymap extension</target>
       </trans-unit>
       <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
         <source xml:lang="en">Instant Container Setup</source>
@@ -4078,6 +4094,10 @@ Errore:
       <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
         <source xml:lang="en">Location (Workspace)</source>
         <target state="translated">Località (area di lavoro)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d837c7bb1f3941a813c25b07944c661318596b93902745a07c356400c2450fd7">
+        <source xml:lang="en">Looking for Azure Data Studio key bindings, like F5 to execute queries?</source>
+        <target state="new">Looking for Azure Data Studio key bindings, like F5 to execute queries?</target>
       </trans-unit>
       <trans-unit id="++CODE++53f13ae99ed53bd346eb8e1c8cefb7ef8260683b50401caf101360967ea052aa">
         <source xml:lang="en">MCP</source>
@@ -4538,6 +4558,10 @@ Errore:
       <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
         <source xml:lang="en">No connections were found in the file.</source>
         <target state="translated">Nessuna connessione trovata nel file.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
+        <source xml:lang="en">No customized settings found</source>
+        <target state="new">No customized settings found</target>
       </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
@@ -5955,7 +5979,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
         <source xml:lang="en">Searching...</source>
-        <target state="new">Searching...</target>
+        <target state="translated">Ricerca in corso...</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
@@ -6227,6 +6251,10 @@ Query: {2}</target>
         <source xml:lang="en">Set backup retain days</source>
         <target state="translated">Imposta i giorni di mantenimento del backup</target>
       </trans-unit>
+      <trans-unit id="++CODE++818cd8d91aea3a1689455f009f49e87fe7fa647fa2c4b9f09072dd1c33d52ca5">
+        <source xml:lang="en">Setting</source>
+        <target state="new">Setting</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
         <source xml:lang="en">Setting up</source>
         <target state="translated">Configurazione</target>
@@ -6238,6 +6266,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
         <target state="translated">Impostazioni</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6211b4404e51962560c0371e86dbaf688cfbd5d1c08e6324222089404db2929e">
+        <source xml:lang="en">Settings and Keybindings</source>
+        <target state="new">Settings and Keybindings</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -6539,7 +6571,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
         <source xml:lang="en">Stored Procedure</source>
-        <target state="new">Stored Procedure</target>
+        <target state="translated">Stored procedure</target>
       </trans-unit>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
@@ -7024,7 +7056,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
         <source xml:lang="en">Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Sconosciuto</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -7189,7 +7221,7 @@ Query: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
         <source xml:lang="en">View</source>
-        <target state="new">View</target>
+        <target state="translated">Visualizza</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -7202,6 +7234,10 @@ Query: {2}</target>
       <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
         <source xml:lang="en">View roadmap</source>
         <target state="translated">Visualizza roadmap</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2302d21f4bef22f282ae264d4a47815d7b5d9e289032bcea7fbe74ebd7a9171e">
+        <source xml:lang="en">View settings</source>
+        <target state="new">View settings</target>
       </trans-unit>
       <trans-unit id="++CODE++572d3a23a2580a07174e5600a5b05a6c3a49820b9eaa3e150c0c43ccbdd76ab6">
         <source xml:lang="en">View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.</source>
@@ -7502,6 +7538,26 @@ Query: {2}</target>
         <note>{0} is the number of columns</note>
         <target state="translated">Dati della colonna {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">
+        <source xml:lang="en">{0} connection group imported</source>
+        <note>{0} is the number of connection groups imported (singular)</note>
+        <target state="new">{0} connection group imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f12c66806d4a524f59f2d92f0f60c743727758060a54d3d4404abc8c09a3e766">
+        <source xml:lang="en">{0} connection groups imported</source>
+        <note>{0} is the number of connection groups imported (plural)</note>
+        <target state="new">{0} connection groups imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fdafb5c26d9b0676b97c877261cc5ffcbbe40b53f2ed0863f213e2d5cd1713f">
+        <source xml:lang="en">{0} connection imported</source>
+        <note>{0} is the number of connections imported (singular)</note>
+        <target state="new">{0} connection imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++440129f90fc8b26515c43b81f41d4243fca747b73149d34a9c33df4f75d9a85d">
+        <source xml:lang="en">{0} connections imported</source>
+        <note>{0} is the number of connections imported (plural)</note>
+        <target state="new">{0} connections imported</target>
+      </trans-unit>
       <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
@@ -7590,6 +7646,16 @@ Query: {2}</target>
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected rows</note>
         <target state="translated">{0} selezionate</target>
+      </trans-unit>
+      <trans-unit id="++CODE++95fa4a329ceeda46847f23c83d8b2df1c86ab5e6ec17645bd1ade313919d0481">
+        <source xml:lang="en">{0} setting imported</source>
+        <note>{0} is the number of settings imported (singular)</note>
+        <target state="new">{0} setting imported</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1584d81edbc3268202b85c3d1099fa195053084671c03e5070a2bdfdc0ede242">
+        <source xml:lang="en">{0} settings imported</source>
+        <note>{0} is the number of settings imported (plural)</note>
+        <target state="new">{0} settings imported</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
