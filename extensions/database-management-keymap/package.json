@@ -34,14 +34,12 @@
                 "when": "editorTextFocus && editorLangId == 'sql'"
             },
             {
-                "command": "mssql.objectExplorerNewQuery",
-                "key": "ctrl+n",
-                "mac": "cmd+n"
+                "command": "mssql.runCurrentStatement",
+                "key": "ctrl+f5"
             },
             {
-                "command": "mssql.schemaCompareOpenFromCommandPalette",
-                "key": "ctrl+alt+s",
-                "mac": "cmd+alt+s"
+                "command": "mssql.cancelQuery",
+                "key": "alt+pausebreak"
             },
             {
                 "command": "mssql.showEstimatedPlan",
@@ -54,6 +52,25 @@
                 "key": "ctrl+m",
                 "mac": "cmd+m",
                 "when": "editorTextFocus && editorLangId == 'sql'"
+            },
+            {
+                "command": "mssql.objectExplorerNewQuery",
+                "key": "ctrl+n",
+                "mac": "cmd+n"
+            },
+            {
+                "command": "mssql.copyAll",
+                "key": "ctrl+k ctrl+v"
+            },
+            {
+                "command": "workbench.view.connections",
+                "key": "ctrl+shift+d",
+                "when": "viewContainer.workbench.view.connections.enabled"
+            },
+            {
+                "command": "toggleQueryResultsKeyboardAction",
+                "key": "shift+win+r",
+                "when": "queryEditorVisible"
             }
         ]
     }
