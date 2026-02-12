@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import type { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
@@ -57,10 +57,6 @@ import {
     DacPacDialogOperationType,
 } from "../sharedInterfaces/dacpacDialog";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
-import {
-    DatabaseObjectSearchService,
-    DatabaseObject,
-} from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
@@ -101,14 +97,15 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../deployment/dockerUtils";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { ProfilerController } from "../profiler/profilerController";
 import { ProfilerService } from "../services/profilerService";
 import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
@@ -116,6 +113,10 @@ import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
 import { AzureBlobService } from "../services/azureBlobService";
+import { FlatFileClient } from "../flatFile/flatFileClient";
+import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
  * The main controller class that initializes the extension
@@ -143,6 +144,7 @@ export default class MainController implements vscode.Disposable {
     public schemaCompareService: SchemaCompareService;
     public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
+    public metadataService: IMetadataService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -156,6 +158,8 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
     public profilerController: ProfilerController;
+    public flatFileClient: FlatFileClient;
+    public flatFileProvider: FlatFileProvider;
 
     /**
      * The main controller constructor
@@ -616,6 +620,7 @@ export default class MainController implements vscode.Disposable {
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
+            this.metadataService = new MetadataService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -868,6 +873,11 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
+        // Initialize flat file client
+        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
+            this.flatFileProvider = provider;
+        });
+
         /**
          * TODO: aaskhan
          * Good candidate for dependency injection.
@@ -1026,267 +1036,6 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return undefined;
-    }
-
-    /**
-     * Handles the search objects command
-     * @param node Optional connection node to search within
-     */
-    public async onSearchObjects(node?: ConnectionNode): Promise<void> {
-        try {
-            // Get the connection URI and database name
-            let connectionUri: string;
-            let databaseName: string | undefined;
-
-            if (node && node.connectionProfile) {
-                // Called from Object Explorer context menu
-                connectionUri = ObjectExplorerUtils.getNodeUri(node);
-                databaseName = node.connectionProfile.database;
-
-                // Ensure we have an active connection for this URI
-                if (!this.connectionManager.isConnected(connectionUri)) {
-                    let connectionCreds = node.connectionProfile;
-                    const nodeDatabaseName = ObjectExplorerUtils.getDatabaseName(node);
-                    if (nodeDatabaseName !== connectionCreds.database) {
-                        connectionCreds.database = nodeDatabaseName;
-                        databaseName = nodeDatabaseName;
-                    }
-
-                    if (!this.connectionManager.isConnecting(connectionUri)) {
-                        const connectionResult = await this.connectionManager.connect(
-                            connectionUri,
-                            connectionCreds,
-                            {
-                                connectionSource: "searchObjects",
-                            },
-                        );
-
-                        if (connectionResult) {
-                            node.updateEntraTokenInfo(connectionCreds);
-                        } else {
-                            return;
-                        }
-                    }
-                }
-            } else {
-                // Called from command palette - use active connection
-                const activeUri = this._vscodeWrapper.activeTextEditorUri;
-                if (!activeUri) {
-                    void vscode.window.showErrorMessage(
-                        LocalizedConstants.searchObjectsNoConnection,
-                    );
-                    return;
-                }
-                const connection = this._connectionMgr.getConnectionInfo(activeUri);
-                if (!connection) {
-                    void vscode.window.showErrorMessage(
-                        LocalizedConstants.searchObjectsNoConnection,
-                    );
-                    return;
-                }
-                connectionUri = activeUri;
-                databaseName = connection.credentials.database;
-            }
-
-            // Validate the connection URI before proceeding
-            if (!connectionUri || connectionUri.trim() === "") {
-                void vscode.window.showErrorMessage(
-                    LocalizedConstants.searchObjectsInvalidConnectionUri,
-                );
-                return;
-            }
-
-            // Live, debounced QuickPick search using cached metadata
-            const searchService = new DatabaseObjectSearchService(this._connectionMgr.client);
-            await searchService.warmCache(connectionUri).catch(() => undefined);
-
-            type SearchPick = vscode.QuickPickItem & { object?: DatabaseObject };
-            const qp = vscode.window.createQuickPick<SearchPick>();
-            qp.placeholder = LocalizedConstants.searchObjectsPlaceholder;
-            qp.matchOnDescription = true;
-            qp.matchOnDetail = true;
-            qp.ignoreFocusOut = true;
-            qp.items = [];
-
-            let lastToken = 0;
-            let debounceHandle: NodeJS.Timeout | undefined;
-
-            const runSearch = async (value: string, token: number) => {
-                const term = value?.trim();
-                if (!term) {
-                    qp.items = [];
-                    return;
-                }
-                const result = await searchService.searchObjects(connectionUri, term, databaseName);
-                if (token !== lastToken) {
-                    return; // stale response
-                }
-                if (!result.success) {
-                    qp.items = [
-                        {
-                            label: LocalizedConstants.searchObjectsErrorWithDetail(result.error),
-                            description: "",
-                            detail: "",
-                        },
-                    ];
-                    return;
-                }
-                if (result.objects.length === 0) {
-                    const msg = LocalizedConstants.searchObjectsNoResultsMessage(term);
-                    qp.items = [
-                        {
-                            label: msg,
-                            description: "",
-                            detail: "",
-                        },
-                    ];
-                    return;
-                }
-                qp.items = result.objects.map((r) => ({
-                    label: r.name,
-                    description: r.type,
-                    detail: r.schema ? `${r.schema}.${r.name}` : r.name,
-                    object: r,
-                }));
-            };
-
-            const onChangeDisp = qp.onDidChangeValue((value) => {
-                lastToken++;
-                const current = lastToken;
-                if (debounceHandle) {
-                    clearTimeout(debounceHandle);
-                }
-                qp.busy = true;
-                debounceHandle = setTimeout(() => {
-                    void runSearch(value, current).finally(() => {
-                        if (current === lastToken) {
-                            qp.busy = false;
-                        }
-                    });
-                }, 200);
-            });
-
-            let selectedItem: SearchPick | undefined;
-            const onAcceptDisp = qp.onDidAccept(() => {
-                selectedItem = qp.selectedItems?.[0];
-                qp.hide();
-            });
-            const onHide = new Promise<void>((resolve) => {
-                const d = qp.onDidHide(() => {
-                    d.dispose();
-                    resolve();
-                });
-            });
-            qp.show();
-            await onHide;
-            onChangeDisp.dispose();
-            onAcceptDisp.dispose();
-            qp.dispose();
-
-            if (!selectedItem || !selectedItem.object) {
-                return; // cancelled or picked an info row
-            }
-
-            // Let user pick what kind of script to generate based on object type
-            const objType = selectedItem.object.type;
-            const operations: { label: string; op: ScriptOperation }[] = [];
-            if (objType === "Table" || objType === "View") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                        op: ScriptOperation.Select,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptCreateLabel,
-                        op: ScriptOperation.Create,
-                    },
-                );
-            } else if (objType === "Stored Procedure") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptExecuteLabel,
-                        op: ScriptOperation.Execute,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
-                        op: ScriptOperation.Alter,
-                    },
-                );
-            } else if (objType === "Scalar Function" || objType === "Table-valued Function") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                        op: ScriptOperation.Select,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
-                        op: ScriptOperation.Alter,
-                    },
-                );
-            } else {
-                operations.push({
-                    label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                    op: ScriptOperation.Select,
-                });
-            }
-
-            const selectedOp = await vscode.window.showQuickPick(
-                operations.map((o) => o.label),
-                {
-                    placeHolder: LocalizedConstants.ObjectExplorer.FetchingScriptLabel("…"),
-                    ignoreFocusOut: true,
-                },
-            );
-            if (!selectedOp) {
-                return;
-            }
-            const op = operations.find((o) => o.label === selectedOp)?.op ?? ScriptOperation.Select;
-
-            // Use ScriptingService to generate script and open connected untitled doc
-            const connection = this._connectionMgr.getConnectionInfo(connectionUri);
-            const serverInfo = this._connectionMgr.getServerInfo(connection?.credentials);
-            // Map friendly type to metadata type name used by scripting
-            const mapType = (t: string): string => {
-                switch (t) {
-                    case "Table":
-                        return "Table";
-                    case "View":
-                        return "View";
-                    case "Stored Procedure":
-                        return "StoredProcedure";
-                    case "Scalar Function":
-                        return "ScalarValuedFunction";
-                    case "Table-valued Function":
-                        return "TableValuedFunction";
-                    default:
-                        return t;
-                }
-            };
-            // Build an IScriptingObject from search result
-            const scriptingObject: IScriptingObject = {
-                type: mapType(objType),
-                schema: selectedItem.object.schema,
-                name: selectedItem.object.name,
-            };
-
-            const scriptingParams = this._scriptingService.createScriptingRequestParams(
-                serverInfo,
-                scriptingObject,
-                connectionUri,
-                op,
-            );
-            const script = await this._scriptingService.script(scriptingParams);
-
-            await this._sqlDocumentService.newQuery({
-                content: script,
-                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                connectionInfo: connection?.credentials,
-            });
-        } catch (error) {
-            void vscode.window.showErrorMessage(
-                LocalizedConstants.searchObjectsErrorWithDetail(getErrorMessage(error)),
-            );
-        }
     }
 
     /**
@@ -1673,6 +1422,38 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdFlatFileImport,
+                async (node: ConnectionNode) => {
+                    const connectionUri = this.connectionManager.getUriForConnection(
+                        node.connectionProfile,
+                    );
+
+                    const databases = await this.connectionManager.listDatabases(connectionUri);
+
+                    // If no databases found, show error message and return early
+                    if (databases.length === 0) {
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+                        );
+                        return;
+                    }
+
+                    const flatFileImportDialog = new FlatFileImportWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        SqlToolsServerClient.instance,
+                        this.connectionManager,
+                        this.flatFileProvider,
+                        node.connectionProfile,
+                        node.sessionId,
+                    );
+                    flatFileImportDialog.revealToForeground();
+                },
+            ),
+        );
+
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
             const connGroupDialog = new ConnectionGroupWebviewController(
@@ -1771,6 +1552,12 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
                     this.onTableExplorer(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
+                    this.onSearchDatabase(node),
                 ),
             );
 
@@ -2939,6 +2726,19 @@ export default class MainController implements vscode.Disposable {
         );
 
         tableExplorerWebView.revealToForeground();
+    }
+
+    public async onSearchDatabase(node?: any): Promise<void> {
+        const searchDatabaseWebView = new SearchDatabaseWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            this.metadataService,
+            this._connectionMgr,
+            node,
+            this._scriptingService,
+        );
+
+        searchDatabaseWebView.revealToForeground();
     }
 
     /**

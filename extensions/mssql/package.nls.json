@@ -55,6 +55,7 @@
     "mssql.copilot.newQueryWithConnection": "Open New Query and Connect",
     "mssql.schemaCompare": "Schema Compare",
     "mssql.tableExplorer": "Edit Data (Preview)",
+    "mssql.searchDatabase": "Search Database Objects",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.copyConnectionString": "Copy as Connection String",
@@ -273,5 +274,6 @@
     "mssql.openChangelog": "Open Changelog",
     "mssql.openAzureDataStudioMigration": "Migrate from Azure Data Studio",
     "mssql.showChangelogOnUpdate": "Show changelog after extension updates",
-    "mssql.backupDatabase": "Backup Database (Preview)"
+    "mssql.backupDatabase": "Backup Database (Preview)",
+    "mssql.flatFileImport": "Import flat file (Preview)"
 }

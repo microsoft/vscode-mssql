@@ -616,36 +616,6 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
-export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
-export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
-export function searchObjectsNoResultsMessage(term: string) {
-    return l10n.t({
-        message: "No database objects found matching '{0}'",
-        args: [term],
-        comment: ["{0} is the search term"],
-    });
-}
-export let searchObjectsError = l10n.t("An error occurred while searching database objects");
-export function searchObjectsErrorWithDetail(detail: string) {
-    return l10n.t({
-        message: "An error occurred while searching database objects: {0}",
-        args: [detail],
-        comment: ["{0} is the error detail returned from the search operation"],
-    });
-}
-export let searchObjectsNoConnection = l10n.t(
-    "No active database connection. Please connect to a database first.",
-);
-export function searchObjectsSelectPrompt(count: string | number) {
-    return l10n.t({
-        message: "Select an object to view its definition ({0} results)",
-        args: [count],
-        comment: ["{0} is the number of results"],
-    });
-}
-export let searchObjectsInvalidConnectionUri = l10n.t(
-    "Invalid connection URI. Please ensure you have an active database connection.",
-);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -1340,6 +1310,40 @@ export class LocalContainers {
     public static sqlServer2025ArmErrorTooltip = l10n.t(
         "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
     );
+
+    // DAB (Data API Builder) deployment strings
+    public static dabContainerNameInvalidOrInUse = l10n.t(
+        "Container name is invalid or already in use",
+    );
+    public static dabPortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabStartContainerMissingParams = l10n.t(
+        "Container name, port, and config content are required to start the container.",
+    );
+    public static dabFailedToStartContainer = l10n.t("Failed to start DAB container.");
+    public static dabCheckContainerMissingParams = l10n.t(
+        "Container name and port are required to check container readiness.",
+    );
+    public static dabUnknownDeploymentStep = (step: number) =>
+        l10n.t({
+            message: "Unknown deployment step: {0}",
+            args: [step],
+            comment: ["{0} is the deployment step number"],
+        });
+    public static dabPullImageError = l10n.t(
+        "Failed to pull DAB container image. Please check your network connection.",
+    );
+    public static dabStartContainerError = l10n.t(
+        "Failed to start DAB container. Please check the Docker logs for details.",
+    );
+    public static dabContainerReadyTimeout = l10n.t(
+        "DAB container failed to become ready within the timeout period.",
+    );
+    public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
 }
 
 export class UserSurvey {
@@ -1394,7 +1398,7 @@ export class TableDesigner {
 }
 
 export class PublishProject {
-    public static Title = l10n.t("Publish Project (Preview)");
+    public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
@@ -2432,6 +2436,51 @@ export class DacpacDialog {
     }
 }
 
+export class SearchDatabase {
+    public static title = (serverName: string) =>
+        l10n.t({
+            message: "Search Database Objects - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+
+    public static failedToEstablishConnection = l10n.t("Failed to establish connection");
+
+    public static typeTable = l10n.t("Table");
+    public static typeView = l10n.t("View");
+    public static typeStoredProcedure = l10n.t("Stored Procedure");
+    public static typeFunction = l10n.t("Function");
+    public static typeUnknown = l10n.t("Unknown");
+
+    public static copiedToClipboard = (objectName: string) =>
+        l10n.t({
+            message: 'Copied "{0}" to clipboard',
+            args: [objectName],
+            comment: ["{0} is the object name"],
+        });
+
+    public static failedToScriptObject = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to script object: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenEditData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Edit Data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToOpenModifyTable = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open Modify Table: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}
+
 export class TableExplorer {
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",
@@ -2906,4 +2955,42 @@ export class BackupDatabase {
     public static unableToLoadBackupConfig = l10n.t(
         "Unable to load backup configuration. Please try again.",
     );
+}
+
+export class FlatFileImport {
+    public static serviceStarting = (serviceName: string) =>
+        l10n.t({
+            message: "Starting '{0}'...",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStarted = (serviceName: string) =>
+        l10n.t({
+            message: "'{0}' started.",
+            args: [serviceName],
+            comment: ["{0} is the service name"],
+        });
+    public static serviceStartFailed = (serviceName: string, errorMessage: string) =>
+        l10n.t({
+            message: "Failed to start '{0}': {1}",
+            args: [serviceName, errorMessage],
+            comment: ["{0} is the service name", "{1} is the error message"],
+        });
+    public static flatFileImportTitle = l10n.t("Import Flat File (Preview)");
+    public static databaseTheTableIsCreatedIn = l10n.t("Database the table is created in");
+    public static locationOfTheFileToBeImported = l10n.t("Location of the file to be imported");
+    public static newTableName = l10n.t("New Table Name");
+    public static tableSchema = l10n.t("Table Schema");
+    public static importFileTypes = l10n.t("CSV/TXT Files (*.csv;*.txt)");
+    public static noDatabasesFoundToImportInto = l10n.t("No databases found to import into.");
+    public static selectFileToImport = l10n.t("Select file to import");
+    public static databaseRequired = l10n.t("Database is required");
+    public static importFileRequired = l10n.t("Import file is required");
+    public static tableNameRequired = l10n.t("Table name is required");
+    public static schemaRequired = l10n.t("Schema is required");
+    public static fetchTablePreviewError = l10n.t("Error fetching the table preview.");
+    public static fetchSchemasError = l10n.t("Error fetching schemas for the selected database.");
+    public static loadingSchemas = l10n.t("Loading schemas...");
+    public static noSchemasFound = l10n.t("No schemas found");
+    public static importFailed = l10n.t("Failed to import file.");
 }

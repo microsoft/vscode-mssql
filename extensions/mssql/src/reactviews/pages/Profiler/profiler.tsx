@@ -25,7 +25,7 @@ import {
 } from "../../../sharedInterfaces/profiler";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 /** Number of rows to fetch per request */
@@ -122,7 +122,7 @@ export const Profiler: React.FC = () => {
         fetchRows,
         exportToCsv,
     } = useProfilerContext();
-    const { themeKind, extensionRpc } = useVscodeWebview2();
+    const { themeKind, extensionRpc } = useVscodeWebview();
 
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [localRowCount, setLocalRowCount] = useState(0);

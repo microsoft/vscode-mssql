@@ -33,10 +33,7 @@ const config = {
     sourcemap: !isProd,
     sourcesContent: false,
     metafile: !isProd,
-    external: [
-        "vscode", 
-        "vscode-mssql",
-    ],
+    external: ["vscode", "vscode-mssql"],
     minify: isProd,
 };
 

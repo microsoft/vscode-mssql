@@ -19,7 +19,7 @@ import {
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
-import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
+import { useVscodeWebview } from "../../../../common/vscodeWebviewProvider";
 import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 
 export type FilterValue = string | undefined;
@@ -230,7 +230,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     const [focusedIndex, setFocusedIndex] = useState<number>(-1);
     const [popupHeight, setPopupHeight] = useState<number>(0);
 
-    const { keyBindings } = useVscodeWebview2();
+    const { keyBindings } = useVscodeWebview();
 
     const filteredItems = useMemo(() => {
         const trimmed = search.trim().toLowerCase();

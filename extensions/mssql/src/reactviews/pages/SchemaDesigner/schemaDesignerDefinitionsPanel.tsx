@@ -11,9 +11,15 @@ import {
     DesignerDefinitionPaneRef,
     DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 
 export const SchemaDesignerDefinitionsPanel = () => {
     const context = useContext(SchemaDesignerContext);
+    const { themeKind } = useVscodeWebview<
+        SchemaDesigner.SchemaDesignerWebviewState,
+        SchemaDesigner.SchemaDesignerReducers
+    >();
     const [code, setCode] = useState<string>("");
     const definitionPaneRef = useRef<DesignerDefinitionPaneRef | null>(
         undefined as unknown as DesignerDefinitionPaneRef | null,
@@ -46,7 +52,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
         <DesignerDefinitionPane
             ref={definitionPaneRef}
             script={code}
-            themeKind={context?.themeKind}
+            themeKind={themeKind}
             openInEditor={context?.openInEditor}
             copyToClipboard={context?.copyToClipboard}
             activeTab={DesignerDefinitionTabs.Script}

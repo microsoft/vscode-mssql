@@ -16,7 +16,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodePage: Page;
     let iframe: FrameLocator;
     let queryPlanMXGraph: Locator;
-    let currentZoom: number = 100;
+    let currentZoom = 100;
 
     test.beforeAll("Setting up for Query Plan Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();

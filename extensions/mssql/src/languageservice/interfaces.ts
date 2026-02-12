@@ -19,11 +19,21 @@ export interface IConfigUtils {
     getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];
     getSqlToolsPackageVersion(): string;
-    getExtensionConfig(key: string, defaultValue?: any): any;
-    getWorkspaceConfig(key: string, defaultValue?: any): any;
+    getFlatFileServiceDownloadUrl(): string;
+    getFlatFileInstallDirectory(): string;
+    getFlatFileExecutableFiles(): string[];
+    getFlatFilePackageVersion(): string;
+    getExtensionConfig(key: string, type: DownloadType, defaultValue?: any): any;
+    getWorkspaceConfig(key: string, type: DownloadType, defaultValue?: any): any;
     getSqlToolsConfigValue(configKey: string): any;
+    getFlatFileConfigValue(configKey: string): any;
     useServiceVersion(version: number): void;
     getServiceVersion(): number;
+}
+
+export enum DownloadType {
+    SqlToolsService,
+    FlatFileService,
 }
 
 export interface IPackage {

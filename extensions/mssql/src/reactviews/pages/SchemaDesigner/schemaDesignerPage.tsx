@@ -5,6 +5,7 @@
 
 import { useContext, useRef } from "react";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
@@ -29,9 +30,10 @@ const useStyles = makeStyles({
 });
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
     const classes = useStyles();
 
-    const isDabEnabled = context?.state?.enableDAB ?? false;
+    const isDabEnabled = enableDAB ?? false;
 
     if (!context) {
         return undefined;
