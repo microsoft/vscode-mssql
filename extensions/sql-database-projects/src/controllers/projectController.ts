@@ -729,7 +729,7 @@ export class ProjectsController {
         const suggestedName = utils.sanitizeStringForFilename(
             defaultName ?? itemType.friendlyName.replace(/\s+/g, ""),
         );
-        let counter = 0;
+        let counter: number = 0;
 
         do {
             counter++;
@@ -2398,11 +2398,7 @@ export class ProjectsController {
         let folderPath;
         // target is the root of project, which is the .sqlproj
         if (target.element.projectFileUri.fsPath === target.element.fileSystemUri.fsPath) {
-            // Get the project name from .sqlproj file path, not the folder name
-            folderPath = path.basename(
-                target.element.projectFileUri.fsPath,
-                constants.sqlprojExtension,
-            );
+            folderPath = path.basename(path.dirname(target.element.projectFileUri.fsPath!));
         } else {
             // target is another file or folder
             folderPath = target.element.relativeProjectUri.fsPath.endsWith(
