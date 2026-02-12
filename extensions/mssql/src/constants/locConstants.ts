@@ -616,36 +616,6 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
-export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
-export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
-export function searchObjectsNoResultsMessage(term: string) {
-    return l10n.t({
-        message: "No database objects found matching '{0}'",
-        args: [term],
-        comment: ["{0} is the search term"],
-    });
-}
-export let searchObjectsError = l10n.t("An error occurred while searching database objects");
-export function searchObjectsErrorWithDetail(detail: string) {
-    return l10n.t({
-        message: "An error occurred while searching database objects: {0}",
-        args: [detail],
-        comment: ["{0} is the error detail returned from the search operation"],
-    });
-}
-export let searchObjectsNoConnection = l10n.t(
-    "No active database connection. Please connect to a database first.",
-);
-export function searchObjectsSelectPrompt(count: string | number) {
-    return l10n.t({
-        message: "Select an object to view its definition ({0} results)",
-        args: [count],
-        comment: ["{0} is the number of results"],
-    });
-}
-export let searchObjectsInvalidConnectionUri = l10n.t(
-    "Invalid connection URI. Please ensure you have an active database connection.",
-);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -1340,6 +1310,40 @@ export class LocalContainers {
     public static sqlServer2025ArmErrorTooltip = l10n.t(
         "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
     );
+
+    // DAB (Data API Builder) deployment strings
+    public static dabContainerNameInvalidOrInUse = l10n.t(
+        "Container name is invalid or already in use",
+    );
+    public static dabPortAlreadyInUse = (port: number) =>
+        l10n.t({
+            message: "Port {0} is already in use",
+            args: [port],
+            comment: ["{0} is the port number"],
+        });
+    public static dabStartContainerMissingParams = l10n.t(
+        "Container name, port, and config content are required to start the container.",
+    );
+    public static dabFailedToStartContainer = l10n.t("Failed to start DAB container.");
+    public static dabCheckContainerMissingParams = l10n.t(
+        "Container name and port are required to check container readiness.",
+    );
+    public static dabUnknownDeploymentStep = (step: number) =>
+        l10n.t({
+            message: "Unknown deployment step: {0}",
+            args: [step],
+            comment: ["{0} is the deployment step number"],
+        });
+    public static dabPullImageError = l10n.t(
+        "Failed to pull DAB container image. Please check your network connection.",
+    );
+    public static dabStartContainerError = l10n.t(
+        "Failed to start DAB container. Please check the Docker logs for details.",
+    );
+    public static dabContainerReadyTimeout = l10n.t(
+        "DAB container failed to become ready within the timeout period.",
+    );
+    public static dabStopContainerError = l10n.t("Failed to stop and remove DAB container.");
 }
 
 export class UserSurvey {

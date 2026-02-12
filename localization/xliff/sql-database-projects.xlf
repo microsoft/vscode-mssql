@@ -1255,6 +1255,9 @@
     <trans-unit id="sqlDatabaseProjects.publish">
       <source xml:lang="en">Publish</source>
     </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.publishDialog">
+      <source xml:lang="en">Publish...</source>
+    </trans-unit>
     <trans-unit id="sqlDatabaseProjects.rename">
       <source xml:lang="en">Rename</source>
     </trans-unit>
