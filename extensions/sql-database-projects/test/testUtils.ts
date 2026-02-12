@@ -27,10 +27,13 @@ export async function shouldThrowSpecificError(
         await block();
         succeeded = true;
     } catch (err) {
-        // Use contain instead of equal to handle path format differences (long vs 8.3 short paths on Windows)
-        expect(err.message).to.contain(
-            expectedMessage.substring(0, Math.min(50, expectedMessage.length)),
-        );
+        // Extract the error prefix before any path (paths start with drive letter or /)
+        // This handles Windows path format differences (long vs 8.3 short paths)
+        const pathPattern = /[A-Za-z]:\\|[A-Za-z]:\//;
+        const pathIndex = expectedMessage.search(pathPattern);
+        const errorPrefix =
+            pathIndex > 0 ? expectedMessage.substring(0, pathIndex) : expectedMessage;
+        expect(err.message).to.contain(errorPrefix);
     }
 
     if (succeeded) {
