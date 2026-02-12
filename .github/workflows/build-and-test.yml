@@ -302,7 +302,7 @@ jobs:
       - name: Setup environment for smoke tests
         run: |
           sudo apt-get update
-          sudo apt-get install -y libldap-2.5-0
+          sudo apt-get install -y libldap-2.6-0
           echo "Setting up environment for smoke tests"
           PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
           echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
