@@ -1831,9 +1831,9 @@ export class LocConstants {
 
     public get azureDataStudioMigration() {
         return {
-            title: l10n.t("Azure Data Studio Migration - Connections"),
+            title: l10n.t("Azure Data Studio Migration"),
             subtitle: l10n.t(
-                "Bring your saved connections from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
+                "Bring your saved connections, groups, and configuration from Azure Data Studio into the MSSQL extension and discover familiar experiences.",
             ),
             configInputLabel: l10n.t("Azure Data Studio settings file"),
             configInputDescription: l10n.t(
@@ -1926,6 +1926,57 @@ export class LocConstants {
             entraSignInDialogMessage: l10n.t(
                 "Select a Microsoft Entra ID account to use with this connection.  The original account information from Azure Data Studio is listed below, but you can choose a different account.",
             ),
+            settingsHeader: l10n.t("Settings and Keybindings"),
+            settingsCollapse: l10n.t("Collapse settings"),
+            settingsExpand: l10n.t("Expand settings"),
+            importSettingsCheckboxLabel: l10n.t(
+                "Import connection configuration settings from Azure Data Studio",
+            ),
+            viewSettingsButton: l10n.t("View settings"),
+            viewSettingsDialogTitle: l10n.t("Configuration to Import"),
+            settingsKeyColumn: l10n.t("Setting"),
+            settingsValueColumn: l10n.t("Value"),
+            noCustomizedSettingsFound: l10n.t("No customized settings found"),
+            keymapCallout: l10n.t(
+                "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
+            ),
+            keymapCalloutLink: l10n.t("Install the MSSQL Database Management Keymap extension"),
+            importedConnectionGroups: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection group imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connection groups imported",
+                          args: [count],
+                          comment: ["{0} is the number of connection groups imported (plural)"],
+                      }),
+            importedConnections: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} connection imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} connections imported",
+                          args: [count],
+                          comment: ["{0} is the number of connections imported (plural)"],
+                      }),
+            importedSettings: (count: number) =>
+                count === 1
+                    ? l10n.t({
+                          message: "{0} setting imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (singular)"],
+                      })
+                    : l10n.t({
+                          message: "{0} settings imported",
+                          args: [count],
+                          comment: ["{0} is the number of settings imported (plural)"],
+                      }),
         };
     }
 

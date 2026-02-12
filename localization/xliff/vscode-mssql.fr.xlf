@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="++CODE++ff8059dc6752afdd30d275932b1d5031a2ec854b387a8c57ecc6689915293a43">
         <source xml:lang="en">Actions</source>
-        <target state="new">Actions</target>
+        <target state="translated">Actions</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -307,7 +307,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++066b4b1960893bf9e47272e16da8b7933d4731aa3f49db85a960752dc6d4257c">
         <source xml:lang="en">An error occurred while loading data.</source>
-        <target state="new">An error occurred while loading data.</target>
+        <target state="translated">Une erreur s'est produite lors du chargement des données.</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -6539,7 +6539,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++c3d80b4555b5cc4db38060d13360c4a25eb2324a33e2301b7af68c423a06a187">
         <source xml:lang="en">Stored Procedure</source>
-        <target state="new">Stored Procedure</target>
+        <target state="translated">Procédure stockée</target>
       </trans-unit>
       <trans-unit id="++CODE++0a8904b5630e456e42687c74f557749fbd9e61dc13bffb6a403ced083619ba69">
         <source xml:lang="en">Stored Procedures</source>
@@ -7024,7 +7024,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14">
         <source xml:lang="en">Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Inconnu</target>
       </trans-unit>
       <trans-unit id="++CODE++bc19db3033b4d043992ebb6270192c658a14dcfc582aa3b03d07e4b1c688808e">
         <source xml:lang="en">Unknown Connection</source>
@@ -7189,7 +7189,7 @@ Requête : {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++dcc839a4015c4b7dd9db959a8f757833b8adb92462a751b973386e453c6d58a3">
         <source xml:lang="en">View</source>
-        <target state="new">View</target>
+        <target state="translated">Afficher</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
