@@ -59,7 +59,7 @@ const FabricExplorerHeader = ({
             const tenant = azureTenants.find((t) => t.id === selectedTenantId);
             if (tenant) {
                 handleTenantChange({} as SelectionEvents, {
-                    optionText: tenant.name,
+                    optionText: `${tenant.name} (${tenant.id})`,
                     optionValue: tenant.id,
                     selectedOptions: [tenant.id],
                 });
