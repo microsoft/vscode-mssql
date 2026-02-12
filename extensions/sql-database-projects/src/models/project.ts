@@ -6,9 +6,7 @@
 import * as path from "path";
 import * as constants from "../common/constants";
 import * as utils from "../common/utils";
-import type * as azdataType from "azdata";
 import * as vscode from "vscode";
-import * as mssql from "mssql";
 import * as vscodeMssql from "vscode-mssql";
 
 import { promises as fs } from "fs";
@@ -30,7 +28,6 @@ import {
     SqlProjectReferenceProjectEntry,
     SystemDatabaseReferenceProjectEntry,
 } from "./projectEntry";
-import { ResultStatus } from "azdata";
 import { BaseProjectTreeItem } from "./tree/baseTreeItem";
 import {
     FolderNode,
@@ -138,15 +135,9 @@ export class Project implements ISqlProject {
     }
 
     public get sqlProjStyleName(): string {
-        if (utils.getAzdataApi()) {
-            return this.sqlProjStyle === mssql.ProjectType.SdkStyle
-                ? constants.sdkStyleProjectStyleName
-                : constants.legacyStyleProjectStyleName;
-        } else {
-            return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
-                ? constants.sdkStyleProjectStyleName
-                : constants.legacyStyleProjectStyleName;
-        }
+        return this.sqlProjStyle === vscodeMssql.ProjectType.SdkStyle
+            ? constants.sdkStyleProjectStyleName
+            : constants.legacyStyleProjectStyleName;
     }
 
     public get isCrossPlatformCompatible(): boolean {
@@ -170,11 +161,7 @@ export class Project implements ISqlProject {
     constructor(projectFilePath: string) {
         this._projectFilePath = projectFilePath;
         this._projectFileName = path.basename(projectFilePath, ".sqlproj");
-        if (utils.getAzdataApi()) {
-            this._sqlProjStyle = mssql.ProjectType.SdkStyle;
-        } else {
-            this._sqlProjStyle = vscodeMssql.ProjectType.SdkStyle;
-        }
+        this._sqlProjStyle = vscodeMssql.ProjectType.SdkStyle;
     }
 
     /**
@@ -282,12 +269,7 @@ export class Project implements ISqlProject {
     //#region Reader helpers
 
     private async readProjectProperties(): Promise<void> {
-        let sqlProjService;
-        if (utils.getAzdataApi()) {
-            sqlProjService = this.sqlProjService as mssql.ISqlProjectsService;
-        } else {
-            sqlProjService = this.sqlProjService as vscodeMssql.ISqlProjectsService;
-        }
+        const sqlProjService = this.sqlProjService as vscodeMssql.ISqlProjectsService;
 
         const result = await sqlProjService.getProjectProperties(this.projectFilePath);
         utils.throwIfFailed(result);
@@ -372,17 +354,9 @@ export class Project implements ISqlProject {
 
         // create a FileProjectEntry for each file
         const sqlObjectScriptEntries: FileProjectEntry[] = [];
+
         for (let f of Array.from(filesSet.values())) {
-            // read file to check if it has a "Create Table" statement
-            const fullPath = path.join(
-                utils.getPlatformSafeFileEntryPath(this.projectFolderPath),
-                utils.getPlatformSafeFileEntryPath(f),
-            );
-            const containsCreateTableStatement: boolean =
-                await utils.fileContainsCreateTableStatement(
-                    fullPath,
-                    this.getProjectTargetVersion(),
-                );
+            const containsCreateTableStatement = await this.checkForCreateTableStatement(f);
 
             sqlObjectScriptEntries.push(
                 this.createFileProjectEntry(
@@ -395,6 +369,34 @@ export class Project implements ISqlProject {
         }
 
         this._sqlObjectScripts = sqlObjectScriptEntries;
+    }
+
+    /**
+     * Checks if a SQL script file contains a CREATE TABLE statement
+     * @param relativePath Relative path to the script file
+     * @returns true if the file contains a CREATE TABLE statement, false otherwise
+     */
+    private async checkForCreateTableStatement(relativePath: string): Promise<boolean> {
+        const fullPath = path.join(
+            utils.getPlatformSafeFileEntryPath(this.projectFolderPath),
+            utils.getPlatformSafeFileEntryPath(relativePath),
+        );
+
+        if (!(await utils.exists(fullPath))) {
+            return false;
+        }
+
+        try {
+            const dacFxService = await utils.getDacFxService();
+            const parseResult = await dacFxService.parseTSqlScript(
+                fullPath,
+                this._databaseSchemaProvider,
+            );
+            return parseResult.containsCreateTableStatement;
+        } catch {
+            // If parsing fails, silently default to false
+            return false;
+        }
     }
 
     private async readFolders(): Promise<void> {
@@ -473,13 +475,8 @@ export class Project implements ISqlProject {
     }
 
     private async readNoneItems(): Promise<void> {
-        let sqlProjService;
-        if (utils.getAzdataApi()) {
-            sqlProjService = (await utils.getSqlProjectsService()) as mssql.ISqlProjectsService;
-        } else {
-            sqlProjService =
-                (await utils.getSqlProjectsService()) as vscodeMssql.ISqlProjectsService;
-        }
+        const sqlProjService =
+            (await utils.getSqlProjectsService()) as vscodeMssql.ISqlProjectsService;
 
         var result: GetScriptsResult = await sqlProjService.getNoneItems(this.projectFilePath);
         utils.throwIfFailed(result);
@@ -554,18 +551,10 @@ export class Project implements ISqlProject {
         }
 
         for (const systemDbReference of databaseReferencesResult.systemDatabaseReferences) {
-            let systemDb;
-            if (utils.getAzdataApi()) {
-                systemDb =
-                    systemDbReference.systemDb === mssql.SystemDatabase.Master
-                        ? constants.master
-                        : constants.msdb;
-            } else {
-                systemDb =
-                    systemDbReference.systemDb === vscodeMssql.SystemDatabase.Master
-                        ? constants.master
-                        : constants.msdb;
-            }
+            const systemDb =
+                systemDbReference.systemDb === vscodeMssql.SystemDatabase.Master
+                    ? constants.master
+                    : constants.msdb;
             this._databaseReferences.push(
                 new SystemDatabaseReferenceProjectEntry(
                     systemDb,
@@ -939,7 +928,7 @@ export class Project implements ISqlProject {
         const normalizedRelativeFilePath = utils.convertSlashesForSqlProj(
             path.relative(this.projectFolderPath, filePath),
         );
-        let result: ResultStatus;
+        let result: vscodeMssql.ResultStatus;
 
         if (path.extname(filePath) === constants.sqlFileExtension) {
             result = await this.sqlProjService.addSqlObjectScript(
@@ -1033,30 +1022,17 @@ export class Project implements ISqlProject {
             throw new Error(constants.databaseReferenceAlreadyExists);
         }
 
-        let systemDb, referenceType, result, sqlProjService;
-        if (utils.getAzdataApi()) {
-            systemDb = (<unknown>settings.systemDb) as mssql.SystemDatabase;
-            referenceType = settings.systemDbReferenceType as mssql.SystemDbReferenceType;
-            sqlProjService = this.sqlProjService as mssql.ISqlProjectsService;
-            result = await sqlProjService.addSystemDatabaseReference(
-                this.projectFilePath,
-                systemDb,
-                settings.suppressMissingDependenciesErrors,
-                referenceType,
-                settings.databaseVariableLiteralValue,
-            );
-        } else {
-            systemDb = (<unknown>settings.systemDb) as vscodeMssql.SystemDatabase;
-            referenceType = settings.systemDbReferenceType as vscodeMssql.SystemDbReferenceType;
-            sqlProjService = this.sqlProjService as vscodeMssql.ISqlProjectsService;
-            result = await sqlProjService.addSystemDatabaseReference(
-                this.projectFilePath,
-                systemDb,
-                settings.suppressMissingDependenciesErrors,
-                referenceType,
-                settings.databaseVariableLiteralValue,
-            );
-        }
+        let result, sqlProjService;
+        const systemDb = (<unknown>settings.systemDb) as vscodeMssql.SystemDatabase;
+        const referenceType = settings.systemDbReferenceType as vscodeMssql.SystemDbReferenceType;
+        sqlProjService = this.sqlProjService as vscodeMssql.ISqlProjectsService;
+        result = await sqlProjService.addSystemDatabaseReference(
+            this.projectFilePath,
+            systemDb,
+            settings.suppressMissingDependenciesErrors,
+            referenceType,
+            settings.databaseVariableLiteralValue,
+        );
 
         if (!result.success && result.errorMessage) {
             throw new Error(
@@ -1328,7 +1304,7 @@ export class Project implements ISqlProject {
     public async move(
         node: BaseProjectTreeItem,
         destinationRelativePath: string,
-    ): Promise<azdataType.ResultStatus> {
+    ): Promise<vscodeMssql.ResultStatus> {
         // trim off the project folder at the beginning of the relative path stored in the tree
         const projectRelativeUri = vscode.Uri.file(
             path.basename(this.projectFilePath, constants.sqlprojExtension),

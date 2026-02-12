@@ -7,9 +7,16 @@ import * as constants from "./constants";
 import * as os from "os";
 
 const WINDOWS_INVALID_FILE_CHARS = /[\\/:\*\?"<>\|]/g;
-const UNIX_INVALID_FILE_CHARS = /[\\/]/g;
+
+// Unix-like platforms: '/' is the path separator, and NUL ('\0') is not allowed.
+// Backslash '\' is a valid filename character on Unix.
+const UNIX_INVALID_FILE_CHARS = /[\/\0]/g;
+
 const isWindows = os.platform() === "win32";
-const WINDOWS_FORBIDDEN_NAMES = /^(con|prn|aux|clock\$|nul|lpt[0-9]|com[0-9])$/i;
+
+// Windows reserved device names are invalid even with extensions (e.g. "CON.txt").
+// COM/LPT are 1-9 (COM0/LPT0 are not reserved).
+const WINDOWS_FORBIDDEN_NAMES = /^(con|prn|aux|clock\$|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
 
 /**
  * Determines if a given character is a valid filename character
@@ -51,11 +58,7 @@ export function sanitizeStringForFilename(s: string): string {
  * @param fileName filename to check (without file path)
  */
 export function isValidBasename(fileName?: string): boolean {
-    if (isValidBasenameErrorMessage(fileName) !== undefined) {
-        return false; //Return false depicting filename is invalid
-    } else {
-        return true;
-    }
+    return isValidBasenameErrorMessage(fileName) === undefined;
 }
 
 /**
