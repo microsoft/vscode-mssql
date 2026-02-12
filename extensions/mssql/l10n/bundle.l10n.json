@@ -1364,6 +1364,7 @@
     },
     "Export all captured events to a CSV file": "Export all captured events to a CSV file",
     "No events to export": "No events to export",
+    "profiler_events": "profiler_events",
     "Import File": "Import File",
     "Step 1: Specify Input File": "Step 1: Specify Input File",
     "Loading flat file import...": "Loading flat file import...",
