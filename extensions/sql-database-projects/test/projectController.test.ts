@@ -2013,8 +2013,9 @@ suite("ProjectsController", function (): void {
         });
 
         test.skip("Should move a file to project root when project folder name differs from project name", async function (): Promise<void> {
-            const spy = sinon.spy(vscode.window, "showErrorMessage");
-            sinon
+            const sandbox = sinon.createSandbox();
+            const spy = sandbox.spy(vscode.window, "showErrorMessage");
+            sandbox
                 .stub(vscode.window, "showWarningMessage")
                 .returns(<any>Promise.resolve(constants.move));
 
