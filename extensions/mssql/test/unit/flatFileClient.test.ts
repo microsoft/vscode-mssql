@@ -12,6 +12,7 @@ import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ServerProvider from "../../src/languageservice/server";
 import { PlatformInformation } from "../../src/models/platform";
+import * as path from "path";
 
 suite("FlatFileClient", () => {
     let sandbox: sinon.SinonSandbox;
@@ -112,7 +113,7 @@ suite("FlatFileClient", () => {
 
         expect(opts.command).to.equal(serverPath);
         expect(opts.args).to.include("--log-dir");
-        expect(opts.args).to.include("\\");
+        expect(opts.args).to.include(path.sep);
         expect(opts.transport).to.exist;
         expect(spyConfig.calledWith("mssql")).to.be.true;
     });
