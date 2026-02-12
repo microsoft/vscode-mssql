@@ -15,9 +15,9 @@ import {
     IDecompressProvider,
     DownloadType,
 } from "./interfaces";
-import { ILogger } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as fs from "fs/promises";
+import { Logger } from "../models/logger";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools or Flat File service.
@@ -25,7 +25,7 @@ import * as fs from "fs/promises";
 export default class ServiceDownloadProvider {
     constructor(
         private _config: IConfigUtils,
-        private _logger: ILogger,
+        private _logger: Logger,
         private _statusView: IStatusView,
         private _httpClient: IHttpClient,
         private _decompressProvider: IDecompressProvider,
@@ -50,7 +50,7 @@ export default class ServiceDownloadProvider {
             fileNamesJson = this._config.getFlatFileConfigValue("downloadFileNames");
         } else {
             const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            this._logger.error(`[ERROR] ${errorMessage}`);
             throw new Error(errorMessage);
         }
 
@@ -80,7 +80,7 @@ export default class ServiceDownloadProvider {
             versionFromConfig = this._config.getFlatFilePackageVersion();
         } else {
             const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            this._logger.error(`[ERROR] ${errorMessage}`);
             throw new Error(errorMessage);
         }
 
@@ -106,7 +106,7 @@ export default class ServiceDownloadProvider {
             installDirFromConfig = this._config.getFlatFileInstallDirectory();
         } else {
             const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            this._logger.error(`[ERROR] ${errorMessage}`);
             throw new Error(errorMessage);
         }
 
@@ -131,7 +131,7 @@ export default class ServiceDownloadProvider {
             version = this._config.getFlatFilePackageVersion();
         } else {
             const errorMessage = `Unsupported download type: ${this._downloadType}`;
-            this._logger.appendLine(`[ERROR] ${errorMessage}`);
+            this._logger.error(`[ERROR] ${errorMessage}`);
             throw new Error(errorMessage);
         }
 
@@ -168,7 +168,7 @@ export default class ServiceDownloadProvider {
             this._logger.appendLine(" Done!");
             await this.install(pkg);
         } catch (err) {
-            this._logger.appendLine(`[ERROR] ${err}`);
+            this._logger.error(`[ERROR] ${err}`);
             throw err;
         }
         return true;

@@ -10,7 +10,8 @@ import DecompressProvider from "./decompressProvider";
 import HttpClient from "./httpClient";
 import ServerProvider from "./server";
 import { DownloadType, IStatusView } from "./interfaces";
-import { ILogger } from "../models/interfaces";
+import { Logger } from "../models/logger";
+import * as vscode from "vscode";
 
 export class StubStatusView implements IStatusView {
     constructor(private _log: (msg: string) => void) {}
@@ -31,31 +32,10 @@ export class StubStatusView implements IStatusView {
     }
 }
 
-export class StubLogger implements ILogger {
-    constructor(private _log: (msg: string) => void) {}
-
-    logDebug(message: string): void {
-        this._log(message);
-    }
-
-    increaseIndent(): void {
-        // no-op
-    }
-
-    decreaseIndent(): void {
-        // no-op
-    }
-
-    append(message?: string): void {
-        this._log(message);
-    }
-    appendLine(message?: string): void {
-        this._log(message);
-    }
-}
-
 const config = new ConfigUtils();
-const logger = new StubLogger(console.log);
+
+const channel: vscode.OutputChannel = vscode.window.createOutputChannel("Service Installer Util");
+const logger = Logger.create(channel, "Service Installer Util");
 const statusView = new StubStatusView(console.log);
 const httpClient = new HttpClient();
 const decompressProvider = new DecompressProvider();

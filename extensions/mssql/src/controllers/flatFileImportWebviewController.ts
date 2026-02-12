@@ -29,6 +29,8 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { Deferred } from "../protocol";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
+import { FlatFileClient } from "../flatFile/flatFileClient";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
 
 /**
  * Controller for the Flat File Import dialog
@@ -46,7 +48,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
-        private provider: FlatFileProvider,
+        private provider: FlatFileProvider | undefined,
         private profile: ConnectionProfile,
         private ownerUri: string,
     ) {
@@ -82,6 +84,15 @@ export class FlatFileImportWebviewController extends FormWebviewController<
      * Initialize the controller
      */
     private async initialize(): Promise<void> {
+        if (!this.provider) {
+            const client = new FlatFileClient(this.vscodeWrapper);
+            await client.startFlatFileService(this._context);
+            managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)(
+                (provider) => {
+                    this.provider = provider;
+                },
+            );
+        }
         // Set database names for dropdown
         this.state.serverName = this.profile.server;
         this.state.formState.databaseName = this.profile.database;

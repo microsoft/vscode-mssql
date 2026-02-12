@@ -876,10 +876,7 @@ export default class MainController implements vscode.Disposable {
         // Initialize flat file client
         managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
             this.flatFileProvider = provider;
-            void Promise.resolve(true);
         });
-        this.flatFileClient = new FlatFileClient(this._vscodeWrapper);
-        await this.flatFileClient.startFlatFileService(this._context);
 
         /**
          * TODO: aaskhan
