@@ -31,7 +31,7 @@ suite("Create Project From Database Quickpick", () => {
     setup(function (): void {
         testUtils = createTestUtils();
         sandbox = sinon.createSandbox();
-        sandbox.stub(utils, "getVscodeMssqlApi").resolves(testUtils.vscodeMssqlIExtension.object); //set vscode mssql extension api
+        sandbox.stub(utils, "getVscodeMssqlApi").resolves(testUtils.vscodeMssqlIExtension); //set vscode mssql extension api
         sandbox.stub(newProjectTool, "defaultProjectSaveLocation").returns(undefined);
         sandbox
             .stub(newProjectTool, "defaultProjectNameFromDb")
@@ -47,7 +47,7 @@ suite("Create Project From Database Quickpick", () => {
     test("Should prompt for connection and exit when connection is not selected", async function (): Promise<void> {
         //promptForConnection spy to verify test
         const promptForConnectionSpy = sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "promptForConnection")
+            .stub(testUtils.vscodeMssqlIExtension, "promptForConnection")
             .withArgs(sinon.match.any)
             .resolves(undefined);
 
@@ -73,7 +73,7 @@ suite("Create Project From Database Quickpick", () => {
     test("Should not prompt for connection when connectionInfo is provided and exit when db is not selected", async function (): Promise<void> {
         //promptForConnection spy to verify test
         const promptForConnectionSpy = sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "promptForConnection")
+            .stub(testUtils.vscodeMssqlIExtension, "promptForConnection")
             .withArgs(sinon.match.any)
             .resolves(undefined);
 
@@ -81,11 +81,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         // user chooses to cancel when prompted for database
@@ -114,11 +112,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         sandbox.stub(vscode.window, "showQuickPick").resolves("Database" as any);
@@ -144,11 +140,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -176,11 +170,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -223,11 +215,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -272,11 +262,9 @@ suite("Create Project From Database Quickpick", () => {
         await createTestFile(this.test, "", `${projectFileName}.sqlproj`, testProjectFilePath);
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -310,11 +298,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -346,11 +332,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox
@@ -384,11 +368,9 @@ suite("Create Project From Database Quickpick", () => {
         const createProjectFromDatabaseCallbackSpy = sandbox.stub().resolves();
 
         //user chooses connection and database
+        sandbox.stub(testUtils.vscodeMssqlIExtension, "connect").resolves("testConnectionURI");
         sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "connect")
-            .resolves("testConnectionURI");
-        sandbox
-            .stub(testUtils.vscodeMssqlIExtension.object, "listDatabases")
+            .stub(testUtils.vscodeMssqlIExtension, "listDatabases")
             .withArgs(sinon.match.any)
             .resolves(dbList);
         let quickPickStub = sandbox

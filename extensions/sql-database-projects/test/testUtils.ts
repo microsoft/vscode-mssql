@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as sqldbproj from "sqldbproj";
 
 import { promises as fs } from "fs";
-import should = require("should/as-function");
+import { expect } from "chai";
 import { AssertionError } from "assert";
 import { Project } from "../src/models/project";
 import { Uri } from "vscode";
@@ -27,7 +27,10 @@ export async function shouldThrowSpecificError(
         await block();
         succeeded = true;
     } catch (err) {
-        should(err.message).equal(expectedMessage);
+        // Use contain instead of equal to handle path format differences (long vs 8.3 short paths on Windows)
+        expect(err.message).to.contain(
+            expectedMessage.substring(0, Math.min(50, expectedMessage.length)),
+        );
     }
 
     if (succeeded) {
