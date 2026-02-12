@@ -494,6 +494,7 @@ export const AzureDataStudioMigrationPage = () => {
                                     <Link
                                         href="https://aka.ms/vscode-mssql-keymap"
                                         target="_blank"
+                                        rel="noopener noreferrer"
                                         inline>
                                         {LocMigration.keymapCalloutLink}
                                     </Link>

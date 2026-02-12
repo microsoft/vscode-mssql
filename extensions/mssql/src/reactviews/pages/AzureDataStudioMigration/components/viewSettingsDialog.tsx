@@ -28,55 +28,6 @@ import { locConstants as Loc } from "../../../common/locConstants";
 
 const MSSQL_PREFIX = "mssql.";
 
-const useStyles = makeStyles({
-    tableScrollArea: {
-        overflowY: "auto",
-        maxHeight: "400px",
-    },
-    dataTable: {
-        width: "100%",
-        tableLayout: "fixed",
-    },
-    stickyHeader: {
-        position: "sticky",
-        top: "0",
-        zIndex: 1,
-        backgroundColor: "var(--vscode-editorWidget-background)",
-    },
-    settingKeyColumn: {
-        width: "50%",
-    },
-    settingValueColumn: {
-        width: "50%",
-    },
-    truncatedCell: {
-        display: "block",
-        width: "100%",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-    },
-});
-
-interface ViewSettingsDialogComponentProps {
-    settings: AdsMigrationSetting[];
-    onClose: () => void;
-}
-
-const formatValue = (value: unknown): string => {
-    if (value === null || value === undefined) {
-        return "";
-    }
-    if (typeof value === "string") {
-        return value;
-    }
-    return JSON.stringify(value);
-};
-
-const stripPrefix = (key: string): string => {
-    return key.startsWith(MSSQL_PREFIX) ? key.slice(MSSQL_PREFIX.length) : key;
-};
-
 export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComponentProps) => {
     const styles = useStyles();
     const loc = Loc.azureDataStudioMigration;
@@ -93,7 +44,7 @@ export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComp
                     <DialogTitle>{loc.viewSettingsDialogTitle}</DialogTitle>
                     <DialogContent>
                         {sortedSettings.length === 0 ? (
-                            <Text>No settings found.</Text>
+                            <Text>{loc.noCustomizedSettingsFound}</Text>
                         ) : (
                             <div className={styles.tableScrollArea}>
                                 <Table role="grid" className={styles.dataTable}>
@@ -149,4 +100,54 @@ export const ViewSettingsDialog = ({ settings, onClose }: ViewSettingsDialogComp
             </DialogSurface>
         </Dialog>
     );
+};
+
+const useStyles = makeStyles({
+    tableScrollArea: {
+        overflowY: "auto",
+        maxHeight: "400px",
+    },
+    dataTable: {
+        width: "100%",
+        tableLayout: "fixed",
+    },
+    stickyHeader: {
+        position: "sticky",
+        top: "0",
+        zIndex: 1,
+        backgroundColor: "var(--vscode-editorWidget-background)",
+    },
+    settingKeyColumn: {
+        width: "50%",
+    },
+    settingValueColumn: {
+        width: "50%",
+    },
+    truncatedCell: {
+        display: "block",
+        width: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+});
+
+interface ViewSettingsDialogComponentProps {
+    settings: AdsMigrationSetting[];
+    onClose: () => void;
+}
+
+const formatValue = (value: unknown): string => {
+    // eslint-disable-next-line no-restricted-syntax
+    if (value === null || value === undefined) {
+        return "";
+    }
+    if (typeof value === "string") {
+        return value;
+    }
+    return JSON.stringify(value);
+};
+
+const stripPrefix = (key: string): string => {
+    return key.startsWith(MSSQL_PREFIX) ? key.slice(MSSQL_PREFIX.length) : key;
 };

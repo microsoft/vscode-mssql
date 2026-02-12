@@ -1896,6 +1896,7 @@ export class LocConstants {
             viewSettingsDialogTitle: l10n.t("Configuration to Import"),
             settingsKeyColumn: l10n.t("Setting"),
             settingsValueColumn: l10n.t("Value"),
+            noCustomizedSettingsFound: l10n.t("No customized settings found"),
             keymapCallout: l10n.t(
                 "Looking for Azure Data Studio key bindings, like F5 to execute queries?",
             ),

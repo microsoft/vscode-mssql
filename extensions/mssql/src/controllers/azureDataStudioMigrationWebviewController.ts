@@ -510,11 +510,14 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             if (state.importSettings && state.settings.length > 0) {
                 activity.update({ step: "3_importingSettings" });
 
+                const config = vscode.workspace.getConfiguration();
                 for (const setting of state.settings) {
                     try {
-                        await vscode.workspace
-                            .getConfiguration()
-                            .update(setting.key, setting.value, vscode.ConfigurationTarget.Global);
+                        await config.update(
+                            setting.key,
+                            setting.value,
+                            vscode.ConfigurationTarget.Global,
+                        );
                     } catch (err) {
                         this.logger.error(
                             `Error updating setting ${setting.key}: ${getErrorMessage(err)}`,
