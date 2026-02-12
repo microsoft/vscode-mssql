@@ -150,15 +150,6 @@ export interface ProfilerReducers {
     selectRow: {
         rowId: string;
     };
-    /** Open TextData content in a new VS Code editor (embedded details panel) */
-    openInEditor: {
-        textData: string;
-        eventName?: string;
-    };
-    /** Copy text to clipboard (embedded details panel) */
-    copyToClipboard: {
-        text: string;
-    };
     /** Close the embedded details panel */
     closeDetailsPanel: Record<string, never>;
 }
@@ -234,4 +225,12 @@ export namespace ProfilerNotifications {
 
     /** Notification sent when the grid should be cleared */
     export const ClearGrid = new NotificationType<Record<string, never>>("clearGrid");
+
+    /** Notification sent from webview to open text data in a new editor */
+    export const OpenInEditor = new NotificationType<{ textData: string; eventName?: string }>(
+        "openInEditor",
+    );
+
+    /** Notification sent from webview to copy text to clipboard */
+    export const CopyToClipboard = new NotificationType<{ text: string }>("copyToClipboard");
 }

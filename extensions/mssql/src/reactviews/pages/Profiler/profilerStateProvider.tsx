@@ -6,7 +6,11 @@
 import React, { createContext, ReactNode, useContext, useCallback } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { WebviewRpc } from "../../common/rpc";
-import { ProfilerWebviewState, ProfilerReducers } from "../../../sharedInterfaces/profiler";
+import {
+    ProfilerWebviewState,
+    ProfilerReducers,
+    ProfilerNotifications,
+} from "../../../sharedInterfaces/profiler";
 
 /**
  * RPC helper methods for Profiler operations
@@ -117,14 +121,17 @@ const ProfilerStateProvider: React.FC<ProfilerProviderProps> = ({ children }) =>
 
     const openInEditor = useCallback(
         (textData: string, eventName?: string) => {
-            extensionRpc?.action("openInEditor", { textData, eventName });
+            void extensionRpc?.sendNotification(ProfilerNotifications.OpenInEditor, {
+                textData,
+                eventName,
+            });
         },
         [extensionRpc],
     );
 
     const copyToClipboard = useCallback(
         (text: string) => {
-            extensionRpc?.action("copyToClipboard", { text });
+            void extensionRpc?.sendNotification(ProfilerNotifications.CopyToClipboard, { text });
         },
         [extensionRpc],
     );

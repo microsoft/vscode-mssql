@@ -279,28 +279,26 @@ export class ProfilerWebviewController extends ReactWebviewPanelController<
 
         // Handle row selection from webview - update state with selected event details
         this.registerReducer("selectRow", (state, payload: { rowId: string }) => {
-            const selectedEvent = this.handleRowSelection(payload.rowId);
-            return {
-                ...state,
-                selectedEvent,
-            };
+            state.selectedEvent = this.handleRowSelection(payload.rowId);
+            return state;
         });
 
         // Handle Open in Editor request from embedded details panel
-        this.registerReducer(
-            "openInEditor",
-            async (state, payload: { textData: string; eventName?: string }) => {
-                await this.openTextInEditor(payload.textData);
-                return state;
+        this.onNotification(
+            ProfilerNotifications.OpenInEditor,
+            async (params: { textData: string; eventName?: string }) => {
+                await this.openTextInEditor(params.textData);
             },
         );
 
         // Handle Copy to Clipboard request from embedded details panel
-        this.registerReducer("copyToClipboard", async (state, payload: { text: string }) => {
-            await vscode.env.clipboard.writeText(payload.text);
-            void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
-            return state;
-        });
+        this.onNotification(
+            ProfilerNotifications.CopyToClipboard,
+            async (params: { text: string }) => {
+                await vscode.env.clipboard.writeText(params.text);
+                void vscode.window.showInformationMessage(LocProfiler.copiedToClipboard);
+            },
+        );
 
         // Handle close details panel request
         this.registerReducer("closeDetailsPanel", (state) => {
