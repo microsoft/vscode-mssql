@@ -636,15 +636,6 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
 );
 
-export function enableRichExperiencesPrompt(learnMoreUrl: string) {
-    return l10n.t({
-        message:
-            "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
-        args: [learnMoreUrl],
-        comment: ["{0} is a url to learn more about the new features"],
-    });
-}
-export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export let newDeployment = l10n.t("New Deployment");
 
 export class ObjectExplorer {
