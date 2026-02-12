@@ -15,7 +15,6 @@ on:
     branches:
       - main
       - "release/**"
-      - sai/feb/Cleanup_sqlproj # TEMPORARY: Remove before merge once tests pass
   workflow_dispatch:
 
 jobs:
