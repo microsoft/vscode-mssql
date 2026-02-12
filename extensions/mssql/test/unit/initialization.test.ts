@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as Extension from "../../src/extension";
 
 import MainController from "../../src/controllers/mainController";
@@ -12,9 +13,14 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("Initialization Tests", () => {
     test("Connection manager is initialized properly", async () => {
-        await activateExtension();
-        let controller: MainController = await Extension.getController();
-        let connectionManager: ConnectionManager = controller.connectionManager;
-        expect(connectionManager).to.not.be.undefined;
+        const sandbox = sinon.createSandbox();
+        try {
+            await activateExtension(sandbox);
+            let controller: MainController = await Extension.getController();
+            let connectionManager: ConnectionManager = controller.connectionManager;
+            expect(connectionManager).to.not.be.undefined;
+        } finally {
+            sandbox.restore();
+        }
     });
 });

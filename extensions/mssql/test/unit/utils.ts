@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "../../src/constants/constants";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
@@ -17,11 +16,104 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import * as Extension from "../../src/extension";
+import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
+import * as constants from "../../src/constants/constants";
+
+let cachedExtensionApi: IExtension | undefined;
+let activationPromise: Promise<IExtension> | undefined;
+let activationContext: vscode.ExtensionContext | undefined;
+let activationStubsInitialized = false;
+
+function ensureActivationStubs(): void {
+    if (activationStubsInitialized) {
+        return;
+    }
+
+    const sqlToolsServiceClient = SqlToolsServerClient.instance;
+    if (!(sqlToolsServiceClient.initialize as any).restore) {
+        sinon.stub(sqlToolsServiceClient, "initialize").resolves(undefined as any);
+    }
+
+    if (!(ChangelogWebviewController.showChangelogOnExtensionUpdate as any).restore) {
+        sinon.stub(ChangelogWebviewController, "showChangelogOnExtensionUpdate").resolves();
+    }
+
+    if (
+        vscode.chat &&
+        typeof vscode.chat.createChatParticipant === "function" &&
+        !(vscode.chat.createChatParticipant as any).restore
+    ) {
+        sinon.stub(vscode.chat, "createChatParticipant").callsFake(() => {
+            return {
+                onDidReceiveFeedback: () => ({ dispose: () => {} }) as vscode.Disposable,
+                dispose: () => {},
+            } as unknown as vscode.ChatParticipant;
+        });
+    }
+
+    (sqlToolsServiceClient as any)._sqlToolsServicePath = path.join(
+        (activationContext ?? { extensionPath: "testExtensionPath" }).extensionPath,
+        "sqltoolsservice",
+        "mock",
+    );
+
+    activationStubsInitialized = true;
+}
 
 // Launches and activates the extension
-export async function activateExtension(): Promise<IExtension> {
-    const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
-    return await extension.activate();
+export async function activateExtension(_sandbox?: sinon.SinonSandbox): Promise<IExtension> {
+    if (cachedExtensionApi) {
+        return cachedExtensionApi;
+    }
+
+    if (activationPromise) {
+        return activationPromise;
+    }
+
+    activationPromise = (async () => {
+        // If VS Code already activated the extension host side, re-use its exports.
+        const existingExtension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
+        if (existingExtension?.isActive && existingExtension.exports) {
+            cachedExtensionApi = existingExtension.exports;
+            return cachedExtensionApi;
+        }
+
+        if (!activationContext) {
+            activationContext = stubExtensionContext();
+        }
+
+        ensureActivationStubs();
+
+        try {
+            cachedExtensionApi = await Extension.activate(activationContext);
+        } catch (err) {
+            // If already activated elsewhere, recover by returning exports from extension host.
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            if (errorMessage.includes("already exists")) {
+                const activeExtension = vscode.extensions.getExtension<IExtension>(
+                    constants.extensionId,
+                );
+                if (activeExtension?.isActive) {
+                    cachedExtensionApi = activeExtension.exports;
+                    return cachedExtensionApi;
+                }
+                if (activeExtension) {
+                    cachedExtensionApi = await activeExtension.activate();
+                    return cachedExtensionApi;
+                }
+            }
+            throw err;
+        }
+
+        return cachedExtensionApi;
+    })();
+
+    try {
+        return await activationPromise;
+    } finally {
+        activationPromise = undefined;
+    }
 }
 
 // Stubs the telemetry code

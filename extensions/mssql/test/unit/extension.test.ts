@@ -35,7 +35,7 @@ suite("Extension API Tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-        vscodeMssql = await activateExtension();
+        vscodeMssql = await activateExtension(sandbox);
         mainController = await Extension.getController();
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
@@ -53,8 +53,10 @@ suite("Extension API Tests", () => {
 
     teardown(() => {
         // restore mocked properties
-        mainController.connectionManager = originalConnectionManager;
-        sandbox.restore();
+        if (mainController && originalConnectionManager) {
+            mainController.connectionManager = originalConnectionManager;
+        }
+        sandbox?.restore();
     });
 
     test("Gets sqlToolsServicePath", async () => {

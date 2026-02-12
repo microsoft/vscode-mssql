@@ -38,7 +38,7 @@ suite("MainController Tests", function () {
     setup(async () => {
         sandbox = sinon.createSandbox();
         // Need to activate the extension to get the mainController
-        await activateExtension();
+        await activateExtension(sandbox);
 
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
