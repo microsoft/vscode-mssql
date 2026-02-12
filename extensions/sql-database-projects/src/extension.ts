@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import * as constants from "./common/constants";
-import { getAzdataApi } from "./common/utils";
 import MainController from "./controllers/mainController";
 import { SqlDatabaseProjectProvider } from "./projectProvider/projectProvider";
 import { TelemetryReporter } from "./common/telemetry";
@@ -14,8 +13,6 @@ import { SqlDatabaseProjectTaskProvider } from "./tasks/sqlDatabaseProjectTaskPr
 let controllers: MainController[] = [];
 
 export function activate(context: vscode.ExtensionContext): Promise<SqlDatabaseProjectProvider> {
-    void vscode.commands.executeCommand("setContext", "azdataAvailable", !!getAzdataApi());
-
     // Start the main controller
     const mainController = new MainController(context);
     controllers.push(mainController);
