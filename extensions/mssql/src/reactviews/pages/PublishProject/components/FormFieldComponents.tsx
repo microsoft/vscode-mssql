@@ -17,6 +17,10 @@ import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
 import { locConstants } from "../../../common/locConstants";
 import type { PublishProjectContextProps } from "../publishProjectStateProvider";
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../../common/searchableDropdown.component";
 
 // Helper to get validation state from component
 function getValidationState(validation: PublishDialogFormItemSpec["validation"]): "none" | "error" {
@@ -169,17 +173,70 @@ export function renderDropdown(
     );
 }
 
-/*
- * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
- */
+// Generic Searchable Dropdown Field - uses SearchableDropdown component with built-in search,
+// virtualized list, and keyboard navigation.
+export function renderSearchableDropdown(
+    component: PublishDialogFormItemSpec | undefined,
+    selectedValue: string | undefined,
+    onSelect: (value: string) => void,
+    options?: {
+        disabled?: boolean;
+        clearable?: boolean;
+        searchBoxPlaceholder?: string;
+        showPlaceholder?: boolean;
+    },
+) {
+    if (!component || component.hidden) return undefined;
+    if (!component.options) return undefined;
+
+    // Map component options to SearchableDropdownOptions format
+    const dropdownOptions: SearchableDropdownOptions[] = component.options.map(
+        (opt: { value: string; displayName: string }) => ({
+            value: opt.value,
+            text: opt.displayName,
+        }),
+    );
+
+    // Find the currently selected option
+    const selectedOption = dropdownOptions.find((opt) => opt.value === selectedValue);
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            label={component.label}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}
+            orientation="horizontal">
+            <SearchableDropdown
+                id={component.propertyName}
+                size="small"
+                options={dropdownOptions}
+                selectedOption={selectedOption}
+                placeholder={component.placeholder ?? ""}
+                searchBoxPlaceholder={options?.searchBoxPlaceholder}
+                disabled={options?.disabled}
+                clearable={options?.clearable}
+                showPlaceholder={options?.showPlaceholder}
+                onSelect={(option) => onSelect(option.value)}
+                style={{ width: "100%" }}
+            />
+        </Field>
+    );
+}
+
+// Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+// Intended for dropdown-like components where user can type to filter or enter custom values
 export function renderCombobox(
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
     freeform: boolean | undefined,
     onChange: (value: string) => void,
+    disabled?: boolean,
+    onOptionSelect?: (value: string) => void,
+    selectedOptionValue?: string,
 ) {
     if (!component || component.hidden) return undefined;
-    if (component.type !== FormItemType.Dropdown) return undefined;
     if (!freeform && !component.options) return undefined;
 
     return (
@@ -194,19 +251,37 @@ export function renderCombobox(
                 size="small"
                 freeform={freeform || false}
                 value={value || ""}
+                selectedOptions={selectedOptionValue ? [selectedOptionValue] : []}
                 placeholder={component.placeholder ?? ""}
+                disabled={disabled}
                 onOptionSelect={(_, data) => {
                     if (data.optionValue) {
-                        onChange(data.optionValue);
+                        if (onOptionSelect) {
+                            onOptionSelect(data.optionValue);
+                        } else {
+                            onChange(data.optionValue);
+                        }
                     }
                 }}
                 onChange={(event) => {
-                    // Allow custom text input
+                    // Allow custom text input (for freeform mode or filtering)
                     onChange(event.currentTarget.value);
                 }}>
                 {component.options?.map(
-                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
-                        <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
+                    (
+                        opt: {
+                            value: string;
+                            displayName: string;
+                            color?: string;
+                            disabled?: boolean;
+                        },
+                        i: number,
+                    ) => (
+                        <Option
+                            key={opt.value + i}
+                            value={opt.value}
+                            text={opt.displayName}
+                            disabled={opt.disabled}>
                             {opt.displayName}
                         </Option>
                     ),

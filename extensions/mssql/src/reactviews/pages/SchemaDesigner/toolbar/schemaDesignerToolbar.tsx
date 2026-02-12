@@ -12,8 +12,13 @@ import { PublishChangesDialogButton } from "./publishChangesDialogButton";
 import { AutoArrangeButton } from "./autoArrangeButton";
 import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
+import { ShowChangesButton } from "./showChangesButton";
+import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
+import { useContext } from "react";
 
 export function SchemaDesignerToolbar() {
+    const context = useContext(SchemaDesignerContext);
+
     return (
         <div style={{ width: "100%", height: "30px", padding: "5px 0px" }}>
             <Toolbar
@@ -22,19 +27,26 @@ export function SchemaDesignerToolbar() {
                     width: "100%",
                     overflow: "hidden",
                     overflowX: "auto",
-                    gap: "3px",
                     alignItems: "center",
+                    gap: "2px",
                 }}>
                 <PublishChangesDialogButton />
                 <ViewDefinitionsButton />
                 <ExportDiagramButton />
                 <ToolbarDivider />
                 <AddTableButton />
-                <UndoRedoButtons />
-                <AutoArrangeButton />
                 <DeleteNodesButton />
                 <ToolbarDivider />
+                <UndoRedoButtons />
+                <ToolbarDivider />
+                <AutoArrangeButton />
                 <FilterTablesButton />
+                {context.isDabEnabled() && (
+                    <>
+                        <ToolbarDivider />
+                        <ShowChangesButton />
+                    </>
+                )}
             </Toolbar>
         </div>
     );

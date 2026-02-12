@@ -5,6 +5,7 @@
 
 import { useContext, useRef, useEffect } from "react";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { useConnectionDialogSelector } from "../connectionDialogSelector";
 import {
     Button,
     Dialog,
@@ -27,10 +28,11 @@ export const TrustServerCertificateDialog = ({
     dialogProps: TrustServerCertDialogProps;
 }) => {
     const context = useContext(ConnectionDialogContext)!;
+    const dialog = useConnectionDialogSelector((s) => s.dialog);
     // eslint-disable-next-line no-restricted-syntax -- Ref needs to be null, not undefined
     const trustCertButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    if (context.state.dialog?.type !== "trustServerCert") {
+    if (dialog?.type !== "trustServerCert") {
         return undefined;
     }
 

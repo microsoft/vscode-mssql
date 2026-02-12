@@ -6,10 +6,11 @@
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
-import { SchemaDesignerContext, SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
+import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
+import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { makeStyles, Toolbar, ToolbarButton, tokens } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
@@ -37,18 +38,19 @@ const useStyles = makeStyles({
 });
 
 const MainLayout = () => {
-    const context = useContext(SchemaDesignerContext);
-    const isDabEnabled = context.state?.enableDAB ?? false;
+    const enableDAB = useSchemaDesignerSelector((s) => s?.enableDAB);
+    const stateActiveView = useSchemaDesignerSelector((s) => s?.activeView);
+    const isDabEnabled = enableDAB ?? false;
     const [activeView, setActiveView] = useState<SchemaDesigner.SchemaDesignerActiveView>(() =>
-        getActiveViewFromState(context.state?.activeView),
+        getActiveViewFromState(stateActiveView),
     );
     const classes = useStyles();
     const schemaDesignerLabel = locConstants.schemaDesigner.schemaDesignerNavLabel;
     const dabLabel = locConstants.schemaDesigner.dabNavLabel;
 
     useEffect(() => {
-        setActiveView(getActiveViewFromState(context.state?.activeView));
-    }, [context.state?.activeView]);
+        setActiveView(getActiveViewFromState(stateActiveView));
+    }, [stateActiveView]);
 
     if (isDabEnabled) {
         return (
@@ -114,7 +116,7 @@ const MainLayout = () => {
                                     ? "block"
                                     : "none",
                         }}>
-                        <DabPage />
+                        <DabPage activeView={activeView} />
                     </div>
                 </div>
             </div>

@@ -109,6 +109,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0740f4bade2a0a5b3c5d4f09aac7cc9aca2eba6907e144e2c02a226b70e4bfa7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sequence]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sequenza]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0749eac937735a54efbd2572de25232bb773c43b1ed6b2407da37b6235f20410" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unable to construct connection: {0}]]></Val>
@@ -928,6 +937,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error updating existing tasks.json: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Errore durante l'aggiornamento del file tasks.json esistente: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++46484d457b91deaf27cb5ad7300699fcf6f68109f4218424a6411bea346a7ac0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[File or directory '{0}' doesn't exist]]></Val>
@@ -1135,6 +1153,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Builds the {0} SQL project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Compilare il progetto SQL {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++566ea12984a4e3c41f444143aa587ddc245400b46fd8225ff9719cf7904e193d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Build Elements]]></Val>
@@ -1329,6 +1356,15 @@
           <Val><![CDATA[Server created]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Server creato]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A SQL Projects build task has been added to the existing tasks.json file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Un'attività di compilazione di progetti SQL è stata aggiunta al file tasks.json esistente.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1702,6 +1738,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8b9c643731c941195b61d1f3de78fda81ac490ee73f420bb7543df59d6a92206" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Trigger]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8c23287a220a47e0d74d3f537afb7355e6a8edcc864780a67a946d98e667949d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter connection string environment variable name]]></Val>
@@ -1783,6 +1828,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8fab4bd488d20e2d89e0ad477d6b803104326f3b79c38dcfe0498a5c205ea891" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Table-Valued Function]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Funzione con valori di tabella]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Status]]></Val>
@@ -1815,6 +1869,15 @@
           <Val><![CDATA[Are you sure you want to delete the SQLCMD Variable '{0}'?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Eliminare la variabile SQLCMD '{0}'?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++930304a5516931a4bdbd2e5b2b4b255765a068c8a01653f2736f7e81a66129ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Formato non valido in tasks.json: è previsto che 'tasks' sia una matrice. Correggere il file tasks.json e riprovare.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1860,15 +1923,6 @@
           <Val><![CDATA[Download progress]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Stato del download]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++985959785319747668373cc6dee294b11db782b03cdd90a2851fbdc0637c6b7b" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Project]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Progetto]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1923,6 +1977,15 @@
           <Val><![CDATA[Downloading {0} nuget to get build DLLs ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Download di {0} nuget per ottenere DLL di compilazione ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9ab84bcb7f3b646135e8d589e6240037bb955e322cb97bf5a679f6231f63e856" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Project (.sqlproj)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Progetto (.sqlproj)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2265,6 +2328,15 @@
           <Val><![CDATA[	>>> {0}   … errored out: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[	>>> {0}   … ha restituito un errore: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b6e543a005bad43a063405630b714cebb06d39c3690172255d067673fac8de8b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database Trigger]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Trigger database]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3717,10 +3789,13 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.publishDialog" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Publish (Preview)]]></Val>
+          <Val><![CDATA[Publish...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pubblica (anteprima)]]></Val>
+            <Val><![CDATA[Pubblica...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Publish (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

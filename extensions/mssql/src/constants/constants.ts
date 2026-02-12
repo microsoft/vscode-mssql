@@ -9,6 +9,7 @@ export const extensionId = "ms-mssql.mssql";
 export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
+export const configProfilerEventBufferSize = "profiler.eventBufferSize";
 export const mssqlProviderName = "MSSQL";
 export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
@@ -53,6 +54,7 @@ export const cmdNewQuery = "mssql.newQuery";
 export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConnection";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
+export const cmdSearchDatabase = "mssql.searchDatabase";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const triggerSchemaCompareAutomatic = "automatic";
@@ -71,6 +73,9 @@ export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdCreateDatabase = "mssql.createDatabase";
+export const cmdDropDatabase = "mssql.dropDatabase";
+export const cmdRenameDatabase = "mssql.renameDatabase";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -102,7 +107,6 @@ export const cmdCopyConnectionString = "mssql.copyConnectionString";
 export const cmdFilterNode = "mssql.filterNode";
 export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
-export const cmdSearchObjects = "mssql.searchObjects";
 export const cmdOpenExtension = "extension.open";
 export const cmdLoadCompletionExtension = "mssql.loadCompletionExtension";
 export const cmdAzureSignIn = "azure-account.login";
@@ -129,6 +133,8 @@ export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenAzureDataStudioMigration = "mssql.openAzureDataStudioMigration";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
+export const cmdBackupDatabase = "mssql.backupDatabase";
+export const cmdFlatFileImport = "mssql.flatFileImport";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -144,6 +150,7 @@ export const defaultPortNumber = 1433;
 export const integratedauth = "Integrated";
 export const sqlAuthentication = "SqlLogin";
 export const defaultDatabase = "master";
+export const defaultSchema = "dbo";
 export const errorPasswordExpired = 18487;
 export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
@@ -164,7 +171,7 @@ export const outputContentTypeShowError = "showError";
 export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
-export const defaultContainerName = "sql_server_container";
+export const defaultSqlServerContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const untitledSaveTimeThreshold = 50.0;
@@ -174,6 +181,12 @@ export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const createDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/create-database-transact-sql";
+export const dropDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/drop-database-transact-sql";
+export const backupDatabaseHelpLink =
+    "https://learn.microsoft.com/sql/t-sql/statements/backup-transact-sql";
 export const sqlToolsServiceCrashLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
@@ -185,6 +198,7 @@ export const xml = "xml";
 export const json = "json";
 export const queryPlan = "Query Plan";
 export const queryPlanXmlStart = "<ShowPlanXML";
+export const https = "https://";
 
 /**
  * Azure Firewall rule name convention is specified here:
@@ -210,8 +224,9 @@ export const copilotListViewsToolName = "mssql_list_views";
 export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
-export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
+export const copilotSchemaDesignerToolName = "mssql_schema_designer";
+export const copilotDabToolName = "mssql_dab";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -284,14 +299,19 @@ export const serviceInstalled = "Sql Tools Service installed";
 export const serviceInstallationFailed = "Failed to install Sql Tools Service";
 export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
-export const serviceInitializingOutputChannelName = "SqlToolsService Initialization";
 export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
+export const flatFileServiceInitializing =
+    "Initializing Flat File service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
     "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
+export const flatFileServiceLoadingFailed = "Failed to load Flat File Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
+export const invalidFlatFileServiceFilePath = "Invalid file path for Flat File Service";
 export const sqlToolsServiceName = "SQLToolsService";
+export const flatFileServiceName = "FlatFileService";
+export const flatFileProvider = "FlatFileProvider";
 export const resourceServiceName = "AzureResourceProvider";
 export const resourceProviderId = "azurePublicCloud";
 export const sqlToolsServiceConfigKey = "service";
@@ -313,6 +333,14 @@ export const sa = "SA";
 export const x64 = "x64";
 export const simple = "Simple";
 export const allFileTypes = ["*.*"];
+
+// Backup+Restore Constants
+export const defaultBackupFileTypes = [".bak", ".log", ".trn"];
+export const disk = "Disk";
+export const url = "URL";
+
+// Flat File Import Constants
+export const flatFileImportFileTypes = ["csv", "txt"];
 
 // Deployment Constants
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";

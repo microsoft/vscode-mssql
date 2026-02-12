@@ -36,10 +36,6 @@ Pour en savoir plus sur les projets [lire nos documents](https://aka.ms/azuredat
         <source xml:lang="en">List of projects in the workspace to exclude from the projects viewlet</source>
         <target state="translated">Liste des projets dans l’espace de travail à exclure des projets Viewlet</target>
       </trans-unit>
-      <trans-unit id="manage-project-command">
-        <source xml:lang="en">Manage</source>
-        <target state="translated">Gérer</target>
-      </trans-unit>
       <trans-unit id="new-command">
         <source xml:lang="en">New</source>
         <target state="translated">Nouveau</target>

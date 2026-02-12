@@ -13,6 +13,7 @@ import {
     Input,
     LabelProps,
     Option,
+    Text,
     Textarea,
     makeStyles,
     tokens,
@@ -25,16 +26,61 @@ import {
     FormState,
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
-import { SearchableDropdown } from "../searchableDropdown.component";
+import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
+
+export const useFormStyles = makeStyles({
+    formRoot: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+    },
+    formDiv: {
+        padding: "10px",
+        maxWidth: "650px",
+        display: "flex",
+        flexDirection: "column",
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formComponentDiv: {
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formComponentActionDiv: {
+        display: "flex",
+        flexDirection: "row",
+        "> *": {
+            margin: "5px",
+        },
+    },
+    formNavTrayButton: {
+        width: "150px",
+        alignSelf: "center",
+        margin: "0px 10px",
+    },
+    formNavTray: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 0px",
+    },
+    formNavTrayRight: {
+        display: "flex",
+        marginLeft: "auto",
+    },
+});
 
 export const FormInput = <
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
 >({
     context,
+    formState: _formState,
     value,
     target,
     type,
@@ -42,6 +88,7 @@ export const FormInput = <
     props,
 }: {
     context: TContext;
+    formState: TForm;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
@@ -131,15 +178,17 @@ export const FormField = <
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
+    TContext extends FormContextProps<TForm>,
 >({
     context,
+    formState,
     component,
     idx,
     props,
     componentProps,
 }: {
     context: TContext;
+    formState: TForm;
     component: TFormItemSpec;
     idx: number;
     props?: FieldProps;
@@ -194,6 +243,7 @@ export const FormField = <
                 style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
                     context,
+                    formState,
                     component,
                     componentProps,
                 )}
@@ -226,15 +276,14 @@ export function generateFormComponent<
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
-    TContext extends FormContextProps<TForm, TState, TFormItemSpec>,
->(context: TContext, component: TFormItemSpec, props?: any) {
-    const formState = context.state.formState;
-
+    TContext extends FormContextProps<TForm>,
+>(context: TContext, formState: TForm, component: TFormItemSpec, props?: any) {
     switch (component.type) {
         case FormItemType.Input:
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
@@ -246,6 +295,7 @@ export function generateFormComponent<
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
@@ -257,6 +307,7 @@ export function generateFormComponent<
             return (
                 <FormInput<TForm, TState, TFormItemSpec, TContext>
                     context={context}
+                    formState={formState}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     placeholder={component.placeholder ?? ""}
@@ -295,8 +346,28 @@ export function generateFormComponent<
                             <Option
                                 key={(component.propertyName as string) + idx}
                                 value={option.value}
-                                color={option.color}>
-                                {option.displayName}
+                                text={option.displayName}>
+                                <div
+                                    style={{
+                                        width: "100%",
+                                        display: "flex",
+                                        flexDirection: "row",
+                                        justifyContent: "space-between",
+                                        ...(option.color
+                                            ? { color: tokens[option.color as keyof typeof tokens] }
+                                            : {}),
+                                    }}>
+                                    {option.displayName}
+                                    <span
+                                        style={{
+                                            display: "flex",
+                                            gap: "4px",
+                                            marginRight: "12px",
+                                        }}>
+                                        {option.description && <Text>{option.description}</Text>}
+                                        {option.icon && FluentOptionIcons[option.icon]}
+                                    </span>
+                                </div>
                             </Option>
                         );
                     })}
@@ -356,47 +427,3 @@ export function generateFormComponent<
             );
     }
 }
-
-export const useFormStyles = makeStyles({
-    formRoot: {
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-    },
-    formDiv: {
-        padding: "10px",
-        maxWidth: "650px",
-        display: "flex",
-        flexDirection: "column",
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formComponentDiv: {
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formComponentActionDiv: {
-        display: "flex",
-        flexDirection: "row",
-        "> *": {
-            margin: "5px",
-        },
-    },
-    formNavTrayButton: {
-        width: "150px",
-        alignSelf: "center",
-        margin: "0px 10px",
-    },
-    formNavTray: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "10px 0px",
-    },
-    formNavTrayRight: {
-        display: "flex",
-        marginLeft: "auto",
-    },
-});

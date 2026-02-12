@@ -12,7 +12,6 @@ import {
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 import { WebviewRpc } from "./rpc";
-import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.
@@ -96,13 +95,7 @@ export function deepClone<T>(obj: T): T {
     return result;
 }
 
-export function getCoreRPCs<TState, TReducers>(
-    webviewContext: VscodeWebviewContext<TState, TReducers>,
-): CoreRPCs {
-    return getCoreRPCs2(webviewContext.extensionRpc);
-}
-
-export function getCoreRPCs2<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
+export function getCoreRPCs<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
         log(message: string, level?: LoggerLevel) {
             extensionRpc.log(message, level);
@@ -292,29 +285,3 @@ export function getPreviousFocusableElementOutside(container: HTMLElement): HTML
     }
     return null; // no previous element outside the container
 }
-
-/**
- * Deep equality check between two values.
- * @param a first value
- * @param b second value
- * @returns true if equal, false otherwise
- */
-export const deepEqual = (a: any, b: any): boolean => {
-    if (a === b) {
-        return true;
-    }
-    if (typeof a !== "object" || typeof b !== "object" || a == null || b == null) {
-        return false;
-    }
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
-    if (keysA.length !== keysB.length) {
-        return false;
-    }
-    for (const key of keysA) {
-        if (!keysB.includes(key) || !deepEqual(a[key], b[key])) {
-            return false;
-        }
-    }
-    return true;
-};

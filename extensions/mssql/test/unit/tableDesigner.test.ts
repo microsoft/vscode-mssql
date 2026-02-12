@@ -212,8 +212,8 @@ suite("TableDesignerWebviewController tests", () => {
 
         secondStub.restore(); // Cleanup
         const errorMessage = "error message";
-        sinon.stub(mockTableDesignerService, "processTableEdit").rejects(new Error(errorMessage));
-        const errorStub = sinon.stub(vscode.window, "showErrorMessage");
+        sandbox.stub(mockTableDesignerService, "processTableEdit").rejects(new Error(errorMessage));
+        const errorStub = sandbox.stub(vscode.window, "showErrorMessage");
 
         result = await controller["_reducerHandlers"].get("processTableEdit")(
             callState,

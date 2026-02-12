@@ -98,6 +98,8 @@ declare module 'sqldbproj' {
 		table = 'table',
 		view = 'view',
 		storedProcedure = 'storedProcedure',
+		tableValuedFunction = 'tableValuedFunction',
+		schema = 'schema',
 		dataSource = 'dataSource',
 		fileFormat = 'fileFormat',
 		externalStream = 'externalStream',
@@ -107,6 +109,9 @@ declare module 'sqldbproj' {
 		postDeployScript = 'postDeployScript',
 		publishProfile = 'publishProfile',
 		tasks = 'tasks',
+		trigger = 'trigger',
+		databaseTrigger = 'databaseTrigger',
+		sequence = 'sequence',
 	}
 
 	/**
@@ -257,6 +262,11 @@ declare module 'sqldbproj' {
 		 * SQL object scripts in this project
 		 */
 		readonly sqlObjectScripts: IFileProjectEntry[];
+
+		/**
+		 * Folders in this project
+		 */
+		readonly folders: IFileProjectEntry[];
 
 		/**
 		 * SqlCmd variables and their values

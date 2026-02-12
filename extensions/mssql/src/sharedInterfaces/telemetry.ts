@@ -41,6 +41,9 @@ export enum TelemetryViews {
     ChangelogPage = "ChangelogPage",
     AzureDataStudioMigration = "AzureDataStudioMigration",
     FileBrowser = "FileBrowser",
+    Backup = "Backup",
+    SearchDatabase = "SearchDatabase",
+    FlatFile = "FlatFile",
 }
 
 export enum TelemetryActions {
@@ -97,6 +100,8 @@ export enum TelemetryActions {
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
     PublishProjectConnectionError = "PublishProjectConnection",
+    PublishServerConnected = "PublishServerConnected",
+    SqlCmdVariablesModified = "SqlCmdVariablesModified",
     GenerateSqlPackageCommand = "GenerateSqlPackageCommand",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
@@ -159,6 +164,8 @@ export enum TelemetryActions {
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
+    SchemaDesignerTool = "SchemaDesignerTool",
+    DabTool = "DabTool",
     SaveConnectionGroup = "SaveConnectionGroup",
     DragAndDrop = "DragAndDrop",
     ExportToImage = "ExportToImage",
@@ -203,6 +210,21 @@ export enum TelemetryActions {
     FileBrowserClose = "FileBrowserClose",
     FileBrowserDialog = "FileBrowserDialog",
     FileBrowserSubmitFilePath = "FileBrowserSubmitFilePath",
+    StartBackup = "StartBackup",
+    Backup = "Backup",
+    ScriptBackup = "ScriptBackup",
+    FinishBackup = "FinishBackup",
+    LoadMetadata = "LoadMetadata",
+    SetDatabase = "SetDatabase",
+    EditData = "EditData",
+    ModifyTable = "ModifyTable",
+    CopyObjectName = "CopyObjectName",
+    RefreshResults = "RefreshResults",
+    Search = "Search",
+    ServiceStarted = "ServiceStarted",
+    TablePreview = "TablePreview",
+    ImportFile = "ImportFile",
+    ResetState = "ResetState",
 }
 
 /**

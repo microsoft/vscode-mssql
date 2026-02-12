@@ -13,6 +13,7 @@ import { AzureDataStudioMigration } from "../constants/locConstants";
 import {
     AdsMigrationConnection,
     AdsMigrationConnectionGroup,
+    AdsMigrationSetting,
     AzureDataStudioMigrationBrowseForConfigRequest,
     EntraAccountOption,
     AzureDataStudioMigrationReducers,
@@ -21,6 +22,7 @@ import {
     ImportProgressDialogProps,
     MigrationStatus,
     ImportWarningDialogProps,
+    ViewSettingsDialogProps,
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
@@ -42,10 +44,39 @@ const defaultState: AzureDataStudioMigrationWebviewState = {
     adsConfigPath: "",
     connectionGroups: [],
     connections: [],
+    importSettings: true,
+    settings: [],
     dialog: undefined,
 };
 
 const AZURE_DATA_STUDIO_MIGRATION_VIEW_ID = "azureDataStudioMigration";
+
+const EXCLUDED_SETTINGS = new Set<string>([
+    // Exclude logging-related settings
+    "mssql.logDebugInfo",
+    "mssql.piiLogging",
+    "mssql.tracingLevel",
+    "mssql.trace.server",
+    "mssql.logRetentionMinutes",
+    "mssql.logFilesRemovalLimit",
+
+    // Exclude connection pooling because we've intentionally changed the default for MSSQL
+    // due to it keeping serverless Azure/Fabric databases awake.
+    "mssql.enableConnectionPooling",
+
+    // Exclude intelliSense lower case suggestions because it was intentionally removed from MSSQL
+    // due to being redundant with mssql.format.keywordCasing and therefore confusing.
+    "mssql.intelliSense.lowerCaseSuggestions",
+
+    // Exclude settings that aren't supported in MSSQL
+    // due to not being implemented in MSSQL or for ADS-specific features.
+    // Note: VS Code will throw an error if we try to set a setting that isn't registered in package.json.
+    "mssql.executionPlan.expensiveOperationMetric",
+    "mssql.parallelMessageProcessing",
+    "mssql.parallelMessageProcessingLimit",
+    "mssql.tableDesigner.allowDisableAndReenableDdlTriggers",
+    "mssql.tableDesigner.preloadDatabaseModel",
+]);
 
 export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanelController<
     AzureDataStudioMigrationWebviewState,
@@ -287,10 +318,23 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     });
                 }
             } else {
+                const groupsAffected = new Set<string>();
+
                 // set selection for all groups
                 state.connectionGroups.forEach((group) => {
                     if (group.status !== MigrationStatus.AlreadyImported) {
                         group.selected = payload.selected;
+                        groupsAffected.add(group.group.id);
+                    }
+                });
+
+                // select or deselect all connections in the groups
+                state.connections.forEach((connection) => {
+                    if (
+                        groupsAffected.has(connection.profile.groupId) &&
+                        connection.status !== MigrationStatus.AlreadyImported
+                    ) {
+                        connection.selected = payload.selected;
                     }
                 });
             }
@@ -364,6 +408,18 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             await this.importHelper(state);
             return state;
         });
+
+        this.registerReducer("setImportSettings", async (state, payload) => {
+            state.importSettings = payload.importSettings;
+            return state;
+        });
+
+        this.registerReducer("openViewSettingsDialog", async (state) => {
+            state.dialog = {
+                type: "viewSettings",
+            } as ViewSettingsDialogProps;
+            return state;
+        });
     }
 
     private async loadEntraAuthAccounts(): Promise<void> {
@@ -398,6 +454,8 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 incompleteConnectionCount: selectedConnections.filter(
                     (conn) => conn.status === MigrationStatus.NeedsAttention,
                 ).length,
+                settingsCount:
+                    state.importSettings && state.settings.length > 0 ? state.settings.length : 0,
             },
         );
 
@@ -449,17 +507,54 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                 await this.connectionStore.saveProfile(connectionToAdd);
             }
 
+            let settingCount = 0;
+            if (state.importSettings && state.settings.length > 0) {
+                activity.update({ step: "3_importingSettings" });
+
+                const config = vscode.workspace.getConfiguration();
+
+                for (const setting of state.settings) {
+                    try {
+                        await config.update(
+                            setting.key,
+                            setting.value,
+                            vscode.ConfigurationTarget.Global,
+                        );
+                        settingCount++;
+                    } catch (err) {
+                        this.logger.error(
+                            `Error updating setting ${setting.key}: ${getErrorMessage(err)}`,
+                        );
+
+                        sendErrorEvent(
+                            TelemetryViews.AzureDataStudioMigration,
+                            TelemetryActions.ImportConfig,
+                            err,
+                            true, // includeErrorMessage
+                            undefined, // errorCode
+                            "updateSettingError", // errorType
+                            { settingKey: setting.key },
+                        );
+                    }
+                }
+            }
+
             state.dialog = {
                 type: "importProgress",
                 status: {
                     status: ApiStatus.Loaded,
                     message: AzureDataStudioMigration.importProgressSuccessMessage,
                 },
+                importedCounts: {
+                    connectionGroups: selectedGroups.size,
+                    connections: selectedConnections.length,
+                    settings: settingCount,
+                },
             } as ImportProgressDialogProps;
 
             activity.end(ActivityStatus.Succeeded);
         } catch (err) {
-            this.state.dialog = {
+            state.dialog = {
                 status: {
                     status: ApiStatus.Error,
                     message: AzureDataStudioMigration.importProgressErrorMessage(
@@ -480,6 +575,10 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
                     incompleteConnectionCount: selectedConnections.filter(
                         (conn) => conn.status === MigrationStatus.NeedsAttention,
                     ).length,
+                    settingsCount:
+                        state.importSettings && state.settings.length > 0
+                            ? state.settings.length
+                            : 0,
                 },
             );
         }
@@ -558,10 +657,14 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
             const connections = this.parseConnections(parsed?.["datasource.connections"]);
             const migrationConnections = this.updateConnectionStatuses(connections);
 
+            const settings = this.parseSettings(parsed);
+
             this.state = {
                 adsConfigPath: filePath,
                 connectionGroups: migrationGroups,
                 connections: migrationConnections,
+                importSettings: true,
+                settings,
                 dialog: undefined,
             };
         } catch (error) {
@@ -766,6 +869,24 @@ export class AzureDataStudioMigrationWebviewController extends ReactWebviewPanel
         }
 
         return connections;
+    }
+
+    private parseSettings(config: Record<string, unknown>): AdsMigrationSetting[] {
+        const settings: AdsMigrationSetting[] = [];
+
+        for (const key of Object.keys(config)) {
+            if (!key.startsWith("mssql.")) {
+                continue;
+            }
+
+            if (EXCLUDED_SETTINGS.has(key)) {
+                continue;
+            }
+
+            settings.push({ key: key, value: config[key] });
+        }
+
+        return settings;
     }
 
     private createConnection(candidate: unknown): IConnectionDialogProfile | undefined {

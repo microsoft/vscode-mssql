@@ -10,11 +10,12 @@
             "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
             "sourceMaps": true,
             "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
+            "debugWebviews": true,
             "rendererDebugOptions": {
                 "pauseForSourceMap": true,
                 "sourceMapRenames": true,
                 "sourceMaps": true,
-                "webRoot": "${workspaceRoot}/src/reactviews"
+                "webRoot": "${workspaceRoot}"
             },
             "debugWebWorkerHost": true,
             "sourceMapRenames": true,

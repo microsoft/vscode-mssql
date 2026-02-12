@@ -7,7 +7,8 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import type { IConnectionInfo, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { DeploymentScenario } from "../enums";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -37,6 +38,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SqlPackageService } from "../services/sqlPackageService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
+import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
@@ -48,15 +50,13 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
+import { CreateDatabaseWebviewController } from "./createDatabaseWebviewController";
+import { DropDatabaseWebviewController } from "./dropDatabaseWebviewController";
 import {
     DacpacDialogWebviewState,
     DacPacDialogOperationType,
 } from "../sharedInterfaces/dacpacDialog";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
-import {
-    DatabaseObjectSearchService,
-    DatabaseObject,
-} from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
@@ -75,7 +75,6 @@ import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
-import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
@@ -88,6 +87,8 @@ import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
+import { SchemaDesignerTool } from "../copilot/tools/schemaDesignerTool";
+import { DabTool } from "../copilot/tools/dabTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
@@ -96,16 +97,26 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../deployment/dockerUtils";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { ProfilerController } from "../profiler/profilerController";
+import { ProfilerService } from "../services/profilerService";
+import { ProfilerSessionManager } from "../profiler/profilerSessionManager";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { HttpHelper } from "../http/httpHelper";
 import { Logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
+import { BackupDatabaseWebviewController } from "./backupDatabaseWebviewController";
+import { AzureBlobService } from "../services/azureBlobService";
+import { FlatFileClient } from "../flatFile/flatFileClient";
+import { FlatFileImportWebviewController } from "./flatFileImportWebviewController";
+import { ApiType, managerInstance } from "../flatFile/serviceApiManager";
+import { FlatFileProvider } from "../models/contracts/flatFile";
 
 /**
  * The main controller class that initializes the extension
@@ -129,12 +140,15 @@ export default class MainController implements vscode.Disposable {
 
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
+    public objectManagementService: ObjectManagementService;
     public schemaCompareService: SchemaCompareService;
     public sqlPackageService: SqlPackageService;
     public tableExplorerService: ITableExplorerService;
+    public metadataService: IMetadataService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
+    public azureBlobService: AzureBlobService;
     public tableDesignerService: TableDesignerService;
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
@@ -143,6 +157,9 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public fileBrowserService: FileBrowserService;
+    public profilerController: ProfilerController;
+    public flatFileClient: FlatFileClient;
+    public flatFileProvider: FlatFileProvider;
 
     /**
      * The main controller constructor
@@ -596,10 +613,14 @@ export default class MainController implements vscode.Disposable {
                 SqlToolsServerClient.instance,
                 this.sqlTasksService,
             );
+            this.objectManagementService = new ObjectManagementService(
+                SqlToolsServerClient.instance,
+            );
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.sqlPackageService = new SqlPackageService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
+            this.metadataService = new MetadataService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -610,10 +631,23 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
+            this.azureBlobService = new AzureBlobService(SqlToolsServerClient.instance);
 
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
+
+            // Initialize profiler service and session manager
+            const profilerService = new ProfilerService(this._connectionMgr.client);
+            const profilerSessionManager = new ProfilerSessionManager(profilerService);
+
+            // Initialize profiler controller
+            this.profilerController = new ProfilerController(
+                this._context,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                profilerSessionManager,
+            );
 
             this.connectionSharingService = new ConnectionSharingService(
                 this._context,
@@ -715,29 +749,6 @@ export default class MainController implements vscode.Disposable {
                 new ChangeDatabaseTool(this.connectionManager),
             ),
         );
-        // Register mssql_show_schema tool
-        this._context.subscriptions.push(
-            vscode.lm.registerTool(
-                Constants.copilotShowSchemaToolName,
-                new ShowSchemaTool(
-                    this.connectionManager,
-                    async (connectionUri: string, database: string) => {
-                        const designer =
-                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
-                                this._context,
-                                this._vscodeWrapper,
-                                this,
-                                this.schemaDesignerService,
-                                database,
-                                undefined,
-                                connectionUri,
-                            );
-                        designer.revealToForeground();
-                    },
-                ),
-            ),
-        );
-
         // Register mssql_list_tables tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
@@ -776,6 +787,35 @@ export default class MainController implements vscode.Disposable {
                 Constants.copilotRunQueryToolName,
                 new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
+        );
+
+        // Register mssql_schema_designer tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotSchemaDesignerToolName,
+                new SchemaDesignerTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        const designer =
+                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this.schemaDesignerService,
+                                database,
+                                undefined,
+                                connectionUri,
+                            );
+                        designer.revealToForeground();
+                        return designer;
+                    },
+                ),
+            ),
+        );
+
+        // Register mssql_dab tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(Constants.copilotDabToolName, new DabTool()),
         );
     }
 
@@ -832,6 +872,11 @@ export default class MainController implements vscode.Disposable {
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
+
+        // Initialize flat file client
+        managerInstance.onRegisteredApi<FlatFileProvider>(ApiType.FlatFileProvider)((provider) => {
+            this.flatFileProvider = provider;
+        });
 
         /**
          * TODO: aaskhan
@@ -994,267 +1039,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handles the search objects command
-     * @param node Optional connection node to search within
-     */
-    public async onSearchObjects(node?: ConnectionNode): Promise<void> {
-        try {
-            // Get the connection URI and database name
-            let connectionUri: string;
-            let databaseName: string | undefined;
-
-            if (node && node.connectionProfile) {
-                // Called from Object Explorer context menu
-                connectionUri = ObjectExplorerUtils.getNodeUri(node);
-                databaseName = node.connectionProfile.database;
-
-                // Ensure we have an active connection for this URI
-                if (!this.connectionManager.isConnected(connectionUri)) {
-                    let connectionCreds = node.connectionProfile;
-                    const nodeDatabaseName = ObjectExplorerUtils.getDatabaseName(node);
-                    if (nodeDatabaseName !== connectionCreds.database) {
-                        connectionCreds.database = nodeDatabaseName;
-                        databaseName = nodeDatabaseName;
-                    }
-
-                    if (!this.connectionManager.isConnecting(connectionUri)) {
-                        const connectionResult = await this.connectionManager.connect(
-                            connectionUri,
-                            connectionCreds,
-                            {
-                                connectionSource: "searchObjects",
-                            },
-                        );
-
-                        if (connectionResult) {
-                            node.updateEntraTokenInfo(connectionCreds);
-                        } else {
-                            return;
-                        }
-                    }
-                }
-            } else {
-                // Called from command palette - use active connection
-                const activeUri = this._vscodeWrapper.activeTextEditorUri;
-                if (!activeUri) {
-                    void vscode.window.showErrorMessage(
-                        LocalizedConstants.searchObjectsNoConnection,
-                    );
-                    return;
-                }
-                const connection = this._connectionMgr.getConnectionInfo(activeUri);
-                if (!connection) {
-                    void vscode.window.showErrorMessage(
-                        LocalizedConstants.searchObjectsNoConnection,
-                    );
-                    return;
-                }
-                connectionUri = activeUri;
-                databaseName = connection.credentials.database;
-            }
-
-            // Validate the connection URI before proceeding
-            if (!connectionUri || connectionUri.trim() === "") {
-                void vscode.window.showErrorMessage(
-                    LocalizedConstants.searchObjectsInvalidConnectionUri,
-                );
-                return;
-            }
-
-            // Live, debounced QuickPick search using cached metadata
-            const searchService = new DatabaseObjectSearchService(this._connectionMgr.client);
-            await searchService.warmCache(connectionUri).catch(() => undefined);
-
-            type SearchPick = vscode.QuickPickItem & { object?: DatabaseObject };
-            const qp = vscode.window.createQuickPick<SearchPick>();
-            qp.placeholder = LocalizedConstants.searchObjectsPlaceholder;
-            qp.matchOnDescription = true;
-            qp.matchOnDetail = true;
-            qp.ignoreFocusOut = true;
-            qp.items = [];
-
-            let lastToken = 0;
-            let debounceHandle: NodeJS.Timeout | undefined;
-
-            const runSearch = async (value: string, token: number) => {
-                const term = value?.trim();
-                if (!term) {
-                    qp.items = [];
-                    return;
-                }
-                const result = await searchService.searchObjects(connectionUri, term, databaseName);
-                if (token !== lastToken) {
-                    return; // stale response
-                }
-                if (!result.success) {
-                    qp.items = [
-                        {
-                            label: LocalizedConstants.searchObjectsErrorWithDetail(result.error),
-                            description: "",
-                            detail: "",
-                        },
-                    ];
-                    return;
-                }
-                if (result.objects.length === 0) {
-                    const msg = LocalizedConstants.searchObjectsNoResultsMessage(term);
-                    qp.items = [
-                        {
-                            label: msg,
-                            description: "",
-                            detail: "",
-                        },
-                    ];
-                    return;
-                }
-                qp.items = result.objects.map((r) => ({
-                    label: r.name,
-                    description: r.type,
-                    detail: r.schema ? `${r.schema}.${r.name}` : r.name,
-                    object: r,
-                }));
-            };
-
-            const onChangeDisp = qp.onDidChangeValue((value) => {
-                lastToken++;
-                const current = lastToken;
-                if (debounceHandle) {
-                    clearTimeout(debounceHandle);
-                }
-                qp.busy = true;
-                debounceHandle = setTimeout(() => {
-                    void runSearch(value, current).finally(() => {
-                        if (current === lastToken) {
-                            qp.busy = false;
-                        }
-                    });
-                }, 200);
-            });
-
-            let selectedItem: SearchPick | undefined;
-            const onAcceptDisp = qp.onDidAccept(() => {
-                selectedItem = qp.selectedItems?.[0];
-                qp.hide();
-            });
-            const onHide = new Promise<void>((resolve) => {
-                const d = qp.onDidHide(() => {
-                    d.dispose();
-                    resolve();
-                });
-            });
-            qp.show();
-            await onHide;
-            onChangeDisp.dispose();
-            onAcceptDisp.dispose();
-            qp.dispose();
-
-            if (!selectedItem || !selectedItem.object) {
-                return; // cancelled or picked an info row
-            }
-
-            // Let user pick what kind of script to generate based on object type
-            const objType = selectedItem.object.type;
-            const operations: { label: string; op: ScriptOperation }[] = [];
-            if (objType === "Table" || objType === "View") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                        op: ScriptOperation.Select,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptCreateLabel,
-                        op: ScriptOperation.Create,
-                    },
-                );
-            } else if (objType === "Stored Procedure") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptExecuteLabel,
-                        op: ScriptOperation.Execute,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
-                        op: ScriptOperation.Alter,
-                    },
-                );
-            } else if (objType === "Scalar Function" || objType === "Table-valued Function") {
-                operations.push(
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                        op: ScriptOperation.Select,
-                    },
-                    {
-                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
-                        op: ScriptOperation.Alter,
-                    },
-                );
-            } else {
-                operations.push({
-                    label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
-                    op: ScriptOperation.Select,
-                });
-            }
-
-            const selectedOp = await vscode.window.showQuickPick(
-                operations.map((o) => o.label),
-                {
-                    placeHolder: LocalizedConstants.ObjectExplorer.FetchingScriptLabel("…"),
-                    ignoreFocusOut: true,
-                },
-            );
-            if (!selectedOp) {
-                return;
-            }
-            const op = operations.find((o) => o.label === selectedOp)?.op ?? ScriptOperation.Select;
-
-            // Use ScriptingService to generate script and open connected untitled doc
-            const connection = this._connectionMgr.getConnectionInfo(connectionUri);
-            const serverInfo = this._connectionMgr.getServerInfo(connection?.credentials);
-            // Map friendly type to metadata type name used by scripting
-            const mapType = (t: string): string => {
-                switch (t) {
-                    case "Table":
-                        return "Table";
-                    case "View":
-                        return "View";
-                    case "Stored Procedure":
-                        return "StoredProcedure";
-                    case "Scalar Function":
-                        return "ScalarValuedFunction";
-                    case "Table-valued Function":
-                        return "TableValuedFunction";
-                    default:
-                        return t;
-                }
-            };
-            // Build an IScriptingObject from search result
-            const scriptingObject: IScriptingObject = {
-                type: mapType(objType),
-                schema: selectedItem.object.schema,
-                name: selectedItem.object.name,
-            };
-
-            const scriptingParams = this._scriptingService.createScriptingRequestParams(
-                serverInfo,
-                scriptingObject,
-                connectionUri,
-                op,
-            );
-            const script = await this._scriptingService.script(scriptingParams);
-
-            await this._sqlDocumentService.newQuery({
-                content: script,
-                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                connectionInfo: connection?.credentials,
-            });
-        } catch (error) {
-            void vscode.window.showErrorMessage(
-                LocalizedConstants.searchObjectsErrorWithDetail(getErrorMessage(error)),
-            );
-        }
-    }
-
-    /**
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
      */
@@ -1383,6 +1167,205 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        const resolveSelectedNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            if (!node && this.objectExplorerTree?.selection?.length === 1) {
+                return this.objectExplorerTree.selection[0];
+            }
+            return node;
+        };
+
+        const refreshNodeChildren = async (node?: TreeNodeInfo): Promise<void> => {
+            if (!node) {
+                return;
+            }
+            await this._objectExplorerProvider.refreshNode(node);
+        };
+
+        const escapeSingleQuotes = (value: string): string => value.replace(/'/g, "''");
+
+        const findServerNode = (node?: TreeNodeInfo): TreeNodeInfo | undefined => {
+            let current = node;
+            while (current) {
+                if (current.nodeType === Constants.serverLabel) {
+                    return current;
+                }
+                current = current.parentNode;
+            }
+            return undefined;
+        };
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCreateDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectServerNodeToCreateDatabase,
+                        );
+                        return;
+                    }
+
+                    const isDatabasesFolder =
+                        targetNode.context.type === Constants.folderLabel &&
+                        targetNode.context.subType === "Databases";
+                    const serverNode =
+                        targetNode.nodeType === Constants.serverLabel
+                            ? targetNode
+                            : isDatabasesFolder
+                              ? findServerNode(targetNode)
+                              : undefined;
+
+                    if (!serverNode || serverNode.nodeType !== Constants.serverLabel) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectServerNodeToCreateDatabase,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = serverNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const controller = new CreateDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        connectionProfile.database || Constants.defaultDatabase,
+                        serverNode.metadata?.urn ?? "Server",
+                        LocalizedConstants.createDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const createdDatabase = await controller.dialogResult.promise;
+                    if (createdDatabase) {
+                        await refreshNodeChildren(isDatabasesFolder ? targetNode : serverNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDropDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectDatabaseNodeToDrop,
+                        );
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const parentUrn = targetNode.parentNode?.metadata?.urn ?? "Server";
+                    const objectUrn = targetNode.metadata?.urn;
+                    const controller = new DropDatabaseWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this.objectManagementService,
+                        connectionUri,
+                        connectionProfile.server ?? "",
+                        databaseName,
+                        parentUrn,
+                        objectUrn,
+                        LocalizedConstants.dropDatabaseDialogTitle,
+                    );
+                    await controller.whenWebviewReady();
+                    controller.revealToForeground();
+                    const droppedDatabase = await controller.dialogResult.promise;
+                    if (droppedDatabase) {
+                        await refreshNodeChildren(targetNode.parentNode);
+                    }
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdRenameDatabase,
+                async (node?: TreeNodeInfo) => {
+                    const targetNode = resolveSelectedNode(node);
+                    if (!targetNode || targetNode.nodeType !== Constants.databaseString) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgSelectDatabaseNodeToRename,
+                        );
+                        return;
+                    }
+
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(targetNode);
+                    const newName = await vscode.window.showInputBox({
+                        title: LocalizedConstants.renameDatabaseDialogTitle,
+                        value: databaseName,
+                        placeHolder: LocalizedConstants.renameDatabaseInputPlaceholder,
+                        validateInput: (value: string): string | undefined => {
+                            if (!value.trim()) {
+                                return LocalizedConstants.databaseNameRequired;
+                            }
+                            return undefined;
+                        },
+                    });
+
+                    if (!newName || newName === databaseName) {
+                        return;
+                    }
+
+                    const connectionProfile = targetNode.connectionProfile;
+                    const connectionUri =
+                        connectionProfile &&
+                        this._connectionMgr.getUriForConnection(connectionProfile);
+                    if (!connectionUri) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.msgChooseDatabaseNotConnected,
+                        );
+                        return;
+                    }
+
+                    const objectUrn =
+                        targetNode.metadata?.urn ??
+                        `Server/Database[@Name='${escapeSingleQuotes(databaseName)}']`;
+
+                    try {
+                        await this.objectManagementService.rename(
+                            connectionUri,
+                            Constants.databaseString,
+                            objectUrn,
+                            newName,
+                        );
+                        await refreshNodeChildren(targetNode.parentNode);
+                    } catch (error) {
+                        void this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.renameDatabaseError(
+                                databaseName,
+                                newName,
+                                getErrorMessage(error),
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
         const connectParentNode = async (node: AccountSignInTreeNode | ConnectTreeNode) => {
             this._objectExplorerProvider.deleteChildrenCache(node.parentNode);
             void this._objectExplorerProvider.refresh(node.parentNode);
@@ -1435,6 +1418,38 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdFlatFileImport,
+                async (node: ConnectionNode) => {
+                    const connectionUri = this.connectionManager.getUriForConnection(
+                        node.connectionProfile,
+                    );
+
+                    const databases = await this.connectionManager.listDatabases(connectionUri);
+
+                    // If no databases found, show error message and return early
+                    if (databases.length === 0) {
+                        void vscode.window.showErrorMessage(
+                            LocalizedConstants.FlatFileImport.noDatabasesFoundToImportInto,
+                        );
+                        return;
+                    }
+
+                    const flatFileImportDialog = new FlatFileImportWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        SqlToolsServerClient.instance,
+                        this.connectionManager,
+                        this.flatFileProvider,
+                        node.connectionProfile,
+                        node.sessionId,
+                    );
+                    flatFileImportDialog.revealToForeground();
                 },
             ),
         );
@@ -1537,6 +1552,12 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
                     this.onTableExplorer(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdSearchDatabase, async (node: any) =>
+                    this.onSearchDatabase(node),
                 ),
             );
 
@@ -1671,6 +1692,49 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdBackupDatabase,
+                    async (node: TreeNodeInfo) => {
+                        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+
+                        let ownerUri = node.sessionId;
+                        if (node.nodeType === Constants.databaseString) {
+                            const databaseConnectionUri = `${databaseName}_${node.sessionId}`;
+
+                            // Create a new temp connection for the database if we are not already connected
+                            // This lets sts know the context of the database we are backing up; otherwise,
+                            // sts will assume the master database context
+                            await this.connectionManager.connect(databaseConnectionUri, {
+                                ...node.connectionProfile,
+                                database: databaseName,
+                            });
+
+                            ownerUri = databaseConnectionUri;
+                        }
+
+                        const reactPanel = new BackupDatabaseWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this.objectManagementService,
+                            this.fileBrowserService,
+                            this.azureBlobService,
+                            ownerUri,
+                            node.connectionProfile.server || "",
+                            databaseName,
+                        );
+                        reactPanel.revealToForeground();
+
+                        // Disconnect the temp database connection when the backup panel is closed
+                        reactPanel.onDisposed(() => {
+                            if (ownerUri !== node.sessionId) {
+                                void this.connectionManager.disconnect(ownerUri);
+                            }
+                        });
+                    },
+                ),
+            );
         }
 
         // Initiate the scripting service
@@ -1727,13 +1791,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands (only register if experimental features are enabled)
-        if (this.isExperimentalEnabled) {
-            registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-            registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-            registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-            registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
-        }
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(
@@ -2636,7 +2698,9 @@ export default class MainController implements vscode.Disposable {
         targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.SchemaCompare,
+        );
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2645,7 +2709,7 @@ export default class MainController implements vscode.Disposable {
             runComparison,
             this.schemaCompareService,
             this._connectionMgr,
-            result,
+            schemaCompareOptionsResult,
             SchemaCompare.Title,
         );
 
@@ -2664,6 +2728,19 @@ export default class MainController implements vscode.Disposable {
         tableExplorerWebView.revealToForeground();
     }
 
+    public async onSearchDatabase(node?: any): Promise<void> {
+        const searchDatabaseWebView = new SearchDatabaseWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            this.metadataService,
+            this._connectionMgr,
+            node,
+            this._scriptingService,
+        );
+
+        searchDatabaseWebView.revealToForeground();
+    }
+
     /**
      * Handler for the Publish Database Project command.
      * Accepts the project file path as an argument.
@@ -2671,7 +2748,9 @@ export default class MainController implements vscode.Disposable {
      * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const deploymentOptionsResult = await this.dacFxService.getDeploymentOptions(
+            DeploymentScenario.Deployment,
+        );
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2681,7 +2760,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService,
             this.dacFxService,
             this.sqlPackageService,
-            deploymentOptions.defaultDeploymentOptions,
+            deploymentOptionsResult.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();
