@@ -142,7 +142,7 @@
         "@microsoft/vscode-azext-azureauth": "^4.1.1",
         "@xmldom/xmldom": "^0.8.11",
         "strip-json-comments": "^5.0.1",
-        "axios": "^1.12.0",
+        "axios": "^1.13.5",
         "dotenv": "^16.4.5",
         "dockerode": "^4.0.9",
         "error-ex": "^1.3.0",
@@ -767,7 +767,18 @@
                 },
                 {
                     "command": "mssql.backupDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\b(type|subType)=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@6"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=Server\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
+                    "command": "mssql.flatFileImport",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/",
+                    "group": "2_MSSQL_serverDbActions@6"
                 }
             ],
             "commandPalette": [
@@ -1368,6 +1379,11 @@
             {
                 "command": "mssql.backupDatabase",
                 "title": "%mssql.backupDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.flatFileImport",
+                "title": "%mssql.flatFileImport%",
                 "category": "MS SQL"
             }
         ],

@@ -2272,6 +2272,10 @@ export class ProjectsController {
             void vscode.window.showInformationMessage(constants.equalComparison);
             return;
         }
+        if (comparisonResult.areEqual) {
+            void vscode.window.showInformationMessage(constants.equalComparison);
+            return;
+        }
 
         // Publish the changes (retrieved from the cache by operationId)
         const publishResult = await this.schemaComparePublishProjectChanges(
