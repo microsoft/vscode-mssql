@@ -3411,6 +3411,9 @@
     <trans-unit id="++CODE++9fc475057175144b8fcda9ed4418c5a9aaba01234c96fc1798278f52a9235eff">
       <source xml:lang="en">No connections were found in the file.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3da75270eacf985d78bd5f504130e299acb9022f261146dfc7f1ac655fba70bd">
+      <source xml:lang="en">No customized settings found</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
       <source xml:lang="en">No data available</source>
     </trans-unit>
