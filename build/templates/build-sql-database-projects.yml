@@ -25,7 +25,6 @@ steps:
       yarn lint
     displayName: SqlProj - Lint code
     workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
-    continueOnError: true
 
   - pwsh: |
       yarn test
@@ -38,7 +37,6 @@ steps:
       testResultsFormat: "JUnit"
       testResultsFiles: "$(Build.SourcesDirectory)/extensions/sql-database-projects/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
-    continueOnError: true
 
   - task: PublishCodeCoverageResults@2
     displayName: SqlProj - Publish code coverage

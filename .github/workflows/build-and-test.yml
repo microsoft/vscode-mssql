@@ -15,7 +15,7 @@ on:
     branches:
       - main
       - "release/**"
-      - dev/benjin/addSqlProj
+      - sai/feb/Cleanup_sqlproj # TEMPORARY: Remove before merge once tests pass
   workflow_dispatch:
 
 jobs:
