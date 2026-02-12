@@ -7,9 +7,9 @@ import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { ChangeColumnSettingsParams, ProseDiscoveryResponse } from "../models/contracts/flatFile";
 
-export class FlatFileImportState 
+export class FlatFileImportState
     implements FormState<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec>
- {
+{
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage: string = "";
     fullErrorMessage: string = "";
@@ -37,7 +37,7 @@ export interface FlatFileImportFormState {
     tableSchema: string;
 }
 
-export interface FlatFileImportFormItemSpec 
+export interface FlatFileImportFormItemSpec
     extends FormItemSpec<FlatFileImportFormState, FlatFileImportState, FlatFileImportFormItemSpec> {
     componentWidth: string;
 }
