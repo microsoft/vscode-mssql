@@ -7,26 +7,25 @@
 // New tests should use: import { expect } from 'chai'; with expect().to.equal() pattern.
 // Existing tests using should() will be migrated in a future PR.
 
-import { expect } from 'chai';
-import should = require('should/as-function');
-import * as path from 'path';
-import * as vscode from 'vscode';
-import * as TypeMoq from 'typemoq';
-import * as sinon from 'sinon';
-import * as dataworkspace from 'dataworkspace';
-import * as baselines from './baselines/baselines';
-import * as templates from '../src/templates/templates';
-import * as testUtils from './testUtils';
-import * as constants from '../src/common/constants';
-import * as mssql from 'mssql';
-import * as utils from '../src/common/utils';
+import { expect } from "chai";
+import should = require("should/as-function");
+import * as path from "path";
+import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import * as dataworkspace from "dataworkspace";
+import * as baselines from "./baselines/baselines";
+import * as templates from "../src/templates/templates";
+import * as testUtils from "./testUtils";
+import * as constants from "../src/common/constants";
+import * as mssql from "mssql";
+import * as utils from "../src/common/utils";
 
 import { SqlDatabaseProjectTreeViewProvider } from '../src/controllers/databaseProjectTreeViewProvider';
 import { ProjectsController } from '../src/controllers/projectController';
 import { promises as fs } from 'fs';
 import { createContext, TestContext, mockDacFxResult, mockConnectionProfile } from './testContext';
 import { Project } from '../src/models/project';
-import { PublishDatabaseDialog } from '../src/dialogs/publishDatabaseDialog';
 import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
 import { FolderNode, FileNode } from '../src/models/tree/fileFolderTreeItem';
 import { BaseProjectTreeItem } from '../src/models/tree/baseTreeItem';
@@ -727,65 +726,10 @@ suite('ProjectsController', function (): void {
 		});
 
 		suite('Publishing and script generation', function (): void {
-			test('Publish dialog should open from ProjectController', async function (): Promise<void> {
-				let opened = false;
+			const sandbox = sinon.createSandbox();
 
-				let publishDialog = TypeMoq.Mock.ofType(PublishDatabaseDialog);
-				publishDialog.setup(x => x.openDialog()).returns(() => { opened = true; });
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => publishDialog.object);
-				const proj = new Project('FakePath');
-				sinon.stub(proj, 'getProjectTargetVersion').returns('150');
-				await projController.object.publishProject(proj);
-				should(opened).equal(true);
-			});
-
-			test('Callbacks are hooked up and called from Publish dialog', async function (): Promise<void> {
-				const projectFile = await testUtils.createTestSqlProjFile(this.test, baselines.openProjectFileBaseline)
-				const projFolder = path.dirname(projectFile);
-				await testUtils.createTestDataSources(this.test, baselines.openDataSourcesBaseline, projFolder);
-				const proj = await Project.openProject(projectFile);
-
-				const publishHoller = 'hello from callback for publish()';
-				const generateHoller = 'hello from callback for generateScript()';
-
-				let holler = 'nothing';
-
-				const setupPublishDialog = (): PublishDatabaseDialog => {
-					const dialog = new PublishDatabaseDialog(proj);
-					sinon.stub(dialog, 'getConnectionUri').returns(Promise.resolve('fake|connection|uri'));
-					return dialog;
-				};
-
-				let publishDialog = setupPublishDialog();
-
-				let projController = TypeMoq.Mock.ofType(ProjectsController);
-				projController.callBase = true;
-				projController.setup(x => x.getPublishDialog(TypeMoq.It.isAny())).returns(() => {
-					return publishDialog;
-				});
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), true)).returns(() => {
-					holler = publishHoller;
-					return Promise.resolve(undefined);
-				});
-
-				projController.setup(x => x.publishOrScriptProject(TypeMoq.It.isAny(), TypeMoq.It.isAny(), false)).returns(() => {
-					holler = generateHoller;
-					return Promise.resolve(undefined);
-				});
-				publishDialog.publishToExistingServer = true;
-				void projController.object.publishProject(proj);
-				await publishDialog.publishClick();
-
-				should(holler).equal(publishHoller, 'executionCallback() is supposed to have been setup and called for Publish scenario');
-
-				publishDialog = setupPublishDialog();
-				void projController.object.publishProject(proj);
-				await publishDialog.generateScriptClick();
-
-				should(holler).equal(generateHoller, 'executionCallback() is supposed to have been setup and called for GenerateScript scenario');
+			teardown(function (): void {
+				sandbox.restore();
 			});
 
 			test('Should copy dacpac to temp folder before publishing', async function (): Promise<void> {
@@ -807,7 +751,7 @@ suite('ProjectsController', function (): void {
 					builtDacpacPath = await testUtils.createTestFile(this.test, fakeDacpacContents, 'output.dacpac');
 					return builtDacpacPath;
 				});
-				sinon.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
+				sandbox.stub(utils, 'getDacFxService').resolves(testContext.dacFxService.object);
 
 				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 
@@ -818,6 +762,20 @@ suite('ProjectsController', function (): void {
 				should(builtDacpacPath).not.equal(publishedDacpacPath, 'built and published dacpac paths should be different');
 				should(postCopyContents).equal(fakeDacpacContents, 'contents of built and published dacpacs should match');
 				await fs.rm(publishedDacpacPath);
+			});
+
+			test('publishProject should invoke mssql.publishDatabaseProject command with correct project path', async function (): Promise<void> {
+				const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
+				const expectedProjectPath = proj.projectFilePath;
+
+				const executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand').resolves();
+
+				const projController = new ProjectsController(testContext.outputChannel);
+				await projController.publishProject(proj);
+
+				expect(executeCommandStub.calledOnce, 'executeCommand should be called exactly once').to.be.true;
+				expect(executeCommandStub.firstCall.args[0]).to.equal(constants.mssqlPublishProjectCommand, 'should invoke the mssql publish project command');
+				expect(executeCommandStub.firstCall.args[1]).to.equal(expectedProjectPath, 'should pass the correct project file path');
 			});
 		});
 	});
@@ -1506,49 +1464,74 @@ suite('ProjectsController', function (): void {
 	});
 });
 
-async function setupDeleteExcludeTest(proj: Project): Promise<[FileProjectEntry, ProjectRootTreeItem, FileProjectEntry, FileProjectEntry, FileProjectEntry]> {
-	await proj.addFolder('UpperFolder');
-	await proj.addFolder('UpperFolder/LowerFolder');
-	const scriptEntry = await proj.addScriptItem('UpperFolder/LowerFolder/someScript.sql', 'not a real script');
-	await proj.addScriptItem('UpperFolder/LowerFolder/someOtherScript.sql', 'Also not a real script');
-	await proj.addScriptItem('../anotherScript.sql', 'Also not a real script');
-	const preDeployEntry = await proj.addScriptItem('Script.PreDeployment1.sql', 'pre-deployment stuff', ItemType.preDeployScript);
-	const noneEntry = await proj.addScriptItem('Script.PreDeployment2.sql', 'more pre-deployment stuff', ItemType.preDeployScript);
-	const postDeployEntry = await proj.addScriptItem('Script.PostDeployment1.sql', 'post-deployment stuff', ItemType.postDeployScript);
+async function setupDeleteExcludeTest(
+    proj: Project,
+): Promise<
+    [FileProjectEntry, ProjectRootTreeItem, FileProjectEntry, FileProjectEntry, FileProjectEntry]
+> {
+    await proj.addFolder("UpperFolder");
+    await proj.addFolder("UpperFolder/LowerFolder");
+    const scriptEntry = await proj.addScriptItem(
+        "UpperFolder/LowerFolder/someScript.sql",
+        "not a real script",
+    );
+    await proj.addScriptItem(
+        "UpperFolder/LowerFolder/someOtherScript.sql",
+        "Also not a real script",
+    );
+    await proj.addScriptItem("../anotherScript.sql", "Also not a real script");
+    const preDeployEntry = await proj.addScriptItem(
+        "Script.PreDeployment1.sql",
+        "pre-deployment stuff",
+        ItemType.preDeployScript,
+    );
+    const noneEntry = await proj.addScriptItem(
+        "Script.PreDeployment2.sql",
+        "more pre-deployment stuff",
+        ItemType.preDeployScript,
+    );
+    const postDeployEntry = await proj.addScriptItem(
+        "Script.PostDeployment1.sql",
+        "post-deployment stuff",
+        ItemType.postDeployScript,
+    );
 
-	const projTreeRoot = new ProjectRootTreeItem(proj);
-	sinon.stub(vscode.window, 'showWarningMessage').returns(<any>Promise.resolve(constants.yesString));
+    const projTreeRoot = new ProjectRootTreeItem(proj);
+    sinon
+        .stub(vscode.window, "showWarningMessage")
+        .returns(<any>Promise.resolve(constants.yesString));
 
-	// confirm setup
-	should(proj.sqlObjectScripts.length).equal(3, 'number of file entries');
-	should(proj.folders.length).equal(2, 'number of folder entries');
-	should(proj.preDeployScripts.length).equal(1, 'number of pre-deployment script entries');
-	should(proj.postDeployScripts.length).equal(1, 'number of post-deployment script entries');
-	should(proj.noneDeployScripts.length).equal(1, 'number of none script entries');
-	should(path.parse(scriptEntry.fsUri.fsPath).base).equal('someScript.sql');
-	should((await fs.readFile(scriptEntry.fsUri.fsPath)).toString()).equal('not a real script');
+    // confirm setup
+    should(proj.sqlObjectScripts.length).equal(3, "number of file entries");
+    should(proj.folders.length).equal(2, "number of folder entries");
+    should(proj.preDeployScripts.length).equal(1, "number of pre-deployment script entries");
+    should(proj.postDeployScripts.length).equal(1, "number of post-deployment script entries");
+    should(proj.noneDeployScripts.length).equal(1, "number of none script entries");
+    should(path.parse(scriptEntry.fsUri.fsPath).base).equal("someScript.sql");
+    should((await fs.readFile(scriptEntry.fsUri.fsPath)).toString()).equal("not a real script");
 
-	return [scriptEntry, projTreeRoot, preDeployEntry, postDeployEntry, noneEntry];
+    return [scriptEntry, projTreeRoot, preDeployEntry, postDeployEntry, noneEntry];
 }
 
 async function setupMoveTest(proj: Project): Promise<ProjectRootTreeItem> {
-	await proj.addFolder('UpperFolder');
-	await proj.addFolder('UpperFolder/LowerFolder');
-	await proj.addFolder('folder1');
-	await proj.addScriptItem('UpperFolder/LowerFolder/someScript.sql', 'not a real script');
-	await proj.addScriptItem('UpperFolder/LowerFolder/someOtherScript.sql', 'Also not a real script');
-	await proj.addScriptItem('../anotherScript.sql', 'Also not a real script');
-	await proj.addScriptItem('script1.sql', 'Also not a real script');
+    await proj.addFolder("UpperFolder");
+    await proj.addFolder("UpperFolder/LowerFolder");
+    await proj.addFolder("folder1");
+    await proj.addScriptItem("UpperFolder/LowerFolder/someScript.sql", "not a real script");
+    await proj.addScriptItem(
+        "UpperFolder/LowerFolder/someOtherScript.sql",
+        "Also not a real script",
+    );
+    await proj.addScriptItem("../anotherScript.sql", "Also not a real script");
+    await proj.addScriptItem("script1.sql", "Also not a real script");
 
-	const projTreeRoot = new ProjectRootTreeItem(proj);
-	return projTreeRoot;
+    const projTreeRoot = new ProjectRootTreeItem(proj);
+    return projTreeRoot;
 }
 
 function createWorkspaceTreeItem(node: BaseProjectTreeItem): dataworkspace.WorkspaceTreeItem {
-	return {
-		element: node,
-		treeDataProvider: new SqlDatabaseProjectTreeViewProvider()
-	};
+    return {
+        element: node,
+        treeDataProvider: new SqlDatabaseProjectTreeViewProvider(),
+    };
 }
-
-

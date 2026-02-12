@@ -139,7 +139,7 @@ export async function getPublishToDockerSettings(
 }
 
 async function launchEulaQuickPick(imageInfo: DockerImageInfo | undefined): Promise<boolean> {
-    let eulaAccepted: boolean = false;
+    let eulaAccepted = false;
     const agreementInfo = imageInfo?.agreementInfo;
     if (agreementInfo) {
         const openEulaButton: vscode.QuickInputButton = {

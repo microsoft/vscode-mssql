@@ -71,11 +71,7 @@ export interface FabricProvisioningFormItemSpec
 }
 
 export interface FabricProvisioningContextProps
-    extends FormContextProps<
-        FabricProvisioningFormState,
-        FabricProvisioningState,
-        FabricProvisioningFormItemSpec
-    > {
+    extends FormContextProps<FabricProvisioningFormState> {
     /**
      * Reload fabric environment
      * Used when account/ tenant is changed

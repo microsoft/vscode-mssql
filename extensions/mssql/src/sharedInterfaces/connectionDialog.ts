@@ -217,12 +217,7 @@ export enum AuthenticationType {
     None = "None",
 }
 
-export interface ConnectionDialogContextProps
-    extends FormContextProps<
-        IConnectionDialogProfile,
-        ConnectionDialogWebviewState,
-        ConnectionDialogFormItemSpec
-    > {
+export interface ConnectionDialogContextProps extends FormContextProps<IConnectionDialogProfile> {
     // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useContext, useRef, useSyncExternalStore } from "react";
-import { VscodeWebviewContext2, VscodeWebviewContext2Props } from "./vscodeWebviewProvider2";
+import { VscodeWebviewContext, VscodeWebviewContextProps } from "./vscodeWebviewProvider";
 
 /**
  * Read a tiny slice of the webview state without causing whole-app re-renders.
@@ -15,7 +15,7 @@ export function useVscodeSelector<State, Reducers, T>(
     selector: (s: State) => T,
     equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    const ctx = useContext(VscodeWebviewContext2) as unknown as VscodeWebviewContext2Props<
+    const ctx = useContext(VscodeWebviewContext) as unknown as VscodeWebviewContextProps<
         State,
         Reducers
     >;

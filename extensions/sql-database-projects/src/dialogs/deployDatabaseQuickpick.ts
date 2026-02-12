@@ -27,7 +27,7 @@ export async function launchDeployAppIntegrationQuickpick(
     project: Project,
 ): Promise<IDeployAppIntegrationProfile | undefined> {
     let envVarName: string | undefined = "";
-    const integrateWithAzureFunctions: boolean = true; //TODO: get value from settings or quickpick
+    const integrateWithAzureFunctions = true; //TODO: get value from settings or quickpick
 
     //TODO: find a better way to find if AF or local settings is in the project
     //

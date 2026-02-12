@@ -937,6 +937,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++45b7d94efdc30a678c6379149c3538825e4657958d11e0c4e92f317bbbd9d928" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error updating existing tasks.json: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ошибка при обновлении существующего файла tasks.json: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++46484d457b91deaf27cb5ad7300699fcf6f68109f4218424a6411bea346a7ac0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[File or directory '{0}' doesn't exist]]></Val>
@@ -1144,6 +1153,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++55b4a6e44ed8c1cdf729b8f240b9a2241674bcb579bf4c327e6b3da947a08ca0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Builds the {0} SQL project]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Выполняет сборку проекта SQL {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++566ea12984a4e3c41f444143aa587ddc245400b46fd8225ff9719cf7904e193d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Build Elements]]></Val>
@@ -1342,6 +1360,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++646d218b74cf8fcc4644195bd9dae9ef4615c9d33d9afc5a4ff24e492ce3fb1f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A SQL Projects build task has been added to the existing tasks.json file.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Задача сборки проектов SQL добавлена в существующий файл tasks.json.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Action]]></Val>
@@ -1374,15 +1401,6 @@
           <Val><![CDATA[Target information for extract is required to create database project.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Для создания проекта базы данных требуется целевая информация для извлечения.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++69ed64de5ab064f36a1a9c3d7d36a5710581b8b6f0523bfbb919ee6f116b71c8" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[A tasks.json file already exists in your workspace. Adding SQL project build task to the existing file.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Файл tasks.json уже существует в вашей рабочей области. В существующий файл добавляется задача сборки проекта SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1851,6 +1869,15 @@
           <Val><![CDATA[Are you sure you want to delete the SQLCMD Variable '{0}'?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Вы действительно хотите удалить переменную SQLCMD "{0}"?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++930304a5516931a4bdbd2e5b2b4b255765a068c8a01653f2736f7e81a66129ac" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid format in tasks.json: expected 'tasks' to be an array. Please fix the tasks.json file and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Недопустимый формат файла tasks.json: ожидалось, что "tasks" будет массивом. Исправьте файл tasks.json и повторите попытку.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3762,12 +3789,12 @@
       </Item>
       <Item ItemId=";package.sqlDatabaseProjects.publishDialog" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Publish (Preview)]]></Val>
+          <Val><![CDATA[Publish...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Опубликовать (предварительная версия)]]></Val>
+            <Val><![CDATA[Опубликовать...]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Publish]]></Val>
+            <Val><![CDATA[Publish (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
