@@ -1793,6 +1793,70 @@ suite("ProjectsController", function (): void {
             expect(fileExistsAtOldLocation, "The file should not exist at the old location").to.be
                 .false;
         });
+
+        test("Should move a file to project root when project folder name differs from project name", async function (): Promise<void> {
+            // Arrange
+            const errorSpy = sinon.spy(vscode.window, "showErrorMessage");
+            sinon
+                .stub(vscode.window, "showWarningMessage")
+                .returns(<any>Promise.resolve(constants.move));
+
+            // Create a test project with the default name "TestProject"
+            let proj = await testUtils.createTestProject(
+                this.test,
+                baselines.openSdkStyleSqlProjectBaseline,
+            );
+
+            // Rename the project folder to simulate a different folder name than project name
+            const originalProjectFolder = path.dirname(proj.projectFilePath);
+            const newProjectFolder = originalProjectFolder + "_NewFolder";
+            await fs.rename(originalProjectFolder, newProjectFolder);
+
+            // Update the project path to point to the new location
+            const newProjectPath = path.join(newProjectFolder, path.basename(proj.projectFilePath));
+            proj = await Project.openProject(newProjectPath);
+
+            const projTreeRoot = await setupMoveTest(proj);
+            const projController = new ProjectsController(testContext.outputChannel);
+
+            // Get the file to move from nested folder
+            const upperFolder = projTreeRoot.children.find((x) => x.friendlyName === "UpperFolder");
+            const lowerFolder = upperFolder!.children.find((x) => x.friendlyName === "LowerFolder");
+            const sqlFileNode = lowerFolder!.children.find(
+                (x) => x.friendlyName === "someScript.sql",
+            );
+            const projectRootWorkspaceTreeItem = createWorkspaceTreeItem(projTreeRoot);
+
+            // Act - Move the file from UpperFolder/LowerFolder to the project root
+            await projController.moveFile(
+                vscode.Uri.file(proj.projectFilePath),
+                sqlFileNode,
+                projectRootWorkspaceTreeItem,
+            );
+
+            // Assert
+            expect(errorSpy.notCalled, "showErrorMessage should not have been called").to.be.true;
+
+            // Reload project and verify file was moved to the root
+            proj = await Project.openProject(newProjectPath);
+
+            const movedFile = proj.sqlObjectScripts.find(
+                (f) => f.relativePath === "someScript.sql",
+            );
+            expect(movedFile, "The file path should have been updated to the project root").to.not
+                .be.undefined;
+
+            const fileExistsAtRoot = await utils.exists(
+                path.join(proj.projectFolderPath, "someScript.sql"),
+            );
+            expect(fileExistsAtRoot, "The moved file should exist at the root").to.be.true;
+
+            const fileExistsAtOldLocation = await utils.exists(
+                path.join(proj.projectFolderPath, "UpperFolder", "LowerFolder", "someScript.sql"),
+            );
+            expect(fileExistsAtOldLocation, "The file should not exist at the old location").to.be
+                .false;
+        });
     });
 
     suite("Rename file", function (): void {

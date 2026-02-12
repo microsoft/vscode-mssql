@@ -15,7 +15,6 @@ on:
     branches:
       - main
       - "release/**"
-      - sai/feb/Cleanup_sqlproj_Tests # TEMPORARY: Remove before merge once tests pass
   workflow_dispatch:
 
 jobs:
@@ -301,26 +300,19 @@ jobs:
 
       - name: Setup environment for smoke tests
         run: |
-          wget http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
-          sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
           echo "Setting up environment for smoke tests"
           PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
           echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
-          sudo cp build/mssql.init /etc/init.d/mssql-server
-          sudo chmod +x /etc/init.d/mssql-server
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
-          sudo apt-get update
-          sudo apt-get install -y mssql-server
-          # Set the language choice variable (1 for English)
-          LANGUAGE_CHOICE="1"
-          echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
-          sudo service mssql-server start
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          sudo apt-get update
-          sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
+          docker pull mcr.microsoft.com/mssql/server:2022-latest
+          docker run -e "ACCEPT_EULA=Y" -e "MSSQL_PID=Developer" -e "MSSQL_SA_PASSWORD=$PASSWORD" \
+            -p 1433:1433 --name mssql-server -d mcr.microsoft.com/mssql/server:2022-latest
+          for i in {1..30}; do
+            if docker logs mssql-server 2>&1 | grep -q "SQL Server is now ready for client connections"; then
+              break
+            fi
+            sleep 2
+          done
+          docker logs mssql-server --tail 50
         working-directory: ./extensions/mssql
 
       - name: Run smoke tests
