@@ -10,7 +10,7 @@ import DecompressProvider from "./decompressProvider";
 import HttpClient from "./httpClient";
 import ServerProvider from "./server";
 import { DownloadType, IStatusView } from "./interfaces";
-import { Logger } from "../models/logger";
+import { ILogger } from "../models/interfaces";
 
 export class StubStatusView implements IStatusView {
     constructor(private _log: (msg: string) => void) {}
@@ -31,10 +31,8 @@ export class StubStatusView implements IStatusView {
     }
 }
 
-export class StubLogger extends Logger {
-    constructor(private _log: (msg: string) => void) {
-        super(_log, 0, false, "StubLogger");
-    }
+export class StubLogger implements ILogger {
+    constructor(private _log: (msg: string) => void) {}
 
     logDebug(message: string): void {
         this._log(message);
