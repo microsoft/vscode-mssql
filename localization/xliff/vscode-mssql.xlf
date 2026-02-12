@@ -677,6 +677,9 @@
     <trans-unit id="++CODE++35c09389e41adb1bb2bf8991c39e3927981a271ab80a41ec216995e909344c23">
       <source xml:lang="en">Changes saved successfully.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
+      <source xml:lang="en">Changes view mode</source>
+    </trans-unit>
     <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
       <source xml:lang="en">Changing database context to &quot;{0}&quot; on server &quot;{1}&quot; on document &quot;{2}&quot;.</source>
       <note>{0} is the database name
