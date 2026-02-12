@@ -37,8 +37,9 @@ const windowsForbiddenFilenames: string[] = [
     "LPT9",
 ];
 
-// Invalid characters only for Windows
-const windowsInvalidCharacters: string[] = ["?", ":", "*", "<", ">", "|", '"', "/", "\\"];
+// Invalid characters only for Windows.
+// Note: '/' is invalid on ALL platforms because it is a path separator on Unix and invalid on Windows too.
+const windowsInvalidCharacters: string[] = ["?", ":", "*", "<", ">", "|", '"', "\\"];
 
 // Windows filenames cannot start or end with whitespace
 const windowsInvalidWhitespaceNames: string[] = ["test   ", "test     ", " test"];
@@ -49,7 +50,7 @@ suite("Check for invalid filename tests", function (): void {
         expect(isValidBasename("ValidName"), "ValidName should be valid").to.equal(true);
 
         // invalid for both Windows and non-Windows
-        let invalidNames: string[] = [
+        const invalidNames: string[] = [
             " ",
             "         ",
             ".",
@@ -58,21 +59,29 @@ suite("Check for invalid filename tests", function (): void {
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         ];
 
-        for (let invalidName of invalidNames) {
+        for (const invalidName of invalidNames) {
             expect(isValidBasename(invalidName), `InvalidName that failed:${invalidName}`).to.equal(
                 false,
             );
         }
 
         expect(isValidBasename(undefined), "undefined should be invalid").to.equal(false);
-        expect(isValidBasename("\\"), "backslash should be invalid").to.equal(false);
-        expect(isValidBasename("/"), "forward slash should be invalid").to.equal(false);
+
+        // '\' is invalid on Windows, but valid on Unix
+        expect(isValidBasename("\\"), "backslash should be invalid only on Windows").to.equal(
+            isWindows ? false : true,
+        );
+
+        // '/' is invalid everywhere
+        expect(isValidBasename("/"), "forward slash should be invalid on all platforms").to.equal(
+            false,
+        );
     });
 
     test("Should determine invalid Windows filenames", async () => {
         const invalidNames = [...windowsInvalidCharacters, ...windowsInvalidWhitespaceNames];
 
-        for (let invalidName of invalidNames) {
+        for (const invalidName of invalidNames) {
             expect(
                 isValidBasename(invalidName),
                 `'${invalidName}' should be ${isWindows ? "invalid" : "valid"} on ${isWindows ? "Windows" : "non-Windows"}`,
@@ -81,7 +90,7 @@ suite("Check for invalid filename tests", function (): void {
     });
 
     test("Should determine Windows forbidden filenames", async () => {
-        for (let invalidName of windowsForbiddenFilenames) {
+        for (const invalidName of windowsForbiddenFilenames) {
             expect(
                 isValidBasename(invalidName),
                 `'${invalidName}' should be ${isWindows ? "invalid" : "valid"} on ${isWindows ? "Windows" : "non-Windows"}`,
@@ -103,26 +112,43 @@ suite("Check for invalid filename error tests", function (): void {
             isValidBasenameErrorMessage("        "),
             "whitespace-only filename should return whitespace error",
         ).to.equal(constants.whitespaceFilenameErrorMessage);
+
         expect(
             isValidBasenameErrorMessage(" "),
             "single space filename should return whitespace error",
         ).to.equal(constants.whitespaceFilenameErrorMessage);
+
+        // '.' and '..' are invalid everywhere, but Windows returns the trailing-period error
         expect(
             isValidBasenameErrorMessage("."),
-            "single period filename should return period error",
-        ).to.equal(constants.filenameEndingIsPeriodErrorMessage);
+            "single period filename should return appropriate error",
+        ).to.equal(
+            isWindows
+                ? constants.filenameEndingIsPeriodErrorMessage
+                : constants.reservedValueErrorMessage,
+        );
+
         expect(
             isValidBasenameErrorMessage(".."),
-            "double period filename should return period error",
-        ).to.equal(constants.filenameEndingIsPeriodErrorMessage);
+            "double period filename should return appropriate error",
+        ).to.equal(
+            isWindows
+                ? constants.filenameEndingIsPeriodErrorMessage
+                : constants.reservedValueErrorMessage,
+        );
+
         expect(
             isValidBasenameErrorMessage(undefined),
             "undefined filename should return undefined error",
         ).to.equal(constants.undefinedFilenameErrorMessage);
+
+        // '\' is invalid on Windows, valid on Unix
         expect(
             isValidBasenameErrorMessage("\\"),
-            "backslash filename should return invalid chars error",
-        ).to.equal(constants.invalidFileCharsErrorMessage);
+            "backslash filename should return invalid chars error on Windows only",
+        ).to.equal(isWindows ? constants.invalidFileCharsErrorMessage : undefined);
+
+        // '/' is invalid everywhere
         expect(
             isValidBasenameErrorMessage("/"),
             "forward slash filename should return invalid chars error",
@@ -138,27 +164,28 @@ suite("Check for invalid filename error tests", function (): void {
     });
 
     test("Should determine invalid Windows filenames", async () => {
-        for (let invalidName of windowsInvalidCharacters) {
+        for (const invalidName of windowsInvalidCharacters) {
             expect(
                 isValidBasenameErrorMessage(invalidName),
-                `'${invalidName}' should return ${isWindows ? "invalid chars error" : "empty string"} on ${isWindows ? "Windows" : "non-Windows"}`,
-            ).to.equal(isWindows ? constants.invalidFileCharsErrorMessage : "");
+                `'${invalidName}' should return ${isWindows ? "invalid chars error" : "undefined"} on ${isWindows ? "Windows" : "non-Windows"}`,
+            ).to.equal(isWindows ? constants.invalidFileCharsErrorMessage : undefined);
         }
+
         // Windows filenames cannot start or end with a whitespace
-        for (let invalidName of windowsInvalidWhitespaceNames) {
+        for (const invalidName of windowsInvalidWhitespaceNames) {
             expect(
                 isValidBasenameErrorMessage(invalidName),
-                `'${invalidName}' should return ${isWindows ? "trailing whitespace error" : "empty string"} on ${isWindows ? "Windows" : "non-Windows"}`,
-            ).to.equal(isWindows ? constants.trailingWhitespaceErrorMessage : "");
+                `'${invalidName}' should return ${isWindows ? "trailing whitespace error" : "undefined"} on ${isWindows ? "Windows" : "non-Windows"}`,
+            ).to.equal(isWindows ? constants.trailingWhitespaceErrorMessage : undefined);
         }
     });
 
     test("Should determine Windows forbidden filenames", async () => {
-        for (let invalidName of windowsForbiddenFilenames) {
+        for (const invalidName of windowsForbiddenFilenames) {
             expect(
                 isValidBasenameErrorMessage(invalidName),
                 `InvalidName that failed:${invalidName}`,
-            ).to.equal(isWindows ? constants.reservedWindowsFilenameErrorMessage : "");
+            ).to.equal(isWindows ? constants.reservedWindowsFilenameErrorMessage : undefined);
         }
     });
 });
