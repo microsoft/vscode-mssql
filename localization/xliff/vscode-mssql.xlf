@@ -2297,12 +2297,12 @@
       <source xml:lang="en">Failed to open script: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
-      <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
-    </trans-unit>
     <trans-unit id="++CODE++57720273abceaae68869abb1dfe214c44dc30b747692c3b7e2ef694e13363dd9">
       <source xml:lang="en">Failed to open text in editor: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++07ada7fc091c333284ba42452a6d0ef44eae8f3105e07704463afe34a9d0c92d">
+      <source xml:lang="en">Failed to pull DAB container image. Please check your network connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>

@@ -214,7 +214,7 @@ export const ProfilerDetailsPanel: React.FC<ProfilerDetailsPanelProps> = ({
         );
     }
 
-    const hasTextData = selectedEvent.textData && selectedEvent.textData.trim() !== "";
+    const hasTextData = !!selectedEvent.textData?.trim().length;
 
     return (
         <div
