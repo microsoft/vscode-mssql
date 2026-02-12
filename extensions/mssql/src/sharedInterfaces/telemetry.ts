@@ -43,6 +43,7 @@ export enum TelemetryViews {
     FileBrowser = "FileBrowser",
     Backup = "Backup",
     SearchDatabase = "SearchDatabase",
+    FlatFile = "FlatFile",
 }
 
 export enum TelemetryActions {
@@ -220,6 +221,10 @@ export enum TelemetryActions {
     CopyObjectName = "CopyObjectName",
     RefreshResults = "RefreshResults",
     Search = "Search",
+    ServiceStarted = "ServiceStarted",
+    TablePreview = "TablePreview",
+    ImportFile = "ImportFile",
+    ResetState = "ResetState",
 }
 
 /**

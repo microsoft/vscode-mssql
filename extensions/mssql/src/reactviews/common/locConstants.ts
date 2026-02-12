@@ -65,6 +65,7 @@ export class LocConstants {
             signIn: l10n.t("Sign In"),
             loading: l10n.t("Loading"),
             general: l10n.t("General"),
+            previous: l10n.t("Previous"),
         };
     }
 
@@ -2085,6 +2086,41 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of events"],
                 }),
+        };
+    }
+
+    public get flatFileImport() {
+        return {
+            importFile: l10n.t("Import File"),
+            stepOne: l10n.t("Step 1: Specify Input File"),
+            loadingFlatFileImport: l10n.t("Loading flat file import..."),
+            loadingTablePreview: l10n.t("Loading table preview..."),
+            browse: l10n.t("Browse"),
+            stepTwo: l10n.t("Step 2: Preview Data"),
+            operationPreviewText: l10n.t(
+                "This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.",
+            ),
+            stepThree: l10n.t("Step 3: Modify Columns"),
+            columnName: l10n.t("Column Name"),
+            dataType: l10n.t("Data Type"),
+            allowNulls: l10n.t("Allow Nulls"),
+            primaryKey: l10n.t("Primary Key"),
+            importData: l10n.t("Import Data"),
+            stepFour: l10n.t("Step 4: Summary"),
+            importInformation: l10n.t("Import Information"),
+            importStatus: l10n.t("Import Status"),
+            objectType: l10n.t("Object Type"),
+            name: l10n.t("Name"),
+            serverName: l10n.t("Server Name"),
+            databaseName: l10n.t("Database Name"),
+            tableName: l10n.t("Table Name"),
+            tableSchema: l10n.t("Table Schema"),
+            fileToBeImported: l10n.t("File to be imported"),
+            importingData: l10n.t("Importing data..."),
+            importSuccessful: l10n.t("File imported successfully"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            importNewFile: l10n.t("Import New File"),
         };
     }
 }
