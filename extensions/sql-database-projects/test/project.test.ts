@@ -32,7 +32,7 @@ import {
     SqlProjectReferenceProjectEntry,
     DacpacReferenceProjectEntry,
 } from "../src/models/projectEntry";
-import { ProjectType, SystemDatabase, SystemDbReferenceType } from "mssql";
+import { ProjectType, SystemDatabase, SystemDbReferenceType } from "vscode-mssql";
 
 const projectSuite = process.env.SQLPROJ_TEST_MODE === "1" ? suite.skip : suite;
 

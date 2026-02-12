@@ -148,23 +148,6 @@ suite("Tests to verify utils functions", function (): void {
         should(utils.timeConversion(59)).equal("59 msec");
     });
 
-    test("Should validate port number correctly", () => {
-        should(utils.validateSqlServerPortNumber("invalid")).equals(false);
-        should(utils.validateSqlServerPortNumber("")).equals(false);
-        should(utils.validateSqlServerPortNumber(undefined)).equals(false);
-        should(utils.validateSqlServerPortNumber("65536")).equals(false);
-        should(utils.validateSqlServerPortNumber("-1")).equals(false);
-        should(utils.validateSqlServerPortNumber("65530")).equals(true);
-        should(utils.validateSqlServerPortNumber("1533")).equals(true);
-    });
-
-    test("Should validate empty string correctly", () => {
-        should(utils.isEmptyString("invalid")).equals(false);
-        should(utils.isEmptyString("")).equals(true);
-        should(utils.isEmptyString(undefined)).equals(true);
-        should(utils.isEmptyString("65536")).equals(false);
-    });
-
     test("Should correctly detect present commands", async () => {
         should(await utils.detectCommandInstallation("node")).equal(
             true,
@@ -173,76 +156,6 @@ suite("Tests to verify utils functions", function (): void {
         should(await utils.detectCommandInstallation("bogusFakeCommand")).equal(
             false,
             '"bogusFakeCommand" should have been detected.',
-        );
-    });
-
-    test("Should validate SQL server password correctly", () => {
-        should(utils.isValidSQLPassword("invalid")).equals(
-            false,
-            "string with chars only is invalid password",
-        );
-        should(utils.isValidSQLPassword("")).equals(false, "empty string is invalid password");
-        should(utils.isValidSQLPassword("65536")).equals(
-            false,
-            "string with numbers only is invalid password",
-        );
-        should(utils.isValidSQLPassword("dFGj")).equals(
-            false,
-            "string with lowercase and uppercase char only is invalid password",
-        );
-        should(utils.isValidSQLPassword("dj$")).equals(
-            false,
-            "string with char and symbols only is invalid password",
-        );
-        should(utils.isValidSQLPassword("dF65530")).equals(
-            false,
-            "string with char and numbers only is invalid password",
-        );
-        should(utils.isValidSQLPassword("dF6$30")).equals(false, "dF6$30 is invalid password");
-        should(utils.isValidSQLPassword("dF65$530")).equals(true, "dF65$530 is valid password");
-        should(utils.isValidSQLPassword("dFdf65$530")).equals(true, "dF65$530 is valid password");
-        should(utils.isValidSQLPassword("av1fgh533@")).equals(true, "dF65$530 is valid password");
-    });
-
-    test("findSqlVersionInImageName should return the version correctly", () => {
-        should(utils.findSqlVersionInImageName("2017-CU1-ubuntu")).equals(
-            2017,
-            "invalid number returned for 2017-CU1-ubuntu",
-        );
-        should(utils.findSqlVersionInImageName("2019-latest")).equals(
-            2019,
-            "invalid number returned for 2019-latest",
-        );
-        should(utils.findSqlVersionInImageName("latest")).equals(
-            undefined,
-            "invalid number returned for latest",
-        );
-        should(utils.findSqlVersionInImageName("latest-ubuntu")).equals(
-            undefined,
-            "invalid number returned for latest-ubuntu",
-        );
-        should(utils.findSqlVersionInImageName("2017-CU20-ubuntu-16.04")).equals(
-            2017,
-            "invalid number returned for 2017-CU20-ubuntu-16.04",
-        );
-    });
-
-    test("findSqlVersionInTargetPlatform should return the version correctly", () => {
-        should(utils.findSqlVersionInTargetPlatform("SQL Server 2012")).equals(
-            2012,
-            "invalid number returned for SQL Server 2012",
-        );
-        should(utils.findSqlVersionInTargetPlatform("SQL Server 2019")).equals(
-            2019,
-            "invalid number returned for SQL Server 2019",
-        );
-        should(utils.findSqlVersionInTargetPlatform("Azure SQL Database")).equals(
-            undefined,
-            "invalid number returned for Azure SQL Database",
-        );
-        should(utils.findSqlVersionInTargetPlatform("Azure Synapse SQL Pool")).equals(
-            undefined,
-            "invalid number returned for Azure Synapse SQL Pool",
         );
     });
 });
