@@ -2012,7 +2012,6 @@ suite("ProjectsController", function (): void {
             );
         });
 
-        // TODO: This test fails due to mock setup issue, will be fixed with cleanup
         test.skip("Should move a file to project root when project folder name differs from project name", async function (): Promise<void> {
             const spy = sinon.spy(vscode.window, "showErrorMessage");
             sinon
